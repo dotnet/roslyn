@@ -22607,55 +22607,75 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       53 (0x35)
+  // Code size       58 (0x3a)
   .maxstack  3
   .locals init (T& V_0,
-            T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldloc.0
-  IL_001c:  constrained. ""T""
-  IL_0022:  callvirt   ""int I1.Length.get""
-  IL_0027:  ldc.i4.1
-  IL_0028:  sub
-  IL_0029:  constrained. ""T""
-  IL_002f:  callvirt   ""string I1.this[int].get""
-  IL_0034:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  constrained. ""T""
+  IL_0027:  callvirt   ""int I1.Length.get""
+  IL_002c:  ldc.i4.1
+  IL_002d:  sub
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""string I1.this[int].get""
+  IL_0039:  ret
 }
 " :
 @"
 {
-  // Code size       45 (0x2d)
+  // Code size       75 (0x4b)
   .maxstack  3
   .locals init (T& V_0,
-            T V_1,
-            T V_2)
+                T V_1,
+                T& V_2,
+                T V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldloc.0
-  IL_000c:  ldobj      ""T""
-  IL_0011:  stloc.2
-  IL_0012:  ldloca.s   V_2
-  IL_0014:  constrained. ""T""
-  IL_001a:  callvirt   ""int I1.Length.get""
-  IL_001f:  ldc.i4.1
-  IL_0020:  sub
-  IL_0021:  constrained. ""T""
-  IL_0027:  callvirt   ""string I1.this[int].get""
-  IL_002c:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldloc.0
+  IL_0029:  ldobj      ""T""
+  IL_002e:  stloc.s    V_4
+  IL_0030:  ldloca.s   V_4
+  IL_0032:  constrained. ""T""
+  IL_0038:  callvirt   ""int I1.Length.get""
+  IL_003d:  ldc.i4.1
+  IL_003e:  sub
+  IL_003f:  constrained. ""T""
+  IL_0045:  callvirt   ""string I1.this[int].get""
+  IL_004a:  ret
 }
 ");
 
@@ -22664,6 +22684,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_01(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -22711,6 +22732,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -22770,49 +22792,78 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       28 (0x1c)
+  // Code size       57 (0x39)
   .maxstack  3
-  .locals init (int V_0)
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  constrained. ""T""
-  IL_0008:  callvirt   ""int I1.Length.get""
-  IL_000d:  ldc.i4.1
-  IL_000e:  sub
-  IL_000f:  stloc.0
-  IL_0010:  ldobj      ""T""
-  IL_0015:  ldloc.0
-  IL_0016:  call       ""string Extensions.get_Item<T>(T, int)""
-  IL_001b:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.2
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""int I1.Length.get""
+  IL_002a:  ldc.i4.1
+  IL_002b:  sub
+  IL_002c:  stloc.3
+  IL_002d:  ldobj      ""T""
+  IL_0032:  ldloc.3
+  IL_0033:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0038:  ret
 }
 " :
 @"
 {
-  // Code size       36 (0x24)
+  // Code size       65 (0x41)
   .maxstack  3
-  .locals init (int V_0,
-            T V_1)
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  ldobj      ""T""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  constrained. ""T""
-  IL_0010:  callvirt   ""int I1.Length.get""
-  IL_0015:  ldc.i4.1
-  IL_0016:  sub
-  IL_0017:  stloc.0
-  IL_0018:  ldobj      ""T""
-  IL_001d:  ldloc.0
-  IL_001e:  call       ""string Extensions.get_Item<T>(T, int)""
-  IL_0023:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.2
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""int I1.Length.get""
+  IL_0032:  ldc.i4.1
+  IL_0033:  sub
+  IL_0034:  stloc.3
+  IL_0035:  ldobj      ""T""
+  IL_003a:  ldloc.3
+  IL_003b:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0040:  ret
 }
 "
 );
@@ -22925,27 +22976,42 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>",
 @"
 {
-  // Code size       27 (0x1b)
+  // Code size       56 (0x38)
   .maxstack  3
-  .locals init (int V_0)
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000c:  ldc.i4.1
-  IL_000d:  sub
-  IL_000e:  stloc.0
-  IL_000f:  ldobj      ""T""
-  IL_0014:  ldloc.0
-  IL_0015:  call       ""string Extensions.get_Item<T>(T, int)""
-  IL_001a:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.2
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
+  IL_002b:  stloc.3
+  IL_002c:  ldobj      ""T""
+  IL_0031:  ldloc.3
+  IL_0032:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0037:  ret
 }
 ");
 
@@ -23065,51 +23131,71 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       52 (0x34)
+  // Code size       57 (0x39)
   .maxstack  3
   .locals init (T& V_0,
-            T V_1)
+            T V_1,
+            T& V_2,
+            T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldloc.0
-  IL_001c:  ldobj      ""T""
-  IL_0021:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0026:  ldc.i4.1
-  IL_0027:  sub
-  IL_0028:  constrained. ""T""
-  IL_002e:  callvirt   ""string I1.this[int].get""
-  IL_0033:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ldobj      ""T""
+  IL_0026:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string I1.this[int].get""
+  IL_0038:  ret
 }
 " :
 @"
 {
-  // Code size       36 (0x24)
+  // Code size       65 (0x41)
   .maxstack  3
   .locals init (T& V_0,
-            T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldloc.0
-  IL_000c:  ldobj      ""T""
-  IL_0011:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0016:  ldc.i4.1
-  IL_0017:  sub
-  IL_0018:  constrained. ""T""
-  IL_001e:  callvirt   ""string I1.this[int].get""
-  IL_0023:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldloc.0
+  IL_0029:  ldobj      ""T""
+  IL_002e:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0033:  ldc.i4.1
+  IL_0034:  sub
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""string I1.this[int].get""
+  IL_0040:  ret
 }
 ");
 
@@ -23118,6 +23204,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_04_Extension(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -23171,6 +23258,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -23232,55 +23320,75 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       58 (0x3a)
+  // Code size       63 (0x3f)
   .maxstack  3
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldarga.s   V_1
-  IL_001d:  ldloc.0
-  IL_001e:  constrained. ""T""
-  IL_0024:  callvirt   ""int I1.Length.get""
-  IL_0029:  call       ""int System.Index.GetOffset(int)""
-  IL_002e:  constrained. ""T""
-  IL_0034:  callvirt   ""string I1.this[int].get""
-  IL_0039:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldarga.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  constrained. ""T""
+  IL_0029:  callvirt   ""int I1.Length.get""
+  IL_002e:  call       ""int System.Index.GetOffset(int)""
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""string I1.this[int].get""
+  IL_003e:  ret
 }
 " :
 @"
 {
-  // Code size       50 (0x32)
+  // Code size       80 (0x50)
   .maxstack  3
   .locals init (T& V_0,
                 T V_1,
-                T V_2)
+                T& V_2,
+                T V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldarga.s   V_1
-  IL_000d:  ldloc.0
-  IL_000e:  ldobj      ""T""
-  IL_0013:  stloc.2
-  IL_0014:  ldloca.s   V_2
-  IL_0016:  constrained. ""T""
-  IL_001c:  callvirt   ""int I1.Length.get""
-  IL_0021:  call       ""int System.Index.GetOffset(int)""
-  IL_0026:  constrained. ""T""
-  IL_002c:  callvirt   ""string I1.this[int].get""
-  IL_0031:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldarga.s   V_1
+  IL_002a:  ldloc.0
+  IL_002b:  ldobj      ""T""
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloca.s   V_4
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""int I1.Length.get""
+  IL_003f:  call       ""int System.Index.GetOffset(int)""
+  IL_0044:  constrained. ""T""
+  IL_004a:  callvirt   ""string I1.this[int].get""
+  IL_004f:  ret
 }
 ");
 
@@ -23289,6 +23397,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_05(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -23336,6 +23445,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -23395,55 +23505,84 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       35 (0x23)
+  // Code size       66 (0x42)
   .maxstack  2
   .locals init (T& V_0,
-                int V_1)
+                T V_1,
+                T& V_2,
+                T V_3,
+                int V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarga.s   V_1
-  IL_0004:  ldloc.0
-  IL_0005:  constrained. ""T""
-  IL_000b:  callvirt   ""int I1.Length.get""
-  IL_0010:  call       ""int System.Index.GetOffset(int)""
-  IL_0015:  stloc.1
-  IL_0016:  ldloc.0
-  IL_0017:  ldobj      ""T""
-  IL_001c:  ldloc.1
-  IL_001d:  call       ""string Extensions.get_Item<T>(T, int)""
-  IL_0022:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldarga.s   V_1
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  stloc.s    V_4
+  IL_0034:  ldloc.0
+  IL_0035:  ldobj      ""T""
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0041:  ret
 }
 " :
 @"
 {
-  // Code size       43 (0x2b)
+  // Code size       74 (0x4a)
   .maxstack  2
   .locals init (T& V_0,
-                int V_1,
-                T V_2)
+                T V_1,
+                T& V_2,
+                T V_3,
+                int V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarga.s   V_1
-  IL_0004:  ldloc.0
-  IL_0005:  ldobj      ""T""
-  IL_000a:  stloc.2
-  IL_000b:  ldloca.s   V_2
-  IL_000d:  constrained. ""T""
-  IL_0013:  callvirt   ""int I1.Length.get""
-  IL_0018:  call       ""int System.Index.GetOffset(int)""
-  IL_001d:  stloc.1
-  IL_001e:  ldloc.0
-  IL_001f:  ldobj      ""T""
-  IL_0024:  ldloc.1
-  IL_0025:  call       ""string Extensions.get_Item<T>(T, int)""
-  IL_002a:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldarga.s   V_1
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.3
+  IL_0028:  ldloca.s   V_3
+  IL_002a:  constrained. ""T""
+  IL_0030:  callvirt   ""int I1.Length.get""
+  IL_0035:  call       ""int System.Index.GetOffset(int)""
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloc.0
+  IL_003d:  ldobj      ""T""
+  IL_0042:  ldloc.s    V_4
+  IL_0044:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0049:  ret
 }
 "
 );
@@ -23556,30 +23695,45 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>",
 @"
 {
-  // Code size       34 (0x22)
+  // Code size       65 (0x41)
   .maxstack  2
   .locals init (T& V_0,
-                int V_1)
+                T V_1,
+                T& V_2,
+                T V_3,
+                int V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarga.s   V_1
-  IL_0004:  ldloc.0
-  IL_0005:  ldobj      ""T""
-  IL_000a:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000f:  call       ""int System.Index.GetOffset(int)""
-  IL_0014:  stloc.1
-  IL_0015:  ldloc.0
-  IL_0016:  ldobj      ""T""
-  IL_001b:  ldloc.1
-  IL_001c:  call       ""string Extensions.get_Item<T>(T, int)""
-  IL_0021:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldarga.s   V_1
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  call       ""int System.Index.GetOffset(int)""
+  IL_0031:  stloc.s    V_4
+  IL_0033:  ldloc.0
+  IL_0034:  ldobj      ""T""
+  IL_0039:  ldloc.s    V_4
+  IL_003b:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0040:  ret
 }
 ");
 
@@ -23699,51 +23853,71 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       57 (0x39)
+  // Code size       62 (0x3e)
   .maxstack  3
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldarga.s   V_1
-  IL_001d:  ldloc.0
-  IL_001e:  ldobj      ""T""
-  IL_0023:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0028:  call       ""int System.Index.GetOffset(int)""
-  IL_002d:  constrained. ""T""
-  IL_0033:  callvirt   ""string I1.this[int].get""
-  IL_0038:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldarga.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  ldobj      ""T""
+  IL_0028:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  constrained. ""T""
+  IL_0038:  callvirt   ""string I1.this[int].get""
+  IL_003d:  ret
 }
 " :
 @"
 {
-  // Code size       41 (0x29)
+  // Code size       70 (0x46)
   .maxstack  3
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldarga.s   V_1
-  IL_000d:  ldloc.0
-  IL_000e:  ldobj      ""T""
-  IL_0013:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0018:  call       ""int System.Index.GetOffset(int)""
-  IL_001d:  constrained. ""T""
-  IL_0023:  callvirt   ""string I1.this[int].get""
-  IL_0028:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldarga.s   V_1
+  IL_002a:  ldloc.0
+  IL_002b:  ldobj      ""T""
+  IL_0030:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0035:  call       ""int System.Index.GetOffset(int)""
+  IL_003a:  constrained. ""T""
+  IL_0040:  callvirt   ""string I1.this[int].get""
+  IL_0045:  ret
 }
 ");
 
@@ -23752,6 +23926,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_08_Extension(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -23805,6 +23980,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -37556,58 +37732,87 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       32 (0x20)
+  // Code size       61 (0x3d)
   .maxstack  4
-  .locals init (int V_0)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  constrained. ""T""
-  IL_0008:  callvirt   ""int I1.Length.get""
-  IL_000d:  ldc.i4.1
-  IL_000e:  sub
-  IL_000f:  stloc.0
-  IL_0010:  ldloc.0
-  IL_0011:  ldc.i4.3
-  IL_0012:  ldloc.0
-  IL_0013:  sub
-  IL_0014:  constrained. ""T""
-  IL_001a:  callvirt   ""string I1.Slice(int, int)""
-  IL_001f:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""int I1.Length.get""
+  IL_002a:  ldc.i4.1
+  IL_002b:  sub
+  IL_002c:  stloc.2
+  IL_002d:  ldloc.2
+  IL_002e:  ldc.i4.3
+  IL_002f:  ldloc.2
+  IL_0030:  sub
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""string I1.Slice(int, int)""
+  IL_003c:  ret
 }
 " :
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       77 (0x4d)
   .maxstack  4
-  .locals init (int V_0,
-                T V_1)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  ldobj      ""T""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  constrained. ""T""
-  IL_0010:  callvirt   ""int I1.Length.get""
-  IL_0015:  ldc.i4.1
-  IL_0016:  sub
-  IL_0017:  stloc.0
-  IL_0018:  ldobj      ""T""
-  IL_001d:  stloc.1
-  IL_001e:  ldloca.s   V_1
-  IL_0020:  ldloc.0
-  IL_0021:  ldc.i4.3
-  IL_0022:  ldloc.0
-  IL_0023:  sub
-  IL_0024:  constrained. ""T""
-  IL_002a:  callvirt   ""string I1.Slice(int, int)""
-  IL_002f:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  stloc.3
+  IL_0025:  ldloca.s   V_3
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""int I1.Length.get""
+  IL_0032:  ldc.i4.1
+  IL_0033:  sub
+  IL_0034:  stloc.2
+  IL_0035:  ldobj      ""T""
+  IL_003a:  stloc.3
+  IL_003b:  ldloca.s   V_3
+  IL_003d:  ldloc.2
+  IL_003e:  ldc.i4.3
+  IL_003f:  ldloc.2
+  IL_0040:  sub
+  IL_0041:  constrained. ""T""
+  IL_0047:  callvirt   ""string I1.Slice(int, int)""
+  IL_004c:  ret
 }
 ");
 
@@ -37718,67 +37923,96 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       35 (0x23)
+  // Code size       67 (0x43)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1,
-                int V_2)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  constrained. ""T""
-  IL_0008:  callvirt   ""int I1.Length.get""
-  IL_000d:  ldc.i4.1
-  IL_000e:  sub
-  IL_000f:  stloc.0
-  IL_0010:  ldloc.0
-  IL_0011:  stloc.1
-  IL_0012:  ldc.i4.3
-  IL_0013:  ldloc.0
-  IL_0014:  sub
-  IL_0015:  stloc.2
-  IL_0016:  ldobj      ""T""
-  IL_001b:  ldloc.1
-  IL_001c:  ldloc.2
-  IL_001d:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0022:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""int I1.Length.get""
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  stloc.2
+  IL_002e:  ldloc.2
+  IL_002f:  stloc.3
+  IL_0030:  ldc.i4.3
+  IL_0031:  ldloc.2
+  IL_0032:  sub
+  IL_0033:  stloc.s    V_4
+  IL_0035:  ldobj      ""T""
+  IL_003a:  ldloc.3
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0042:  ret
 }
 " :
 @"
 {
-  // Code size       43 (0x2b)
+  // Code size       76 (0x4c)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1,
+  .locals init (T V_0,
+                T& V_1,
                 int V_2,
-                T V_3)
+                int V_3,
+                int V_4,
+                T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  ldobj      ""T""
-  IL_0007:  stloc.3
-  IL_0008:  ldloca.s   V_3
-  IL_000a:  constrained. ""T""
-  IL_0010:  callvirt   ""int I1.Length.get""
-  IL_0015:  ldc.i4.1
-  IL_0016:  sub
-  IL_0017:  stloc.0
-  IL_0018:  ldloc.0
-  IL_0019:  stloc.1
-  IL_001a:  ldc.i4.3
-  IL_001b:  ldloc.0
-  IL_001c:  sub
-  IL_001d:  stloc.2
-  IL_001e:  ldobj      ""T""
-  IL_0023:  ldloc.1
-  IL_0024:  ldloc.2
-  IL_0025:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_002a:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.s    V_5
+  IL_0027:  ldloca.s   V_5
+  IL_0029:  constrained. ""T""
+  IL_002f:  callvirt   ""int I1.Length.get""
+  IL_0034:  ldc.i4.1
+  IL_0035:  sub
+  IL_0036:  stloc.2
+  IL_0037:  ldloc.2
+  IL_0038:  stloc.3
+  IL_0039:  ldc.i4.3
+  IL_003a:  ldloc.2
+  IL_003b:  sub
+  IL_003c:  stloc.s    V_4
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_004b:  ret
 }
 "
 );
@@ -37891,36 +38125,51 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>",
 @"
 {
-  // Code size       34 (0x22)
+  // Code size       66 (0x42)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1,
-                int V_2)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000c:  ldc.i4.1
-  IL_000d:  sub
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  stloc.1
-  IL_0011:  ldc.i4.3
-  IL_0012:  ldloc.0
-  IL_0013:  sub
-  IL_0014:  stloc.2
-  IL_0015:  ldobj      ""T""
-  IL_001a:  ldloc.1
-  IL_001b:  ldloc.2
-  IL_001c:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0021:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002a:  ldc.i4.1
+  IL_002b:  sub
+  IL_002c:  stloc.2
+  IL_002d:  ldloc.2
+  IL_002e:  stloc.3
+  IL_002f:  ldc.i4.3
+  IL_0030:  ldloc.2
+  IL_0031:  sub
+  IL_0032:  stloc.s    V_4
+  IL_0034:  ldobj      ""T""
+  IL_0039:  ldloc.3
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0041:  ret
 }
 ");
 
@@ -38033,55 +38282,84 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       31 (0x1f)
+  // Code size       60 (0x3c)
   .maxstack  4
-  .locals init (int V_0)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000c:  ldc.i4.1
-  IL_000d:  sub
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  ldc.i4.3
-  IL_0011:  ldloc.0
-  IL_0012:  sub
-  IL_0013:  constrained. ""T""
-  IL_0019:  callvirt   ""string I1.Slice(int, int)""
-  IL_001e:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
+  IL_002b:  stloc.2
+  IL_002c:  ldloc.2
+  IL_002d:  ldc.i4.3
+  IL_002e:  ldloc.2
+  IL_002f:  sub
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""string I1.Slice(int, int)""
+  IL_003b:  ret
 }
 " :
 @"
 {
-  // Code size       39 (0x27)
+  // Code size       68 (0x44)
   .maxstack  4
-  .locals init (int V_0,
-                T V_1)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  dup
-  IL_0002:  ldobj      ""T""
-  IL_0007:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000c:  ldc.i4.1
-  IL_000d:  sub
-  IL_000e:  stloc.0
-  IL_000f:  ldobj      ""T""
-  IL_0014:  stloc.1
-  IL_0015:  ldloca.s   V_1
-  IL_0017:  ldloc.0
-  IL_0018:  ldc.i4.3
-  IL_0019:  ldloc.0
-  IL_001a:  sub
-  IL_001b:  constrained. ""T""
-  IL_0021:  callvirt   ""string I1.Slice(int, int)""
-  IL_0026:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
+  IL_002b:  stloc.2
+  IL_002c:  ldobj      ""T""
+  IL_0031:  stloc.3
+  IL_0032:  ldloca.s   V_3
+  IL_0034:  ldloc.2
+  IL_0035:  ldc.i4.3
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  constrained. ""T""
+  IL_003e:  callvirt   ""string I1.Slice(int, int)""
+  IL_0043:  ret
 }
 ");
 
@@ -38193,70 +38471,99 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       41 (0x29)
+  // Code size       74 (0x4a)
   .maxstack  4
   .locals init (T& V_0,
-                System.Index V_1,
-                int V_2)
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarg.1
-  IL_0003:  stloc.1
-  IL_0004:  ldloca.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  constrained. ""T""
-  IL_000d:  callvirt   ""int I1.Length.get""
-  IL_0012:  call       ""int System.Index.GetOffset(int)""
-  IL_0017:  stloc.2
-  IL_0018:  ldloc.0
-  IL_0019:  ldloc.2
-  IL_001a:  ldc.i4.3
-  IL_001b:  ldloc.2
-  IL_001c:  sub
-  IL_001d:  constrained. ""T""
-  IL_0023:  callvirt   ""string I1.Slice(int, int)""
-  IL_0028:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  constrained. ""T""
+  IL_002b:  callvirt   ""int I1.Length.get""
+  IL_0030:  call       ""int System.Index.GetOffset(int)""
+  IL_0035:  stloc.s    V_4
+  IL_0037:  ldloc.0
+  IL_0038:  ldloc.s    V_4
+  IL_003a:  ldc.i4.3
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  sub
+  IL_003e:  constrained. ""T""
+  IL_0044:  callvirt   ""string I1.Slice(int, int)""
+  IL_0049:  ret
 }
 " :
 @"
 {
-  // Code size       57 (0x39)
+  // Code size       92 (0x5c)
   .maxstack  4
   .locals init (T& V_0,
-                System.Index V_1,
-                int V_2,
-                T V_3)
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarg.1
-  IL_0003:  stloc.1
-  IL_0004:  ldloca.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  ldobj      ""T""
-  IL_000c:  stloc.3
-  IL_000d:  ldloca.s   V_3
-  IL_000f:  constrained. ""T""
-  IL_0015:  callvirt   ""int I1.Length.get""
-  IL_001a:  call       ""int System.Index.GetOffset(int)""
-  IL_001f:  stloc.2
-  IL_0020:  ldloc.0
-  IL_0021:  ldobj      ""T""
-  IL_0026:  stloc.3
-  IL_0027:  ldloca.s   V_3
-  IL_0029:  ldloc.2
-  IL_002a:  ldc.i4.3
-  IL_002b:  ldloc.2
-  IL_002c:  sub
-  IL_002d:  constrained. ""T""
-  IL_0033:  callvirt   ""string I1.Slice(int, int)""
-  IL_0038:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  stloc.s    V_5
+  IL_002c:  ldloca.s   V_5
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""int I1.Length.get""
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloc.0
+  IL_0041:  ldobj      ""T""
+  IL_0046:  stloc.s    V_5
+  IL_0048:  ldloca.s   V_5
+  IL_004a:  ldloc.s    V_4
+  IL_004c:  ldc.i4.3
+  IL_004d:  ldloc.s    V_4
+  IL_004f:  sub
+  IL_0050:  constrained. ""T""
+  IL_0056:  callvirt   ""string I1.Slice(int, int)""
+  IL_005b:  ret
 }
 ");
 
@@ -38367,79 +38674,108 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       46 (0x2e)
+  // Code size       81 (0x51)
   .maxstack  3
   .locals init (T& V_0,
-                System.Index V_1,
-                int V_2,
-                int V_3,
-                int V_4)
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                T V_7)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarg.1
-  IL_0003:  stloc.1
-  IL_0004:  ldloca.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  constrained. ""T""
-  IL_000d:  callvirt   ""int I1.Length.get""
-  IL_0012:  call       ""int System.Index.GetOffset(int)""
-  IL_0017:  stloc.2
-  IL_0018:  ldloc.2
-  IL_0019:  stloc.3
-  IL_001a:  ldc.i4.3
-  IL_001b:  ldloc.2
-  IL_001c:  sub
-  IL_001d:  stloc.s    V_4
-  IL_001f:  ldloc.0
-  IL_0020:  ldobj      ""T""
-  IL_0025:  ldloc.3
-  IL_0026:  ldloc.s    V_4
-  IL_0028:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_002d:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_7
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_7
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  constrained. ""T""
+  IL_002b:  callvirt   ""int I1.Length.get""
+  IL_0030:  call       ""int System.Index.GetOffset(int)""
+  IL_0035:  stloc.s    V_4
+  IL_0037:  ldloc.s    V_4
+  IL_0039:  stloc.s    V_5
+  IL_003b:  ldc.i4.3
+  IL_003c:  ldloc.s    V_4
+  IL_003e:  sub
+  IL_003f:  stloc.s    V_6
+  IL_0041:  ldloc.0
+  IL_0042:  ldobj      ""T""
+  IL_0047:  ldloc.s    V_5
+  IL_0049:  ldloc.s    V_6
+  IL_004b:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0050:  ret
 }
 " :
 @"
 {
-  // Code size       55 (0x37)
+  // Code size       90 (0x5a)
   .maxstack  3
   .locals init (T& V_0,
-                System.Index V_1,
-                int V_2,
-                int V_3,
+                T V_1,
+                T& V_2,
+                System.Index V_3,
                 int V_4,
-                T V_5)
+                int V_5,
+                int V_6,
+                T V_7)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarg.1
-  IL_0003:  stloc.1
-  IL_0004:  ldloca.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  ldobj      ""T""
-  IL_000c:  stloc.s    V_5
-  IL_000e:  ldloca.s   V_5
-  IL_0010:  constrained. ""T""
-  IL_0016:  callvirt   ""int I1.Length.get""
-  IL_001b:  call       ""int System.Index.GetOffset(int)""
-  IL_0020:  stloc.2
-  IL_0021:  ldloc.2
-  IL_0022:  stloc.3
-  IL_0023:  ldc.i4.3
-  IL_0024:  ldloc.2
-  IL_0025:  sub
-  IL_0026:  stloc.s    V_4
-  IL_0028:  ldloc.0
-  IL_0029:  ldobj      ""T""
-  IL_002e:  ldloc.3
-  IL_002f:  ldloc.s    V_4
-  IL_0031:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0036:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_7
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_7
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  stloc.s    V_7
+  IL_002c:  ldloca.s   V_7
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""int I1.Length.get""
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  stloc.s    V_5
+  IL_0044:  ldc.i4.3
+  IL_0045:  ldloc.s    V_4
+  IL_0047:  sub
+  IL_0048:  stloc.s    V_6
+  IL_004a:  ldloc.0
+  IL_004b:  ldobj      ""T""
+  IL_0050:  ldloc.s    V_5
+  IL_0052:  ldloc.s    V_6
+  IL_0054:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0059:  ret
 }
 "
 );
@@ -38552,42 +38888,57 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>",
 @"
 {
-  // Code size       45 (0x2d)
+  // Code size       80 (0x50)
   .maxstack  3
   .locals init (T& V_0,
-                System.Index V_1,
-                int V_2,
-                int V_3,
-                int V_4)
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                T V_7)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarg.1
-  IL_0003:  stloc.1
-  IL_0004:  ldloca.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  ldobj      ""T""
-  IL_000c:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0011:  call       ""int System.Index.GetOffset(int)""
-  IL_0016:  stloc.2
-  IL_0017:  ldloc.2
-  IL_0018:  stloc.3
-  IL_0019:  ldc.i4.3
-  IL_001a:  ldloc.2
-  IL_001b:  sub
-  IL_001c:  stloc.s    V_4
-  IL_001e:  ldloc.0
-  IL_001f:  ldobj      ""T""
-  IL_0024:  ldloc.3
-  IL_0025:  ldloc.s    V_4
-  IL_0027:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_002c:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_7
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_7
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloc.s    V_4
+  IL_0038:  stloc.s    V_5
+  IL_003a:  ldc.i4.3
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  sub
+  IL_003e:  stloc.s    V_6
+  IL_0040:  ldloc.0
+  IL_0041:  ldobj      ""T""
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  ldloc.s    V_6
+  IL_004a:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_004f:  ret
 }
 ");
 
@@ -38700,67 +39051,96 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       40 (0x28)
+  // Code size       73 (0x49)
   .maxstack  4
   .locals init (T& V_0,
-                System.Index V_1,
-                int V_2)
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarg.1
-  IL_0003:  stloc.1
-  IL_0004:  ldloca.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  ldobj      ""T""
-  IL_000c:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0011:  call       ""int System.Index.GetOffset(int)""
-  IL_0016:  stloc.2
-  IL_0017:  ldloc.0
-  IL_0018:  ldloc.2
-  IL_0019:  ldc.i4.3
-  IL_001a:  ldloc.2
-  IL_001b:  sub
-  IL_001c:  constrained. ""T""
-  IL_0022:  callvirt   ""string I1.Slice(int, int)""
-  IL_0027:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloc.0
+  IL_0037:  ldloc.s    V_4
+  IL_0039:  ldc.i4.3
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  sub
+  IL_003d:  constrained. ""T""
+  IL_0043:  callvirt   ""string I1.Slice(int, int)""
+  IL_0048:  ret
 }
 " :
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       82 (0x52)
   .maxstack  4
   .locals init (T& V_0,
-            System.Index V_1,
-            int V_2,
-            T V_3)
+            T V_1,
+            T& V_2,
+            System.Index V_3,
+            int V_4,
+            T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldarg.1
-  IL_0003:  stloc.1
-  IL_0004:  ldloca.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  ldobj      ""T""
-  IL_000c:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0011:  call       ""int System.Index.GetOffset(int)""
-  IL_0016:  stloc.2
-  IL_0017:  ldloc.0
-  IL_0018:  ldobj      ""T""
-  IL_001d:  stloc.3
-  IL_001e:  ldloca.s   V_3
-  IL_0020:  ldloc.2
-  IL_0021:  ldc.i4.3
-  IL_0022:  ldloc.2
-  IL_0023:  sub
-  IL_0024:  constrained. ""T""
-  IL_002a:  callvirt   ""string I1.Slice(int, int)""
-  IL_002f:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloc.0
+  IL_0037:  ldobj      ""T""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  ldloca.s   V_5
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  ldc.i4.3
+  IL_0043:  ldloc.s    V_4
+  IL_0045:  sub
+  IL_0046:  constrained. ""T""
+  IL_004c:  callvirt   ""string I1.Slice(int, int)""
+  IL_0051:  ret
 }
 ");
 
@@ -38879,57 +39259,77 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       54 (0x36)
+  // Code size       59 (0x3b)
   .maxstack  4
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.0
-  IL_001c:  ldloc.0
-  IL_001d:  constrained. ""T""
-  IL_0023:  callvirt   ""int I1.Length.get""
-  IL_0028:  ldc.i4.1
-  IL_0029:  sub
-  IL_002a:  constrained. ""T""
-  IL_0030:  callvirt   ""string I1.Slice(int, int)""
-  IL_0035:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  ldc.i4.1
+  IL_002e:  sub
+  IL_002f:  constrained. ""T""
+  IL_0035:  callvirt   ""string I1.Slice(int, int)""
+  IL_003a:  ret
 }
 " :
 @"
 {
-  // Code size       46 (0x2e)
+  // Code size       76 (0x4c)
   .maxstack  4
   .locals init (T& V_0,
                 T V_1,
-                T V_2)
+                T& V_2,
+                T V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldloc.0
-  IL_000d:  ldobj      ""T""
-  IL_0012:  stloc.2
-  IL_0013:  ldloca.s   V_2
-  IL_0015:  constrained. ""T""
-  IL_001b:  callvirt   ""int I1.Length.get""
-  IL_0020:  ldc.i4.1
-  IL_0021:  sub
-  IL_0022:  constrained. ""T""
-  IL_0028:  callvirt   ""string I1.Slice(int, int)""
-  IL_002d:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  stloc.s    V_4
+  IL_0031:  ldloca.s   V_4
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""int I1.Length.get""
+  IL_003e:  ldc.i4.1
+  IL_003f:  sub
+  IL_0040:  constrained. ""T""
+  IL_0046:  callvirt   ""string I1.Slice(int, int)""
+  IL_004b:  ret
 }
 ");
 
@@ -38938,6 +39338,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_09(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -38985,6 +39386,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -39044,57 +39446,86 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       31 (0x1f)
+  // Code size       61 (0x3d)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  constrained. ""T""
-  IL_000a:  callvirt   ""int I1.Length.get""
-  IL_000f:  ldc.i4.1
-  IL_0010:  sub
-  IL_0011:  stloc.1
-  IL_0012:  ldobj      ""T""
-  IL_0017:  ldloc.0
-  IL_0018:  ldloc.1
-  IL_0019:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_001e:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  ldc.i4.1
+  IL_002e:  sub
+  IL_002f:  stloc.3
+  IL_0030:  ldobj      ""T""
+  IL_0035:  ldloc.2
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_003c:  ret
 }
 " :
 @"
 {
-  // Code size       39 (0x27)
+  // Code size       70 (0x46)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1,
-                T V_2)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  stloc.2
-  IL_000a:  ldloca.s   V_2
-  IL_000c:  constrained. ""T""
-  IL_0012:  callvirt   ""int I1.Length.get""
-  IL_0017:  ldc.i4.1
-  IL_0018:  sub
-  IL_0019:  stloc.1
-  IL_001a:  ldobj      ""T""
-  IL_001f:  ldloc.0
-  IL_0020:  ldloc.1
-  IL_0021:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0026:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.s    V_4
+  IL_0029:  ldloca.s   V_4
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""int I1.Length.get""
+  IL_0036:  ldc.i4.1
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldobj      ""T""
+  IL_003e:  ldloc.2
+  IL_003f:  ldloc.3
+  IL_0040:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0045:  ret
 }
 "
 );
@@ -39207,31 +39638,46 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>",
 @"
 {
-  // Code size       30 (0x1e)
+  // Code size       60 (0x3c)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000e:  ldc.i4.1
-  IL_000f:  sub
-  IL_0010:  stloc.1
-  IL_0011:  ldobj      ""T""
-  IL_0016:  ldloc.0
-  IL_0017:  ldloc.1
-  IL_0018:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_001d:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  ldc.i4.1
+  IL_002d:  sub
+  IL_002e:  stloc.3
+  IL_002f:  ldobj      ""T""
+  IL_0034:  ldloc.2
+  IL_0035:  ldloc.3
+  IL_0036:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_003b:  ret
 }
 ");
 
@@ -39351,53 +39797,73 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       53 (0x35)
+  // Code size       58 (0x3a)
   .maxstack  4
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.0
-  IL_001c:  ldloc.0
-  IL_001d:  ldobj      ""T""
-  IL_0022:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0027:  ldc.i4.1
-  IL_0028:  sub
-  IL_0029:  constrained. ""T""
-  IL_002f:  callvirt   ""string I1.Slice(int, int)""
-  IL_0034:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  ldc.i4.1
+  IL_002d:  sub
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""string I1.Slice(int, int)""
+  IL_0039:  ret
 }
 " :
 @"
 {
-  // Code size       37 (0x25)
+  // Code size       66 (0x42)
   .maxstack  4
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldloc.0
-  IL_000d:  ldobj      ""T""
-  IL_0012:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0017:  ldc.i4.1
-  IL_0018:  sub
-  IL_0019:  constrained. ""T""
-  IL_001f:  callvirt   ""string I1.Slice(int, int)""
-  IL_0024:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0034:  ldc.i4.1
+  IL_0035:  sub
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""string I1.Slice(int, int)""
+  IL_0041:  ret
 }
 ");
 
@@ -39406,6 +39872,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_12_Extension(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -39459,6 +39926,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -39520,61 +39988,81 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       61 (0x3d)
+  // Code size       66 (0x42)
   .maxstack  4
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.3
-  IL_001c:  ldarga.s   V_1
-  IL_001e:  ldloc.0
-  IL_001f:  constrained. ""T""
-  IL_0025:  callvirt   ""int I1.Length.get""
-  IL_002a:  call       ""int System.Index.GetOffset(int)""
-  IL_002f:  ldc.i4.3
-  IL_0030:  sub
-  IL_0031:  constrained. ""T""
-  IL_0037:  callvirt   ""string I1.Slice(int, int)""
-  IL_003c:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  ldarga.s   V_1
+  IL_0023:  ldloc.0
+  IL_0024:  constrained. ""T""
+  IL_002a:  callvirt   ""int I1.Length.get""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  ldc.i4.3
+  IL_0035:  sub
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""string I1.Slice(int, int)""
+  IL_0041:  ret
 }
 " :
 @"
 {
-  // Code size       53 (0x35)
+  // Code size       83 (0x53)
   .maxstack  4
   .locals init (T& V_0,
                 T V_1,
-                T V_2)
+                T& V_2,
+                T V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldc.i4.3
-  IL_000c:  ldarga.s   V_1
-  IL_000e:  ldloc.0
-  IL_000f:  ldobj      ""T""
-  IL_0014:  stloc.2
-  IL_0015:  ldloca.s   V_2
-  IL_0017:  constrained. ""T""
-  IL_001d:  callvirt   ""int I1.Length.get""
-  IL_0022:  call       ""int System.Index.GetOffset(int)""
-  IL_0027:  ldc.i4.3
-  IL_0028:  sub
-  IL_0029:  constrained. ""T""
-  IL_002f:  callvirt   ""string I1.Slice(int, int)""
-  IL_0034:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.3
+  IL_0029:  ldarga.s   V_1
+  IL_002b:  ldloc.0
+  IL_002c:  ldobj      ""T""
+  IL_0031:  stloc.s    V_4
+  IL_0033:  ldloca.s   V_4
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""int I1.Length.get""
+  IL_0040:  call       ""int System.Index.GetOffset(int)""
+  IL_0045:  ldc.i4.3
+  IL_0046:  sub
+  IL_0047:  constrained. ""T""
+  IL_004d:  callvirt   ""string I1.Slice(int, int)""
+  IL_0052:  ret
 }
 ");
 
@@ -39583,6 +40071,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_13(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -39630,6 +40119,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -39689,67 +40179,96 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       40 (0x28)
+  // Code size       72 (0x48)
   .maxstack  3
   .locals init (T& V_0,
-                int V_1,
-                int V_2)
+            T V_1,
+            T& V_2,
+            int V_3,
+            int V_4,
+            T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.3
-  IL_0003:  stloc.1
-  IL_0004:  ldarga.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  constrained. ""T""
-  IL_000d:  callvirt   ""int I1.Length.get""
-  IL_0012:  call       ""int System.Index.GetOffset(int)""
-  IL_0017:  ldc.i4.3
-  IL_0018:  sub
-  IL_0019:  stloc.2
-  IL_001a:  ldloc.0
-  IL_001b:  ldobj      ""T""
-  IL_0020:  ldloc.1
-  IL_0021:  ldloc.2
-  IL_0022:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0027:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  stloc.3
+  IL_0022:  ldarga.s   V_1
+  IL_0024:  ldloc.0
+  IL_0025:  constrained. ""T""
+  IL_002b:  callvirt   ""int I1.Length.get""
+  IL_0030:  call       ""int System.Index.GetOffset(int)""
+  IL_0035:  ldc.i4.3
+  IL_0036:  sub
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloc.0
+  IL_003a:  ldobj      ""T""
+  IL_003f:  ldloc.3
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0047:  ret
 }
 " :
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       81 (0x51)
   .maxstack  3
   .locals init (T& V_0,
-                int V_1,
-                int V_2,
-                T V_3)
+                T V_1,
+                T& V_2,
+                int V_3,
+                int V_4,
+                T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.3
-  IL_0003:  stloc.1
-  IL_0004:  ldarga.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  ldobj      ""T""
-  IL_000c:  stloc.3
-  IL_000d:  ldloca.s   V_3
-  IL_000f:  constrained. ""T""
-  IL_0015:  callvirt   ""int I1.Length.get""
-  IL_001a:  call       ""int System.Index.GetOffset(int)""
-  IL_001f:  ldc.i4.3
-  IL_0020:  sub
-  IL_0021:  stloc.2
-  IL_0022:  ldloc.0
-  IL_0023:  ldobj      ""T""
-  IL_0028:  ldloc.1
-  IL_0029:  ldloc.2
-  IL_002a:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_002f:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  stloc.3
+  IL_0022:  ldarga.s   V_1
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  stloc.s    V_5
+  IL_002c:  ldloca.s   V_5
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""int I1.Length.get""
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  ldc.i4.3
+  IL_003f:  sub
+  IL_0040:  stloc.s    V_4
+  IL_0042:  ldloc.0
+  IL_0043:  ldobj      ""T""
+  IL_0048:  ldloc.3
+  IL_0049:  ldloc.s    V_4
+  IL_004b:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0050:  ret
 }
 "
 );
@@ -39862,36 +40381,51 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>",
 @"
 {
-  // Code size       39 (0x27)
+  // Code size       71 (0x47)
   .maxstack  3
   .locals init (T& V_0,
-                int V_1,
-                int V_2)
+                T V_1,
+                T& V_2,
+                int V_3,
+                int V_4,
+                T V_5)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldc.i4.3
-  IL_0003:  stloc.1
-  IL_0004:  ldarga.s   V_1
-  IL_0006:  ldloc.0
-  IL_0007:  ldobj      ""T""
-  IL_000c:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0011:  call       ""int System.Index.GetOffset(int)""
-  IL_0016:  ldc.i4.3
-  IL_0017:  sub
-  IL_0018:  stloc.2
-  IL_0019:  ldloc.0
-  IL_001a:  ldobj      ""T""
-  IL_001f:  ldloc.1
-  IL_0020:  ldloc.2
-  IL_0021:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0026:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  stloc.3
+  IL_0022:  ldarga.s   V_1
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  ldc.i4.3
+  IL_0035:  sub
+  IL_0036:  stloc.s    V_4
+  IL_0038:  ldloc.0
+  IL_0039:  ldobj      ""T""
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0046:  ret
 }
 ");
 
@@ -40011,57 +40545,77 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       60 (0x3c)
+  // Code size       65 (0x41)
   .maxstack  4
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.3
-  IL_001c:  ldarga.s   V_1
-  IL_001e:  ldloc.0
-  IL_001f:  ldobj      ""T""
-  IL_0024:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0029:  call       ""int System.Index.GetOffset(int)""
-  IL_002e:  ldc.i4.3
-  IL_002f:  sub
-  IL_0030:  constrained. ""T""
-  IL_0036:  callvirt   ""string I1.Slice(int, int)""
-  IL_003b:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  ldarga.s   V_1
+  IL_0023:  ldloc.0
+  IL_0024:  ldobj      ""T""
+  IL_0029:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002e:  call       ""int System.Index.GetOffset(int)""
+  IL_0033:  ldc.i4.3
+  IL_0034:  sub
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""string I1.Slice(int, int)""
+  IL_0040:  ret
 }
 " :
 @"
 {
-  // Code size       44 (0x2c)
+  // Code size       73 (0x49)
   .maxstack  4
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldc.i4.3
-  IL_000c:  ldarga.s   V_1
-  IL_000e:  ldloc.0
-  IL_000f:  ldobj      ""T""
-  IL_0014:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0019:  call       ""int System.Index.GetOffset(int)""
-  IL_001e:  ldc.i4.3
-  IL_001f:  sub
-  IL_0020:  constrained. ""T""
-  IL_0026:  callvirt   ""string I1.Slice(int, int)""
-  IL_002b:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.3
+  IL_0029:  ldarga.s   V_1
+  IL_002b:  ldloc.0
+  IL_002c:  ldobj      ""T""
+  IL_0031:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0036:  call       ""int System.Index.GetOffset(int)""
+  IL_003b:  ldc.i4.3
+  IL_003c:  sub
+  IL_003d:  constrained. ""T""
+  IL_0043:  callvirt   ""string I1.Slice(int, int)""
+  IL_0048:  ret
 }
 ");
 
@@ -40070,6 +40624,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_16_Extension(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -40123,6 +40678,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -40184,53 +40740,73 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       52 (0x34)
+  // Code size       57 (0x39)
   .maxstack  3
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.0
-  IL_001c:  ldloc.0
-  IL_001d:  constrained. ""T""
-  IL_0023:  callvirt   ""int I1.Length.get""
-  IL_0028:  constrained. ""T""
-  IL_002e:  callvirt   ""string I1.Slice(int, int)""
-  IL_0033:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string I1.Slice(int, int)""
+  IL_0038:  ret
 }
 " :
 @"
 {
-  // Code size       44 (0x2c)
+  // Code size       74 (0x4a)
   .maxstack  3
   .locals init (T& V_0,
                 T V_1,
-                T V_2)
+                T& V_2,
+                T V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldloc.0
-  IL_000d:  ldobj      ""T""
-  IL_0012:  stloc.2
-  IL_0013:  ldloca.s   V_2
-  IL_0015:  constrained. ""T""
-  IL_001b:  callvirt   ""int I1.Length.get""
-  IL_0020:  constrained. ""T""
-  IL_0026:  callvirt   ""string I1.Slice(int, int)""
-  IL_002b:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  stloc.s    V_4
+  IL_0031:  ldloca.s   V_4
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""int I1.Length.get""
+  IL_003e:  constrained. ""T""
+  IL_0044:  callvirt   ""string I1.Slice(int, int)""
+  IL_0049:  ret
 }
 ");
 
@@ -40239,6 +40815,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_17(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -40286,6 +40863,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -40345,53 +40923,82 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       29 (0x1d)
+  // Code size       59 (0x3b)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  constrained. ""T""
-  IL_000a:  callvirt   ""int I1.Length.get""
-  IL_000f:  stloc.1
-  IL_0010:  ldobj      ""T""
-  IL_0015:  ldloc.0
-  IL_0016:  ldloc.1
-  IL_0017:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_001c:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  stloc.3
+  IL_002e:  ldobj      ""T""
+  IL_0033:  ldloc.2
+  IL_0034:  ldloc.3
+  IL_0035:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_003a:  ret
 }
 " :
 @"
 {
-  // Code size       37 (0x25)
+  // Code size       68 (0x44)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1,
-                T V_2)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  stloc.2
-  IL_000a:  ldloca.s   V_2
-  IL_000c:  constrained. ""T""
-  IL_0012:  callvirt   ""int I1.Length.get""
-  IL_0017:  stloc.1
-  IL_0018:  ldobj      ""T""
-  IL_001d:  ldloc.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
   IL_001e:  ldloc.1
-  IL_001f:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0024:  ret
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.s    V_4
+  IL_0029:  ldloca.s   V_4
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""int I1.Length.get""
+  IL_0036:  stloc.3
+  IL_0037:  ldobj      ""T""
+  IL_003c:  ldloc.2
+  IL_003d:  ldloc.3
+  IL_003e:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0043:  ret
 }
 "
 );
@@ -40504,29 +41111,44 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>",
 @"
 {
-  // Code size       28 (0x1c)
+  // Code size       58 (0x3a)
   .maxstack  3
-  .locals init (int V_0,
-                int V_1)
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000e:  stloc.1
-  IL_000f:  ldobj      ""T""
-  IL_0014:  ldloc.0
-  IL_0015:  ldloc.1
-  IL_0016:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_001b:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldobj      ""T""
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.3
+  IL_0034:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0039:  ret
 }
 ");
 
@@ -40646,49 +41268,69 @@ index: result=original, current=replacement
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       51 (0x33)
+  // Code size       56 (0x38)
   .maxstack  3
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldloca.s   V_1
-  IL_0005:  initobj    ""T""
-  IL_000b:  ldloc.1
-  IL_000c:  box        ""T""
-  IL_0011:  brtrue.s   IL_001b
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
   IL_0013:  ldobj      ""T""
   IL_0018:  stloc.1
   IL_0019:  ldloca.s   V_1
-  IL_001b:  ldc.i4.0
-  IL_001c:  ldloc.0
-  IL_001d:  ldobj      ""T""
-  IL_0022:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0027:  constrained. ""T""
-  IL_002d:  callvirt   ""string I1.Slice(int, int)""
-  IL_0032:  ret
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  constrained. ""T""
+  IL_0032:  callvirt   ""string I1.Slice(int, int)""
+  IL_0037:  ret
 }
 " :
 @"
 {
-  // Code size       35 (0x23)
+  // Code size       64 (0x40)
   .maxstack  3
   .locals init (T& V_0,
-                T V_1)
+                T V_1,
+                T& V_2,
+                T V_3)
   IL_0000:  ldarg.0
-  IL_0001:  stloc.0
-  IL_0002:  ldloc.0
-  IL_0003:  ldobj      ""T""
-  IL_0008:  stloc.1
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldloc.0
-  IL_000d:  ldobj      ""T""
-  IL_0012:  call       ""int Extensions.get_Length<T>(T)""
-  IL_0017:  constrained. ""T""
-  IL_001d:  callvirt   ""string I1.Slice(int, int)""
-  IL_0022:  ret
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""string I1.Slice(int, int)""
+  IL_003f:  ret
 }
 ");
 
@@ -40697,6 +41339,7 @@ index: result=original, current=replacement
 
         [ConditionalTheory(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
         [CombinatorialData]
         public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_20_Extension(
             [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
@@ -40750,6 +41393,7 @@ class Program
 @"
 index: result=replacement, current=replacement
 " :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
 @"
 index: result=original, current=replacement
 ";
@@ -40804,94 +41448,123 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       68 (0x44)
+  // Code size      103 (0x67)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
                 int V_3,
-                System.Index V_4)
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  constrained. ""T""
-  IL_000a:  callvirt   ""int I1.Length.get""
-  IL_000f:  stloc.1
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""System.Index System.Range.Start.get""
-  IL_0017:  stloc.s    V_4
-  IL_0019:  ldloca.s   V_4
-  IL_001b:  ldloc.1
-  IL_001c:  call       ""int System.Index.GetOffset(int)""
-  IL_0021:  stloc.2
-  IL_0022:  ldloca.s   V_0
-  IL_0024:  call       ""System.Index System.Range.End.get""
-  IL_0029:  stloc.s    V_4
-  IL_002b:  ldloca.s   V_4
-  IL_002d:  ldloc.1
-  IL_002e:  call       ""int System.Index.GetOffset(int)""
-  IL_0033:  ldloc.2
-  IL_0034:  sub
-  IL_0035:  stloc.3
-  IL_0036:  ldloc.2
-  IL_0037:  ldloc.3
-  IL_0038:  constrained. ""T""
-  IL_003e:  callvirt   ""string I1.Slice(int, int)""
-  IL_0043:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  stloc.3
+  IL_002e:  ldloca.s   V_2
+  IL_0030:  call       ""System.Index System.Range.Start.get""
+  IL_0035:  stloc.s    V_7
+  IL_0037:  ldloca.s   V_7
+  IL_0039:  ldloc.3
+  IL_003a:  call       ""int System.Index.GetOffset(int)""
+  IL_003f:  stloc.s    V_4
+  IL_0041:  ldloca.s   V_2
+  IL_0043:  call       ""System.Index System.Range.End.get""
+  IL_0048:  stloc.s    V_7
+  IL_004a:  ldloca.s   V_7
+  IL_004c:  ldloc.3
+  IL_004d:  call       ""int System.Index.GetOffset(int)""
+  IL_0052:  ldloc.s    V_4
+  IL_0054:  sub
+  IL_0055:  stloc.s    V_5
+  IL_0057:  ldloc.s    V_4
+  IL_0059:  ldloc.s    V_5
+  IL_005b:  constrained. ""T""
+  IL_0061:  callvirt   ""string I1.Slice(int, int)""
+  IL_0066:  ret
 }
 " :
 @"
 {
-  // Code size       86 (0x56)
+  // Code size      121 (0x79)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
                 int V_3,
-                T V_4,
-                System.Index V_5)
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  stloc.s    V_4
-  IL_000b:  ldloca.s   V_4
-  IL_000d:  constrained. ""T""
-  IL_0013:  callvirt   ""int I1.Length.get""
-  IL_0018:  stloc.1
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  call       ""System.Index System.Range.Start.get""
-  IL_0020:  stloc.s    V_5
-  IL_0022:  ldloca.s   V_5
-  IL_0024:  ldloc.1
-  IL_0025:  call       ""int System.Index.GetOffset(int)""
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_0
-  IL_002d:  call       ""System.Index System.Range.End.get""
-  IL_0032:  stloc.s    V_5
-  IL_0034:  ldloca.s   V_5
-  IL_0036:  ldloc.1
-  IL_0037:  call       ""int System.Index.GetOffset(int)""
-  IL_003c:  ldloc.2
-  IL_003d:  sub
-  IL_003e:  stloc.3
-  IL_003f:  ldobj      ""T""
-  IL_0044:  stloc.s    V_4
-  IL_0046:  ldloca.s   V_4
-  IL_0048:  ldloc.2
-  IL_0049:  ldloc.3
-  IL_004a:  constrained. ""T""
-  IL_0050:  callvirt   ""string I1.Slice(int, int)""
-  IL_0055:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.s    V_6
+  IL_0029:  ldloca.s   V_6
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""int I1.Length.get""
+  IL_0036:  stloc.3
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""System.Index System.Range.Start.get""
+  IL_003e:  stloc.s    V_7
+  IL_0040:  ldloca.s   V_7
+  IL_0042:  ldloc.3
+  IL_0043:  call       ""int System.Index.GetOffset(int)""
+  IL_0048:  stloc.s    V_4
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  call       ""System.Index System.Range.End.get""
+  IL_0051:  stloc.s    V_7
+  IL_0053:  ldloca.s   V_7
+  IL_0055:  ldloc.3
+  IL_0056:  call       ""int System.Index.GetOffset(int)""
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  sub
+  IL_005e:  stloc.s    V_5
+  IL_0060:  ldobj      ""T""
+  IL_0065:  stloc.s    V_6
+  IL_0067:  ldloca.s   V_6
+  IL_0069:  ldloc.s    V_4
+  IL_006b:  ldloc.s    V_5
+  IL_006d:  constrained. ""T""
+  IL_0073:  callvirt   ""string I1.Slice(int, int)""
+  IL_0078:  ret
 }
 ");
 
@@ -41002,91 +41675,120 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       67 (0x43)
+  // Code size      102 (0x66)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
                 int V_3,
-                System.Index V_4)
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  constrained. ""T""
-  IL_000a:  callvirt   ""int I1.Length.get""
-  IL_000f:  stloc.1
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  call       ""System.Index System.Range.Start.get""
-  IL_0017:  stloc.s    V_4
-  IL_0019:  ldloca.s   V_4
-  IL_001b:  ldloc.1
-  IL_001c:  call       ""int System.Index.GetOffset(int)""
-  IL_0021:  stloc.2
-  IL_0022:  ldloca.s   V_0
-  IL_0024:  call       ""System.Index System.Range.End.get""
-  IL_0029:  stloc.s    V_4
-  IL_002b:  ldloca.s   V_4
-  IL_002d:  ldloc.1
-  IL_002e:  call       ""int System.Index.GetOffset(int)""
-  IL_0033:  ldloc.2
-  IL_0034:  sub
-  IL_0035:  stloc.3
-  IL_0036:  ldobj      ""T""
-  IL_003b:  ldloc.2
-  IL_003c:  ldloc.3
-  IL_003d:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0042:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  stloc.3
+  IL_002e:  ldloca.s   V_2
+  IL_0030:  call       ""System.Index System.Range.Start.get""
+  IL_0035:  stloc.s    V_7
+  IL_0037:  ldloca.s   V_7
+  IL_0039:  ldloc.3
+  IL_003a:  call       ""int System.Index.GetOffset(int)""
+  IL_003f:  stloc.s    V_4
+  IL_0041:  ldloca.s   V_2
+  IL_0043:  call       ""System.Index System.Range.End.get""
+  IL_0048:  stloc.s    V_7
+  IL_004a:  ldloca.s   V_7
+  IL_004c:  ldloc.3
+  IL_004d:  call       ""int System.Index.GetOffset(int)""
+  IL_0052:  ldloc.s    V_4
+  IL_0054:  sub
+  IL_0055:  stloc.s    V_5
+  IL_0057:  ldobj      ""T""
+  IL_005c:  ldloc.s    V_4
+  IL_005e:  ldloc.s    V_5
+  IL_0060:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0065:  ret
 }
 " :
 @"
 {
-  // Code size       76 (0x4c)
+  // Code size      111 (0x6f)
   .maxstack  3
-  .locals init (System.Range V_0,
-            int V_1,
-            int V_2,
-            int V_3,
-            T V_4,
-            System.Index V_5)
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  stloc.s    V_4
-  IL_000b:  ldloca.s   V_4
-  IL_000d:  constrained. ""T""
-  IL_0013:  callvirt   ""int I1.Length.get""
-  IL_0018:  stloc.1
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  call       ""System.Index System.Range.Start.get""
-  IL_0020:  stloc.s    V_5
-  IL_0022:  ldloca.s   V_5
-  IL_0024:  ldloc.1
-  IL_0025:  call       ""int System.Index.GetOffset(int)""
-  IL_002a:  stloc.2
-  IL_002b:  ldloca.s   V_0
-  IL_002d:  call       ""System.Index System.Range.End.get""
-  IL_0032:  stloc.s    V_5
-  IL_0034:  ldloca.s   V_5
-  IL_0036:  ldloc.1
-  IL_0037:  call       ""int System.Index.GetOffset(int)""
-  IL_003c:  ldloc.2
-  IL_003d:  sub
-  IL_003e:  stloc.3
-  IL_003f:  ldobj      ""T""
-  IL_0044:  ldloc.2
-  IL_0045:  ldloc.3
-  IL_0046:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_004b:  ret
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.s    V_6
+  IL_0029:  ldloca.s   V_6
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""int I1.Length.get""
+  IL_0036:  stloc.3
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""System.Index System.Range.Start.get""
+  IL_003e:  stloc.s    V_7
+  IL_0040:  ldloca.s   V_7
+  IL_0042:  ldloc.3
+  IL_0043:  call       ""int System.Index.GetOffset(int)""
+  IL_0048:  stloc.s    V_4
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  call       ""System.Index System.Range.End.get""
+  IL_0051:  stloc.s    V_7
+  IL_0053:  ldloca.s   V_7
+  IL_0055:  ldloc.3
+  IL_0056:  call       ""int System.Index.GetOffset(int)""
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  sub
+  IL_005e:  stloc.s    V_5
+  IL_0060:  ldobj      ""T""
+  IL_0065:  ldloc.s    V_4
+  IL_0067:  ldloc.s    V_5
+  IL_0069:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_006e:  ret
 }
 "
 );
@@ -41199,48 +41901,63 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>",
 @"
 {
-  // Code size       66 (0x42)
+  // Code size      101 (0x65)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
                 int V_3,
-                System.Index V_4)
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloca.s   V_0
-  IL_0011:  call       ""System.Index System.Range.Start.get""
-  IL_0016:  stloc.s    V_4
-  IL_0018:  ldloca.s   V_4
-  IL_001a:  ldloc.1
-  IL_001b:  call       ""int System.Index.GetOffset(int)""
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
   IL_0020:  stloc.2
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""System.Index System.Range.End.get""
-  IL_0028:  stloc.s    V_4
-  IL_002a:  ldloca.s   V_4
-  IL_002c:  ldloc.1
-  IL_002d:  call       ""int System.Index.GetOffset(int)""
-  IL_0032:  ldloc.2
-  IL_0033:  sub
-  IL_0034:  stloc.3
-  IL_0035:  ldobj      ""T""
-  IL_003a:  ldloc.2
-  IL_003b:  ldloc.3
-  IL_003c:  call       ""string Extensions.Slice<T>(T, int, int)""
-  IL_0041:  ret
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""System.Index System.Range.Start.get""
+  IL_0034:  stloc.s    V_7
+  IL_0036:  ldloca.s   V_7
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  call       ""System.Index System.Range.End.get""
+  IL_0047:  stloc.s    V_7
+  IL_0049:  ldloca.s   V_7
+  IL_004b:  ldloc.3
+  IL_004c:  call       ""int System.Index.GetOffset(int)""
+  IL_0051:  ldloc.s    V_4
+  IL_0053:  sub
+  IL_0054:  stloc.s    V_5
+  IL_0056:  ldobj      ""T""
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  ldloc.s    V_5
+  IL_005f:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0064:  ret
 }
 ");
 
@@ -41353,91 +42070,120 @@ class Program
 ";
 
             var expectedOutput = @"
-index: result=replacement, current=replacement
+index: result=original, current=replacement
 ";
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
 @"
 {
-  // Code size       67 (0x43)
+  // Code size      102 (0x66)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
                 int V_3,
-                System.Index V_4)
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloca.s   V_0
-  IL_0011:  call       ""System.Index System.Range.Start.get""
-  IL_0016:  stloc.s    V_4
-  IL_0018:  ldloca.s   V_4
-  IL_001a:  ldloc.1
-  IL_001b:  call       ""int System.Index.GetOffset(int)""
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
   IL_0020:  stloc.2
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""System.Index System.Range.End.get""
-  IL_0028:  stloc.s    V_4
-  IL_002a:  ldloca.s   V_4
-  IL_002c:  ldloc.1
-  IL_002d:  call       ""int System.Index.GetOffset(int)""
-  IL_0032:  ldloc.2
-  IL_0033:  sub
-  IL_0034:  stloc.3
-  IL_0035:  ldloc.2
-  IL_0036:  ldloc.3
-  IL_0037:  constrained. ""T""
-  IL_003d:  callvirt   ""string I1.Slice(int, int)""
-  IL_0042:  ret
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""System.Index System.Range.Start.get""
+  IL_0034:  stloc.s    V_7
+  IL_0036:  ldloca.s   V_7
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  call       ""System.Index System.Range.End.get""
+  IL_0047:  stloc.s    V_7
+  IL_0049:  ldloca.s   V_7
+  IL_004b:  ldloc.3
+  IL_004c:  call       ""int System.Index.GetOffset(int)""
+  IL_0051:  ldloc.s    V_4
+  IL_0053:  sub
+  IL_0054:  stloc.s    V_5
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ldloc.s    V_5
+  IL_005a:  constrained. ""T""
+  IL_0060:  callvirt   ""string I1.Slice(int, int)""
+  IL_0065:  ret
 }
 " :
 @"
 {
-  // Code size       76 (0x4c)
+  // Code size      111 (0x6f)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
                 int V_3,
-                System.Index V_4,
-                T V_5)
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldarg.1
-  IL_0002:  stloc.0
-  IL_0003:  dup
-  IL_0004:  ldobj      ""T""
-  IL_0009:  call       ""int Extensions.get_Length<T>(T)""
-  IL_000e:  stloc.1
-  IL_000f:  ldloca.s   V_0
-  IL_0011:  call       ""System.Index System.Range.Start.get""
-  IL_0016:  stloc.s    V_4
-  IL_0018:  ldloca.s   V_4
-  IL_001a:  ldloc.1
-  IL_001b:  call       ""int System.Index.GetOffset(int)""
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
   IL_0020:  stloc.2
-  IL_0021:  ldloca.s   V_0
-  IL_0023:  call       ""System.Index System.Range.End.get""
-  IL_0028:  stloc.s    V_4
-  IL_002a:  ldloca.s   V_4
-  IL_002c:  ldloc.1
-  IL_002d:  call       ""int System.Index.GetOffset(int)""
-  IL_0032:  ldloc.2
-  IL_0033:  sub
-  IL_0034:  stloc.3
-  IL_0035:  ldobj      ""T""
-  IL_003a:  stloc.s    V_5
-  IL_003c:  ldloca.s   V_5
-  IL_003e:  ldloc.2
-  IL_003f:  ldloc.3
-  IL_0040:  constrained. ""T""
-  IL_0046:  callvirt   ""string I1.Slice(int, int)""
-  IL_004b:  ret
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""System.Index System.Range.Start.get""
+  IL_0034:  stloc.s    V_7
+  IL_0036:  ldloca.s   V_7
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  call       ""System.Index System.Range.End.get""
+  IL_0047:  stloc.s    V_7
+  IL_0049:  ldloca.s   V_7
+  IL_004b:  ldloc.3
+  IL_004c:  call       ""int System.Index.GetOffset(int)""
+  IL_0051:  ldloc.s    V_4
+  IL_0053:  sub
+  IL_0054:  stloc.s    V_5
+  IL_0056:  ldobj      ""T""
+  IL_005b:  stloc.s    V_6
+  IL_005d:  ldloca.s   V_6
+  IL_005f:  ldloc.s    V_4
+  IL_0061:  ldloc.s    V_5
+  IL_0063:  constrained. ""T""
+  IL_0069:  callvirt   ""string I1.Slice(int, int)""
+  IL_006e:  ret
 }
 ");
 
