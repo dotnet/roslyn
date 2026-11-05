@@ -1,3 +1,6 @@
 ﻿#nullable enable
 Microsoft.CodeAnalysis.Razor.Formatting.RazorFormatter
 static Microsoft.CodeAnalysis.Razor.Formatting.RazorFormatter.TryFormatAsync(Microsoft.CodeAnalysis.Project! project, Microsoft.CodeAnalysis.DocumentId! documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Text.SourceText?>!
+Microsoft.CodeAnalysis.Razor.Formatting.RazorUnnecessaryDirectives
+static Microsoft.CodeAnalysis.Razor.Formatting.RazorUnnecessaryDirectives.GetUnnecessaryUsingDirectiveSpansAsync(Microsoft.CodeAnalysis.Project! project, Microsoft.CodeAnalysis.DocumentId! documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>>!
+static Microsoft.CodeAnalysis.Razor.Formatting.RazorUnnecessaryDirectives.RemoveUnnecessaryUsingDirectivesAsync(Microsoft.CodeAnalysis.Project! project, Microsoft.CodeAnalysis.DocumentId! documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Text.SourceText?>!
