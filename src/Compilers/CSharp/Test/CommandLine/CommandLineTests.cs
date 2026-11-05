@@ -12420,19 +12420,19 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             Assert.True(!comp.SignUsingBuilder);
-            Assert.Equal(workingDir.Path, comp.Options.StrongNameProvider.FileSystem.GetSigningTempPath());
+            Assert.Equal(workingDir.Path, comp.Options.StrongNameProvider.FileSystem.GetSigningPath());
         }
 
         private sealed class LegacySigningCompiler : MockCSharpCompiler
         {
             private readonly Action<string> _beforeSign;
-            private readonly Action<string> _creatingFile;
+            private readonly Action<string> _createSigningFile;
 
-            public LegacySigningCompiler(string workingDirectory, string[] arguments, Action<string> beforeSign, Action<string> creatingFile = null)
+            public LegacySigningCompiler(string workingDirectory, string[] arguments, Action<string> beforeSign, Action<string> createSigningFile = null)
                 : base(null, workingDirectory, arguments, additionalReferences: [MscorlibRef])
             {
                 _beforeSign = beforeSign;
-                _creatingFile = creatingFile;
+                _createSigningFile = createSigningFile;
             }
 
             public override Compilation CreateCompilation(
@@ -12444,12 +12444,12 @@ public class TestAnalyzer : DiagnosticAnalyzer
             {
                 var compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt, globalDiagnosticOptionsOpt);
                 var original = (DesktopStrongNameProvider)compilation.Options.StrongNameProvider;
-                var fileSystem = new TestStrongNameFileSystem(original.FileSystem.GetSigningTempPath())
+                var fileSystem = new TestStrongNameFileSystem(original.FileSystem.GetSigningPath())
                 {
                     CreateFileStreamFunc = (path, mode, access, share) =>
                     {
                         Assert.Equal(FileMode.CreateNew, mode);
-                        _creatingFile?.Invoke(path);
+                        _createSigningFile?.Invoke(path);
                         return original.FileSystem.CreateFileStream(path, mode, access, share);
                     }
                 };
@@ -12492,7 +12492,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 arguments.Add("/out:" + outputPath);
             }
 
-            var compiler = new LegacySigningCompiler(workingDirectory.Path, arguments.ToArray(), path =>
+            var compiler = new LegacySigningCompiler(workingDirectory.Path, arguments.ToArray(), beforeSign: path =>
             {
                 stagingPaths.Add(path);
             });
@@ -12542,7 +12542,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
             };
             string stagingPath = null;
             bool fail = false;
-            var compiler = new LegacySigningCompiler(directory.Path, arguments, path =>
+            var compiler = new LegacySigningCompiler(directory.Path, arguments, beforeSign: path =>
             {
                 stagingPath = path;
                 Assert.Equal(0, new FileInfo(outputPath).Length);
@@ -12550,7 +12550,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 {
                     throw new IOException("Injected signing failure");
                 }
-            }, path =>
+            }, createSigningFile: path =>
             {
                 if (fail && failCreation)
                 {
@@ -12591,7 +12591,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 var compiler = new LegacySigningCompiler(directory.Path,
                     ["/nologo", "/nostdlib", "/target:library", "/features:UseLegacyStrongNameProvider",
                      "/keyfile:" + key.Path, "/out:" + outputPath, source.Path],
-                    path => stagingPaths[i] = path);
+                    beforeSign: path => stagingPaths[i] = path);
                 using var writer = new StringWriter();
                 Assert.True(compiler.Run(writer) == 0, writer.ToString());
                 using var stream = File.OpenRead(outputPath);

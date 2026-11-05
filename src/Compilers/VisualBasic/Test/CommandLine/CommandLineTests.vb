@@ -9793,7 +9793,7 @@ End Module
                               {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
             Dim comp = vbc.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
             Assert.False(comp.SignUsingBuilder)
-            Assert.Equal(workingDir.Path, comp.Options.StrongNameProvider.FileSystem.GetSigningTempPath())
+            Assert.Equal(workingDir.Path, comp.Options.StrongNameProvider.FileSystem.GetSigningPath())
         End Sub
 
         Private NotInheritable Class LegacySigningCompiler

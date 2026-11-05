@@ -191,7 +191,7 @@ public class Test
             string code = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", s_keyPairFile, @""")] public class C {}");
 
             var options = TestOptions.SigningReleaseDll.WithStrongNameProvider(s_providerNoSigningTempPath);
-            Assert.Null(options.StrongNameProvider.FileSystem.GetSigningTempPath());
+            Assert.Null(options.StrongNameProvider.FileSystem.GetSigningPath());
             var compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.Regular);
             compilation.VerifyEmitDiagnostics();
 
@@ -206,7 +206,7 @@ public class Test
             string code = String.Format("{0}{1}{2}", @"[assembly: System.Reflection.AssemblyKeyFile(@""", s_keyPairFile, @""")] public class C {}");
 
             var options = TestOptions.SigningReleaseDll.WithStrongNameProvider(SigningTestHelpers.DefaultDesktopStrongNameProvider);
-            Assert.NotNull(options.StrongNameProvider.FileSystem.GetSigningTempPath());
+            Assert.NotNull(options.StrongNameProvider.FileSystem.GetSigningPath());
             var compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.Regular);
             compilation.VerifyEmitDiagnostics();
 

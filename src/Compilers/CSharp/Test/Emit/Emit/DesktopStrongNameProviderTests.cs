@@ -24,14 +24,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var tempDir = Temp.CreateDirectory();
             var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path);
-            Assert.Equal(tempDir.Path, provider.FileSystem.GetSigningTempPath());
+            Assert.Equal(tempDir.Path, provider.FileSystem.GetSigningPath());
         }
 
         [Fact]
         public void RespectNullTempPath()
         {
             var provider = new DesktopStrongNameProvider(tempPath: null);
-            Assert.Null(provider.FileSystem.GetSigningTempPath());
+            Assert.Null(provider.FileSystem.GetSigningPath());
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
