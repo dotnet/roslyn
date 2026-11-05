@@ -342,6 +342,36 @@ namespace Test
     }
 
     [Fact]
+    public void EventHandler_DebounceAndThrottle_ProducesErrorOnOlderLanguageVersions()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """
+            @using Microsoft.AspNetCore.Components.Web
+            <input @oninput="HandleInput" @oninput:debounce="300" />
+            <button @onclick="HandleClick" @onclick:throttle="500" />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_11_0 });
+
+        // Assert
+        Assert.Collection(generated.RazorDiagnostics,
+            diagnostic =>
+            {
+                Assert.Equal("RZ10033", diagnostic.Id);
+                Assert.Equal(
+                    "Attribute '@oninput:debounce' can only be used with RazorLanguageVersion 12.0 or higher.",
+                    diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            },
+            diagnostic =>
+            {
+                Assert.Equal("RZ10033", diagnostic.Id);
+                Assert.Equal(
+                    "Attribute '@onclick:throttle' can only be used with RazorLanguageVersion 12.0 or higher.",
+                    diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            });
+    }
+
+    [Fact]
     public void EventHandler_DebounceAndThrottle_EmitsExpectedBuilderCalls()
     {
         // Arrange

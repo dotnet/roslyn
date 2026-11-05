@@ -519,4 +519,14 @@ internal static class ComponentDiagnosticFactory
         SourceSpan? source,
         string attribute)
         => RazorDiagnostic.Create(EventHandlerParameter_MissingValue, source, attribute);
+
+    public static readonly RazorDiagnosticDescriptor EventHandlerParameter_UnsupportedSyntaxDebounceThrottle =
+        new($"{DiagnosticPrefix}10033",
+            "Attribute '{0}' can only be used with RazorLanguageVersion 12.0 or higher.",
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateEventHandlerParameter_UnsupportedSyntaxDebounceThrottle(
+        SourceSpan? source,
+        string attribute)
+        => RazorDiagnostic.Create(EventHandlerParameter_UnsupportedSyntaxDebounceThrottle, source, attribute);
 }

@@ -33,6 +33,8 @@ internal sealed class ComponentEventHandlerLoweringPass : ComponentIntermediateN
             return;
         }
 
+        var debounceThrottleSupported = codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_12_0;
+
         // For each event handler *usage* we need to rewrite the tag helper node to map to basic constructs.
         // Each usage will be represented by a tag helper property that is a descendant of either
         // a component or element.
@@ -54,7 +56,7 @@ internal sealed class ComponentEventHandlerLoweringPass : ComponentIntermediateN
 
         foreach (var parent in parents)
         {
-            ProcessDuplicates(parent);
+            ProcessDuplicates(parent, debounceThrottleSupported);
         }
 
         foreach (var reference in references)
@@ -85,15 +87,26 @@ internal sealed class ComponentEventHandlerLoweringPass : ComponentIntermediateN
 
             if (node.TagHelper.Kind == TagHelperKind.EventHandler)
             {
-                if (node.BoundAttributeParameter.Name is "debounce" or "throttle" &&
-                    (node.AttributeStructure == AttributeStructure.Minimized ||
-                     GetAttributeContent(node).All(static t => string.IsNullOrWhiteSpace(t.Content))))
+                if (node.BoundAttributeParameter.Name is "debounce" or "throttle")
                 {
-                    parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateEventHandlerParameter_MissingValue(
-                        node.Source ?? parameterReference.Parent.Source,
-                        node.OriginalAttributeName));
-                    parameterReference.Remove();
-                    continue;
+                    if (!debounceThrottleSupported)
+                    {
+                        parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateEventHandlerParameter_UnsupportedSyntaxDebounceThrottle(
+                            node.Source ?? parameterReference.Parent.Source,
+                            node.OriginalAttributeName));
+                        parameterReference.Remove();
+                        continue;
+                    }
+
+                    if (node.AttributeStructure == AttributeStructure.Minimized ||
+                        GetAttributeContent(node).All(static t => string.IsNullOrWhiteSpace(t.Content)))
+                    {
+                        parameterReference.Parent.AddDiagnostic(ComponentDiagnosticFactory.CreateEventHandlerParameter_MissingValue(
+                            node.Source ?? parameterReference.Parent.Source,
+                            node.OriginalAttributeName));
+                        parameterReference.Remove();
+                        continue;
+                    }
                 }
 
                 parameterReference.Replace(RewriteParameterUsage(node));
@@ -101,7 +114,7 @@ internal sealed class ComponentEventHandlerLoweringPass : ComponentIntermediateN
         }
     }
 
-    private static void ProcessDuplicates(IntermediateNode parent)
+    private static void ProcessDuplicates(IntermediateNode parent, bool debounceThrottleSupported)
     {
         // Reverse order because we will remove nodes.
         //
@@ -168,39 +181,42 @@ internal sealed class ComponentEventHandlerLoweringPass : ComponentIntermediateN
             }
         }
 
-        var rateLimitParametersByEvent = parent.Children
-            .OfType<TagHelperDirectiveAttributeParameterIntermediateNode>()
-            .Where(static p => p.TagHelper.Kind == TagHelperKind.EventHandler &&
-                               p.BoundAttributeParameter.Name is "debounce" or "throttle")
-            .GroupBy(static p => p.AttributeNameWithoutParameter);
-
-        foreach (var eventGroup in rateLimitParametersByEvent)
+        if (debounceThrottleSupported)
         {
-            TagHelperDirectiveAttributeParameterIntermediateNode? debounceNode = null;
-            TagHelperDirectiveAttributeParameterIntermediateNode? throttleNode = null;
+            var rateLimitParametersByEvent = parent.Children
+                .OfType<TagHelperDirectiveAttributeParameterIntermediateNode>()
+                .Where(static p => p.TagHelper.Kind == TagHelperKind.EventHandler &&
+                                   p.BoundAttributeParameter.Name is "debounce" or "throttle")
+                .GroupBy(static p => p.AttributeNameWithoutParameter);
 
-            foreach (var parameter in eventGroup)
+            foreach (var eventGroup in rateLimitParametersByEvent)
             {
-                if (parameter.BoundAttributeParameter.Name == "debounce")
-                {
-                    debounceNode = parameter;
-                }
-                else if (parameter.BoundAttributeParameter.Name == "throttle")
-                {
-                    throttleNode = parameter;
-                }
-            }
+                TagHelperDirectiveAttributeParameterIntermediateNode? debounceNode = null;
+                TagHelperDirectiveAttributeParameterIntermediateNode? throttleNode = null;
 
-            if (debounceNode != null && throttleNode != null)
-            {
-                parent.AddDiagnostic(ComponentDiagnosticFactory.CreateEventHandlerParameter_DebounceAndThrottleConflict(
-                    throttleNode.Source ?? parent.Source,
-                    debounceNode.OriginalAttributeName,
-                    throttleNode.OriginalAttributeName));
-
-                foreach (var property in eventGroup.ToArray())
+                foreach (var parameter in eventGroup)
                 {
-                    parent.Children.Remove(property);
+                    if (parameter.BoundAttributeParameter.Name == "debounce")
+                    {
+                        debounceNode = parameter;
+                    }
+                    else if (parameter.BoundAttributeParameter.Name == "throttle")
+                    {
+                        throttleNode = parameter;
+                    }
+                }
+
+                if (debounceNode != null && throttleNode != null)
+                {
+                    parent.AddDiagnostic(ComponentDiagnosticFactory.CreateEventHandlerParameter_DebounceAndThrottleConflict(
+                        throttleNode.Source ?? parent.Source,
+                        debounceNode.OriginalAttributeName,
+                        throttleNode.OriginalAttributeName));
+
+                    foreach (var property in eventGroup.ToArray())
+                    {
+                        parent.Children.Remove(property);
+                    }
                 }
             }
         }
