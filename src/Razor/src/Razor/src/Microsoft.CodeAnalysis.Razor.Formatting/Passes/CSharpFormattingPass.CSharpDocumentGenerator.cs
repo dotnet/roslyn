@@ -856,7 +856,35 @@ internal partial class CSharpFormattingPass
                     return result;
                 }
 
+                if (IsQuotedAttributeValueContinuation(node))
+                {
+                    // This line continues a quoted attribute value that started on a previous line, eg the second line of:
+                    //
+                    // <p class="a
+                    //    b c"
+                    //
+                    // The leading whitespace is part of the attribute value, so changing it would change the value.
+                    return EmitCurrentLineWithNoFormatting();
+                }
+
                 return EmitCurrentLineAsComment();
+            }
+
+            private bool IsQuotedAttributeValueContinuation(MarkupTextLiteralSyntax node)
+            {
+                var valuePrefix = node.Ancestors().FirstOrDefault(static n => n.IsAnyAttributeSyntax()) switch
+                {
+                    MarkupAttributeBlockSyntax attribute => attribute.ValuePrefix,
+                    MarkupTagHelperAttributeSyntax attribute => attribute.ValuePrefix,
+                    MarkupTagHelperDirectiveAttributeSyntax attribute => attribute.ValuePrefix,
+                    _ => null
+                };
+
+                // The value prefix is the opening quote, so if it's on an earlier line, and we're after it, then we're inside
+                // the value.
+                return valuePrefix is { Width: > 0 } &&
+                    _currentFirstNonWhitespacePosition >= valuePrefix.EndPosition &&
+                    GetLineNumber(valuePrefix) < _currentLine.LineNumber;
             }
 
             public override LineInfo VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)

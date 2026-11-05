@@ -14224,6 +14224,92 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                        id="q">z</p>
+                </div>
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                            id="q">z</p>
+                </div>
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13064")]
     public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression_IndentByOne()
     {
