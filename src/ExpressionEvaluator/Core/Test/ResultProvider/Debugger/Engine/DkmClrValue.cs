@@ -67,8 +67,9 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
         public readonly object HostObjectValue;
         public readonly string Alias;
         public readonly ulong NativeComPointer;
-
         internal readonly object RawValue;
+
+        internal Func<DkmInspectionContext, DkmClrValue> DereferenceOverride { get; set; }
 
         public void Close()
         {
@@ -79,6 +80,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             if (inspectionContext == null)
             {
                 throw new ArgumentNullException(nameof(inspectionContext));
+            }
+
+            if (DereferenceOverride != null)
+            {
+                return DereferenceOverride(inspectionContext);
             }
 
             var lmrType = this.Type.GetLmrType();
