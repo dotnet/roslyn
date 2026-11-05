@@ -53,7 +53,7 @@ parameters:
     type: boolean
     default: false
   - name: testMachineLab
-    displayName: CloudTest Lab (required for migration validation)
+    displayName: CloudTest Lab
     type: string
     default: Roslyn-AMD64
   - name: testMachineHoldStrategy

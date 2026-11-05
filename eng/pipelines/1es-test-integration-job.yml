@@ -141,93 +141,71 @@ stages:
           throw 'DartLab.1ES.ManagedIdentity.ClientID did not resolve to a valid managed identity client ID.'
         }
 
-        $gitConfigPath = Join-Path $env:TEMP 'RoslynVSIntegration.gitconfig'
-        @"
-        [credential]
-            helper =
-        "@ | Set-Content -Path $gitConfigPath -Encoding ascii
-        $env:GIT_CONFIG_GLOBAL = $gitConfigPath
-        $env:GIT_CONFIG_COUNT = '4'
-        $env:GIT_CONFIG_KEY_0 = 'credential.helper'
-        $env:GIT_CONFIG_VALUE_0 = 'manager'
-        $env:GIT_CONFIG_KEY_1 = 'credential.interactive'
-        $env:GIT_CONFIG_VALUE_1 = 'false'
-        $env:GIT_CONFIG_KEY_2 = 'credential.azreposManagedIdentity'
-        $env:GIT_CONFIG_VALUE_2 = $managedIdentityClientId.ToString()
-        $env:GIT_CONFIG_KEY_3 = 'credential.credentialStore'
-        $env:GIT_CONFIG_VALUE_3 = 'none'
+        # Keep authentication process-scoped, including Git calls in PR validation.
+        $env:GIT_CONFIG_GLOBAL = 'NUL'
+        $env:GIT_CONFIG_PARAMETERS = "'credential.helper=' 'credential.helper=manager' 'credential.interactive=false' 'credential.azreposManagedIdentity=$managedIdentityClientId' 'credential.credentialStore=none'"
 
-        try {
-          $repositoryPath = '[WorkingDirectory]\Roslyn'
-          $repositoryVersion = '$(RoslynMirrorVersion)'
-          git init $repositoryPath
-          if ($LASTEXITCODE -ne 0) { throw 'Initializing the Roslyn repository failed.' }
-          Set-Location $repositoryPath
-          git -C $repositoryPath remote add origin '$(RoslynMirrorUrl)'
-          if ($LASTEXITCODE -ne 0) { throw 'Configuring the RoslynMirror remote failed.' }
-          git -C $repositoryPath config --local core.longpaths true
-          if ($LASTEXITCODE -ne 0) { throw 'Enabling Git long paths failed.' }
-          git -C $repositoryPath config --local remote.origin.tagOpt --no-tags
-          if ($LASTEXITCODE -ne 0) { throw 'Disabling Git tag fetching failed.' }
-          git -C $repositoryPath fetch --force --no-tags --depth=1 origin $repositoryVersion
-          if ($LASTEXITCODE -ne 0) { throw 'Fetching the Roslyn resource commit failed.' }
-          git -C $repositoryPath checkout --detach $repositoryVersion
-          if ($LASTEXITCODE -ne 0) { throw 'Checking out the Roslyn resource commit failed.' }
+        $repositoryPath = '[WorkingDirectory]\Roslyn'
+        $repositoryVersion = '$(RoslynMirrorVersion)'
+        git init $repositoryPath
+        if ($LASTEXITCODE -ne 0) { throw 'Initializing the Roslyn repository failed.' }
+        Set-Location $repositoryPath
+        git remote add origin '$(RoslynMirrorUrl)'
+        if ($LASTEXITCODE -ne 0) { throw 'Configuring the RoslynMirror remote failed.' }
+        git config --local core.longpaths true
+        if ($LASTEXITCODE -ne 0) { throw 'Enabling Git long paths failed.' }
+        git config --local remote.origin.tagOpt --no-tags
+        if ($LASTEXITCODE -ne 0) { throw 'Disabling Git tag fetching failed.' }
+        git fetch --force --no-tags --depth=1 origin $repositoryVersion
+        if ($LASTEXITCODE -ne 0) { throw 'Fetching the Roslyn resource commit failed.' }
+        git checkout --detach $repositoryVersion
+        if ($LASTEXITCODE -ne 0) { throw 'Checking out the Roslyn resource commit failed.' }
 
-          if ('${{ parameters.prNumber }}' -ne 'None') {
-            Write-Host 'Setting up the PR validation branch.'
-            & .\eng\setup-pr-validation.ps1 -prNumber '${{ parameters.prNumber }}' -commitSHA '${{ parameters.sha }}' -enforceLatestCommit $${{ parameters.EnforceLatestCommit }}
-            if ($LASTEXITCODE -ne 0) { throw 'Setting up the PR validation branch failed.' }
-          }
-
-          if ('${{ parameters.testsCommitHash }}' -ne '(default)') {
-            Write-Host 'Checking out tests at the requested commit.'
-            git -C $repositoryPath fetch origin '${{ parameters.testsCommitHash }}'
-            if ($LASTEXITCODE -ne 0) { throw 'Fetching the requested tests commit failed.' }
-            git -C $repositoryPath checkout --detach FETCH_HEAD
-            if ($LASTEXITCODE -ne 0) { throw 'Checking out the requested tests commit failed.' }
-          }
-
-          if ($${{ parameters.testsCommitFromVisualStudioBuild }}) {
-            $globalJsonPath = Join-Path (Get-Location) 'global.json'
-            $globalJsonBackupPath = "$globalJsonPath.roslyn-test-gate-$([Guid]::NewGuid())"
-
-            if (Test-Path -LiteralPath $globalJsonPath) {
-              Move-Item -LiteralPath $globalJsonPath -Destination $globalJsonBackupPath
-            }
-
-            try {
-              $roslynCommitHash = dotnet .\eng\isolated\get-roslyn-commit-hash-in-vs.cs
-              $dotnetExitCode = $LASTEXITCODE
-            }
-            finally {
-              if (Test-Path -LiteralPath $globalJsonBackupPath) {
-                Move-Item -LiteralPath $globalJsonBackupPath -Destination $globalJsonPath
-              }
-            }
-
-            if ($dotnetExitCode -ne 0) {
-              throw "Resolving the Roslyn commit from Visual Studio failed with exit code $dotnetExitCode."
-            }
-
-            Write-Host "Checking out tests at commit from Visual Studio build: $roslynCommitHash"
-            git -C $repositoryPath fetch origin $roslynCommitHash
-            if ($LASTEXITCODE -ne 0) { throw 'Fetching the Visual Studio tests commit failed.' }
-            git -C $repositoryPath checkout --detach FETCH_HEAD
-            if ($LASTEXITCODE -ne 0) { throw 'Checking out the Visual Studio tests commit failed.' }
-          }
-
-          $persistedGitConfiguration = @(git -C $repositoryPath config --local --get-regexp '^(credential\.|http\..*\.extraheader$)')
-          $gitConfigExitCode = $LASTEXITCODE
-          if ($gitConfigExitCode -ne 0 -and $gitConfigExitCode -ne 1) {
-            throw "Could not inspect persisted Git authentication configuration (exit code $gitConfigExitCode)."
-          }
-          if ($persistedGitConfiguration.Count -ne 0) {
-            throw 'The Roslyn checkout contains persisted Git authentication configuration.'
-          }
+        if ('${{ parameters.prNumber }}' -ne 'None') {
+          Write-Host 'Setting up the PR validation branch.'
+          & .\eng\setup-pr-validation.ps1 -prNumber '${{ parameters.prNumber }}' -commitSHA '${{ parameters.sha }}' -enforceLatestCommit $${{ parameters.EnforceLatestCommit }}
+          if ($LASTEXITCODE -ne 0) { throw 'Setting up the PR validation branch failed.' }
         }
-        finally {
-          Remove-Item -LiteralPath $gitConfigPath -Force
+
+        if ('${{ parameters.testsCommitHash }}' -ne '(default)') {
+          Write-Host 'Checking out tests at the requested commit.'
+          git fetch origin '${{ parameters.testsCommitHash }}'
+          if ($LASTEXITCODE -ne 0) { throw 'Fetching the requested tests commit failed.' }
+          git checkout --detach FETCH_HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Checking out the requested tests commit failed.' }
+        }
+
+        if ($${{ parameters.testsCommitFromVisualStudioBuild }}) {
+          $commitHashScriptPath = Join-Path (Get-Location) 'eng\isolated\get-roslyn-commit-hash-in-vs.cs'
+
+          # Run outside the checkout to avoid its SDK pin before bootstrapping.
+          Push-Location $env:TEMP
+          try {
+            $roslynCommitHash = dotnet $commitHashScriptPath
+            $dotnetExitCode = $LASTEXITCODE
+          }
+          finally {
+            Pop-Location
+          }
+
+          if ($dotnetExitCode -ne 0) {
+            throw "Resolving the Roslyn commit from Visual Studio failed with exit code $dotnetExitCode."
+          }
+
+          Write-Host "Checking out tests at commit from Visual Studio build: $roslynCommitHash"
+          git fetch origin $roslynCommitHash
+          if ($LASTEXITCODE -ne 0) { throw 'Fetching the Visual Studio tests commit failed.' }
+          git checkout --detach FETCH_HEAD
+          if ($LASTEXITCODE -ne 0) { throw 'Checking out the Visual Studio tests commit failed.' }
+        }
+
+        $persistedGitConfiguration = @(git config --local --get-regexp '^(credential\.|http\..*\.extraheader$)')
+        $gitConfigExitCode = $LASTEXITCODE
+        if ($gitConfigExitCode -ne 0 -and $gitConfigExitCode -ne 1) {
+          throw "Could not inspect persisted Git authentication configuration (exit code $gitConfigExitCode)."
+        }
+        if ($persistedGitConfiguration.Count -ne 0) {
+          throw 'The Roslyn checkout contains persisted Git authentication configuration.'
         }
     - operation: executePowerShellInline
       displayName: Build
