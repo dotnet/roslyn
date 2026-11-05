@@ -728,6 +728,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, BindingDiagnosticBag diagnostics)
         {
+            var binder = GetValueKindBinder(expr);
+            if (binder != this)
+            {
+                return binder.CheckValue(expr, valueKind, diagnostics);
+            }
+
             switch (expr.Kind)
             {
                 case BoundKind.PropertyGroup:
@@ -905,6 +911,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private Binder GetValueKindBinder(BoundExpression expr)
+        {
+            return expr.WasBoundInUnsafeExpression
+                ? WithAdditionalFlags(BinderFlags.UnsafeRegion | BinderFlags.UnsafeExpressionRegion)
+                : this;
+        }
+
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.
@@ -933,10 +946,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                 case BoundKind.IndexerAccess:
                 case BoundKind.ImplicitIndexerAccess when ((BoundImplicitIndexerAccess)expr).IndexerOrSliceAccess.Kind == BoundKind.IndexerAccess:
-                    return CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
+                    return GetValueKindBinder(expr).CheckPropertyValueKind(node, expr, valueKind, checkingReceiver, diagnostics);
 
                 case BoundKind.EventAccess:
-                    return CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
+                    return GetValueKindBinder(expr).CheckEventValueKind((BoundEventAccess)expr, valueKind, diagnostics);
             }
 
             // easy out for a very common RValue case.

@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return result?.WithWasConverted();
+            return result?.WithUnsafeExpressionContext(expression.WasBoundInUnsafeExpression).WithWasConverted();
         }
 
         private BoundExpression BindToInferredDelegateType(BoundExpression expr, BindingDiagnosticBag diagnostics)
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, LookupResultKind.NotAValue);
             }
 
-            return result;
+            return result.WithUnsafeExpressionContext(InUnsafeExpression);
 
             BoundExpression bindExpressionInternal(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool invoked, bool indexed)
             {

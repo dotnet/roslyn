@@ -226,6 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node.Expression.Kind() is SyntaxKind.SimpleMemberAccessExpression);
                     var memberAccess = (MemberAccessExpressionSyntax)node.Expression;
                     analyzedArguments.Clear();
+                    result = result.WithUnsafeExpressionContext(InUnsafeExpression);
                     CheckContextForPointerTypes(nested, diagnostics, result); // BindExpression does this after calling BindExpressionInternal
                     boundExpression = BindMemberAccessWithBoundLeft(memberAccess, result, memberAccess.Name, memberAccess.OperatorToken, invoked: true, indexed: false, diagnostics);
                 }

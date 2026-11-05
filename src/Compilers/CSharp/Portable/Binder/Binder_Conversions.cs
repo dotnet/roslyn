@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif
 
-            return result;
+            // An elided conversion preserves the operand's original context and identity.
+            return result.WithUnsafeExpressionContext(InUnsafeExpression && result != source);
 
             BoundExpression createConversion(
                 SyntaxNode syntax,
@@ -835,6 +836,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr.MakeCompilerGenerated();
             }
 
+            expr = expr.WithUnsafeExpressionContext(node.WasBoundInUnsafeExpression);
+
             expr = new BoundConversion(
                                   syntax,
                                   expr,
@@ -896,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var converter = new CollectionExpressionConverter(this, node, targetType, conversion, diagnostics);
-            return converter.Convert();
+            return (BoundCollectionExpression)converter.Convert().WithUnsafeExpressionContext(node.WasBoundInUnsafeExpression);
         }
 
         private readonly struct CollectionExpressionConverter(
@@ -2482,7 +2485,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundConditionalOperator(source.Syntax, isRef: false, condition, trueExpr, falseExpr, constantValue, source.Type, wasTargetTyped: targetTyped, destination, hasErrors)
-                .WithSuppression(source.IsSuppressed);
+                .WithSuppression(source.IsSuppressed)
+                .WithUnsafeExpressionContext(source.WasBoundInUnsafeExpression);
         }
 
         /// <summary>
@@ -2512,7 +2516,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var newSwitchArms = builder.ToImmutableAndFree();
             return new BoundConvertedSwitchExpression(
                 source.Syntax, source.Type, targetTyped, source.Expression, newSwitchArms, source.ReachabilityDecisionDag,
-                source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors).WithSuppression(source.IsSuppressed);
+                source.DefaultLabel, source.ReportedNotExhaustive, destination, hasErrors || source.HasErrors)
+                .WithSuppression(source.IsSuppressed)
+                .WithUnsafeExpressionContext(source.WasBoundInUnsafeExpression);
         }
 
         private BoundExpression CreateUserDefinedConversion(
@@ -3200,7 +3206,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 convertedArguments.ToImmutableAndFree(),
                 sourceTuple.ArgumentNamesOpt,
                 sourceTuple.InferredNamesOpt,
-                targetType).WithSuppression(sourceTuple.IsSuppressed);
+                targetType)
+                .WithSuppression(sourceTuple.IsSuppressed)
+                .WithUnsafeExpressionContext(sourceTuple.WasBoundInUnsafeExpression);
 
             Debug.Assert((inConversionGroupFlags & InConversionGroupFlags.TupleLiteral) == 0);
             if (!TypeSymbol.Equals(sourceTuple.Type, destination, TypeCompareKind.ConsiderEverything2))

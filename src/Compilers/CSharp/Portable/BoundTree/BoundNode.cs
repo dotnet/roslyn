@@ -60,7 +60,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasPropertyBackingFieldAccessChecked = 1 << 10,
 
-            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
+            WasBoundInUnsafeExpression = 1 << 11,
+            WasBoundInUnsafeExpressionIsChecked = 1 << 12,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection | WasBoundInUnsafeExpression,
         }
 
         protected new BoundNode MemberwiseClone()
@@ -156,6 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+            this.WasBoundInUnsafeExpression = original.WasBoundInUnsafeExpression;
 
             if (original.IsParamsArrayOrCollection)
             {
@@ -290,6 +294,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateMaybeNull) == 0 ? CodeAnalysis.NullableFlowState.NotNull : CodeAnalysis.NullableFlowState.MaybeNull;
 
                 return new NullabilityInfo(annotation, flowState);
+            }
+        }
+
+        /// <summary>
+        /// Whether this expression was bound within an unsafe expression.
+        /// </summary>
+        protected bool WasBoundInUnsafeExpression
+        {
+            get
+            {
+#if DEBUG
+                _attributes |= BoundNodeAttributes.WasBoundInUnsafeExpressionIsChecked;
+#endif
+                return (_attributes & BoundNodeAttributes.WasBoundInUnsafeExpression) != 0;
+            }
+            set
+            {
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasBoundInUnsafeExpressionIsChecked) == 0,
+                    "unsafe expression context flag should not be set after reading it");
+#endif
+
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasBoundInUnsafeExpression;
+                }
+                else
+                {
+                    Debug.Assert((_attributes & BoundNodeAttributes.WasBoundInUnsafeExpression) == 0,
+                        "unsafe expression context flag should not be reset here");
+                }
             }
         }
 

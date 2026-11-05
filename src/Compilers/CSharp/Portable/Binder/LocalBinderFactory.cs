@@ -683,7 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitUnsafeExpression(UnsafeExpressionSyntax node)
         {
-            Binder binder = _enclosing.WithAdditionalFlags(BinderFlags.UnsafeRegion);
+            Binder binder = _enclosing.WithAdditionalFlags(BinderFlags.UnsafeRegion | BinderFlags.UnsafeExpressionRegion);
             AddToMap(node, binder);
             Visit(node.Expression, binder);
         }

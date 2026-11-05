@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
+        internal bool InUnsafeExpression => Flags.Includes(BinderFlags.UnsafeExpressionRegion);
+
         internal void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
         {
             if (diagnostics.DiagnosticBag is { } bag)
