@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -84,6 +85,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _state.DefaultForceComplete(this, cancellationToken);
+        }
+
+        public sealed override bool IsDefinedInSourceTree(
+            SyntaxTree tree,
+            TextSpan? definedWithinSpan,
+            CancellationToken cancellationToken = default)
+        {
+            // Since only the declaring (and not the implementing) part of a partial event appears in the member
+            // list, we need to ensure we complete the implementation part when needed.
+            Debug.Assert(this.DeclaringSyntaxReferences.Length == 1);
+            return
+                IsDefinedInSourceTree(this._syntaxRef, tree, definedWithinSpan) ||
+                this.SourcePartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
         public abstract override string Name { get; }
