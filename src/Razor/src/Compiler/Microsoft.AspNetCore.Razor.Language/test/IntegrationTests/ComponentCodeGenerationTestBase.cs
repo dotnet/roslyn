@@ -2425,6 +2425,38 @@ namespace Test
     }
 
     [Fact]
+    public void AddComponentParameter_WithNameof_GenericComponent_NullableTypeArgument()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        public int Param { get; set; }
+    }
+}"));
+
+        // Act
+        // The reported scenario is a nullable-enabled project: the type argument annotation
+        // is legal in the user's source, so a warning that the annotation is used outside
+        // a '#nullable' annotations context (CS8669) from the generated code is spurious.
+        var generated = CompileToCSharp(@"
+<MyComponent T=""string?"" Param=""1"" />
+",
+            nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void AddComponentParameter_EscapedComponentName()
     {
         // Arrange
