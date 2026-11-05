@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -13,70 +14,6 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
-    public Task DocumentFormatting_UsesRazorEditorConfig_Razor()
-        => RunFormattingTestAsync(
-            input: """
-                @code {
-                int Value=1;
-                }
-                """,
-            htmlFormatted: """
-                @code {
-                int Value=1;
-                }
-                """,
-            expected: """
-                @code
-                {
-                    int Value = 1;
-                }
-                """,
-            fileKind: RazorFileKind.Component,
-            validateHtmlFormattedMatchesWebTools: false,
-            additionalFiles:
-            [
-                (".editorconfig", """
-                    root = true
-
-                    [*.{razor,cshtml}]
-                    razor_code_block_brace_on_next_line = true
-                    """)
-            ]);
-
-    [Fact]
-    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
-    public Task DocumentFormatting_UsesRazorEditorConfig_Cshtml()
-        => RunFormattingTestAsync(
-            input: """
-                @functions {
-                int Value=1;
-                }
-                """,
-            htmlFormatted: """
-                @functions {
-                int Value=1;
-                }
-                """,
-            expected: """
-                @functions
-                {
-                    int Value = 1;
-                }
-                """,
-            fileKind: RazorFileKind.Legacy,
-            validateHtmlFormattedMatchesWebTools: false,
-            additionalFiles:
-            [
-                (".editorconfig", """
-                    root = true
-
-                    [*.{razor,cshtml}]
-                    razor_code_block_brace_on_next_line = true
-                    """)
-            ]);
-
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
     public Task DocumentFormatting_UsesRazorEditorConfig_AlignWithFirst()
@@ -308,117 +245,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             ]);
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
-    public Task RangeFormatting_UsesEditorConfig_Razor()
-        => RunFormattingTestAsync(
-            input: """
-                @code {
-                    private void M(string [|value|])
-                    {
-                    }
-                }
-                """,
-            htmlFormatted: """
-                @code {
-                    private void M(string value)
-                    {
-                    }
-                }
-                """,
-            expected: """
-                @code {
-                    private void M(string value) {
-                    }
-                }
-                """,
-            validateHtmlFormattedMatchesWebTools: false,
-            additionalFiles:
-            [
-                (".editorconfig", """
-                    root = true
-
-                    [*.razor]
-                    csharp_new_line_before_open_brace = none
-                    """)
-            ]);
-
-    [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
-    public Task RangeFormatting_UsesEditorConfig_Cshtml()
-        => RunFormattingTestAsync(
-            input: """
-                @functions {
-                    private void M(string [|value|])
-                    {
-                    }
-                }
-                """,
-            htmlFormatted: """
-                @functions {
-                    private void M(string value)
-                    {
-                    }
-                }
-                """,
-            expected: """
-                @functions {
-                    private void M(string value) {
-                    }
-                }
-                """,
-            fileKind: RazorFileKind.Legacy,
-            validateHtmlFormattedMatchesWebTools: false,
-            additionalFiles:
-            [
-                (".editorconfig", """
-                    root = true
-
-                    [*.cshtml]
-                    csharp_new_line_before_open_brace = none
-                    """)
-            ]);
-
-    [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/9658#issuecomment-3943605712")]
-    public async Task MultilineIfStatement()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                <div>
-                    @if (true ||
-                        true ||
-                        true ||
-                        true)
-                        {
-                            // Hi
-                        }
-                    </div>
-                """,
-            htmlFormatted: """
-                <div>
-                    @if (true ||
-                    true ||
-                    true ||
-                    true)
-                    {
-                    // Hi
-                    }
-                </div>
-                """,
-            expected: """
-                <div>
-                    @if (true ||
-                        true ||
-                        true ||
-                        true)
-                    {
-                        // Hi
-                    }
-                </div>
-                """);
-    }
-
-    [Fact]
     [WorkItem("https://developercommunity.visualstudio.com/t/Format-Document-in-a-blazor-documents-ad/11046727")]
     public async Task MultilineRawStringLiteral()
     {
@@ -463,6 +289,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         """)
                     </PageTitle>
                 </PageTitle>
+                """",
+            dotNetFormatExpected: """"
+                <PageTitle>
+                    <PageTitle>
+                        @("""
+                          <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+                
+                          <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                          <Title>Aanmaak scherm</Title>
+                          <Body>
+                                <label>Vul hier een tekst in</label>
+                                <input @bind=_createItem />
+                          </Body>
+                          <Footer>
+                                <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                                <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                          </Footer>
+                          </FCBS5Modal>
+                          """)</PageTitle>
+                    </PageTitle>
                 """",
             expected: """"
                 <PageTitle>
@@ -812,32 +658,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
-    public async Task DifferentAttributeWrappingPoint1()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                <div>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation"></button>
-                </div>
-                """,
-            htmlFormatted: """
-                <div>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
-                </div>
-                """,
-            expected: """
-                <div>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
-                </div>
-                """,
-            validateHtmlFormattedMatchesWebTools: false);
-    }
-
-    [Fact]
-    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
     public async Task DifferentAttributeWrappingPoint2()
     {
         await RunFormattingTestAsync(
@@ -851,6 +671,12 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
                 </div>
                 """,
             expected: """
@@ -881,6 +707,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button class="navbar-toggler"
+                            type="button" data-bs-toggle="collapse"
+                            data-bs-target=".navbar-collapse"
+                            aria-controls="navbarSupportedContent"
+                            aria-expanded="false"
+                            aria-label="Toggle navigation"></button>
                 </div>
                 """,
             expected: """
@@ -920,6 +756,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </div>
                 </body>
 
+                </html>
+                """,
+            dotNetFormatExpected: """
+                <html>
+                <head>
+                    <title>Goo</title>
+                </head>
+                <body>
+                    <div>
+                    </div>
+                </body>
                 </html>
                 """,
             expected: """
@@ -1061,92 +908,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             break;
                     }
                 </div>
-                """);
-    }
-
-    [Fact]
-    public async Task RangeFormatOpenBrace()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                <div></div>
-
-                @code {
-                    private void M(string [|request|]) {
-                    }
-                }
-                """,
-            htmlFormatted: """
-                <div></div>
-                
-                @code {
-                    private void M(string request) {
-                    }
-                }
-                """,
-            expected: """
-                <div></div>
-                
-                @code {
-                    private void M(string request)
-                    {
-                    }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task RangeFormatOpenBrace_WithContent()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                <div></div>
-
-                @code {
-                    private void M(string [|request|]) {
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                    }
-                }
-                """,
-            htmlFormatted: """
-                <div></div>
-                
-                @code {
-                    private void M(string request) {
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                    }
-                }
-                """,
-            expected: """
-                <div></div>
-                
-                @code {
-                    private void M(string request)
-                    {
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                        // This is quite a lot of content
-                    }
-                }
                 """);
     }
 
@@ -1813,6 +1574,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 </script>
                 """,
+            dotNetFormatExpected: """
+                <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                </script>
+                """,
             expected: """
                 <script>
                     function initialize() {
@@ -1874,6 +1644,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                 start();
                             }
                         }
+                    </script>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
                     </script>
                 </div>
                 """,
@@ -1951,6 +1732,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </section>
                 </main>
                 """,
+            dotNetFormatExpected: """
+                <main>
+                    <section>
+                        <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                        </script>
+                    </section>
+                </main>
+                """,
             expected: """
                 <main>
                     <section>
@@ -2023,6 +1817,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </script>
                 }
                 """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                    </script>
+                }
+                """,
             expected: """
                 @section Scripts {
                     <script>
@@ -2062,6 +1867,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }
                     }
                 </script>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script>
+                    function initialize() {
+                    if (ready) {
+                    start();
+                    }
+                    }
+                    </script>
                 }
                 """,
             expected: """
@@ -2111,6 +1927,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </div>
                 }
                 """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <div>
+                        <script>
+                                function initialize() {
+                                    if (ready) {
+                                        start();
+                                    }
+                                }
+                        </script>
+                    </div>
+                }
+                """,
             expected: """
                 @section Scripts {
                     <div>
@@ -2156,6 +1985,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }
                     </script>
                 </div>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <div>
+                        <script>
+                    function initialize() {
+                    if (ready) {
+                    start();
+                    }
+                    }
+                        </script>
+                    </div>
                 }
                 """,
             expected: """
@@ -2209,6 +2051,21 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </script>
                     </section>
                 </main>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <main>
+                        <section>
+                            <script>
+                                    function initialize() {
+                                        if (ready) {
+                                            start();
+                                        }
+                                    }
+                            </script>
+                        </section>
+                    </main>
                 }
                 """,
             expected: """
@@ -2279,6 +2136,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </section>
                 </main>
                 """,
+            dotNetFormatExpected: """
+                <main>
+                    <section>
+                        <style>
+                .card {
+                color: red;
+                }
+                        </style>
+                    </section>
+                </main>
+                """,
             expected: """
                 <main>
                     <section>
@@ -2322,6 +2190,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </div>
                 }
                 """,
+            dotNetFormatExpected: """
+                @section Styles {
+                    <div>
+                        <style>
+                                .card {
+                                    color: red;
+                                }
+                        </style>
+                    </div>
+                }
+                """,
             expected: """
                 @section Styles {
                     <div>
@@ -2361,6 +2240,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }
                     </style>
                 </div>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Styles {
+                    <div>
+                        <style>
+                    .card {
+                    color: red;
+                    }
+                        </style>
+                    </div>
                 }
                 """,
             expected: """
@@ -2433,6 +2323,32 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 
                 </script>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                        var data = null;
+                            var allocationMoveTemplateFn = null;
+                            var allocationTableTemplateFn = null;
+                                var manufactureOrderInfoTemplateFn = null;
+                            var selectionsJsonTemplateFn = null;
+                
+                            function getAllocationMoveTemplate() {
+                                if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                                var sourceEl = document.getElementById('allocationMoveTemplate');
+                                if (!sourceEl || typeof Handlebars === 'undefined') {
+                                    return null;
+                                }
+                
+                                allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                                return allocationMoveTemplateFn;
+                            }
+                
+                    </script>
                 }
                 """,
             expected: """
@@ -2610,6 +2526,34 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 
                 </script>
                 ~
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                    </script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                    </script>
+                    <script>
+                        var data = null;
+                            var allocationMoveTemplateFn = null;
+                            var allocationTableTemplateFn = null;
+                                var manufactureOrderInfoTemplateFn = null;
+                            var selectionsJsonTemplateFn = null;
+                
+                            function getAllocationMoveTemplate() {
+                                if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                                var sourceEl = document.getElementById('allocationMoveTemplate');
+                                if (!sourceEl || typeof Handlebars === 'undefined') {
+                                    return null;
+                                }
+                
+                                allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                                return allocationMoveTemplateFn;
+                            }
+                
+                    </script>
+                }
                 """,
             expected: """
                 @section Scripts {
@@ -4210,41 +4154,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </body>
                 </html>
                 """,
-            expected: """
+            dotNetFormatExpected: """
                 <html>
                 <head>
-                    <title>Hello</title>
-                </head>
-                <body>
-                    <div>
-                    </div>
-                </body>
-                </html>
-                """);
-    }
-
-    [Fact]
-    public async Task FormatsSimpleHtmlTag_Range()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                <html>
-                <head>
-                    <title>Hello</title>
-                </head>
-                <body>
-                        [|<div>
-                        </div>|]
-                </body>
-                </html>
-                """,
-            htmlFormatted: """
-                <html>
-                <head>
-                    <title>Hello</title>
-                </head>
-                <body>
-                    <div>
+                    <title>Hello</title></head>
+                    <body><div>
                     </div>
                 </body>
                 </html>
@@ -4316,6 +4230,30 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </div>
                     </div>
                 </p>
+                """,
+            dotNetFormatExpected: """
+                @page "/error"
+                
+                <h1 class=
+                "text-danger">Error.</h1>
+                <h2 class="text-danger">An error occurred while processing your request.</h2>
+                
+                <h3>Development Mode</h3>
+                <p>
+                    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</p>
+                    <p>
+                        <strong>The Development environment shouldn't be enabled for deployed applications.
+                        </strong>
+                        <div>
+                            <div>
+                                <div>
+                                    <div>
+                                        This is heavily nested
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p>
                 """,
             expected: """
                 @page "/error"
@@ -4590,6 +4528,36 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     var t = 1;
                     }
                 </p>
+                }
+                
+                @(DateTime
+                    .Now
+                .ToString())
+                
+                @(
+                    Foo.Values.Select(f =>
+                    {
+                        return f.ToString();
+                    })
+                )
+                """,
+            dotNetFormatExpected: """
+                @page "/test"
+                
+                <div
+                attr='val'
+                class=@className>Some Text</div>
+                
+                @{
+                    @: Hi!
+                    var x = DateTime
+                        .Now.ToString();
+                    <p>
+                        @if (true)
+                        {
+                            var t = 1;
+                        }
+                    </p>
                 }
                 
                 @(DateTime
@@ -5591,70 +5559,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
-    public async Task FormatHtmlInIf_Range()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                @if (true)
-                {
-                    <p><em>Loading...</em></p>
-                }
-                else
-                {
-                    <table class="table">
-                        <thead>
-                            <tr>
-                [|      <th>Date</th>
-                        <th>Temp. (C)</th>
-                        <th>Temp. (F)</th>
-                        <th>Summary</th>|]
-                            </tr>
-                        </thead>
-                    </table>
-                }
-                """,
-            htmlFormatted: """
-                @if (true)
-                {
-                <p><em>Loading...</em></p>
-                }
-                else
-                {
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Temp. (C)</th>
-                            <th>Temp. (F)</th>
-                            <th>Summary</th>
-                        </tr>
-                    </thead>
-                </table>
-                }
-                """,
-            expected: """
-                @if (true)
-                {
-                    <p><em>Loading...</em></p>
-                }
-                else
-                {
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Temp. (C)</th>
-                                <th>Temp. (F)</th>
-                                <th>Summary</th>
-                            </tr>
-                        </thead>
-                    </table>
-                }
-                """);
-    }
-
-    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/5749")]
     public async Task FormatRenderFragmentInCSharpCodeBlock1()
     {
@@ -5698,6 +5602,24 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div></div>
                 
                         @* comment *@<div></div>
+                    }
+                }
+                """,
+            dotNetFormatExpected: """
+                @code
+                {
+                    public void DoStuff(RenderFragment renderFragment)
+                    {
+                        DoThings();
+                        renderFragment(@<PageTitle Title="Foo" />);
+                        DoThings();
+                        renderFragment(@<PageTitle          Title="Foo"             />);
+                
+                        @* comment *@
+                        <div></div>
+                
+                        @* comment *@
+                        <div></div>
                     }
                 }
                 """,
@@ -5803,6 +5725,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 
                     @* comment *@<div></div>
+                    }
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    @{
+                        renderFragment(@<PageTitle      Title=  "Foo"     />);
+                
+                        @* comment *@
+                        <div></div>
+                
+                        @* comment *@
+                        <div></div>
                     }
                 </div>
                 """,
@@ -6053,6 +5988,33 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 public bool VarBool {get;set;}
                 }
                 """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    <CascadingValue Value="Variable1">
+                        <CascadingValue Value="Variable2">
+                            <PageTitle  />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <PageTitle  />
+                                    <PageTitle  />
+                                </div>
+                            }
+                        </CascadingValue>
+                    </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
+                }
+                """,
             expected: """
                 @using Microsoft.AspNetCore.Components.Forms;
 
@@ -6136,6 +6098,31 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     public object Variable1 {get;set;}
                 public object Variable2 {get;set;}
                 public bool VarBool {get;set;}
+                }
+                """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    <CascadingValue Value="Variable1">
+                        <PageTitle  />
+                        @if (VarBool)
+                        {
+                            <div class="mb-16">
+                                <PageTitle  />
+                                <PageTitle  />
+                            </div>
+                        }
+                    </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
                 }
                 """,
             expected: """
@@ -6223,6 +6210,32 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 public bool VarBool {get;set;}
                 }
                 """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    @if (VarBool)
+                    {
+                        <PageTitle  />
+                        @if (VarBool)
+                        {
+                            <div class="mb-16">
+                                <PageTitle  />
+                                <PageTitle  />
+                            </div>
+                        }
+                    }
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
+                }
+                """,
             expected: """
                 @using Microsoft.AspNetCore.Components.Forms;
 
@@ -6299,6 +6312,28 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     public object Variable1 {get;set;}
                 public object Variable2 {get;set;}
                 public bool VarBool {get;set;}
+                }
+                """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                <CascadingValue Value="Variable1">
+                    <PageTitle  />
+                    @if (VarBool)
+                    {
+                        <div class="mb-16">
+                            <PageTitle  />
+                            <PageTitle  />
+                        </div>
+                    }
+                </CascadingValue>
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
                 }
                 """,
             expected: """
@@ -6379,6 +6414,31 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     public object Variable1 {get;set;}
                 public object Variable2 {get;set;}
                 public bool VarBool {get;set;}
+                }
+                """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    <PageTitle>
+                        <PageTitle  />
+                        @if (VarBool)
+                        {
+                            <div class="mb-16">
+                                <PageTitle  />
+                                <PageTitle  />
+                            </div>
+                        }
+                    </PageTitle>
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
                 }
                 """,
             expected: """
@@ -6466,6 +6526,33 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     public object Variable1 {get;set;}
                 public object Variable2 {get;set;}
                 public bool VarBool {get;set;}
+                }
+                """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    <CascadingValue Value="Variable1">
+                        <div>
+                            <PageTitle  />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <PageTitle  />
+                                    <PageTitle  />
+                                </div>
+                            }
+                        </div>
+                    </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
                 }
                 """,
             expected: """
@@ -7613,6 +7700,49 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
+            dotNetFormatExpected: """
+                @using System.Text;
+                
+                <div>
+                    @(new C()
+                            .M("Hello")
+                        .M("World")
+                        .M(source =>
+                        {
+                            if (source.Length > 0)
+                            {
+                                source.ToString();
+                            }
+                        }))
+                
+                    @(DateTime.Now)
+                
+                    @(DateTime
+                .Now
+                .ToString())
+                
+                    @(Html.DisplayNameFor(@<text>
+                        <p >
+                            <h2 ></h2>
+                        </p>
+                    </text>)
+                .ToString())
+                
+                    @{
+                        var x = @<p>Hi there!</p>;
+                    }
+                    @x()
+                    @(@x())
+                </div>
+                
+                @functions {
+                    class C
+                    {
+                        C M(string a) => this;
+                        C M(Func<string, C> a) => this;
+                    }
+                }
+                """,
             expected: """
                 @using System.Text;
 
@@ -7728,6 +7858,38 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     4))
                 </div>
                 """,
+            dotNetFormatExpected: """
+                <div>
+                    @(Html.DisplayNameFor(@<text>
+                        <p >
+                            <h2 ></h2>
+                        </p>
+                    </text>)
+                       .ToString())
+                
+                    @(Html.DisplayNameFor(@<div></div>,
+                       1, 3, 4))
+                
+                    @(Html.DisplayNameFor(@<div></div>,
+                       1, 3, @<div></div>,
+                       2, 4))
+                
+                    @(Html.DisplayNameFor(
+                       1, 3, @<div></div>,
+                       2, 4))
+                
+                    @(Html.DisplayNameFor(
+                       1, 3,
+                       2, 4))
+                
+                    @(Html.DisplayNameFor(
+                       2, 4,
+                       1, 3, @<div></div>,
+                       2, 4,
+                       1, 3, @<div></div>,
+                       4))
+                </div>
+                """,
             expected: """
                 <div>
                     @(Html.DisplayNameFor(@<text>
@@ -7838,42 +8000,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
-    public async Task RazorDiagnostics_SkipRangeFormatting()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                @page "Goo"
-
-                <div></div>
-
-                [|<button|]
-                @functions {
-                 void M() { }
-                }
-                """,
-            htmlFormatted: """
-                @page "Goo"
-                
-                <div></div>
-                
-                <button @functions {
-                        void M() { }
-                        }
-                """,
-            expected: """
-                @page "Goo"
-
-                <div></div>
-
-                <button
-                @functions {
-                 void M() { }
-                }
-                """,
-            allowDiagnostics: true);
-    }
-
-    [Fact]
     public async Task RazorDiagnostics_DontSkipDocumentFormatting()
     {
         // Yes this format result looks wrong, but this is only done in direct response
@@ -7890,70 +8016,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         void M() { }
                         }
                 """,
+            dotNetFormatExpected: """
+                <button
+                @functions {
+                void M() { }
+                }
+                """,
             expected: """
                 <button @functions {
                     void M() { }
                     }
-                """,
-            allowDiagnostics: true);
-    }
-
-    [Fact]
-    public async Task RazorDiagnostics_SkipRangeFormatting_WholeDocumentRange()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                [|<button
-                @functions {
-                 void M() { }
-                }|]
-                """,
-            htmlFormatted: """
-                <button @functions {
-                        void M() { }
-                        }
-                """,
-            expected: """
-                <button
-                @functions {
-                 void M() { }
-                }
-                """,
-            allowDiagnostics: true);
-    }
-
-    [Fact]
-    public async Task RazorDiagnostics_DontSkipWhenOutsideOfRange()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                @page "Goo"
-
-                [|      <div></div>|]
-
-                <button
-                @functions {
-                 void M() { }
-                }
-                """,
-            htmlFormatted: """
-                @page "Goo"
-                
-                <div></div>
-                
-                <button @functions {
-                        void M() { }
-                        }
-                """,
-            expected: """
-                @page "Goo"
-
-                <div></div>
-
-                <button
-                @functions {
-                 void M() { }
-                }
                 """,
             allowDiagnostics: true);
     }
@@ -8075,6 +8147,64 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                    }
                    }
                    }
+                }
+                """,
+            dotNetFormatExpected: """
+                Welcome.
+                
+                <div class="goo"
+                     align="center">
+                </div>
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red" />
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red"></PageTitle>
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red">
+                    Hello
+                </PageTitle>
+                
+                @if (true)
+                {
+                    <div class="goo"
+                         align="center">
+                    </div>
+                
+                    <PageTitle Title="How is Blazor working for you?"
+                               Color="Red" />
+                
+                    <tag attr1="value1"
+                         attr2="value2"
+                         attr3="value3"
+                    />
+                
+                    <tag attr1="value1"
+                         attr2="value2"
+                         attr3="value3"></tag>
+                
+                    <tag attr1="value1"
+                         attr2="value2"
+                         attr3="value3">
+                        Hello
+                    </tag>
+                
+                    @if (true)
+                    {
+                        @if (true)
+                        {
+                            @if (true)
+                            {
+                                <table width="10"
+                                       height="10"
+                                       cols="3"
+                                       rows="3">
+                                </table>
+                            }
+                        }
+                    }
                 }
                 """,
             expected: """
@@ -8253,6 +8383,27 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                 }
                             </div>
                 </section>
+                """,
+            dotNetFormatExpected: """
+                @page
+                @model BlazorApp58.Pages.Index2Model
+                @{
+                }
+                
+                <section class="section">
+                    <div class="container">
+                        <h1 class="title">Managed pohotos</h1>
+                        <p class="subtitle">@Model.ReferenceNumber</p>
+                    </div>
+                </section>
+                <section class="section">
+                    <div class="container">
+                        @foreach (var item in Model.Images)
+                        {
+                            <div><div>
+                                }
+                            </div>
+                        </section>
                 """,
             expected: """
                 @page
@@ -8993,6 +9144,25 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 }
                 """,
+            dotNetFormatExpected: """
+                @functions {
+                    public class Foo
+                    {
+                        void Method() { }
+                    }
+                }
+                
+                @section Scripts {
+                    <meta property="a" content="b">
+                    <meta property="a" content="b"/>
+                    <meta property="a" content="b">
+                
+                    @if (true)
+                    {
+                        <p>this is a paragraph</p>
+                    }
+                }
+                """,
             expected: """
                 @functions {
                     public class Foo
@@ -9055,6 +9225,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 {
                 <p>this is a paragraph</p>
                 }
+                }
+                """,
+            dotNetFormatExpected: """
+                @functions {
+                    public class Foo
+                    {
+                        void Method() { }
+                    }
+                }
+                
+                @section Scripts
+                {
+                    <meta property="a" content="b">
+                    <meta property="a" content="b"/>
+                    <meta property="a" content="b">
+                
+                    @if (true)
+                    {
+                        <p>this is a paragraph</p>
+                    }
                 }
                 """,
             expected: """
@@ -9373,64 +9563,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 
                     <div></div>
                 </div>
-                """);
-    }
-
-    [Fact]
-    public async Task DoesNotFormat_CodeBlockDirective_NotInSelectedRange()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                [|<div>Foo</div>|]
-                @functions {
-                 public class Foo{}
-                        public interface Bar {
-                }
-                }
-                """,
-            htmlFormatted: """
-                <div>Foo</div>
-                @functions {
-                 public class Foo{}
-                        public interface Bar {
-                }
-                }
-                """,
-            expected: """
-                <div>Foo</div>
-                @functions {
-                 public class Foo{}
-                        public interface Bar {
-                }
-                }
-                """);
-    }
-
-    [Fact]
-    public async Task OnlyFormatsWithinRange()
-    {
-        await RunFormattingTestAsync(
-            input: """
-                @functions {
-                 public class Foo{}
-                        [|public interface Bar {
-                }|]
-                }
-                """,
-            htmlFormatted: """
-                @functions {
-                 public class Foo{}
-                        public interface Bar {
-                }
-                }
-                """,
-            expected: """
-                @functions {
-                 public class Foo{}
-                    public interface Bar
-                    {
-                    }
-                }
                 """);
     }
 
@@ -15242,53 +15374,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
 
     [Fact]
-    [WorkItem("https://github.com/dotnet/razor/issues/11777")]
-    public Task RangeFormat_AfterProperty()
-        => RunFormattingTestAsync(
-            input: """
-                @code
-                {
-                    public string S
-                    {
-                        get => _s;
-                        set
-                        {
-                            _s = value;
-                        }
-                    } [|private string _s = "";|]
-                }
-                """,
-            htmlFormatted: """
-                @code
-                {
-                    public string S
-                    {
-                        get => _s;
-                        set
-                        {
-                            _s = value;
-                        }
-                    } private string _s = "";
-                }
-                """,
-            expected: """
-                @code
-                {
-                    public string S
-                    {
-                        get => _s;
-                        set
-                        {
-                            _s = value;
-                        }
-                    }
-                    private string _s = "";
-                }
-                """,
-            debugAssertsEnabled: false
-);
-
-    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/11873")]
     public Task NestedExplicitExpression1()
         => RunFormattingTestAsync(
@@ -15667,6 +15752,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </InputSelect>
                 </div>
                 """,
+            dotNetFormatExpected: """
+                <div class="foo"
+                     disabled
+                     style="hello"
+                     @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                                 TValue="Guid?"
+                                 disabled
+                                 style="hello">
+                        <p></p><a href="#"
+                                  disabled
+                                  style="hello"
+                                  @onclick="foo()"/>
+                        <br class="a"
+                            style="b"
+                            disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
             expected: """
                 <div class="foo"
                      disabled
@@ -15704,6 +15809,14 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                      disabled
                      style="hello"
                      @onclick="foo()">
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div
+                    class="foo"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
                 </div>
                 """,
             expected: """
@@ -15750,6 +15863,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                   disabled
                                   style="hello"
                                   @onclick="foo()" />
+                        <br class="a"
+                            style="b"
+                            disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div class="foo"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                        TValue="Guid?"
+                        disabled
+                        style="hello">
+                        <p></p><a href="#"
+                            disabled
+                            style="hello"
+                            @onclick="foo()"/>
                         <br class="a"
                             style="b"
                             disabled>
@@ -15818,6 +15951,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         <br class="a"
                             style="b"
                             disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div class="foo"
+                        disabled
+                        style="hello"
+                        @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                            TValue="Guid?"
+                            disabled
+                            style="hello">
+                        <p></p><a href="#"
+                                disabled
+                                style="hello"
+                                @onclick="foo()"/>
+                        <br class="a"
+                                style="b"
+                                disabled>
                         <br />
                     </InputSelect>
                 </div>
@@ -16418,6 +16571,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             htmlFormatted: """
                 <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)" />
                 """,
+            dotNetFormatExpected: """
+                <Icon Name="@(expanded ? ParentDataGrid.SelfReferenceCollapseIcon : ParentDataGrid.SelfReferenceExpandIcon)"/>
+                """,
             expected: """
                 <Icon Name="@(expanded ? ParentDataGrid.SelfReferenceCollapseIcon : ParentDataGrid.SelfReferenceExpandIcon)" />
                 """,
@@ -16450,6 +16606,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         .ipam-card-header-row h3 {
                             margin: 0;
                         }
+                </style>
+                """,
+            dotNetFormatExpected: """
+                @using System
+                
+                <style>
+                    /* Card header row */
+                    .ipam-card-header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+                    .ipam-card-header-row h3 { margin: 0; }
                 </style>
                 """,
             expected: """
@@ -16499,6 +16664,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         .ipam-card-header-row h3 {
                             margin: 0;
                         }
+                </style>
+                """,
+            dotNetFormatExpected: """
+                @using System
+                
+                <style>
+                    /* Card header row */
+                    .ipam-card-header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+                
+                    .ipam-card-header-row h3 { margin: 0; }
                 </style>
                 """,
             expected: """
@@ -16561,6 +16736,28 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                 $.ajax({
                                     url: url,
                                     method: 'POST',
+                                    success: function (response) {
+                                        alert('Content published successfully!');
+                                    },
+                                    error: function (xhr, status, error) {
+                                        alert('Error publishing content: ' + error);
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+                    """,
+                dotNetFormatExpected: $$"""
+                    {{directive}}
+
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $('.dropdown-item').click(function (e) {
+                                e.preventDefault();
+                                var url = $(this).attr('href');
+                                $.ajax({
+                                    url: url,
+                                                method: 'POST',
                                     success: function (response) {
                                         alert('Content published successfully!');
                                     },
@@ -16699,6 +16896,21 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             </tr>
                         </thead>
                     </table>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            @*
+                            <tr class="row-1">
+                                <th>Group A</th>
+                            </tr>
+                 *@         <tr>
+                            <th>ID</th>
+                        </tr>
+                    </thead>
+                </table>
                 </div>
                 """,
             expected: """
@@ -17074,6 +17286,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 </script>
                 """,
+            dotNetFormatExpected: """
+                <script
+                    type="text/javascript">
+                        @foreach (var item in items)
+                        {
+                            @:use(item);
+                        }
+                </script>
+                """,
             expected: """
                 <script type="text/javascript">
                         @foreach (var item in items)
@@ -17099,6 +17320,13 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <script type="application/json">@Model.Value</script>
                 @{
                 var value=1;
+                }
+                """,
+            dotNetFormatExpected: """
+                <script
+                type="application/json">@Model.Value</script>
+                @{
+                    var value = 1;
                 }
                 """,
             expected: """
@@ -17189,4 +17417,934 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 csharp_new_line_between_query_expression_clauses = false
                 """)
         ];
+
+    [Fact]
+    [WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/2766")]
+    public Task DifferentAttributeWrappingPoint()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
+                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/9658#issuecomment-3943605712")]
+    public Task MultilineIfStatement()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    @if (true ||
+                        true ||
+                        true ||
+                        true)
+                        {
+                            // Hi
+                        }
+                    </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    @if (true ||
+                    true ||
+                    true ||
+                    true)
+                    {
+                    // Hi
+                    }
+                </div>
+                """,
+            expected: """
+                <div>
+                    @if (true ||
+                        true ||
+                        true ||
+                        true)
+                    {
+                        // Hi
+                    }
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsRazorAndCSharpWithoutFormattingHtml()
+        => RunFormattingTestAsync(
+            input: """
+                <div><span>HTML remains on one line</span></div>
+                @code {
+                class C
+                {
+                void M()
+                {
+                }
+                }
+                }
+                """,
+            htmlFormatted: """
+                <div><span>HTML remains on one line</span></div>
+                @code {
+                class C
+                {
+                void M()
+                {
+                }
+                }
+                }
+                """,
+            expected: """
+                <div><span>HTML remains on one line</span></div>
+                @code {
+                    class C
+                    {
+                        void M()
+                        {
+                        }
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesScriptBlock()
+        => RunFormattingTestAsync(
+            input: """
+                <script>
+                function logValue( ){
+                const value=1;
+                  console.log( value );
+                }
+                </script>
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                <script>
+                function logValue( ){
+                const value=1;
+                  console.log( value );
+                }
+                </script>
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                <script>
+                function logValue( ){
+                const value=1;
+                  console.log( value );
+                }
+                </script>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesStyleBlock()
+        => RunFormattingTestAsync(
+            input: """
+                <style>
+                .example{
+                color:red;
+                  padding:0  4px;
+                }
+                </style>
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                <style>
+                .example{
+                color:red;
+                  padding:0  4px;
+                }
+                </style>
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                <style>
+                .example{
+                color:red;
+                  padding:0  4px;
+                }
+                </style>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task IndentsNestedHtml()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                <span>Content</span>
+                </section>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                <section>
+                <span>Content</span>
+                </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <span>Content</span>
+                    </section>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task IndentsHtmlInsideRazorBlock()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                <div>
+                <span>Content</span>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                <span>Content</span>
+                </div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <span>Content</span>
+                    </div>
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task IndentsRazorBlockInsideHtml()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                @if (true)
+                {
+                <span>@DateTime.Now</span>
+                }
+                </section>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                <section>
+                @if (true)
+                {
+                <span>@DateTime.Now</span>
+                }
+                </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        @if (true)
+                        {
+                            <span>@DateTime.Now</span>
+                        }
+                    </section>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task FormatsCshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                class C
+                {
+                void M()
+                {
+                }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                class C
+                {
+                void M()
+                {
+                }
+                }
+                }
+                """,
+            expected: """
+                @functions {
+                    class C
+                    {
+                        void M()
+                        {
+                        }
+                    }
+                }
+                """,
+            documentFilePath: TestProjectData.SomeProjectCshtmlComponentFile5.FilePath,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task UsesNestedEditorConfig()
+    {
+        var projectDirectory = Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!;
+        var nestedDirectory = Path.Combine(projectDirectory, "Nested");
+
+        return RunFormattingTestAsync(
+            input: """
+                @code {
+                class C
+                {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                class C
+                {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                }
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    class C {
+                        void M() {
+                            if(true) {
+                            }
+                        }
+                    }
+                }
+                """,
+            documentFilePath: Path.Combine(nestedDirectory, "File1.razor"),
+            additionalFiles:
+            [
+                (Path.Combine(projectDirectory, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """),
+                (Path.Combine(nestedDirectory, ".editorconfig"), """
+                    [*.razor]
+                    csharp_space_after_keywords_in_control_flow_statements = false
+                    """),
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorEditorConfig_Razor_BraceOnNextLine()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @code
+                {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".razor"),
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorEditorConfig_Razor_BraceOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @code {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".razor"),
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorEditorConfig_Cshtml_BraceOnNextLine()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @functions
+                {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".cshtml"),
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorEditorConfig_Cshtml_BraceOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @functions {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".cshtml"),
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorAttributeIndentEditorConfig_AlignWithFirst()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                     id="content">
+                </div>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = align_with_first
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorAttributeIndentEditorConfig_IndentByOne()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                    id="content">
+                </div>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_one
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorAttributeIndentEditorConfig_IndentByTwo()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                        id="content">
+                </div>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_two
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesComplexRazorIndentationEditorConfig_Script_True()
+        => RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = true
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesComplexRazorIndentationEditorConfig_Script_False()
+        => RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </script>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = false
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesComplexRazorIndentationEditorConfig_Style_True()
+        => RunFormattingTestAsync(
+            input: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            htmlFormatted: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            expected: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = true
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesComplexRazorIndentationEditorConfig_Style_False()
+        => RunFormattingTestAsync(
+            input: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            htmlFormatted: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            expected: """
+                <style>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </style>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = false
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineRawStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """"
+                @code {
+                void M()
+                {
+                var text = """
+                    first
+                        second
+                    """;
+                }
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                void M()
+                {
+                var text = """
+                    first
+                        second
+                    """;
+                }
+                }
+                """",
+            expected: """"
+                @code {
+                    void M()
+                    {
+                        var text = """
+                    first
+                        second
+                    """;
+                    }
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineUtf8RawStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """"
+                @code {
+                void M()
+                {
+                var text = """
+                    first
+                        second
+                    """u8;
+                }
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                void M()
+                {
+                var text = """
+                    first
+                        second
+                    """u8;
+                }
+                }
+                """",
+            expected: """"
+                @code {
+                    void M()
+                    {
+                        var text = """
+                    first
+                        second
+                    """u8;
+                    }
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineInterpolatedRawStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """"
+                @code {
+                void M()
+                {
+                var text = $"""
+                    first
+                        second
+                    """;
+                }
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                void M()
+                {
+                var text = $"""
+                    first
+                        second
+                    """;
+                }
+                }
+                """",
+            expected: """"
+                @code {
+                    void M()
+                    {
+                        var text = $"""
+                    first
+                        second
+                    """;
+                    }
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineVerbatimStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                void M()
+                {
+                var text = @"
+                    first
+                        second
+                    ";
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                void M()
+                {
+                var text = @"
+                    first
+                        second
+                    ";
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    void M()
+                    {
+                        var text = @"
+                    first
+                        second
+                    ";
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineInterpolatedVerbatimStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                void M()
+                {
+                var text = $@"
+                    first
+                        second
+                    ";
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                void M()
+                {
+                var text = $@"
+                    first
+                        second
+                    ";
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    void M()
+                    {
+                        var text = $@"
+                    first
+                        second
+                    ";
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
 }
