@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -271,7 +272,7 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
         {
             if (kind == LSPDocumentChangeKind.Added)
             {
-                Assumes.NotNull(@new);
+                Contract.ThrowIfNull(@new);
                 var virtualDocuments = @new.VirtualDocuments;
 
                 for (var i = 0; i < virtualDocuments.Count; i++)
@@ -287,7 +288,7 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             }
             else if (kind == LSPDocumentChangeKind.Removed)
             {
-                Assumes.NotNull(old);
+                Contract.ThrowIfNull(old);
                 var virtualDocuments = old.VirtualDocuments;
 
                 for (var i = 0; i < virtualDocuments.Count; i++)
@@ -309,8 +310,8 @@ internal class DefaultLSPDocumentSynchronizer : LSPDocumentSynchronizer
             }
             else if (kind == LSPDocumentChangeKind.VirtualDocumentChanged)
             {
-                Assumes.NotNull(virtualOld);
-                Assumes.NotNull(virtualNew);
+                Contract.ThrowIfNull(virtualOld);
+                Contract.ThrowIfNull(virtualNew);
 
                 if (virtualOld.Snapshot.Version == virtualNew.Snapshot.Version)
                 {

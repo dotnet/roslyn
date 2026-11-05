@@ -120,7 +120,7 @@
          ErrorEndLocation="$(ErrorEndLocation)"
          ErrorLog="$(ErrorLog)"
          ErrorReport="$(ErrorReport)"
-         Features="$(Features)"
+         Features="$(_RoslynCompilerCacheFeature);$(Features)"
          InterceptorsNamespaces="$(InterceptorsNamespaces)"
          InterceptorsPreviewNamespaces="$(InterceptorsPreviewNamespaces)"
          FileAlignment="$(FileAlignment)"
@@ -133,6 +133,7 @@
          LangVersion="$(LangVersion)"
          LinkResources="@(LinkResource)"
          MainEntryPoint="$(StartupObject)"
+         MemorySafetyRulesVersion="$(MemorySafetyRulesVersion)"
          ModuleAssemblyName="$(ModuleAssemblyName)"
          NoConfig="true"
          NoLogo="$(NoLogo)"
@@ -209,6 +210,7 @@
        probably won't be any worse than having no options at all. -->
   <PropertyGroup>
     <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(_RoslynCompilerCacheFeature)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -features:$(_RoslynCompilerCacheFeature)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(DefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(DefineConstants)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(Features)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -features:$(Features)</CommandLineArgsForDesignTimeEvaluation>

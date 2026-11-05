@@ -228,6 +228,244 @@ public partial class RazorFormatterTest
             ]);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesRazorEditorConfig_Razor_BraceOnNextLine()
+        => VerifyFormattingAsync(
+            input: """
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @code
+                {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".razor"),
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesRazorEditorConfig_Razor_BraceOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @code {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".razor"),
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesRazorEditorConfig_Cshtml_BraceOnNextLine()
+        => VerifyFormattingAsync(
+            input: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @functions
+                {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".cshtml"),
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesRazorEditorConfig_Cshtml_BraceOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @functions {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".cshtml"),
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesRazorAttributeIndentEditorConfig_AlignWithFirst()
+        => VerifyFormattingAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                     id="content">
+                </div>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = align_with_first
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesRazorAttributeIndentEditorConfig_IndentByOne()
+        => VerifyFormattingAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                    id="content">
+                </div>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_one
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesRazorAttributeIndentEditorConfig_IndentByTwo()
+        => VerifyFormattingAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                        id="content">
+                </div>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_two
+                    """)
+            ]);
+
+    [Theory]
+    [InlineData("script")]
+    [InlineData("style")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesComplexRazorIndentationEditorConfig_True(string tagName)
+        => VerifyFormattingAsync(
+            input: $$"""
+                <{{tagName}}>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </{{tagName}}>
+                """,
+            expected: $$"""
+                <{{tagName}}>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </{{tagName}}>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = true
+                    """)
+            ]);
+
+    [Theory]
+    [InlineData("script")]
+    [InlineData("style")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task TryFormatAsync_UsesComplexRazorIndentationEditorConfig_False(string tagName)
+        => VerifyFormattingAsync(
+            input: $$"""
+                <{{tagName}}>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </{{tagName}}>
+                """,
+            expected: $$"""
+                <{{tagName}}>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </{{tagName}}>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = false
+                    """)
+            ]);
+
     [Theory]
     [InlineData("\"\"\"", "\"\"\"")]
     [InlineData("\"\"\"", "\"\"\"u8")]

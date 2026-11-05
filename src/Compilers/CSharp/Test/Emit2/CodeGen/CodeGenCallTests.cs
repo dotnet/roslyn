@@ -37032,6 +37032,76 @@ class Program
         }
 
         [Fact]
+        public void GenericTypeParameterAsReceiver_PropertyAccess_PostfixIncrementAssignment_03()
+        {
+            var src = """
+#nullable disable
+
+using System;
+
+interface I { int P { get; set; } }
+
+class C : I
+{
+    public static C Current;
+    public int Value;
+
+    public int P
+    {
+        get
+        {
+            Current = new C { Value = 100 };
+            return Value;
+        }
+        set { Value = value; }
+    }
+}
+
+class Program
+{
+    static void Increment<T>(in T x) where T : class, I
+    {
+        x.P++;
+    }
+
+    static void Main()
+    {
+        var original = new C { Value = 10 };
+        C.Current = original;
+        Increment(in C.Current);
+        Console.WriteLine($"original={original.Value}, current={C.Current.Value}");
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "original=11, current=100").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Increment<T>",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  dup
+  IL_0008:  box        ""T""
+  IL_000d:  callvirt   ""int I.P.get""
+  IL_0012:  stloc.0
+  IL_0013:  box        ""T""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  callvirt   ""void I.P.set""
+  IL_0020:  nop
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
         public void GenericTypeParameterAsReceiver_IndexerAccess_PrefixIncrementAssignment_01()
         {
             var src = """
