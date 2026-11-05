@@ -2627,6 +2627,76 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
         }
     }
 
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84848")]
+    public sealed class CSharpUnconditionalSuppressMessageSuppressionTests : CSharpSuppressionTests
+    {
+        protected override int CodeActionIndex => 1;
+
+        private sealed class UserDiagnosticAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly DiagnosticDescriptor _descriptor =
+                new("TrimDiagnostic", "TrimDiagnostic", "TrimDiagnostic", "TrimDiagnostic", DiagnosticSeverity.Warning, isEnabledByDefault: true,
+                    customTags: [WellKnownDiagnosticTags.RequiresUnconditionalSuppressMessageAttribute]);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_descriptor];
+
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterSyntaxNodeAction(
+                    c => c.ReportDiagnostic(Diagnostic.Create(_descriptor, ((ClassDeclarationSyntax)c.Node).Identifier.GetLocation())),
+                    SyntaxKind.ClassDeclaration);
+        }
+
+        internal override Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
+            => new(new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
+
+        private const string AttributeDefinition = """
+            namespace System.Diagnostics.CodeAnalysis
+            {
+                [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
+                public sealed class UnconditionalSuppressMessageAttribute : Attribute
+                {
+                    public UnconditionalSuppressMessageAttribute(string category, string checkId) { }
+                    public string Justification { get; set; }
+                    public string Scope { get; set; }
+                    public string Target { get; set; }
+                }
+            }
+            """;
+
+        [Fact]
+        public async Task TestUnconditionalSuppressMessageOnType()
+        {
+            var expected = $$"""
+                {{AttributeDefinition}}
+
+                [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("TrimDiagnostic", "TrimDiagnostic:TrimDiagnostic", Justification = "{{FeaturesResources.Pending}}")]
+                class Class
+                {
+                }
+                """;
+            await TestAsync($$"""
+                {{AttributeDefinition}}
+
+                [|class Class|]
+                {
+                }
+                """, expected);
+
+            // Also verify that the added attribute does indeed suppress the diagnostic.
+            expected = expected.Replace("class Class", "[|class Class|]");
+            await TestMissingAsync(expected);
+        }
+
+        [Fact]
+        public Task TestNoSuppressionWithoutUnconditionalSuppressMessageAttribute()
+            => TestMissingAsync("""
+                [|class Class|]
+                {
+                }
+                """);
+    }
+
     #endregion
 
     #region NoLocation Diagnostics tests
