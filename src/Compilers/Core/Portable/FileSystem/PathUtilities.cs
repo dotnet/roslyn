@@ -47,13 +47,13 @@ namespace Roslyn.Utilities
         /// Removes trailing directory separator characters
         /// </summary>
         /// <remarks>
-        /// This will trim the root directory separator:
-        /// "C:\" maps to "C:", and "/" maps to ""
+        /// This does not trim the root directory separator.
         /// </remarks>
         public static string TrimTrailingSeparators(string s)
         {
+            var root = GetPathRoot(s);
             int lastSeparator = s.Length;
-            while (lastSeparator > 0 && IsDirectorySeparator(s[lastSeparator - 1]))
+            while (lastSeparator > root.Length && IsDirectorySeparator(s[lastSeparator - 1]))
             {
                 lastSeparator -= 1;
             }

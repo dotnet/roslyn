@@ -4,11 +4,21 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.DotNet.FileBasedPrograms;
+using Microsoft.Extensions.FileSystemGlobbing;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FileBasedPrograms;
 
@@ -49,5 +59,97 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
             (text, path, textSpan, message, innerException) => reportError($"{new SourceFile(path, text).GetLocationString(textSpan)}: {message}"))
             .ConfigureAwait(false);
         return result.ProjectRootElement;
+    }
+
+    public async Task<ImmutableArray<string>> GetFileLevelDirectiveTargetPathsAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        if (document.Project.Language != LanguageNames.CSharp
+            || document.Project.ParseOptions?.Features.ContainsKey("FileBasedProgram") != true)
+        {
+            return [];
+        }
+
+        var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = syntaxRoot.FindToken(position, findInsideTrivia: true);
+        if (token.Parent is not IgnoredDirectiveTriviaSyntax)
+            return [];
+
+        // Caret is within an FBA directive.
+        // Get all directives (parsed form of the content) and find the one that matches current position.
+        var sourceText = await syntaxRoot.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var directives = FileLevelDirectiveHelpers.FindDirectives(new SourceFile(syntaxRoot.SyntaxTree.FilePath, sourceText), reportAllErrors: false, errorReporter: ErrorReporters.IgnoringReporter, checkDuplicates: false);
+        var directive = directives.FirstOrDefault(static (d, position) => d.Info.Span.Contains(position), position) as CSharpDirective.Named;
+        if (directive is null)
+            return [];
+
+        // This is meant to do a similar transform as 'FileLevelDirectiveHelpers.EnsureProjectFilePath'
+        // except it doesn't look at the file system and always uses an absolute path.
+        var directivePath = FileUtilities.NormalizeRelativePath(directive.Name.Replace('\\', '/'), document.FilePath, baseDirectory: null);
+        if (directivePath is null)
+            return [];
+
+        // Match '*'/'**' globs in the directivePath.
+        // 'Matcher' is designed for patterns to be relative to a base directory.
+        // For simplicity we will just use the path root as a base directory.
+        var pathRoot = Path.GetPathRoot(directivePath);
+        Contract.ThrowIfNull(pathRoot); // 'directivePath' is expected to be absolute here, so we should always have a 'pathRoot'
+        const StringComparison pathComparison = StringComparison.OrdinalIgnoreCase;
+        var matcher = new Matcher(pathComparison);
+        var includePath = PathUtilities.GetRelativePath(pathRoot, directivePath);
+        matcher.AddInclude(includePath);
+
+        using var builder = TemporaryArray<string>.Empty;
+        var isProjectDirective = directive is CSharpDirective.Project;
+        if (isProjectDirective || directive is CSharpDirective.Ref)
+        {
+            var solution = document.Project.Solution;
+            foreach (var reference in document.Project.ProjectReferences)
+            {
+                var projectPath = solution.GetRequiredProject(reference.ProjectId).FilePath;
+                if (!PathUtilities.IsAbsolute(projectPath))
+                    continue;
+
+                if (matcher.Match(rootDir: pathRoot, projectPath).HasMatches)
+                {
+                    builder.Add(projectPath);
+                }
+                // '#:project ./folder' or '#:project ./folder/' can match './folder/MyProject.csproj'
+                else if (isProjectDirective
+                    && Path.GetDirectoryName(projectPath) is { } projectDirectory)
+                {
+                    // https://github.com/dotnet/runtime/issues/136989
+                    // 'matcher.Match(pathRoot, pathRoot)' throws ArgumentOutOfRangeException. Ensure arguments are distinct before calling.
+                    // Note: this issue should only be possible for directory cases, not for sane document of project FilePath cases.
+                    var isMatch = !pathRoot.Equals(projectDirectory, pathComparison)
+                        ? matcher.Match(rootDir: pathRoot, projectDirectory).HasMatches
+                        // 'projectDirectory' is the path root. Allow a directive like '#:project C:\' to match 'C:\Project.csproj'.
+                        : directivePath.Equals(projectDirectory, pathComparison);
+                    if (isMatch)
+                        builder.Add(projectPath);
+                }
+            }
+        }
+        else if (directive is CSharpDirective.IncludeOrExclude)
+        {
+            foreach (var doc in document.Project.Documents)
+            {
+                if (!PathUtilities.IsAbsolute(doc.FilePath))
+                    continue;
+
+                if (matcher.Match(rootDir: pathRoot, doc.FilePath).HasMatches)
+                    builder.Add(doc.FilePath);
+            }
+
+            foreach (var doc in document.Project.AdditionalDocuments)
+            {
+                if (!PathUtilities.IsAbsolute(doc.FilePath))
+                    continue;
+
+                if (matcher.Match(rootDir: pathRoot, doc.FilePath).HasMatches)
+                    builder.Add(doc.FilePath);
+            }
+        }
+
+        return builder.ToImmutableAndClear();
     }
 }
