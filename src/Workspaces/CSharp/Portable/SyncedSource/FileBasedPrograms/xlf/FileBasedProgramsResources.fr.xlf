@@ -89,7 +89,7 @@
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingItemType">
         <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a valid MSBuild item type name. The item type '{0}' in entry '{1}' is invalid.</source>
-        <target state="new">Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a valid MSBuild item type name. The item type '{0}' in entry '{1}' is invalid.</target>
+        <target state="translated">Chaque entrée de 'FileBasedProgramsItemMapping' MSBuild propriété doit être mappée à un nom de type d’élément MSBuild valide. Le type d’élément '{0}' dans l’entrée '{1}' n’est pas valide.</target>
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</note>
       </trans-unit>
       <trans-unit id="InvalidProjectDirective">
