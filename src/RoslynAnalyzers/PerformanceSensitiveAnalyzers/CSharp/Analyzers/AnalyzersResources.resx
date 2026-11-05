@@ -141,6 +141,12 @@
   <data name="LambaOrAnonymousMethodInGenericMethodRuleTitle" xml:space="preserve">
     <value>Lambda or anonymous method in a generic method allocates a delegate instance</value>
   </data>
+  <data name="LocalFunctionClosureRuleMessage" xml:space="preserve">
+    <value>Heap allocation of closure for local function '{0}' Captures: {1}</value>
+  </data>
+  <data name="LocalFunctionClosureRuleTitle" xml:space="preserve">
+    <value>Local function converted to a delegate captures variables</value>
+  </data>
   <data name="MethodGroupAllocationRuleMessage" xml:space="preserve">
     <value>This will allocate a delegate instance</value>
   </data>
