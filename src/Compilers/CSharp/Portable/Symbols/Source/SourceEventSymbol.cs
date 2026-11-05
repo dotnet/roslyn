@@ -96,8 +96,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // list, we need to ensure we complete the implementation part when needed.
             Debug.Assert(this.DeclaringSyntaxReferences.Length == 1);
             return
-                IsDefinedInSourceTree(this._syntaxRef, tree, definedWithinSpan) ||
-                this.SourcePartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
+                IsDefinedInSourceTree(this, tree, definedWithinSpan) ||
+                (this.SourcePartialImplementationPart is { } impl && IsDefinedInSourceTree(impl, tree, definedWithinSpan));
+        }
+
+        internal static bool IsDefinedInSourceTree(SourceEventSymbol @event, SyntaxTree tree, TextSpan? definedWithinSpan)
+        {
+            if (@event.SyntaxTree != tree)
+            {
+                return false;
+            }
+
+            if (!definedWithinSpan.HasValue)
+            {
+                return true;
+            }
+
+            return @event.MemberSyntax is { SyntaxTree.HasCompilationUnitRoot: true } memberSyntax &&
+                memberSyntax.Span.IntersectsWith(definedWithinSpan.Value);
         }
 
         public abstract override string Name { get; }

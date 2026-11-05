@@ -4034,5 +4034,15 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
 
         var compilation1 = CreateCompilation(sources);
         compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected);
+
+        var compilation2 = CreateCompilation(sources);
+        var externAttributeSpan = compilation2.SyntaxTrees[1].GetRoot().DescendantNodes().OfType<AttributeListSyntax>().Last().Span;
+        compilation2.GetSemanticModel(compilation2.SyntaxTrees[1]).GetDeclarationDiagnostics(externAttributeSpan).Verify(
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttrAttribute").WithLocation(13, 14),
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttr").WithLocation(13, 14));
     }
 }

@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default)
-            => IsDefinedInSourceTree(AssociatedEvent.SyntaxReference, tree, definedWithinSpan);
+            => SourceEventSymbol.IsDefinedInSourceTree(AssociatedEvent, tree, definedWithinSpan);
 
         internal override bool GenerateDebugInfo
         {
