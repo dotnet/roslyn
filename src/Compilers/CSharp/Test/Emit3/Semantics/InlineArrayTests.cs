@@ -18987,6 +18987,182 @@ struct S
             CompileAndVerify(comp, expectedOutput: "2", verify: Verification.Fails).VerifyDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedLocal()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void M()
+                    {
+                        Buffer10<int> b = default;
+                        void F()
+                        {
+                            _ = &b[0];
+                        }
+                        F();
+                    }
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,17): error CS1686: Local 'b' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //             _ = &b[0];
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&b[0]").WithArguments("b").WithLocation(8, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedParameter_Nested()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void M(Buffer10<S<Buffer10<S<int>>>> b)
+                    {
+                        System.Action f = () =>
+                        {
+                            _ = &b[0].F[0].F;
+                        };
+                        f();
+                    }
+                }
+
+                public struct S<T>
+                {
+                    public T F;
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,17): error CS1686: Local 'b' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //             _ = &b[0].F[0].F;
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&b[0].F[0].F").WithArguments("b").WithLocation(7, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedReadonlyField()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void M(S s)
+                    {
+                        void F()
+                        {
+                            _ = &s.B[0];
+                        }
+                        F();
+                    }
+                }
+
+                public struct S
+                {
+                    public readonly Buffer10<int> B;
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,17): error CS1686: Local 's' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //             _ = &s.B[0];
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&s.B[0]").WithArguments("s").WithLocation(7, 17));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedSlice()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void M()
+                    {
+                        Buffer10<int> b = default;
+                        void F()
+                        {
+                            _ = &b[..];
+                        }
+                        F();
+                    }
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,18): error CS0211: Cannot take the address of the given expression
+                //             _ = &b[..];
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "b[..]").WithLocation(8, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CaptureOrder()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void M()
+                    {
+                        Buffer10<int> before = default;
+                        Buffer10<int> after = default;
+                        _ = &before[0];
+                        void F() { before[0]++; after[0]++; }
+                        _ = &after[0];
+                        F();
+                    }
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS1686: Local 'before' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //         _ = &before[0];
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&before[0]").WithArguments("before").WithLocation(7, 13),
+                // (9,13): error CS1686: Local 'after' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //         _ = &after[0];
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "&after[0]").WithArguments("after").WithLocation(9, 13));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedHeapStorage()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        var s = new S<C> { F = new C() };
+                        Buffer10<C> b = default;
+                        b[0] = new C();
+                        var a = new Buffer10<int>[1];
+                        System.Action f = () =>
+                        {
+                            fixed (int* p = &c.F[0]) { *p = 1; }
+                            fixed (int* p = &s.F.F[0]) { *p = 2; }
+                            fixed (int* p = &b[0].F[0]) { *p = 3; }
+                            fixed (int* p = &a[0][0]) { *p = 4; }
+                        };
+                        f();
+                        System.Console.Write($"{c.F[0]}{s.F.F[0]}{b[0].F[0]}{a[0][0]}");
+                    }
+                }
+
+                public class C
+                {
+                    public Buffer10<int> F;
+                }
+
+                public struct S<T>
+                {
+                    public T F;
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "1234", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
         [ConditionalFact(typeof(CoreClrOnly))]
         public void Foreach_Variable_01()
         {
