@@ -45805,4 +45805,69 @@ public static class Extensions
         Assert.True(mConstructed.IsEffectivelyReadOnly);
         Assert.False(mConstructed.GetPublicSymbol().IsReadOnly);
     }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86257")]
+    public void EffectivelyReadOnly_11_GenericSubstitution(
+        [CombinatorialValues("", "in", "ref readonly")] string modifier)
+    {
+        var src = $$$"""
+    public static class C
+    {
+        public static void M<T>(this {{{modifier}}} int receiver, T value) { }
+    }
+    """;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        var m = comp.GetMember<MethodSymbol>("C.M");
+        Assert.False(m.IsEffectivelyReadOnly);
+        Assert.False(m.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mReduced = m.ReduceExtensionMethod();
+        Assert.True(mReduced.IsEffectivelyReadOnly);
+        Assert.True(mReduced.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mReducedConstructed = mReduced.Construct(m.Parameters[0].Type);
+        Assert.True(mReducedConstructed.IsEffectivelyReadOnly);
+        Assert.True(mReducedConstructed.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mConstructed = m.Construct(m.Parameters[0].Type);
+        MethodSymbol mConstructedReduced = mConstructed.ReduceExtensionMethod();
+        Assert.True(mConstructedReduced.IsEffectivelyReadOnly);
+        Assert.True(mConstructedReduced.GetPublicSymbol().IsReadOnly);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86257")]
+    public void EffectivelyReadOnly_12_GenericSubstitution()
+    {
+        var src = """
+    public static class C
+    {
+        public static void M<T>(this ref int receiver, T value) { }
+    }
+    """;
+
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics();
+
+        var m = comp.GetMember<MethodSymbol>("C.M");
+        Assert.False(m.IsEffectivelyReadOnly);
+        Assert.False(m.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mReduced = m.ReduceExtensionMethod();
+        Assert.False(mReduced.IsEffectivelyReadOnly);
+        Assert.False(mReduced.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mReducedConstructed = mReduced.Construct(m.Parameters[0].Type);
+        Assert.False(mReducedConstructed.IsEffectivelyReadOnly);
+        Assert.False(mReducedConstructed.GetPublicSymbol().IsReadOnly);
+
+        MethodSymbol mConstructed = m.Construct(m.Parameters[0].Type);
+        MethodSymbol mConstructedReduced = mConstructed.ReduceExtensionMethod();
+        Assert.False(mConstructedReduced.IsEffectivelyReadOnly);
+        Assert.False(mConstructedReduced.GetPublicSymbol().IsReadOnly);
+    }
 }

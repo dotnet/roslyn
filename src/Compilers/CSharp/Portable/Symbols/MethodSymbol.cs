@@ -377,18 +377,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Indicates whether the method is effectively readonly,
         /// by either the method or the containing type being marked readonly.
         /// </summary>
-        internal virtual bool IsEffectivelyReadOnly
+        internal bool IsEffectivelyReadOnly
         {
             get
             {
-                if (this.IsExtensionBlockMember())
+                if (MethodKind == MethodKind.ReducedExtension)
+                {
+                    return isExtensionEffectivelyReadOnly(ReducedFrom.Parameters[0]);
+                }
+                else if (this.IsExtensionBlockMember())
                 {
                     return !IsStatic && !IsInitOnly &&
-                           ContainingType.ExtensionParameter is { Type.IsValueType: true, RefKind: RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None };
+                           isExtensionEffectivelyReadOnly(ContainingType.ExtensionParameter);
                 }
                 else
                 {
                     return (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && IsValidReadOnlyTarget;
+                }
+
+                static bool isExtensionEffectivelyReadOnly(ParameterSymbol receiverParameter)
+                {
+                    return receiverParameter is { Type.IsValueType: true, RefKind: RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None };
                 }
             }
         }
