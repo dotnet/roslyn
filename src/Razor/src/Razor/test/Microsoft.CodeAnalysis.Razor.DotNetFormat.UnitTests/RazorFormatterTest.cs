@@ -497,6 +497,87 @@ public partial class RazorFormatterTest
                 }
                 """.Replace("PREFIX", prefix).Replace("SUFFIX", suffix));
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public Task TryFormatAsync_MultilineDirectiveAttributeLambda()
+        => VerifyFormattingAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Web
+                <div>
+                <button @onclick="() => Show(1,
+                                  2)"
+                   class="x">y</button>
+                </div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Web
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2)"
+                            class="x">y</button>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public Task TryFormatAsync_MultilineDirectiveAttributeLambda_IndentByOne()
+        => VerifyFormattingAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Web
+                <div>
+                <button @onclick="() => Show(1,
+                                  2)"
+                   class="x">y</button>
+                </div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Web
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2)"
+                        class="x">y</button>
+                </div>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_one
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public Task TryFormatAsync_MultilineDirectiveAttributeLambda_IndentByTwo()
+        => VerifyFormattingAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Web
+                <div>
+                <button @onclick="() => Show(1,
+                                  2)"
+                   class="x">y</button>
+                </div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Web
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2)"
+                            class="x">y</button>
+                </div>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_two
+                    """)
+            ]);
+
     private static async Task VerifyFormattingAsync(
         string input,
         string expected,

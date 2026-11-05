@@ -14224,6 +14224,95 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() => Show(1,
+                                  2)"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                  2)"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2)"
+                            class="x">y</button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_MovesWithTag_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() => Show(1,
+                                  2)"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                  2)"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2)"
+                        class="x">y</button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_MovesWithTag_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() => Show(1,
+                                  2)"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                  2)"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2)"
+                            class="x">y</button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13064")]
     public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression_IndentByOne()
     {
