@@ -164,7 +164,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
             var endpoint = new CohostDocumentFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
             var request = new DocumentFormattingParams()
             {
-                TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+                TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
                 Options = new FormattingOptions()
                 {
                     TabSize = tabSize,
@@ -181,7 +181,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         var rangeEndpoint = new CohostRangeFormattingEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, clientSettingsManager, LoggerFactory);
         var rangeRequest = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
             Options = new FormattingOptions()
             {
                 TabSize = 4,

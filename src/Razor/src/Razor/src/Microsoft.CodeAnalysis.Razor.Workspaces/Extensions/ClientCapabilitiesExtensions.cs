@@ -23,7 +23,7 @@ internal static class ClientCapabilitiesExtensions
         => clientCapabilities.GetMarkupKind() == MarkupKind.Markdown;
 
     public static bool SupportsVisualStudioExtensions(this ClientCapabilities clientCapabilities)
-        => clientCapabilities is VSInternalClientCapabilities { SupportsVisualStudioExtensions: true };
+        => clientCapabilities is { SupportsVisualStudioExtensions: true };
 
     public static bool SupportsAnyCompletionListData(this ClientCapabilities clientCapabilities)
         => clientCapabilities.SupportsCompletionListData() ||
@@ -31,9 +31,9 @@ internal static class ClientCapabilitiesExtensions
 
     public static bool SupportsCompletionListData(this ClientCapabilities clientCapabilities)
         => clientCapabilities.SupportsVisualStudioExtensions() &&
-           clientCapabilities.TextDocument?.Completion is VSInternalCompletionSetting { CompletionList.Data: true };
+           clientCapabilities.TextDocument?.Completion is { VsCompletionList.Data: true };
 
     public static bool SupportsCompletionListItemDefaultsData(this ClientCapabilities clientCapabilities)
-        => clientCapabilities.TextDocument?.Completion?.CompletionListSetting?.ItemDefaults is { } defaults &&
+        => clientCapabilities.TextDocument?.Completion?.CompletionList?.ItemDefaults is { } defaults &&
            Array.IndexOf(defaults, "data") >= 0;
 }

@@ -334,16 +334,17 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
             Methods.TextDocumentHoverName,
             new TextDocumentPositionParams
             {
-                TextDocument = new TextDocumentIdentifier { DocumentUri = caret.DocumentUri },
+                TextDocument = new TextDocumentIdentifier { Uri = caret.Uri },
                 Position = caret.Range.Start,
             },
             CancellationToken.None);
 
         Assert.NotNull(hover);
+        Assert.NotNull(hover.Contents);
 
         // With the default (non-VS, non-markdown) client capabilities these tests use, hover content comes back as
-        // plain-text MarkupContent (the fourth SumType arm).
-        var hoverText = hover.Contents.Fourth.Value;
+        // plain-text MarkupContent.
+        var hoverText = Assert.IsType<MarkupContent>(hover.Contents.Value).Value;
         Assert.Contains(expectedType, hoverText);
         Assert.DoesNotContain(otherType, hoverText);
     }

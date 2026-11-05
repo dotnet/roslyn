@@ -29,34 +29,35 @@ internal static class AssertExtensions
     }
     public static async Task AssertWorkspaceEditAsync(this WorkspaceEdit workspaceEdit, Solution solution, IEnumerable<(DocumentUri fileUri, string contents)> expectedChanges, CancellationToken cancellationToken)
     {
-        var changes = Assert.NotNull(workspaceEdit.DocumentChanges);
+        Assert.NotNull(workspaceEdit.DocumentChanges);
+        var changes = workspaceEdit.DocumentChanges;
 
-        foreach (var change in Flatten(changes))
+        foreach (var change in changes)
         {
-            if (change.TryGetFirst(out var textDocumentEdit))
+            if (change is TextDocumentEdit textDocumentEdit)
             {
-                var uri = textDocumentEdit.TextDocument.DocumentUri;
+                var uri = textDocumentEdit.TextDocument.Uri;
                 var document = (await solution.GetTextDocumentsAsync(uri, cancellationToken)).Single();
                 Assert.NotNull(document);
                 var text = await document.GetTextAsync(cancellationToken);
 
-                text = text.WithChanges(textDocumentEdit.Edits.Select(e => text.GetTextChange((TextEdit)e)));
+                text = text.WithChanges(textDocumentEdit.Edits.Select(e => text.GetTextChange((TextEdit)e.Value)));
 
                 solution = document is Document
                     ? solution.WithDocumentText(document.Id, text)
                     : solution.WithAdditionalDocumentText(document.Id, text);
             }
-            else if (change.TryGetSecond(out var createFile))
+            else if (change is CreateFile createFile)
             {
-                var uri = createFile.DocumentUri;
+                var uri = createFile.Uri;
                 var documentId = DocumentId.CreateNewId(solution.ProjectIds.Single());
-                var filePath = createFile.DocumentUri.GetDocumentFilePathFromUri();
+                var filePath = createFile.Uri.GetDocumentFilePathFromUri();
                 var documentInfo = DocumentInfo.Create(documentId, Path.GetFileName(filePath), filePath: filePath);
                 solution = solution.AddDocument(documentInfo);
             }
-            else if (change.TryGetThird(out var renameFile))
+            else if (change is RenameFile renameFile)
             {
-                var (oldUri, newUri) = (renameFile.OldDocumentUri, renameFile.NewDocumentUri);
+                var (oldUri, newUri) = (renameFile.OldUri, renameFile.NewUri);
                 var newFilePath = newUri.GetDocumentFilePathFromUri();
                 var document = (await solution.GetTextDocumentsAsync(oldUri, cancellationToken)).Single();
                 Assert.NotNull(document);
@@ -83,24 +84,6 @@ internal static class AssertExtensions
             var document = (await solution.GetTextDocumentsAsync(uri, cancellationToken)).Single();
             var text = await document.GetTextAsync(cancellationToken);
             AssertEx.EqualOrDiff(contents, text.ToString());
-        }
-
-        static IEnumerable<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> Flatten(SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> documentChanges)
-        {
-            if (documentChanges.TryGetFirst(out var textDocumentEdits))
-            {
-                foreach (var edit in textDocumentEdits)
-                {
-                    yield return edit;
-                }
-            }
-            else if (documentChanges.TryGetSecond(out var changes))
-            {
-                foreach (var change in changes)
-                {
-                    yield return change;
-                }
-            }
         }
     }
 }

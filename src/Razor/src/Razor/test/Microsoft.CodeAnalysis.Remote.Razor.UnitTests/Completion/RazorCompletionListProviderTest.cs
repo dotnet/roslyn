@@ -20,8 +20,8 @@ public class RazorCompletionListProviderTest
 {
     private readonly IRazorCompletionFactsService _completionFactsService;
     private readonly CompletionListCache _completionListCache;
-    private readonly VSInternalClientCapabilities _clientCapabilities;
-    private readonly VSInternalCompletionContext _defaultCompletionContext;
+    private readonly ClientCapabilities _clientCapabilities;
+    private readonly CompletionContext _defaultCompletionContext;
     private readonly RazorCompletionOptions _razorCompletionOptions;
     private readonly TestOutputLoggerFactory _loggerFactory;
 
@@ -29,17 +29,17 @@ public class RazorCompletionListProviderTest
     {
         _completionFactsService = new RazorCompletionFactsService(GetCompletionProviders());
         _completionListCache = new CompletionListCache();
-        _clientCapabilities = new VSInternalClientCapabilities()
+        _clientCapabilities = new ClientCapabilities()
         {
             TextDocument = new TextDocumentClientCapabilities()
             {
-                Completion = new VSInternalCompletionSetting()
+                Completion = new CompletionClientCapabilities()
                 {
-                    CompletionItemKind = new CompletionItemKindSetting()
+                    CompletionItemKind = new ClientCompletionItemOptionsKind()
                     {
                         ValueSet = [CompletionItemKind.TagHelper]
                     },
-                    CompletionList = new VSInternalCompletionListSetting()
+                    VsCompletionList = new VSInternalCompletionListSetting()
                     {
                         CommitCharacters = true,
                         Data = true,
@@ -48,7 +48,7 @@ public class RazorCompletionListProviderTest
             }
         };
 
-        _defaultCompletionContext = new VSInternalCompletionContext();
+        _defaultCompletionContext = new CompletionContext();
         _razorCompletionOptions = new RazorCompletionOptions(SnippetsSupported: true, AutoInsertAttributeQuotes: true, CommitElementsWithSpace: true, IsVsCode: false);
 
         _loggerFactory = new TestOutputLoggerFactory(testOutput);
@@ -251,7 +251,7 @@ public class RazorCompletionListProviderTest
         // Assert
         Assert.Equal(completionItem.DisplayText, converted.Label);
         Assert.Equal("format", converted.InsertText);
-        Assert.Equal(InsertTextFormat.Plaintext, converted.InsertTextFormat);
+        Assert.Equal(InsertTextFormat.PlainText, converted.InsertTextFormat);
         Assert.Equal(completionItem.InsertText, converted.FilterText);
         Assert.Equal(completionItem.InsertText, converted.SortText);
         Assert.Null(converted.Detail);
@@ -349,7 +349,7 @@ public class RazorCompletionListProviderTest
         // Arrange
         var documentPath = "C:/path/to/document.cshtml";
         var codeDocument = CreateCodeDocument("@", documentPath);
-        var completionContext = new VSInternalCompletionContext()
+        var completionContext = new CompletionContext()
         {
             TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
             InvokeKind = VSInternalCompletionInvokeKind.Deletion,
@@ -382,7 +382,7 @@ public class RazorCompletionListProviderTest
         var tagHelper = builder.Build();
         var codeDocument = CreateCodeDocument("@in", documentPath, [tagHelper]);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
-        var completionContext = new VSInternalCompletionContext()
+        var completionContext = new CompletionContext()
         {
             TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
         };
@@ -410,7 +410,7 @@ public class RazorCompletionListProviderTest
         var tagHelper = builder.Build();
         var codeDocument = CreateCodeDocument("@inje", documentPath, [tagHelper]);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
-        var completionContext = new VSInternalCompletionContext()
+        var completionContext = new CompletionContext()
         {
             TriggerKind = CompletionTriggerKind.TriggerCharacter,
         };
@@ -435,7 +435,7 @@ public class RazorCompletionListProviderTest
         var tagHelper = builder.Build();
         var codeDocument = CreateCodeDocument("@inje", documentPath, [tagHelper]);
         var provider = new RazorCompletionListProvider(_completionFactsService, _completionListCache, _loggerFactory);
-        var completionContext = new VSInternalCompletionContext()
+        var completionContext = new CompletionContext()
         {
             TriggerKind = CompletionTriggerKind.TriggerForIncompleteCompletions,
         };
@@ -559,8 +559,8 @@ public class RazorCompletionListProviderTest
         RazorCompletionListProvider provider,
         RazorCodeDocument codeDocument,
         int absoluteIndex,
-        VSInternalCompletionContext completionContext,
-        VSInternalClientCapabilities clientCapabilities,
+        CompletionContext completionContext,
+        ClientCapabilities clientCapabilities,
         RazorCompletionOptions completionOptions)
     {
         var razorCompletionContext = RazorCompletionListProvider.CreateCompletionContext(
@@ -572,11 +572,11 @@ public class RazorCompletionListProviderTest
     public void FilterCompletionItems_CapsAt1000Items_ByDefault()
     {
         // Arrange
-        var items = new VSInternalCompletionItem[1500];
+        var items = new CompletionItem[1500];
 
         for (var i = 0; i < items.Length; i++)
         {
-            items[i] = new VSInternalCompletionItem { Label = $"Item{i:D4}", SortText = $"Item{i:D4}" };
+            items[i] = new CompletionItem { Label = $"Item{i:D4}", SortText = $"Item{i:D4}" };
         }
 
         var completionList = new RazorVSInternalCompletionList { Items = items };
@@ -594,11 +594,11 @@ public class RazorCompletionListProviderTest
     public void FilterCompletionItems_IncludesPreselectItems_BeyondCap()
     {
         // Arrange
-        var items = new VSInternalCompletionItem[50];
+        var items = new CompletionItem[50];
 
         for (var i = 0; i < items.Length; i++)
         {
-            items[i] = new VSInternalCompletionItem
+            items[i] = new CompletionItem
             {
                 Label = $"Item{i:D2}",
                 SortText = $"Item{i:D2}",
@@ -630,12 +630,12 @@ public class RazorCompletionListProviderTest
     public void FilterCompletionItems_PatternMatches_FilterText()
     {
         // Arrange - create 15 items, 3 items starting with each char from 'A' to 'E'
-        var items = new VSInternalCompletionItem[15];
+        var items = new CompletionItem[15];
 
         for (var i = 0; i < items.Length; i++)
         {
             var letter = (char)('A' + (i % 5));
-            items[i] = new VSInternalCompletionItem
+            items[i] = new CompletionItem
             {
                 Label = $"{letter}Component{i:D2}",
                 SortText = $"{letter}Component{i:D2}"
@@ -662,11 +662,11 @@ public class RazorCompletionListProviderTest
     public void FilterCompletionItems_DoesNotFilter_WhenUnderLimit()
     {
         // Arrange
-        var items = new VSInternalCompletionItem[500];
+        var items = new CompletionItem[500];
 
         for (var i = 0; i < items.Length; i++)
         {
-            items[i] = new VSInternalCompletionItem { Label = $"Item{i:D3}", SortText = $"Item{i:D3}" };
+            items[i] = new CompletionItem { Label = $"Item{i:D3}", SortText = $"Item{i:D3}" };
         }
 
         var completionList = new RazorVSInternalCompletionList { Items = items };
@@ -684,13 +684,13 @@ public class RazorCompletionListProviderTest
     public void FilterCompletionItems_ExtractsFilterText_FromAbsoluteIndex()
     {
         // Arrange
-        var items = new VSInternalCompletionItem[15];
+        var items = new CompletionItem[15];
 
         for (var i = 0; i < items.Length; i++)
         {
             // Mix of items: some match "Hel", some don't
             var prefix = i < 5 || i >= 10 ? "Hello" : "World";
-            items[i] = new VSInternalCompletionItem
+            items[i] = new CompletionItem
             {
                 Label = $"{prefix}{i:D2}",
                 SortText = $"{prefix}{i:D2}"

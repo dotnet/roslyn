@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A pattern to describe in which file operation requests or notifications
 /// the server is interested in receiving.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class FileOperationPattern
@@ -29,7 +29,7 @@ internal partial class FileOperationPattern
 
     /// <summary>
     /// Whether to match files or folders with this pattern.
-    /// 
+    ///
     /// Matches both if undefined.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("matches")]

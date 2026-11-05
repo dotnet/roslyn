@@ -42,17 +42,17 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
         var requestValidator = (object request) =>
         {
             var diagnosticParams = Assert.IsType<DocumentDiagnosticParams>(request);
-            Assert.Equal(htmlDocumentUri, diagnosticParams.TextDocument.DocumentUri.GetRequiredSystemUri());
+            Assert.Equal(htmlDocumentUri, diagnosticParams.TextDocument.Uri.GetRequiredSystemUri());
         };
 
         var diagnosticRequest = new DocumentDiagnosticParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() }
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() }
         };
 
         await MakeHtmlRequestAsync(document, htmlDocumentUri, requestValidator, Methods.TextDocumentDiagnosticName, diagnosticRequest);
 
-        Assert.Equal(document.GetURI(), diagnosticRequest.TextDocument.DocumentUri);
+        Assert.Equal(document.GetURI(), diagnosticRequest.TextDocument.Uri);
     }
 
     [Fact]
@@ -64,17 +64,17 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
         var requestValidator = (object request) =>
         {
             var hoverParams = Assert.IsAssignableFrom<ITextDocumentParams>(request);
-            Assert.Equal(htmlDocumentUri, hoverParams.TextDocument!.DocumentUri.GetRequiredSystemUri());
+            Assert.Equal(htmlDocumentUri, hoverParams.TextDocument!.Uri.GetRequiredSystemUri());
         };
 
         var hoverRequest = new HoverParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() }
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() }
         };
 
         await MakeHtmlRequestAsync(document, htmlDocumentUri, requestValidator, Methods.TextDocumentHoverName, hoverRequest);
 
-        Assert.Equal(document.GetURI(), hoverRequest.TextDocument!.DocumentUri);
+        Assert.Equal(document.GetURI(), hoverRequest.TextDocument!.Uri);
     }
 
     [Fact]
@@ -86,19 +86,19 @@ public class HtmlRequestInvokerTest(ITestOutputHelper testOutput) : VisualStudio
         var requestValidator = (object request) =>
         {
             var codeActionParams = Assert.IsType<VSCodeActionParams>(request);
-            Assert.Equal(htmlDocumentUri, codeActionParams.TextDocument!.DocumentUri.GetRequiredSystemUri());
+            Assert.Equal(htmlDocumentUri, codeActionParams.TextDocument!.Uri.GetRequiredSystemUri());
         };
 
         var codeActionsRequest = new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
             Range = LspFactory.DefaultRange,
-            Context = new VSInternalCodeActionContext()
+            Context = new CodeActionContext()
         };
 
         await MakeHtmlRequestAsync(document, htmlDocumentUri, requestValidator, Methods.TextDocumentCodeActionName, codeActionsRequest);
 
-        Assert.Equal(document.GetURI(), codeActionsRequest.TextDocument!.DocumentUri);
+        Assert.Equal(document.GetURI(), codeActionsRequest.TextDocument!.Uri);
     }
 
     private async Task MakeHtmlRequestAsync<TRequest>(TextDocument document, Uri htmlDocumentUri, Action<object> requestValidator, string method, TRequest request)

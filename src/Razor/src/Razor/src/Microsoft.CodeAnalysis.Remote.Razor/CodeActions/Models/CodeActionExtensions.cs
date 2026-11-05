@@ -19,7 +19,7 @@ internal static class CodeActionExtensions
     private const string CodeActionPathProperty = nameof(CodeActionResolveData.CodeActionPath);
     private const string FixAllFlavorsProperty = nameof(CodeActionResolveData.FixAllFlavors);
 
-    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri)
+    public static TextDocumentCodeActionResultItem AsVSCodeCommandOrCodeAction(this CodeAction razorCodeAction, TextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri)
     {
         if (razorCodeAction.Data is null)
         {
@@ -33,7 +33,7 @@ internal static class CodeActionExtensions
                 Data = razorCodeAction.Edit ?? new WorkspaceEdit(),
             };
 
-            razorCodeAction = new VSInternalCodeAction()
+            razorCodeAction = new CodeAction()
             {
                 Title = razorCodeAction.Title,
                 Data = JsonSerializer.SerializeToElement(resolutionParams),
@@ -47,7 +47,7 @@ internal static class CodeActionExtensions
         return new Command
         {
             Title = razorCodeAction.Title ?? string.Empty,
-            CommandIdentifier = LanguageServerConstants.RazorCodeActionRunnerCommand,
+            CommandValue = LanguageServerConstants.RazorCodeActionRunnerCommand,
             Arguments = arguments.ToArray()!
         };
     }
@@ -68,7 +68,7 @@ internal static class CodeActionExtensions
     private static bool TryHandleNestedCodeAction(RazorVSInternalCodeAction razorCodeAction, RazorCodeActionContext context, string action, RazorLanguageKind language)
     {
         if (language != RazorLanguageKind.CSharp ||
-            razorCodeAction.Command is not { CommandIdentifier: NestedCodeActionCommand, Arguments: [JsonElement arg] })
+            razorCodeAction.Command is not { CommandValue: NestedCodeActionCommand, Arguments: [JsonElement arg] })
         {
             return false;
         }
@@ -119,7 +119,7 @@ internal static class CodeActionExtensions
     }
 
     private static void WrapResolvableCodeActionCore(
-        VSInternalCodeAction razorCodeAction,
+        CodeAction razorCodeAction,
         RazorCodeActionContext context,
         string action,
         RazorLanguageKind language,

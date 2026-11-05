@@ -30,13 +30,13 @@ internal sealed class RazorCompletionListProvider(
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorCompletionListProvider>();
     private static readonly Command s_retriggerCompletionCommand = new()
     {
-        CommandIdentifier = "editor.action.triggerSuggest",
+        CommandValue = "editor.action.triggerSuggest",
         Title = SR.ReTrigger_Completions_Title,
     };
 
     public RazorVSInternalCompletionList? GetCompletionList(
         RazorCompletionContext razorCompletionContext,
-        VSInternalClientCapabilities clientCapabilities)
+        ClientCapabilities clientCapabilities)
     {
         var result = _completionFactsService.GetCompletionItems(razorCompletionContext);
 
@@ -53,7 +53,7 @@ internal sealed class RazorCompletionListProvider(
     internal static RazorCompletionContext CreateCompletionContext(
         RazorCodeDocument codeDocument,
         int absoluteIndex,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         RazorCompletionOptions completionOptions)
     {
         var reason = completionContext.TriggerKind switch
@@ -83,7 +83,7 @@ internal sealed class RazorCompletionListProvider(
     private RazorVSInternalCompletionList CreateAndCacheCompletionList(
         RazorCodeDocument codeDocument,
         ImmutableArray<RazorCompletionItem> razorCompletionItems,
-        VSInternalClientCapabilities clientCapabilities,
+        ClientCapabilities clientCapabilities,
         int absoluteIndex)
     {
         var completionList = CreateLSPCompletionList(razorCompletionItems, clientCapabilities);
@@ -102,9 +102,9 @@ internal sealed class RazorCompletionListProvider(
     // Internal for benchmarking and testing
     internal static RazorVSInternalCompletionList CreateLSPCompletionList(
         ImmutableArray<RazorCompletionItem> razorCompletionItems,
-        VSInternalClientCapabilities clientCapabilities)
+        ClientCapabilities clientCapabilities)
     {
-        using var items = new PooledArrayBuilder<VSInternalCompletionItem>();
+        using var items = new PooledArrayBuilder<CompletionItem>();
 
         foreach (var razorCompletionItem in razorCompletionItems)
         {
@@ -128,8 +128,8 @@ internal sealed class RazorCompletionListProvider(
     // Internal for testing
     internal static bool TryConvert(
         RazorCompletionItem razorCompletionItem,
-        VSInternalClientCapabilities clientCapabilities,
-        [NotNullWhen(true)] out VSInternalCompletionItem? completionItem)
+        ClientCapabilities clientCapabilities,
+        [NotNullWhen(true)] out CompletionItem? completionItem)
     {
         ArgHelper.ThrowIfNull(razorCompletionItem);
 
@@ -140,13 +140,13 @@ internal sealed class RazorCompletionListProvider(
             tagHelperCompletionItemKind = CompletionItemKind.TagHelper;
         }
 
-        var insertTextFormat = razorCompletionItem.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext;
+        var insertTextFormat = razorCompletionItem.IsSnippet ? InsertTextFormat.Snippet : InsertTextFormat.PlainText;
 
         switch (razorCompletionItem.Kind)
         {
             case RazorCompletionItemKind.Directive:
                 {
-                    var directiveCompletionItem = new VSInternalCompletionItem()
+                    var directiveCompletionItem = new CompletionItem()
                     {
                         Label = razorCompletionItem.DisplayText,
                         InsertText = razorCompletionItem.InsertText,
@@ -177,7 +177,7 @@ internal sealed class RazorCompletionListProvider(
                 }
             case RazorCompletionItemKind.DirectiveAttributeParameterEventValue:
                 {
-                    var eventValueCompletionItem = new VSInternalCompletionItem()
+                    var eventValueCompletionItem = new CompletionItem()
                     {
                         Label = razorCompletionItem.DisplayText,
                         InsertText = razorCompletionItem.InsertText,
@@ -195,7 +195,7 @@ internal sealed class RazorCompletionListProvider(
                 }
             case RazorCompletionItemKind.MarkupTransition:
                 {
-                    var markupTransitionCompletionItem = new VSInternalCompletionItem()
+                    var markupTransitionCompletionItem = new CompletionItem()
                     {
                         Label = razorCompletionItem.DisplayText,
                         InsertText = razorCompletionItem.InsertText,
@@ -213,7 +213,7 @@ internal sealed class RazorCompletionListProvider(
                 }
             case RazorCompletionItemKind.TagHelperElement:
                 {
-                    var tagHelperElementCompletionItem = new VSInternalCompletionItem()
+                    var tagHelperElementCompletionItem = new CompletionItem()
                     {
                         Label = razorCompletionItem.DisplayText,
                         InsertText = razorCompletionItem.InsertText,
@@ -231,7 +231,7 @@ internal sealed class RazorCompletionListProvider(
                 }
             case RazorCompletionItemKind.TagHelperAttribute:
                 {
-                    var tagHelperAttributeCompletionItem = new VSInternalCompletionItem()
+                    var tagHelperAttributeCompletionItem = new CompletionItem()
                     {
                         Label = razorCompletionItem.DisplayText,
                         InsertText = razorCompletionItem.InsertText,
@@ -249,7 +249,7 @@ internal sealed class RazorCompletionListProvider(
                 }
             case RazorCompletionItemKind.Attribute:
                 {
-                    var attributeCompletionItem = new VSInternalCompletionItem()
+                    var attributeCompletionItem = new CompletionItem()
                     {
                         Label = razorCompletionItem.DisplayText,
                         InsertText = razorCompletionItem.InsertText,
@@ -266,7 +266,7 @@ internal sealed class RazorCompletionListProvider(
                 }
             case RazorCompletionItemKind.CSharpRazorKeyword:
                 {
-                    var csharpRazorKeywordCompletionItem = new VSInternalCompletionItem()
+                    var csharpRazorKeywordCompletionItem = new CompletionItem()
                     {
                         Label = razorCompletionItem.DisplayText,
                         InsertText = razorCompletionItem.InsertText,
@@ -294,13 +294,13 @@ internal sealed class RazorCompletionListProvider(
     /// (e.g., "bind-Value:after") because the editor's word-boundary heuristic would stop at ':'
     /// and only replace part of the existing text.
     /// </summary>
-    private static VSInternalCompletionItem CreateDirectiveAttributeCompletionItem(
+    private static CompletionItem CreateDirectiveAttributeCompletionItem(
         RazorCompletionItem razorCompletionItem,
-        VSInternalClientCapabilities clientCapabilities,
+        ClientCapabilities clientCapabilities,
         InsertTextFormat insertTextFormat,
         CompletionItemKind kind)
     {
-        var completionItem = new VSInternalCompletionItem()
+        var completionItem = new CompletionItem()
         {
             Label = razorCompletionItem.DisplayText,
             InsertText = razorCompletionItem.InsertText,
@@ -345,7 +345,7 @@ internal sealed class RazorCompletionListProvider(
         var filterText = GetFilterText(sourceText, absoluteIndex);
 
         // Pattern match all items against filter text (like C# does in CompletionHandler.FilterCompletionList)
-        using var matchResults = new PooledArrayBuilder<(VSInternalCompletionItem Item, int Index, RoslynPatternMatch? Match)>(completionList.Items.Length);
+        using var matchResults = new PooledArrayBuilder<(CompletionItem Item, int Index, RoslynPatternMatch? Match)>(completionList.Items.Length);
         AddMatchResults(completionList, filterText, ref matchResults.AsRef());
 
         // Take top maxCompletionListSize items (like C# does)
@@ -361,7 +361,7 @@ internal sealed class RazorCompletionListProvider(
             }
         }
 
-        var result = new VSInternalCompletionItem[takeCount + preselectCount];
+        var result = new CompletionItem[takeCount + preselectCount];
 
         // Add the first takeCount items
         for (var i = 0; i < takeCount; i++)
@@ -408,7 +408,7 @@ internal sealed class RazorCompletionListProvider(
             }
         }
 
-        static void AddMatchResults(RazorVSInternalCompletionList completionList, string filterText, ref PooledArrayBuilder<(VSInternalCompletionItem Item, int Index, RoslynPatternMatch? Match)> matchResults)
+        static void AddMatchResults(RazorVSInternalCompletionList completionList, string filterText, ref PooledArrayBuilder<(CompletionItem Item, int Index, RoslynPatternMatch? Match)> matchResults)
         {
             using var helper = string.IsNullOrEmpty(filterText) ? null : new Microsoft.CodeAnalysis.Completion.PatternMatchHelper(filterText);
 

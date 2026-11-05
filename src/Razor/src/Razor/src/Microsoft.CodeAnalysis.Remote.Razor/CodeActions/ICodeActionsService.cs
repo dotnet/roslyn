@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal interface ICodeActionsService
 {
-    Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(
+    Task<TextDocumentCodeActionResultItem[]?> GetCodeActionsAsync(
         VSCodeActionParams request,
         RemoteDocumentSnapshot documentSnapshot,
         RazorVSInternalCodeAction[] htmlCodeActions,

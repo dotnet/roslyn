@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// Value representing the kind of a diagnostic.
 /// </summary>
 [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.StringEnumConverter<VSInternalDiagnosticKind>))]
-internal readonly record struct VSInternalDiagnosticKind(string Value) : IStringEnum
+internal readonly partial record struct VSInternalDiagnosticKind(string Value) : IStringEnum
 {
     /// <summary>
     /// Task list diagnostic kind.

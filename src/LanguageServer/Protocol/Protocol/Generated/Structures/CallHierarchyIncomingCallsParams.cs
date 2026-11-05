@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The parameter of a `callHierarchy/incomingCalls` request.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class CallHierarchyIncomingCallsParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<CallHierarchyIncomingCall[]?>

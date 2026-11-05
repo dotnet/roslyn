@@ -25,7 +25,7 @@ internal partial class CodeActionContext
 
     /// <summary>
     /// Requested kind of actions to return.
-    /// 
+    ///
     /// Actions not of this kind are filtered out by the client before being shown. So servers
     /// can omit computing them.
     /// </summary>
@@ -35,7 +35,7 @@ internal partial class CodeActionContext
 
     /// <summary>
     /// The reason why code actions were requested.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("triggerKind")]

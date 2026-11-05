@@ -69,7 +69,7 @@ internal sealed class InlayHintResolveHandler(IGlobalOptionService globalOptions
 
         var taggedText = await inlineHintToResolve.Value.GetDescriptionAsync(document, cancellationToken).ConfigureAwait(false);
 
-        request.ToolTip = ProtocolConversions.GetDocumentationMarkupContent(taggedText, document, true);
+        request.Tooltip = ProtocolConversions.GetDocumentationMarkupContent(taggedText, document, true);
         return request;
     }
 

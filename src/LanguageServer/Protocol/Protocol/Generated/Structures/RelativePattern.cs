@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// A relative pattern is a helper to construct glob patterns that are matched
 /// relatively to a base URI. The common value for a `baseUri` is a workspace
 /// folder root, but it can be another absolute URI as well.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class RelativePattern
@@ -33,6 +33,7 @@ internal partial class RelativePattern
     /// <summary>
     /// A union of: WorkspaceFolder | URI.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _BaseUri : System.Runtime.CompilerServices.IUnion
     {

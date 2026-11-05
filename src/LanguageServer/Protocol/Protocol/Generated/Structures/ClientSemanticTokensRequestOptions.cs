@@ -30,6 +30,7 @@ internal partial class ClientSemanticTokensRequestOptions
     /// <summary>
     /// A union of: bool | ClientSemanticTokensRequestFullDelta.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Full : System.Runtime.CompilerServices.IUnion
     {
@@ -41,6 +42,7 @@ internal partial class ClientSemanticTokensRequestOptions
     /// <summary>
     /// A union of: bool | _RangeOptions.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Range : System.Runtime.CompilerServices.IUnion
     {
@@ -50,7 +52,7 @@ internal partial class ClientSemanticTokensRequestOptions
     }
 
     /// <summary>An anonymous structure literal from the LSP specification.</summary>
-    internal sealed class _RangeOptions
+    public sealed class _RangeOptions
     {
     }
 

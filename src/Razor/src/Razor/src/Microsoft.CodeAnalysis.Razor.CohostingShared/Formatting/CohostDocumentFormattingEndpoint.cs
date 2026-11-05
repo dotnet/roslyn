@@ -43,7 +43,7 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Formatting?.DynamicRegistration is true)
         {

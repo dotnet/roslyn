@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 internal sealed class FindUsagesLSPContext : FindUsagesContext
 {
-    private readonly IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> _progress;
+    private readonly IProgress<ReferenceItem[]> _progress;
 
     private readonly Workspace _workspace;
     private readonly Document _document;
@@ -52,7 +52,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
     /// Keeps track of definitions that cannot be reported without references and which we have
     /// not yet found a reference for.
     /// </summary>
-    private readonly Dictionary<int, SumType<VSInternalReferenceItem, LSP.Location>> _definitionsWithoutReference = [];
+    private readonly Dictionary<int, ReferenceItem> _definitionsWithoutReference = [];
 
     /// <summary>
     /// Set of the locations we've found references at.  We may end up with multiple references
@@ -69,7 +69,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
     /// <summary>
     /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>> _workQueue;
+    private readonly AsyncBatchingWorkQueue<ReferenceItem> _workQueue;
 
     // Unique identifier given to each definition and reference.
     private int _id = 0;
@@ -77,7 +77,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
     internal bool HasReportedReferences { get; private set; }
 
     public FindUsagesLSPContext(
-        IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> progress,
+        IProgress<ReferenceItem[]> progress,
         Workspace workspace,
         Document document,
         int position,
@@ -96,7 +96,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
         _globalOptions = globalOptions;
         _supportsVSExtensions = supportsVSExtensions;
         _includeDeclaration = includeDeclaration;
-        _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
+        _workQueue = new AsyncBatchingWorkQueue<ReferenceItem>(
             DelayTimeSpan.Medium, ReportReferencesAsync, asyncListener, cancellationToken);
     }
 
@@ -130,11 +130,11 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
                 // have to hold off on reporting it until later when we do find a reference.
                 if (_includeDeclaration && definition.DisplayIfNoReferences)
                 {
-                    _workQueue.AddWork(definitionItem.Value);
+                    _workQueue.AddWork(definitionItem);
                 }
                 else
                 {
-                    _definitionsWithoutReference.Add(_id, definitionItem.Value);
+                    _definitionsWithoutReference.Add(_id, definitionItem);
                 }
             }
         }
@@ -176,12 +176,12 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
                     definitionGlyph: Glyph.None, reference.SymbolUsageInfo, reference.IsWrittenTo, cancellationToken).ConfigureAwait(false);
 
                 if (referenceItem != null)
-                    _workQueue.AddWork(referenceItem.Value);
+                    _workQueue.AddWork(referenceItem);
             }
         }
     }
 
-    private async Task<SumType<VSInternalReferenceItem, LSP.Location>?> GenerateVSReferenceItemAsync(
+    private async Task<ReferenceItem?> GenerateVSReferenceItemAsync(
         int definitionId,
         int id,
         DocumentSpan? documentSpan,
@@ -205,7 +205,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
             : location;
     }
 
-    private static SumType<VSInternalReferenceItem, LSP.Location>? CreateVsReference(
+    private static ReferenceItem? CreateVsReference(
         int definitionId,
         int id,
         ClassifiedTextElement text,
@@ -224,7 +224,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
             DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
             DefinitionIcon = new ImageElement(definitionGlyph.ToLSPImageId()),
             Location = location,
-            DisplayPath = location?.DocumentUri.GetRequiredParsedUri().FsPath,
+            DisplayPath = location?.Uri.GetRequiredParsedUri().FsPath,
             Id = id,
             Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : [],
             ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
@@ -288,7 +288,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
         {
             return new LSP.Location
             {
-                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath),
+                Uri = ProtocolConversions.CreateAbsoluteDocumentUri(declarationFile.FilePath),
                 Range = ProtocolConversions.LinePositionToRange(linePosSpan),
             };
         }
@@ -374,7 +374,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
         return classifiedTextRuns.ToArray();
     }
 
-    private async ValueTask ReportReferencesAsync(ImmutableSegmentedList<SumType<VSInternalReferenceItem, LSP.Location>> referencesToReport, CancellationToken cancellationToken)
+    private async ValueTask ReportReferencesAsync(ImmutableSegmentedList<ReferenceItem> referencesToReport, CancellationToken cancellationToken)
     {
         if (!referencesToReport.IsEmpty)
             HasReportedReferences = true;

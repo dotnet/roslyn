@@ -19,7 +19,6 @@ internal partial class VSInternalMapCodeMapping
     /// Gets or sets strings of code/text to map into TextDocument.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_contents")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string[] Contents { get; set; } = null!;
 
     /// <summary>

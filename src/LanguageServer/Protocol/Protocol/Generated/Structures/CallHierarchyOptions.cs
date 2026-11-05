@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Call hierarchy options used during static registration.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class CallHierarchyOptions

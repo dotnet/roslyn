@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -166,11 +165,11 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
     {
         var diagnosticsParams = new DocumentDiagnosticParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = razorDocument.GetURI() },
             Identifier = request.Identifier,
         };
 
-        var result = await _requestInvoker.MakeHtmlLspRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<DocumentDiagnosticParams, FullOrUnchangedDiagnosticReport>(
             razorDocument,
             Methods.TextDocumentDiagnosticName,
             diagnosticsParams,
@@ -178,7 +177,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
             correlationId,
             cancellationToken).ConfigureAwait(false);
 
-        return result.Value is FullDocumentDiagnosticReport report ? report.Items : [];
+        return result?.Value is FullDocumentDiagnosticReport report ? report.Items : [];
     }
 
     private static LspDiagnostic[] PopulateVSDiagnosticMetadata(LspDiagnostic[] diagnostics, TextDocument razorDocument)
@@ -190,16 +189,16 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
         var service = razorDocument.Project.Solution.Services.GetRequiredService<IDiagnosticProjectInformationService>();
         var projectInfo = new[] { service.GetDiagnosticProjectInformation(razorDocument.Project) };
 
-        var results = new VSDiagnostic[diagnostics.Length];
+        var results = new LspDiagnostic[diagnostics.Length];
         for (var i = 0; i < diagnostics.Length; i++)
         {
-            var vsDiagnostic = JsonHelpers.Convert<LspDiagnostic, VSDiagnostic>(diagnostics[i]).AssumeNotNull();
+            var vsDiagnostic = diagnostics[i];
             vsDiagnostic.Projects = projectInfo;
 
             // Setting a unique identifier ensures that VS will show project info in the error list, and things like the "Current Project"
             // filter will work. Putting the Razor file path in the identifier ensures that files in multiple projects get their diagnostics
             // de-duped.
-            vsDiagnostic.Identifier = (vsDiagnostic.Code, razorDocument.FilePath, vsDiagnostic.Range, vsDiagnostic.Message).GetHashCode().ToString();
+            vsDiagnostic.Identifier = (vsDiagnostic.Code?.Value, razorDocument.FilePath, vsDiagnostic.Range, vsDiagnostic.Message?.Value).GetHashCode().ToString();
 
             results[i] = vsDiagnostic;
         }

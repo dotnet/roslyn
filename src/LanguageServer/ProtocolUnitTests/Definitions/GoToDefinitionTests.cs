@@ -47,7 +47,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         // Verify that as originally serialized, the URI had a file scheme.
-        Assert.True(results.Single().DocumentUri.GetRequiredParsedUri().ToString().StartsWith("file"));
+        Assert.True(results.Single().Uri.GetRequiredParsedUri().ToString().StartsWith("file"));
         AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
     }
 
@@ -101,7 +101,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         var position = new LSP.Position { Line = 5, Character = 18 };
         var results = await RunGotoDefinitionAsync(testLspServer, new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = position, End = position }
         });
         AssertLocationsEqual([TestSpanMapper.MappedFileLocation], results);
@@ -316,7 +316,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         var result = Assert.Single(results);
-        Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.DocumentUri.GetRequiredParsedUri().Scheme);
+        Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.GetRequiredParsedUri().Scheme);
     }
 
     [Theory, CombinatorialData]
@@ -335,7 +335,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-        Assert.True(results.Single().DocumentUri.UriString.EndsWith("String.cs"));
+        Assert.True(results.Single().Uri.UriString.EndsWith("String.cs"));
     }
 
     [Theory, CombinatorialData]
@@ -368,7 +368,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         workspace.TryApplyChanges(project.Solution);
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-        Assert.Contains("/generated_file.cs", results.Single().DocumentUri.UriString);
+        Assert.Contains("/generated_file.cs", results.Single().Uri.UriString);
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);

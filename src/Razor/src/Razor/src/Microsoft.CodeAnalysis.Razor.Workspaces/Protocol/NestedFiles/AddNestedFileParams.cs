@@ -27,7 +27,7 @@ internal sealed class AddNestedFileParams : ITextDocumentParams
     {
         return new AddNestedFileParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = razorFileUri },
+            TextDocument = new TextDocumentIdentifier { Uri = razorFileUri },
             FileKind = fileKind
         };
     }

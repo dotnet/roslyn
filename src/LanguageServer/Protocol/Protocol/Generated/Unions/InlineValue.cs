@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A union of: InlineValueText | InlineValueVariableLookup | InlineValueEvaluatableExpression.
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
 [System.Runtime.CompilerServices.Union]
 internal sealed class InlineValue : System.Runtime.CompilerServices.IUnion
 {

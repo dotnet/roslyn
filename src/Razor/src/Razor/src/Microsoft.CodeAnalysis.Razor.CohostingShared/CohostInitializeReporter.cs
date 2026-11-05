@@ -19,7 +19,7 @@ internal class CohostInitializeReporter(ITelemetryReporter telemetryReporter) : 
 
     public int Order => WellKnownStartupOrder.Default;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(ClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         // Make sure we don't report telemetry multiple times in the same VS session (as solutions are closed and opened).
         if (!s_reportedFeatureFlagState)

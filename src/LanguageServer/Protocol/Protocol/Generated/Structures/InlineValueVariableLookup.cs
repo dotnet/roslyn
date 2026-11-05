@@ -8,20 +8,20 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// To compute inline value through a variable lookup.
-/// 
+///
 /// If only a range is specified, the variable name should
 /// be extracted from the underlying document.
-/// 
+///
 /// An optional variable name could be used to lookup instead
 /// of the extracted name.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlineValueVariableLookup
 {
     /// <summary>
     /// The document range for which the inline value applies.
-    /// 
+    ///
     /// The range could be used to extract the variable name
     /// from the underlying document.
     /// </summary>
@@ -40,6 +40,7 @@ internal partial class InlineValueVariableLookup
     /// How to perform the lookup.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("caseSensitiveLookup")]
+    [System.Text.Json.Serialization.JsonRequired]
     public bool CaseSensitiveLookup { get; set; }
 
 }

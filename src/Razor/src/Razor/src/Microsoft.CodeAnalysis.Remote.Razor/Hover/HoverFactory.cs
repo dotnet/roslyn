@@ -193,9 +193,9 @@ internal static class HoverFactory
         if (options.SupportsVisualStudioExtensions &&
             ClassifiedTagHelperTooltipFactory.TryCreateTooltip(attrDescriptionInfo, out ContainerElement? classifiedTextElement))
         {
-            return new VSInternalHover
+            return new Roslyn.LanguageServer.Protocol.Hover
             {
-                Contents = Array.Empty<SumType<string, MarkedString>>(),
+                Contents = Array.Empty<MarkedString>(),
                 Range = span.ToRange(),
                 RawContent = classifiedTextElement,
             };
@@ -240,9 +240,9 @@ internal static class HoverFactory
 
             if (classifiedTextElement is not null)
             {
-                return new VSInternalHover
+                return new Roslyn.LanguageServer.Protocol.Hover
                 {
-                    Contents = Array.Empty<SumType<string, MarkedString>>(),
+                    Contents = Array.Empty<MarkedString>(),
                     Range = span.ToRange(),
                     RawContent = classifiedTextElement,
                 };

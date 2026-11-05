@@ -41,7 +41,7 @@ internal sealed class HtmlRequestInvoker(
         var forwardedRequest = new HtmlForwardedRequest<TRequest>(
             new TextDocumentIdentifier
             {
-                DocumentUri = razorDocument.GetURI()
+                Uri = razorDocument.GetURI()
             },
             checksumString,
             request);

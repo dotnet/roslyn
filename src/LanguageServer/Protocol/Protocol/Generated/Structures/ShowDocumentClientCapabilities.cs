@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client capabilities for the showDocument request.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class ShowDocumentClientCapabilities
@@ -18,6 +18,7 @@ internal partial class ShowDocumentClientCapabilities
     /// request.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("support")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public bool Support { get; set; }
 
 }

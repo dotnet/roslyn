@@ -21,7 +21,7 @@ internal class SnippetResponseRewriter : IDelegatedCSharpCompletionResponseRewri
         Position projectedPosition,
         RazorCompletionOptions completionOptionsn)
     {
-        using var items = new PooledArrayBuilder<VSInternalCompletionItem>(completionList.Items.Length);
+        using var items = new PooledArrayBuilder<CompletionItem>(completionList.Items.Length);
 
         foreach (var item in completionList.Items)
         {

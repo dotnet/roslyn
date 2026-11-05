@@ -65,7 +65,7 @@ internal sealed class OnAutoInsertHandler(
 
         // We should use the options passed in by LSP instead of the document's options.
         var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
-        return await GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, formattingOptions, includeNewLineBraceFormatting, cancellationToken).ConfigureAwait(false);
+        return await GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Ch, formattingOptions, includeNewLineBraceFormatting, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetOnAutoInsertResponseAsync(
@@ -299,7 +299,7 @@ internal sealed class OnAutoInsertHandler(
         // The original request is based on the document with the quote already inserted, so we can just return the edit
         // directly against the request document.
         var edit = ProtocolConversions.TextChangeToTextEdit(textChange.Value, sourceText);
-        var format = LSP.InsertTextFormat.Plaintext;
+        var format = LSP.InsertTextFormat.PlainText;
 
         if (textChange.Value.Span.Start == originalPosition)
         {

@@ -16,7 +16,7 @@ internal partial class VSInternalInlineCompletionOptions
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_pattern")]
     [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.RegexConverter))]
-    [System.Text.Json.Serialization.JsonRequired]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public System.Text.RegularExpressions.Regex Pattern { get; set; } = null!;
 
 }

@@ -38,7 +38,7 @@ internal sealed class CodeActionsService(
     private readonly IEnumerable<ICSharpCodeActionProvider> _csharpCodeActionProviders = csharpCodeActionProviders;
     private readonly IEnumerable<IHtmlCodeActionProvider> _htmlCodeActionProviders = htmlCodeActionProviders;
 
-    public async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] htmlCodeActions, RazorVSInternalCodeAction[] csharpCodeActions, RazorVSInternalCodeAction[] csharpDeclCodeActions, bool supportsCodeActionResolve, CancellationToken cancellationToken)
+    public async Task<TextDocumentCodeActionResultItem[]?> GetCodeActionsAsync(VSCodeActionParams request, RemoteDocumentSnapshot documentSnapshot, RazorVSInternalCodeAction[] htmlCodeActions, RazorVSInternalCodeAction[] csharpCodeActions, RazorVSInternalCodeAction[] csharpDeclCodeActions, bool supportsCodeActionResolve, CancellationToken cancellationToken)
     {
         var razorCodeActionContext = await GenerateRazorCodeActionContextAsync(request, documentSnapshot, supportsCodeActionResolve, cancellationToken).ConfigureAwait(false);
         if (razorCodeActionContext is null)
@@ -49,17 +49,17 @@ internal sealed class CodeActionsService(
         var razorCodeActions = await GetRazorCodeActionsAsync(razorCodeActionContext, cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
-        using var commandsOrCodeActions = new PooledArrayBuilder<SumType<Command, CodeAction>>();
+        using var commandsOrCodeActions = new PooledArrayBuilder<TextDocumentCodeActionResultItem>();
 
         // Grouping the code actions causes VS to sort them into groups, rather than just alphabetically sorting them
         // by title. The latter is bad for us because it can put "Remove <div>" at the top in some locales, and our fully
         // qualify component code action at the bottom, depending on the users namespace.
-        ConvertCodeActionsToSumType(razorCodeActions, "A-Razor");
+        AddCodeActions(razorCodeActions, "A-Razor");
 
         if (razorCodeActionContext.LanguageKind == RazorLanguageKind.Html)
         {
             var filteredHtmlCodeActions = await FilterDelegatedCodeActionsAsync(razorCodeActionContext, [.. htmlCodeActions], cancellationToken).ConfigureAwait(false);
-            ConvertCodeActionsToSumType(filteredHtmlCodeActions, "B-Delegated");
+            AddCodeActions(filteredHtmlCodeActions, "B-Delegated");
         }
         else if (razorCodeActionContext.LanguageKind == RazorLanguageKind.CSharp)
         {
@@ -88,14 +88,14 @@ internal sealed class CodeActionsService(
             var csharpDocumentUri = csharpDocument.GetURI();
             var context = razorCodeActionContext with { DelegatedDocumentUri = csharpDocumentUri };
             var filteredCodeActions = await FilterDelegatedCodeActionsAsync(context, [.. ExtractCSharpCodeActionNamesFromData(codeActions)], cancellationToken).ConfigureAwait(false);
-            ConvertCodeActionsToSumType(filteredCodeActions, "B-Delegated", csharpDocumentUri, seenTitles);
+            AddCodeActions(filteredCodeActions, "B-Delegated", csharpDocumentUri, seenTitles);
         }
 
-        void ConvertCodeActionsToSumType(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName, DocumentUri? csharpDocumentUri = null, HashSet<string>? seenTitles = null)
+        void AddCodeActions(ImmutableArray<RazorVSInternalCodeAction> codeActions, string groupName, DocumentUri? csharpDocumentUri = null, HashSet<string>? seenTitles = null)
         {
             // We must cast the RazorCodeAction into a platform compliant code action
-            // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the `CommandOrCodeAction` struct
-            // For VS Code (SupportsCodeActionResolve = false) we must convert it into a CodeAction or Command before encapsulating in the `CommandOrCodeAction` struct.
+            // For VS (SupportsCodeActionResolve = true) this means just encapsulating the RazorCodeAction in the union.
+            // For VS Code (SupportsCodeActionResolve = false) we must convert it into a CodeAction or Command before encapsulating it.
             if (supportsCodeActionResolve)
             {
                 foreach (var action in codeActions)
@@ -170,7 +170,7 @@ internal sealed class CodeActionsService(
         }
 
         var newContext = request.Context;
-        if (request.Context is VSInternalCodeActionContext { SelectionRange: not null } vsContext &&
+        if (request.Context is CodeActionContext { SelectionRange: not null } vsContext &&
             _documentMappingService.TryMapToCSharpDocumentRange(csharpDocument, vsContext.SelectionRange, out var selectionRange))
         {
             vsContext.SelectionRange = selectionRange;
@@ -183,7 +183,7 @@ internal sealed class CodeActionsService(
         {
             projectedRange = inheritsDirectiveRange;
 
-            if (newContext is VSInternalCodeActionContext inheritsVsContext)
+            if (newContext is CodeActionContext inheritsVsContext)
             {
                 inheritsVsContext.SelectionRange = inheritsDirectiveRange;
                 newContext = inheritsVsContext;
@@ -192,9 +192,9 @@ internal sealed class CodeActionsService(
 
         return new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier()
+            TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = request.TextDocument.DocumentUri,
+                Uri = request.TextDocument.Uri,
                 ProjectContext = request.TextDocument.ProjectContext
             },
             Context = newContext,

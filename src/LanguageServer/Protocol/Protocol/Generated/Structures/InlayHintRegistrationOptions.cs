@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Inlay hint options used during static or dynamic registration.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlayHintRegistrationOptions : InlayHintOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
@@ -18,6 +18,7 @@ internal partial class InlayHintRegistrationOptions : InlayHintOptions, ITextDoc
     /// the document selector provided on the client side will be used.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("documentSelector")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public DocumentSelector? DocumentSelector { get; set; }
 
     /// <summary>

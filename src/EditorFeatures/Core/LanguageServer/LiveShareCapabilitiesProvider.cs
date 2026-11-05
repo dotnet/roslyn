@@ -24,7 +24,7 @@ internal sealed class LiveShareCapabilitiesProvider(DefaultCapabilitiesProvider 
         // LSP server as LSP requests will be serviced by the AlwaysActiveInProcLanguageClient in both local and remote scenarios.
         if (isLspEditorEnabled)
         {
-            return new VSServerCapabilities
+            return new ServerCapabilities
             {
                 TextDocumentSync = new TextDocumentSyncOptions
                 {
@@ -42,7 +42,7 @@ internal sealed class LiveShareCapabilitiesProvider(DefaultCapabilitiesProvider 
         var isLspSemanticTokenEnabled = globalOptionService.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
         if (isLspSemanticTokenEnabled)
         {
-            defaultCapabilities.SemanticTokensOptions = null;
+            defaultCapabilities.SemanticTokensProvider = null;
         }
 
         return defaultCapabilities;

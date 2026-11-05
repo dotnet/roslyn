@@ -8,14 +8,14 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Captures why the code action is currently disabled.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class CodeActionDisabled
 {
     /// <summary>
     /// Human readable description of why the code action is currently disabled.
-    /// 
+    ///
     /// This is displayed in the code actions UI.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("reason")]

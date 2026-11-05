@@ -40,7 +40,7 @@ public class HtmlCodeActionResolverTest
             .Callback<Solution, WorkspaceEdit, CancellationToken>((_, edit, _) =>
             {
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
-                textDocumentEdit.TextDocument.DocumentUri = documentUri;
+                textDocumentEdit.TextDocument.Uri = documentUri;
                 textDocumentEdit.Edits = [LspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
             })
             .Returns(Task.CompletedTask);
@@ -52,17 +52,17 @@ public class HtmlCodeActionResolverTest
             Name = "Test",
             Edit = new WorkspaceEdit
             {
-                DocumentChanges = new TextDocumentEdit[]
-                {
-                    new()
+                DocumentChanges =
+                [
+                    new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier
                         {
-                            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath + ".html"),
+                            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath + ".html"),
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                     }
-                }
+                ]
             }
         };
 
@@ -73,10 +73,10 @@ public class HtmlCodeActionResolverTest
         Assert.NotNull(action.Edit);
         var documentEdits = action.Edit.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(documentEdits);
-        Assert.Equal(documentUri, documentEdits[0].TextDocument.DocumentUri);
+        Assert.Equal(documentUri, documentEdits[0].TextDocument.Uri);
 
         var text = SourceText.From(contents);
-        var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange((TextEdit)e)));
+        var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange(Assert.IsType<TextEdit>(e.Value))));
         Assert.Equal("Goo @(DateTime.Now) Bar", changed.ToString());
     }
 

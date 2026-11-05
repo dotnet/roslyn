@@ -414,8 +414,8 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlResult = htmlResponse is null
-            ? default(SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>)
-            : new SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>(Assert.Single(htmlResponse));
+            ? default(FullOrUnchangedDiagnosticReport)
+            : new FullOrUnchangedDiagnosticReport(Assert.Single(htmlResponse));
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentDiagnosticName, htmlResult)]);
 
         if (taskListRequest)
@@ -429,7 +429,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
 
         var markers = result.SelectMany(d =>
             new[] {
-                (index: inputText.GetTextSpan(d.Range).Start, text: $"{{|{d.Code!.Value.Second}:"),
+                (index: inputText.GetTextSpan(d.Range).Start, text: $"{{|{Assert.IsType<string>(d.Code?.Value)}:"),
                 (index: inputText.GetTextSpan(d.Range).End, text:"|}")
             });
 
@@ -447,12 +447,12 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             Assert.All(result,
                 d =>
                 {
-                    var vsDiagnostic = Assert.IsType<VSDiagnostic>(d);
+                    var vsDiagnostic = Assert.IsType<LspDiagnostic>(d);
                     Assert.NotNull(vsDiagnostic.Identifier);
                     Assert.NotNull(vsDiagnostic.Projects);
                     var project = Assert.Single(vsDiagnostic.Projects);
                     Assert.NotNull(project.ProjectIdentifier);
-                    var firstDiagnostic = Assert.IsType<VSDiagnostic>(result[0]);
+                    var firstDiagnostic = Assert.IsType<LspDiagnostic>(result[0]);
                     Assert.NotNull(firstDiagnostic.Projects);
                     // We always report the same project info for all diagnostics
                     Assert.Same(project, Assert.Single(firstDiagnostic.Projects));
@@ -475,7 +475,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
         var endpoint = new CohostDocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory, VoidSessionTracker.Instance);
         var request = new DocumentDiagnosticParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
             Identifier = taskListRequest
                 ? PullDiagnosticCategories.Task
                 : clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions ? PullDiagnosticCategories.DocumentCompilerSyntax : null,

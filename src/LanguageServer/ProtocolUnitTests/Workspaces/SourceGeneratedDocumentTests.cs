@@ -118,13 +118,14 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper testOutputHel
         var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
         var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
 
-        var location = new LSP.Location { DocumentUri = sourceGeneratorDocumentUri, Range = new LSP.Range { Start = new LSP.Position(0, 6), End = new LSP.Position(0, 6) } };
+        var location = new LSP.Location { Uri = sourceGeneratorDocumentUri, Range = new LSP.Range { Start = new LSP.Position(0, 6), End = new LSP.Position(0, 6) } };
 
         var hover = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Hover>(LSP.Methods.TextDocumentHoverName,
                 CreateTextDocumentPositionParams(location), CancellationToken.None);
 
         Assert.NotNull(hover);
-        Assert.Contains("class A", hover.Contents.Fourth.Value);
+        Assert.NotNull(hover.Contents);
+        Assert.Contains("class A", Assert.IsType<LSP.MarkupContent>(hover.Contents.Value).Value);
     }
 
     [Theory, CombinatorialData]
@@ -528,7 +529,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper testOutputHel
 
         var didSaveParams = new LSP.DidSaveTextDocumentParams
         {
-            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = documentUri },
+            TextDocument = new LSP.TextDocumentIdentifier { Uri = documentUri },
         };
 
         // The didSave should now trigger generators to run in balanced mode.  In automatic mode it will also trigger but we will already have the updated text.
@@ -593,7 +594,7 @@ public sealed class SourceGeneratedDocumentTests(ITestOutputHelper testOutputHel
 
         var didSaveParams = new LSP.DidSaveTextDocumentParams
         {
-            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = additionalDocumentUri },
+            TextDocument = new LSP.TextDocumentIdentifier { Uri = additionalDocumentUri },
         };
 
         // The didSave should now trigger generators to run in balanced mode.  In automatic mode it will also trigger but we will already have the updated text.

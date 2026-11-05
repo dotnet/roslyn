@@ -2059,7 +2059,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         var renameParams = new RenameParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
             NewName = newName,
         };
 

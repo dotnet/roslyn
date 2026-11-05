@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Describes the currently selected completion item.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class SelectedCompletionInfo

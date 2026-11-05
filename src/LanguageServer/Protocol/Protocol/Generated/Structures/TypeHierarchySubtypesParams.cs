@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The parameter of a `typeHierarchy/subtypes` request.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class TypeHierarchySubtypesParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<TypeHierarchyItem[]?>

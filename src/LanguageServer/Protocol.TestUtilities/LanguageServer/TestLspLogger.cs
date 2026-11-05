@@ -41,7 +41,7 @@ internal class TestLspLoggerFactory() : ILspServiceFactory
             var _ = clientLanguageServerManager.SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
                 Message = string.Format(message, @params),
-                MessageType = level,
+                Type = level,
             }, CancellationToken.None);
         }
     }

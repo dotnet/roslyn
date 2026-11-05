@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Parameters for a <see cref="Requests.TextDocumentFoldingRange"/>.
 /// </summary>
-internal partial class FoldingRangeParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<FoldingRange[]?>
+internal partial class FoldingRangeParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<FoldingRange[]?>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.

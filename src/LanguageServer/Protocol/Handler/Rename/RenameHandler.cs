@@ -76,6 +76,6 @@ internal sealed class RenameHandler() : ILspServiceDocumentRequestHandler<LSP.Re
 
         var documentEdits = await ProtocolConversions.ChangedDocumentsToTextDocumentEditsAsync(renamedSolution, oldSolution, cancellationToken).ConfigureAwait(false);
 
-        return new WorkspaceEdit { DocumentChanges = documentEdits };
+        return new WorkspaceEdit { DocumentChanges = [.. documentEdits.Select(edit => new WorkspaceEdit._DocumentChangesItem(edit))] };
     }
 }

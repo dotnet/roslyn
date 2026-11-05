@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Value-object describing what options formatting should use.
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(FormattingOptionsConverter))]
 internal partial class FormattingOptions
 {
     /// <summary>
@@ -22,11 +23,12 @@ internal partial class FormattingOptions
     /// Prefer spaces over tabs.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertSpaces")]
+    [System.Text.Json.Serialization.JsonRequired]
     public bool InsertSpaces { get; set; }
 
     /// <summary>
     /// Trim trailing whitespace on a line.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("trimTrailingWhitespace")]
@@ -35,7 +37,7 @@ internal partial class FormattingOptions
 
     /// <summary>
     /// Insert a newline character at the end of the file if one does not exist.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertFinalNewline")]
@@ -44,7 +46,7 @@ internal partial class FormattingOptions
 
     /// <summary>
     /// Trim all newlines after the final newline at the end of the file.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("trimFinalNewlines")]

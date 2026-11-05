@@ -175,7 +175,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         private static bool MatchingTitle(string expectedTitle, string? actualTitle)
             => expectedTitle.Equals(actualTitle, StringComparison.OrdinalIgnoreCase);
 
-        private static string GetToken(SumType<int, string> token)
+        private static string GetToken(ProgressToken token)
             => token.Value?.ToString() ?? throw new InvalidOperationException("Work-done progress token must not be null.");
 
         internal sealed class WorkDoneProgressUnit(string token, WorkDoneProgressCreateParams createParams)
@@ -229,7 +229,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
 
     private protected static TextDocumentIdentifier CreateTextDocumentIdentifier(DocumentUri uri, ProjectId? projectContext = null)
     {
-        var documentIdentifier = new VSTextDocumentIdentifier { DocumentUri = uri };
+        var documentIdentifier = new TextDocumentIdentifier { Uri = uri };
 
         if (projectContext != null)
         {
@@ -247,7 +247,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
     private protected static CodeActionParams CreateCodeActionParams(LSP.Location location)
         => new()
         {
-            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(location.Uri),
             Range = location.Range,
             Context = new CodeActionContext
             {

@@ -45,9 +45,9 @@ public sealed class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
         {
             Assert.Equal(1, results.Length);
             Assert.Equal(2, results[0].Diagnostics?.Length);
-            var orderedDiagnostics = results[0].Diagnostics!.OrderBy(d => d.Code!.Value.Value).ToList();
-            Assert.Equal(NonLocalDiagnosticsAnalyzer.NonLocalDescriptor.Id, orderedDiagnostics[0].Code);
-            Assert.Equal(NonLocalDiagnosticsAnalyzer.CompilationEndDescriptor.Id, orderedDiagnostics[1].Code);
+            var orderedDiagnostics = results[0].Diagnostics!.OrderBy(d => Assert.IsType<string>(d.Code!.Value)).ToList();
+            Assert.Equal(NonLocalDiagnosticsAnalyzer.NonLocalDescriptor.Id, Assert.IsType<string>(orderedDiagnostics[0].Code!.Value));
+            Assert.Equal(NonLocalDiagnosticsAnalyzer.CompilationEndDescriptor.Id, Assert.IsType<string>(orderedDiagnostics[1].Code!.Value));
             Assert.Equal(document.GetURI(), results[0].Uri);
 
             // Asking again should give us back unchanged diagnostics.

@@ -29,10 +29,10 @@ namespace Roslyn.LanguageServer.Protocol;
 /// conversion from one encoding into another requires the content of the
 /// file / line the conversion is best done where the file is read which is
 /// usually on the server side.
-/// 
+///
 /// Positions are line end character agnostic. So you can not specify a position
 /// that denotes `\r|\n` or `\n|` where `|` represents the character offset.
-/// 
+///
 /// @since 3.17.0 - support for negotiated position encoding.
 /// </summary>
 internal partial class Position
@@ -41,17 +41,15 @@ internal partial class Position
     /// Line position in a document (zero-based).
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("line")]
-    [System.Text.Json.Serialization.JsonRequired]
     public int Line { get; set; }
 
     /// <summary>
     /// Character offset on a line in a document (zero-based).
-    /// 
+    ///
     /// The meaning of this offset is determined by the negotiated
     /// `PositionEncodingKind`.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("character")]
-    [System.Text.Json.Serialization.JsonRequired]
     public int Character { get; set; }
 
 }

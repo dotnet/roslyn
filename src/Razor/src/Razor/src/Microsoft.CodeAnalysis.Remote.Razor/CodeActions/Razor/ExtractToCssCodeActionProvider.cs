@@ -93,7 +93,7 @@ internal sealed class ExtractToCssCodeActionProvider(ILoggerFactory loggerFactor
             Data = actionParams,
         };
 
-        var razorFileName = Path.GetFileName(context.Request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath());
+        var razorFileName = Path.GetFileName(context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath());
         var codeAction = RazorCodeActionFactory.CreateExtractToCss(razorFileName, resolutionParams);
         return Task.FromResult<ImmutableArray<RazorVSInternalCodeAction>>([codeAction]);
     }

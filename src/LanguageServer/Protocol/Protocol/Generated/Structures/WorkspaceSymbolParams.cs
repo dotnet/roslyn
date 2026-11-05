@@ -29,7 +29,7 @@ internal partial class WorkspaceSymbolParams : Roslyn.LanguageServer.Protocol.IP
     /// <summary>
     /// A query string to filter symbols by. Clients may send an empty
     /// string here to request all symbols.
-    /// 
+    ///
     /// The `query`-parameter should be interpreted in a *relaxed way* as editors
     /// will apply their own highlighting and scoring on the results. A good rule
     /// of thumb is to match case-insensitive and to simply check that the

@@ -23,14 +23,14 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
     private readonly IDocumentSymbolService _documentSymbolService = args.ExportProvider.GetExportedValue<IDocumentSymbolService>();
     private readonly IClientCapabilitiesService _clientCapabilitiesService = args.ExportProvider.GetExportedValue<IClientCapabilitiesService>();
 
-    public ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, bool useHierarchicalSymbols, CancellationToken cancellationToken)
+    public ValueTask<TextDocumentDocumentSymbolResult?> GetDocumentSymbolsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId razorDocumentId, bool useHierarchicalSymbols, CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
             snapshot => GetDocumentSymbolsAsync(snapshot, useHierarchicalSymbols, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(RemoteDocumentSnapshot snapshot, bool useHierarchicalSymbols, CancellationToken cancellationToken)
+    private async ValueTask<TextDocumentDocumentSymbolResult?> GetDocumentSymbolsAsync(RemoteDocumentSnapshot snapshot, bool useHierarchicalSymbols, CancellationToken cancellationToken)
     {
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
@@ -38,7 +38,7 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
         var implementationSymbols = await GetCSharpSymbolsAsync(implementationDocument, cancellationToken).ConfigureAwait(false);
 
         var declarationDocument = codeDocument.GetCSharpDocument(declarationDocument: true);
-        SumType<DocumentSymbol[], SymbolInformation[]>? declarationSymbols = null;
+        TextDocumentDocumentSymbolResult? declarationSymbols = null;
         if (declarationDocument is not null)
         {
             declarationSymbols = await GetCSharpSymbolsAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
@@ -53,7 +53,7 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
             declarationSymbols,
             cancellationToken);
 
-        async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>> GetCSharpSymbolsAsync(
+        async ValueTask<TextDocumentDocumentSymbolResult> GetCSharpSymbolsAsync(
             RazorCSharpDocument csharpDocument,
             CancellationToken cancellationToken)
         {
@@ -61,51 +61,11 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
                 .GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken)
                 .ConfigureAwait(false);
 
-            var csharpSymbols = await DocumentSymbolsHandler.GetDocumentSymbolsAsync(
+            return await DocumentSymbolsHandler.GetDocumentSymbolsAsync(
                 generatedDocument,
                 useHierarchicalSymbols,
                 supportsVSExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
                 cancellationToken).ConfigureAwait(false);
-
-            // Roslyn uses an internal "RoslynDocumentSymbol" type, which throws when serialized after we've mapped it, so we have to
-            // convert things back to DocumentSymbol before remapping it.
-            if (csharpSymbols.TryGetFirst(out var roslynDocumentSymbols))
-            {
-                csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols, cancellationToken);
-            }
-
-            return csharpSymbols;
         }
-    }
-
-    private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols, CancellationToken cancellationToken)
-    {
-        // Avoid copying the rest of the symbol tree once its request has been canceled.
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var converted = new DocumentSymbol[roslynDocumentSymbols.Length];
-        for (var i = 0; i < roslynDocumentSymbols.Length; i++)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var symbol = roslynDocumentSymbols[i];
-            converted[i] = new DocumentSymbol
-            {
-                Children = symbol.Children is { } children
-                    ? ConvertDocumentSymbols(children, cancellationToken)
-                    : null,
-#pragma warning disable CS0618 // Type or member is obsolete
-                Deprecated = symbol.Deprecated,
-#pragma warning restore CS0618 // Type or member is obsolete
-                Detail = symbol.Detail,
-                Kind = symbol.Kind,
-                Name = symbol.Name,
-                Range = symbol.Range,
-                SelectionRange = symbol.SelectionRange,
-                Tags = symbol.Tags
-            };
-        }
-
-        return converted;
     }
 }

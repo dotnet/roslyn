@@ -69,10 +69,10 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
         var actualProviders = typeof(CohostLinkedEditingRangeEndpoint).Assembly.GetTypes().Where(t => !t.IsInterface && typeof(IDynamicRegistrationProvider).IsAssignableFrom(t)).ToList();
         Assert.Equal([.. actualProviders.OrderBy(a => a.Name).Select(r => r.Name)], [.. providers.OrderBy(e => e.GetType().Name).Select(r => r.GetType().Name)]);
 
-        var clientCapabilities = new VSInternalClientCapabilities()
+        var clientCapabilities = new ClientCapabilities()
         {
             SupportsVisualStudioExtensions = true,
-            TextDocument = new VSInternalTextDocumentClientCapabilities()
+            TextDocument = new TextDocumentClientCapabilities()
             {
                 CallHierarchy = new() { DynamicRegistration = true },
                 CodeAction = new() { DynamicRegistration = true },
@@ -168,7 +168,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
     [Export(typeof(IRazorSemanticTokensRefreshQueue)), PartNotDiscoverable]
     private class TestRazorSemanticTokensRefreshQueue : IRazorSemanticTokensRefreshQueue
     {
-        public void Initialize(VSInternalClientCapabilities clientCapabilities) => throw new NotImplementedException();
+        public void Initialize(ClientCapabilities clientCapabilities) => throw new NotImplementedException();
         public Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 }

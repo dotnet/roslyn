@@ -22,7 +22,7 @@ internal partial class CodeActionClientCapabilities
     /// The client support code action literals of type `CodeAction` as a valid
     /// response of the `textDocument/codeAction` request. If the property is not
     /// set the request can only return `Command` literals.
-    /// 
+    ///
     /// @since 3.8.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("codeActionLiteralSupport")]
@@ -31,7 +31,7 @@ internal partial class CodeActionClientCapabilities
 
     /// <summary>
     /// Whether code action supports the `isPreferred` property.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("isPreferredSupport")]
@@ -40,7 +40,7 @@ internal partial class CodeActionClientCapabilities
 
     /// <summary>
     /// Whether code action supports the `disabled` property.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("disabledSupport")]
@@ -51,7 +51,7 @@ internal partial class CodeActionClientCapabilities
     /// Whether code action supports the `data` property which is
     /// preserved between a `textDocument/codeAction` and a
     /// `codeAction/resolve` request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("dataSupport")]
@@ -61,7 +61,7 @@ internal partial class CodeActionClientCapabilities
     /// <summary>
     /// Whether the client supports resolving additional code action
     /// properties via a separate `codeAction/resolve` request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("resolveSupport")]
@@ -74,7 +74,7 @@ internal partial class CodeActionClientCapabilities
     /// `CodeAction#edit` property by for example presenting
     /// the workspace edit in the user interface and asking
     /// for confirmation.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("honorsChangeAnnotations")]
@@ -84,7 +84,7 @@ internal partial class CodeActionClientCapabilities
     /// <summary>
     /// Whether the client supports documentation for a class of
     /// code actions.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("documentationSupport")]
@@ -94,7 +94,7 @@ internal partial class CodeActionClientCapabilities
     /// <summary>
     /// Client supports the tag property on a code action. Clients
     /// supporting tags have to handle unknown tags gracefully.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tagSupport")]

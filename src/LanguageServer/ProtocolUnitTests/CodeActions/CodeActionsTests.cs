@@ -33,7 +33,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
                 }
             }
             """;
-        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, initializationOptions: new InitializationOptions() { ClientCapabilities = new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true } });
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, initializationOptions: new InitializationOptions() { ClientCapabilities = new ClientCapabilities { SupportsVisualStudioExtensions = true } });
 
         var titlePath = new[] { CSharpAnalyzersResources.Use_implicit_type };
         var caretLocation = testLspServer.GetLocations("caret").Single();
@@ -114,7 +114,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -158,7 +158,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -202,7 +202,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -250,7 +250,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var caret = testLspServer.GetLocations("caret").Single();
         var codeActionParams = new CodeActionParams
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -264,23 +264,23 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         Assert.Null(resolvedAction.Edit);
     }
 
-    private static async Task<VSInternalCodeAction[]> RunGetCodeActionsAsync(
+    private static async Task<CodeAction[]> RunGetCodeActionsAsync(
         TestLspServer testLspServer,
         CodeActionParams codeActionParams)
     {
         var result = await testLspServer.ExecuteRequestAsync<CodeActionParams, CodeAction[]>(
             LSP.Methods.TextDocumentCodeActionName, codeActionParams, CancellationToken.None);
-        return [.. result!.Cast<VSInternalCodeAction>()];
+        return [.. result!.Cast<CodeAction>()];
     }
 
-    private static async Task<VSInternalCodeAction> RunGetCodeActionResolveAsync(
+    private static async Task<CodeAction> RunGetCodeActionResolveAsync(
         TestLspServer testLspServer,
         CodeAction codeAction)
     {
         var result = await testLspServer.ExecuteRequestAsync<CodeAction, CodeAction>(
             LSP.Methods.CodeActionResolveName, codeAction, CancellationToken.None);
         Assert.NotNull(result);
-        return (VSInternalCodeAction)result;
+        return (CodeAction)result;
     }
 
     private static CodeActionResolveData? GetCodeActionResolveData(CodeAction codeAction)
@@ -291,7 +291,7 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
     internal static CodeActionParams CreateCodeActionParams(LSP.Location caret)
         => new()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Range = caret.Range,
             Context = new CodeActionContext
             {
@@ -299,13 +299,13 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
             }
         };
 
-    internal static VSInternalCodeAction CreateCodeAction(
-        string title, CodeActionKind kind, VSInternalCodeAction[] children,
+    internal static CodeAction CreateCodeAction(
+        string title, CodeActionKind kind, CodeAction[] children,
         CodeActionResolveData data, LSP.Diagnostic[]? diagnostics,
         VSInternalPriorityLevel? priority, string groupName, LSP.Range applicableRange,
         WorkspaceEdit? edit = null, Command? command = null)
     {
-        var action = new VSInternalCodeAction
+        var action = new CodeAction
         {
             Title = title,
             Kind = kind,

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteFindAllReferencesService : IRemoteJsonService
 {
-    ValueTask<RemoteResponse<SumType<VSInternalReferenceItem, LspLocation>[]?>> FindAllReferencesAsync(
+    ValueTask<RemoteResponse<ReferenceItem[]?>> FindAllReferencesAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         Position position,

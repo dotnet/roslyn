@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Roslyn.LanguageServer.Protocol;
@@ -13,11 +14,11 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Converters;
 
 /// <summary>
-/// Tests for SumConverter's type filtering logic, which avoids costly exception-based
-/// type probing by rejecting incompatible SumType arms based on the JSON token type.
+/// Tests for UnionConverter's type filtering logic, which avoids costly exception-based
+/// type probing by rejecting incompatible union arms based on the JSON token type.
 /// This includes StartObject rejection for primitive types and array element peeking.
 /// </summary>
-public sealed class SumConverterTypeFilteringTests
+public sealed class UnionConverterTypeFilteringTests
 {
     [Fact]
     public void Deserialize_StringArray_MatchesStringArrayArm()
@@ -25,7 +26,7 @@ public sealed class SumConverterTypeFilteringTests
         var json = """{"value": ["a", "b", "c"]}""";
         var result = DeserializeWithNoExceptions<StringOrVSInternalCommitCharacterArrayHolder>(json);
 
-        Assert.True(result.Value.TryGetFirst(out var strings));
+        var strings = Assert.IsType<string[]>(result.Value.Value);
         Assert.Equal(["a", "b", "c"], strings);
     }
 
@@ -35,7 +36,7 @@ public sealed class SumConverterTypeFilteringTests
         var json = """{"value": [{"_vs_character": "x", "_vs_insert": false}]}""";
         var result = DeserializeWithNoExceptions<StringOrVSInternalCommitCharacterArrayHolder>(json);
 
-        Assert.True(result.Value.TryGetSecond(out var objects));
+        var objects = Assert.IsType<VSInternalCommitCharacter[]>(result.Value.Value);
         Assert.Single(objects);
         Assert.Equal("x", objects[0].Character);
         Assert.False(objects[0].Insert);
@@ -48,7 +49,7 @@ public sealed class SumConverterTypeFilteringTests
         var result = DeserializeWithNoExceptions<StringOrVSInternalCommitCharacterArrayHolder>(json);
 
         // Empty array is compatible with any array type; first arm wins.
-        Assert.True(result.Value.TryGetFirst(out _));
+        Assert.IsType<string[]>(result.Value.Value);
     }
 
     [Fact]
@@ -57,47 +58,46 @@ public sealed class SumConverterTypeFilteringTests
         var json = """{"value": [1, 2, 3]}""";
         var result = DeserializeWithNoExceptions<IntOrStringArrayHolder>(json);
 
-        Assert.True(result.Value.TryGetFirst(out var ints));
+        var ints = Assert.IsType<int[]>(result.Value.Value);
         Assert.Equal([1, 2, 3], ints);
     }
 
     [Fact]
     public void Deserialize_NumberArray_DoesNotMatchStringArrayArm()
     {
-        // When the SumType has string[] first and int[] second,
+        // When the union has string[] first and int[] second,
         // a number array should skip string[] and match int[].
         var json = """{"value": [42]}""";
         var result = DeserializeWithNoExceptions<StringOrIntArrayHolder>(json);
 
-        Assert.True(result.Value.TryGetSecond(out var ints));
+        var ints = Assert.IsType<int[]>(result.Value.Value);
         Assert.Equal([42], ints);
     }
 
     [Fact]
     public void Deserialize_NestedArrays_MatchesCorrectArm()
     {
-        // SumType<string[][], int[]>: nested array should match string[][] not int[]
+        // A nested array should match string[][] rather than int[].
         var json = """{"value": [["a", "b"], ["c"]]}""";
         var result = DeserializeWithNoExceptions<NestedStringOrIntArrayHolder>(json);
 
-        Assert.True(result.Value.TryGetFirst(out var nested));
+        var nested = Assert.IsType<string[][]>(result.Value.Value);
         Assert.Equal(2, nested.Length);
         Assert.Equal(["a", "b"], nested[0]);
         Assert.Equal(["c"], nested[1]);
     }
 
     [Fact]
-    public void Deserialize_SumTypeElementArray_MatchesCorrectArm()
+    public void Deserialize_UnionElementArray_MatchesCorrectArm()
     {
-        // When the array element type is itself a SumType (has a custom JsonConverter),
-        // peeking cannot determine compatibility, so the array arm must not be rejected.
+        // Union element arrays must retain their nested arm selection.
         var json = """{"value": ["hello"]}""";
-        var result = JsonSerializer.Deserialize<SumTypeOrBoolArrayHolder>(json);
+        var result = JsonSerializer.Deserialize<UnionOrBoolArrayHolder>(json);
 
         Assert.NotNull(result);
-        Assert.True(result.Value.TryGetFirst(out var array));
+        var array = Assert.IsType<StringOrInt[]>(result.Value.Value);
         Assert.Single(array);
-        Assert.True(array[0].TryGetFirst(out var str));
+        var str = Assert.IsType<string>(array[0].Value);
         Assert.Equal("hello", str);
     }
 
@@ -112,7 +112,7 @@ public sealed class SumConverterTypeFilteringTests
         var json = """{"value": [{"name": "a"}, {"name": "b"}]}""";
         var result = DeserializeWithNoExceptions<NestedIntArrayOrObjectArrayHolder>(json);
 
-        Assert.True(result.Value.TryGetSecond(out var objects));
+        var objects = Assert.IsType<SimpleObject[]>(result.Value.Value);
         Assert.Equal(2, objects.Length);
         Assert.Equal("a", objects[0].Name);
         Assert.Equal("b", objects[1].Name);
@@ -121,12 +121,12 @@ public sealed class SumConverterTypeFilteringTests
     [Fact]
     public void Deserialize_ArrayWithOptionsRegisteredElementConverter_MatchesViaFallback()
     {
-        // StringWrapper has no type-level [JsonConverter], so IsTokenCompatibleWithType
+        // StringWrapper has no type-level [JsonConverter], so IsCompatible
         // sees a String element token and rejects StringWrapper[] (StringWrapper isn't
         // string/Uri/etc.). int[] is also rejected (Number != String token).
         // Pass 1 skips both; pass 2 retries and StringWrapper[] succeeds because the
         // converter registered via options handles String tokens for StringWrapper.
-        // Without the two-pass approach, this would throw "No sum type match".
+        // Without the two-pass approach, this would reject the union.
         var json = """{"value": ["hello", "world"]}""";
         var options = new JsonSerializerOptions();
         options.Converters.Add(new StringWrapperConverter());
@@ -134,7 +134,7 @@ public sealed class SumConverterTypeFilteringTests
         var result = JsonSerializer.Deserialize<IntOrStringWrapperArrayHolder>(json, options);
 
         Assert.NotNull(result);
-        Assert.True(result.Value.TryGetSecond(out var wrappers));
+        var wrappers = Assert.IsType<StringWrapper[]>(result.Value.Value);
         Assert.Equal(2, wrappers.Length);
         Assert.Equal("hello", wrappers[0].Text);
         Assert.Equal("world", wrappers[1].Text);
@@ -169,48 +169,110 @@ public sealed class SumConverterTypeFilteringTests
         }
     }
 
-    // Test holder types: SumType is deserialized by SumConverter via [JsonConverter] attribute
-
     private sealed class StringOrVSInternalCommitCharacterArrayHolder
     {
         [JsonPropertyName("value")]
-        public SumType<string[], VSInternalCommitCharacter[]> Value { get; set; }
+        public StringOrCommitCharacterArray Value { get; set; } = null!;
     }
 
     private sealed class IntOrStringArrayHolder
     {
         [JsonPropertyName("value")]
-        public SumType<int[], string[]> Value { get; set; }
+        public IntOrStringArray Value { get; set; } = null!;
     }
 
     private sealed class StringOrIntArrayHolder
     {
         [JsonPropertyName("value")]
-        public SumType<string[], int[]> Value { get; set; }
+        public StringOrIntArray Value { get; set; } = null!;
     }
 
     private sealed class NestedStringOrIntArrayHolder
     {
         [JsonPropertyName("value")]
-        public SumType<string[][], int[]> Value { get; set; }
+        public NestedStringOrIntArray Value { get; set; } = null!;
     }
 
-    private sealed class SumTypeOrBoolArrayHolder
+    private sealed class UnionOrBoolArrayHolder
     {
         [JsonPropertyName("value")]
-        public SumType<SumType<string, int>[], bool> Value { get; set; }
+        public UnionArrayOrBool Value { get; set; } = null!;
     }
 
     private sealed class IntOrStringWrapperArrayHolder
     {
         [JsonPropertyName("value")]
-        public SumType<int[], StringWrapper[]> Value { get; set; }
+        public IntOrStringWrapperArray Value { get; set; } = null!;
     }
 
     private sealed class NestedIntArrayOrObjectArrayHolder
     {
         [JsonPropertyName("value")]
-        public SumType<int[][], SimpleObject[]> Value { get; set; }
+        public NestedIntOrObjectArray Value { get; set; } = null!;
+    }
+
+    [Union, JsonConverter(typeof(UnionConverter))]
+    private sealed class StringOrCommitCharacterArray : IUnion
+    {
+        public StringOrCommitCharacterArray(string[] value) => Value = value;
+        public StringOrCommitCharacterArray(VSInternalCommitCharacter[] value) => Value = value;
+        public object Value { get; }
+    }
+
+    [Union, JsonConverter(typeof(UnionConverter))]
+    private sealed class IntOrStringArray : IUnion
+    {
+        public IntOrStringArray(int[] value) => Value = value;
+        public IntOrStringArray(string[] value) => Value = value;
+        public object Value { get; }
+    }
+
+    [Union, JsonConverter(typeof(UnionConverter))]
+    private sealed class StringOrIntArray : IUnion
+    {
+        public StringOrIntArray(string[] value) => Value = value;
+        public StringOrIntArray(int[] value) => Value = value;
+        public object Value { get; }
+    }
+
+    [Union, JsonConverter(typeof(UnionConverter))]
+    private sealed class NestedStringOrIntArray : IUnion
+    {
+        public NestedStringOrIntArray(string[][] value) => Value = value;
+        public NestedStringOrIntArray(int[] value) => Value = value;
+        public object Value { get; }
+    }
+
+    [Union, JsonConverter(typeof(UnionConverter))]
+    private sealed class StringOrInt : IUnion
+    {
+        public StringOrInt(string value) => Value = value;
+        public StringOrInt(int value) => Value = value;
+        public object Value { get; }
+    }
+
+    [Union, JsonConverter(typeof(UnionConverter))]
+    private sealed class UnionArrayOrBool : IUnion
+    {
+        public UnionArrayOrBool(StringOrInt[] value) => Value = value;
+        public UnionArrayOrBool(bool value) => Value = value;
+        public object Value { get; }
+    }
+
+    [Union, JsonConverter(typeof(UnionConverter))]
+    private sealed class IntOrStringWrapperArray : IUnion
+    {
+        public IntOrStringWrapperArray(int[] value) => Value = value;
+        public IntOrStringWrapperArray(StringWrapper[] value) => Value = value;
+        public object Value { get; }
+    }
+
+    [Union, JsonConverter(typeof(UnionConverter))]
+    private sealed class NestedIntOrObjectArray : IUnion
+    {
+        public NestedIntOrObjectArray(int[][] value) => Value = value;
+        public NestedIntOrObjectArray(SimpleObject[] value) => Value = value;
+        public object Value { get; }
     }
 
     internal sealed class SimpleObject

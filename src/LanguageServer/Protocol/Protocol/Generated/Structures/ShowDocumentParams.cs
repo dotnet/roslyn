@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Params to show a resource in the UI.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class ShowDocumentParams
@@ -18,7 +18,7 @@ internal partial class ShowDocumentParams
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("uri")]
     [System.Text.Json.Serialization.JsonRequired]
-    public URI Uri { get; set; } = null!;
+    public System.Uri Uri { get; set; } = null!;
 
     /// <summary>
     /// Indicates to show the resource in an external program.

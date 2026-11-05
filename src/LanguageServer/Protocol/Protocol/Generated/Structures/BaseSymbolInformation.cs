@@ -15,19 +15,17 @@ internal partial class BaseSymbolInformation
     /// The name of this symbol.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("name")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Name { get; set; } = null!;
 
     /// <summary>
     /// The kind of this symbol.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("kind")]
-    [System.Text.Json.Serialization.JsonRequired]
     public SymbolKind Kind { get; set; }
 
     /// <summary>
     /// Tags for this symbol.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tags")]

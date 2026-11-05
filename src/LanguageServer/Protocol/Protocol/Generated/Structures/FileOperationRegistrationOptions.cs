@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The options to register for file operations.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class FileOperationRegistrationOptions

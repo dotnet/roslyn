@@ -18,7 +18,7 @@ internal sealed class ProjectContextRefreshQueue(
         => FeatureAttribute.LanguageServer;
 
     protected override bool? GetRefreshSupport(ClientCapabilities clientCapabilities)
-        => (clientCapabilities.Workspace as VSInternalWorkspaceClientCapabilities)?.ProjectContext?.RefreshSupport;
+        => (clientCapabilities.Workspace as WorkspaceClientCapabilities)?.ProjectContext?.RefreshSupport;
 
     protected override string GetWorkspaceRefreshName()
         => VSInternalMethods.WorkspaceProjectContextRefreshName;

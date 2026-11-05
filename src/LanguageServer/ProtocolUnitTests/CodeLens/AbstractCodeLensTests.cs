@@ -68,7 +68,7 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
 
         var matchingCodeLenses = actualCodeLenses
             .Where(actualCodeLens => actualCodeLens.Range == expectedCodeLens.Range)
-            .Where(actualCodeLens => actualCodeLens.Command != null && actualCodeLens.Command.CommandIdentifier == CodeLensHandler.RunTestsCommandIdentifier);
+            .Where(actualCodeLens => actualCodeLens.Command != null && actualCodeLens.Command.CommandValue == CodeLensHandler.RunTestsCommandValue);
         foreach (var title in commandTitles)
         {
             Assert.Single(matchingCodeLenses, (c) => c.Command!.Title == title);
@@ -88,6 +88,6 @@ public abstract class AbstractCodeLensTests : AbstractLanguageServerProtocolTest
         var actualCodeLenses = await testLspServer.ExecuteRequestAsync<LSP.CodeLensParams, LSP.CodeLens[]?>(LSP.Methods.TextDocumentCodeLensName, codeLensParams, CancellationToken.None);
         Assert.NotNull(actualCodeLenses);
         Assert.NotEmpty(actualCodeLenses);
-        Assert.All(actualCodeLenses, actualCodeLens => Assert.NotEqual(CodeLensHandler.RunTestsCommandIdentifier, actualCodeLens.Command?.CommandIdentifier));
+        Assert.All(actualCodeLenses, actualCodeLens => Assert.NotEqual(CodeLensHandler.RunTestsCommandValue, actualCodeLens.Command?.CommandValue));
     }
 }

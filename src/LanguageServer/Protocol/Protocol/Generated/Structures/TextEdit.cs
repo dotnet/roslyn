@@ -24,7 +24,6 @@ internal partial class TextEdit
     /// empty string.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("newText")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string NewText { get; set; } = null!;
 
 }

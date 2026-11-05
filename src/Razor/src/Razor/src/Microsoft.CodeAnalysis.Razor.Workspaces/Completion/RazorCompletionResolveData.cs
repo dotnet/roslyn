@@ -28,7 +28,7 @@ internal sealed record RazorCompletionResolveData(
         return context;
     }
 
-    public static void Wrap(VSInternalCompletionList completionList, TextDocumentIdentifier textDocument, VSInternalClientCapabilities clientCapabilities)
+    public static void Wrap(CompletionList completionList, TextDocumentIdentifier textDocument, ClientCapabilities clientCapabilities)
     {
         var data = new RazorCompletionResolveData(textDocument, OriginalData: null);
 

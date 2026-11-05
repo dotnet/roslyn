@@ -29,7 +29,7 @@ internal partial class ApplyWorkspaceEditParams
 
     /// <summary>
     /// Additional data about the edit.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("metadata")]

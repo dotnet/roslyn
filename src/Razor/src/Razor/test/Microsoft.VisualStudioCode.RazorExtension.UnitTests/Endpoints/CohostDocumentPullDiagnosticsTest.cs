@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -33,7 +32,7 @@ public partial class CohostDocumentPullDiagnosticsTest
         var diagnostic = Assert.Single(result);
         Assert.Equal(0, diagnostic.Range.Start.Line);
         Assert.Equal(0, diagnostic.Range.End.Line);
-        Assert.Equal("RZ0005", diagnostic.Code.AssumeNotNull().Second);
+        Assert.Equal("RZ0005", Assert.IsType<string>(diagnostic.Code?.Value));
         Assert.Equal(LspDiagnosticSeverity.Hint, diagnostic.Severity);
 
         var tags = Assert.IsType<DiagnosticTag[]>(diagnostic.Tags);
@@ -47,6 +46,6 @@ public partial class CohostDocumentPullDiagnosticsTest
             @{|CS0103:CallMeMaybe|}()
             """);
 
-        Assert.False(Assert.Single(result) is VSDiagnostic { Identifier: not null });
+        Assert.False(Assert.Single(result) is Diagnostic { Identifier: not null });
     }
 }

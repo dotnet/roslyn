@@ -13,11 +13,9 @@ namespace Roslyn.LanguageServer.Protocol;
 internal partial class Location
 {
     [System.Text.Json.Serialization.JsonPropertyName("uri")]
-    [System.Text.Json.Serialization.JsonRequired]
     public DocumentUri Uri { get; set; } = null!;
 
     [System.Text.Json.Serialization.JsonPropertyName("range")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Range Range { get; set; } = null!;
 
     /// <summary>
@@ -40,6 +38,16 @@ internal partial class Location
     [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
     [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.ObjectContentConverter))]
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public LSPAny? Text { get; set; }
+    public LSPAny? Text
+    {
+        get;
+        set
+        {
+            if (value is Roslyn.Text.Adornments.ImageElement or Roslyn.Text.Adornments.ContainerElement or Roslyn.Text.Adornments.ClassifiedTextElement or string)
+                field = value;
+            else
+                throw new System.InvalidOperationException(value?.GetType() + " is an invalid type.");
+        }
+    }
 
 }

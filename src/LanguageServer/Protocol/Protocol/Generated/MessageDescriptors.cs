@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 internal interface ITextDocumentRegistrationOptions
 {
-    DocumentSelector? DocumentSelector { get; }
+    DocumentSelector? DocumentSelector { get; set; }
 }
 
 internal interface IStaticRegistrationOptions

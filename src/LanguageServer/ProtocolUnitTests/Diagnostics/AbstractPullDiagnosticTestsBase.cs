@@ -30,9 +30,6 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Diagnostics;
 
-using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
-using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
-
 public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     private protected override TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
@@ -67,7 +64,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
 
         await testLspServer.WaitForDiagnosticsAsync();
 
-        BufferedProgress<WorkspaceDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<WorkspaceDiagnosticPartialReport>(null) : null;
+        BufferedProgress<WorkspaceDiagnosticReport>? progress = useProgress ? BufferedProgress.Create<WorkspaceDiagnosticReport>(null) : null;
         var diagnosticsTask = testLspServer.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(
             Methods.WorkspaceDiagnosticName,
             CreateProposedWorkspaceDiagnosticParams(previousResults, progress, category),
@@ -87,7 +84,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
             Assert.Empty(returnedResult!.Items);
             var progressValues = progress!.Value.GetValues();
             Assert.NotNull(progressValues);
-            return [.. progressValues.SelectMany(value => value.Match(v => v.Items, v => v.Items)).Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics))];
+            return [.. progressValues.SelectMany(value => value.Items).Select(diagnostics => ConvertWorkspaceDiagnosticResult(diagnostics))];
 
         }
 
@@ -97,33 +94,33 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
 
     private static WorkspaceDiagnosticParams CreateProposedWorkspaceDiagnosticParams(
             ImmutableArray<(string resultId, TextDocumentIdentifier identifier)>? previousResults,
-            IProgress<WorkspaceDiagnosticPartialReport>? progress,
+            IProgress<WorkspaceDiagnosticReport>? progress,
             string? category)
     {
         var previousResultsLsp = previousResults?.Select(r => new PreviousResultId
         {
-            Uri = r.identifier.DocumentUri,
-            ProjectContext = (r.identifier as VSTextDocumentIdentifier)?.ProjectContext,
+            Uri = r.identifier.Uri,
+            ProjectContext = (r.identifier as TextDocumentIdentifier)?.ProjectContext,
             Value = r.resultId
         }).ToArray() ?? [];
         return new WorkspaceDiagnosticParams
         {
-            PreviousResultId = previousResultsLsp,
+            PreviousResultIds = previousResultsLsp,
             PartialResultToken = progress,
             Identifier = category
         };
     }
 
-    private static TestDiagnosticResult ConvertWorkspaceDiagnosticResult(SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport> workspaceReport)
+    private static TestDiagnosticResult ConvertWorkspaceDiagnosticResult(WorkspaceDocumentDiagnosticReport workspaceReport)
     {
         if (workspaceReport.Value is WorkspaceFullDocumentDiagnosticReport fullReport)
         {
-            return new TestDiagnosticResult(new VSTextDocumentIdentifier { DocumentUri = fullReport.Uri, ProjectContext = fullReport.ProjectContext }, fullReport.ResultId, fullReport.Items);
+            return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = fullReport.Uri, ProjectContext = fullReport.ProjectContext }, fullReport.ResultId, fullReport.Items);
         }
         else
         {
             var unchangedReport = (WorkspaceUnchangedDocumentDiagnosticReport)workspaceReport.Value!;
-            return new TestDiagnosticResult(new VSTextDocumentIdentifier { DocumentUri = unchangedReport.Uri, ProjectContext = unchangedReport.ProjectContext }, unchangedReport.ResultId, null);
+            return new TestDiagnosticResult(new TextDocumentIdentifier { Uri = unchangedReport.Uri, ProjectContext = unchangedReport.ProjectContext }, unchangedReport.ResultId, null);
         }
     }
 
@@ -156,12 +153,12 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         bool useProgress = false,
         string? category = null)
     {
-        return RunGetDocumentPullDiagnosticsAsync(testLspServer, new VSTextDocumentIdentifier { DocumentUri = uri }, previousResultId, useProgress, category);
+        return RunGetDocumentPullDiagnosticsAsync(testLspServer, new TextDocumentIdentifier { Uri = uri }, previousResultId, useProgress, category);
     }
 
     private protected static async Task<ImmutableArray<TestDiagnosticResult>> RunGetDocumentPullDiagnosticsAsync(
         TestLspServer testLspServer,
-        VSTextDocumentIdentifier vsTextDocumentIdentifier,
+        TextDocumentIdentifier vsTextDocumentIdentifier,
         string? previousResultId = null,
         bool useProgress = false,
         string? category = null)
@@ -169,27 +166,29 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         await testLspServer.WaitForDiagnosticsAsync();
 
         BufferedProgress<DocumentDiagnosticPartialReport>? progress = useProgress ? BufferedProgress.Create<DocumentDiagnosticPartialReport>(null) : null;
-        var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
+        var diagnostics = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, FullOrUnchangedDiagnosticReport>(
             Methods.TextDocumentDiagnosticName,
             CreateProposedDocumentDiagnosticParams(vsTextDocumentIdentifier, previousResultId, category, progress),
             CancellationToken.None).ConfigureAwait(false);
+        Assert.NotNull(diagnostics);
+        var report = diagnostics.Value;
         if (useProgress)
         {
-            Assert.IsType<FullDocumentDiagnosticReport>(diagnostics.Value);
-            Assert.Empty(diagnostics.First.Items);
+            Assert.Empty(Assert.IsType<FullDocumentDiagnosticReport>(report).Items);
             Assert.NotNull(progress);
-            diagnostics = progress.Value.GetValues()!.Single().First;
+            report = Assert.IsType<RelatedFullDocumentDiagnosticReport>(progress.Value.GetValues()!.Single().Value);
         }
 
-        if (diagnostics.Value is UnchangedDocumentDiagnosticReport)
+        if (report is UnchangedDocumentDiagnosticReport unchanged)
         {
-            return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.Second.ResultId!, null)];
+            return [new TestDiagnosticResult(vsTextDocumentIdentifier, unchanged.ResultId!, null)];
         }
 
-        return [new TestDiagnosticResult(vsTextDocumentIdentifier, diagnostics.First.ResultId!, diagnostics.First.Items)];
+        var full = Assert.IsAssignableFrom<FullDocumentDiagnosticReport>(report);
+        return [new TestDiagnosticResult(vsTextDocumentIdentifier, full.ResultId!, full.Items)];
 
         static DocumentDiagnosticParams CreateProposedDocumentDiagnosticParams(
-            VSTextDocumentIdentifier vsTextDocumentIdentifier,
+            TextDocumentIdentifier vsTextDocumentIdentifier,
             string? previousResultId,
             string? category,
             IProgress<DocumentDiagnosticPartialReport>? progress)
@@ -255,7 +254,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
     /// </summary>
     private protected sealed record TestDiagnosticResult(TextDocumentIdentifier TextDocument, string? ResultId, LSP.Diagnostic[]? Diagnostics)
     {
-        public DocumentUri Uri { get; } = TextDocument.DocumentUri;
+        public DocumentUri Uri { get; } = TextDocument.Uri;
     }
 
     [DiagnosticAnalyzer(InternalLanguageNames.TypeScript), PartNotDiscoverable]

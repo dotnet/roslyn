@@ -186,7 +186,7 @@ internal static class RazorCodeActionFactory
         return codeAction;
     }
 
-    public static RazorVSInternalCodeAction CreateGenerateEventHandler(VSTextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri, string methodName, string? eventParameterType)
+    public static RazorVSInternalCodeAction CreateGenerateEventHandler(TextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri, string methodName, string? eventParameterType)
     {
         var @params = new GenerateEventHandlerCodeActionParams
         {
@@ -214,7 +214,7 @@ internal static class RazorCodeActionFactory
         return codeAction;
     }
 
-    public static RazorVSInternalCodeAction CreateAsyncGenerateEventHandler(VSTextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri, string methodName, string? eventParameterType)
+    public static RazorVSInternalCodeAction CreateAsyncGenerateEventHandler(TextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri, string methodName, string? eventParameterType)
     {
         var @params = new GenerateEventHandlerCodeActionParams
         {

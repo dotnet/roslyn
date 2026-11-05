@@ -35,7 +35,7 @@ public sealed class FormatDocumentRangeTests : AbstractLanguageServerProtocolTes
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var rangeToFormat = testLspServer.GetLocations("format").Single();
-        var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.DocumentUri);
+        var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.Uri);
 
         var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat);
         var actualText = ApplyTextEdits(results, documentText);
@@ -65,7 +65,7 @@ public sealed class FormatDocumentRangeTests : AbstractLanguageServerProtocolTes
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var rangeToFormat = testLspServer.GetLocations("format").Single();
-        var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.DocumentUri);
+        var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.Uri);
 
         var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat, insertSpaces: false, tabSize: 4);
         var actualText = ApplyTextEdits(results, documentText);
@@ -99,7 +99,7 @@ public sealed class FormatDocumentRangeTests : AbstractLanguageServerProtocolTes
         => new()
         {
             Range = location.Range,
-            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(location.Uri),
             Options = new LSP.FormattingOptions()
             {
                 InsertSpaces = insertSpaces,

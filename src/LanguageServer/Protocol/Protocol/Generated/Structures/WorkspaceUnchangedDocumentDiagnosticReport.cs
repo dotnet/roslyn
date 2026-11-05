@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// An unchanged document diagnostic report for a workspace diagnostic result.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
@@ -25,6 +25,7 @@ internal partial class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDoc
     /// If the document is not marked as open `null` can be provided.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("version")]
+    [System.Text.Json.Serialization.JsonRequired]
     public int? Version { get; set; }
 
     /// <summary>

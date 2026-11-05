@@ -45,7 +45,7 @@ internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHa
         if (document is null)
             return null;
 
-        if (string.IsNullOrEmpty(request.Character))
+        if (string.IsNullOrEmpty(request.Ch))
         {
             return [];
         }
@@ -66,7 +66,7 @@ internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHa
         // When the formatter calls root.FindToken, it may return a token different from what triggered the on type formatting, which causes us
         // to format way more than we want, depending on exactly where the position ends up.
         // Here we do our best to adjust the position back to the typed char location.
-        if (text[position - 1] != request.Character[0])
+        if (text[position - 1] != request.Ch[0])
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var adjustedToken = root.FindTokenOnLeftOfPosition(position);
@@ -80,7 +80,7 @@ internal sealed class FormatDocumentOnTypeHandler : ILspServiceDocumentRequestHa
             AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
         };
 
-        if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Character[0], position, cancellationToken))
+        if (!formattingService.ShouldFormatOnTypedCharacter(documentSyntax, request.Ch[0], position, cancellationToken))
         {
             return [];
         }

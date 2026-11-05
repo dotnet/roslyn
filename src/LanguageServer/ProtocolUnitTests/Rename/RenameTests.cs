@@ -49,7 +49,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+        AssertJsonEquals(expectedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().First().Edits);
     }
 
     [Theory, CombinatorialData]
@@ -104,7 +104,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+        AssertJsonEquals(expectedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().First().Edits);
     }
 
     [Theory, CombinatorialData]
@@ -149,7 +149,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+        AssertJsonEquals(expectedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().First().Edits);
     }
 
     [Theory, CombinatorialData]
@@ -175,7 +175,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var renameText = "RENAME";
         var renameParams = CreateRenameParams(new LSP.Location
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.GetRootedPath(TestSpanMapper.GeneratedFileName)),
             Range = new LSP.Range { Start = startPosition, End = endPosition }
         }, "RENAME");
 
@@ -183,12 +183,12 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
 
         // There are two rename locations, so we expect two mapped locations.
         var expectedMappedRanges = ImmutableArray.Create(TestSpanMapper.MappedFileLocation.Range, TestSpanMapper.MappedFileLocation.Range);
-        var expectedMappedDocument = TestSpanMapper.MappedFileLocation.DocumentUri;
+        var expectedMappedDocument = TestSpanMapper.MappedFileLocation.Uri;
 
-        var documentEdit = results.DocumentChanges.Value.First.Single();
-        Assert.Equal(expectedMappedDocument, documentEdit.TextDocument.DocumentUri);
-        Assert.Equal(expectedMappedRanges, documentEdit.Edits.Select(edit => edit.Unify().Range));
-        Assert.True(documentEdit.Edits.All(edit => edit.Unify().NewText == renameText));
+        var documentEdit = Assert.IsType<LSP.TextDocumentEdit>(results.DocumentChanges.Single().Value);
+        Assert.Equal(expectedMappedDocument, documentEdit.TextDocument.Uri);
+        Assert.Equal(expectedMappedRanges, documentEdit.Edits.Select(edit => Assert.IsAssignableFrom<LSP.TextEdit>(edit.Value).Range));
+        Assert.True(documentEdit.Edits.All(edit => Assert.IsAssignableFrom<LSP.TextEdit>(edit.Value).NewText == renameText));
     }
 
     [Theory, CombinatorialData]
@@ -229,7 +229,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+        AssertJsonEquals(expectedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().SelectMany(e => e.Edits));
     }
 
     [Theory, CombinatorialData]
@@ -283,7 +283,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedGeneratedEdits = spans["renamed"].Select(span => new LSP.TextEdit() { NewText = renameValue, Range = ProtocolConversions.TextSpanToRange(span, generatedSourceText) });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().SelectMany(e => e.Edits));
 
         Assert.True(service.DidMapEdits);
     }
@@ -337,7 +337,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+        AssertJsonEquals(expectedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().SelectMany(e => e.Edits));
 
         Assert.False(service.DidMapEdits);
     }
@@ -397,7 +397,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
             CancellationToken.None);
 
         Assert.NotNull(results);
-        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().SelectMany(e => e.Edits));
         Assert.False(service.DidMapEdits);
     }
 
@@ -448,7 +448,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
 
         var renameLocation = new LSP.Location()
         {
-            DocumentUri = generatedDocument.GetURI(),
+            Uri = generatedDocument.GetURI(),
             Range = ProtocolConversions.TextSpanToRange(spans["caret"].First(), generatedSourceText)
         };
         var renameValue = "RENAME";
@@ -456,7 +456,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedGeneratedEdits = spans["renamed"].Select(span => new LSP.TextEdit() { NewText = renameValue, Range = ProtocolConversions.TextSpanToRange(span, generatedSourceText) });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+        AssertJsonEquals(expectedEdits.Concat(expectedGeneratedEdits), results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().SelectMany(e => e.Edits));
 
         Assert.True(service.DidMapEdits);
     }
@@ -501,14 +501,14 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
 
         var renameLocation = new LSP.Location()
         {
-            DocumentUri = generatedDocument.GetURI(),
+            Uri = generatedDocument.GetURI(),
             Range = ProtocolConversions.TextSpanToRange(spans["caret"].First(), generatedSourceText)
         };
         var renameValue = "RENAME";
         var expectedGeneratedEdits = spans["renamed"].Select(span => new LSP.TextEdit() { NewText = renameValue, Range = ProtocolConversions.TextSpanToRange(span, generatedSourceText) });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedGeneratedEdits, ((TextDocumentEdit[])results.DocumentChanges).SelectMany(e => e.Edits));
+        AssertJsonEquals(expectedGeneratedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().SelectMany(e => e.Edits));
 
         Assert.True(service.DidMapEdits);
     }
@@ -533,7 +533,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+        AssertJsonEquals(expectedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().First().Edits);
     }
 
     [Theory, CombinatorialData]
@@ -559,7 +559,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+        AssertJsonEquals(expectedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().First().Edits);
     }
 
     [Theory, CombinatorialData]
@@ -583,7 +583,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         var expectedEdits = testLspServer.GetLocations("renamed").Select(location => new LSP.TextEdit() { NewText = renameValue, Range = location.Range });
 
         var results = await RunRenameAsync(testLspServer, CreateRenameParams(renameLocation, renameValue));
-        AssertJsonEquals(expectedEdits, ((TextDocumentEdit[])results.DocumentChanges).First().Edits);
+        AssertJsonEquals(expectedEdits, results.DocumentChanges.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray().First().Edits);
     }
 
     private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)
@@ -591,7 +591,7 @@ public sealed class RenameTests(ITestOutputHelper testOutputHelper) : AbstractLa
         {
             NewName = newName,
             Position = location.Range.Start,
-            TextDocument = CreateTextDocumentIdentifier(location.DocumentUri)
+            TextDocument = CreateTextDocumentIdentifier(location.Uri)
         };
 
     private static async Task<WorkspaceEdit> RunRenameAsync(TestLspServer testLspServer, LSP.RenameParams renameParams)

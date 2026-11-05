@@ -8,10 +8,10 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Capabilities relating to events from file operations by the user in the client.
-/// 
+///
 /// These events do not come from the file system, they come from user operations
 /// like renaming a file in the UI.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class FileOperationClientCapabilities

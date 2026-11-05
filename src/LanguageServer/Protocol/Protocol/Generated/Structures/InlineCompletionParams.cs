@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A parameter literal used in inline completion requests.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class InlineCompletionParams : TextDocumentPositionParams

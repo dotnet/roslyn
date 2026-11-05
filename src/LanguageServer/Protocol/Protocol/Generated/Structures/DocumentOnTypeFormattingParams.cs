@@ -9,13 +9,12 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The parameters of a <see cref="Requests.TextDocumentOnTypeFormatting"/>.
 /// </summary>
-internal partial class DocumentOnTypeFormattingParams
+internal partial class DocumentOnTypeFormattingParams : ITextDocumentParams
 {
     /// <summary>
     /// The document to format.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
     /// <summary>
@@ -24,7 +23,6 @@ internal partial class DocumentOnTypeFormattingParams
     /// by the property `ch` got typed.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("position")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Position Position { get; set; } = null!;
 
     /// <summary>

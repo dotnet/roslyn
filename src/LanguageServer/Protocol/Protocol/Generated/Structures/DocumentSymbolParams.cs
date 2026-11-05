@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Parameters for a <see cref="Requests.TextDocumentDocumentSymbol"/>.
 /// </summary>
-internal partial class DocumentSymbolParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<TextDocumentDocumentSymbolResult?>
+internal partial class DocumentSymbolParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<TextDocumentDocumentSymbolResult?>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.
@@ -30,7 +30,6 @@ internal partial class DocumentSymbolParams : Roslyn.LanguageServer.Protocol.IPa
     /// The text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
 }

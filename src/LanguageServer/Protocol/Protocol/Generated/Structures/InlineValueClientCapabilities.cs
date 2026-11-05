@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client capabilities specific to inline values.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlineValueClientCapabilities

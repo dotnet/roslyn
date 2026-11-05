@@ -34,7 +34,7 @@ internal partial class ClientCapabilities
 
     /// <summary>
     /// General client capabilities.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("general")]

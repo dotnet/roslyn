@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The request data for an inline completions request. See https://github.com/microsoft/vscode/blob/075ba020e8493f40dba89891b1a08453f2c067e9/src/vscode-dts/vscode.proposed.inlineCompletions.d.ts#L24.
 /// </summary>
-internal partial class VSInternalInlineCompletionRequest
+internal partial class VSInternalInlineCompletionRequest : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the text document.
@@ -36,7 +36,6 @@ internal partial class VSInternalInlineCompletionRequest
     /// Gets or sets the <see cref="FormattingOptions"/> for the request.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_options")]
-    [System.Text.Json.Serialization.JsonRequired]
     public FormattingOptions Options { get; set; } = null!;
 
 }

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Parameters for a <see cref="Requests.TextDocumentColorPresentation"/>.
 /// </summary>
-internal partial class ColorPresentationParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<ColorPresentation[]>
+internal partial class ColorPresentationParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<ColorPresentation[]>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.

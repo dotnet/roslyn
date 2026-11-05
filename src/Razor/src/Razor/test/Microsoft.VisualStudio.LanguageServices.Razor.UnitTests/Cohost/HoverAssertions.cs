@@ -16,7 +16,7 @@ internal static class HoverAssertions
 {
     public static void VerifyContents(this LspHover hover, Action<object?> verifier)
     {
-        var vsHover = Assert.IsType<VSInternalHover>(hover);
+        var vsHover = Assert.IsType<Hover>(hover);
         verifier(vsHover.RawContent);
     }
 

@@ -231,12 +231,9 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         var projects = RazorDiagnosticHelper.GetProjectInformation(documentSnapshot);
         foreach (var diagnostic in diagnostics)
         {
-            if (diagnostic is VSDiagnostic vsDiagnostic)
-            {
-                // We're the ones reporting the diagnostic, and it shows up as coming from our filename (not the generated one), so
-                // the project info should be consistent too
-                vsDiagnostic.Projects = projects;
-            }
+            // We're the ones reporting the diagnostic, and it shows up as coming from our filename (not the generated one), so
+            // the project info should be consistent too
+            diagnostic.Projects = projects;
         }
     }
 
@@ -323,12 +320,10 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
 
     private static bool ShouldFilterHtmlDiagnosticBasedOnErrorCode(LspDiagnostic diagnostic, SourceText sourceText, RazorSyntaxTree syntaxTree)
     {
-        if (!diagnostic.Code.HasValue)
+        if (diagnostic.Code is not string str)
         {
             return false;
         }
-
-        diagnostic.Code.Value.TryGetSecond(out var str);
 
         return str switch
         {
@@ -530,7 +525,8 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
                 return false;
             }
 
-            return diagnostic.Message.EndsWith("cannot be nested inside element 'html'.") && body?.StartTag?.Bang is not null;
+            return diagnostic.Message is string message &&
+                message.EndsWith("cannot be nested inside element 'html'.") && body?.StartTag?.Bang is not null;
         }
     }
 
@@ -618,7 +614,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         foreach (var diagnostic in diagnostics)
         {
             if (diagnostic.Code is not { } code ||
-                !code.TryGetSecond(out var str) ||
+                code is not string str ||
                 str is null)
             {
                 filteredDiagnostics.Add(diagnostic);

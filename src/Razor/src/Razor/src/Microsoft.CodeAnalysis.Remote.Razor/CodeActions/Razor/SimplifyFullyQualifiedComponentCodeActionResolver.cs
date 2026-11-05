@@ -36,7 +36,7 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionResolver : IRazor
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var text = codeDocument.Source.Text;
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = documentSnapshot.Uri };
 
         // Check if we need to add a using directive.
         // We check the tag helpers available in the document to see if the simple component name
@@ -68,7 +68,7 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionResolver : IRazor
 
         // Build the tag simplification edits (at the original positions in the document)
         // No capacity needed - tagEdits will never contain more than 3 elements (start tag, end tag, and using directive)
-        using var tagEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
+        using var tagEdits = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem>();
 
         // Replace the fully qualified name with the simple component name in end tag first (if it exists)
         // The end tag edit must come before the start tag edit, as clients may not re-order them
@@ -101,7 +101,7 @@ internal sealed class SimplifyFullyQualifiedComponentCodeActionResolver : IRazor
 
         return new WorkspaceEdit()
         {
-            DocumentChanges = new TextDocumentEdit[]
+            DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
             {
                 new TextDocumentEdit()
                 {

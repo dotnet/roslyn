@@ -29,7 +29,6 @@ internal partial class VSProjectContext
     /// Gets or sets the context kind of the project context which is used to determine its associated icon.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_kind")]
-    [System.Text.Json.Serialization.JsonRequired]
     public VSProjectKind Kind { get; set; }
 
     /// <summary>

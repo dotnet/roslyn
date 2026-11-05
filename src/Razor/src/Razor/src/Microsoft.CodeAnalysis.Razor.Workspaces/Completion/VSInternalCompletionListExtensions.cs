@@ -12,7 +12,7 @@ internal static class VSInternalCompletionListExtensions
     public static void SetResultId(
         this RazorVSInternalCompletionList completionList,
         int resultId,
-        VSInternalClientCapabilities clientCapabilities)
+        ClientCapabilities clientCapabilities)
     {
         var data = JsonSerializer.SerializeToElement(new JsonObject()
         {

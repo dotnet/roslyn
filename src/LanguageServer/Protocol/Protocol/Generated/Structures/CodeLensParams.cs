@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The parameters of a <see cref="Requests.TextDocumentCodeLens"/>.
 /// </summary>
-internal partial class CodeLensParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<CodeLens[]?>
+internal partial class CodeLensParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<CodeLens[]?>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.
@@ -30,7 +30,6 @@ internal partial class CodeLensParams : Roslyn.LanguageServer.Protocol.IPartialR
     /// The document to request code lens for.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
 }

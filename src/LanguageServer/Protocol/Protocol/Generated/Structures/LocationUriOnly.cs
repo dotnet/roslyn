@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Location with only uri and does not include range.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class LocationUriOnly

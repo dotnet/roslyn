@@ -16,14 +16,12 @@ internal partial class TextDocumentItem
     /// The text document's uri.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("uri")]
-    [System.Text.Json.Serialization.JsonRequired]
     public DocumentUri Uri { get; set; } = null!;
 
     /// <summary>
     /// The text document's language identifier.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("languageId")]
-    [System.Text.Json.Serialization.JsonRequired]
     public LanguageKind LanguageId { get; set; }
 
     /// <summary>
@@ -31,14 +29,12 @@ internal partial class TextDocumentItem
     /// change, including undo/redo).
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("version")]
-    [System.Text.Json.Serialization.JsonRequired]
     public int Version { get; set; }
 
     /// <summary>
     /// The content of the opened text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("text")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Text { get; set; } = null!;
 
 }

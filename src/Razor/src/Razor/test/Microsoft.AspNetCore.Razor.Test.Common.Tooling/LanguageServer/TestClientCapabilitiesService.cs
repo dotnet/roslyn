@@ -5,9 +5,9 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test;
 
-internal class TestClientCapabilitiesService(VSInternalClientCapabilities clientCapabilities) : IClientCapabilitiesService
+internal class TestClientCapabilitiesService(ClientCapabilities clientCapabilities) : IClientCapabilitiesService
 {
     public bool CanGetClientCapabilities => true;
 
-    public VSInternalClientCapabilities ClientCapabilities => clientCapabilities;
+    public ClientCapabilities ClientCapabilities => clientCapabilities;
 }

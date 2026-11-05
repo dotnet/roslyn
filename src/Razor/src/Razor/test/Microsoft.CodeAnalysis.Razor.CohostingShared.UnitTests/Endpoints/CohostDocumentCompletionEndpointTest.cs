@@ -52,7 +52,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -71,7 +71,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     ul>li.item$@$$
                 </div>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -90,7 +90,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     ul>li.item$@$$
                 </div>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -108,7 +108,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     Your cost is $@$$
                 </div>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -130,7 +130,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -144,7 +144,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     {
         var result = await VerifyCompletionListAsync(
             input: "@$$",
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -168,7 +168,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     {
         await VerifyCompletionListAsync(
             input: "@doc$$",
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -188,7 +188,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 @$$
                 <p>After</p>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -228,7 +228,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     {
         await VerifyCompletionListAsync(
             input: "@$$",
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -250,7 +250,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     <$$
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -273,7 +273,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     </summary>
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -296,7 +296,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 }
                 <p>After</p>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -326,7 +326,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 }
                 <p>After</p>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -365,7 +365,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 }
                 <p>After</p>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = ".",
@@ -405,7 +405,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -430,7 +430,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -456,7 +456,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     List<string> items = new();
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -483,7 +483,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
                 </div>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -506,7 +506,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = ".",
@@ -537,7 +537,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = ".",
@@ -570,7 +570,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 <div></div>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = ".",
@@ -603,7 +603,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = ".",
@@ -633,7 +633,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = ".",
@@ -663,7 +663,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = ".",
@@ -685,7 +685,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -712,7 +712,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = ".",
@@ -751,7 +751,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -792,7 +792,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -832,7 +832,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     }
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -882,7 +882,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     }
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -930,7 +930,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -973,7 +973,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -995,7 +995,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1020,7 +1020,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1042,7 +1042,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 @addTagHelper *, SomeProject
                 <$$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1084,7 +1084,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 <$$
                 </select>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1122,7 +1122,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 @addTagHelper *, SomeProject
                 <container><header $$></header></container>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1166,7 +1166,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 @addTagHelper *, SomeProject
                 <div><header $$></header></div>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1242,10 +1242,10 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
-            Context = new VSInternalCompletionContext()
+            Context = new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1274,7 +1274,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1303,7 +1303,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1329,7 +1329,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1356,7 +1356,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "/",
@@ -1379,7 +1379,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1406,7 +1406,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1437,7 +1437,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1460,7 +1460,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1483,7 +1483,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1503,7 +1503,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1532,7 +1532,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1560,7 +1560,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 <$$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1582,7 +1582,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 <$$1
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1601,7 +1601,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -1626,7 +1626,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -1650,7 +1650,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -1685,7 +1685,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
@@ -1706,7 +1706,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
@@ -1728,7 +1728,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
@@ -1751,7 +1751,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
@@ -1767,9 +1767,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         // The list should have an EditRange that replaces the full "@bind-Value:after" span.
         // Since the TextEdit.NewText equals the Label ("@bind-value:format"), the optimizer
         // omits TextEditText (the client falls back to Label as the replacement text).
-        Assert.True(result.ItemDefaults!.EditRange.HasValue, "Expected ItemDefaults.EditRange on the completion list to prevent duplication");
+        Assert.True(result.ItemDefaults!.EditRange is not null, "Expected ItemDefaults.EditRange on the completion list to prevent duplication");
         Assert.Null(item.TextEditText);
-        var textEditRange = Assert.IsType<LspRange>(result.ItemDefaults!.EditRange.Value.Value);
+        var textEditRange = Assert.IsType<LspRange>(result.ItemDefaults!.EditRange.Value);
 
         // The range should cover "@bind-Value:after" (full attribute name including '@' through end of parameter name)
         Assert.Equal(textEditRange.Start.Line, textEditRange.End.Line);
@@ -1792,7 +1792,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     private string? str;
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
@@ -1817,7 +1817,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     private string? str;
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
@@ -1842,7 +1842,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     private string? str;
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = null,
@@ -1863,7 +1863,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -1890,7 +1890,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -1915,7 +1915,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 <EditForm $$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -1938,7 +1938,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -1963,7 +1963,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -1990,7 +1990,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     }
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2024,7 +2024,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -2057,7 +2057,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2081,7 +2081,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2106,7 +2106,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2131,7 +2131,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2155,7 +2155,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "@",
@@ -2176,7 +2176,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                     }
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2205,7 +2205,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 {
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2232,7 +2232,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 {
                 }
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2262,7 +2262,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2285,7 +2285,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2304,7 +2304,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 <a $$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2334,7 +2334,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
                 <a $$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -2357,7 +2357,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
     private async Task<RazorVSInternalCompletionList?> VerifyCompletionListAsync(
         TestCode input,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         string[]? expectedItemLabels,
         string[]? unexpectedItemLabels = null,
         string[]? htmlItemLabels = null,
@@ -2392,7 +2392,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 #endif
         var response = new RazorVSInternalCompletionList()
         {
-            Items = [.. htmlItemLabels.Select((label) => new VSInternalCompletionItem()
+            Items = [.. htmlItemLabels.Select((label) => new CompletionItem()
             {
                 Label = label,
                 CommitCharacters = htmlItemCommitCharacters,
@@ -2431,7 +2431,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = completionContext
@@ -2501,7 +2501,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             // In the real world the client will send us back the data for the item to resolve, but in tests its easier if we just set it here.
             // We clone the item first though, to ensure us setting the data doesn't hide a bug in our caching logic, around wrapping" the data.
             var item = Assert.Single(result.Items, i => i.Label == itemToResolve);
-            item = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(item, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
+            item = JsonSerializer.Deserialize<CompletionItem>(JsonSerializer.SerializeToElement(item, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
             item.Data ??= result.Data ?? result.ItemDefaults?.Data;
 
             Assert.NotNull(item);
@@ -2515,7 +2515,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
     private async Task VerifyCompletionListParamsTypeAsync(
         TestCode input,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         RazorFileKind? fileKind = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind);
@@ -2540,7 +2540,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
             Context = completionContext
@@ -2558,7 +2558,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     private async Task VerifyCompletionResolveAsync(
         CodeAnalysis.TextDocument document,
         CompletionListCache completionListCache,
-        VSInternalCompletionItem item,
+        CompletionItem item,
         string? expected,
         string expectedResolvedItemDescription,
         Position position)
@@ -2578,7 +2578,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 
         var tdi = endpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(item);
         Assert.NotNull(tdi);
-        Assert.Equal(document.GetURI(), tdi.DocumentUri);
+        Assert.Equal(document.GetURI(), tdi.Uri);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 

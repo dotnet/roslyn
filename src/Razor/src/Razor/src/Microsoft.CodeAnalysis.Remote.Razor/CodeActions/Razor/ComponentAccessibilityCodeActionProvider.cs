@@ -97,7 +97,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
     private void AddCreateComponentFromTag(
         RazorCodeActionContext context, BaseMarkupStartTagSyntax startTag, List<RazorVSInternalCodeAction> container)
     {
-        var path = context.Request.TextDocument.DocumentUri.GetAbsoluteOrUNCPath();
+        var path = context.Request.TextDocument.Uri.GetAbsoluteOrUNCPath();
         path = FilePathNormalizer.Normalize(path);
 
         var directoryName = Path.GetDirectoryName(path);
@@ -176,7 +176,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
                     newTagName = tagHelperPair.Short.TagMatchingRules.FirstOrDefault()?.TagName;
                     if (newTagName is not null)
                     {
-                        additionalEdit = CreateRenameTagEdit(context, startTag, newTagName).DocumentChanges!.Value.First().First.AssumeNotNull();
+                        additionalEdit = (TextDocumentEdit)CreateRenameTagEdit(context, startTag, newTagName).DocumentChanges!.First().Value;
                     }
                 }
 
@@ -285,8 +285,8 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
     private static WorkspaceEdit CreateRenameTagEdit(
         RazorCodeActionContext context, BaseMarkupStartTagSyntax startTag, string newTagName)
     {
-        using var textEdits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = context.Request.TextDocument.DocumentUri };
+        using var textEdits = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem>();
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
         var startTagTextEdit = LspFactory.CreateTextEdit(startTag.Name.GetRange(context.CodeDocument.Source), newTagName);
 
@@ -301,7 +301,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
 
         return new WorkspaceEdit
         {
-            DocumentChanges = new TextDocumentEdit[]
+            DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
             {
                 new TextDocumentEdit()
                 {

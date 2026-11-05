@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The parameters sent in notifications/requests for user-initiated renames of
 /// files.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class RenameFilesParams

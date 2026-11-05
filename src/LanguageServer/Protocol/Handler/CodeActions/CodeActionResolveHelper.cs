@@ -43,7 +43,7 @@ internal sealed class CodeActionResolveHelper
 
         var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
 
-        using var _1 = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(out var textDocumentEdits);
+        using var _1 = ArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem>.GetInstance(out var textDocumentEdits);
         using var _2 = PooledHashSet<DocumentId>.GetInstance(out var modifiedDocumentIds);
 
         foreach (var option in operations)
@@ -83,7 +83,7 @@ internal sealed class CodeActionResolveHelper
                     || projectChange.GetRemovedAnalyzerReferences().Any())
                 {
                     // Changes to references are not currently supported
-                    return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                    return new LSP.WorkspaceEdit { DocumentChanges = [] };
                 }
 
                 if (projectChange.GetRemovedDocuments().Any()
@@ -93,7 +93,7 @@ internal sealed class CodeActionResolveHelper
                     if (!resourceOperations.Contains(ResourceOperationKind.Delete))
                     {
                         // Removing documents is not supported by this workspace
-                        return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                        return new LSP.WorkspaceEdit { DocumentChanges = [] };
                     }
                 }
 
@@ -104,7 +104,7 @@ internal sealed class CodeActionResolveHelper
                     if (!resourceOperations.Contains(ResourceOperationKind.Create))
                     {
                         // Adding documents is not supported by this workspace
-                        return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                        return new LSP.WorkspaceEdit { DocumentChanges = [] };
                     }
                 }
 
@@ -115,7 +115,7 @@ internal sealed class CodeActionResolveHelper
                     if (!resourceOperations.Contains(ResourceOperationKind.Rename))
                     {
                         // Rename documents is not supported by this workspace
-                        return new LSP.WorkspaceEdit { DocumentChanges = Array.Empty<TextDocumentEdit>() };
+                        return new LSP.WorkspaceEdit { DocumentChanges = [] };
                     }
                 }
             }
@@ -220,7 +220,7 @@ internal sealed class CodeActionResolveHelper
                 var oldTextDoc = getOldDocument(docId);
                 Contract.ThrowIfNull(oldTextDoc);
 
-                textDocumentEdits.Add(new DeleteFile { DocumentUri = oldTextDoc.GetURI() });
+                textDocumentEdits.Add(new DeleteFile { Uri = oldTextDoc.GetURI() });
             }
         }
 
@@ -250,13 +250,13 @@ internal sealed class CodeActionResolveHelper
                     Contract.Fail($"Can't find uri for document: {newTextDoc.Name}.");
                 }
 
-                textDocumentEdits.Add(new CreateFile { DocumentUri = uri });
+                textDocumentEdits.Add(new CreateFile { Uri = uri });
 
                 // And then give it content
                 var newText = await newTextDoc.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var emptyDocumentRange = new LSP.Range { Start = new Position { Line = 0, Character = 0 }, End = new Position { Line = 0, Character = 0 } };
                 var edit = new TextEdit { Range = emptyDocumentRange, NewText = newText.ToString() };
-                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = uri };
+                var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = uri };
                 textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = [edit] });
             }
         }
@@ -295,11 +295,11 @@ internal sealed class CodeActionResolveHelper
                         textChanges = newText.GetTextChanges(oldText);
                     }
 
-                    var edits = textChanges.Select(tc => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(ProtocolConversions.TextChangeToTextEdit(tc, oldText))).ToArray();
+                    var edits = textChanges.Select(tc => new Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem(ProtocolConversions.TextChangeToTextEdit(tc, oldText))).ToArray();
 
                     if (edits.Length > 0)
                     {
-                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newTextDoc.GetURI() };
+                        var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newTextDoc.GetURI() };
                         textDocumentEdits.Add(new TextDocumentEdit { TextDocument = documentIdentifier, Edits = edits });
                     }
 
@@ -310,7 +310,7 @@ internal sealed class CodeActionResolveHelper
                     // So we would like to first edit the old document, then rename it.
                     if (oldTextDoc.Name != newTextDoc.Name)
                     {
-                        textDocumentEdits.Add(new RenameFile() { OldDocumentUri = oldTextDoc.GetURI(), NewDocumentUri = newTextDoc.GetUriForRenamedDocument() });
+                        textDocumentEdits.Add(new RenameFile() { OldUri = oldTextDoc.GetURI(), NewUri = newTextDoc.GetUriForRenamedDocument() });
                     }
 
                     var linkedDocuments = solution.GetRelatedDocumentIds(docId);

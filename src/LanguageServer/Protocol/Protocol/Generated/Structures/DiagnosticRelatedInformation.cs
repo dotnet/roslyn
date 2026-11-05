@@ -17,14 +17,12 @@ internal partial class DiagnosticRelatedInformation
     /// The location of this related diagnostic information.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("location")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Location Location { get; set; } = null!;
 
     /// <summary>
     /// The message of this related diagnostic information.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("message")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Message { get; set; } = null!;
 
 }

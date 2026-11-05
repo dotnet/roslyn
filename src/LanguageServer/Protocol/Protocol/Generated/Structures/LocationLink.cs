@@ -14,7 +14,7 @@ internal partial class LocationLink
 {
     /// <summary>
     /// Span of the origin of this link.
-    /// 
+    ///
     /// Used as the underlined span for mouse interaction. Defaults to the word range at
     /// the definition position.
     /// </summary>

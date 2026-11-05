@@ -107,7 +107,7 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
             TextDocument = new TextDocumentItem
             {
                 Text = "sometext",
-                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\location\file.json"),
+                Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\location\file.json"),
             }
         };
 
@@ -125,7 +125,7 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
             TextDocument = new TextDocumentItem
             {
                 Text = "sometext",
-                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\location\file.json"),
+                Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\location\file.json"),
             }
         };
         var ex = await Assert.ThrowsAsync<RemoteInvocationException>(async () => await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, didOpenParams, CancellationToken.None));

@@ -13,12 +13,12 @@ internal partial class WorkspaceFoldersServerCapabilities
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("supported")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
-    public bool Supported { get; set; }
+    public bool? Supported { get; set; }
 
     /// <summary>
     /// Whether the server wants to receive workspace folder
     /// change notifications.
-    /// 
+    ///
     /// If a string is provided the string is treated as an ID
     /// under which the notification is registered on the client
     /// side. The ID can be used to unregister for these events
@@ -31,6 +31,7 @@ internal partial class WorkspaceFoldersServerCapabilities
     /// <summary>
     /// A union of: string | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _ChangeNotifications : System.Runtime.CompilerServices.IUnion
     {

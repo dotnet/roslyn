@@ -14,7 +14,7 @@ internal partial class ClientFoldingRangeOptions
     /// <summary>
     /// If set, the client signals that it supports setting collapsedText on
     /// folding ranges to display custom labels instead of the default text.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("collapsedText")]

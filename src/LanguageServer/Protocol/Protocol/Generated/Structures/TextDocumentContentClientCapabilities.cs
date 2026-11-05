@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client capabilities for a text document content provider.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class TextDocumentContentClientCapabilities

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal class CompletionListCache
 {
-    private record struct Slot(int Id, VSInternalCompletionList CompletionList, ICompletionResolveContext Context);
+    private record struct Slot(int Id, CompletionList CompletionList, ICompletionResolveContext Context);
 
     // Internal for testing
     internal const int MaxCacheSize = 10;
@@ -21,7 +21,7 @@ internal class CompletionListCache
     private int _nextIndex;
     private int _nextId;
 
-    public int Add(VSInternalCompletionList completionList, ICompletionResolveContext context)
+    public int Add(CompletionList completionList, ICompletionResolveContext context)
     {
         lock (_accessLock)
         {
@@ -43,7 +43,7 @@ internal class CompletionListCache
         }
     }
 
-    private bool TryGet(int id, [NotNullWhen(true)] out VSInternalCompletionList? completionList, [NotNullWhen(true)] out ICompletionResolveContext? context)
+    private bool TryGet(int id, [NotNullWhen(true)] out CompletionList? completionList, [NotNullWhen(true)] out ICompletionResolveContext? context)
     {
         lock (_accessLock)
         {
@@ -90,7 +90,7 @@ internal class CompletionListCache
         }
     }
 
-    public bool TryGetOriginalRequestData(VSInternalCompletionItem completionItem, [NotNullWhen(true)] out VSInternalCompletionList? completionList, [NotNullWhen(true)] out ICompletionResolveContext? context)
+    public bool TryGetOriginalRequestData(CompletionItem completionItem, [NotNullWhen(true)] out CompletionList? completionList, [NotNullWhen(true)] out ICompletionResolveContext? context)
     {
         context = null;
         completionList = null;

@@ -73,7 +73,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         internal static readonly LSP.Location MappedFileLocation = new()
         {
             Range = ProtocolConversions.LinePositionToRange(s_mappedLinePosition),
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(s_mappedFilePath)
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(s_mappedFilePath)
         };
 
         /// <summary>
@@ -112,7 +112,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     private protected virtual TestAnalyzerReferenceByLanguage CreateTestAnalyzersReference()
         => new(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
 
-    private protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.VSInternalClientCapabilities { SupportsVisualStudioExtensions = true };
+    private protected static LSP.ClientCapabilities CapabilitiesWithVSExtensions => new LSP.ClientCapabilities { SupportsVisualStudioExtensions = true };
 
     private protected static LSP.ClientCapabilities GetCapabilities(bool isVS)
         => isVS ? CapabilitiesWithVSExtensions : new LSP.ClientCapabilities();
@@ -159,7 +159,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         if (l2 is null)
             return 1;
 
-        var compareDocument = l1.DocumentUri.UriString.CompareTo(l2.DocumentUri.UriString);
+        var compareDocument = l1.Uri.UriString.CompareTo(l2.Uri.UriString);
         var compareRange = CompareRange(l1.Range, l2.Range);
         return compareDocument != 0 ? compareDocument : compareRange;
     }
@@ -182,7 +182,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var (guid, id) = glyph.GetVsImageData();
 
 #pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
-        var info = new LSP.VSSymbolInformation()
+        var info = new LSP.SymbolInformation()
         {
             Kind = kind,
             Name = name,
@@ -199,7 +199,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
     private protected static LSP.TextDocumentIdentifier CreateTextDocumentIdentifier(DocumentUri uri, ProjectId? projectContext = null)
     {
-        var documentIdentifier = new LSP.VSTextDocumentIdentifier { DocumentUri = uri };
+        var documentIdentifier = new LSP.TextDocumentIdentifier { Uri = uri };
 
         if (projectContext != null)
         {
@@ -213,7 +213,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
     private protected static LSP.TextDocumentPositionParams CreateTextDocumentPositionParams(LSP.Location caret, ProjectId? projectContext = null)
         => new()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri, projectContext),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri, projectContext),
             Position = caret.Range.Start
         };
 
@@ -231,9 +231,9 @@ public abstract partial class AbstractLanguageServerProtocolTests
         LSP.CompletionTriggerKind triggerKind)
         => new()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
-            Context = new LSP.VSInternalCompletionContext()
+            Context = new LSP.CompletionContext()
             {
                 InvokeKind = invokeKind,
                 TriggerCharacter = triggerCharacter,
@@ -241,7 +241,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             }
         };
 
-    private protected static async Task<LSP.VSInternalCompletionItem> CreateCompletionItemAsync(
+    private protected static async Task<LSP.CompletionItem> CreateCompletionItemAsync(
         string label,
         LSP.CompletionItemKind kind,
         string[] tags,
@@ -263,18 +263,18 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var completionTrigger = await ProtocolConversions.LSPToRoslynCompletionTriggerAsync(
             request.Context, document, position, CancellationToken.None).ConfigureAwait(false);
 
-        var item = new LSP.VSInternalCompletionItem()
+        var item = new LSP.CompletionItem()
         {
-            TextEdit = textEdit,
+            TextEdit = textEdit is null ? null : new LSP.CompletionItem._TextEdit(textEdit),
             TextEditText = textEditText,
             FilterText = filterText,
             Label = label,
             SortText = sortText,
-            InsertTextFormat = LSP.InsertTextFormat.Plaintext,
+            InsertTextFormat = LSP.InsertTextFormat.PlainText,
             Kind = kind,
             Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
             Preselect = preselect,
-            VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
+            ResolveTextEditOnCommit = vsResolveTextEditOnCommit,
             LabelDetails = labelDetails,
             MatchPriority = matchPriority
         };
@@ -300,7 +300,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         };
 
     private protected static CodeActionResolveData CreateCodeActionResolveData(string uniqueIdentifier, LSP.Location location, string[] codeActionPath, IEnumerable<string>? customTags = null)
-        => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.DocumentUri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
+        => new(uniqueIdentifier, customTags.ToImmutableArrayOrEmpty(), location.Range, CreateTextDocumentIdentifier(location.Uri), fixAllFlavors: null, nestedCodeActions: null, codeActionPath: codeActionPath);
 
     private protected Task<TestLspServer> CreateTestLspServerAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, bool mutatingLspWorkspace, LSP.ClientCapabilities clientCapabilities, bool callInitialized = true)
         => CreateTestLspServerAsync([markup], LanguageNames.CSharp, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities, CallInitialized = callInitialized });
@@ -514,7 +514,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             var location = new LSP.Location
             {
-                DocumentUri = documentUri,
+                Uri = documentUri,
                 Range = ProtocolConversions.TextSpanToRange(span, text),
             };
 
@@ -527,7 +527,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         var newPosition = new LSP.Position { Character = originalLocation.Range.Start.Character + 1, Line = originalLocation.Range.Start.Line };
         return new LSP.Location
         {
-            DocumentUri = originalLocation.DocumentUri,
+            Uri = originalLocation.Uri,
             Range = new LSP.Range { Start = newPosition, End = newPosition }
         };
     }
@@ -537,7 +537,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         ImmutableArray<(LSP.Range? Range, string Text)> changes,
         int version = 0)
     {
-        var changeEvents = new LSP.SumType<LSP.TextDocumentContentChangePartial, LSP.TextDocumentContentChangeWholeDocument>[changes.Length];
+        var changeEvents = new Roslyn.LanguageServer.Protocol.TextDocumentContentChangeEvent[changes.Length];
         for (var i = 0; i < changes.Length; i++)
         {
             var (range, text) = changes[i];
@@ -550,7 +550,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             TextDocument = new LSP.VersionedTextDocumentIdentifier
             {
-                DocumentUri = documentUri,
+                Uri = documentUri,
                 Version = version
             },
             ContentChanges = changeEvents
@@ -563,8 +563,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
             TextDocument = new LSP.TextDocumentItem
             {
                 Text = source,
-                DocumentUri = uri,
-                LanguageId = languageId,
+                Uri = uri,
+                LanguageId = new(languageId),
                 Version = version
             }
         };
@@ -574,7 +574,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
        {
            TextDocument = new LSP.TextDocumentIdentifier
            {
-               DocumentUri = uri
+               Uri = uri
            }
        };
 
@@ -722,7 +722,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         public async Task<TextDocument> GetTextDocumentAsync(DocumentUri uri)
         {
-            var document = await GetCurrentSolution().GetTextDocumentAsync(new LSP.TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
+            var document = await GetCurrentSolution().GetTextDocumentAsync(new LSP.TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
             Contract.ThrowIfNull(document, $"Unable to find document with {uri} in solution");
             return document;
         }

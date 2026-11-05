@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client workspace capabilities specific to folding ranges
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class FoldingRangeWorkspaceClientCapabilities
@@ -16,12 +16,12 @@ internal partial class FoldingRangeWorkspaceClientCapabilities
     /// <summary>
     /// Whether the client implementation supports a refresh request sent from the
     /// server to the client.
-    /// 
+    ///
     /// Note that this event is global and will force the client to refresh all
     /// folding ranges currently shown. It should be used with absolute care and is
     /// useful for situation where a server for example detects a project wide
     /// change that requires such a calculation.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("refreshSupport")]

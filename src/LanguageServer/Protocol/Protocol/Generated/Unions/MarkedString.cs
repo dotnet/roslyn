@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A union of: string | MarkedStringWithLanguage.
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
 [System.Runtime.CompilerServices.Union]
 internal sealed class MarkedString : System.Runtime.CompilerServices.IUnion
 {

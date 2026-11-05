@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Diagnostic options.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class DiagnosticOptions

@@ -14,5 +14,5 @@ internal struct RemoteClientLSPInitializationOptions
     public required string[] TokenModifiers { get; set; }
 
     [JsonPropertyName("clientCapabilities")]
-    public required VSInternalClientCapabilities ClientCapabilities { get; set; }
+    public required ClientCapabilities ClientCapabilities { get; set; }
 }

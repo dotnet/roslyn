@@ -47,7 +47,7 @@ public sealed partial class ExampleTests
         var server = TestExampleLanguageServer.CreateLanguageServer();
 
         var result = await server.InitializeServerAsync();
-        Assert.True(result.Capabilities.SemanticTokensOptions!.Value.Unify().Range!.Value.First);
+        Assert.True(Assert.IsType<bool>(result.Capabilities.SemanticTokensProvider?.Range?.Value));
     }
 
     [Fact]

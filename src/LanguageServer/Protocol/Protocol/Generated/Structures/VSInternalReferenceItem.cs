@@ -22,8 +22,7 @@ internal partial class VSInternalReferenceItem
     /// Gets or sets the reference location.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_location")]
-    [System.Text.Json.Serialization.JsonRequired]
-    public Location Location { get; set; } = null!;
+    public Location? Location { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the definition Id.
@@ -38,20 +37,28 @@ internal partial class VSInternalReferenceItem
     [System.Text.Json.Serialization.JsonPropertyName("_vs_definitionText")]
     [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.ObjectContentConverter))]
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public LSPAny? DefinitionText { get; set; }
+    public LSPAny? DefinitionText
+    {
+        get;
+        set
+        {
+            if (value is null or Roslyn.Text.Adornments.ImageElement or Roslyn.Text.Adornments.ContainerElement or Roslyn.Text.Adornments.ClassifiedTextElement or string)
+                field = value;
+            else
+                throw new System.InvalidOperationException(value?.GetType() + " is an invalid type.");
+        }
+    }
 
     /// <summary>
     /// Gets or sets the resolution status.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_resolutionStatus")]
-    [System.Text.Json.Serialization.JsonRequired]
     public VSInternalResolutionStatusKind ResolutionStatus { get; set; }
 
     /// <summary>
     /// Gets or sets the reference kind.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_kind")]
-    [System.Text.Json.Serialization.JsonRequired]
     public VSInternalReferenceKind[] Kind { get; set; } = null!;
 
     /// <summary>
@@ -88,7 +95,17 @@ internal partial class VSInternalReferenceItem
     [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
     [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.ObjectContentConverter))]
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public LSPAny? Text { get; set; }
+    public LSPAny? Text
+    {
+        get;
+        set
+        {
+            if (value is Roslyn.Text.Adornments.ImageElement or Roslyn.Text.Adornments.ContainerElement or Roslyn.Text.Adornments.ClassifiedTextElement or string)
+                field = value;
+            else
+                throw new System.InvalidOperationException(value?.GetType() + " is an invalid type.");
+        }
+    }
 
     /// <summary>
     /// Gets or sets the text value for display path. This would be a friendly display name for scenarios where the actual path on disk may be confusing for users. This doesn't have to correspond to a real file path, but does need to be parsable by the various Path.GetFileName() methods.

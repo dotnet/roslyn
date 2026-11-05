@@ -73,7 +73,7 @@ internal sealed class LspLogMessageLogger(
             var _ = clientLanguageServerManager.SendNotificationAsync(Methods.WindowLogMessageName, new LogMessageParams()
             {
                 Message = logMessage,
-                MessageType = LogLevelToMessageType(logLevel),
+                Type = LogLevelToMessageType(logLevel),
             }, CancellationToken.None);
         }
         catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)

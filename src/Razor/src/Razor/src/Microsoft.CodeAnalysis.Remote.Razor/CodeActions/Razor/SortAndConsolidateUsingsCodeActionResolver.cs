@@ -28,11 +28,11 @@ internal sealed class SortAndConsolidateUsingsCodeActionResolver : IRazorCodeAct
 
         var edits = UsingDirectiveHelper.GetSortAndConsolidateEdits(codeDocument);
 
-        var documentChanges = new TextDocumentEdit[]
+        var documentChanges = new WorkspaceEdit._DocumentChangesItem[]
         {
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = documentSnapshot.Uri },
                 Edits = [.. edits],
             }
         };

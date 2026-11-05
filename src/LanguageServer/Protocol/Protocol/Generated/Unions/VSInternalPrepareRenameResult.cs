@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A union of: Range | RenameRange | PrepareRenameDefaultBehavior.
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
 [System.Runtime.CompilerServices.Union]
 internal sealed class VSInternalPrepareRenameResult : System.Runtime.CompilerServices.IUnion
 {

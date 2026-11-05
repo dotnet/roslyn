@@ -17,7 +17,7 @@ internal interface IRazorSemanticTokensRefreshQueue : ILspService
     /// This MUST be called synchronously from an IOnInitialized handler, to avoid dual initialization when
     /// Roslyn and Razor both support semantic tokens
     /// </remarks>
-    void Initialize(VSInternalClientCapabilities clientCapabilities);
+    void Initialize(ClientCapabilities clientCapabilities);
 
     Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken);
 }

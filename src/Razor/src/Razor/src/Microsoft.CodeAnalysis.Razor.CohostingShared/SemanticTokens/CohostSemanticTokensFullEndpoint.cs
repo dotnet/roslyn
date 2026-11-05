@@ -23,11 +23,11 @@ internal sealed class CohostSemanticTokensFullEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     ITelemetryReporter telemetryReporter)
-    : CohostSemanticTokensEndpointBase<SemanticTokensFullParams>(incompatibleProjectService, remoteServiceInvoker, telemetryReporter)
+    : CohostSemanticTokensEndpointBase<SemanticTokensParams>(incompatibleProjectService, remoteServiceInvoker, telemetryReporter)
 {
     protected override string LspMethodName => Methods.TextDocumentSemanticTokensFullName;
 
-    protected override async Task<LinePositionSpan> GetRequestSpanAsync(SemanticTokensFullParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<LinePositionSpan> GetRequestSpanAsync(SemanticTokensParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 

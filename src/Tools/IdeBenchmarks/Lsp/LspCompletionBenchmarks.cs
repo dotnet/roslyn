@@ -73,13 +73,13 @@ class A
         T{|caret:|}
     }
 }";
-            _testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
+            _testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.ClientCapabilities
             {
                 TextDocument = new LSP.TextDocumentClientCapabilities
                 {
-                    Completion = new LSP.CompletionSetting
+                    Completion = new LSP.CompletionClientCapabilities
                     {
-                        CompletionListSetting = new LSP.CompletionListSetting
+                        CompletionList = new LSP.CompletionListCapabilities
                         {
                             ItemDefaults = ["editRange"],
                         }

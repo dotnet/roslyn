@@ -145,7 +145,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         CancellationToken cancellationToken)
     {
         var resolveData = TypeHierarchyHelpers.GetResolveData(item);
-        if (!snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(resolveData.TextDocument.DocumentUri, out var identity))
+        if (!snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(resolveData.TextDocument.Uri, out var identity))
         {
             return null;
         }

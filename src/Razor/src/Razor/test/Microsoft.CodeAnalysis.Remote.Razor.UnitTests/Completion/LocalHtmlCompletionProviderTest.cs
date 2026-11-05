@@ -159,7 +159,7 @@ public class LocalHtmlCompletionProviderTest
         var draggable = result.Items.FirstOrDefault(static item => item.Label == "draggable");
         Assert.NotNull(draggable);
         // Should be plain name, no ="$0"
-        Assert.Equal(InsertTextFormat.Plaintext, draggable.InsertTextFormat);
+        Assert.Equal(InsertTextFormat.PlainText, draggable.InsertTextFormat);
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public class LocalHtmlCompletionProviderTest
         var item = result.Items.FirstOrDefault(static item => item.Label == "autocomplete");
         Assert.NotNull(item);
         // Should be plain name, no ="$0" since the attribute already has a value
-        Assert.Equal(InsertTextFormat.Plaintext, item.InsertTextFormat);
+        Assert.Equal(InsertTextFormat.PlainText, item.InsertTextFormat);
     }
 
     [Fact]
@@ -888,7 +888,7 @@ public class LocalHtmlCompletionProviderTest
         return RazorCompletionListProvider.CreateCompletionContext(
             codeDocument,
             absoluteIndex,
-            new VSInternalCompletionContext(),
+            new CompletionContext(),
             s_defaultOptions);
     }
 

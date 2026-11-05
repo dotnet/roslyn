@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Moniker definition to match LSIF 0.5 moniker definition.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class Moniker

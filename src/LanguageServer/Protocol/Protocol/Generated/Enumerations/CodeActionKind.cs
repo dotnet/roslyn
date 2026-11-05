@@ -29,9 +29,9 @@ internal readonly record struct CodeActionKind(string Value) : IStringEnum
 
     /// <summary>
     /// Base kind for refactoring extraction actions: 'refactor.extract'
-    /// 
+    ///
     /// Example extract actions:
-    /// 
+    ///
     /// - Extract method
     /// - Extract function
     /// - Extract variable
@@ -42,9 +42,9 @@ internal readonly record struct CodeActionKind(string Value) : IStringEnum
 
     /// <summary>
     /// Base kind for refactoring inline actions: 'refactor.inline'
-    /// 
+    ///
     /// Example inline actions:
-    /// 
+    ///
     /// - Inline function
     /// - Inline variable
     /// - Inline constant
@@ -54,23 +54,23 @@ internal readonly record struct CodeActionKind(string Value) : IStringEnum
 
     /// <summary>
     /// Base kind for refactoring move actions: `refactor.move`
-    /// 
+    ///
     /// Example move actions:
-    /// 
+    ///
     /// - Move a function to a new file
     /// - Move a property between classes
     /// - Move method to base class
     /// - ...
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     public static readonly CodeActionKind RefactorMove = new("refactor.move");
 
     /// <summary>
     /// Base kind for refactoring rewrite actions: 'refactor.rewrite'
-    /// 
+    ///
     /// Example rewrite actions:
-    /// 
+    ///
     /// - Convert JavaScript function to class
     /// - Add or remove parameter
     /// - Encapsulate field
@@ -82,7 +82,7 @@ internal readonly record struct CodeActionKind(string Value) : IStringEnum
 
     /// <summary>
     /// Base kind for source actions: `source`
-    /// 
+    ///
     /// Source code actions apply to the entire file.
     /// </summary>
     public static readonly CodeActionKind Source = new("source");
@@ -94,10 +94,10 @@ internal readonly record struct CodeActionKind(string Value) : IStringEnum
 
     /// <summary>
     /// Base kind for auto-fix source actions: `source.fixAll`.
-    /// 
+    ///
     /// Fix all actions automatically fix errors that have a clear fix that do not require user input.
     /// They should not suppress errors or perform unsafe fixes such as generating new types or classes.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     public static readonly CodeActionKind SourceFixAll = new("source.fixAll");
@@ -105,7 +105,7 @@ internal readonly record struct CodeActionKind(string Value) : IStringEnum
     /// <summary>
     /// Base kind for all code actions applying to the entire notebook's scope. CodeActionKinds using
     /// this should always begin with `notebook.`
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     public static readonly CodeActionKind Notebook = new("notebook");

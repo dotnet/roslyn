@@ -78,7 +78,7 @@ internal static partial class LocalHtmlCompletionProvider
         public static RazorVSInternalCompletionList BuildCompletionList(LspRange range)
         {
             var entities = s_htmlEntities;
-            var items = new VSInternalCompletionItem[entities.Length];
+            var items = new CompletionItem[entities.Length];
 
             for (var i = 0; i < entities.Length; i++)
             {
@@ -86,12 +86,12 @@ internal static partial class LocalHtmlCompletionProvider
                 var label = "&" + name + "; (" + character + ")";
                 var newText = "&" + name + ";";
 
-                items[i] = new VSInternalCompletionItem
+                items[i] = new CompletionItem
                 {
                     Label = label,
                     Kind = CompletionItemKind.Constant,
                     FilterText = name,
-                    InsertTextFormat = InsertTextFormat.Plaintext,
+                    InsertTextFormat = InsertTextFormat.PlainText,
                     TextEdit = new TextEdit { Range = range, NewText = newText },
                 };
             }

@@ -11,22 +11,22 @@ internal static partial class CompletionListOptimizer
     /// <summary>
     /// Promotes per-item commit characters to list-level defaults. Items may use either standard LSP
     /// <see cref="CompletionItem.CommitCharacters"/> (string[]) or VS-internal
-    /// <see cref="VSInternalCompletionItem.VsCommitCharacters"/> (<see cref="VSInternalCommitCharacter"/>[]).
+    /// <see cref="CompletionItem.VsCommitCharacters"/> (<see cref="VSInternalCommitCharacter"/>[]).
     /// The most common set is promoted to the appropriate list-level property based on client capabilities:
     /// <list type="bullet">
-    ///   <item>VS clients (<see cref="VSInternalCompletionSetting"/> with <c>CompletionList.CommitCharacters = true</c>):
+    ///   <item>VS clients (<see cref="CompletionClientCapabilities"/> with <c>CompletionList.CommitCharacters = true</c>):
     ///     promoted to the VS-internal list-level commit characters, preserving the original array type
     ///     (string[] or <see cref="VSInternalCommitCharacter"/>[]).</item>
     ///   <item>Standard LSP clients (<c>ItemDefaults</c> contains <c>"commitCharacters"</c>):
-    ///     promoted to <see cref="CompletionListItemDefaults.CommitCharacters"/> as string[],
+    ///     promoted to <see cref="CompletionItemDefaults.CommitCharacters"/> as string[],
     ///     including only characters where <c>Insert != false</c> (since standard LSP cannot express "commit without inserting").</item>
     /// </list>
     /// </summary>
-    private static RazorVSInternalCompletionList PromoteCommitCharacters(RazorVSInternalCompletionList completionList, CompletionSetting? completionCapability)
+    private static RazorVSInternalCompletionList PromoteCommitCharacters(RazorVSInternalCompletionList completionList, CompletionClientCapabilities? completionCapability)
     {
         // Determine which promotion targets are available based on client capabilities.
-        var canPromoteToVsList = completionCapability is VSInternalCompletionSetting { CompletionList.CommitCharacters: true };
-        var itemDefaults = completionCapability?.CompletionListSetting?.ItemDefaults;
+        var canPromoteToVsList = completionCapability is { VsCompletionList.CommitCharacters: true };
+        var itemDefaults = completionCapability?.CompletionList?.ItemDefaults;
         var canPromoteToItemDefaults = itemDefaults is not null && Array.IndexOf(itemDefaults, "commitCharacters") >= 0;
 
         if (!canPromoteToVsList && !canPromoteToItemDefaults)
@@ -49,25 +49,20 @@ internal static partial class CompletionListOptimizer
 
         foreach (var completionItem in completionList.Items)
         {
-            if (completionItem is not VSInternalCompletionItem vsItem)
-            {
-                continue;
-            }
-
-            if (TryGetCommitCharacterSource(vsItem, out var strings, out var vsChars))
+            if (TryGetCommitCharacterSource(completionItem, out var strings, out var vsChars))
             {
                 // Clear per-item commit characters for items that match the promoted set.
                 if (CommitCharactersEqual(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars, strings, vsChars))
                 {
-                    vsItem.CommitCharacters = null;
-                    vsItem.VsCommitCharacters = null;
+                    completionItem.CommitCharacters = null;
+                    completionItem.VsCommitCharacters = null;
                 }
             }
             else
             {
                 // For items that intentionally have no commit characters, set an explicit empty
                 // array so they don't inherit the promoted list-level defaults.
-                vsItem.CommitCharacters = [];
+                completionItem.CommitCharacters = [];
             }
         }
 
@@ -81,7 +76,7 @@ internal static partial class CompletionListOptimizer
         else
         {
             // Standard LSP only supports string[] — include only characters where Insert != false.
-            completionList.ItemDefaults ??= new CompletionListItemDefaults();
+            completionList.ItemDefaults ??= new CompletionItemDefaults();
             completionList.ItemDefaults.CommitCharacters = ToStandardCommitCharacters(bestCommitCharacterGroup.Strings, bestCommitCharacterGroup.VsChars);
         }
 
@@ -105,12 +100,7 @@ internal static partial class CompletionListOptimizer
 
         foreach (var completionItem in completionList.Items)
         {
-            if (completionItem is not VSInternalCompletionItem vsItem)
-            {
-                continue;
-            }
-
-            if (!TryGetCommitCharacterSource(vsItem, out var strings, out var vsChars))
+            if (!TryGetCommitCharacterSource(completionItem, out var strings, out var vsChars))
             {
                 continue;
             }
@@ -155,7 +145,7 @@ internal static partial class CompletionListOptimizer
     /// will be non-null on success.
     /// </summary>
     private static bool TryGetCommitCharacterSource(
-        VSInternalCompletionItem item,
+        CompletionItem item,
         out string[]? strings,
         out VSInternalCommitCharacter[]? vsChars)
     {

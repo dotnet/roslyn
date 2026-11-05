@@ -216,7 +216,7 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var locationTyped = testLspServer.GetLocations("type").Single();
 
-        var document = await testLspServer.GetDocumentAsync(locationTyped.DocumentUri);
+        var document = await testLspServer.GetDocumentAsync(locationTyped.Uri);
         var documentText = await document.GetTextAsync();
 
         var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces: true, tabSize: 4);
@@ -231,7 +231,7 @@ public sealed class RawStringOnAutoInsertTests(ITestOutputHelper testOutputHelpe
         }
         else
         {
-            Assert.Equal(InsertTextFormat.Plaintext, result.TextEditFormat);
+            Assert.Equal(InsertTextFormat.PlainText, result.TextEditFormat);
         }
 
         MarkupTestFile.GetPositionAndSpans(expected, out var massaged, out int? caretPosition, out var spans);

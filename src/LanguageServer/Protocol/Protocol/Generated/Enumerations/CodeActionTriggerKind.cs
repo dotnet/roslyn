@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The reason why code actions were requested.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal enum CodeActionTriggerKind
@@ -20,7 +20,7 @@ internal enum CodeActionTriggerKind
 
     /// <summary>
     /// Code actions were requested automatically.
-    /// 
+    ///
     /// This typically happens when current selection in a file changes, but can
     /// also be triggered when file content changes.
     /// </summary>

@@ -94,16 +94,15 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
-        Assert.EndsWith("String.cs", location.DocumentUri.UriString);
+        Assert.EndsWith("String.cs", location.Uri.UriString);
 
         // Note: The location is in a generated C# "metadata-as-source" file, which has a different
         // number of using directives in .NET Framework vs. .NET Core, so rather than relying on line
         // numbers we do some vague notion of actual navigation and test the actual source line that
         // the user would see.
-        var line = File.ReadLines(location.DocumentUri.GetRequiredSystemUri().LocalPath).ElementAt(location.Range.Start.Line);
+        var line = File.ReadLines(location.Uri.GetRequiredSystemUri().LocalPath).ElementAt(location.Range.Start.Line);
         Assert.Contains("public sealed class String", line);
     }
 
@@ -169,11 +168,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.Uri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -204,11 +202,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.Uri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -237,11 +234,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.Uri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -270,11 +266,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.Uri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -308,11 +303,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("File1.razor"), location.DocumentUri);
+        Assert.Equal(FileUri("File1.razor"), location.Uri);
         var text = SourceText.From(input.Text);
         var range = text.GetRange(input.Span);
         Assert.Equal(range, location.Range);
@@ -350,11 +344,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("SurveyPrompt.cs"), surveyPrompt.Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("SurveyPrompt.cs"), location.Uri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -392,11 +385,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("SurveyPrompt.cs"), surveyPrompt.Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("SurveyPrompt.cs"), location.Uri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -440,8 +432,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
         var text = SourceText.From(surveyPrompt.Text);
@@ -468,10 +459,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var uri = new DocumentUri($"{document.CreateSystemUri()}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
-        var htmlResponse = new SumType<LspLocation, LspLocation[], DocumentLink[]>?(new LspLocation[]
+        var htmlResponse = new RazorDefinitionResult(new LspLocation[]
         {
             new() {
-                DocumentUri = uri,
+                Uri = uri,
                 Range = inputText.GetRange(input.Span),
             },
         });
@@ -504,11 +495,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         """).Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AuthorViewComponent.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("AuthorViewComponent.cs"), location.Uri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -540,11 +530,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         """).Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.Uri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -584,11 +573,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                     """)]);
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AboutBoxTagHelper_1.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("AboutBoxTagHelper_1.cs"), location.Uri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -622,11 +610,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         """).Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("AboutBoxTagHelper.cs"), location.Uri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -667,11 +654,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         """).Text)]);
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("AboutBoxTagHelper_2.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("AboutBoxTagHelper_2.cs"), location.Uri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -731,11 +717,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         """).Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("FooTagHelper.cs"), location.Uri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -795,11 +780,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         """).Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("FooTagHelper.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("FooTagHelper.cs"), location.Uri);
         Assert.Equal(expected.Span, SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -881,16 +865,15 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         """).Text));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         Assert.Equal(expected.Spans.Length, locations.Length);
 
         var location = locations[0];
-        Assert.Equal(FileUri("TagHelpers.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("TagHelpers.cs"), location.Uri);
         Assert.Equal(expected.Spans[0], SourceText.From(expected.Text).GetTextSpan(location.Range));
 
         location = locations[1];
-        Assert.Equal(FileUri("TagHelpers.cs"), location.DocumentUri);
+        Assert.Equal(FileUri("TagHelpers.cs"), location.Uri);
         Assert.Equal(expected.Spans[1], SourceText.From(expected.Text).GetTextSpan(location.Range));
     }
 
@@ -911,11 +894,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("Views/Shared/_Partial.cshtml"), partialFileContent));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("Views/Shared/_Partial.cshtml"), location.DocumentUri);
+        Assert.Equal(FileUri("Views/Shared/_Partial.cshtml"), location.Uri);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
@@ -935,11 +917,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("_Partial.cshtml"), partialFileContent));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("_Partial.cshtml"), location.DocumentUri);
+        Assert.Equal(FileUri("_Partial.cshtml"), location.Uri);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/4325")]
@@ -965,11 +946,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: (FilePath("Pages/Counter.razor"), counterFileContent));
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri);
+        Assert.Equal(FileUri("Pages/Counter.razor"), location.Uri);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
@@ -1108,8 +1088,8 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
 
         Assert.Empty(fileSystem.FileExistsCalls);
         Contract.ThrowIfNull(result);
-        var location = Assert.Single(result.Value.Second);
-        Assert.EndsWith("String.cs", location.DocumentUri.UriString);
+        var location = Assert.Single(Assert.IsType<LspLocation[]>(result.Value));
+        Assert.EndsWith("String.cs", location.Uri.UriString);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/86072")]
@@ -1129,8 +1109,8 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         // The fake URL-decodes paths when comparing them, so also check the exact path it received.
         Assert.Equal(expectedPath, Assert.Single(fileSystem.FileExistsCalls));
         Contract.ThrowIfNull(result);
-        var location = Assert.Single(result.Value.Second);
-        Assert.Equal(FileUri("wwwroot/css/Rate%20Card%25.css"), location.DocumentUri);
+        var location = Assert.Single(Assert.IsType<LspLocation[]>(result.Value));
+        Assert.Equal(FileUri("wwwroot/css/Rate%20Card%25.css"), location.Uri);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
@@ -1214,8 +1194,8 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
 
         Contract.ThrowIfNull(result);
-        var location = Assert.Single(result.Value.Second);
-        Assert.Equal(FileUri($"wwwroot/images/{fileName}"), location.DocumentUri);
+        var location = Assert.Single(Assert.IsType<LspLocation[]>(result.Value));
+        Assert.Equal(FileUri($"wwwroot/images/{fileName}"), location.Uri);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
@@ -1268,16 +1248,15 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input);
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
-        Assert.EndsWith("String.cs", location.DocumentUri.UriString);
+        Assert.EndsWith("String.cs", location.Uri.UriString);
 
         // Note: The location is in a generated C# "metadata-as-source" file, which has a different
         // number of using directives in .NET Framework vs. .NET Core, so rather than relying on line
         // numbers we do some vague notion of actual navigation and test the actual source line that
         // the user would see.
-        var line = File.ReadLines(location.DocumentUri.GetRequiredSystemUri().LocalPath).ElementAt(location.Range.Start.Line);
+        var line = File.ReadLines(location.Uri.GetRequiredSystemUri().LocalPath).ElementAt(location.Range.Start.Line);
         Assert.Contains("public sealed class String", line);
     }
 
@@ -1323,11 +1302,10 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultCoreAsync(componentDocument, component, htmlResponse: null);
 
         Contract.ThrowIfNull(result);
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(surveyPromptDocument.GetURI(), location.DocumentUri);
+        Assert.Equal(surveyPromptDocument.GetURI(), location.Uri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -1346,8 +1324,8 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
 
         Contract.ThrowIfNull(result);
-        var location = Assert.Single(result.Value.Second);
-        Assert.Equal(FileUri(expectedFileName), location.DocumentUri);
+        var location = Assert.Single(Assert.IsType<LspLocation[]>(result.Value));
+        Assert.Equal(FileUri(expectedFileName), location.Uri);
         Assert.Equal(LspFactory.DefaultRange, location.Range);
     }
 
@@ -1362,7 +1340,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
     private async Task VerifyGoToDefinitionAsync(
         TestCode input,
         RazorFileKind? fileKind = null,
-        SumType<LspLocation, LspLocation[], DocumentLink[]>? htmlResponse = null,
+        RazorDefinitionResult? htmlResponse = null,
         TextDocument? razorDocument = null)
     {
         var document = razorDocument ?? CreateProjectAndRazorDocument(input.Text, fileKind);
@@ -1370,29 +1348,28 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
 
         Contract.ThrowIfNull(result);
 
-        Assert.NotNull(result.Value.Second);
-        var locations = result.Value.Second;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
         var text = SourceText.From(input.Text);
         var range = text.GetRange(input.Span);
         Assert.Equal(range, location.Range);
 
-        Assert.Equal(document.GetURI(), location.DocumentUri);
+        Assert.Equal(document.GetURI(), location.Uri);
     }
 
-    private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetGoToDefinitionResultAsync(
+    private async Task<RazorDefinitionResult?> GetGoToDefinitionResultAsync(
         TestCode input,
         RazorFileKind? fileKind = null,
-        SumType<LspLocation, LspLocation[], DocumentLink[]>? htmlResponse = null,
+        RazorDefinitionResult? htmlResponse = null,
         params (string fileName, string contents)[]? additionalFiles)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
         return await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse);
     }
 
-    private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetGoToDefinitionResultCoreAsync(
-        TextDocument document, TestCode input, SumType<LspLocation, LspLocation[], DocumentLink[]>? htmlResponse)
+    private async Task<RazorDefinitionResult?> GetGoToDefinitionResultCoreAsync(
+        TextDocument document, TestCode input, RazorDefinitionResult? htmlResponse)
     {
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(input.Position);
@@ -1407,7 +1384,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(textDocumentPositionParams, document, DisposalToken);

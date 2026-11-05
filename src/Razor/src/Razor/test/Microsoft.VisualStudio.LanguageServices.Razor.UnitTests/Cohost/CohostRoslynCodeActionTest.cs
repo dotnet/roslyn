@@ -750,7 +750,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
 
         var request = new CodeActionParams
         {
-            TextDocument = new() { DocumentUri = csharpDocument.GetURI() },
+            TextDocument = new() { Uri = csharpDocument.GetURI() },
             Range = new LspRange
             {
                 Start = new Position(csharpPosition.Line, csharpPosition.Character),
@@ -778,7 +778,7 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
                 value.Deserialize<string[]>() is [..] tags &&
                 tags.Any(t => t == codeActionName));
 
-        if (codeAction.Command is { CommandIdentifier: "roslyn.client.nestedCodeAction", Arguments: [var nestedArgument] })
+        if (codeAction.Command is { CommandValue: "roslyn.client.nestedCodeAction", Arguments: [var nestedArgument] })
         {
             var nestedActions = (nestedArgument is JsonElement nestedElement
                 ? nestedElement
@@ -814,9 +814,9 @@ public class CohostRoslynCodeActionTest(ITestOutputHelper testOutputHelper) : Co
     {
         var generatedSourceText = await generatedDoc.GetTextAsync(DisposalToken);
         var textChanges = workspaceEdit.EnumerateTextDocumentEdits()
-            .Where(e => e.TextDocument.DocumentUri == generatedDoc.GetURI())
+            .Where(e => e.TextDocument.Uri == generatedDoc.GetURI())
             .SelectMany(e => e.Edits)
-            .Select(e => generatedSourceText.GetTextChange((TextEdit)e))
+            .Select(e => generatedSourceText.GetTextChange(Assert.IsType<TextEdit>(e.Value)))
             .ToArray();
 
         if (textChanges.Length == 0)

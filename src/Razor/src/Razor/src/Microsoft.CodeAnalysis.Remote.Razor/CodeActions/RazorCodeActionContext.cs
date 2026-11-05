@@ -30,8 +30,7 @@ internal sealed record class RazorCodeActionContext(
 
         foreach (var diagnostic in Request.Context.Diagnostics)
         {
-            if (diagnostic.Code is { } codeSumType &&
-                codeSumType.TryGetSecond(out var codeString) &&
+            if (diagnostic.Code is string codeString &&
                 codeString == code)
             {
                 return true;

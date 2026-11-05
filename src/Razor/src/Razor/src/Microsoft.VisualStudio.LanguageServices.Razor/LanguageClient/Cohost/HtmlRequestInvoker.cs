@@ -65,7 +65,7 @@ internal sealed class HtmlRequestInvoker(
 
         try
         {
-            _logger.LogDebug($"Making LSP request for {method} from {htmlDocument.Uri}{(request is ITextDocumentPositionParams positionParams ? $" at {positionParams.Position}" : "")}, checksum {syncResult.Checksum}.");
+            _logger.LogDebug($"Making LSP request for {method} from {htmlDocument.Uri}{(request is TextDocumentPositionParams positionParams ? $" at {positionParams.Position}" : "")}, checksum {syncResult.Checksum}.");
 
             // Passing Guid.Empty to this method will mean no tracking
             using var _ = _telemetryReporter.TrackLspRequest(method, RazorLSPConstants.HtmlLanguageServerName, threshold, correlationId);
@@ -102,7 +102,7 @@ internal sealed class HtmlRequestInvoker(
             _ => null
         };
 
-        originalUri = textDocument?.DocumentUri;
-        textDocument?.DocumentUri = uri;
+        originalUri = textDocument?.Uri;
+        textDocument?.Uri = uri;
     }
 }

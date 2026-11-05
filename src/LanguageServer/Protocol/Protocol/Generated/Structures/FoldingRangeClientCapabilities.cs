@@ -38,7 +38,7 @@ internal partial class FoldingRangeClientCapabilities
 
     /// <summary>
     /// Specific options for the folding range kind.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("foldingRangeKind")]
@@ -47,7 +47,7 @@ internal partial class FoldingRangeClientCapabilities
 
     /// <summary>
     /// Specific options for the folding range.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("foldingRange")]

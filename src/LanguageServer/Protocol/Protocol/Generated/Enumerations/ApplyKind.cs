@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Defines how values from a set of defaults and an individual item will be
 /// merged.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal enum ApplyKind
@@ -22,7 +22,7 @@ internal enum ApplyKind
 
     /// <summary>
     /// The value from the item will be merged with the default.
-    /// 
+    ///
     /// The specific rules for mergeing values are defined against each field
     /// that supports merging.
     /// </summary>

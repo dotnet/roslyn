@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Cancellation data returned from a diagnostic request.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class DiagnosticServerCancellationData

@@ -143,18 +143,18 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
 
         // Assert that the resolve request returns the inlay hint even if not in the cache.
         var firstResolvedHint = await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, firstInlayHint, CancellationToken.None);
-        Assert.NotNull(firstResolvedHint?.ToolTip);
+        Assert.NotNull(firstResolvedHint?.Tooltip);
     }
 
     private async Task RunVerifyInlayHintAsync(string markup, bool mutatingLspWorkspace, bool hasTextEdits = true)
     {
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace,
-            new LSP.VSInternalClientCapabilities
+            new LSP.ClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
                 Workspace = new WorkspaceClientCapabilities
                 {
-                    InlayHint = new InlayHintWorkspaceSetting
+                    InlayHint = new InlayHintWorkspaceClientCapabilities
                     {
                         RefreshSupport = true
                     }

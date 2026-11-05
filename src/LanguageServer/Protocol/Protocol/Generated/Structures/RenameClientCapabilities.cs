@@ -18,7 +18,7 @@ internal partial class RenameClientCapabilities
     /// <summary>
     /// Client supports testing for validity of rename operations
     /// before execution.
-    /// 
+    ///
     /// @since 3.12.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("prepareSupport")]
@@ -27,10 +27,10 @@ internal partial class RenameClientCapabilities
 
     /// <summary>
     /// Client supports the default behavior result.
-    /// 
+    ///
     /// The value indicates the default behavior used by the
     /// client.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("prepareSupportDefaultBehavior")]
@@ -43,7 +43,7 @@ internal partial class RenameClientCapabilities
     /// rename request's workspace edit by for example presenting
     /// the workspace edit in the user interface and asking
     /// for confirmation.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("honorsChangeAnnotations")]

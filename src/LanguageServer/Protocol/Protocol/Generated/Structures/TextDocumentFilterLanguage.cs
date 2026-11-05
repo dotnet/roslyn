@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A document filter where `language` is required field.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class TextDocumentFilterLanguage
@@ -29,7 +29,7 @@ internal partial class TextDocumentFilterLanguage
 
     /// <summary>
     /// A glob pattern, like **​/*.{ts,js}. See TextDocumentFilter for examples.
-    /// 
+    ///
     /// @since 3.18.0 - support for relative patterns. Whether clients support
     /// relative patterns depends on the client capability
     /// `textDocuments.filters.relativePatternSupport`.

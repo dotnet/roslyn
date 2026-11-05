@@ -8,10 +8,10 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A parameter literal used in inline value requests.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
-internal partial class InlineValueParams
+internal partial class InlineValueParams : ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.

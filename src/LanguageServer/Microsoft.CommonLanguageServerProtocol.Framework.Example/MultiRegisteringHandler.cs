@@ -9,8 +9,8 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
 
 internal sealed class MultiRegisteringHandler :
-    IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>,
-    IRequestHandler<DidChangeTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>,
+    IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDelta, ExampleRequestContext>,
+    IRequestHandler<DidChangeTextDocumentParams, SemanticTokensDelta, ExampleRequestContext>,
     INotificationHandler<DidCloseTextDocumentParams, ExampleRequestContext>
 {
     public bool MutatesSolutionState => throw new System.NotImplementedException();
@@ -22,13 +22,13 @@ internal sealed class MultiRegisteringHandler :
     }
 
     [LanguageServerEndpoint(Methods.TextDocumentDidOpenName, LanguageServerConstants.DefaultLanguageName)]
-    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    Task<SemanticTokensDelta> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDelta, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }
 
     [LanguageServerEndpoint(Methods.TextDocumentDidChangeName, LanguageServerConstants.DefaultLanguageName)]
-    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidChangeTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidChangeTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    Task<SemanticTokensDelta> IRequestHandler<DidChangeTextDocumentParams, SemanticTokensDelta, ExampleRequestContext>.HandleRequestAsync(DidChangeTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }

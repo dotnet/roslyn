@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client capabilities specific to inline completions.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class InlineCompletionClientCapabilities

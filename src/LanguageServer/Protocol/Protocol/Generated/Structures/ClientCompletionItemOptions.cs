@@ -13,7 +13,7 @@ internal partial class ClientCompletionItemOptions
 {
     /// <summary>
     /// Client supports snippets as insert text.
-    /// 
+    ///
     /// A snippet can define tab stops and placeholders with `$1`, `$2`
     /// and `${3:foo}`. `$0` defines the final tab stop, it defaults to
     /// the end of the snippet. Placeholders with equal identifiers are linked,
@@ -57,7 +57,7 @@ internal partial class ClientCompletionItemOptions
     /// tags have to handle unknown tags gracefully. Clients especially need to
     /// preserve unknown tags when sending a completion item back to the server in
     /// a resolve call.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tagSupport")]
@@ -67,7 +67,7 @@ internal partial class ClientCompletionItemOptions
     /// <summary>
     /// Client support insert replace edit to control different behavior if a
     /// completion item is inserted in the text or should replace text.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertReplaceSupport")]
@@ -78,7 +78,7 @@ internal partial class ClientCompletionItemOptions
     /// Indicates which properties a client can resolve lazily on a completion
     /// item. Before version 3.16.0 only the predefined properties `documentation`
     /// and `details` could be resolved lazily.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("resolveSupport")]
@@ -89,7 +89,7 @@ internal partial class ClientCompletionItemOptions
     /// The client supports the `insertTextMode` property on
     /// a completion item to override the whitespace handling mode
     /// as defined by the client (see `insertTextMode`).
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertTextModeSupport")]
@@ -99,7 +99,7 @@ internal partial class ClientCompletionItemOptions
     /// <summary>
     /// The client has support for completion item label
     /// details (see also `CompletionItemLabelDetails`).
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("labelDetailsSupport")]

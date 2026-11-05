@@ -72,7 +72,7 @@ internal sealed class RemoteTagHelperSearchEngine : ITagHelperSearchEngine
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     return new LspLocation
                     {
-                        DocumentUri = document.GetURI(),
+                        Uri = document.GetURI(),
                         Range = text.GetRange(location.SourceSpan)
                     };
                 }

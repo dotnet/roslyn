@@ -171,10 +171,10 @@ internal static class LspFactory
         => CreateLocation(CreateFilePathUri(filePath), range);
 
     public static LspLocation CreateLocation(DocumentUri uri, LspRange range)
-        => new() { DocumentUri = uri, Range = range };
+        => new() { Uri = uri, Range = range };
 
     public static DocumentLink CreateDocumentLink(DocumentUri target, LinePositionSpan span)
-        => new() { DocumentTarget = target, Range = CreateRange(span) };
+        => new() { Target = target, Range = CreateRange(span) };
 
     public static TextEdit CreateTextEdit(Range range, string newText)
         => new() { Range = range, NewText = newText };

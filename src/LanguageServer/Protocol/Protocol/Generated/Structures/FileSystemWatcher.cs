@@ -10,7 +10,7 @@ internal partial class FileSystemWatcher
 {
     /// <summary>
     /// The glob pattern to watch. See <see cref="GlobPattern">glob pattern</see> for more detail.
-    /// 
+    ///
     /// @since 3.17.0 support for relative patterns.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("globPattern")]

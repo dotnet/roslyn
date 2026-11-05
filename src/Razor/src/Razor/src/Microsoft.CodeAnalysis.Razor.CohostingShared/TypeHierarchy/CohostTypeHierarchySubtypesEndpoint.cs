@@ -62,7 +62,7 @@ internal sealed class CohostTypeHierarchySubtypesEndpoint(
     {
         var uri = item.Uri.GetRequiredSystemUri();
         return uri.GetDocumentFilePathFromUri().IsRazorFilePath()
-            ? RazorTypeHierarchyResolveData.Wrap(item, new TextDocumentIdentifier { DocumentUri = item.Uri })
+            ? RazorTypeHierarchyResolveData.Wrap(item, new TextDocumentIdentifier { Uri = item.Uri })
             : item;
     }
 

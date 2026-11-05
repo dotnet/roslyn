@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Class representing the parameters sent for a textDocument/_vs_uriPresentation request.
 /// </summary>
-internal partial class VSInternalUriPresentationParams
+internal partial class VSInternalUriPresentationParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be operate on.
@@ -29,7 +29,6 @@ internal partial class VSInternalUriPresentationParams
     /// Gets or sets the URI values. Valid for DropKind.Uris.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_uris")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public DocumentUri[]? Uris { get; set; }
+    public System.Uri[]? Uris { get; set; }
 
 }

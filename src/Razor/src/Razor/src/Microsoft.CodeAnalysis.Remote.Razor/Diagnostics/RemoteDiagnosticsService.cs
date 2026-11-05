@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteDiagnosticsService
 {
     private const string UnusedDirectiveDiagnosticId = "RZ0005";
-    private static readonly DiagnosticTag[] s_unnecessaryDiagnosticTags = [VSDiagnosticTags.HiddenInEditor, DiagnosticTag.Unnecessary];
+    private static readonly DiagnosticTag[] s_unnecessaryDiagnosticTags = [DiagnosticTag.HiddenInEditor, DiagnosticTag.Unnecessary];
 
     internal sealed class Factory : FactoryBase<IRemoteDiagnosticsService>
     {

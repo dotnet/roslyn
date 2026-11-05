@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The result of a linked editing range request.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class LinkedEditingRanges

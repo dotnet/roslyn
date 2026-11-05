@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Options for notifications/requests for user operations on files.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class FileOperationOptions

@@ -15,7 +15,6 @@ internal partial class VSInternalKindAndModifier
     /// Gets or sets the ImageIds for a certain kind.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_kind")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Kind { get; set; } = null!;
 
     /// <summary>

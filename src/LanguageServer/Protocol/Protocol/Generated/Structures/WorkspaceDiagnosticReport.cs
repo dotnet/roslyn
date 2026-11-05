@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A workspace diagnostic report.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class WorkspaceDiagnosticReport

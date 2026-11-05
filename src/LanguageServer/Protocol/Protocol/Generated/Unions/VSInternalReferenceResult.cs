@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A union of: VSInternalReferenceItem[] | Location[].
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
 [System.Runtime.CompilerServices.Union]
 internal sealed class VSInternalReferenceResult : System.Runtime.CompilerServices.IUnion
 {

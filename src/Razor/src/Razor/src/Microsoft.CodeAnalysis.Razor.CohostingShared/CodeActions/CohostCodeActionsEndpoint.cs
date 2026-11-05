@@ -37,7 +37,7 @@ internal sealed class CohostCodeActionsEndpoint(
     IClientCapabilitiesService clientCapabilitiesService,
     IHtmlRequestInvoker requestInvoker,
     ITelemetryReporter telemetryReporter)
-    : AbstractCohostDocumentEndpoint<VSCodeActionParams, SumType<Command, CodeAction>[]?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<VSCodeActionParams, TextDocumentCodeActionResultItem[]?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
@@ -48,7 +48,7 @@ internal sealed class CohostCodeActionsEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.CodeAction?.DynamicRegistration == true)
         {
@@ -65,7 +65,7 @@ internal sealed class CohostCodeActionsEndpoint(
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSCodeActionParams request)
         => request.TextDocument;
 
-    protected override async Task<SumType<Command, CodeAction>[]?> HandleRequestAsync(VSCodeActionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<TextDocumentCodeActionResultItem[]?> HandleRequestAsync(VSCodeActionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var correlationId = Guid.NewGuid();
         using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentCodeActionName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.CodeActionRazorTelemetryThreshold, correlationId);
@@ -103,7 +103,7 @@ internal sealed class CohostCodeActionsEndpoint(
             ? await GetCSharpCodeActionsAsync(razorDocument, csharpDeclRequest, correlationId, cancellationToken).ConfigureAwait(false)
             : [];
 
-        return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, SumType<Command, CodeAction>[]?>(
+        return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, TextDocumentCodeActionResultItem[]?>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken) => service.GetCodeActionsAsync(solutionInfo, razorDocument.Id, request, htmlCodeActions, csharpCodeActions, csharpDeclCodeActions, cancellationToken),
             cancellationToken).ConfigureAwait(false);
@@ -111,7 +111,7 @@ internal sealed class CohostCodeActionsEndpoint(
 
     private async Task<RazorVSInternalCodeAction[]> GetCSharpCodeActionsAsync(TextDocument razorDocument, VSCodeActionParams request, Guid correlationId, CancellationToken cancellationToken)
     {
-        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(request.TextDocument.DocumentUri, cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await razorDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(request.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
         if (generatedDocument is null)
         {
             return [];
@@ -187,7 +187,7 @@ internal sealed class CohostCodeActionsEndpoint(
 
     internal readonly struct TestAccessor(CohostCodeActionsEndpoint instance)
     {
-        public Task<SumType<Command, CodeAction>[]?> HandleRequestAsync(TextDocument razorDocument, VSCodeActionParams request, CancellationToken cancellationToken)
+        public Task<TextDocumentCodeActionResultItem[]?> HandleRequestAsync(TextDocument razorDocument, VSCodeActionParams request, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
 
         public static Task<CodeAction[]> GetCodeActionsAsync(Document document, CodeActionParams request, bool supportsVSExtensions, CancellationToken cancellationToken)

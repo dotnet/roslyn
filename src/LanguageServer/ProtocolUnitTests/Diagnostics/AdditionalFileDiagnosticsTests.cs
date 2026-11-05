@@ -119,7 +119,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         Assert.Equal(3, results.Length);
 
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, Assert.IsType<string>(results[1].Diagnostics!.Single().Code!.Value));
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[1].Uri);
         AssertEx.Empty(results[2].Diagnostics);
 
@@ -163,12 +163,12 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(6, results.Length);
 
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, Assert.IsType<string>(results[1].Diagnostics!.Single().Code!.Value));
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[1].Uri);
-        Assert.Equal("CSProj1", ((LSP.VSDiagnostic)results[1].Diagnostics!.Single()).Projects!.First().ProjectName);
-        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[4].Diagnostics!.Single().Code);
+        Assert.Equal("CSProj1", ((LSP.Diagnostic)results[1].Diagnostics!.Single()).Projects!.First().ProjectName);
+        Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, Assert.IsType<string>(results[4].Diagnostics!.Single().Code!.Value));
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(txtFilePath), results[4].Uri);
-        Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
+        Assert.Equal("CSProj2", ((LSP.Diagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
@@ -278,7 +278,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
             public LSP.TextDocumentIdentifier? GetDocumentIdentifier() => new()
             {
-                DocumentUri = textDocument.GetURI()
+                Uri = textDocument.GetURI()
             };
 
             public ProjectOrDocumentId GetId() => new(textDocument.Id);

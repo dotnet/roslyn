@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The parameters sent in a save text document notification
 /// </summary>
-internal partial class DidSaveTextDocumentParams
+internal partial class DidSaveTextDocumentParams : ITextDocumentParams
 {
     /// <summary>
     /// The document that was saved.

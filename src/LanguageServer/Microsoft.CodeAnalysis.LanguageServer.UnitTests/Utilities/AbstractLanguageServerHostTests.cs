@@ -86,7 +86,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             ClientInfo = clientInfo,
             WorkspaceFolders = workspaceFolderPaths?.Select(static path => new WorkspaceFolder
             {
-                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
+                Uri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
                 Name = path,
             }).ToArray(),
         };
@@ -218,7 +218,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         {
             var logMessageParams = new LogMessageParams
             {
-                MessageType = (MessageType)type,
+                Type = (MessageType)type,
                 Message = message,
             };
 

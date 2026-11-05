@@ -39,7 +39,7 @@ internal sealed class CohostFoldingRangeEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.FoldingRange?.DynamicRegistration is true)
         {
@@ -92,7 +92,7 @@ internal sealed class CohostFoldingRangeEndpoint(
     {
         var foldingRangeParams = new FoldingRangeParams
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.GetURI() }
+            TextDocument = new TextDocumentIdentifier { Uri = razorDocument.GetURI() }
         };
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<FoldingRangeParams, FoldingRange[]>(

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Report for workspace spell checkable range requests.
 /// </summary>
-internal partial class VSInternalWorkspaceSpellCheckableReport
+internal partial class VSInternalWorkspaceSpellCheckableReport : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the server-generated version number for the spell checkable ranges. This is treated as a black box by the client: it is stored on the client for each textDocument and sent back to the server when requesting spell checkable ranges. The server can use this result ID to avoid resending spell checkable ranges that had previously been sent.

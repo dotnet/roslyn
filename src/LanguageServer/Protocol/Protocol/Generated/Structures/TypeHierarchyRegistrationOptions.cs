@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Type hierarchy options used during static or dynamic registration.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class TypeHierarchyRegistrationOptions : TypeHierarchyOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
@@ -18,6 +18,7 @@ internal partial class TypeHierarchyRegistrationOptions : TypeHierarchyOptions, 
     /// the document selector provided on the client side will be used.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("documentSelector")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public DocumentSelector? DocumentSelector { get; set; }
 
     /// <summary>

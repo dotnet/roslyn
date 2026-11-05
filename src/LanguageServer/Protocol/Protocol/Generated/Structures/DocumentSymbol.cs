@@ -33,12 +33,11 @@ internal partial class DocumentSymbol
     /// The kind of this symbol.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("kind")]
-    [System.Text.Json.Serialization.JsonRequired]
     public SymbolKind Kind { get; set; }
 
     /// <summary>
     /// Tags for this document symbol.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tags")]

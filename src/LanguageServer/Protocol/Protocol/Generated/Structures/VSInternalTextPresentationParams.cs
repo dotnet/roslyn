@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Class representing the parameters sent for a textDocument/_vs_textPresentation request.
 /// </summary>
-internal partial class VSInternalTextPresentationParams
+internal partial class VSInternalTextPresentationParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be operate on.
@@ -29,7 +29,6 @@ internal partial class VSInternalTextPresentationParams
     /// Gets or sets the text.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_text")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Text { get; set; } = null!;
 
 }

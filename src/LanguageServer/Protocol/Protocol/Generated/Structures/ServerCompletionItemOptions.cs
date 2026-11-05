@@ -15,7 +15,7 @@ internal partial class ServerCompletionItemOptions
     /// The server has support for completion item label
     /// details (see also `CompletionItemLabelDetails`) when
     /// receiving a completion item in a resolve call.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("labelDetailsSupport")]

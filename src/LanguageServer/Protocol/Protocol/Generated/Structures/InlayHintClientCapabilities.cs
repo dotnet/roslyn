@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Inlay hint client capabilities.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlayHintClientCapabilities

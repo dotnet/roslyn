@@ -43,7 +43,7 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         using var results = new PooledArrayBuilder<LspCodeLens>();
-        using var _ = HashSetPool<(LspRange Range, string? CommandIdentifier, string? Title)>.GetPooledObject(out var seenCodeLenses);
+        using var _ = HashSetPool<(LspRange Range, string? CommandValue, string? Title)>.GetPooledObject(out var seenCodeLenses);
 
         if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declarationDocument)
         {
@@ -70,7 +70,7 @@ internal class RemoteCodeLensService(in ServiceArgs args) : RazorDocumentService
                 }
 
                 codeLens.Range = razorRange;
-                if (!seenCodeLenses.Add((codeLens.Range, codeLens.Command?.CommandIdentifier, codeLens.Command?.Title)))
+                if (!seenCodeLenses.Add((codeLens.Range, codeLens.Command?.CommandValue, codeLens.Command?.Title)))
                 {
                     continue;
                 }

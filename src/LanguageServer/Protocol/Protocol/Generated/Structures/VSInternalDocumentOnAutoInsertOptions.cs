@@ -15,7 +15,6 @@ internal partial class VSInternalDocumentOnAutoInsertOptions
     /// Gets or sets trigger characters for on auto insert.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_triggerCharacters")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string[] TriggerCharacters { get; set; } = null!;
 
 }

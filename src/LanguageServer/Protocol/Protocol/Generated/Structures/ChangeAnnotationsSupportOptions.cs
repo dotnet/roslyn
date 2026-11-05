@@ -17,7 +17,7 @@ internal partial class ChangeAnnotationsSupportOptions
     /// be a tree node.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("groupsOnLabel")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
-    public bool GroupsOnLabel { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public bool? GroupsOnLabel { get; set; }
 
 }

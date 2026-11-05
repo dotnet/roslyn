@@ -22,7 +22,7 @@ internal sealed class HtmlDocumentPublisher(
 
     public async Task<bool> TryPublishAsync(TextDocument document, Checksum checksum, string htmlText, CancellationToken cancellationToken)
     {
-        var request = new HtmlUpdateParameters(new TextDocumentIdentifier { DocumentUri = document.GetURI() }, checksum.ToString(), htmlText);
+        var request = new HtmlUpdateParameters(new TextDocumentIdentifier { Uri = document.GetURI() }, checksum.ToString(), htmlText);
 
         var clientConnection = _razorClientServerManagerProvider.ClientLanguageServerManager.AssumeNotNull();
         await clientConnection.SendRequestAsync("razor/updateHtml", request, cancellationToken).ConfigureAwait(false);

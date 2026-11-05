@@ -47,7 +47,7 @@ public abstract class AbstractInlayHintTests : AbstractLanguageServerProtocolTes
                 Assert.Single(matchingInlayHints);
 
                 var matchingInlayHint = matchingInlayHints.Single();
-                AssertEx.Equal(name, matchingInlayHint.Label.First.TrimEnd(':'));
+                AssertEx.Equal(name, Assert.IsType<string>(matchingInlayHint.Label.Value).TrimEnd(':'));
 
                 Assert.NotNull(matchingInlayHint.Kind);
                 Assert.True(matchingInlayHint.PaddingRight);
@@ -58,7 +58,7 @@ public abstract class AbstractInlayHintTests : AbstractLanguageServerProtocolTes
                 }
 
                 var resolvedInlayHint = await testLspServer.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, matchingInlayHint, CancellationToken.None);
-                Assert.NotNull(resolvedInlayHint?.ToolTip);
+                Assert.NotNull(resolvedInlayHint?.Tooltip);
             }
         }
     }

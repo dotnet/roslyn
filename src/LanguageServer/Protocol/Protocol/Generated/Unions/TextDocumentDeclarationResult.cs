@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A union of: Location | Location[] | DeclarationLink[].
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
 [System.Runtime.CompilerServices.Union]
 internal sealed class TextDocumentDeclarationResult : System.Runtime.CompilerServices.IUnion
 {

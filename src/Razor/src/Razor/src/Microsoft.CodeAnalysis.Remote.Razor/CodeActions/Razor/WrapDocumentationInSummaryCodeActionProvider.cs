@@ -32,7 +32,7 @@ internal sealed class WrapDocumentationInSummaryCodeActionProvider : IRazorCodeA
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (diagnostic.Code is not { } code ||
-                !code.TryGetSecond(out var diagnosticId) ||
+                code is not string diagnosticId ||
                 diagnosticId != RazorDiagnosticFactory.Parsing_DocumentationShouldStartWithTag.Id)
             {
                 continue;
@@ -53,13 +53,13 @@ internal sealed class WrapDocumentationInSummaryCodeActionProvider : IRazorCodeA
 
             var workspaceEdit = new WorkspaceEdit
             {
-                DocumentChanges = new TextDocumentEdit[]
+                DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
                 {
-                    new()
+                    new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier
                         {
-                            DocumentUri = context.Request.TextDocument.DocumentUri,
+                            Uri = context.Request.TextDocument.Uri,
                         },
                         Edits =
                         [

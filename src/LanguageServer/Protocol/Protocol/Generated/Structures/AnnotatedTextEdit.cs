@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A special text edit with an additional change annotation.
-/// 
+///
 /// @since 3.16.0.
 /// </summary>
 internal partial class AnnotatedTextEdit : TextEdit

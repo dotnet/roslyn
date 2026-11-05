@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 
 [DataContract]
-internal sealed class RazorVSInternalCodeAction : VSInternalCodeAction
+internal sealed class RazorVSInternalCodeAction : CodeAction
 {
     [JsonPropertyName("name")]
     [DataMember(Name = "name")]

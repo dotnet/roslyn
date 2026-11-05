@@ -8,5 +8,5 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteDocumentSymbolService : IRemoteJsonService
 {
-    ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>?> GetDocumentSymbolsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId documentId, bool useHierarchicalSymbols, CancellationToken cancellationToken);
+    ValueTask<TextDocumentDocumentSymbolResult?> GetDocumentSymbolsAsync(JsonSerializableRazorSolutionWrapper solutionInfo, JsonSerializableDocumentId documentId, bool useHierarchicalSymbols, CancellationToken cancellationToken);
 }

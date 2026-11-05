@@ -9,20 +9,18 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Class representing the parameters sent for the textDocument/validateBreakableRange request.
 /// </summary>
-internal partial class VSInternalValidateBreakableRangeParams
+internal partial class VSInternalValidateBreakableRangeParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the <see cref="TextDocumentIdentifier"/> for the request.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the <see cref="Range"/> at which the request was sent.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_range")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Range Range { get; set; } = null!;
 
 }

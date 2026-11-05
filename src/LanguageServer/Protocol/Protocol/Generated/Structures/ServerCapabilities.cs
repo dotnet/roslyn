@@ -15,12 +15,12 @@ internal partial class ServerCapabilities
     /// <summary>
     /// The position encoding the server picked from the encodings offered
     /// by the client via the client capability `general.positionEncodings`.
-    /// 
+    ///
     /// If the client didn't provide any position encodings the only valid
     /// value that a server can return is 'utf-16'.
-    /// 
+    ///
     /// If omitted it defaults to 'utf-16'.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("positionEncoding")]
@@ -33,7 +33,7 @@ internal partial class ServerCapabilities
     /// TextDocumentSyncKind number.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocumentSync")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    [System.Text.Json.Serialization.JsonConverter(typeof(TextDocumentSyncConverter))]
     public _TextDocumentSync? TextDocumentSync { get; set; }
 
     /// <summary>
@@ -196,7 +196,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// The server provides call hierarchy support.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("callHierarchyProvider")]
@@ -205,7 +205,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// The server provides linked editing range support.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("linkedEditingRangeProvider")]
@@ -214,7 +214,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// The server provides semantic tokens support.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("semanticTokensProvider")]
@@ -223,7 +223,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// The server provides moniker support.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("monikerProvider")]
@@ -232,7 +232,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// The server provides type hierarchy support.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("typeHierarchyProvider")]
@@ -241,7 +241,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// The server provides inline values.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("inlineValueProvider")]
@@ -250,7 +250,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// The server provides inlay hints.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("inlayHintProvider")]
@@ -259,7 +259,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// The server has support for pull model diagnostics.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("diagnosticProvider")]
@@ -268,7 +268,7 @@ internal partial class ServerCapabilities
 
     /// <summary>
     /// Inline completion options used during static registration.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("inlineCompletionProvider")]
@@ -397,6 +397,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: CallHierarchyRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _CallHierarchyProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -408,6 +409,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: CodeActionRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _CodeActionProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -419,6 +421,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: DocumentColorRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _ColorProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -430,6 +433,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: DeclarationRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _DeclarationProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -441,6 +445,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: DefinitionRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _DefinitionProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -452,6 +457,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: DocumentFormattingRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _DocumentFormattingProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -463,6 +469,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: DocumentHighlightRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _DocumentHighlightProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -474,6 +481,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: DocumentRangeFormattingRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _DocumentRangeFormattingProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -485,6 +493,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: DocumentSymbolRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _DocumentSymbolProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -496,6 +505,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: FoldingRangeRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _FoldingRangeProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -507,6 +517,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: HoverRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _HoverProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -518,6 +529,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: ImplementationRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _ImplementationProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -529,6 +541,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: InlayHintRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _InlayHintProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -540,6 +553,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: InlineCompletionRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _InlineCompletionProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -551,6 +565,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: InlineValueRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _InlineValueProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -562,6 +577,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: LinkedEditingRangeRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _LinkedEditingRangeProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -573,6 +589,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: MonikerRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _MonikerProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -584,6 +601,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: ReferenceRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _ReferencesProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -595,6 +613,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: RenameRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _RenameProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -606,6 +625,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: SelectionRangeRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _SelectionRangeProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -617,6 +637,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: TextDocumentSyncOptions | TextDocumentSyncKind.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _TextDocumentSync : System.Runtime.CompilerServices.IUnion
     {
@@ -628,6 +649,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: TypeDefinitionRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _TypeDefinitionProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -639,6 +661,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: TypeHierarchyRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _TypeHierarchyProvider : System.Runtime.CompilerServices.IUnion
     {
@@ -650,6 +673,7 @@ internal partial class ServerCapabilities
     /// <summary>
     /// A union of: WorkspaceSymbolRegistrationOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _WorkspaceSymbolProvider : System.Runtime.CompilerServices.IUnion
     {

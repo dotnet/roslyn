@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal static class CSharpCompletionItemFormatter
 {
-    public static async Task<VSInternalCompletionItem> FormatAsync(
-        VSInternalCompletionItem resolvedCompletionItem,
+    public static async Task<CompletionItem> FormatAsync(
+        CompletionItem resolvedCompletionItem,
         RemoteDocumentSnapshot documentSnapshot,
         Solution solution,
         bool declarationDocument,
@@ -36,7 +36,7 @@ internal static class CSharpCompletionItemFormatter
 
         // In VS Code, Roslyn does resolve via a custom command. Thats fine, but we have to modify the text edit sitting within it,
         // rather than the one LSP knows about.
-        if (resolvedCompletionItem.Command is { CommandIdentifier: CompletionResultFactory.CompleteComplexEditCommand, Arguments: var args })
+        if (resolvedCompletionItem.Command is { CommandValue: CompletionResultFactory.CompleteComplexEditCommand, Arguments: var args })
         {
             // In LSP case, command parameters will be JsonElement objects and will need to be deserialized first
             if (args is [JsonElement textDocumentIdentifierData, JsonElement complexEditData, _, _])
@@ -48,7 +48,7 @@ internal static class CSharpCompletionItemFormatter
             // In cohosting case, command parameters will be of the correct types (or deserialized by now in LSP case)
             if (args is [TextDocumentIdentifier textDocumentIdentifier, TextEdit complexEdit, _, int nextCursorPosition])
             {
-                var commandGeneratedDocumentUri = textDocumentIdentifier.DocumentUri;
+                var commandGeneratedDocumentUri = textDocumentIdentifier.Uri;
                 // Just in case the edit is for a different document, however unlikely, we'll use the uri as the source of truth
                 if (!codeDocument.TryGetCSharpDocumentForGeneratedUri(solution, commandGeneratedDocumentUri, out var commandCSharpDocument))
                 {
@@ -66,7 +66,7 @@ internal static class CSharpCompletionItemFormatter
                 {
                     args[0] = new TextDocumentIdentifier()
                     {
-                        DocumentUri = documentSnapshot.Uri,
+                        Uri = documentSnapshot.Uri,
                     };
                     args[1] = formattedTextEdit;
                     if (nextCursorPosition >= 0)
@@ -86,15 +86,15 @@ internal static class CSharpCompletionItemFormatter
         }
         else if (resolvedCompletionItem.Command is not null)
         {
-            logger.LogError($"Unsupported command for Razor document: {resolvedCompletionItem.Command.CommandIdentifier}.");
+            logger.LogError($"Unsupported command for Razor document: {resolvedCompletionItem.Command.CommandValue}.");
             Debug.Fail("Unexpected command. Do we need to add something to support a new feature?");
         }
 
         if (resolvedCompletionItem.TextEdit is not null &&
             supportsVisualStudioExtensions &&
-            resolvedCompletionItem.VsResolveTextEditOnCommit)
+            resolvedCompletionItem.ResolveTextEditOnCommit)
         {
-            if (resolvedCompletionItem.TextEdit.Value.TryGetFirst(out var textEdit))
+            if (resolvedCompletionItem.TextEdit is TextEdit textEdit)
             {
                 var formattedTextChange = await FormatTextEditsAsync([textEdit], documentSnapshot, csharpDocument, options, formattingService, cancellationToken).ConfigureAwait(false);
                 if (formattedTextChange is not null)
@@ -119,7 +119,7 @@ internal static class CSharpCompletionItemFormatter
         return resolvedCompletionItem;
     }
 
-    private static string GetArgumentTypesLogString(VSInternalCompletionItem resolvedCompletionItem)
+    private static string GetArgumentTypesLogString(CompletionItem resolvedCompletionItem)
     {
         if (resolvedCompletionItem.Command?.Arguments is { } args)
         {

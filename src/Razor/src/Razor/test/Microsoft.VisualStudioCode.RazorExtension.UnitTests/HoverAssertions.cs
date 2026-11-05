@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -10,7 +11,7 @@ internal static class HoverAssertions
 {
     public static void VerifyContents(this LspHover hover, object expected)
     {
-        var markup = hover.Contents.Fourth;
+        var markup = Assert.IsType<MarkupContent>(hover.Contents?.Value);
 
         AssertEx.EqualOrDiff(expected.ToString(), markup.Value.TrimEnd('\r', '\n'));
     }

@@ -399,7 +399,7 @@ public sealed class TypeHierarchyTests(ITestOutputHelper testOutputHelper) : Abs
     private static void AssertEqualsItem(LSP.TypeHierarchyItem item, string expectedName, LSP.Location expectedDefinition)
     {
         Assert.Equal(expectedName, item.Name);
-        Assert.Equal(expectedDefinition.DocumentUri, item.Uri);
+        Assert.Equal(expectedDefinition.Uri, item.Uri);
         Assert.Equal(0, CompareRange(expectedDefinition.Range, item.SelectionRange));
     }
 
@@ -408,7 +408,7 @@ public sealed class TypeHierarchyTests(ITestOutputHelper testOutputHelper) : Abs
             LSP.Methods.PrepareTypeHierarchyName,
             new LSP.TypeHierarchyPrepareParams
             {
-                TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
             },
             CancellationToken.None) ?? [];

@@ -204,7 +204,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         var uri = new DocumentUri($"{document.CreateSystemUri()}{LanguageServerConstants.HtmlVirtualDocumentSuffix}");
         var htmlResponse = new LspLocation
         {
-            DocumentUri = uri,
+            Uri = uri,
             Range = inputText.GetRange(input.Span),
         };
 
@@ -236,10 +236,10 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
         Assert.NotNull(result);
-        var locations = result.Value.First;
+        var locations = Assert.IsType<LspLocation[]>(result.Value);
         var location = Assert.Single(locations);
 
-        Assert.Equal(FileUri("SurveyPrompt.razor"), location.DocumentUri);
+        Assert.Equal(FileUri("SurveyPrompt.razor"), location.Uri);
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
@@ -257,13 +257,13 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         Assert.NotNull(result);
 
         var inputText = SourceText.From(input.Text);
-        if (result.Value.TryGetFirst(out var roslynLocations))
+        if (result.Value is LspLocation[] roslynLocations)
         {
             var expected = input.Spans.Select(s => inputText.GetRange(s).ToLinePositionSpan()).OrderBy(r => r.Start.Line).ToArray();
             var actual = roslynLocations.Select(l => l.Range.ToLinePositionSpan()).OrderBy(r => r.Start.Line).ToArray();
             Assert.Equal(expected, actual);
 
-            Assert.All(roslynLocations, l => Assert.Equal(document.GetURI(), l.DocumentUri));
+            Assert.All(roslynLocations, l => Assert.Equal(document.GetURI(), l.Uri));
         }
         else
         {
@@ -271,7 +271,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         }
     }
 
-    private async Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> GetGoToImplementationResultAsync(
+    private async Task<VSInternalReferenceResult?> GetGoToImplementationResultAsync(
         TestCode input,
         LspLocation? htmlResponse = null,
         RazorFileKind? fileKind = null,
@@ -281,11 +281,11 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         return await GetGoToImplementationResultCoreAsync(input, document, htmlResponse);
     }
 
-    private async Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> GetGoToImplementationResultCoreAsync(TestCode input, TextDocument document, LspLocation? htmlResponse)
+    private async Task<VSInternalReferenceResult?> GetGoToImplementationResultCoreAsync(TestCode input, TextDocument document, LspLocation? htmlResponse)
     {
         var requestInvoker = htmlResponse is null
             ? new TestHtmlRequestInvoker()
-            : new TestHtmlRequestInvoker([(Methods.TextDocumentImplementationName, new SumType<LspLocation[], VSInternalReferenceItem[]>?(new LspLocation[] { htmlResponse }))]);
+            : new TestHtmlRequestInvoker([(Methods.TextDocumentImplementationName, new VSInternalReferenceResult(new LspLocation[] { htmlResponse }))]);
 
         var inputText = await document.GetTextAsync(DisposalToken);
 
@@ -295,7 +295,7 @@ public class CohostGoToImplementationEndpointTest(ITestOutputHelper testOutputHe
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
             Position = position,
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(textDocumentPositionParams, document, DisposalToken);

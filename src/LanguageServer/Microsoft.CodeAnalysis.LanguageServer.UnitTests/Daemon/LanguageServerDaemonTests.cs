@@ -145,7 +145,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             Methods.TextDocumentHoverName,
             new HoverParams
             {
-                TextDocument = new TextDocumentIdentifier { DocumentUri = firstDocumentUri },
+                TextDocument = new TextDocumentIdentifier { Uri = firstDocumentUri },
                 Position = new Position(0, 6),
             },
             CancellationToken.None);
@@ -357,13 +357,13 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             Methods.TextDocumentHoverName,
             new HoverParams
             {
-                TextDocument = new TextDocumentIdentifier { DocumentUri = survivorDocumentUri },
+                TextDocument = new TextDocumentIdentifier { Uri = survivorDocumentUri },
                 Position = new Position(0, 6),
             },
             CancellationToken.None);
 
         Assert.NotNull(hover);
-        Assert.Contains("Survivor", hover.Contents.Fourth.Value);
+        Assert.Contains("Survivor", Assert.IsType<MarkupContent>(hover.Contents?.Value).Value);
 
         // And the daemon still accepts brand-new clients.
         await using var late = await daemon.CreateClientAsync();

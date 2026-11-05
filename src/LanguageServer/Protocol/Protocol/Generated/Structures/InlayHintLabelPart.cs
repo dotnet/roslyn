@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// An inlay hint label part allows for interactive and composite labels
 /// of inlay hints.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlayHintLabelPart
@@ -18,7 +18,6 @@ internal partial class InlayHintLabelPart
     /// The value of this label part.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("value")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Value { get; set; } = null!;
 
     /// <summary>
@@ -33,13 +32,13 @@ internal partial class InlayHintLabelPart
     /// <summary>
     /// An optional source code location that represents this
     /// label part.
-    /// 
+    ///
     /// The editor will use this location for the hover and for code navigation
     /// features: This part will become a clickable link that resolves to the
     /// definition of the symbol at the given location (not necessarily the
     /// location itself), it shows the hover that shows at the given location,
     /// and it shows a context menu with further code navigation commands.
-    /// 
+    ///
     /// Depending on the client capability `inlayHint.resolveSupport` clients
     /// might resolve this property late using the resolve request.
     /// </summary>
@@ -49,7 +48,7 @@ internal partial class InlayHintLabelPart
 
     /// <summary>
     /// An optional command for this label part.
-    /// 
+    ///
     /// Depending on the client capability `inlayHint.resolveSupport` clients
     /// might resolve this property late using the resolve request.
     /// </summary>
@@ -60,6 +59,7 @@ internal partial class InlayHintLabelPart
     /// <summary>
     /// A union of: string | MarkupContent.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Tooltip : System.Runtime.CompilerServices.IUnion
     {

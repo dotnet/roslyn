@@ -18,16 +18,16 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         {
             Items =
             [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Test",
                     VsCommitCharacters = commitCharacters
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionList = new VSInternalCompletionListSetting()
+            VsCompletionList = new VSInternalCompletionListSetting()
             {
                 CommitCharacters = true,
             }
@@ -41,7 +41,7 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         Assert.Null(item.CommitCharacters);
 
         Assert.NotNull(vsCompletionList.CommitCharacters);
-        var promotedChar = Assert.Single(vsCompletionList.CommitCharacters.Value.First);
+        var promotedChar = Assert.Single(Assert.IsType<string[]>(vsCompletionList.CommitCharacters.Value));
         Assert.Equal("<", promotedChar);
     }
 
@@ -53,16 +53,16 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Test",
                     VsCommitCharacters = commitCharacters
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionList = new VSInternalCompletionListSetting()
+            VsCompletionList = new VSInternalCompletionListSetting()
             {
                 CommitCharacters = false,
             }
@@ -73,7 +73,7 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
 
         // Assert
         var item = Assert.Single(vsCompletionList.Items);
-        Assert.Equal(commitCharacters, ((VSInternalCompletionItem)item).VsCommitCharacters);
+        Assert.Equal(commitCharacters, Assert.IsType<string[]>(item.VsCommitCharacters?.Value));
         Assert.Null(vsCompletionList.CommitCharacters);
     }
 
@@ -89,21 +89,21 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item1",
                     TextEdit = new TextEdit { Range = sharedRange, NewText = "NewItem1" }
                 },
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item2",
                     TextEdit = new TextEdit { Range = sharedRange, NewText = "NewItem2" }
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionListSetting = new CompletionListSetting()
+            CompletionList = new CompletionListCapabilities()
             {
                 ItemDefaults = ["editRange"]
             }
@@ -114,7 +114,7 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
 
         // Assert
         Assert.NotNull(result.ItemDefaults);
-        Assert.True(result.ItemDefaults.EditRange!.Value.TryGetFirst(out var promotedRange));
+        var promotedRange = Assert.IsType<LspRange>(result.ItemDefaults.EditRange?.Value);
         Assert.Equal(sharedRange, promotedRange);
 
         Assert.All(result.Items, item =>
@@ -139,21 +139,21 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "span",
                     TextEdit = new TextEdit { Range = sharedRange, NewText = "span" }
                 },
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "div",
                     TextEdit = new TextEdit { Range = sharedRange, NewText = "different-text" }
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionListSetting = new CompletionListSetting()
+            CompletionList = new CompletionListCapabilities()
             {
                 ItemDefaults = ["editRange"]
             }
@@ -184,21 +184,21 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item1",
                     TextEdit = new TextEdit { Range = range1, NewText = "NewItem1" }
                 },
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item2",
                     TextEdit = new TextEdit { Range = range2, NewText = "NewItem2" }
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionListSetting = new CompletionListSetting()
+            CompletionList = new CompletionListCapabilities()
             {
                 ItemDefaults = ["editRange"]
             }
@@ -224,20 +224,20 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item1",
                     TextEdit = new TextEdit { Range = sharedRange, NewText = "NewItem1" }
                 },
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item2"
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionListSetting = new CompletionListSetting()
+            CompletionList = new CompletionListCapabilities()
             {
                 ItemDefaults = ["editRange"]
             }
@@ -262,16 +262,16 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item1",
                     TextEdit = new TextEdit { Range = sharedRange, NewText = "NewItem1" }
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionListSetting = new CompletionListSetting()
+            CompletionList = new CompletionListCapabilities()
             {
                 ItemDefaults = ["commitCharacters"]
             }
@@ -293,26 +293,26 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item1",
                     VsCommitCharacters = commitChars
                 },
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item2",
                     VsCommitCharacters = commitChars
                 },
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item3",
                     VsCommitCharacters = new[] { ">" }
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionListSetting = new CompletionListSetting()
+            CompletionList = new CompletionListCapabilities()
             {
                 ItemDefaults = ["commitCharacters"]
             }
@@ -327,13 +327,13 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         Assert.Equal(commitChars, result.ItemDefaults.CommitCharacters);
 
         // Items that matched the promoted set have their per-item chars cleared
-        Assert.Null(((VSInternalCompletionItem)result.Items[0]).VsCommitCharacters);
-        Assert.Null(((VSInternalCompletionItem)result.Items[1]).VsCommitCharacters);
+        Assert.Null(((CompletionItem)result.Items[0]).VsCommitCharacters);
+        Assert.Null(((CompletionItem)result.Items[1]).VsCommitCharacters);
 
         // Item with different chars retains them
-        var item2VsChars = ((VSInternalCompletionItem)result.Items[2]).VsCommitCharacters;
+        var item2VsChars = ((CompletionItem)result.Items[2]).VsCommitCharacters;
         Assert.NotNull(item2VsChars);
-        Assert.Equal([">"], (string[])item2VsChars.Value.Value!);
+        Assert.Equal([">"], Assert.IsType<string[]>(item2VsChars.Value));
     }
 
     [Fact]
@@ -349,21 +349,21 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item1",
                     VsCommitCharacters = vsChars
                 },
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "Item2",
                     VsCommitCharacters = vsChars
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionListSetting = new CompletionListSetting()
+            CompletionList = new CompletionListCapabilities()
             {
                 ItemDefaults = ["commitCharacters"]
             }
@@ -387,21 +387,21 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
         var completionList = new RazorVSInternalCompletionList()
         {
             Items = [
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "ItemWithChars",
                     VsCommitCharacters = commitChars
                 },
-                new VSInternalCompletionItem()
+                new CompletionItem()
                 {
                     Label = "ItemWithoutChars"
                     // No CommitCharacters or VsCommitCharacters
                 }
             ]
         };
-        var capabilities = new VSInternalCompletionSetting()
+        var capabilities = new CompletionClientCapabilities()
         {
-            CompletionListSetting = new CompletionListSetting()
+            CompletionList = new CompletionListCapabilities()
             {
                 ItemDefaults = ["commitCharacters"]
             }
@@ -412,7 +412,7 @@ public class CompletionListOptimizerTest(ITestOutputHelper testOutput) : Tooling
 
         // Assert — item without chars gets explicit empty to opt out of inheritance
         Assert.NotNull(result.ItemDefaults);
-        var itemWithout = (VSInternalCompletionItem)result.Items[1];
+        var itemWithout = (CompletionItem)result.Items[1];
         Assert.NotNull(itemWithout.CommitCharacters);
         Assert.Empty(itemWithout.CommitCharacters);
     }

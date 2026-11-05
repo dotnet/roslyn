@@ -63,7 +63,7 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
             {
                 TextDocument = new LSP.TextDocumentClientCapabilities
                 {
-                    DocumentSymbol = new LSP.DocumentSymbolSetting
+                    DocumentSymbol = new LSP.DocumentSymbolClientCapabilities
                     {
                         HierarchicalDocumentSymbolSupport = true,
                     },
@@ -118,9 +118,9 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
                 }
             }
             """)).ConfigureAwait(false);
-        var caret = new LSP.Location { Range = new() { Start = new(0, 6), End = new(0, 7) }, DocumentUri = looseFileUri };
+        var caret = new LSP.Location { Range = new() { Start = new(0, 6), End = new(0, 7) }, Uri = looseFileUri };
         var hover = await RunGetHoverAsync(testLspServer, caret).ConfigureAwait(false);
-        Assert.Contains("class A", hover.Contents.Fourth.Value);
+        Assert.Contains("class A", Assert.IsType<MarkupContent>(hover.Contents?.Value).Value);
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
 
         // Assert that the misc workspace contains the updated document.
@@ -196,12 +196,12 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
         // Open an empty loose file and make a request to verify it gets added to the misc workspace.
         // Include some Unicode characters to test URL handling.
         var looseFileUri = CreateAbsoluteDocumentUri("\ue25b\ud86d\udeac.cs");
-        var looseFileTextDocumentIdentifier = new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri };
+        var looseFileTextDocumentIdentifier = new LSP.TextDocumentIdentifier { Uri = looseFileUri };
         await testLspServer.OpenDocumentAsync(looseFileUri, source).ConfigureAwait(false);
 
         // Verify that the file returned by the manager is in the lsp misc files workspace.
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
-        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { DocumentUri = looseFileUri });
+        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { Uri = looseFileUri });
         Contract.ThrowIfNull(context);
         Contract.ThrowIfNull(context.Value.Document);
         Assert.True(context.Value.Workspace.CurrentSolution.ContainsDocument(context.Value.Document.Id));
@@ -359,7 +359,7 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
         var result = await testLspServer.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(Methods.TextDocumentDefinitionName,
             CreateTextDocumentPositionParams(new LSP.Location
             {
-                DocumentUri = looseFileUri,
+                Uri = looseFileUri,
                 Range = new LSP.Range
                 {
                     Start = new(4, 8)

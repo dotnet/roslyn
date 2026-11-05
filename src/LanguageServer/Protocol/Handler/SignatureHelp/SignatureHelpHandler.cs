@@ -56,7 +56,7 @@ internal sealed class SignatureHelpHandler(SignatureHelpService signatureHelpSer
             LSP.SignatureInformation sigInfo;
             if (supportsVisualStudioExtensions)
             {
-                sigInfo = new LSP.VSInternalSignatureInformation
+                sigInfo = new LSP.SignatureInformation
                 {
                     ColorizedLabel = GetSignatureClassifiedText(item)
                 };

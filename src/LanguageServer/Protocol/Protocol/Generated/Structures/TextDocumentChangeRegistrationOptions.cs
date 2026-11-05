@@ -15,7 +15,6 @@ internal partial class TextDocumentChangeRegistrationOptions : TextDocumentRegis
     /// How documents are synced to the server.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("syncKind")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentSyncKind SyncKind { get; set; }
 
 }

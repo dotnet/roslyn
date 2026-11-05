@@ -22,12 +22,12 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
     public async Task TestServerHandlesTextSyncRequestsAsync()
     {
         await using var server = await CreateLanguageServerAsync();
-        var document = new VersionedTextDocumentIdentifier { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri("C:\\\ue25b\ud86d\udeac.cs") };
+        var document = new VersionedTextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteDocumentUri("C:\\\ue25b\ud86d\udeac.cs") };
         var response = await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
         {
             TextDocument = new TextDocumentItem
             {
-                DocumentUri = document.DocumentUri,
+                Uri = document.Uri,
                 Text = "Write"
             }
         }, CancellationToken.None);
@@ -65,7 +65,7 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
     {
         await using var server = await CreateLanguageServerAsync();
 
-        var capabilities = server.ServerCapabilities as VSInternalServerCapabilities;
+        var capabilities = server.ServerCapabilities as ServerCapabilities;
         Assert.NotNull(capabilities);
         Assert.NotNull(capabilities.OnAutoInsertProvider);
         Assert.NotEmpty(capabilities.OnAutoInsertProvider.TriggerCharacters);

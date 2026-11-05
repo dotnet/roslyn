@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Represents an outgoing call, e.g. calling a getter from a method or a method from a constructor etc.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class CallHierarchyOutgoingCall

@@ -47,7 +47,7 @@ public abstract class AbstractOnAutoInsertTests(ITestOutputHelper testOutputHelp
         await using var testLspServer = await testLspServerTask;
         var locationTyped = testLspServer.GetLocations("type").Single();
 
-        var document = await testLspServer.GetDocumentAsync(locationTyped.DocumentUri);
+        var document = await testLspServer.GetDocumentAsync(locationTyped.Uri);
         var documentText = await document.GetTextAsync();
 
         var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces, tabSize);
@@ -74,7 +74,7 @@ public abstract class AbstractOnAutoInsertTests(ITestOutputHelper testOutputHelp
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, initilizationOptions);
         var locationTyped = testLspServer.GetLocations("type").Single();
-        var documentText = await (await testLspServer.GetDocumentAsync(locationTyped.DocumentUri)).GetTextAsync();
+        var documentText = await (await testLspServer.GetDocumentAsync(locationTyped.Uri)).GetTextAsync();
 
         var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces, tabSize);
 
@@ -100,8 +100,8 @@ public abstract class AbstractOnAutoInsertTests(ITestOutputHelper testOutputHelp
         => new()
         {
             Position = locationTyped.Range.Start,
-            Character = characterTyped,
-            TextDocument = CreateTextDocumentIdentifier(locationTyped.DocumentUri),
+            Ch = characterTyped,
+            TextDocument = CreateTextDocumentIdentifier(locationTyped.Uri),
             Options = new LSP.FormattingOptions
             {
                 InsertSpaces = insertSpaces,

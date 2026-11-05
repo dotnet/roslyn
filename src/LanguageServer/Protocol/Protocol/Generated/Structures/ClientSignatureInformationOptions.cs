@@ -29,7 +29,7 @@ internal partial class ClientSignatureInformationOptions
     /// <summary>
     /// The client supports the `activeParameter` property on `SignatureInformation`
     /// literal.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("activeParameterSupport")]
@@ -40,7 +40,7 @@ internal partial class ClientSignatureInformationOptions
     /// The client supports the `activeParameter` property on
     /// `SignatureHelp`/`SignatureInformation` being set to `null` to
     /// indicate that no parameter should be active.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("noActiveParameterSupport")]

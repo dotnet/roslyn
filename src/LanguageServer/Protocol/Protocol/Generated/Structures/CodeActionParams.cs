@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The parameters of a <see cref="Requests.TextDocumentCodeAction"/>.
 /// </summary>
-internal partial class CodeActionParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<TextDocumentCodeActionResultItem[]?>
+internal partial class CodeActionParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<TextDocumentCodeActionResultItem[]?>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.

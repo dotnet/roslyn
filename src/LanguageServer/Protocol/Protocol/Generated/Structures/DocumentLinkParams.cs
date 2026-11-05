@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The parameters of a <see cref="Requests.TextDocumentDocumentLink"/>.
 /// </summary>
-internal partial class DocumentLinkParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<DocumentLink[]?>
+internal partial class DocumentLinkParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<DocumentLink[]?>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.
@@ -30,7 +30,6 @@ internal partial class DocumentLinkParams : Roslyn.LanguageServer.Protocol.IPart
     /// The document to provide document links for.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
 }

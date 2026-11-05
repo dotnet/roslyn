@@ -15,7 +15,6 @@ internal partial class VSInternalCodeActionGroupSetting
     /// Gets or sets the code actions default group names the client supports.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_valueSet")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string[] ValueSet { get; set; } = null!;
 
 }

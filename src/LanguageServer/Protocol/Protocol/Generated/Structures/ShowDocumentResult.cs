@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The result of a showDocument request.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class ShowDocumentResult
@@ -17,6 +17,7 @@ internal partial class ShowDocumentResult
     /// A boolean indicating if the show was successful.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("success")]
+    [System.Text.Json.Serialization.JsonRequired]
     public bool Success { get; set; }
 
 }

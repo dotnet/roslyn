@@ -31,7 +31,7 @@ internal partial class SignatureHelpClientCapabilities
     /// `textDocument/signatureHelp` request. A client that opts into
     /// contextSupport will also support the `retriggerCharacters` on
     /// `SignatureHelpOptions`.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("contextSupport")]

@@ -63,7 +63,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
             cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task<LSP.VSInternalCompletionList?> GetCompletionListAsync(
+    public static async Task<LSP.CompletionList?> GetCompletionListAsync(
         Document document,
         int position,
         LSP.CompletionContext? completionContext,

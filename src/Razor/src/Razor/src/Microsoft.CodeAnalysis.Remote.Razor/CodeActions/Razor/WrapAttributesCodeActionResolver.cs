@@ -32,7 +32,7 @@ internal sealed class WrapAttributesCodeActionResolver : IRazorCodeActionResolve
 
         var indentationString = FormattingUtilities.GetIndentationString(actionParams.IndentSize, options.InsertSpaces, options.TabSize);
         var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        using var edits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
+        using var edits = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem>();
 
         foreach (var position in actionParams.NewLinePositions)
         {
@@ -43,13 +43,13 @@ internal sealed class WrapAttributesCodeActionResolver : IRazorCodeActionResolve
 
         var tde = new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = documentSnapshot.Uri },
             Edits = edits.ToArray()
         };
 
         return new WorkspaceEdit
         {
-            DocumentChanges = new SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]>([tde])
+            DocumentChanges = [tde]
         };
     }
 

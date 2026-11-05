@@ -21,7 +21,7 @@ internal static class ShowToastNotification
     public static readonly LSP.Command ShowCSharpLogsCommand = new()
     {
         Title = LanguageServerResources.Show_csharp_logs,
-        CommandIdentifier = "csharp.showOutputWindow"
+        CommandValue = "csharp.showOutputWindow"
     };
 
     public static async Task ShowToastNotificationAsync(

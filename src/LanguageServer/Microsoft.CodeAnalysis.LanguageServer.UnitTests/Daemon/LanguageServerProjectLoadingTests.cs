@@ -34,8 +34,8 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
         {
             TextDocument = new TextDocumentItem
             {
-                DocumentUri = sourceUri,
-                LanguageId = "csharp",
+                Uri = sourceUri,
+                LanguageId = new("csharp"),
                 Version = 1,
                 Text = source
             }
@@ -48,14 +48,14 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
             Methods.TextDocumentDefinitionName,
             new TextDocumentPositionParams
             {
-                TextDocument = new TextDocumentIdentifier { DocumentUri = sourceUri },
+                TextDocument = new TextDocumentIdentifier { Uri = sourceUri },
                 Position = new Position(0, 1)
             },
             CancellationToken.None);
 
         Assert.NotNull(definitions);
         var definition = Assert.Single(definitions);
-        Assert.Equal(targetUri, definition.DocumentUri);
+        Assert.Equal(targetUri, definition.Uri);
         Assert.Equal(0, definition.Range.Start.Line);
         Assert.Equal(6, definition.Range.Start.Character);
         Assert.Equal("ConsoleApplication", Assert.Single(hostWorkspace.CurrentSolution.Projects).AssemblyName);
@@ -100,8 +100,8 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
         {
             TextDocument = new TextDocumentItem
             {
-                DocumentUri = sourceUri,
-                LanguageId = "csharp",
+                Uri = sourceUri,
+                LanguageId = new("csharp"),
                 Version = 1,
                 Text = source
             }
@@ -114,14 +114,14 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
             Methods.TextDocumentDefinitionName,
             new TextDocumentPositionParams
             {
-                TextDocument = new TextDocumentIdentifier { DocumentUri = sourceUri },
+                TextDocument = new TextDocumentIdentifier { Uri = sourceUri },
                 Position = new Position(0, 1)
             },
             CancellationToken.None);
 
         var definition = Assert.Single(Assert.IsType<LSP.Location[]>(definitions));
         Assert.Equal(2, hostWorkspace.CurrentSolution.Projects.Count());
-        Assert.Equal(targetUri, definition.DocumentUri);
+        Assert.Equal(targetUri, definition.Uri);
         Assert.Equal(0, definition.Range.Start.Line);
         Assert.Equal(13, definition.Range.Start.Character);
         Assert.Single(hostWorkspace.CurrentSolution.GetDocumentIds(sourceUri));

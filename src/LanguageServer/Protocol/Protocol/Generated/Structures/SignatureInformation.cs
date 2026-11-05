@@ -18,7 +18,6 @@ internal partial class SignatureInformation
     /// the UI.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("label")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Label { get; set; } = null!;
 
     /// <summary>
@@ -38,15 +37,15 @@ internal partial class SignatureInformation
 
     /// <summary>
     /// The index of the active parameter.
-    /// 
+    ///
     /// If `null`, no parameter of the signature is active (for example a named
     /// argument that does not match any declared parameters). This is only valid
     /// if the client specifies the client capability
     /// `textDocument.signatureHelp.noActiveParameterSupport === true`
-    /// 
+    ///
     /// If provided (or `null`), this is used in place of
     /// `SignatureHelp.activeParameter`.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("activeParameter")]
@@ -63,6 +62,7 @@ internal partial class SignatureInformation
     /// <summary>
     /// A union of: string | MarkupContent.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Documentation : System.Runtime.CompilerServices.IUnion
     {

@@ -36,11 +36,11 @@ internal sealed class SimplifyTagToSelfClosingCodeActionResolver : IRazorCodeAct
         var text = componentDocument.Source.Text;
         var removeRange = text.GetRange(actionParams.StartTagCloseAngleIndex, actionParams.EndTagCloseAngleIndex);
 
-        var documentChanges = new TextDocumentEdit[]
+        var documentChanges = new WorkspaceEdit._DocumentChangesItem[]
         {
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri= documentSnapshot.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri= documentSnapshot.Uri },
                 Edits =
                 [
                     new TextEdit

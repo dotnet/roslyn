@@ -21,7 +21,7 @@ internal partial class DiagnosticsCapabilities
     /// <summary>
     /// Client supports the tag property to provide meta data about a diagnostic.
     /// Clients supporting tags have to handle unknown tags gracefully.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tagSupport")]
@@ -30,7 +30,7 @@ internal partial class DiagnosticsCapabilities
 
     /// <summary>
     /// Client supports a codeDescription property
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("codeDescriptionSupport")]
@@ -41,7 +41,7 @@ internal partial class DiagnosticsCapabilities
     /// Whether code action supports the `data` property which is
     /// preserved between a `textDocument/publishDiagnostics` and
     /// `textDocument/codeAction` request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("dataSupport")]

@@ -38,7 +38,7 @@ public sealed class RunCodeActionsTests : AbstractLanguageServerProtocolTests
         var caretLocation = testLspServer.GetLocations("caret").Single();
         var documentId = new LSP.TextDocumentIdentifier
         {
-            DocumentUri = caretLocation.DocumentUri
+            Uri = caretLocation.Uri
         };
 
         var titlePath = new[] { string.Format(FeaturesResources.Move_type_to_0, "B.cs") };

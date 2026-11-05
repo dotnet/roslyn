@@ -32,7 +32,7 @@ internal static partial class LocalHtmlCompletionProvider
     /// Uses the shared <see cref="DefaultCommitCharacters"/> to ensure reference-equal arrays
     /// with directive attribute items, enabling optimizer promotion to list-level defaults.
     /// </summary>
-    private static readonly SumType<string[], VSInternalCommitCharacter[]> s_attributeCommitCharacters =
+    private static readonly CompletionItem._CommitCharacters s_attributeCommitCharacters =
         RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetAttributeCommitCharacters(useEquals: true));
 
     /// <summary>
@@ -40,14 +40,14 @@ internal static partial class LocalHtmlCompletionProvider
     /// because no snippet is appended — the cursor ends up right after the attribute name, and
     /// space should insert as a separator before the next attribute.
     /// </summary>
-    private static readonly SumType<string[], VSInternalCommitCharacter[]> s_minimizedAttributeCommitCharacters =
+    private static readonly CompletionItem._CommitCharacters s_minimizedAttributeCommitCharacters =
         RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetMinimizedAttributeCommitCharacters());
 
     /// <summary>
     /// Commit characters for prefix group items. The dash commits without inserting
     /// since InsertText already ends with it.
     /// </summary>
-    private static readonly SumType<string[], VSInternalCommitCharacter[]> s_prefixGroupCommitCharacters =
+    private static readonly CompletionItem._CommitCharacters s_prefixGroupCommitCharacters =
         RazorCommitCharacter.ToVsCommitCharacters(DefaultCommitCharacters.GetPrefixGroupCommitCharacters());
 
     /// <summary>
@@ -55,7 +55,7 @@ internal static partial class LocalHtmlCompletionProvider
     /// </summary>
     private static readonly Command s_retriggerCompletionCommand = new()
     {
-        CommandIdentifier = "editor.action.triggerSuggest",
+        CommandValue = "editor.action.triggerSuggest",
         Title = "",
     };
 
@@ -324,7 +324,7 @@ internal static partial class LocalHtmlCompletionProvider
         // Otherwise return all elements.
         var allElements = HtmlCompletionData.AllElements;
 
-        using var items = new PooledArrayBuilder<VSInternalCompletionItem>(allElements.Length);
+        using var items = new PooledArrayBuilder<CompletionItem>(allElements.Length);
 
         AddCloseTagItems(ref items.AsRef(), owner.Parent, elementRange, includeOpenBracket: false, commitChars);
 
@@ -374,7 +374,7 @@ internal static partial class LocalHtmlCompletionProvider
 
         // Build completions from the allowed children list, looking each up
         // in the schema for description/metadata.
-        using var filteredItems = new PooledArrayBuilder<VSInternalCompletionItem>(allowedChildren.Length);
+        using var filteredItems = new PooledArrayBuilder<CompletionItem>(allowedChildren.Length);
 
         // Add close-tag completions for unclosed ancestor elements. We pass the
         // element node (owner.Parent) rather than the start tag (owner) so that
@@ -424,7 +424,7 @@ internal static partial class LocalHtmlCompletionProvider
     {
         var commitChars = DefaultCommitCharacters.GetElementCommitCharacterStrings(completionOptions.CommitElementsWithSpace);
 
-        using var items = new PooledArrayBuilder<VSInternalCompletionItem>();
+        using var items = new PooledArrayBuilder<CompletionItem>();
         AddCloseTagItems(ref items.AsRef(), context.Owner, context.ReplacementRange, includeOpenBracket: true, commitChars);
 
         return new RazorVSInternalCompletionList
@@ -441,7 +441,7 @@ internal static partial class LocalHtmlCompletionProvider
     /// Stops at the first ancestor that already has an end tag.
     /// </summary>
     private static void AddCloseTagItems(
-        ref PooledArrayBuilder<VSInternalCompletionItem> items,
+        ref PooledArrayBuilder<CompletionItem> items,
         RazorSyntaxNode owner,
         LspRange range,
         bool includeOpenBracket,
@@ -482,12 +482,12 @@ internal static partial class LocalHtmlCompletionProvider
                 ? "<" + labelText   // Replace from '<' inclusive
                 : labelText;   // Replace tag name range only
 
-            var item = new VSInternalCompletionItem
+            var item = new CompletionItem
             {
                 Label = labelText,
                 Kind = CompletionItemKind.CloseElement,
                 FilterText = filterText,
-                InsertTextFormat = InsertTextFormat.Plaintext,
+                InsertTextFormat = InsertTextFormat.PlainText,
                 SortText = $"!{sortIndex++:D2}",
                 TextEdit = new TextEdit { Range = range, NewText = newText },
                 CommitCharacters = commitCharacters,
@@ -590,7 +590,7 @@ internal static partial class LocalHtmlCompletionProvider
         // draggable=""="". This matches the behavior of the external HTML language server.
         var existingAttributeHasValue = owner is MarkupAttributeBlockSyntax or MarkupTagHelperAttributeSyntax or MarkupTagHelperDirectiveAttributeSyntax;
 
-        using var _1 = ListPool<VSInternalCompletionItem>.GetPooledObject(out var items);
+        using var _1 = ListPool<CompletionItem>.GetPooledObject(out var items);
 
         // Track seen attribute names so that element-specific attributes take precedence
         // over globals with the same name (which may have different values/semantics).
@@ -620,7 +620,7 @@ internal static partial class LocalHtmlCompletionProvider
         => attr.Kind is HtmlAttributeKind.Aria or HtmlAttributeKind.Angular or HtmlAttributeKind.Data;
 
     private static void AddAttributeItems(
-        List<VSInternalCompletionItem> items,
+        List<CompletionItem> items,
         ImmutableArray<HtmlAttributeInfo> attributes,
         string? expandedPrefix,
         bool existingAttributeHasValue,
@@ -651,14 +651,14 @@ internal static partial class LocalHtmlCompletionProvider
         }
     }
 
-    private static VSInternalCompletionItem CreateElementItem(HtmlElementInfo info, string[] commitChars, LspRange range)
+    private static CompletionItem CreateElementItem(HtmlElementInfo info, string[] commitChars, LspRange range)
         => CreateElementItem(
             info.Name,
             commitChars,
             range,
             icon: info.Kind == HtmlElementKind.Angular ? HtmlCompletionImageMonikers.Angular : null);
 
-    private static VSInternalCompletionItem CreateElementItem(string name, string[] commitChars, LspRange range, ImageElement? icon = null)
+    private static CompletionItem CreateElementItem(string name, string[] commitChars, LspRange range, ImageElement? icon = null)
         => new()
         {
             Label = name,
@@ -669,7 +669,7 @@ internal static partial class LocalHtmlCompletionProvider
             TextEdit = new TextEdit { Range = range, NewText = name },
         };
 
-    private static VSInternalCompletionItem CreateAttributeItem(HtmlAttributeInfo attr, bool existingAttributeHasValue, LspRange range)
+    private static CompletionItem CreateAttributeItem(HtmlAttributeInfo attr, bool existingAttributeHasValue, LspRange range)
     {
         var icon = attr.Kind switch
         {
@@ -683,20 +683,20 @@ internal static partial class LocalHtmlCompletionProvider
         var useSnippet = !attr.IsBoolean && !existingAttributeHasValue;
         var newText = useSnippet ? $"{attr.Name}=\"$0\"" : attr.Name;
 
-        return new VSInternalCompletionItem
+        return new CompletionItem
         {
             Label = attr.Name,
             Kind = attr.Kind == HtmlAttributeKind.Event ? CompletionItemKind.Event : CompletionItemKind.Property,
             Icon = icon,
             FilterText = attr.Name,
-            InsertTextFormat = useSnippet ? InsertTextFormat.Snippet : InsertTextFormat.Plaintext,
+            InsertTextFormat = useSnippet ? InsertTextFormat.Snippet : InsertTextFormat.PlainText,
             VsCommitCharacters = attr.IsBoolean ? s_minimizedAttributeCommitCharacters : s_attributeCommitCharacters,
             Command = useSnippet ? s_retriggerCompletionCommand : null,
             TextEdit = new TextEdit { Range = range, NewText = newText },
         };
     }
 
-    private static VSInternalCompletionItem CreateAttributeValueItem(string value, LspRange range)
+    private static CompletionItem CreateAttributeValueItem(string value, LspRange range)
         => new()
         {
             Label = value,
@@ -705,7 +705,7 @@ internal static partial class LocalHtmlCompletionProvider
             TextEdit = new TextEdit { Range = range, NewText = value },
         };
 
-    private static VSInternalCompletionItem CreatePrefixGroupItem(string prefix, string label, HtmlAttributeKind kind, LspRange range)
+    private static CompletionItem CreatePrefixGroupItem(string prefix, string label, HtmlAttributeKind kind, LspRange range)
     {
         var icon = kind switch
         {
@@ -715,12 +715,12 @@ internal static partial class LocalHtmlCompletionProvider
             _ => null,
         };
 
-        return new VSInternalCompletionItem
+        return new CompletionItem
         {
             Label = label,
             Kind = CompletionItemKind.Property,
             FilterText = prefix,
-            InsertTextFormat = InsertTextFormat.Plaintext,
+            InsertTextFormat = InsertTextFormat.PlainText,
             Icon = icon,
             VsCommitCharacters = s_prefixGroupCommitCharacters,
             Command = s_retriggerCompletionCommand,
@@ -814,7 +814,7 @@ internal static partial class LocalHtmlCompletionProvider
             return s_emptyCompletionList;
         }
 
-        var items = new VSInternalCompletionItem[attr.Values.Length];
+        var items = new CompletionItem[attr.Values.Length];
 
         for (var i = 0; i < items.Length; i++)
         {

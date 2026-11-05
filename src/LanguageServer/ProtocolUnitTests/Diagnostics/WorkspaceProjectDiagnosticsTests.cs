@@ -30,7 +30,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
+        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, Assert.IsType<string>(results[1].Diagnostics!.Single().Code!.Value));
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         // Asking again should give us back an unchanged diagnostic.
@@ -47,7 +47,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
+        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, Assert.IsType<string>(results[1].Diagnostics!.Single().Code!.Value));
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[1].Uri);
 
         var initialSolution = testLspServer.GetCurrentSolution();
@@ -78,7 +78,7 @@ public sealed class WorkspaceProjectDiagnosticsTests : AbstractPullDiagnosticTes
 
         // Make sure the test is valid
         Assert.Equal(3, results.Length);
-        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, results[2].Diagnostics!.Single().Code);
+        Assert.Equal(MockProjectDiagnosticAnalyzer.Id, Assert.IsType<string>(results[2].Diagnostics!.Single().Code!.Value));
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(testLspServer.GetCurrentSolution().Projects.First().FilePath!), results[2].Uri);
 
         // Generated document should have no diagnostics

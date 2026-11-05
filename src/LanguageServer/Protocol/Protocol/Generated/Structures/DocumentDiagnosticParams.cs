@@ -8,10 +8,10 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Parameters of the document diagnostic request.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
-internal partial class DocumentDiagnosticParams
+internal partial class DocumentDiagnosticParams : ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.
@@ -26,13 +26,12 @@ internal partial class DocumentDiagnosticParams
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("partialResultToken")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public ProgressToken? PartialResultToken { get; set; }
+    public System.IProgress<DocumentDiagnosticPartialReport>? PartialResultToken { get; set; }
 
     /// <summary>
     /// The text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
     /// <summary>

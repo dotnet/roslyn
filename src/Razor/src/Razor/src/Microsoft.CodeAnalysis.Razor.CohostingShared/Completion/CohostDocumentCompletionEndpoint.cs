@@ -62,7 +62,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
         {
@@ -267,7 +267,7 @@ internal sealed class CohostDocumentCompletionEndpoint(
             }
         }
 
-        using var builder = new PooledArrayBuilder<VSInternalCompletionItem>();
+        using var builder = new PooledArrayBuilder<CompletionItem>();
         _snippetCompletionItemProvider.AssumeNotNull().AddSnippetCompletions(
             ref builder.AsRef(),
             languageKind,

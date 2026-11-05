@@ -19,18 +19,11 @@ internal static partial class LspExtensions
     /// </remarks>
     public static IEnumerable<TextDocumentEdit> EnumerateTextDocumentEdits(this WorkspaceEdit workspaceEdit)
     {
-        if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
+        if (workspaceEdit.DocumentChanges is { } changes)
         {
-            foreach (var edit in documentEdits)
+            foreach (var change in changes)
             {
-                yield return edit;
-            }
-        }
-        else if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
-        {
-            foreach (var sumType in sumTypeArray)
-            {
-                if (sumType.Value is TextDocumentEdit textDocumentEdit)
+                if (change.Value is TextDocumentEdit textDocumentEdit)
                 {
                     yield return textDocumentEdit;
                 }
@@ -38,18 +31,11 @@ internal static partial class LspExtensions
         }
     }
 
-    public static IEnumerable<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> EnumerateEdits(this WorkspaceEdit workspaceEdit)
+    public static IEnumerable<WorkspaceEdit._DocumentChangesItem> EnumerateEdits(this WorkspaceEdit workspaceEdit)
     {
-        if (workspaceEdit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
+        if (workspaceEdit.DocumentChanges is { } changes)
         {
-            foreach (var edit in documentEdits)
-            {
-                yield return edit;
-            }
-        }
-        else if (workspaceEdit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
-        {
-            foreach (var edit in sumTypeArray)
+            foreach (var edit in changes)
             {
                 yield return edit;
             }
@@ -63,7 +49,7 @@ internal static partial class LspExtensions
             return first;
         }
 
-        using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        using var builder = new PooledArrayBuilder<WorkspaceEdit._DocumentChangesItem>();
 
         AddEdits(ref builder.AsRef(), first);
         AddEdits(ref builder.AsRef(), second);
@@ -73,24 +59,17 @@ internal static partial class LspExtensions
             DocumentChanges = builder.ToArrayAndClear()
         };
 
-        static void AddEdits(ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> builder, WorkspaceEdit edit)
+        static void AddEdits(ref PooledArrayBuilder<WorkspaceEdit._DocumentChangesItem> builder, WorkspaceEdit edit)
         {
-            if (edit.DocumentChanges?.Value is TextDocumentEdit[] documentEdits)
+            if (edit.DocumentChanges is { } changes)
             {
-                foreach (var e in documentEdits)
-                {
-                    builder.Add(e);
-                }
-            }
-            else if (edit.DocumentChanges?.Value is SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] sumTypeArray)
-            {
-                builder.AddRange(sumTypeArray);
+                builder.AddRange(changes);
             }
             else if (edit.Changes is not null)
             {
                 foreach (var (uri, textEdits) in edit.Changes)
                 {
-                    var edits = new SumType<TextEdit, AnnotatedTextEdit>[textEdits.Length];
+                    var edits = new TextDocumentEdit._EditsItem[textEdits.Length];
                     for (var i = 0; i < textEdits.Length; i++)
                     {
                         edits[i] = textEdits[i];
@@ -98,10 +77,10 @@ internal static partial class LspExtensions
 
                     var textDocumentEdit = new TextDocumentEdit
                     {
-                        TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = new(uri) },
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = new(uri) },
                         Edits = edits
                     };
-                    builder.Add(new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(textDocumentEdit));
+                    builder.Add(new(textDocumentEdit));
                 }
             }
         }

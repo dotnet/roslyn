@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// An inline completion item represents a text snippet that is proposed inline to complete text that is being typed.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class InlineCompletionItem
@@ -44,6 +44,7 @@ internal partial class InlineCompletionItem
     /// <summary>
     /// A union of: string | StringValue.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _InsertText : System.Runtime.CompilerServices.IUnion
     {

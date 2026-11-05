@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck;
 internal abstract class AbstractSpellCheckHandler<TParams, TReport>
     : ILspServiceRequestHandler<TParams, TReport[]?>, ITextDocumentIdentifierHandler<TParams, TextDocumentIdentifier?>
     where TParams : IPartialResultParams<TReport[]>
-    where TReport : VSInternalSpellCheckableRangeReport
+    where TReport : ISpellCheckableRangeReport
 {
     /// <summary>
     /// Cache where we store the data produced by prior requests so that they can be returned if nothing of
@@ -212,7 +212,7 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
                 var document = await solution.GetTextDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
                 if (document == null)
                 {
-                    context.TraceDebug($"Clearing spans for removed document: {textDocument.DocumentUri}");
+                    context.TraceDebug($"Clearing spans for removed document: {textDocument.Uri}");
 
                     // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
                     // the workspace). Report a (null-spans, null-result-id) response to the client as that means

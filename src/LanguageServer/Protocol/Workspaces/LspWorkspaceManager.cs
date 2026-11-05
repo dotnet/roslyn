@@ -230,7 +230,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         bool allowProjectLoading,
         CancellationToken cancellationToken)
     {
-        var uri = textDocumentIdentifier.DocumentUri;
+        var uri = textDocumentIdentifier.Uri;
         var documentContext = await FindDocumentAsync(textDocumentIdentifier, trackedDocuments, cancellationToken).ConfigureAwait(false);
         if (documentContext is not { } initialContext)
         {
@@ -282,7 +282,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 }
             }
 
-            return await TryGetOrCreateMiscellaneousDocumentAsync(textDocumentIdentifier.DocumentUri, trackedDocuments).ConfigureAwait(false);
+            return await TryGetOrCreateMiscellaneousDocumentAsync(textDocumentIdentifier.Uri, trackedDocuments).ConfigureAwait(false);
         }
 
         async Task<(Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked)?> TryGetOrCreateMiscellaneousDocumentAsync(

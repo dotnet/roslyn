@@ -190,7 +190,7 @@ public sealed class DocumentHighlightTests(ITestOutputHelper testOutputHelper)
         // and SyntaxNode.FindToken throws ArgumentOutOfRangeException.
         var pastEndOfLine = new LSP.Position { Line = caret.Range.Start.Line, Character = caret.Range.Start.Character + 100 };
 
-        var results = await RunGetDocumentHighlightAsync(testLspServer, caret.DocumentUri, pastEndOfLine);
+        var results = await RunGetDocumentHighlightAsync(testLspServer, caret.Uri, pastEndOfLine);
         Assert.Empty(results);
     }
 
@@ -225,12 +225,12 @@ public sealed class DocumentHighlightTests(ITestOutputHelper testOutputHelper)
         Assert.All(expected, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
 
         // Clamping the character to the line end must produce the same result as the in-range position.
-        var results = await RunGetDocumentHighlightAsync(testLspServer, caret.DocumentUri, pastEndOfLine);
+        var results = await RunGetDocumentHighlightAsync(testLspServer, caret.Uri, pastEndOfLine);
         AssertJsonEquals(expected, results);
     }
 
     private static Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
-        => RunGetDocumentHighlightAsync(testLspServer, caret.DocumentUri, caret.Range.Start);
+        => RunGetDocumentHighlightAsync(testLspServer, caret.Uri, caret.Range.Start);
 
     private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(
         TestLspServer testLspServer, LSP.DocumentUri documentUri, LSP.Position position)

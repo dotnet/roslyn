@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Describes how an inline completion provider was triggered.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal enum InlineCompletionTriggerKind

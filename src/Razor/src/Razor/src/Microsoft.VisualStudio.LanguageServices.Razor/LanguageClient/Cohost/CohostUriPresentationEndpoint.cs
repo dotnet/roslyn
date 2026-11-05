@@ -36,7 +36,7 @@ internal sealed class CohostUriPresentationEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.SupportsVisualStudioExtensions)
         {
@@ -67,17 +67,17 @@ internal sealed class CohostUriPresentationEndpoint(
 
             return new WorkspaceEdit
             {
-                DocumentChanges = new TextDocumentEdit[]
-                {
+                DocumentChanges =
+                [
                     new TextDocumentEdit
                     {
                         TextDocument = new()
                         {
-                            DocumentUri = request.TextDocument.DocumentUri
+                            Uri = request.TextDocument.Uri
                         },
                         Edits = [sourceText.GetTextEdit(textChange)]
                     }
-                }
+                ]
             };
         }
 
@@ -108,9 +108,9 @@ internal sealed class CohostUriPresentationEndpoint(
         //       but if we move this all to OOP, per the above TODO, then that point is moot.
         foreach (var edit in workspaceEdit.EnumerateTextDocumentEdits())
         {
-            if (edit.TextDocument.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
+            if (edit.TextDocument.Uri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = razorDocumentUri };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = razorDocumentUri };
             }
         }
 

@@ -28,7 +28,7 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
         var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
 #pragma warning disable CS0618 // Type or member is obsolete - https://github.com/dotnet/roslyn/issues/84785
-        if (textDocumentIdentifier?.DocumentUri.ParsedUri is not Uri uri)
+        if (textDocumentIdentifier?.Uri.ParsedUri is not Uri uri)
         {
             // Can't do anything without a uri
             return;

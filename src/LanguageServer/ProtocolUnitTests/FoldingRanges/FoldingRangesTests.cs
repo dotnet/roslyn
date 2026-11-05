@@ -139,7 +139,7 @@ public sealed class FoldingRangesTests : AbstractLanguageServerProtocolTests
         {
             TextDocument = new LSP.TextDocumentClientCapabilities
             {
-                FoldingRange = new LSP.FoldingRangeSetting
+                FoldingRange = new LSP.FoldingRangeClientCapabilities
                 {
                     LineFoldingOnly = lineFoldingOnly
                 }

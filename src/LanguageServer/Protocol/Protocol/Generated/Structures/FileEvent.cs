@@ -15,14 +15,12 @@ internal partial class FileEvent
     /// The file's uri.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("uri")]
-    [System.Text.Json.Serialization.JsonRequired]
     public DocumentUri Uri { get; set; } = null!;
 
     /// <summary>
     /// The change type.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("type")]
-    [System.Text.Json.Serialization.JsonRequired]
     public FileChangeType Type { get; set; }
 
 }

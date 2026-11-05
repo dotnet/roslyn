@@ -16,7 +16,6 @@ internal partial class DocumentLink
     /// The range this link applies to.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("range")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Range Range { get; set; } = null!;
 
     /// <summary>
@@ -28,11 +27,11 @@ internal partial class DocumentLink
 
     /// <summary>
     /// The tooltip text when you hover over this link.
-    /// 
+    ///
     /// If a tooltip is provided, is will be displayed in a string that includes instructions on how to
     /// trigger the link, such as `{0} (ctrl + click)`. The specific instructions vary depending on OS,
     /// user settings, and localization.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tooltip")]

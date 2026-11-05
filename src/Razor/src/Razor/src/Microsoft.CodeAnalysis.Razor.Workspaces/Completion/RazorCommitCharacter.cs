@@ -31,13 +31,13 @@ internal readonly record struct RazorCommitCharacter(string Character, bool Inse
     }
 
     /// <summary>
-    /// Converts to a <see cref="SumType{T1, T2}"/> of <c>string[]</c> or <c>VSInternalCommitCharacter[]</c>,
-    /// suitable for assigning to <see cref="VSInternalCompletionItem.VsCommitCharacters"/>.
+    /// Converts to a union of <c>string[]</c> or <c>VSInternalCommitCharacter[]</c>,
+    /// suitable for assigning to <see cref="CompletionItem.VsCommitCharacters"/>.
     /// Returns <c>string[]</c> when all items have the default <see cref="Insert"/> value (<see langword="true"/>),
-    /// avoiding SumType deserialization exceptions. Returns a cached array when the same
+    /// avoiding union deserialization exceptions. Returns a cached array when the same
     /// <paramref name="source"/> is passed (by reference identity of the underlying array).
     /// </summary>
-    public static SumType<string[], VSInternalCommitCharacter[]> ToVsCommitCharacters(ImmutableArray<RazorCommitCharacter> source)
+    public static CompletionItem._CommitCharacters ToVsCommitCharacters(ImmutableArray<RazorCommitCharacter> source)
     {
         lock (s_cache)
         {

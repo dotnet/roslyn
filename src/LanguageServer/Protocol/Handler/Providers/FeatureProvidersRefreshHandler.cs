@@ -22,7 +22,7 @@ internal class FeatureProvidersRefreshHandler(FeatureProviderRefresher providerR
 
     public Task HandleNotificationAsync(TextDocumentIdentifier? request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        providerRefresher.RequestProviderRefresh(request?.DocumentUri);
+        providerRefresher.RequestProviderRefresh(request?.Uri);
         return Task.CompletedTask;
     }
 }

@@ -76,7 +76,7 @@ internal sealed class AutoClosingTagOnAutoInsertProvider : IOnAutoInsertProvider
 
         Debug.Assert(tagNameWithClosingBehavior.AutoClosingBehavior == AutoClosingBehavior.SelfClosing);
 
-        var format = InsertTextFormat.Plaintext;
+        var format = InsertTextFormat.PlainText;
 
         // Need to replace the `>` with ' />$0' or '/>$0' depending on if there's prefixed whitespace.
         var insertionText = char.IsWhiteSpace(sourceText[afterCloseAngleIndex - 2]) ? "/" : " /";

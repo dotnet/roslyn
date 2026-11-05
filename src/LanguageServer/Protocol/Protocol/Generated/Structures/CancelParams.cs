@@ -18,6 +18,7 @@ internal partial class CancelParams
     /// <summary>
     /// A union of: int | string.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Id : System.Runtime.CompilerServices.IUnion
     {

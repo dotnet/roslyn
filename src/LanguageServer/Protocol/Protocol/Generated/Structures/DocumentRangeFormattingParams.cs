@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The parameters of a <see cref="Requests.TextDocumentRangeFormatting"/>.
 /// </summary>
-internal partial class DocumentRangeFormattingParams
+internal partial class DocumentRangeFormattingParams : ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.

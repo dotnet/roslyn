@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Export(typeof(IDynamicRegistrationProvider))]
 internal sealed class CohostDocSyncEndpointRegistration : IDynamicRegistrationProvider
 {
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Synchronization?.DynamicRegistration is true)
         {

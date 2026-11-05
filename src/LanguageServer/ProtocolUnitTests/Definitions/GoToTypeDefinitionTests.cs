@@ -226,7 +226,7 @@ public sealed class GoToTypeDefinitionTests : AbstractLanguageServerProtocolTest
 
         var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         var result = Assert.Single(results);
-        Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.DocumentUri.GetRequiredParsedUri().Scheme);
+        Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.GetRequiredParsedUri().Scheme);
     }
 
     [Theory, CombinatorialData]
@@ -251,9 +251,9 @@ public sealed class GoToTypeDefinitionTests : AbstractLanguageServerProtocolTest
         var results = await RunGotoTypeDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
 
         // Open the metadata file and verify it gets added to the metadata workspace.
-        await testLspServer.OpenDocumentAsync(results.Single().DocumentUri, text: string.Empty).ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(results.Single().Uri, text: string.Empty).ConfigureAwait(false);
 
-        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, results.Single().DocumentUri)).Kind);
+        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, results.Single().Uri)).Kind);
     }
 
     [Theory, CombinatorialData]
@@ -293,7 +293,7 @@ public sealed class GoToTypeDefinitionTests : AbstractLanguageServerProtocolTest
 
     private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, DocumentUri fileUri)
     {
-        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri });
+        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { Uri = fileUri });
         Assert.NotNull(context);
         return context.Value.Workspace;
     }

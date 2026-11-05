@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A pattern kind describing if a glob pattern matches a file a folder or
 /// both.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.StringEnumConverter<FileOperationPatternKind>))]

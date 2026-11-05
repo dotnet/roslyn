@@ -22,7 +22,6 @@ internal partial class VSInternalMapCodeParams
     /// Set of code blocks, associated with documents and regions, to map.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_mappings")]
-    [System.Text.Json.Serialization.JsonRequired]
     public VSInternalMapCodeMapping[] Mappings { get; set; } = null!;
 
     /// <summary>

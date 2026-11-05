@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// @since 3.16.0
 /// </summary>
-internal partial class SemanticTokensParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<SemanticTokens?>
+internal partial class SemanticTokensParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<SemanticTokens?>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.

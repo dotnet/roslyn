@@ -39,7 +39,7 @@ public sealed class CsprojInConeCheckerTests : IDisposable
     private static WorkspaceFolder CreateWorkspaceFolder(string path)
         => new()
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
             Name = Path.GetFileName(path),
         };
 }

@@ -25,7 +25,7 @@ internal abstract class XamlRequestHandlerBase<TRequest, TResponse> : ILspServic
     public bool RequiresLSPSolution => true;
 
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(TRequest request)
-        => new() { DocumentUri = GetDocumentUri(request) };
+        => new() { Uri = GetDocumentUri(request) };
 
     public virtual LSP.DocumentUri GetDocumentUri(TRequest request)
     {

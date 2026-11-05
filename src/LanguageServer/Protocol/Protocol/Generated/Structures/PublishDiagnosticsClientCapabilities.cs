@@ -14,7 +14,7 @@ internal partial class PublishDiagnosticsClientCapabilities : DiagnosticsCapabil
     /// <summary>
     /// Whether the client interprets the version property of the
     /// `textDocument/publishDiagnostics` notification's parameter.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("versionSupport")]

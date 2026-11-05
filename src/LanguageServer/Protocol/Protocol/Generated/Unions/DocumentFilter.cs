@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A union of: TextDocumentFilterLanguage | TextDocumentFilterScheme | TextDocumentFilterPattern.
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
 [System.Runtime.CompilerServices.Union]
 internal sealed class DocumentFilter : System.Runtime.CompilerServices.IUnion
 {

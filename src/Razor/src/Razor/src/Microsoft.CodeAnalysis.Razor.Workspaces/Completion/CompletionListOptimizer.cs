@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal static partial class CompletionListOptimizer
 {
-    public static RazorVSInternalCompletionList Optimize(RazorVSInternalCompletionList completionList, CompletionSetting? completionCapability)
+    public static RazorVSInternalCompletionList Optimize(RazorVSInternalCompletionList completionList, CompletionClientCapabilities? completionCapability)
     {
         completionList = PromoteCommitCharacters(completionList, completionCapability);
         completionList = PromoteEditRangeToListDefaults(completionList, completionCapability);
@@ -15,10 +15,10 @@ internal static partial class CompletionListOptimizer
         return completionList;
     }
 
-    private static RazorVSInternalCompletionList PromoteEditRangeToListDefaults(RazorVSInternalCompletionList completionList, CompletionSetting? completionCapability)
+    private static RazorVSInternalCompletionList PromoteEditRangeToListDefaults(RazorVSInternalCompletionList completionList, CompletionClientCapabilities? completionCapability)
     {
         // Check if client supports editRange in ItemDefaults
-        var itemDefaults = completionCapability?.CompletionListSetting?.ItemDefaults;
+        var itemDefaults = completionCapability?.CompletionList?.ItemDefaults;
         if (itemDefaults is null || Array.IndexOf(itemDefaults, "editRange") < 0)
         {
             return completionList;
@@ -52,7 +52,7 @@ internal static partial class CompletionListOptimizer
         }
 
         // Promote the common range to ItemDefaults.EditRange and replace per-item TextEdits with TextEditText
-        completionList.ItemDefaults ??= new CompletionListItemDefaults();
+        completionList.ItemDefaults ??= new CompletionItemDefaults();
         completionList.ItemDefaults.EditRange = commonRange;
 
         foreach (var item in items)

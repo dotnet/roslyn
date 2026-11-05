@@ -46,13 +46,13 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
         var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
         var importFileUri = LspFactory.CreateFilePathUri(importsFile);
 
-        using var edits = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        using var edits = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem>();
 
         var textToInsert = sourceText.ToString(TextSpan.FromBounds(actionParams.UsingStart, actionParams.UsingEnd));
         var insertLocation = new LinePosition(0, 0);
         if (!_fileSystem.FileExists(importsFile))
         {
-            edits.Add(new CreateFile() { DocumentUri = importFileUri });
+            edits.Add(new CreateFile() { Uri = importFileUri });
         }
         else
         {
@@ -70,7 +70,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = importFileUri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = importFileUri },
             Edits = [LspFactory.CreateTextEdit(insertLocation, textToInsert)]
         });
 
@@ -78,7 +78,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = documentSnapshot.Uri },
             Edits = [LspFactory.CreateTextEdit(removeRange, string.Empty)]
         });
 

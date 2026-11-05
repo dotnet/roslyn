@@ -76,7 +76,7 @@ public class PlatformAgnosticClientCapabilitiesJsonConverterTest
 }";
 
         // Act
-        var capabilities = JsonSerializer.Deserialize<VSInternalClientCapabilities>(rawJson);
+        var capabilities = JsonSerializer.Deserialize<ClientCapabilities>(rawJson);
 
         // Assert
         Assert.True(capabilities.Workspace.ApplyEdit);

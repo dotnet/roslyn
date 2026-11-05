@@ -15,7 +15,6 @@ internal partial class DidChangeConfigurationParams
     /// The actual changed settings
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("settings")]
-    [System.Text.Json.Serialization.JsonRequired]
     public LSPAny Settings { get; set; } = null!;
 
 }

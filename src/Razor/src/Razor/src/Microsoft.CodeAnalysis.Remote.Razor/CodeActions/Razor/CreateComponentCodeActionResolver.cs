@@ -38,8 +38,8 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
         var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
         var newComponentUri = LspFactory.CreateFilePathUri(actionParams.Path);
 
-        using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
-        documentChanges.Add(new CreateFile() { DocumentUri = newComponentUri });
+        using var documentChanges = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem>();
+        documentChanges.Add(new CreateFile() { Uri = newComponentUri });
 
         TryAddNamespaceDirective(codeDocument, newComponentUri, ref documentChanges.AsRef());
 
@@ -49,7 +49,7 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
         };
     }
 
-    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, DocumentUri newComponentUri, ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+    private static void TryAddNamespaceDirective(RazorCodeDocument codeDocument, DocumentUri newComponentUri, ref PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem> documentChanges)
     {
         var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
         var namespaceDirective = syntaxRoot.DescendantNodes()
@@ -58,7 +58,7 @@ internal sealed class CreateComponentCodeActionResolver : IRazorCodeActionResolv
 
         if (namespaceDirective != null)
         {
-            var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newComponentUri };
+            var documentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri };
             documentChanges.Add(new TextDocumentEdit
             {
                 TextDocument = documentIdentifier,

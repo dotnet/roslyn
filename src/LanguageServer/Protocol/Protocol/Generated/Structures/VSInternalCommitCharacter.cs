@@ -15,7 +15,6 @@ internal partial class VSInternalCommitCharacter
     /// Gets or sets the commit character.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_character")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Character { get; set; } = null!;
 
     /// <summary>

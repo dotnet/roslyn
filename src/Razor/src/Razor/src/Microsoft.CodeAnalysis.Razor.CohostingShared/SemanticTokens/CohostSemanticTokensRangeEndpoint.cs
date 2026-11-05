@@ -35,7 +35,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
 
     protected override string LspMethodName => Methods.TextDocumentSemanticTokensRangeName;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.SemanticTokens?.DynamicRegistration == true)
         {
@@ -43,7 +43,7 @@ internal sealed class CohostSemanticTokensRangeEndpoint(
             semanticTokensRefreshQueue.Initialize(clientCapabilities);
 
             // We prefer Range over Full for performance reasons, so only advertise full support if Range isn't
-            // available. The Range capability is SumType<bool, object> which is why the check is a bit odd.
+            // available. The Range capability can be a boolean or an options object.
             var supportsSemanticTokensRange = clientCapabilities.TextDocument?.SemanticTokens?.Requests?.Range?.Value is not (false or null);
 
             return [new Registration()

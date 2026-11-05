@@ -10,6 +10,6 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 internal interface ISnippetCompletionItemProvider
 {
-    void AddSnippetCompletions(ref PooledArrayBuilder<VSInternalCompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext);
-    bool TryResolveInsertString(VSInternalCompletionItem completionItem, [NotNullWhen(true)] out string? insertString);
+    void AddSnippetCompletions(ref PooledArrayBuilder<CompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext);
+    bool TryResolveInsertString(CompletionItem completionItem, [NotNullWhen(true)] out string? insertString);
 }

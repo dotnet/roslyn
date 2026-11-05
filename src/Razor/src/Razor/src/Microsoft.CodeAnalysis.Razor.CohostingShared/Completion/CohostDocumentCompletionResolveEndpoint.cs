@@ -35,7 +35,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     [Import(AllowDefault = true)] ISnippetCompletionItemProvider? snippetCompletionItemProvider,
 #pragma warning restore RS0030 // Do not use banned APIs
     ILoggerFactory loggerFactory)
-    : AbstractCohostDocumentEndpoint<VSInternalCompletionItem, VSInternalCompletionItem?>(incompatibleProjectService)
+    : AbstractCohostDocumentEndpoint<CompletionItem, CompletionItem?>(incompatibleProjectService)
 {
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
@@ -49,7 +49,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
+    protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CompletionItem request)
     {
         if (RazorCompletionResolveData.Unwrap(request) is { } data)
         {
@@ -59,8 +59,8 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         return null;
     }
 
-    protected override async Task<VSInternalCompletionItem?> HandleRequestAsync(
-        VSInternalCompletionItem completionItem,
+    protected override async Task<CompletionItem?> HandleRequestAsync(
+        CompletionItem completionItem,
         TextDocument razorDocument,
         CancellationToken cancellationToken)
     {
@@ -117,7 +117,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         // Couldn't find an associated completion list, so its either Razor or C#. Either way, over to OOP
         var clientSettings = _clientSettingsManager.GetClientSettings();
         var formattingOptions = razorDocument.GetRazorFormattingOptions(clientSettings, cancellationToken);
-        var result = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, VSInternalCompletionItem>(
+        var result = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, CompletionItem>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
                 => service.ResolveCompletionItemAsync(
@@ -131,14 +131,14 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         return result;
     }
 
-    private async Task<VSInternalCompletionItem> ResolveHtmlCompletionItemAsync(
-        VSInternalCompletionItem request,
+    private async Task<CompletionItem> ResolveHtmlCompletionItemAsync(
+        CompletionItem request,
         TextDocument razorDocument,
         CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Resolving Html completion item {request.Label} for {razorDocument.FilePath}");
 
-        var result = await _requestInvoker.MakeHtmlLspRequestAsync<VSInternalCompletionItem, VSInternalCompletionItem>(
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<CompletionItem, CompletionItem>(
             razorDocument,
             Methods.TextDocumentCompletionResolveName,
             request,
@@ -151,11 +151,11 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
 
     internal readonly struct TestAccessor(CohostDocumentCompletionResolveEndpoint instance)
     {
-        public TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
+        public TextDocumentIdentifier? GetRazorTextDocumentIdentifier(CompletionItem request)
             => instance.GetRazorTextDocumentIdentifier(request);
 
-        public Task<VSInternalCompletionItem?> HandleRequestAsync(
-            VSInternalCompletionItem request,
+        public Task<CompletionItem?> HandleRequestAsync(
+            CompletionItem request,
             TextDocument razorDocument,
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);

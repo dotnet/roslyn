@@ -221,7 +221,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
             new LspServerLaunchOptions { AutoLoadProjects = 500 },
             CreateWorkDoneProgressClientCapabilities());
 
-    private static VSInternalClientCapabilities CreateWorkDoneProgressClientCapabilities()
+    private static ClientCapabilities CreateWorkDoneProgressClientCapabilities()
         => new()
         {
             Window = new WindowClientCapabilities

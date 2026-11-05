@@ -31,7 +31,7 @@ internal sealed class CohostTextPresentationEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.SupportsVisualStudioExtensions)
         {
@@ -66,9 +66,9 @@ internal sealed class CohostTextPresentationEndpoint(
         // CreateFile, RenameFile, or DeleteFile operations that may be in DocumentChanges.
         foreach (var edit in workspaceEdit.EnumerateTextDocumentEdits())
         {
-            if (edit.TextDocument.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
+            if (edit.TextDocument.Uri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
             {
-                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = razorDocumentUri };
+                edit.TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = razorDocumentUri };
             }
         }
 

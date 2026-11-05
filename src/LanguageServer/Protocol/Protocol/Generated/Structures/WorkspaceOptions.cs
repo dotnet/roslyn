@@ -8,14 +8,14 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Defines workspace specific capabilities of the server.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class WorkspaceOptions
 {
     /// <summary>
     /// The server supports workspace folder.
-    /// 
+    ///
     /// @since 3.6.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("workspaceFolders")]
@@ -24,7 +24,7 @@ internal partial class WorkspaceOptions
 
     /// <summary>
     /// The server is interested in notifications/requests for operations on files.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("fileOperations")]
@@ -33,7 +33,7 @@ internal partial class WorkspaceOptions
 
     /// <summary>
     /// The server supports the `workspace/textDocumentContent` request.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocumentContent")]

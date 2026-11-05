@@ -35,7 +35,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         _remoteServiceInvoker = new TestRemoteServiceInvoker(JoinableTaskContext, OOPExportProvider, LoggerFactory);
         AddDisposable(_remoteServiceInvoker);
 
-        _semanticTokensLegendService = new CohostSemanticTokensLegendService(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = true }));
+        _semanticTokensLegendService = new CohostSemanticTokensLegendService(new TestClientCapabilitiesService(new ClientCapabilities() { SupportsVisualStudioExtensions = true }));
     }
 
     private protected override IClientSettingsManager CreateClientSettingsManager() => new ClientSettingsManager([], null, null);
@@ -44,25 +44,25 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     {
         return new()
         {
-            ClientCapabilities = new VSInternalClientCapabilities()
+            ClientCapabilities = new ClientCapabilities()
             {
                 SupportsVisualStudioExtensions = true,
                 TextDocument = new TextDocumentClientCapabilities
                 {
-                    Completion = new VSInternalCompletionSetting
+                    Completion = new CompletionClientCapabilities
                     {
-                        CompletionItem = new CompletionItemSetting(),
-                        CompletionItemKind = new CompletionItemKindSetting()
+                        CompletionItem = new ClientCompletionItemOptions(),
+                        CompletionItemKind = new ClientCompletionItemOptionsKind()
                         {
                             ValueSet = (CompletionItemKind[])Enum.GetValues(typeof(CompletionItemKind)),
                         },
-                        CompletionList = new VSInternalCompletionListSetting() { Data = true },
-                        CompletionListSetting = new CompletionListSetting()
+                        VsCompletionList = new VSInternalCompletionListSetting() { Data = true },
+                        CompletionList = new CompletionListCapabilities()
                         {
                             ItemDefaults = ["commitCharacters", "editRange", "insertTextFormat", "data"]
                         },
                         ContextSupport = false,
-                        InsertTextMode = InsertTextMode.AsIs,
+                        InsertTextMode = InsertTextMode.asIs,
                     }
                 }
             },

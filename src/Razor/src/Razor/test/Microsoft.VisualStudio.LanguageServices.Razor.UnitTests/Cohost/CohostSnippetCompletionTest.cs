@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Generic;
@@ -40,7 +40,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
 
         var response = new RazorVSInternalCompletionList()
         {
-            Items = [new VSInternalCompletionItem() { Label = InvalidLabel }],
+            Items = [new CompletionItem() { Label = InvalidLabel }],
             IsIncomplete = true
         };
 
@@ -64,10 +64,10 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
-            Context = new VSInternalCompletionContext()
+            Context = new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -90,11 +90,11 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
 
         // We clone the item first though, to ensure us setting the data doesn't hide a bug in our caching logic, around wrapping" the data.
         var itemToResolve = result.Items.First();
-        itemToResolve = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
+        itemToResolve = JsonSerializer.Deserialize<CompletionItem>(JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
 
         var tdi = resolveEndpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(itemToResolve);
         Assert.NotNull(tdi);
-        Assert.Equal(document.GetURI(), tdi.DocumentUri);
+        Assert.Equal(document.GetURI(), tdi.Uri);
 
         var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
 
@@ -147,7 +147,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
 
         var response = new RazorVSInternalCompletionList()
         {
-            Items = [new VSInternalCompletionItem() { Label = InvalidLabel }],
+            Items = [new CompletionItem() { Label = InvalidLabel }],
             IsIncomplete = true
         };
 
@@ -169,10 +169,10 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
-            Context = new VSInternalCompletionContext()
+            Context = new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -196,18 +196,18 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         var itemToResolve = result.Items.Single(item => item.Kind == CompletionItemKind.Snippet);
 
         // We clone the item first though, to ensure us setting the data doesn't hide a bug in our caching logic, around wrapping" the data.
-        itemToResolve = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
+        itemToResolve = JsonSerializer.Deserialize<CompletionItem>(JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
 
         var tdi = resolveEndpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(itemToResolve);
         Assert.NotNull(tdi);
-        Assert.Equal(document.GetURI(), tdi.DocumentUri);
+        Assert.Equal(document.GetURI(), tdi.Uri);
 
         var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
 
         Assert.NotNull(resolvedItem);
         Assert.Equal(itemToResolve.Label, resolvedItem.Label);
         Assert.Equal(InsertTextFormat.Snippet, resolvedItem.InsertTextFormat);
-        Assert.True(resolvedItem.VsResolveTextEditOnCommit);
+        Assert.True(resolvedItem.ResolveTextEditOnCommit);
         Assert.Null(resolvedItem.TextEdit);
         var expected = """<div class="alert" role="alert">${1:Your changes were saved.}</div>$0""";
         expected = isStartTagContext ? expected[1..] : expected;
@@ -234,7 +234,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
 
         var response = new RazorVSInternalCompletionList()
         {
-            Items = [new VSInternalCompletionItem() { Label = InvalidLabel }],
+            Items = [new CompletionItem() { Label = InvalidLabel }],
             IsIncomplete = true
         };
 
@@ -258,10 +258,10 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
-            Context = new VSInternalCompletionContext()
+            Context = new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -283,7 +283,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
             LoggerFactory);
 
         var itemToResolve = result.Items.First();
-        itemToResolve = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
+        itemToResolve = JsonSerializer.Deserialize<CompletionItem>(JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
 
         var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
 
@@ -296,10 +296,10 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
 
     private class TestSnippetCompletionItemProvider : ISnippetCompletionItemProvider
     {
-        public void AddSnippetCompletions(ref PooledArrayBuilder<VSInternalCompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext)
+        public void AddSnippetCompletions(ref PooledArrayBuilder<CompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext)
         {
             Assert.Equal(RazorLanguageKind.Html, projectedKind);
-            builder.Add(new VSInternalCompletionItem()
+            builder.Add(new CompletionItem()
             {
                 Label = "SnippetItem",
                 InsertText = "SnippetItem",
@@ -308,7 +308,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
             });
         }
 
-        public bool TryResolveInsertString(VSInternalCompletionItem completionItem, [NotNullWhen(true)] out string? insertString)
+        public bool TryResolveInsertString(CompletionItem completionItem, [NotNullWhen(true)] out string? insertString)
         {
             Assert.Equal("SnippetItem", completionItem.Label);
             Assert.Equal("SnippetItem", completionItem.InsertText);
@@ -328,9 +328,9 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
     /// </summary>
     private class StartTagSnippetProvider : ISnippetCompletionItemProvider
     {
-        public void AddSnippetCompletions(ref PooledArrayBuilder<VSInternalCompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext)
+        public void AddSnippetCompletions(ref PooledArrayBuilder<CompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext)
         {
-            builder.Add(new VSInternalCompletionItem()
+            builder.Add(new CompletionItem()
             {
                 Label = "table",
                 InsertText = "table",
@@ -340,7 +340,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
             });
         }
 
-        public bool TryResolveInsertString(VSInternalCompletionItem completionItem, [NotNullWhen(true)] out string? insertString)
+        public bool TryResolveInsertString(CompletionItem completionItem, [NotNullWhen(true)] out string? insertString)
         {
             // Simulate a real snippet body that starts with '<'
             insertString = "<table>$0</table>";

@@ -78,8 +78,8 @@ internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker, IOnIniti
         => _workspaceFolderPaths;
 
     private static string? GetNormalizedFilePath(WorkspaceFolder workspaceFolder)
-        => workspaceFolder.DocumentUri.ParsedDocumentUri?.IsFile == true
-            ? NormalizePath(workspaceFolder.DocumentUri.GetDocumentFilePathFromUri())
+        => workspaceFolder.Uri.ParsedDocumentUri?.IsFile == true
+            ? NormalizePath(workspaceFolder.Uri.GetDocumentFilePathFromUri())
             : null;
 
     private static string NormalizePath(string path)

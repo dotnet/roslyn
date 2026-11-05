@@ -27,7 +27,7 @@ public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtoc
 
     private protected static async Task<LSP.SemanticTokens> RunGetSemanticTokensFullAsync(TestLspServer testLspServer, LSP.Location caret)
     {
-        var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensFullParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensFullName,
+        var result = await testLspServer.ExecuteRequestAsync<LSP.SemanticTokensParams, LSP.SemanticTokens>(LSP.Methods.TextDocumentSemanticTokensFullName,
             CreateSemanticTokensFullParams(caret), CancellationToken.None);
         Contract.ThrowIfNull(result);
         return result;
@@ -41,16 +41,16 @@ public abstract class AbstractSemanticTokensTests : AbstractLanguageServerProtoc
         return result;
     }
 
-    private static LSP.SemanticTokensFullParams CreateSemanticTokensFullParams(LSP.Location caret)
+    private static LSP.SemanticTokensParams CreateSemanticTokensFullParams(LSP.Location caret)
         => new()
         {
-            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri }
+            TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri }
         };
 
     private static LSP.SemanticTokensRangeParams CreateSemanticTokensRangeParams(LSP.Location location)
         => new()
         {
-            TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = location.DocumentUri },
+            TextDocument = new LSP.TextDocumentIdentifier { Uri = location.Uri },
             Range = location.Range
         };
 

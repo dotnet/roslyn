@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A diagnostic report with a full set of problems.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class FullDocumentDiagnosticReport
@@ -32,7 +32,6 @@ internal partial class FullDocumentDiagnosticReport
     /// The actual items.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("items")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Diagnostic[] Items { get; set; } = null!;
 
     /// <summary>

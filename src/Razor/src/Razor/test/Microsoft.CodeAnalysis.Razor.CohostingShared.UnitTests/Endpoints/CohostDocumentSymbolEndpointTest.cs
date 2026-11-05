@@ -646,7 +646,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         var sourceText = SourceText.From(input);
 
         Microsoft.CodeAnalysis.Contract.ThrowIfNull(result);
-        var symbolsInformations = result.Value.Second;
+        var symbolsInformations = Assert.IsType<SymbolInformation[]>(result.Value);
         Assert.Equal(spansDict.Values.Count(), symbolsInformations.Length);
 
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -674,7 +674,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         Assert.NotNull(JsonSerializer.SerializeToDocument(result, JsonHelpers.JsonSerializerOptions));
 
         Microsoft.CodeAnalysis.Contract.ThrowIfNull(result);
-        Assert.True(result.Value.TryGetFirst(out var documentSymbols));
+        var documentSymbols = Assert.IsType<DocumentSymbol[]>(result.Value);
         return documentSymbols;
     }
 }

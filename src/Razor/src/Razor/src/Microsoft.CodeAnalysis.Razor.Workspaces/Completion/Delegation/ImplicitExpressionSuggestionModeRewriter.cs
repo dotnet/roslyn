@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 ///    ensures the client re-queries on the next keystroke, restoring normal commit behavior.
 ///
 /// 2. **At the top level of the implicit expression** (e.g., <c>@h|</c>): clears false-positive
-///    <see cref="Roslyn.LanguageServer.Protocol.VSInternalCompletionList.SuggestionMode"/>. In implicit
+///    <see cref="Roslyn.LanguageServer.Protocol.CompletionList.SuggestionMode"/>. In implicit
 ///    expressions, the Razor compiler generates C# like <c>__builder.AddContent(seq, h)</c>. Because
 ///    <c>RenderTreeBuilder.AddContent</c> has a <c>RenderFragment</c> (delegate) overload, Roslyn's
 ///    suggestion-mode completion provider detects a potential lambda context and enables suggestion mode.

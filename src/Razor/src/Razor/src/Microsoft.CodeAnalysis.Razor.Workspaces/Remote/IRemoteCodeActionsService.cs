@@ -17,7 +17,7 @@ internal interface IRemoteCodeActionsService : IRemoteJsonService
         VSCodeActionParams request,
         CancellationToken cancellationToken);
 
-    ValueTask<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(
+    ValueTask<TextDocumentCodeActionResultItem[]?> GetCodeActionsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         VSCodeActionParams request,

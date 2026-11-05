@@ -10,7 +10,7 @@ internal partial class TextDocumentFilterClientCapabilities
 {
     /// <summary>
     /// The client supports Relative Patterns.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("relativePatternSupport")]

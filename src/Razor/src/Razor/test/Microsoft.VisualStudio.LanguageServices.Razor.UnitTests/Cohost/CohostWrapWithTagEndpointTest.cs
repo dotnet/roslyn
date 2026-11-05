@@ -214,7 +214,7 @@ public class CohostWrapWithTagEndpointTest(ITestOutputHelper testOutputHelper) :
             new FormattingOptions(),
             new VersionedTextDocumentIdentifier()
             {
-                DocumentUri = documentUri
+                Uri = documentUri
             });
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);

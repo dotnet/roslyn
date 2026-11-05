@@ -346,7 +346,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true),
             WorkspaceFolders =
             [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+                new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
             ]
         });
         DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
@@ -371,7 +371,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true),
             WorkspaceFolders =
             [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(removedWorkspace.Path), Name = "removed" }
+                new() { Uri = CreateAbsoluteDocumentUri(removedWorkspace.Path), Name = "removed" }
             ]
         });
         DeferDeleteCacheDirectory(testLspServer, removedWorkspace.Path);
@@ -383,8 +383,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         var addedApp = addedWorkspace.CreateFile("Added.cs").WriteAllText(appText);
         var workspaceFolderTracker = testLspServer.GetRequiredLspService<IWorkspaceFolderTracker>();
         workspaceFolderTracker.Update(
-            [new() { DocumentUri = CreateAbsoluteDocumentUri(addedWorkspace.Path), Name = "added" }],
-            [new() { DocumentUri = CreateAbsoluteDocumentUri(removedWorkspace.Path), Name = "removed" }]);
+            [new() { Uri = CreateAbsoluteDocumentUri(addedWorkspace.Path), Name = "added" }],
+            [new() { Uri = CreateAbsoluteDocumentUri(removedWorkspace.Path), Name = "removed" }]);
 
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
 
@@ -414,7 +414,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, false),
             WorkspaceFolders =
             [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
+                new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace1" }
             ]
         });
         DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
@@ -478,7 +478,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
             OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
             WorkspaceFolders =
             [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(workspacePath), Name = "workspace1" }
+                new() { Uri = CreateAbsoluteDocumentUri(workspacePath), Name = "workspace1" }
             ]
         });
         DeferDeleteCacheDirectory(testLspServer, workspacePath);

@@ -42,7 +42,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
         // Grab a few things from the local MEF composition, for convenience
         _remoteServiceInvoker = LocalExportProvider.GetExportedValue<IRemoteServiceInvoker>();
 
-        _semanticTokensLegendService = new CohostSemanticTokensLegendService(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = false }));
+        _semanticTokensLegendService = new CohostSemanticTokensLegendService(new TestClientCapabilitiesService(new ClientCapabilities() { SupportsVisualStudioExtensions = false }));
     }
 
     private protected override IClientSettingsManager CreateClientSettingsManager() => new ClientSettingsManager();
@@ -55,29 +55,29 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
             {
                 TextDocument = new TextDocumentClientCapabilities
                 {
-                    Completion = new CompletionSetting
+                    Completion = new CompletionClientCapabilities
                     {
-                        CompletionItem = new CompletionItemSetting(),
-                        CompletionItemKind = new CompletionItemKindSetting()
+                        CompletionItem = new ClientCompletionItemOptions(),
+                        CompletionItemKind = new ClientCompletionItemOptionsKind()
                         {
                             ValueSet = Enum.GetValues<CompletionItemKind>(),
                         },
-                        CompletionListSetting = new CompletionListSetting()
+                        CompletionList = new CompletionListCapabilities()
                         {
                             ItemDefaults = ["commitCharacters", "editRange", "insertTextFormat", "data"]
                         },
                         ContextSupport = false,
-                        InsertTextMode = InsertTextMode.AsIs,
+                        InsertTextMode = InsertTextMode.asIs,
                     }
                 },
                 Workspace = new WorkspaceClientCapabilities
                 {
-                    WorkspaceEdit = new WorkspaceEditSetting
+                    WorkspaceEdit = new WorkspaceEditClientCapabilities
                     {
                         ResourceOperations = [ResourceOperationKind.Create, ResourceOperationKind.Rename, ResourceOperationKind.Delete]
                     }
                 }
-            }.ToVSInternalClientCapabilities(),
+            },
             TokenModifiers = [],
             TokenTypes = []
         };

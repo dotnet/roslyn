@@ -34,7 +34,7 @@ public sealed class WillRenameTests(ITestOutputHelper testOutputHelper) : Abstra
         {
             Workspace = new WorkspaceClientCapabilities
             {
-                FileOperations = new FileOperationsWorkspaceClientCapabilities
+                FileOperations = new FileOperationClientCapabilities
                 {
                     WillRename = true
                 },
@@ -58,7 +58,7 @@ public sealed class WillRenameTests(ITestOutputHelper testOutputHelper) : Abstra
         var listeners = ((IMefHostExportProvider)testLspServer.TestWorkspace.Services.HostServices).GetExportedValues<ILspWillRenameListener>().OfType<TestWillRenameListener1>().ToArray();
 
         // Need at least one change, or the result will be dropped
-        listeners[0].Result = new WorkspaceEdit() { DocumentChanges = new TextDocumentEdit[] { new() { } } };
+        listeners[0].Result = new WorkspaceEdit() { DocumentChanges = [new TextDocumentEdit()] };
 
         var edit = await RunWillRenameAsync(testLspServer);
         Assert.NotNull(edit);
@@ -73,14 +73,15 @@ public sealed class WillRenameTests(ITestOutputHelper testOutputHelper) : Abstra
 
         var expected = new WorkspaceEdit()
         {
-            DocumentChanges = new TextDocumentEdit[] {
-                new() { TextDocument = new() { DocumentUri = new("file://file1.cs") } },
-                new() { TextDocument = new() { DocumentUri = new("file://file2.cs") } }
-            }
+            DocumentChanges =
+            [
+                new TextDocumentEdit() { TextDocument = new() { Uri = new("file://file1.cs") } },
+                new TextDocumentEdit() { TextDocument = new() { Uri = new("file://file2.cs") } }
+            ]
         };
 
-        listeners[0].Result = new WorkspaceEdit() { DocumentChanges = new TextDocumentEdit[] { new() { TextDocument = new() { DocumentUri = new("file://file1.cs") } } } };
-        listeners[1].Result = new WorkspaceEdit() { DocumentChanges = new TextDocumentEdit[] { new() { TextDocument = new() { DocumentUri = new("file://file2.cs") } } } };
+        listeners[0].Result = new WorkspaceEdit() { DocumentChanges = [new TextDocumentEdit() { TextDocument = new() { Uri = new("file://file1.cs") } }] };
+        listeners[1].Result = new WorkspaceEdit() { DocumentChanges = [new TextDocumentEdit() { TextDocument = new() { Uri = new("file://file2.cs") } }] };
 
         var edit = await RunWillRenameAsync(testLspServer);
         Assert.NotNull(edit);
@@ -89,7 +90,7 @@ public sealed class WillRenameTests(ITestOutputHelper testOutputHelper) : Abstra
     }
 
     [Theory, CombinatorialData]
-    public async Task CombinesDocumentChanges_SumType(bool mutatingLspWorkspace)
+    public async Task CombinesDocumentChanges_Union(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync("", mutatingLspWorkspace);
 
@@ -97,14 +98,14 @@ public sealed class WillRenameTests(ITestOutputHelper testOutputHelper) : Abstra
 
         var expected = new WorkspaceEdit()
         {
-            DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] {
-                new TextDocumentEdit() { TextDocument = new() { DocumentUri = new("file://file1.cs") } },
-                new RenameFile() { OldDocumentUri = new("file://file2.cs") }
+            DocumentChanges = new Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem[] {
+                new TextDocumentEdit() { TextDocument = new() { Uri = new("file://file1.cs") } },
+                new RenameFile() { OldUri = new("file://file2.cs") }
             }
         };
 
-        listeners[0].Result = new WorkspaceEdit() { DocumentChanges = new TextDocumentEdit[] { new() { TextDocument = new() { DocumentUri = new("file://file1.cs") } } } };
-        listeners[1].Result = new WorkspaceEdit() { DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[] { new RenameFile() { OldDocumentUri = new("file://file2.cs") } } };
+        listeners[0].Result = new WorkspaceEdit() { DocumentChanges = [new TextDocumentEdit() { TextDocument = new() { Uri = new("file://file1.cs") } }] };
+        listeners[1].Result = new WorkspaceEdit() { DocumentChanges = new Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem[] { new RenameFile() { OldUri = new("file://file2.cs") } } };
 
         var edit = await RunWillRenameAsync(testLspServer);
         Assert.NotNull(edit);

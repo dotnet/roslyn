@@ -55,7 +55,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     public ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -66,7 +66,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
 
     private async ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         RemoteDocumentSnapshot documentSnapshot,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken)
     {
@@ -123,7 +123,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     /// </remarks>
     private static bool TryGetProvisionalCompletionInfo(
         RazorCodeDocument codeDocument,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         DocumentPositionInfo originalPositionInfo,
         IDocumentMappingService documentMappingService,
         out CompletionPositionInfo result)
@@ -174,7 +174,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     /// For example, '@' typed after '$' in Emmet numbering modifiers (e.g., ul>li.item$@-*5)
     /// should not trigger Razor completion.
     /// </summary>
-    private static bool ShouldSuppressCompletion(VSInternalCompletionContext completionContext, SourceText sourceText, int index)
+    private static bool ShouldSuppressCompletion(CompletionContext completionContext, SourceText sourceText, int index)
     {
         // Suppress when '@' is typed as part of an Emmet abbreviation.
         // In Emmet syntax, '@' only appears after '$' for numbering modifiers (e.g., item$@-).
@@ -199,7 +199,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         CompletionPositionInfo positionInfo,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
         Guid correlationId,
         CancellationToken cancellationToken)
@@ -218,7 +218,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     private async ValueTask<CompletionResponse> GetCompletionAsync(
         RemoteDocumentSnapshot documentSnapshot,
         CompletionPositionInfo positionInfo,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
         Guid correlationId,
         CancellationToken cancellationToken)
@@ -296,7 +296,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
     }
 
     private void GetRazorCompletionContextAndLocalHtmlCompletionList(
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
         DocumentPositionInfo documentPositionInfo,
         bool isRazorTrigger,
@@ -377,7 +377,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         var clientCapabilities = _clientCapabilitiesService.ClientCapabilities;
         var mappedLinePosition = mappedPosition.ToLinePosition();
 
-        VSInternalCompletionList? completionList = null;
+        CompletionList? completionList = null;
         using (_telemetryReporter.TrackLspRequest(Methods.TextDocumentCompletionName, Constants.ExternalAccessServerName, TelemetryThresholds.CompletionSubLSPTelemetryThreshold, correlationId))
         {
             completionList = await GetDelegatedCompletionListAsync(
@@ -416,7 +416,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return rewrittenResponse;
     }
 
-    private async Task<VSInternalCompletionList?> GetDelegatedCompletionListAsync(
+    private async Task<CompletionList?> GetDelegatedCompletionListAsync(
         Document document,
         LinePosition linePosition,
         CompletionContext completionContext,
@@ -461,10 +461,10 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return generatedDocument;
     }
 
-    public ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
+    public ValueTask<CompletionItem> ResolveCompletionItemAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        VSInternalCompletionItem request,
+        CompletionItem request,
         RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
         => RunServiceAsync(
@@ -473,9 +473,9 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             snapshot => ResolveCompletionItemAsync(snapshot, request, formattingOptions, cancellationToken),
             cancellationToken);
 
-    private ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
+    private ValueTask<CompletionItem> ResolveCompletionItemAsync(
         RemoteDocumentSnapshot snapshot,
-        VSInternalCompletionItem request,
+        CompletionItem request,
         RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
@@ -493,14 +493,14 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
             _ => LogAndReturnUnresolvedAsync(request),
         };
 
-        ValueTask<VSInternalCompletionItem> LogAndReturnUnresolvedAsync(VSInternalCompletionItem item)
+        ValueTask<CompletionItem> LogAndReturnUnresolvedAsync(CompletionItem item)
         {
             Logger.LogWarning("Did not recognize completion item, so unable to resolve.");
             return new(item);
         }
     }
 
-    private async ValueTask<VSInternalCompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentSnapshot snapshot, VSInternalCompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
+    private async ValueTask<CompletionItem> ResolveRazorCompletionItemAsync(RemoteDocumentSnapshot snapshot, CompletionItem request, RazorCompletionResolveContext razorResolutionContext, CancellationToken cancellationToken)
     {
         var componentAvailabilityService = new ComponentAvailabilityService(snapshot.ProjectSnapshot.SolutionSnapshot);
 
@@ -515,7 +515,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return result ?? request;
     }
 
-    private VSInternalCompletionItem ResolveLocalHtmlCompletionItem(VSInternalCompletionItem request, LocalHtmlCompletionResolveContext resolveContext)
+    private CompletionItem ResolveLocalHtmlCompletionItem(CompletionItem request, LocalHtmlCompletionResolveContext resolveContext)
     {
         if (resolveContext.TryGetResolveData(request.Label, request.Kind, out var description, out var documentationUrl, out var baseline, out var baselineYear))
         {
@@ -534,7 +534,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         return request;
     }
 
-    private async ValueTask<VSInternalCompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentSnapshot documentSnapshot, VSInternalCompletionItem request, VSInternalCompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    private async ValueTask<CompletionItem> ResolveCSharpCompletionItemAsync(RemoteDocumentSnapshot documentSnapshot, CompletionItem request, CompletionList containingCompletionList, DelegatedCompletionResolutionContext resolutionContext, RazorFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var oldData = request.Data;
         try
@@ -557,7 +557,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
                 clientCapabilities,
                 cancellationToken).ConfigureAwait(false);
 
-            var item = JsonHelpers.Convert<CompletionItem, VSInternalCompletionItem>(result).AssumeNotNull();
+            var item = JsonHelpers.Convert<CompletionItem, CompletionItem>(result).AssumeNotNull();
 
             item = await CSharpCompletionItemFormatter.FormatAsync(
                 item,

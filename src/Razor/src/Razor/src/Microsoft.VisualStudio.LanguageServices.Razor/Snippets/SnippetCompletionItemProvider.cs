@@ -53,7 +53,7 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
     public SnippetCache SnippetCache { get; }
 
     public void AddSnippetCompletions(
-        ref PooledArrayBuilder<VSInternalCompletionItem> builder,
+        ref PooledArrayBuilder<CompletionItem> builder,
         RazorLanguageKind projectedKind,
         string? triggerCharacter,
         ICollection<string> validElementNames,
@@ -105,7 +105,7 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
                 ? DefaultCommitCharacters.GetElementCommitCharacterStrings(options.CommitElementsWithSpace)
                 : [];
 
-            builder.Add(new VSInternalCompletionItem()
+            builder.Add(new CompletionItem()
             {
                 Label = s.Shortcut,
                 Detail = s.Description,
@@ -116,12 +116,12 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
                 CommitCharacters = commitCharacters,
                 // Sort snippets after elements with the same label, matching C# behavior.
                 SortText = s.SortText,
-                VsResolveTextEditOnCommit = true
+                ResolveTextEditOnCommit = true
             });
         }
     }
 
-    public bool TryResolveInsertString(VSInternalCompletionItem completionItem, [NotNullWhen(true)] out string? insertString)
+    public bool TryResolveInsertString(CompletionItem completionItem, [NotNullWhen(true)] out string? insertString)
     {
         if (SnippetCompletionData.TryParse(completionItem.Data, out var snippetCompletionData) &&
             SnippetCache.TryResolveSnippetString(snippetCompletionData) is { } snippetInsertText)

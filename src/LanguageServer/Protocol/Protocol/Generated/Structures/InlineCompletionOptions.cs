@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Inline completion options used during static registration.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class InlineCompletionOptions

@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client capabilities specific to diagnostic pull requests.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class DiagnosticClientCapabilities : DiagnosticsCapabilities
@@ -31,7 +31,7 @@ internal partial class DiagnosticClientCapabilities : DiagnosticsCapabilities
 
     /// <summary>
     /// Whether the client supports `MarkupContent` in diagnostic messages.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("markupMessageSupport")]

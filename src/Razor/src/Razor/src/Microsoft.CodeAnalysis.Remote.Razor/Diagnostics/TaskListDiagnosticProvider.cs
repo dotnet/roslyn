@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 
 internal static class TaskListDiagnosticProvider
 {
-    private static readonly DiagnosticTag[] s_taskItemTags = [VSDiagnosticTags.TaskItem];
+    private static readonly DiagnosticTag[] s_taskItemTags = [DiagnosticTag.TaskItem];
 
     public static ImmutableArray<LspDiagnostic> GetTaskListDiagnostics(RazorCodeDocument codeDocument, ImmutableArray<string> taskListDescriptors)
     {

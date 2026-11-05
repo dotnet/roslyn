@@ -8,9 +8,6 @@ namespace Roslyn.LanguageServer.Protocol;
 
 internal partial class WorkDoneProgressEnd
 {
-    [System.Text.Json.Serialization.JsonPropertyName("kind")]
-    public string Kind => "end";
-
     /// <summary>
     /// Optional, a final message indicating to for example indicate the outcome
     /// of the operation.

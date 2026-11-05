@@ -20,7 +20,7 @@ internal partial class InitializeResult
 
     /// <summary>
     /// Information about the server.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("serverInfo")]

@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A union of: SymbolInformation[] | WorkspaceSymbol[].
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
 [System.Runtime.CompilerServices.Union]
 internal sealed class WorkspaceSymbolResult : System.Runtime.CompilerServices.IUnion
 {

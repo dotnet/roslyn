@@ -87,7 +87,7 @@ internal sealed class InlayHintHandler : ILspServiceDocumentRequestHandler<Inlay
                 Label = label,
                 Kind = kind,
                 TextEdits = textEdits,
-                ToolTip = null,
+                Tooltip = null,
                 PaddingLeft = leftPadding,
                 PaddingRight = rightPadding,
                 Data = new InlayHintResolveData(resultId, i, textDocumentIdentifier, syntaxVersionString, range, displayAllOverride)
@@ -147,4 +147,3 @@ internal sealed class InlayHintHandler : ILspServiceDocumentRequestHandler<Inlay
         return (result.ToImmutable().JoinText(), leftPadding, rightPadding);
     }
 }
-

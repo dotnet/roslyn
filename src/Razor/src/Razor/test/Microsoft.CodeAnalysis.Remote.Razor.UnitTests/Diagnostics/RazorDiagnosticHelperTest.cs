@@ -25,8 +25,8 @@ public class RazorDiagnosticHelperTest
         var diagnostic = RazorDiagnosticHelper.ConvertToVSDiagnostic(razorDiagnostic, sourceText, documentSnapshot: null);
 
         // Assert
-        Assert.Equal(razorDiagnostic.Id, diagnostic.Code);
-        Assert.Equal(razorDiagnostic.GetMessage(CultureInfo.InvariantCulture), diagnostic.Message);
+        Assert.Equal(razorDiagnostic.Id, Assert.IsType<string>(diagnostic.Code?.Value));
+        Assert.Equal(razorDiagnostic.GetMessage(CultureInfo.InvariantCulture), Assert.IsType<string>(diagnostic.Message?.Value));
         Assert.Null(diagnostic.Range);
         Assert.Equal(LspDiagnosticSeverity.Error, diagnostic.Severity);
     }

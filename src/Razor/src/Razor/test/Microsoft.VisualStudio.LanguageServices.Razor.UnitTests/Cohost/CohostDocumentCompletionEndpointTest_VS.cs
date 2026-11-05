@@ -30,12 +30,12 @@ public partial class CohostDocumentCompletionEndpointTest
             NoOpTelemetryReporter.Instance,
             LoggerFactory);
         var testAccessor = endpoint.GetTestAccessor();
-        var htmlItem = new VSInternalCompletionItem { Label = "div", Kind = CompletionItemKind.Text };
+        var htmlItem = new CompletionItem { Label = "div", Kind = CompletionItemKind.Text };
         var data = new object();
         var commitCharacters = new[] { ">" };
-        SumType<VSInternalContinueCharacterSingle, VSInternalContinueCharacterRange, VSInternalContinueCharacterClass>[] continueCharacters =
-            [new VSInternalContinueCharacterSingle { Character = "." }];
-        var itemDefaults = new CompletionListItemDefaults();
+        CompletionList._ContinueCharactersItem[] continueCharacters =
+            [new VSInternalContinueCharacterSingle { Char = "." }];
+        var itemDefaults = new CompletionItemDefaults();
         var sharedCompletionList = new RazorVSInternalCompletionList()
         {
             Items = [htmlItem],
@@ -67,7 +67,7 @@ public partial class CohostDocumentCompletionEndpointTest
             Assert.NotSame(sharedCompletionList, result);
             Assert.Same(htmlItem, result.Items[1]);
             Assert.Same(data, result.Data);
-            Assert.Same(commitCharacters, result.CommitCharacters!.Value.First);
+            Assert.Same(commitCharacters, result.CommitCharacters!.Value);
             Assert.Same(continueCharacters, result.ContinueCharacters);
             Assert.Same(itemDefaults, result.ItemDefaults);
             Assert.True(result.IsIncomplete);
@@ -86,7 +86,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = " ",
@@ -108,7 +108,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = " ",
@@ -130,7 +130,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = " ",
@@ -151,7 +151,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = " ",
@@ -173,7 +173,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = " ",
@@ -195,7 +195,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = " ",
@@ -217,7 +217,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = " ",
@@ -238,7 +238,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "a",
@@ -256,7 +256,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 $$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -275,7 +275,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 $$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "a",
@@ -294,7 +294,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 $$
 
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "a",
@@ -316,7 +316,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -335,7 +335,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 $$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -355,7 +355,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <div class="$$"></div>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -380,7 +380,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 $$
                 </script>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -405,7 +405,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 $$
                 </style>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerCharacter = null,
@@ -428,7 +428,7 @@ public partial class CohostDocumentCompletionEndpointTest
 
                 The end.
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = " ",
@@ -446,7 +446,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <div></$$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "/",
@@ -464,7 +464,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <div></$$</div>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "/",
@@ -482,7 +482,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <div></d$$iv>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -501,7 +501,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <div></div>$$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -520,7 +520,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <div></di$$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -542,7 +542,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <script></script>$$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Explicit,
                 TriggerKind = CompletionTriggerKind.Invoked
@@ -564,7 +564,7 @@ public partial class CohostDocumentCompletionEndpointTest
                 <$$
                 </ul>
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -591,7 +591,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <$$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",
@@ -611,7 +611,7 @@ public partial class CohostDocumentCompletionEndpointTest
             input: """
                 <$$
                 """,
-            completionContext: new VSInternalCompletionContext()
+            completionContext: new CompletionContext()
             {
                 InvokeKind = VSInternalCompletionInvokeKind.Typing,
                 TriggerCharacter = "<",

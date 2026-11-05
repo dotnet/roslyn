@@ -21,11 +21,11 @@ internal class TextEditResponseRewriter : IDelegatedCSharpCompletionResponseRewr
 
         if (completionList.ItemDefaults?.EditRange is { } editRange)
         {
-            if (editRange.TryGetFirst(out var range))
+            if (editRange.Value is LspRange range)
             {
                 completionList.ItemDefaults.EditRange = TranslateRange(hostDocumentPosition, projectedPosition, range);
             }
-            else if (editRange.TryGetSecond(out var insertReplaceRange))
+            else if (editRange.Value is EditRangeWithInsertReplace insertReplaceRange)
             {
                 insertReplaceRange.Insert = TranslateRange(hostDocumentPosition, projectedPosition, insertReplaceRange.Insert);
                 insertReplaceRange.Replace = TranslateRange(hostDocumentPosition, projectedPosition, insertReplaceRange.Replace);
@@ -51,12 +51,12 @@ internal class TextEditResponseRewriter : IDelegatedCSharpCompletionResponseRewr
         {
             if (item.TextEdit is { } edit)
             {
-                if (edit.TryGetFirst(out var textEdit))
+                if (edit.Value is TextEdit textEdit)
                 {
                     var translatedRange = TranslateRange(hostDocumentPosition, projectedPosition, textEdit.Range);
                     textEdit.Range = translatedRange;
                 }
-                else if (edit.TryGetSecond(out var insertReplaceEdit))
+                else if (edit.Value is InsertReplaceEdit insertReplaceEdit)
                 {
                     insertReplaceEdit.Insert = TranslateRange(hostDocumentPosition, projectedPosition, insertReplaceEdit.Insert);
                     insertReplaceEdit.Replace = TranslateRange(hostDocumentPosition, projectedPosition, insertReplaceEdit.Replace);

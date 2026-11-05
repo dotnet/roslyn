@@ -21,7 +21,7 @@ public sealed class DataTipRangeHandlerTests(ITestOutputHelper testOutputHelper)
             LSP.VSInternalMethods.TextDocumentDataTipRangeName,
             new LSP.TextDocumentPositionParams()
             {
-                TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri },
+                TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                 Position = caret.Range.Start,
             },
             CancellationToken.None);

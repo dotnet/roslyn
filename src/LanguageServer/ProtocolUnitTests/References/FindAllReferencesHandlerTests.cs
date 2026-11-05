@@ -255,7 +255,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
-        Assert.NotNull(results[0].Location!.DocumentUri);
+        Assert.NotNull(results[0].Location!.Uri);
         AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
     }
 
@@ -375,7 +375,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(3, results.Length);
-        Assert.True(results[0].Location.DocumentUri.ToString().EndsWith("String.cs"));
+        Assert.True(results[0].Location.Uri.ToString().EndsWith("String.cs"));
 
         AssertLocationsEqual(testLspServer.GetLocations("reference"), results.Skip(1).Select(r => r.Location));
     }
@@ -411,7 +411,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(2, results.Length);
-        Assert.True(results.Any(r => r.Location.DocumentUri.UriString.Contains("/generated_file.cs")));
+        Assert.True(results.Any(r => r.Location.Uri.UriString.Contains("/generated_file.cs")));
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);
@@ -449,7 +449,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
 
         var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(2, results.Length);
-        Assert.True(results.Any(r => r.Location.DocumentUri.UriString.Contains("/generated_file.cs")));
+        Assert.True(results.Any(r => r.Location.Uri.UriString.Contains("/generated_file.cs")));
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);
@@ -489,7 +489,7 @@ public sealed class FindAllReferencesHandlerTests(ITestOutputHelper testOutputHe
     private static LSP.ReferenceParams CreateReferenceParams(LSP.Location caret, IProgress<object> progress, bool includeDeclaration)
         => new()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.ReferenceContext { IncludeDeclaration = includeDeclaration },
             PartialResultToken = progress

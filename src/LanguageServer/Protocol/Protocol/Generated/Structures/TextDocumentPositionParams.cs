@@ -10,20 +10,18 @@ namespace Roslyn.LanguageServer.Protocol;
 /// A parameter literal used in requests to pass a text document and a position inside that
 /// document.
 /// </summary>
-internal partial class TextDocumentPositionParams
+internal partial class TextDocumentPositionParams : ITextDocumentParams
 {
     /// <summary>
     /// The text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
     /// <summary>
     /// The position inside the text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("position")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Position Position { get; set; } = null!;
 
 }

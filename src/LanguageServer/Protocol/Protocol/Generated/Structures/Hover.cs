@@ -15,7 +15,7 @@ internal partial class Hover
     /// The hover's content
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("contents")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    [System.Text.Json.Serialization.JsonRequired]
     public _Contents? Contents { get; set; }
 
     /// <summary>
@@ -27,7 +27,7 @@ internal partial class Hover
     public Range? Range { get; set; }
 
     /// <summary>
-    /// Gets or sets the value which represents the hover content as a tree of objects from the Microsoft.VisualStudio.Text.Adornments namespace, such as ContainerElements, ClassifiedTextElements and ClassifiedTextRuns.
+    /// Gets or sets the value which represents the hover content as a tree of objects from the Roslyn.Text.Adornments namespace, such as ContainerElements, ClassifiedTextElements and ClassifiedTextRuns.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_rawContent")]
     [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.ObjectContentConverter))]
@@ -37,13 +37,14 @@ internal partial class Hover
     /// <summary>
     /// A union of: MarkupContent | string | MarkedStringWithLanguage | MarkedString[].
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Contents : System.Runtime.CompilerServices.IUnion
     {
-        public _Contents(MarkupContent value) => Value = value;
         public _Contents(string value) => Value = value;
         public _Contents(MarkedStringWithLanguage value) => Value = value;
         public _Contents(MarkedString[] value) => Value = value;
+        public _Contents(MarkupContent value) => Value = value;
         public object Value { get; }
     }
 

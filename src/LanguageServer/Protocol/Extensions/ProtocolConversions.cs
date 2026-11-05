@@ -106,9 +106,9 @@ internal static partial class ProtocolConversions
 
     public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
     {
-        LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
         options.Converters.Add(new LSP.NaturalObjectConverter());
         options.Converters.Add(new DocumentUriConverter());
+        options.Converters.Add(new LSP.UnionConverter());
         return options;
     }
 
@@ -134,12 +134,7 @@ internal static partial class ProtocolConversions
         }
         else if (context.TriggerKind is LSP.CompletionTriggerKind.Invoked or LSP.CompletionTriggerKind.TriggerForIncompleteCompletions)
         {
-            if (context is not LSP.VSInternalCompletionContext vsCompletionContext)
-            {
-                return Completion.CompletionTrigger.Invoke;
-            }
-
-            switch (vsCompletionContext.InvokeKind)
+            switch (context.InvokeKind)
             {
                 case LSP.VSInternalCompletionInvokeKind.Explicit:
                     return Completion.CompletionTrigger.Invoke;
@@ -287,10 +282,10 @@ internal static partial class ProtocolConversions
     }
 
     public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
-        => new() { DocumentUri = document.GetURI() };
+        => new() { Uri = document.GetURI() };
 
     public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
-        => new() { DocumentUri = document.GetURI() };
+        => new() { Uri = document.GetURI() };
 
     public static LinePosition PositionToLinePosition(LSP.Position position)
         => new(position.Line, position.Character);
@@ -396,15 +391,15 @@ internal static partial class ProtocolConversions
     public static Task<LSP.Location?> DocumentSpanToLocationAsync(DocumentSpan documentSpan, CancellationToken cancellationToken)
         => TextSpanToLocationAsync(documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken);
 
-    public static async Task<LSP.VSInternalLocation?> DocumentSpanToLocationWithTextAsync(
+    public static async Task<LSP.Location?> DocumentSpanToLocationWithTextAsync(
         DocumentSpan documentSpan, ClassifiedTextElement text, CancellationToken cancellationToken)
     {
         var location = await TextSpanToLocationAsync(
             documentSpan.Document, documentSpan.SourceSpan, isStale: false, cancellationToken).ConfigureAwait(false);
 
-        return location == null ? null : new LSP.VSInternalLocation
+        return location == null ? null : new LSP.Location
         {
-            DocumentUri = location.DocumentUri,
+            Uri = location.Uri,
             Range = location.Range,
             Text = text
         };
@@ -525,9 +520,9 @@ internal static partial class ProtocolConversions
             }
         }
 
-        var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
+        var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
         {
-            TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { DocumentUri = uri },
+            TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
             Edits = [.. edits],
         }).ToArray();
 
@@ -580,7 +575,7 @@ internal static partial class ProtocolConversions
 
             return new LSP.Location
             {
-                DocumentUri = uri,
+                Uri = uri,
                 Range = MappedSpanResultToRange(mappedSpan)
             };
         }
@@ -613,7 +608,7 @@ internal static partial class ProtocolConversions
         {
             var location = new LSP.Location
             {
-                DocumentUri = documentUri,
+                Uri = documentUri,
                 Range = TextSpanToRange(span, text),
             };
 

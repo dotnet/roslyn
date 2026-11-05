@@ -67,7 +67,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI());
 
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
         Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedDocumentUri);
     }
 
@@ -90,8 +90,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var semanticResults = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), category: PullDiagnosticCategories.DocumentCompilerSemantic);
 
-        Assert.Equal("CS1513", syntaxResults.Single().Diagnostics!.Single().Code);
-        Assert.Equal("CS0246", semanticResults.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(syntaxResults.Single().Diagnostics!.Single().Code!.Value));
+        Assert.Equal("CS0246", Assert.IsType<string>(semanticResults.Single().Diagnostics!.Single().Code!.Value));
 
         var syntaxResults2 = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), previousResultId: syntaxResults.Single().ResultId, category: PullDiagnosticCategories.DocumentCompilerSyntax);
@@ -107,8 +107,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var semanticAnalyzerResults = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), category: PullDiagnosticCategories.DocumentAnalyzerSemantic);
 
-        Assert.Equal(CSharpSyntaxAnalyzer.RuleId, syntaxAnalyzerResults.Single().Diagnostics!.Single().Code);
-        Assert.Equal(CSharpSemanticAnalyzer.RuleId, semanticAnalyzerResults.Single().Diagnostics!.Single().Code);
+        Assert.Equal(CSharpSyntaxAnalyzer.RuleId, Assert.IsType<string>(syntaxAnalyzerResults.Single().Diagnostics!.Single().Code!.Value));
+        Assert.Equal(CSharpSemanticAnalyzer.RuleId, Assert.IsType<string>(semanticAnalyzerResults.Single().Diagnostics!.Single().Code!.Value));
 
         var syntaxAnalyzerResults2 = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), previousResultId: syntaxAnalyzerResults.Single().ResultId, category: PullDiagnosticCategories.DocumentAnalyzerSyntax);
@@ -168,8 +168,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI());
-        Assert.Equal("IDE0060", results.Single().Diagnostics!.Single().Code);
-        var vsDiagnostic = (VSDiagnostic)results.Single().Diagnostics!.Single();
+        Assert.Equal("IDE0060", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
+        var vsDiagnostic = (LSP.Diagnostic)results.Single().Diagnostics!.Single();
         Assert.Equal(vsDiagnostic.ExpandedMessage, AnalyzersResources.Avoid_unused_parameters_in_your_code_If_the_parameter_cannot_be_removed_then_change_its_name_so_it_starts_with_an_underscore_and_is_optionally_followed_by_an_integer_such_as__comma__1_comma__2_etc_These_are_treated_as_special_discard_symbol_names);
     }
 
@@ -186,8 +186,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI());
 
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
-        var vsDiagnostic = (VSDiagnostic)results.Single().Diagnostics!.Single();
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
+        var vsDiagnostic = (LSP.Diagnostic)results.Single().Diagnostics!.Single();
         Assert.Null(vsDiagnostic.ExpandedMessage);
     }
 
@@ -209,8 +209,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), category: PullDiagnosticCategories.Task);
 
-        Assert.Equal("TODO", results.Single().Diagnostics!.Single().Code);
-        Assert.Equal("todo: goo", results.Single().Diagnostics!.Single().Message);
+        Assert.Equal("TODO", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
+        Assert.Equal("todo: goo", Assert.IsType<string>(results.Single().Diagnostics!.Single().Message!.Value));
     }
 
     [Theory, CombinatorialData]
@@ -224,7 +224,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await OpenDocumentAsync(testLspServer, document);
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
     }
 
     [Theory, CombinatorialData]
@@ -243,7 +243,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI()).ConfigureAwait(false);
 
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
 
         // Now remove the doc.
         workspace.OnDocumentRemoved(workspace.Documents.Single().Id);
@@ -267,7 +267,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
 
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
 
         var resultId = results.Single().ResultId;
         results = await RunGetDocumentPullDiagnosticsAsync(
@@ -290,7 +290,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
 
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
 
         var resultId = results.Single().ResultId;
 
@@ -317,7 +317,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await OpenDocumentAsync(testLspServer, document);
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
 
         await InsertTextAsync(testLspServer, document, text.Length, "}");
 
@@ -336,7 +336,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics!.Single().Range.Start);
 
         await InsertTextAsync(testLspServer, document, position: 0, text: " ");
@@ -344,7 +344,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(),
             previousResultId: results[0].ResultId);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(new Position { Line = 0, Character = 10 }, results[0].Diagnostics!.Single().Range.Start);
     }
 
@@ -365,7 +365,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI());
 
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
         Assert.Equal(1, results.Single().Diagnostics!.Single().Range.Start.Line);
     }
 
@@ -381,7 +381,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useProgress: true);
 
-        Assert.Equal("CS1513", results!.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results!.Single().Diagnostics!.Single().Code!.Value));
     }
 
     [Theory, CombinatorialData]
@@ -423,11 +423,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Set CSProj2 as the active context and get diagnostics.
         testLspServer.TestWorkspace.SetDocumentContext(csproj2Document.Id);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj2Document.GetURI());
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
         if (useVSDiagnostics)
         {
             // Only VSDiagnostics will have the project.
-            var vsDiagnostic = (LSP.VSDiagnostic)results.Single().Diagnostics!.Single();
+            var vsDiagnostic = (LSP.Diagnostic)results.Single().Diagnostics!.Single();
             Assert.Equal("CSProj2", vsDiagnostic.Projects!.Single().ProjectName);
         }
 
@@ -435,11 +435,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         testLspServer.TestWorkspace.SetDocumentContext(csproj1Document.Id);
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI());
         Assert.Equal(2, results.Single().Diagnostics!.Length);
-        AssertEx.All(results.Single().Diagnostics, d => Assert.Equal("CS1513", d.Code));
+        AssertEx.All(results.Single().Diagnostics, d => Assert.Equal("CS1513", Assert.IsType<string>(d.Code?.Value)));
 
         if (useVSDiagnostics)
         {
-            AssertEx.All(results.Single().Diagnostics, d => Assert.Equal("CSProj1", ((VSDiagnostic)d).Projects!.Single().ProjectName));
+            AssertEx.All(results.Single().Diagnostics, d => Assert.Equal("CSProj1", ((LSP.Diagnostic)d).Projects!.Single().ProjectName));
         }
     }
 
@@ -468,22 +468,22 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await OpenDocumentAsync(testLspServer, csproj1Document);
 
         var csproj1Results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, GetVsTextDocumentIdentifier(csproj1Document));
-        var csproj1Diagnostic = (VSDiagnostic)csproj1Results.Single().Diagnostics!.Single();
+        var csproj1Diagnostic = (LSP.Diagnostic)csproj1Results.Single().Diagnostics!.Single();
         var csproj2Results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, GetVsTextDocumentIdentifier(csproj2Document));
-        var csproj2Diagnostic = (VSDiagnostic)csproj2Results.Single().Diagnostics!.Single();
+        var csproj2Diagnostic = (LSP.Diagnostic)csproj2Results.Single().Diagnostics!.Single();
         Assert.Equal(csproj1Diagnostic.Identifier, csproj2Diagnostic.Identifier);
 
-        static VSTextDocumentIdentifier GetVsTextDocumentIdentifier(Document document)
+        static TextDocumentIdentifier GetVsTextDocumentIdentifier(Document document)
         {
             var projectContext = new VSProjectContext
             {
                 Id = ProtocolConversions.ProjectIdToProjectContextId(document.Project.Id),
                 Label = document.Project.Name
             };
-            return new VSTextDocumentIdentifier
+            return new TextDocumentIdentifier
             {
                 ProjectContext = projectContext,
-                DocumentUri = document.GetURI(),
+                Uri = document.GetURI(),
             };
         }
     }
@@ -529,7 +529,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify we a diagnostic in A.cs since B does not exist.
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI());
         Assert.Single(results);
-        Assert.Equal("CS0246", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS0246", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
 
         // Insert B into B.cs and verify that the error in A.cs is now gone.
         var locationToReplace = testLspServer.GetLocations("caret").Single().Range;
@@ -581,7 +581,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // Verify we get a diagnostic in A since the class B does not exist.
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI());
         Assert.Single(results);
-        Assert.Equal("CS0246", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS0246", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
 
         // Add B to CSProj2 and verify that we get an unchanged result (still has diagnostic) for A.cs
         // since CSProj1 does not reference CSProj2
@@ -610,7 +610,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             testLspServer, document.GetURI());
 
         // Assert that we have diagnostics even though the option is set to push.
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
         Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedDocumentUri);
     }
 
@@ -660,7 +660,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
         var firstResultId = results.Single().ResultId;
         var diagnostic = AssertEx.Single(results.Single().Diagnostics);
-        Assert.Equal("CS0103", diagnostic.Code);
+        Assert.Equal("CS0103", Assert.IsType<string>(diagnostic.Code!.Value));
 
         // Update the text to include the text trigger the source generator relies on.
         var textLocation = testLspServer.GetLocations()["insert"].Single();
@@ -669,7 +669,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         if (mutatingLspWorkspace)
         {
             // In the mutating workspace, we just need to update the LSP text (which will flow into the workspace).
-            await testLspServer.ReplaceTextAsync(textLocation.DocumentUri, (textEdit.Range, textEdit.NewText));
+            await testLspServer.ReplaceTextAsync(textLocation.Uri, (textEdit.Range, textEdit.NewText));
             await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
         }
         else
@@ -678,7 +678,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             var workspaceText = await document.GetTextAsync(CancellationToken.None);
             var textChange = ProtocolConversions.TextEditToTextChange(textEdit, workspaceText);
             await testLspServer.TestWorkspace.ChangeDocumentAsync(document.Id, workspaceText.WithChanges(textChange));
-            await testLspServer.ReplaceTextAsync(textLocation.DocumentUri, (textEdit.Range, textEdit.NewText));
+            await testLspServer.ReplaceTextAsync(textLocation.Uri, (textEdit.Range, textEdit.NewText));
         }
 
         await testLspServer.WaitForSourceGeneratorsAsync();
@@ -730,7 +730,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             testLspServer, document.GetURI());
 
         var diagnostic = AssertEx.Single(results.Single().Diagnostics);
-        Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
+        Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, Assert.IsType<string>(diagnostic.Code!.Value));
     }
 
     [Theory, CombinatorialData]
@@ -765,8 +765,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // First diagnostics request should report a diagnostic with 'Iteration0' as the identifier.
         var initialDiagnostics = await RunGetDocumentPullDiagnosticsAsync(testLspServer, sourceGeneratorDocumentUri);
         var firstResult = AssertEx.Single(initialDiagnostics);
-        var firstDiagnostic = AssertEx.Single(firstResult.Diagnostics!.Where(d => d.Code!.Value.Second == "CS0246"));
-        Assert.Contains("Iteration0", firstDiagnostic.Message);
+        var firstDiagnostic = AssertEx.Single(firstResult.Diagnostics!.Where(d => Assert.IsType<string>(d.Code!.Value) == "CS0246"));
+        Assert.Contains("Iteration0", Assert.IsType<string>(firstDiagnostic.Message.Value));
 
         // Updating the execution version should trigger source generators to run and generate a new document with new name.
         await testLspServer.RefreshSourceGeneratorsAsync(forceRegeneration: true);
@@ -781,8 +781,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // the original frozen text since the client hasn't told the server to update the frozen document.
         var secondDiagnostics = await RunGetDocumentPullDiagnosticsAsync(testLspServer, sourceGeneratorDocumentUri, previousResultId: firstResult.ResultId);
         var secondResult = AssertEx.Single(secondDiagnostics);
-        var secondDiagnostic = AssertEx.Single(secondResult.Diagnostics!.Where(d => d.Code!.Value.Second == "CS0246"));
-        Assert.Contains("Iteration0", secondDiagnostic.Message);
+        var secondDiagnostic = AssertEx.Single(secondResult.Diagnostics!.Where(d => Assert.IsType<string>(d.Code!.Value) == "CS0246"));
+        Assert.Contains("Iteration0", Assert.IsType<string>(secondDiagnostic.Message.Value));
         Assert.NotEqual(secondResult.ResultId, firstResult.ResultId);
 
         // Now update the LSP text for the source generated document based on the new text we retrieved after the source generator re-ran.
@@ -937,7 +937,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI());
 
-        Assert.Equal(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, results.Single().Diagnostics!.Single().Code);
+        Assert.Equal(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId, Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
     }
 
     [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1824321")]
@@ -985,7 +985,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI());
 
-        Assert.Equal("IDE0090", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("IDE0090", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
         Assert.Equal(LSP.DiagnosticSeverity.Information, results.Single().Diagnostics!.Single().Severity);
     }
 
@@ -1016,7 +1016,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // When looking up the document based on a URI, the workspace ignores casing differences and can open the document with different casing.
         // When diagnostics checks if the document is open, it should also be able to tell that the document is open, even though the URI casing is different from the file path.
 
-        Assert.Equal("CS1513", results.Single().Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results.Single().Diagnostics!.Single().Code!.Value));
         Assert.NotNull(results.Single().Diagnostics!.Single().CodeDescription!.Href.ParsedDocumentUri);
     }
 
@@ -1048,7 +1048,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
     }
@@ -1067,9 +1067,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         // this should be considered a build-error, since it was produced by the last code-analysis run.
-        Assert.Contains(VSDiagnosticTags.BuildError, results[0].Diagnostics!.Single().Tags!);
+        Assert.Contains(DiagnosticTag.BuildError, results[0].Diagnostics!.Single().Tags!);
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
 
@@ -1107,9 +1107,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         // this should *not* be considered a build-error, since it was produced by the live workspace results.
-        Assert.DoesNotContain(VSDiagnosticTags.BuildError, results[0].Diagnostics!.Single().Tags!);
+        Assert.DoesNotContain(DiagnosticTag.BuildError, results[0].Diagnostics!.Single().Tags!);
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
 
@@ -1153,7 +1153,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         Assert.Equal(2, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.True(results[1].Diagnostics!.Single().Message.Contains("Source generator failed"));
+        Assert.True(Assert.IsType<string>(results[1].Diagnostics!.Single().Message.Value).Contains("Source generator failed"));
     }
 
     [Theory, CombinatorialData]
@@ -1188,9 +1188,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, includeTaskListItems: true, category: PullDiagnosticCategories.Task);
 
         Assert.Equal(1, results.Length);
-        Assert.Equal("TODO", results[0].Diagnostics!.Single().Code);
-        Assert.Equal("todo: goo", results[0].Diagnostics!.Single().Message);
-        Assert.Equal(VSDiagnosticRank.Default, ((VSDiagnostic)results[0].Diagnostics!.Single()).DiagnosticRank);
+        Assert.Equal("TODO", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
+        Assert.Equal("todo: goo", Assert.IsType<string>(results[0].Diagnostics!.Single().Message!.Value));
+        Assert.Equal(VSDiagnosticRank.Default, ((LSP.Diagnostic)results[0].Diagnostics!.Single()).DiagnosticRank);
     }
 
     [Theory]
@@ -1220,9 +1220,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, includeTaskListItems: true, category: PullDiagnosticCategories.Task);
 
         Assert.Equal(1, results.Length);
-        Assert.Equal("TODO", results[0].Diagnostics!.Single().Code);
-        Assert.Equal("todo: goo", results[0].Diagnostics!.Single().Message);
-        Assert.Equal(rank, ((VSDiagnostic)results[0].Diagnostics!.Single()).DiagnosticRank);
+        Assert.Equal("TODO", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
+        Assert.Equal("todo: goo", Assert.IsType<string>(results[0].Diagnostics!.Single().Message!.Value));
+        Assert.Equal(rank, ((LSP.Diagnostic)results[0].Diagnostics!.Single()).DiagnosticRank);
     }
 
     [Theory, CombinatorialData]
@@ -1258,8 +1258,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         Assert.Equal(1, results.Length);
 
-        Assert.Equal("TODO", results[0].Diagnostics!.Single().Code);
-        Assert.Equal("todo: goo", results[0].Diagnostics!.Single().Message);
+        Assert.Equal("TODO", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
+        Assert.Equal("todo: goo", Assert.IsType<string>(results[0].Diagnostics!.Single().Message!.Value));
     }
 
     [Theory, CombinatorialData]
@@ -1277,7 +1277,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, includeTaskListItems: true, category: PullDiagnosticCategories.Task);
 
         Assert.Equal(1, results.Length);
-        Assert.Equal("TODO", results[0].Diagnostics![0].Code);
+        Assert.Equal("TODO", Assert.IsType<string>(results[0].Diagnostics![0].Code!.Value));
     }
 
     [Theory, CombinatorialData]
@@ -1423,7 +1423,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
                 language: project.Language);
 
         static string Inspect(TestDiagnosticResult result)
-            => $"{result.TextDocument.DocumentUri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
+            => $"{result.TextDocument.Uri} -> [{string.Join(",", result.Diagnostics?.Select(d => d.Code?.Value) ?? [])}]";
     }
 
     [Theory, CombinatorialData]
@@ -1459,7 +1459,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
-        Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, results[0].Diagnostics!.Single().Code);
+        Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
     }
 
@@ -1510,7 +1510,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         // The file in the project should have the editorconfig rule applied and return an error.
         Assert.True(results[0].Uri.ParsedDocumentUri!.Path.EndsWith("file.cs"));
-        Assert.Equal(CSharpSyntaxAnalyzer.RuleId, results[0].Diagnostics!.Single().Code);
+        Assert.Equal(CSharpSyntaxAnalyzer.RuleId, Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(LSP.DiagnosticSeverity.Error, results[0].Diagnostics!.Single().Severity);
 
         // The source generated file should only have the .globalconfig rule applied, which suppresses the diagnostic.
@@ -1563,7 +1563,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
-        Assert.False(results.Any(r => r.TextDocument!.DocumentUri.UriString.Contains(".ts")));
+        Assert.False(results.Any(r => r.TextDocument!.Uri.UriString.Contains(".ts")));
     }
 
     [Theory, CombinatorialData]
@@ -1585,7 +1585,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(3, results.Length);
         // Since we sorted above by URI the first result is the project.
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal("CS1513", results[1].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[1].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[2].Diagnostics);
     }
 
@@ -1600,7 +1600,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
 
@@ -1625,7 +1625,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
 
@@ -1646,7 +1646,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
 
@@ -1671,7 +1671,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics!.Single().Range.Start);
 
         AssertEx.Empty(results[1].Diagnostics);
@@ -1684,7 +1684,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
-        Assert.Equal("CS1513", results2[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results2[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(new Position { Line = 0, Character = 10 }, results2[0].Diagnostics!.Single().Range.Start);
 
         AssertEx.Empty(results2[1].Diagnostics);
@@ -1704,12 +1704,12 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(3, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics!.Single().Range.Start);
 
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useProgress: true);
 
-        Assert.Equal("CS1513", results[0].Diagnostics![0].Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics![0].Code!.Value));
     }
 
     [Theory, CombinatorialData]
@@ -1726,8 +1726,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(3, results.Length);
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "test1.cs")), results[0].TextDocument!.DocumentUri);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "test1.cs")), results[0].TextDocument!.Uri);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(1, results[0].Diagnostics!.Single().Range.Start.Line);
         AssertEx.Empty(results[1].Diagnostics);
         AssertEx.Empty(results[2].Diagnostics);
@@ -1771,8 +1771,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(4, results.Length);
-        Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
-        Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
+        Assert.Equal("CS0246", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
+        Assert.Equal("CS1001", Assert.IsType<string>(results[2].Diagnostics!.Single().Code!.Value));
 
         // Insert B into B.cs via the workspace.
         var caretLocation = testLspServer.GetLocations("caret").First().Range;
@@ -1851,13 +1851,13 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(6, results.Length);
         // Type C does not exist.
-        Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS0246", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
         // Type C does not exist.
-        Assert.Equal("CS0246", results[2].Diagnostics!.Single().Code);
+        Assert.Equal("CS0246", Assert.IsType<string>(results[2].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[3].Diagnostics);
         // Syntax error missing identifier.
-        Assert.Equal("CS1001", results[4].Diagnostics!.Single().Code);
+        Assert.Equal("CS1001", Assert.IsType<string>(results[4].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[5].Diagnostics);
 
         // Insert C into C.cs via the workspace.
@@ -1874,7 +1874,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(3, results.Length);
 
         // A.cs should report CS0012 indicating that C is not directly referenced.
-        Assert.Equal("CS0012", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS0012", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.NotEqual(previousResultIds[0].resultId, results[0].ResultId);
 
         // B.cs should no longer have a diagnostic since C exists.
@@ -1923,9 +1923,9 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(4, results.Length);
-        Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS0246", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
-        Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
+        Assert.Equal("CS1001", Assert.IsType<string>(results[2].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[3].Diagnostics);
 
         // Insert B into B.cs via the workspace.
@@ -1990,7 +1990,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(4, results.Length);
         AssertEx.Empty(results[0].Diagnostics);
-        Assert.Equal("CS0168", results[2].Diagnostics!.Single().Code);
+        Assert.Equal("CS0168", Assert.IsType<string>(results[2].Diagnostics!.Single().Code!.Value));
         Assert.Equal(LSP.DiagnosticSeverity.Warning, results[2].Diagnostics!.Single().Severity);
 
         // Change and reload the project via the workspace.
@@ -2007,7 +2007,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // We should get a single report back for B.cs now that the diagnostic has been promoted to an error.
         // The diagnostics in A.cs did not change and so are not reported again.
         Assert.Equal(1, results.Length);
-        Assert.Equal("CS0168", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS0168", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(LSP.DiagnosticSeverity.Error, results[0].Diagnostics!.Single().Severity);
     }
 
@@ -2049,8 +2049,8 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(4, results.Length);
-        Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
-        Assert.Equal("CS1001", results[2].Diagnostics!.Single().Code);
+        Assert.Equal("CS0246", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
+        Assert.Equal("CS1001", Assert.IsType<string>(results[2].Diagnostics!.Single().Code!.Value));
 
         // Reload the project via the workspace.
         var projectInfo = testLspServer.TestWorkspace.Projects.Where(p => p.AssemblyName == "CSProj2").Single().ToProjectInfo();
@@ -2103,7 +2103,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         // and a diagnostic in B.cs since it is missing the class name.
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(6, results.Length);
-        Assert.Equal("CS0246", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS0246", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
 
         // Reload the project via the workspace.
         var projectInfo = testLspServer.TestWorkspace.Projects.Where(p => p.AssemblyName == "CSProj2").Single().ToProjectInfo();
@@ -2147,7 +2147,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "C.cs")),
             ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "CSProj1.csproj")),
             ProtocolConversions.CreateAbsoluteDocumentUri(Path.Combine(TestWorkspace.RootDirectory, "C2.cs"))
-        ], results.Select(r => r.TextDocument.DocumentUri));
+        ], results.Select(r => r.TextDocument.Uri));
     }
 
     [Theory, CombinatorialData]
@@ -2303,7 +2303,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
 
         Assert.Equal(2, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
 
         var options = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
@@ -2339,7 +2339,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
         Assert.Equal(2, results.Length);
-        Assert.Equal("CS1513", results[0].Diagnostics!.Single().Code);
+        Assert.Equal("CS1513", Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         AssertEx.Empty(results[1].Diagnostics);
     }
 

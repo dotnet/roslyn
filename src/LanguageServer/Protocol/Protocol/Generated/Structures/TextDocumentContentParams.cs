@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Parameters for the `workspace/textDocumentContent` request.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class TextDocumentContentParams
@@ -17,7 +17,6 @@ internal partial class TextDocumentContentParams
     /// The uri of the text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("uri")]
-    [System.Text.Json.Serialization.JsonRequired]
     public DocumentUri Uri { get; set; } = null!;
 
 }

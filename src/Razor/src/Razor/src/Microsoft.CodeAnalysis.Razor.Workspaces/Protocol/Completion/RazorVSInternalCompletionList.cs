@@ -8,26 +8,26 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
-/// A subclass of the LSP protocol <see cref="VSInternalCompletionList"/> that ensures correct serialization between LSP servers.
+/// A subclass of the LSP protocol <see cref="CompletionList"/> that ensures correct serialization between LSP servers.
 /// </summary>
 /// <remarks>
-/// This is the same as the LSP protocol <see cref="VSInternalCompletionList"/> except that it strongly types the <see cref="Items"/> property,
+/// This is the same as the LSP protocol <see cref="CompletionList"/> except that it strongly types the <see cref="Items"/> property,
 /// because our custom message target gets handled by a JsonRpc connection set up by the editor, that has no Roslyn converters.
 /// </remarks>
-internal sealed class RazorVSInternalCompletionList : VSInternalCompletionList
+internal sealed class RazorVSInternalCompletionList : CompletionList
 {
     public RazorVSInternalCompletionList()
     {
     }
 
     [SetsRequiredMembers]
-    public RazorVSInternalCompletionList(VSInternalCompletionList completionList)
-        : this(completionList, JsonHelpers.ConvertAll<CompletionItem, VSInternalCompletionItem>(completionList.Items))
+    public RazorVSInternalCompletionList(CompletionList completionList)
+        : this(completionList, JsonHelpers.ConvertAll<CompletionItem, CompletionItem>(completionList.Items))
     {
     }
 
     [SetsRequiredMembers]
-    public RazorVSInternalCompletionList(VSInternalCompletionList completionList, VSInternalCompletionItem[] items)
+    public RazorVSInternalCompletionList(CompletionList completionList, CompletionItem[] items)
     {
         this.Data = completionList.Data;
         this.CommitCharacters = completionList.CommitCharacters;
@@ -43,9 +43,9 @@ internal sealed class RazorVSInternalCompletionList : VSInternalCompletionList
     /// </summary>
     [JsonPropertyName("items")]
     [JsonRequired]
-    public new required VSInternalCompletionItem[] Items
+    public new required CompletionItem[] Items
     {
-        get => (VSInternalCompletionItem[])base.Items;
+        get => (CompletionItem[])base.Items;
         set => base.Items = value;
     }
 }

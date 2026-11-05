@@ -42,7 +42,7 @@ internal sealed class CohostRangeFormattingEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.RangeFormatting?.DynamicRegistration is true)
         {
@@ -61,13 +61,12 @@ internal sealed class CohostRangeFormattingEndpoint(
 
     protected override async Task<TextEdit[]?> HandleRequestAsync(DocumentRangeFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var fromPaste = false;
-        if (request.Options.OtherOptions is not null && request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj) && fromPasteObj.TryGetFirst(out fromPaste))
+        var fromPaste = request.Options.OtherOptions is not null
+            && request.Options.OtherOptions.TryGetValue("fromPaste", out var fromPasteObj)
+            && fromPasteObj is true;
+        if (fromPaste && !_clientSettingsManager.GetClientSettings().AdvancedSettings.FormatOnPaste)
         {
-            if (fromPaste && !_clientSettingsManager.GetClientSettings().AdvancedSettings.FormatOnPaste)
-            {
-                return null;
-            }
+            return null;
         }
 
         _logger.LogDebug($"Getting Html formatting changes for {razorDocument.FilePath}");

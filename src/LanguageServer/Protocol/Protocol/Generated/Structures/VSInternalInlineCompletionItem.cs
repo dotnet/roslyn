@@ -36,7 +36,7 @@ internal partial class VSInternalInlineCompletionItem
     /// Gets or sets the format of the insert text.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_insertTextFormat")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public InsertTextFormat? InsertTextFormat { get; set; }
 
 }

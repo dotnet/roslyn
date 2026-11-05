@@ -68,7 +68,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
     }
 
     internal static bool SupportsCSharpDeclarationMarkers(ClientCapabilities? clientCapabilities)
-        => clientCapabilities?.TextDocument?.Hover is RoslynHoverSetting { SupportsCSharpDeclarationMarkers: true };
+        => clientCapabilities?.TextDocument?.Hover is { SupportsCSharpDeclarationMarkers: true };
 
     internal static async Task<Hover?> GetHoverAsync(
         Document document,
@@ -110,7 +110,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
             : await CreateDefaultHoverAsync(document, info, supportsMarkdown, supportsCSharpDeclarationMarkers, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<VSInternalHover> CreateVsHoverAsync(
+    private static async Task<Hover> CreateVsHoverAsync(
         Document document, QuickInfoItem info, SymbolDescriptionOptions options, CancellationToken cancellationToken)
     {
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -125,10 +125,10 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
 
         var content = await QuickInfoContentBuilder.BuildInteractiveContentAsync(info, context, cancellationToken).ConfigureAwait(false);
 
-        return new VSInternalHover
+        return new Hover
         {
             Range = ProtocolConversions.TextSpanToRange(info.Span, text),
-            Contents = new SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
+            Contents = string.Empty,
 
             // TODO - Switch to markup content once it supports classifications.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138

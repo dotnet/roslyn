@@ -31,7 +31,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlRequestInvoker requestInvoker)
-    : AbstractCohostDocumentEndpoint<TextDocumentPositionParams, SumType<LspLocation, LspLocation[], DocumentLink[]>?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<TextDocumentPositionParams, RazorDefinitionResult?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
@@ -40,7 +40,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Definition?.DynamicRegistration == true)
         {
@@ -57,7 +57,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentPositionParams request)
         => request.TextDocument;
 
-    protected override async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<RazorDefinitionResult?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var position = LspFactory.CreatePosition(request.Position.ToLinePosition());
 
@@ -88,7 +88,8 @@ internal sealed class CohostGoToDefinitionEndpoint(
         // Razor OOP found a navigable metadata symbol that must be resolved in the host.
         if (response is { StopHandling: false, Result: { Locations: null, CSharpRequest: { } csharpRequest } })
         {
-            return await GetCSharpDefinitionsAsync(razorDocument, csharpRequest, cancellationToken).ConfigureAwait(false);
+            var csharpLocations = await GetCSharpDefinitionsAsync(razorDocument, csharpRequest, cancellationToken).ConfigureAwait(false);
+            return csharpLocations is null ? null : new(csharpLocations);
         }
 
         // Any other combination represents a malformed response.
@@ -101,7 +102,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
         CancellationToken cancellationToken)
     {
         var generatedDocument = await razorDocument.Project.Solution
-            .TryGetSourceGeneratedDocumentAsync(request.TextDocument.DocumentUri, cancellationToken)
+            .TryGetSourceGeneratedDocumentAsync(request.TextDocument.Uri, cancellationToken)
             .ConfigureAwait(false);
 
         if (generatedDocument is null)
@@ -129,36 +130,36 @@ internal sealed class CohostGoToDefinitionEndpoint(
         return locations;
     }
 
-    private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetHtmlDefinitionsAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<RazorDefinitionResult?> GetHtmlDefinitionsAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var result = await _requestInvoker
-            .MakeHtmlLspRequestAsync<TextDocumentPositionParams, SumType<LspLocation, LspLocation[], DocumentLink[]>>(
+            .MakeHtmlLspRequestAsync<TextDocumentPositionParams, RazorDefinitionResult>(
                 razorDocument,
                 Methods.TextDocumentDefinitionName,
                 request,
                 cancellationToken)
             .ConfigureAwait(false);
 
-        if (result.Value is null)
+        if (result is null)
         {
             return null;
         }
 
-        if (result.TryGetFirst(out var singleLocation))
+        if (result.Value is LspLocation singleLocation)
         {
-            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri), singleLocation.Range.ToLinePositionSpan());
+            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.Uri), singleLocation.Range.ToLinePositionSpan());
         }
-        else if (result.TryGetSecond(out var multipleLocations))
+        else if (result.Value is LspLocation[] multipleLocations)
         {
-            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri), l.Range.ToLinePositionSpan()));
+            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.Uri), l.Range.ToLinePositionSpan()));
         }
-        else if (result.TryGetThird(out var documentLinks))
+        else if (result.Value is DocumentLink[] documentLinks)
         {
             using var builder = new PooledArrayBuilder<DocumentLink>(capacity: documentLinks.Length);
 
             foreach (var documentLink in documentLinks)
             {
-                if (documentLink.DocumentTarget is DocumentUri target)
+                if (documentLink.Target is DocumentUri target)
                 {
                     builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target), documentLink.Range.ToLinePositionSpan()));
                 }
@@ -184,7 +185,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
     internal readonly struct TestAccessor(CohostGoToDefinitionEndpoint instance)
     {
-        public Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> HandleRequestAsync(
+        public Task<RazorDefinitionResult?> HandleRequestAsync(
             TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 public class DirectiveAttributeTransitionCompletionItemProviderTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     private readonly TagHelperDocumentContext _tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers: []);
-    private readonly DirectiveAttributeTransitionCompletionItemProvider _provider = new(new TestClientCapabilitiesService(new VSInternalClientCapabilities()));
+    private readonly DirectiveAttributeTransitionCompletionItemProvider _provider = new(new TestClientCapabilitiesService(new ClientCapabilities()));
 
     [Fact]
     public void IsValidCompletionPoint_AtPrefixLeadingEdge_ReturnsFalse()
@@ -300,7 +300,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest(ITestOutputH
     [InlineData(false)]
     public void GetCompletionItems_WithAvoidExplicitCommitOption_ReturnsAppropriateCommitCharacters(bool supportsSoftSelection)
     {
-        var clientCapabilities = new VSInternalClientCapabilities()
+        var clientCapabilities = new ClientCapabilities()
         {
             SupportsVisualStudioExtensions = supportsSoftSelection
         };

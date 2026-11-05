@@ -14,11 +14,12 @@ internal partial class CompletionList
 {
     /// <summary>
     /// This list it not complete. Further typing results in recomputing this list.
-    /// 
+    ///
     /// Recomputed lists have all their items replaced (not appended) in the
     /// incomplete completion sessions.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("isIncomplete")]
+    [System.Text.Json.Serialization.JsonRequired]
     public bool IsIncomplete { get; set; }
 
     /// <summary>
@@ -26,16 +27,16 @@ internal partial class CompletionList
     /// value for properties like `commitCharacters` or the range of a text
     /// edit. A completion list can therefore define item defaults which will
     /// be used if a completion item itself doesn't specify the value.
-    /// 
+    ///
     /// If a completion list specifies a default value and a completion item
     /// also specifies a corresponding value, the rules for combining these are
     /// defined by `applyKinds` (if the client supports it), defaulting to
     /// ApplyKind.Replace.
-    /// 
+    ///
     /// Servers are only allowed to return default values if the client
     /// signals support for this via the `completionList.itemDefaults`
     /// capability.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("itemDefaults")]
@@ -45,20 +46,20 @@ internal partial class CompletionList
     /// <summary>
     /// Specifies how fields from a completion item should be combined with those
     /// from `completionList.itemDefaults`.
-    /// 
+    ///
     /// If unspecified, all fields will be treated as ApplyKind.Replace.
-    /// 
+    ///
     /// If a field's value is ApplyKind.Replace, the value from a completion item
     /// (if provided and not `null`) will always be used instead of the value
     /// from `completionItem.itemDefaults`.
-    /// 
+    ///
     /// If a field's value is ApplyKind.Merge, the values will be merged using
     /// the rules defined against each field below.
-    /// 
+    ///
     /// Servers are only allowed to return `applyKind` if the client
     /// signals support for this via the `completionList.applyKindSupport`
     /// capability.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("applyKind")]
@@ -103,6 +104,7 @@ internal partial class CompletionList
     /// <summary>
     /// A union of: string[] | VSInternalCommitCharacter[].
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _CommitCharacters : System.Runtime.CompilerServices.IUnion
     {
@@ -114,6 +116,7 @@ internal partial class CompletionList
     /// <summary>
     /// A union of: VSInternalContinueCharacterSingle | VSInternalContinueCharacterRange | VSInternalContinueCharacterClass.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _ContinueCharactersItem : System.Runtime.CompilerServices.IUnion
     {

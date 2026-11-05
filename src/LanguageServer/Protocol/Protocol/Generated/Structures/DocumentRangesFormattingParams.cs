@@ -8,10 +8,10 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The parameters of a <see cref="Requests.TextDocumentRangesFormatting"/>.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
-internal partial class DocumentRangesFormattingParams
+internal partial class DocumentRangesFormattingParams : ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.

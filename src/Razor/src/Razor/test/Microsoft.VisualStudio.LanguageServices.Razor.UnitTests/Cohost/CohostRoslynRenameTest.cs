@@ -405,9 +405,9 @@ public class CohostRoslynRenameTest(ITestOutputHelper testOutputHelper) : Cohost
         var textDocumentEdits = result.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(textDocumentEdits);
         var changes = textDocumentEdits
-            .Where(e => e.TextDocument.DocumentUri == documentUri)
+            .Where(e => e.TextDocument.Uri == documentUri)
             .SelectMany(e => e.Edits)
-            .Select(e => inputText.GetTextChange((TextEdit)e));
+            .Select(e => inputText.GetTextChange(Assert.IsType<TextEdit>(e.Value)));
         inputText = inputText.WithChanges(changes);
 
         return inputText.ToString();

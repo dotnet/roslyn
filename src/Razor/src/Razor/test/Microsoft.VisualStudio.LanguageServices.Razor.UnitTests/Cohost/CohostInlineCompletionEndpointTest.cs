@@ -194,7 +194,7 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
 
         // Asserting Roslyn invariants, which won't necessarily break us, but will mean we're lacking test coverage
         var item = Assert.Single(list.Items);
-        Assert.Equal(InsertTextFormat.Snippet, item.TextFormat);
+        Assert.Equal(InsertTextFormat.Snippet, item.InsertTextFormat);
         Assert.NotNull(item.Range);
         Assert.Null(item.Command);
 

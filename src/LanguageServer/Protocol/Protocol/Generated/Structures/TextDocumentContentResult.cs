@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Result of the `workspace/textDocumentContent` request.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class TextDocumentContentResult
@@ -20,7 +20,6 @@ internal partial class TextDocumentContentResult
     /// normalizations done on the client
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("text")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Text { get; set; } = null!;
 
 }

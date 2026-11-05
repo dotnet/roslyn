@@ -42,7 +42,7 @@ internal sealed class CohostPrepareRenameEndpoint(
             razorDocument,
             new PrepareRenameParams
             {
-                TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.GetURI() },
+                TextDocument = new TextDocumentIdentifier { Uri = razorDocument.GetURI() },
                 Position = position
             },
             cancellationToken).ConfigureAwait(false);

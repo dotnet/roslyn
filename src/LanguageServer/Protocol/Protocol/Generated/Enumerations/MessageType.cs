@@ -33,7 +33,7 @@ internal enum MessageType
 
     /// <summary>
     /// A debug message.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     Debug = 5,

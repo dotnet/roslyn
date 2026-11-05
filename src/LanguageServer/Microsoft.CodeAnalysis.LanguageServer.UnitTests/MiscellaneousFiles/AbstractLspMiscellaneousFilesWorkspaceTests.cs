@@ -121,14 +121,14 @@ public abstract class AbstractLspMiscellaneousFilesWorkspaceTests : AbstractLang
 
     private protected static async Task AssertFileInMiscWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
     {
-        var document = (await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }))?.Document;
+        var document = (await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }))?.Document;
         Assert.NotNull(document);
         Assert.True(await testLspServer.GetManagerAccessor().IsMiscellaneousFilesDocumentAsync(document));
     }
 
     private protected async Task AssertFileInMainWorkspaceAsync(TestLspServer testLspServer, DocumentUri fileUri)
     {
-        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }).ConfigureAwait(false);
+        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { Uri = fileUri }).ConfigureAwait(false);
         Assert.Equal(GetHostWorkspace(testLspServer), context?.Workspace);
     }
 

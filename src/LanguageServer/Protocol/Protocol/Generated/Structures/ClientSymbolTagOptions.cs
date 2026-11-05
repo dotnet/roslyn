@@ -15,7 +15,6 @@ internal partial class ClientSymbolTagOptions
     /// The tags supported by the client.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("valueSet")]
-    [System.Text.Json.Serialization.JsonRequired]
     public SymbolTag[] ValueSet { get; set; } = null!;
 
 }

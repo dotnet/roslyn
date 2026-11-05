@@ -160,11 +160,11 @@ internal sealed class TestExampleLanguageServer : ExampleLanguageServer
 
 [LanguageServerEndpoint(Methods.TextDocumentDidOpenName, LanguageServerConstants.DefaultLanguageName)]
 public class ExtraDidOpenHandler :
-    IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>
+    IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDelta, ExampleRequestContext>
 {
     public bool MutatesSolutionState => throw new System.NotImplementedException();
 
-    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    Task<SemanticTokensDelta> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDelta, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }

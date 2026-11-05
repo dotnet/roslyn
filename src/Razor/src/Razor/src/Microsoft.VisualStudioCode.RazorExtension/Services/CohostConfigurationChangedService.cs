@@ -28,7 +28,7 @@ internal sealed class CohostConfigurationChangedService(
 
     public int Order => WellKnownStartupOrder.Default;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(ClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         return RefreshOptionsAsync(requestContext, cancellationToken);
     }

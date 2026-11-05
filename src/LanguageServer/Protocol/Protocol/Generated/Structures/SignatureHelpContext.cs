@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Additional information about the context in which a signature help request was triggered.
-/// 
+///
 /// @since 3.15.0
 /// </summary>
 internal partial class SignatureHelpContext
@@ -17,12 +17,11 @@ internal partial class SignatureHelpContext
     /// Action that caused signature help to be triggered.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("triggerKind")]
-    [System.Text.Json.Serialization.JsonRequired]
     public SignatureHelpTriggerKind TriggerKind { get; set; }
 
     /// <summary>
     /// Character that caused signature help to be triggered.
-    /// 
+    ///
     /// This is undefined when `triggerKind !== SignatureHelpTriggerKind.TriggerCharacter`
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("triggerCharacter")]
@@ -31,7 +30,7 @@ internal partial class SignatureHelpContext
 
     /// <summary>
     /// `true` if signature help was already showing when it was triggered.
-    /// 
+    ///
     /// Retriggers occurs when the signature help is already active and can be caused by actions such as
     /// typing a trigger character, a cursor move, or document content changes.
     /// </summary>
@@ -40,7 +39,7 @@ internal partial class SignatureHelpContext
 
     /// <summary>
     /// The currently active `SignatureHelp`.
-    /// 
+    ///
     /// The `activeSignatureHelp` has its `SignatureHelp.activeSignature` field updated based on
     /// the user navigating through available signatures.
     /// </summary>

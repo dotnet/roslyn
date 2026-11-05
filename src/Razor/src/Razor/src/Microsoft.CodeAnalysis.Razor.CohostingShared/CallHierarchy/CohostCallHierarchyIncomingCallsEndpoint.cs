@@ -67,7 +67,7 @@ internal sealed class CohostCallHierarchyIncomingCallsEndpoint(
     {
         var uri = item.Uri.GetRequiredSystemUri();
         return uri.GetDocumentFilePathFromUri().IsRazorFilePath()
-            ? RazorCallHierarchyResolveData.Wrap(item, new TextDocumentIdentifier { DocumentUri = item.Uri })
+            ? RazorCallHierarchyResolveData.Wrap(item, new TextDocumentIdentifier { Uri = item.Uri })
             : item;
     }
 

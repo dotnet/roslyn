@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A filter to describe in which file operation requests or notifications
 /// the server is interested in receiving.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class FileOperationFilter

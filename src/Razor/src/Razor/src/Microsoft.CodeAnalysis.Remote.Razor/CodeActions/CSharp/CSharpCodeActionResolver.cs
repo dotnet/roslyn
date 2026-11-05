@@ -47,13 +47,13 @@ internal sealed class CSharpCodeActionResolver(
             cancellationToken.ThrowIfCancellationRequested();
 
             // If Roslyn wants to edit a random .cs file, then who are we to interfere
-            if (!textDocumentEdit.TextDocument.DocumentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
+            if (!textDocumentEdit.TextDocument.Uri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
             {
                 continue;
             }
 
             // We know this is a virtual C# file, but we have to jump through a couple of hoops to make sure we get the right info
-            var generatedDocumentUri = textDocumentEdit.TextDocument.DocumentUri;
+            var generatedDocumentUri = textDocumentEdit.TextDocument.Uri;
             var solution = snapshot.TextDocument.Project.Solution;
 
             var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
@@ -74,7 +74,7 @@ internal sealed class CSharpCodeActionResolver(
 
             var csharpDocument = codeDocument.GetCSharpDocumentForHintName(identity.HintName);
             var csharpSourceText = csharpDocument.Text;
-            var csharpTextChanges = textDocumentEdit.Edits.SelectAsArray(e => csharpSourceText.GetTextChange((TextEdit)e));
+            var csharpTextChanges = textDocumentEdit.Edits.SelectAsArray(e => csharpSourceText.GetTextChange((TextEdit)e.Value));
 
             // Remaps the text edits from the generated C# to the razor file,
             // as well as applying appropriate formatting.
@@ -87,7 +87,7 @@ internal sealed class CSharpCodeActionResolver(
 
             if (formattedChange is { } change)
             {
-                textDocumentEdit.TextDocument = new() { DocumentUri = razorDocument.GetURI() };
+                textDocumentEdit.TextDocument = new() { Uri = razorDocument.GetURI() };
                 textDocumentEdit.Edits = [codeDocument.Source.Text.GetTextEdit(change)];
             }
             else

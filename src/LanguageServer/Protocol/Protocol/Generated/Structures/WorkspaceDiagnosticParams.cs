@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Parameters of the workspace diagnostic request.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class WorkspaceDiagnosticParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<WorkspaceDiagnosticReport>
@@ -40,7 +40,6 @@ internal partial class WorkspaceDiagnosticParams : Roslyn.LanguageServer.Protoco
     /// previous result ids.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("previousResultIds")]
-    [System.Text.Json.Serialization.JsonRequired]
     public PreviousResultId[] PreviousResultIds { get; set; } = null!;
 
 }

@@ -35,7 +35,7 @@ internal sealed class CohostHoverEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Hover?.DynamicRegistration == true)
         {
@@ -91,12 +91,12 @@ internal sealed class CohostHoverEndpoint(
             return razorHover;
         }
 
-        var htmlStringResponse = htmlHover.Contents.Match(
-            static s => s,
-            static markedString => null,
-            static stringOrMarkedStringArray => null,
-            static markupContent => markupContent.Value
-        );
+        var htmlStringResponse = htmlHover.Contents switch
+        {
+            string text => text,
+            MarkupContent markup => markup.Value,
+            _ => null
+        };
 
         if (htmlStringResponse is null)
         {
@@ -107,8 +107,7 @@ internal sealed class CohostHoverEndpoint(
         // The razor content comes through as a ContainerElement, while the html content comes
         // through as MarkupContent. We need to extract the html content and insert it at the
         // start of the combined ContainerElement.
-        if (razorHover is VSInternalHover razorVsInternalHover
-            && razorVsInternalHover.RawContent is ContainerElement razorContainerElement)
+        if (razorHover.RawContent is ContainerElement razorContainerElement)
         {
             var htmlStringClassifiedTextElement = ClassifiedTextElement.CreatePlainText(htmlStringResponse);
             var verticalSpacingTextElement = ClassifiedTextElement.CreatePlainText(string.Empty);
@@ -117,16 +116,17 @@ internal sealed class CohostHoverEndpoint(
                 [htmlStringClassifiedTextElement, verticalSpacingTextElement]);
 
             // Modify the existing hover's RawContent to prepend the HTML content.
-            razorVsInternalHover.RawContent = new ContainerElement(razorContainerElement.Style, [htmlContainerElement, .. razorContainerElement.Elements]);
+            razorHover.RawContent = new ContainerElement(razorContainerElement.Style, [htmlContainerElement, .. razorContainerElement.Elements]);
         }
         else
         {
-            var razorStringResponse = razorHover.Contents.Match(
-                static s => s,
-                static markedString => throw new NotImplementedException(),
-                static stringOrMarkedStringArray => throw new NotImplementedException(),
-                static markupContent => markupContent.Value
-            );
+            var razorStringResponse = razorHover.Contents switch
+            {
+                string text => text,
+                MarkupContent markup => markup.Value,
+                null => null,
+                _ => throw new NotImplementedException()
+            };
 
             if (razorStringResponse is not null)
             {

@@ -240,7 +240,7 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var locationTyped = testLspServer.GetLocations("tab").Single();
 
-        var document = testLspServer.GetDocumentAsync(locationTyped.DocumentUri);
+        var document = testLspServer.GetDocumentAsync(locationTyped.Uri);
 
         var result = await GetInlineCompletionsAsync(testLspServer, locationTyped, options ?? new LSP.FormattingOptions { InsertSpaces = true, TabSize = 4 });
 
@@ -249,7 +249,7 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
 
         var item = result.Items.Single();
         Assert.NotNull(item.Range);
-        Assert.Equal(LSP.InsertTextFormat.Snippet, item.TextFormat);
+        Assert.Equal(LSP.InsertTextFormat.Snippet, item.InsertTextFormat);
         Assert.Equal(expected.ReplaceLineEndings("\r\n"), item.Text.ReplaceLineEndings("\r\n"));
     }
 
@@ -266,7 +266,7 @@ public sealed class InlineCompletionsTests : AbstractLanguageServerProtocolTests
                 TriggerKind = LSP.VSInternalInlineCompletionTriggerKind.Explicit
             },
             Position = locationTyped.Range.Start,
-            TextDocument = CreateTextDocumentIdentifier(locationTyped.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(locationTyped.Uri),
             Options = options
         };
 

@@ -71,13 +71,13 @@ public abstract class FormattingTestBase : DocumentFormattingTestBase
 
         var request = new DocumentOnTypeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
             Options = new FormattingOptions()
             {
                 TabSize = tabSize,
                 InsertSpaces = insertSpaces
             },
-            Character = triggerCharacter.ToString(),
+            Ch = triggerCharacter.ToString(),
             Position = position
         };
 

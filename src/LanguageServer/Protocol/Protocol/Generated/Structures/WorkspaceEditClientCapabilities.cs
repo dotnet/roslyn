@@ -18,7 +18,7 @@ internal partial class WorkspaceEditClientCapabilities
     /// <summary>
     /// The resource operations the client supports. Clients should at least
     /// support 'create', 'rename' and 'delete' files and folders.
-    /// 
+    ///
     /// @since 3.13.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("resourceOperations")]
@@ -28,7 +28,7 @@ internal partial class WorkspaceEditClientCapabilities
     /// <summary>
     /// The failure handling strategy of a client if applying the workspace edit
     /// fails.
-    /// 
+    ///
     /// @since 3.13.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("failureHandling")]
@@ -41,17 +41,17 @@ internal partial class WorkspaceEditClientCapabilities
     /// If set to `true` the client will normalize line ending characters
     /// in a workspace edit to the client-specified new line
     /// character.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("normalizesLineEndings")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
-    public bool NormalizesLineEndings { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public bool? NormalizesLineEndings { get; set; }
 
     /// <summary>
     /// Whether the client in general supports change annotations on text edits,
     /// create file, rename file and delete file changes.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("changeAnnotationSupport")]
@@ -60,7 +60,7 @@ internal partial class WorkspaceEditClientCapabilities
 
     /// <summary>
     /// Whether the client supports `WorkspaceEditMetadata` in `WorkspaceEdit`s.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("metadataSupport")]
@@ -69,7 +69,7 @@ internal partial class WorkspaceEditClientCapabilities
 
     /// <summary>
     /// Whether the client supports snippets as text edits.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("snippetEditSupport")]

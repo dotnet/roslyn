@@ -31,7 +31,7 @@ internal abstract class AbstractCopilotLspServiceDocumentRequestHandler<TRequest
     bool ISolutionRequiredHandler.RequiresLSPSolution => true;
 
     TextDocumentIdentifier ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier>.GetTextDocumentIdentifier(TRequest request)
-        => new() { DocumentUri = GetDocumentUri(request) };
+        => new() { Uri = GetDocumentUri(request) };
 
     Task<TResponse> IRequestHandler<TRequest, TResponse, RequestContext>.HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, new CopilotRequestContext(context), cancellationToken);

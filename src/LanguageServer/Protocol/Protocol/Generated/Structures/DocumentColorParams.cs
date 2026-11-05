@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Parameters for a <see cref="Requests.TextDocumentDocumentColor"/>.
 /// </summary>
-internal partial class DocumentColorParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<ColorInformation[]>
+internal partial class DocumentColorParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<ColorInformation[]>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.
@@ -30,7 +30,6 @@ internal partial class DocumentColorParams : Roslyn.LanguageServer.Protocol.IPar
     /// The text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
 }

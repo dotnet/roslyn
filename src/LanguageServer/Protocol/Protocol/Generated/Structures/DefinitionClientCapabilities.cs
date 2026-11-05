@@ -20,7 +20,7 @@ internal partial class DefinitionClientCapabilities
 
     /// <summary>
     /// The client supports additional metadata in the form of definition links.
-    /// 
+    ///
     /// @since 3.14.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("linkSupport")]

@@ -11,12 +11,12 @@ internal partial class WindowClientCapabilities
     /// <summary>
     /// It indicates whether the client supports server initiated
     /// progress using the `window/workDoneProgress/create` request.
-    /// 
+    ///
     /// The capability also controls Whether client supports handling
     /// of progress notifications. If set servers are allowed to report a
     /// `workDoneProgress` property in the request specific server
     /// capabilities.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("workDoneProgress")]
@@ -25,7 +25,7 @@ internal partial class WindowClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the showMessage request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("showMessage")]
@@ -34,7 +34,7 @@ internal partial class WindowClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the showDocument request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("showDocument")]

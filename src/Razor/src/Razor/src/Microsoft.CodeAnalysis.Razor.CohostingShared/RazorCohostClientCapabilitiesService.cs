@@ -15,7 +15,7 @@ internal sealed class RazorCohostClientCapabilitiesService : AbstractClientCapab
 {
     public int Order => WellKnownStartupOrder.ClientCapabilities;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(ClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         SetCapabilities(clientCapabilities);
 

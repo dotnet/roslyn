@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Represents information on a file/folder rename.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class FileRename

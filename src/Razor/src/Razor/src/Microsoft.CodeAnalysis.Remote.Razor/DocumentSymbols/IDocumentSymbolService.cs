@@ -8,12 +8,12 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
 
 internal interface IDocumentSymbolService
 {
-    SumType<DocumentSymbol[], SymbolInformation[]>? GetDocumentSymbols(
+    TextDocumentDocumentSymbolResult? GetDocumentSymbols(
         RazorFileKind fileKind,
         DocumentUri razorDocumentUri,
         RazorCSharpDocument implementationDocument,
-        SumType<DocumentSymbol[], SymbolInformation[]> implementationSymbols,
+        TextDocumentDocumentSymbolResult implementationSymbols,
         RazorCSharpDocument? declarationDocument,
-        SumType<DocumentSymbol[], SymbolInformation[]>? declarationSymbols,
+        TextDocumentDocumentSymbolResult? declarationSymbols,
         CancellationToken cancellationToken);
 }

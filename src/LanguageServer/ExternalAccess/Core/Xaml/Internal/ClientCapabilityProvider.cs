@@ -23,7 +23,7 @@ internal class ClientCapabilityProvider : IClientCapabilityProvider
         => _clientCapabilities.TextDocument?.Completion?.CompletionItem?.DocumentationFormat?.Contains(MarkupKind.Markdown) == true;
 
     public bool SupportsCompletionListData
-        => _clientCapabilities.TextDocument?.Completion?.CompletionListSetting?.ItemDefaults?.Contains("data") == true;
+        => _clientCapabilities.TextDocument?.Completion?.CompletionList?.ItemDefaults?.Contains("data") == true;
 
     public bool IsDynamicRegistrationSupported(string methodName)
     {
@@ -74,7 +74,7 @@ internal class ClientCapabilityProvider : IClientCapabilityProvider
             case LSP.Methods.WorkspaceDidChangeWatchedFilesName:
                 return _clientCapabilities?.Workspace?.DidChangeWatchedFiles?.DynamicRegistration == true;
             case LSP.VSInternalMethods.OnAutoInsertName:
-                if (_clientCapabilities.TextDocument is VSInternalTextDocumentClientCapabilities internalTextDocumentClientCapabilities)
+                if (_clientCapabilities.TextDocument is TextDocumentClientCapabilities internalTextDocumentClientCapabilities)
                 {
                     return internalTextDocumentClientCapabilities.OnAutoInsert?.DynamicRegistration == true;
                 }

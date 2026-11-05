@@ -31,7 +31,7 @@ internal sealed class UseExplicitExpressionCodeActionProvider : IRazorCodeAction
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (diagnostic.Code is not { } code ||
-                !code.TryGetSecond(out var diagnosticId) ||
+                code is not string diagnosticId ||
                 diagnosticId != RazorDiagnosticFactory.Parsing_DocumentationDirectiveWillChangeMeaning.Id)
             {
                 continue;
@@ -49,13 +49,13 @@ internal sealed class UseExplicitExpressionCodeActionProvider : IRazorCodeAction
             // text or braces outside the parentheses so they keep their existing meaning.
             var workspaceEdit = new WorkspaceEdit
             {
-                DocumentChanges = new TextDocumentEdit[]
+                DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
                 {
-                    new()
+                    new TextDocumentEdit()
                     {
                         TextDocument = new OptionalVersionedTextDocumentIdentifier
                         {
-                            DocumentUri = context.Request.TextDocument.DocumentUri,
+                            Uri = context.Request.TextDocument.Uri,
                         },
                         Edits =
                         [

@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A special text edit to provide an insert and a replace operation.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class InsertReplaceEdit

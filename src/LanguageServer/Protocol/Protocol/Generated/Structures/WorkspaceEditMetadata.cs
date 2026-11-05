@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Additional data about a workspace edit.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class WorkspaceEditMetadata

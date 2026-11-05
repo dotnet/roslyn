@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// An interactive text edit.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class SnippetTextEdit

@@ -26,7 +26,7 @@ internal sealed class CohostGoToImplementationEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlRequestInvoker requestInvoker)
-    : AbstractCohostDocumentEndpoint<TextDocumentPositionParams, SumType<LspLocation[], VSInternalReferenceItem[]>?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<TextDocumentPositionParams, VSInternalReferenceResult?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
@@ -35,7 +35,7 @@ internal sealed class CohostGoToImplementationEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.Implementation?.DynamicRegistration == true)
         {
@@ -52,7 +52,7 @@ internal sealed class CohostGoToImplementationEndpoint(
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(TextDocumentPositionParams request)
         => request.TextDocument;
 
-    protected override async Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override async Task<VSInternalReferenceResult?> HandleRequestAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var position = LspFactory.CreatePosition(request.Position.ToLinePosition());
 
@@ -77,22 +77,22 @@ internal sealed class CohostGoToImplementationEndpoint(
         return await GetHtmlImplementationsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> GetHtmlImplementationsAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<VSInternalReferenceResult?> GetHtmlImplementationsAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         var result = await _requestInvoker
-            .MakeHtmlLspRequestAsync<TextDocumentPositionParams, SumType<LspLocation[], VSInternalReferenceItem[]>>(
+            .MakeHtmlLspRequestAsync<TextDocumentPositionParams, VSInternalReferenceResult>(
                 razorDocument,
                 Methods.TextDocumentImplementationName,
                 request,
                 cancellationToken)
             .ConfigureAwait(false);
 
-        if (result.Value is null)
+        if (result is null)
         {
             return null;
         }
 
-        if (result.TryGetFirst(out var locations))
+        if (result.Value is LspLocation[] locations)
         {
             foreach (var location in locations)
             {
@@ -101,7 +101,7 @@ internal sealed class CohostGoToImplementationEndpoint(
 
             return locations;
         }
-        else if (result.TryGetSecond(out var referenceItems))
+        else if (result.Value is VSInternalReferenceItem[] referenceItems)
         {
             foreach (var referenceItem in referenceItems)
             {
@@ -117,9 +117,9 @@ internal sealed class CohostGoToImplementationEndpoint(
     private void RemapVirtualHtmlUri(LspLocation? location)
     {
         if (location is not null &&
-            location.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
+            location.Uri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
         {
-            location.DocumentUri = razorDocumentUri;
+            location.Uri = razorDocumentUri;
         }
     }
 
@@ -127,7 +127,7 @@ internal sealed class CohostGoToImplementationEndpoint(
 
     internal readonly struct TestAccessor(CohostGoToImplementationEndpoint instance)
     {
-        public Task<SumType<LspLocation[], VSInternalReferenceItem[]>?> HandleRequestAsync(
+        public Task<VSInternalReferenceResult?> HandleRequestAsync(
             TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
     }

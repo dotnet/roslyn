@@ -11,5 +11,5 @@ internal interface IRazorCohostStartupService
 {
     int Order { get; }
 
-    Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken);
+    Task StartupAsync(ClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken);
 }

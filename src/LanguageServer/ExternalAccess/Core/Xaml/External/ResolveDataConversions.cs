@@ -20,7 +20,7 @@ internal static class ResolveDataConversions
     {
         var dataId = resolveDataCache.UpdateCache(data);
 
-        return new DataIdResolveData(dataId, new LSP.TextDocumentIdentifier { DocumentUri = uri });
+        return new DataIdResolveData(dataId, new LSP.TextDocumentIdentifier { Uri = uri });
     }
 
     internal static (object? data, DocumentUri? uri) FromCachedResolveData(object? lspData, ResolveDataCache resolveDataCache)
@@ -39,6 +39,6 @@ internal static class ResolveDataConversions
         var data = resolveDataCache.GetCachedEntry(resolveData.DataId);
         var document = resolveData.Document;
 
-        return (data, document.DocumentUri);
+        return (data, document.Uri);
     }
 }

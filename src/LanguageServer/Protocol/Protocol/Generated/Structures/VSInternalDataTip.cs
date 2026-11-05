@@ -9,13 +9,12 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Class which represents debugger data tip response.
 /// </summary>
-internal partial class VSInternalDataTip
+internal partial record VSInternalDataTip
 {
     /// <summary>
     /// Gets or sets the value which indicates the applicable hover range within the document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_hoverRange")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Range HoverRange { get; set; } = null!;
 
     /// <summary>

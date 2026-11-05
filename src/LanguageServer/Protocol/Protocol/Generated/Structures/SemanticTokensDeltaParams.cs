@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// @since 3.16.0
 /// </summary>
-internal partial class SemanticTokensDeltaParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<TextDocumentSemanticTokensFullDeltaResult?>
+internal partial class SemanticTokensDeltaParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<TextDocumentSemanticTokensFullDeltaResult?>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.
@@ -30,7 +30,6 @@ internal partial class SemanticTokensDeltaParams : Roslyn.LanguageServer.Protoco
     /// The text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentIdentifier TextDocument { get; set; } = null!;
 
     /// <summary>
@@ -38,7 +37,6 @@ internal partial class SemanticTokensDeltaParams : Roslyn.LanguageServer.Protoco
     /// or a delta response depending on what was received last.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("previousResultId")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string PreviousResultId { get; set; } = null!;
 
 }

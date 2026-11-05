@@ -17,8 +17,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 // A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka changed / unchanged) followed
 // by n DocumentDiagnosticPartialResult literals.
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticParams
-using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
-using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
 
 [Method(Methods.TextDocumentDiagnosticName)]
 internal sealed partial class DocumentPullDiagnosticsHandler(
@@ -54,9 +52,9 @@ internal sealed partial class DocumentPullDiagnosticsHandler(
             return [];
         }
 
-        if (!context.IsTracking(identifier.DocumentUri))
+        if (!context.IsTracking(identifier.Uri))
         {
-            context.TraceWarning($"Ignoring diagnostics request for untracked document: {identifier.DocumentUri}");
+            context.TraceWarning($"Ignoring diagnostics request for untracked document: {identifier.Uri}");
             return [];
         }
 
@@ -92,12 +90,12 @@ internal sealed partial class DocumentPullDiagnosticsHandler(
         var progressValues = progress.GetValues();
         if (progressValues != null && progressValues.Length > 0)
         {
-            if (progressValues.Single().TryGetFirst(out var value))
+            return progressValues.Single().Value switch
             {
-                return value;
-            }
-
-            return progressValues.Single().Second;
+                RelatedFullDocumentDiagnosticReport full => full,
+                RelatedUnchangedDocumentDiagnosticReport unchanged => unchanged,
+                var report => throw ExceptionUtilities.UnexpectedValue(report),
+            };
         }
 
         return new RelatedFullDocumentDiagnosticReport

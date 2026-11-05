@@ -48,7 +48,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.OnTypeFormatting?.DynamicRegistration is true)
         {
@@ -78,9 +78,9 @@ internal sealed class CohostOnTypeFormattingEndpoint(
             return null;
         }
 
-        if (!AllTriggerCharacterSet.Contains(request.Character))
+        if (!AllTriggerCharacterSet.Contains(request.Ch))
         {
-            _logger.LogWarning($"Unexpected trigger character '{request.Character}'.");
+            _logger.LogWarning($"Unexpected trigger character '{request.Ch}'.");
             return null;
         }
 
@@ -92,7 +92,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
         // generally faster than Json anyway.
         var triggerKind = await _remoteServiceInvoker.TryInvokeAsync<IRemoteFormattingService, IRemoteFormattingService.TriggerKind>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetOnTypeFormattingTriggerKindAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), request.Character, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetOnTypeFormattingTriggerKindAsync(solutionInfo, razorDocument.Id, request.Position.ToLinePosition(), request.Ch, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         if (triggerKind == IRemoteFormattingService.TriggerKind.Invalid)
@@ -123,7 +123,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");
         var remoteResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteFormattingService, ImmutableArray<TextChange>>(
             razorDocument.Project.Solution,
-            (service, solutionInfo, cancellationToken) => service.GetOnTypeFormattingEditsAsync(solutionInfo, razorDocument.Id, htmlChanges, request.Position.ToLinePosition(), request.Character, options, cancellationToken),
+            (service, solutionInfo, cancellationToken) => service.GetOnTypeFormattingEditsAsync(solutionInfo, razorDocument.Id, htmlChanges, request.Position.ToLinePosition(), request.Ch, options, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
         if (remoteResult.IsDefaultOrEmpty)

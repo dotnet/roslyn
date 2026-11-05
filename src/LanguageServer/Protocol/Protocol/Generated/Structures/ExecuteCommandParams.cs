@@ -22,7 +22,6 @@ internal partial class ExecuteCommandParams
     /// The identifier of the actual command handler.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("command")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Command { get; set; } = null!;
 
     /// <summary>

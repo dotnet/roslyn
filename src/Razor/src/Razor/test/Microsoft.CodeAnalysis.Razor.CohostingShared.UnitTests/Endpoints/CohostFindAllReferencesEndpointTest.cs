@@ -320,7 +320,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             t =>
             {
                 var location = GetLocation(t);
-                Assert.Equal(surveyPromptDocument.GetURI(), location.DocumentUri);
+                Assert.Equal(surveyPromptDocument.GetURI(), location.Uri);
                 var text = SourceText.From(surveyPrompt.Text);
                 var range = text.GetRange(surveyPrompt.Spans[0]);
                 Assert.Equal(range, location.Range);
@@ -328,7 +328,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
             t =>
             {
                 var location = GetLocation(t);
-                Assert.Equal(componentDocument.GetURI(), location.DocumentUri);
+                Assert.Equal(componentDocument.GetURI(), location.Uri);
                 var text = SourceText.From(component.Text);
                 var range = text.GetRange(component.Spans[0]);
                 Assert.Equal(range, location.Range);
@@ -352,7 +352,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
 
         foreach (var result in results)
         {
-            if (result.TryGetFirst(out var referenceItem))
+            if (result.Value is VSInternalReferenceItem referenceItem)
             {
                 if (referenceItem.DisplayPath is not null)
                 {
@@ -370,27 +370,27 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
         {
             var location = GetLocation(result);
             string matchedText;
-            if (razorDocumentUri.Equals(location.DocumentUri))
+            if (razorDocumentUri.Equals(location.Uri))
             {
                 matchedText = inputText.Lines[location.Range.Start.Line].ToString();
                 Assert.Single(input.Spans, s => inputText.GetRange(s).Equals(location.Range));
             }
             else
             {
-                var (fileName, testCode) = Assert.Single(additionalFiles, f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.DocumentUri.GetRequiredSystemUri().AbsolutePath));
+                var (fileName, testCode) = Assert.Single(additionalFiles, f => FilePathNormalizingComparer.Instance.Equals(f.fileName, location.Uri.GetRequiredSystemUri().AbsolutePath));
                 var text = SourceText.From(testCode.Text);
                 matchedText = text.Lines[location.Range.Start.Line].ToString();
                 Assert.Single(testCode.Spans, s => text.GetRange(s).Equals(location.Range));
             }
 
-            if (result.TryGetFirst(out var referenceItem))
+            if (result.Value is VSInternalReferenceItem referenceItem)
             {
                 Assert.Equal(matchedText.Trim(), GetText(referenceItem));
             }
         }
     }
 
-    private async Task<SumType<VSInternalReferenceItem, LspLocation>[]> GetFindAllReferencesResultsAsync(TextDocument document, Position position)
+    private async Task<ReferenceItem[]> GetFindAllReferencesResultsAsync(TextDocument document, Position position)
     {
         var endpoint = new CohostFindAllReferencesEndpoint(IncompatibleProjectService, RemoteServiceInvoker);
 
@@ -410,10 +410,10 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
         return referenceItem.Text.AssumeNotNull().ToString()!;
     }
 
-    private static LspLocation GetLocation(SumType<VSInternalReferenceItem, LspLocation> r)
+    private static LspLocation GetLocation(ReferenceItem r)
     {
-        return r.TryGetFirst(out var refItem)
+        return r.Value is VSInternalReferenceItem refItem
             ? refItem.Location ?? Assumed.Unreachable<LspLocation>()
-            : r.Second;
+            : (LspLocation)r.Value;
     }
 }

@@ -190,7 +190,7 @@ internal static class Notifications
     /// <summary>
     /// The did create files notification is sent from the client to the server when
     /// files were created from within the client.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string WorkspaceDidCreateFilesMethod = "workspace/didCreateFiles";
@@ -201,7 +201,7 @@ internal static class Notifications
     /// <summary>
     /// The will delete files request is sent from the client to the server before files are actually
     /// deleted as long as the deletion is triggered from within the client.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string WorkspaceDidDeleteFilesMethod = "workspace/didDeleteFiles";
@@ -212,7 +212,7 @@ internal static class Notifications
     /// <summary>
     /// The did rename files notification is sent from the client to the server when
     /// files were renamed from within the client.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string WorkspaceDidRenameFilesMethod = "workspace/didRenameFiles";

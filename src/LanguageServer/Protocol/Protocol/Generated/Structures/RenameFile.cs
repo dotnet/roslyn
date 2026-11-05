@@ -19,7 +19,7 @@ internal partial class RenameFile
 
     /// <summary>
     /// An optional annotation identifier describing the operation.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("annotationId")]

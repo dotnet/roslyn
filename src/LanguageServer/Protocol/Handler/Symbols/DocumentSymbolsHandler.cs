@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [Method(Methods.TextDocumentDocumentSymbolName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>>
+internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, TextDocumentDocumentSymbolResult>
 {
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 
-    public async Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(
+    public async Task<TextDocumentDocumentSymbolResult> HandleRequestAsync(
         RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
@@ -41,7 +41,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         return await GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions, cancellationToken).ConfigureAwait(false);
     }
 
-    internal static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(
+    internal static async Task<TextDocumentDocumentSymbolResult> GetDocumentSymbolsAsync(
         Document document, bool useHierarchicalSymbols, bool supportsVSExtensions, CancellationToken cancellationToken)
     {
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -87,7 +87,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         }
     }
 
-    private static RoslynDocumentSymbol[] GetDocumentSymbolsFromSolutionExplorer(
+    private static DocumentSymbol[] GetDocumentSymbolsFromSolutionExplorer(
         DocumentId documentId,
         SyntaxNode node,
         SourceText text,
@@ -98,7 +98,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         return [.. items.Select(i => ConvertToDocumentSymbol(i, text, documentId, provider, cancellationToken))];
     }
 
-    private static RoslynDocumentSymbol ConvertToDocumentSymbol(
+    private static DocumentSymbol ConvertToDocumentSymbol(
         SymbolTreeItemData item,
         SourceText text,
         DocumentId documentId,
@@ -119,7 +119,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
             ? GetDocumentSymbolsFromSolutionExplorer(documentId, itemSyntax.DeclarationNode, text, provider, cancellationToken)
             : [];
 
-        return new RoslynDocumentSymbol
+        return new DocumentSymbol
         {
             Name = GetDocumentSymbolName(itemKey.Name),
             Detail = itemKey.Name,
@@ -131,9 +131,9 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         };
     }
 
-    private static RoslynDocumentSymbol[] GetDocumentSymbolsFromNavigationBarItems(ImmutableArray<RoslynNavigationBarItem> items, SourceText text)
+    private static DocumentSymbol[] GetDocumentSymbolsFromNavigationBarItems(ImmutableArray<RoslynNavigationBarItem> items, SourceText text)
     {
-        using var _ = ArrayBuilder<RoslynDocumentSymbol>.GetInstance(out var symbols);
+        using var _ = ArrayBuilder<DocumentSymbol>.GetInstance(out var symbols);
         foreach (var item in items)
         {
             if (item is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null)
@@ -143,12 +143,12 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         return symbols.ToArray();
     }
 
-    private static RoslynDocumentSymbol ConvertToDocumentSymbol(RoslynNavigationBarItem.SymbolItem item, SourceText text)
+    private static DocumentSymbol ConvertToDocumentSymbol(RoslynNavigationBarItem.SymbolItem item, SourceText text)
     {
         var (spans, navigationSpan) = item.Location.InDocumentInfo!.Value;
         var fullSpan = spans[0];
 
-        return new RoslynDocumentSymbol
+        return new DocumentSymbol
         {
             Name = GetDocumentSymbolName(item.Text),
             Detail = item.Name,
@@ -173,7 +173,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         var kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph);
         var location = new LSP.Location()
         {
-            DocumentUri = documentUri,
+            Uri = documentUri,
             Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
         };
 

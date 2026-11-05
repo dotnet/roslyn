@@ -51,7 +51,7 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
         FixUpWorkspaceEdit(request, _fileSystem);
 
         var razorCohostClientLanguageServerManager = context.GetRequiredService<IClientLanguageServerManager>();
-        var response = await razorCohostClientLanguageServerManager.SendRequestAsync<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+        var response = await razorCohostClientLanguageServerManager.SendRequestAsync<ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
                Methods.WorkspaceApplyEditName,
                new ApplyWorkspaceEditParams() { Edit = request.Edit },
                cancellationToken).ConfigureAwait(false);
@@ -66,15 +66,15 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
 
     private static void FixUpWorkspaceEdit(ApplyRenameEditParams request, IFileSystem fileSystem)
     {
-        var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        var documentChanges = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem>();
 
         var oldFileNamePart = Path.GetFileName(request.OldFilePath);
         var newFileNamePart = Path.GetFileName(request.NewFilePath);
 
         foreach (var edit in request.Edit.EnumerateEdits())
         {
-            if (edit.TryGetFirst(out var textDocumentEdit) &&
-                textDocumentEdit.TextDocument.DocumentUri is { UriString: { } uriString } documentUri &&
+            if (edit is TextDocumentEdit textDocumentEdit &&
+                textDocumentEdit.TextDocument.Uri is { UriString: { } uriString } documentUri &&
                 documentUri.GetDocumentFilePathFromUri() is { } documentFilePath &&
                 !fileSystem.FileExists(documentFilePath))
             {
@@ -103,12 +103,12 @@ internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory
                     continue;
                 }
 
-                textDocumentEdit.TextDocument.DocumentUri = new DocumentUri(newFileName);
+                textDocumentEdit.TextDocument.Uri = new DocumentUri(newFileName);
                 documentChanges.Add(edit);
             }
-            else if (edit.TryGetThird(out var renameEdit))
+            else if (edit is RenameFile renameEdit)
             {
-                if (fileSystem.FileExists(renameEdit.OldDocumentUri.GetDocumentFilePathFromUri()))
+                if (fileSystem.FileExists(renameEdit.OldUri.GetDocumentFilePathFromUri()))
                 {
                     documentChanges.Add(edit);
                 }

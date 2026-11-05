@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The client supports the following `CompletionList` specific
 /// capabilities.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class CompletionListCapabilities
@@ -17,11 +17,11 @@ internal partial class CompletionListCapabilities
     /// <summary>
     /// The client supports the following itemDefaults on
     /// a completion list.
-    /// 
+    ///
     /// The value lists the supported property names of the
     /// `CompletionList.itemDefaults` object. If omitted
     /// no properties are supported.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("itemDefaults")]
@@ -32,13 +32,13 @@ internal partial class CompletionListCapabilities
     /// Specifies whether the client supports `CompletionList.applyKind` to
     /// indicate how supported values from `completionList.itemDefaults`
     /// and `completion` will be combined.
-    /// 
+    ///
     /// If a client supports `applyKind` it must support it for all fields
     /// that it supports that are listed in `CompletionList.applyKind`. This
     /// means when clients add support for new/future fields in completion
     /// items the MUST also support merge for them if those fields are
     /// defined in `CompletionList.applyKind`.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("applyKindSupport")]

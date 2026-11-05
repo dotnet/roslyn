@@ -236,13 +236,13 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
 
         var request = new DocumentOnTypeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
             Options = new FormattingOptions()
             {
                 TabSize = 4,
                 InsertSpaces = true
             },
-            Character = triggerCharacter.ToString(),
+            Ch = triggerCharacter.ToString(),
             Position = position
         };
 

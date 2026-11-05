@@ -467,7 +467,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
         await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
         var caret = testLspServer.GetLocations("caret").Single();
 
-        var document = await GetTextDocumentAsync(testLspServer, caret.DocumentUri);
+        var document = await GetTextDocumentAsync(testLspServer, caret.Uri);
         Assert.NotNull(document);
 
         var projectContext = ProtocolConversions.ProjectToProjectContext(document.Project);
@@ -504,6 +504,6 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
 
     internal static async Task<TextDocument?> GetTextDocumentAsync(TestLspServer testLspServer, DocumentUri uri)
     {
-        return (await testLspServer.CaptureLspDocumentContextAsync(new TextDocumentIdentifier { DocumentUri = uri }))?.Document;
+        return (await testLspServer.CaptureLspDocumentContextAsync(new TextDocumentIdentifier { Uri = uri }))?.Document;
     }
 }

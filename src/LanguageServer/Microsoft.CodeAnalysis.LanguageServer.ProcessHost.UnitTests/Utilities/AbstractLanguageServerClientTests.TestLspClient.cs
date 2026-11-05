@@ -319,7 +319,7 @@ public partial class AbstractLanguageServerClientTests
                 [
                     new WorkspaceFolder
                     {
-                        DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspaceRootPath),
+                        Uri = ProtocolConversions.CreateAbsoluteDocumentUri(workspaceRootPath),
                         Name = Path.GetFileName(workspaceRootPath)
                     }
                 ]
@@ -345,21 +345,12 @@ public partial class AbstractLanguageServerClientTests
             var documentChanges = workspaceEdit.DocumentChanges;
             Assert.NotNull(documentChanges);
 
-            if (documentChanges.Value.TryGetFirst(out var textDocumentEdits))
-            {
-                foreach (var textDocumentEdit in textDocumentEdits)
-                    ApplyTextDocumentEdit(textDocumentEdit);
-
-                return;
-            }
-
-            var resourceDocumentChanges = documentChanges.Value.Second;
-            foreach (var documentChange in resourceDocumentChanges)
+            foreach (var documentChange in documentChanges)
             {
                 switch (documentChange.Value)
                 {
                     case CreateFile createFile:
-                        _workspaceContent = _workspaceContent.WithFile(GetRelativePath(createFile.DocumentUri), string.Empty);
+                        _workspaceContent = _workspaceContent.WithFile(GetRelativePath(createFile.Uri), string.Empty);
                         break;
                     case TextDocumentEdit textDocumentEdit:
                         ApplyTextDocumentEdit(textDocumentEdit);
@@ -374,7 +365,7 @@ public partial class AbstractLanguageServerClientTests
 
             void ApplyTextDocumentEdit(TextDocumentEdit documentEdit)
             {
-                var uri = documentEdit.TextDocument.DocumentUri;
+                var uri = documentEdit.TextDocument.Uri;
                 var relativePath = GetRelativePath(uri);
                 var document = SourceText.From(_workspaceContent.GetFileText(relativePath));
 

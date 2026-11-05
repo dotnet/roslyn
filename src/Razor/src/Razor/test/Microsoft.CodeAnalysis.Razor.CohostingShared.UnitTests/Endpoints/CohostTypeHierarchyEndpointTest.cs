@@ -248,7 +248,7 @@ public class CohostTypeHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         var request = new TypeHierarchyPrepareParams
         {
             Position = inputText.GetPosition(absolutePosition),
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken) ?? [];

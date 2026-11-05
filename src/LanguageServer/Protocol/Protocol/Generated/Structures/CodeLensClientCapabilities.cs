@@ -21,7 +21,7 @@ internal partial class CodeLensClientCapabilities
     /// <summary>
     /// Whether the client supports resolving additional code lens
     /// properties via a separate `codeLens/resolve` request.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("resolveSupport")]

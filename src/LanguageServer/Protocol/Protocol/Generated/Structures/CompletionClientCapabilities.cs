@@ -37,7 +37,7 @@ internal partial class CompletionClientCapabilities
     /// Defines how the client handles whitespace and indentation
     /// when accepting a completion item that uses multi line
     /// text in either `insertText` or `textEdit`.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertTextMode")]
@@ -55,7 +55,7 @@ internal partial class CompletionClientCapabilities
     /// <summary>
     /// The client supports the following `CompletionList` specific
     /// capabilities.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("completionList")]

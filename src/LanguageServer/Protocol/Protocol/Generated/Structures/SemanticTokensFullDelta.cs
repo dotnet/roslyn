@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Semantic tokens options to support deltas for full documents
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class SemanticTokensFullDelta

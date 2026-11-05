@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Inline value options used during static registration.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlineValueOptions

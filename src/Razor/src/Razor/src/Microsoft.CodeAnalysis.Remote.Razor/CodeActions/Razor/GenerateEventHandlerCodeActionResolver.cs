@@ -78,14 +78,14 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
         var result = await RoslynCodeActionHelpers.GetSimplifiedEditsAsync(codeBehindDocument, edit, cancellationToken).ConfigureAwait(false);
 
-        var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = codeBehindDocument.GetURI() };
+        var codeBehindTextDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = codeBehindDocument.GetURI() };
         var codeBehindTextDocEdit = new TextDocumentEdit()
         {
             TextDocument = codeBehindTextDocumentIdentifier,
             Edits = result
         };
 
-        return new WorkspaceEdit() { DocumentChanges = new[] { codeBehindTextDocEdit } };
+        return new WorkspaceEdit() { DocumentChanges = new WorkspaceEdit._DocumentChangesItem[] { codeBehindTextDocEdit } };
     }
 
     private async Task<WorkspaceEdit?> GenerateEventHandlerInCodeBlockAsync(
@@ -126,7 +126,7 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
         // Now we run the changes through the formatter, via the TryGetCSharpCodeActionEditAsync. This is the same as what the CSharpCodeActionResolver does.
         var csharpDocument = code.GetRequiredCSharpDocument(declarationDocument: false);
-        var csharpTextChanges = edits.SelectAsArray(e => csharpDocument.Text.GetTextChange(e.First));
+        var csharpTextChanges = edits.SelectAsArray(e => csharpDocument.Text.GetTextChange((TextEdit)e.Value));
         var formattedChange = await _razorFormattingService.TryGetCSharpCodeActionEditAsync(documentSnapshot, csharpTextChanges,
             declarationDocument: false,
             options, cancellationToken).ConfigureAwait(false);
@@ -137,10 +137,10 @@ internal sealed class GenerateEventHandlerCodeActionResolver(
 
         return new WorkspaceEdit()
         {
-            DocumentChanges = new[] {
+            DocumentChanges = new WorkspaceEdit._DocumentChangesItem[] {
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = documentSnapshot.Uri },
                     Edits = [code.Source.Text.GetTextEdit(razorChange)],
                 }
             }

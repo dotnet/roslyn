@@ -17,7 +17,6 @@ internal partial class DocumentHighlight
     /// The range this highlight applies to.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("range")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Range Range { get; set; } = null!;
 
     /// <summary>
@@ -25,6 +24,6 @@ internal partial class DocumentHighlight
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("kind")]
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
-    public DocumentHighlightKind Kind { get; set; } = DocumentHighlightKind.Text;
+    public DocumentHighlightKind Kind { get; set; }
 
 }

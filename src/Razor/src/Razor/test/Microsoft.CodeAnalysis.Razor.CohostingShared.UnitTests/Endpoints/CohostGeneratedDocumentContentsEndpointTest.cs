@@ -83,7 +83,7 @@ public class CohostGeneratedDocumentContentsEndpointTest(ITestOutputHelper testO
 
         var request = new DocumentContentsRequest
         {
-            TextDocument = new TextDocumentIdentifier { DocumentUri = razorDocument.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = razorDocument.GetURI() },
             Kind = kind
         };
 

@@ -34,7 +34,7 @@ internal static class CompletionResultFactory
 
     public static string[] DefaultCommitCharactersArray { get; } = CreateCommitCharacterArrayFromRules(CompletionItemRules.Default);
 
-    public static async Task<LSP.VSInternalCompletionList> ConvertToLspCompletionListAsync(
+    public static async Task<LSP.CompletionList> ConvertToLspCompletionListAsync(
         Document document,
         CompletionCapabilityHelper capabilityHelper,
         CompletionList list,
@@ -46,7 +46,7 @@ internal static class CompletionResultFactory
         var isSuggestionMode = !isHardSelection;
         if (list.ItemsList.Count == 0)
         {
-            return new LSP.VSInternalCompletionList
+            return new LSP.CompletionList
             {
                 Items = [],
                 // If we have a suggestion mode item, we just need to keep the list in suggestion mode.
@@ -80,14 +80,14 @@ internal static class CompletionResultFactory
             lspCompletionItems.Add(await CreateLSPCompletionItemAsync(item, typedText, i).ConfigureAwait(false));
         }
 
-        var completionList = new LSP.VSInternalCompletionList
+        var completionList = new LSP.CompletionList
         {
             // public LSP
             Items = lspCompletionItems.ToArray(),
             IsIncomplete = isIncomplete,
-            ItemDefaults = new LSP.CompletionListItemDefaults
+            ItemDefaults = new LSP.CompletionItemDefaults
             {
-                EditRange = capabilityHelper.SupportDefaultEditRange ? ProtocolConversions.TextSpanToRange(defaultSpan, documentText) : null,
+                EditRange = capabilityHelper.SupportDefaultEditRange ? new LSP.CompletionItemDefaults._EditRange(ProtocolConversions.TextSpanToRange(defaultSpan, documentText)) : null,
                 Data = capabilityHelper.SupportCompletionListData ? resolveData : null,
             },
 
@@ -99,10 +99,10 @@ internal static class CompletionResultFactory
             Data = capabilityHelper.SupportVSInternalCompletionListData ? resolveData : null,
         };
 
-        if (capabilityHelper.SupportedInsertTextModes.Contains(LSP.InsertTextMode.AsIs))
+        if (capabilityHelper.SupportedInsertTextModes.Contains(LSP.InsertTextMode.asIs))
         {
             // By default, all text edits we create include the appropriate whitespace, so tell the client to leave it as-is (if it supports the option).
-            completionList.ItemDefaults.InsertTextMode = LSP.InsertTextMode.AsIs;
+            completionList.ItemDefaults.InsertTextMode = LSP.InsertTextMode.asIs;
         }
 
         PromoteCommonCommitCharactersOntoList();
@@ -310,7 +310,7 @@ internal static class CompletionResultFactory
             // VS internal
             if (capabilityHelper.SupportVSInternalDefaultCommitCharacters)
             {
-                completionList.CommitCharacters = mostUsedCommitCharacters;
+                completionList.CommitCharacters = mostUsedCommitCharacters is null ? null : new LSP.CompletionList._CommitCharacters(mostUsedCommitCharacters);
             }
 
             foreach (var completionItem in completionList.Items)
@@ -383,7 +383,7 @@ internal static class CompletionResultFactory
         CompletionService completionService,
         CancellationToken cancellationToken)
     {
-        var lspItem = new LSP.VSInternalCompletionItem
+        var lspItem = new LSP.CompletionItem
         {
             Label = item.GetEntireDisplayText(),
             Icon = new ImageElement(item.Tags.GetFirstGlyph().ToLSPImageId()),
@@ -394,7 +394,7 @@ internal static class CompletionResultFactory
         // resolve handler, so we leave both TextEdit and InsertText unpopulated in these cases.
         if (item.IsComplexTextEdit)
         {
-            lspItem.VsResolveTextEditOnCommit = true;
+            lspItem.ResolveTextEditOnCommit = true;
 
             // Razor C# is currently the only language client that supports LSP.InsertTextFormat.Snippet.
             // We can enable it for regular C# once LSP is used for local completion.
@@ -627,7 +627,7 @@ internal static class CompletionResultFactory
 
                 lspItem.Command = lspItem.Command = new LSP.Command()
                 {
-                    CommandIdentifier = CompleteComplexEditCommand,
+                    CommandValue = CompleteComplexEditCommand,
                     Title = nameof(CompleteComplexEditCommand),
                     Arguments = [textDocumentIdentifier, textEdit, isSnippetString, lspOffset]
                 };
@@ -655,7 +655,7 @@ internal static class CompletionResultFactory
 
         if (description != null)
         {
-            var vsCompletionItem = (LSP.VSInternalCompletionItem)lspItem;
+            var vsCompletionItem = (LSP.CompletionItem)lspItem;
             vsCompletionItem.Description = new ClassifiedTextElement(description.TaggedParts
                 .Select(tp => new ClassifiedTextRun(tp.Tag.ToClassificationTypeName(), tp.Text)));
         }

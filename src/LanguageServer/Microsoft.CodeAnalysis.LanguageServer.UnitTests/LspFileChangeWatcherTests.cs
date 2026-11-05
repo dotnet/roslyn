@@ -57,8 +57,8 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
         var watcher = await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync();
 
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), watcher.GlobPattern.Second.BaseUri.Second);
-        Assert.Equal("**/*", watcher.GlobPattern.Second.Pattern);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).BaseUri.Value);
+        Assert.Equal("**/*", Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).Pattern);
 
         // Get rid of the registration and it should be gone again
         context.Dispose();
@@ -78,10 +78,10 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var watchedFile = context.EnqueueWatchingFile(filePath);
         var watcher = await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync();
 
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), watcher.GlobPattern.Second.BaseUri.Second);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).BaseUri.Value);
         // We watch all .txt files in this directory so that watching another .txt file can reuse the same watch.
         // The context still only reports changes to the files we've asked it to watch.
-        Assert.Equal("*.txt", watcher.GlobPattern.Second.Pattern);
+        Assert.Equal("*.txt", Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).Pattern);
 
         // Get rid of the registration and it should be gone again
         watchedFile.Dispose();
@@ -105,8 +105,8 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         using var file = context.EnqueueWatchingFile(filePath);
         var watcher = await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync();
 
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(root), watcher.GlobPattern.Second.BaseUri.Second);
-        Assert.Equal(includeSubdirectories ? "**/*.cs" : "*.cs", watcher.GlobPattern.Second.Pattern);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(root), Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).BaseUri.Value);
+        Assert.Equal(includeSubdirectories ? "**/*.cs" : "*.cs", Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).Pattern);
     }
 
     [Theory]
@@ -143,8 +143,8 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         using var visualBasicFile = context.EnqueueWatchingFile(Path.Combine(tempDirectory.Path, "File.vb"));
 
         var watcher = await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync();
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), watcher.GlobPattern.Second.BaseUri.Second);
-        Assert.Equal("{*.cs,*.vb}", watcher.GlobPattern.Second.Pattern);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).BaseUri.Value);
+        Assert.Equal("{*.cs,*.vb}", Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).Pattern);
     }
 
     [Fact]
@@ -157,8 +157,8 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         using var context = lspFileChangeWatcher.CreateContext([new WatchedDirectory(tempDirectory.Path, extensionFilters: [".cs", ".vb"])]);
 
         var watcher = await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync();
-        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), watcher.GlobPattern.Second.BaseUri.Second);
-        Assert.Equal("{**/*.cs,**/*.vb}", watcher.GlobPattern.Second.Pattern);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(tempDirectory.Path), Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).BaseUri.Value);
+        Assert.Equal("{**/*.cs,**/*.vb}", Assert.IsType<RelativePattern>(watcher.GlobPattern.Value).Pattern);
     }
 
     [Theory]
@@ -176,7 +176,7 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         using var csharpFile = context.EnqueueWatchingFile(Path.Combine(tempDirectory.Path, "File.cs"));
         using var extensionlessFile = context.EnqueueWatchingFile(Path.Combine(tempDirectory.Path, "README"));
 
-        Assert.Equal(expectedPattern, (await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync()).GlobPattern.Second.Pattern);
+        Assert.Equal(expectedPattern, Assert.IsType<RelativePattern>((await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync()).GlobPattern.Value).Pattern);
     }
 
     [Theory]
@@ -270,7 +270,7 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var unfilteredChanges = new ConcurrentQueue<string>();
         filteredContext.FileChanged += (_, e) => filteredChanges.Enqueue(e.FilePath);
         unfilteredContext.FileChanged += (_, e) => unfilteredChanges.Enqueue(e.FilePath);
-        Assert.Equal("**/*", (await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync()).GlobPattern.Second.Pattern);
+        Assert.Equal("**/*", Assert.IsType<RelativePattern>((await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync()).GlobPattern.Value).Pattern);
 
         await SendFileChangesAsync(testLspServer, FileChangeType.Changed, csharpFilePath, visualBasicFilePath,
             Path.Combine(TempRoot.CreateDirectory().Path, "Outside.cs"));
@@ -300,7 +300,7 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
                 Changes = filePaths.Select(filePath => new FileEvent
                 {
                     Uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath),
-                    FileChangeType = fileChangeType,
+                    Type = fileChangeType,
                 }).ToArray(),
             },
             CancellationToken.None);
@@ -364,10 +364,10 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         [JsonRpcMethod("client/unregisterCapability", UseSingleObjectParameterDeserialization = true)]
         public async Task UnregisterCapabilityAsync(UnregistrationParams unregistrationParams, CancellationToken _)
         {
-            var unregistrations = unregistrationParams.Unregistrations.Where(
+            var unregistrations = unregistrationParams.Unregisterations.Where(
                 static unregistration => unregistration.Method == Methods.WorkspaceDidChangeWatchedFilesName).ToArray();
             if (unregistrations.Length > 0)
-                _unregistrationRequests.Enqueue(new UnregistrationParams { Unregistrations = unregistrations });
+                _unregistrationRequests.Enqueue(new UnregistrationParams { Unregisterations = unregistrations });
 
             foreach (var unregistration in unregistrations)
                 Assert.True(_registrations.TryRemove(unregistration.Id, out var _));

@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Represents information on a file/folder delete.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class FileDelete

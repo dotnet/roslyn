@@ -417,16 +417,16 @@ internal static class SourceTextExtensions
         return fixedChanges.SelectAsPlainArray(htmlSourceText.GetTextEdit);
     }
 
-    public static SumType<TextEdit, AnnotatedTextEdit>[] FixHtmlTextEdits(this SourceText htmlSourceText, SumType<TextEdit, AnnotatedTextEdit>[] edits)
+    public static Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem[] FixHtmlTextEdits(this SourceText htmlSourceText, Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem[] edits)
     {
         // Avoid computing a minimal diff if we don't need to
-        if (!edits.Any(static e => ((TextEdit)e).NewText.Contains('~')))
+        if (!edits.Any(static e => ((TextEdit)e.Value).NewText.Contains('~')))
             return edits;
 
-        var changes = edits.SelectAsArray(e => htmlSourceText.GetTextChange((TextEdit)e));
+        var changes = edits.SelectAsArray(e => htmlSourceText.GetTextChange((TextEdit)e.Value));
 
         var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
-        return fixedChanges.SelectAsPlainArray<TextChange, SumType<TextEdit, AnnotatedTextEdit>>(c => htmlSourceText.GetTextEdit(c));
+        return fixedChanges.SelectAsPlainArray<TextChange, Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem>(c => htmlSourceText.GetTextEdit(c));
     }
 #endif
 }

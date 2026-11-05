@@ -393,7 +393,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
 
         var request = new DocumentHighlightParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
             Position = position
         };
 

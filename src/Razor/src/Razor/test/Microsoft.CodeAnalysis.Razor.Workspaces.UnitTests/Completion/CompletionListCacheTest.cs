@@ -18,13 +18,13 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
         // Arrange
         var completionList = new RazorVSInternalCompletionList()
         {
-            Items = [new VSInternalCompletionItem()]
+            Items = [new CompletionItem()]
         };
         var resultId = _completionListCache.Add(completionList, _context);
         completionList.SetResultId(resultId, clientCapabilities: new());
 
         // Act
-        var result = _completionListCache.TryGetOriginalRequestData((VSInternalCompletionItem)completionList.Items[0], out var cachedCompletionList, out var context);
+        var result = _completionListCache.TryGetOriginalRequestData((CompletionItem)completionList.Items[0], out var cachedCompletionList, out var context);
 
         // Assert
         Assert.True(result);
@@ -40,18 +40,18 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
         // Fill the completion list cache up until its cache max so the next entry causes eviction.
         for (var i = 0; i < CompletionListCache.MaxCacheSize; i++)
         {
-            _completionListCache.Add(new VSInternalCompletionList(), _context);
+            _completionListCache.Add(new CompletionList(), _context);
         }
 
         var completionList = new RazorVSInternalCompletionList()
         {
-            Items = [new VSInternalCompletionItem()]
+            Items = [new CompletionItem()]
         };
         var resultId = _completionListCache.Add(completionList, _context);
         completionList.SetResultId(resultId, clientCapabilities: new());
 
         // Act
-        var result = _completionListCache.TryGetOriginalRequestData((VSInternalCompletionItem)completionList.Items[0], out var cachedCompletionList, out var context);
+        var result = _completionListCache.TryGetOriginalRequestData((CompletionItem)completionList.Items[0], out var cachedCompletionList, out var context);
 
         // Assert
         Assert.True(result);
@@ -63,7 +63,7 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
     public void TryGet_UnknownCompletionList_ReturnsTrue()
     {
         // Act
-        var result = _completionListCache.TryGetOriginalRequestData(new VSInternalCompletionItem(), out var cachedCompletionList, out var context);
+        var result = _completionListCache.TryGetOriginalRequestData(new CompletionItem(), out var cachedCompletionList, out var context);
 
         // Assert
         Assert.False(result);
@@ -77,7 +77,7 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
         // Arrange
         var initialCompletionList = new RazorVSInternalCompletionList()
         {
-            Items = [new VSInternalCompletionItem()]
+            Items = [new CompletionItem()]
         };
         var initialCompletionListResultId = _completionListCache.Add(initialCompletionList, _context);
         initialCompletionList.SetResultId(initialCompletionListResultId, clientCapabilities: new());
@@ -85,11 +85,11 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
         for (var i = 0; i < CompletionListCache.MaxCacheSize - 1; i++)
         {
             // We now fill the completion list cache up to its last slot.
-            _completionListCache.Add(new VSInternalCompletionList(), _context);
+            _completionListCache.Add(new CompletionList(), _context);
         }
 
         // Act
-        var result = _completionListCache.TryGetOriginalRequestData((VSInternalCompletionItem)initialCompletionList.Items[0], out var cachedCompletionList, out var context);
+        var result = _completionListCache.TryGetOriginalRequestData((CompletionItem)initialCompletionList.Items[0], out var cachedCompletionList, out var context);
 
         // Assert
         Assert.True(result);
@@ -103,7 +103,7 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
         // Arrange
         var initialCompletionList = new RazorVSInternalCompletionList()
         {
-            Items = [new VSInternalCompletionItem()]
+            Items = [new CompletionItem()]
         };
         var initialCompletionListResultId = _completionListCache.Add(initialCompletionList, _context);
         initialCompletionList.SetResultId(initialCompletionListResultId, clientCapabilities: new());
@@ -111,11 +111,11 @@ public class CompletionListCacheTest(ITestOutputHelper testOutput) : ToolingTest
         // We now fill the completion list cache up until its cache max so that the initial completion list we set gets evicted.
         for (var i = 0; i < CompletionListCache.MaxCacheSize; i++)
         {
-            _completionListCache.Add(new VSInternalCompletionList(), _context);
+            _completionListCache.Add(new CompletionList(), _context);
         }
 
         // Act
-        var result = _completionListCache.TryGetOriginalRequestData((VSInternalCompletionItem)initialCompletionList.Items[0], out var cachedCompletionList, out var context);
+        var result = _completionListCache.TryGetOriginalRequestData((CompletionItem)initialCompletionList.Items[0], out var cachedCompletionList, out var context);
 
         // Assert
         Assert.False(result);

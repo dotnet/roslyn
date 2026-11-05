@@ -259,7 +259,7 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
         bool insertSpaces = true,
         int tabSize = 4)
     {
-        var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.DocumentUri);
+        var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
         var results = await testLspServer.ExecuteRequestAsync<LSP.DocumentOnTypeFormattingParams, LSP.TextEdit[]>(
             LSP.Methods.TextDocumentOnTypeFormattingName,
             CreateDocumentOnTypeFormattingParams(characterTyped, locationTyped, insertSpaces, tabSize),
@@ -276,8 +276,8 @@ public sealed class FormatDocumentOnTypeTests : AbstractLanguageServerProtocolTe
         => new()
         {
             Position = locationTyped.Range.Start,
-            Character = characterTyped,
-            TextDocument = CreateTextDocumentIdentifier(locationTyped.DocumentUri),
+            Ch = characterTyped,
+            TextDocument = CreateTextDocumentIdentifier(locationTyped.Uri),
             Options = new LSP.FormattingOptions()
             {
                 InsertSpaces = insertSpaces,

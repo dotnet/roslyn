@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 internal sealed class SemanticTokensFullHandler(
     IGlobalOptionService globalOptions,
     SemanticTokensRefreshQueue semanticTokensRefreshQueue)
-    : ILspServiceDocumentRequestHandler<SemanticTokensFullParams, LSP.SemanticTokens>
+    : ILspServiceDocumentRequestHandler<SemanticTokensParams, LSP.SemanticTokens>
 {
     private readonly IGlobalOptionService _globalOptions = globalOptions;
     private readonly SemanticTokensRefreshQueue _semanticTokenRefreshQueue = semanticTokensRefreshQueue;
@@ -22,14 +22,14 @@ internal sealed class SemanticTokensFullHandler(
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.SemanticTokensFullParams request)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.SemanticTokensParams request)
     {
         Contract.ThrowIfNull(request.TextDocument);
         return request.TextDocument;
     }
 
     public async Task<LSP.SemanticTokens> HandleRequestAsync(
-        SemanticTokensFullParams request,
+        SemanticTokensParams request,
         RequestContext context,
         CancellationToken cancellationToken)
     {

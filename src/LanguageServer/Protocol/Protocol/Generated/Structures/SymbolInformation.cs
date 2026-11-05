@@ -18,13 +18,12 @@ internal partial class SymbolInformation : BaseSymbolInformation
     /// tool the range's start information is used to position the cursor. So
     /// the range usually spans more than the actual symbol's name and does
     /// normally include things like visibility modifiers.
-    /// 
+    ///
     /// The range doesn't have to denote a node range in the sense of an abstract
     /// syntax tree. It can therefore not be used to re-construct a hierarchy of
     /// the symbols.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("location")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Location Location { get; set; } = null!;
 
     /// <summary>

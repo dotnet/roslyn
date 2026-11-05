@@ -72,13 +72,13 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
             CreateSymbolInformation(LSP.SymbolKind.Class, "A", testLspServer.GetLocations("class").Single(), Glyph.ClassInternal, GetContainerName(testLspServer.GetCurrentSolution()))
         };
 
-        using var progress = BufferedProgress.Create<LSP.SumType<LSP.SymbolInformation[], LSP.WorkspaceSymbol[]>>(null);
+        using var progress = BufferedProgress.Create<LSP.WorkspaceSymbolResult?>(null);
 
         var results = await RunGetWorkspaceSymbolsAsync(testLspServer, "A", progress).ConfigureAwait(false);
 
         Assert.Null(results);
 
-        results = progress.GetValues()?.SelectMany(v => v.First).ToArray();
+        results = progress.GetValues()?.SelectMany(v => Assert.IsType<LSP.SymbolInformation[]>(v!.Value)).ToArray();
         AssertSetEquals(expected, results);
     }
 
@@ -231,7 +231,7 @@ public class WorkspaceSymbolsTests(ITestOutputHelper testOutputHelper)
         AssertSetEquals(expected, results);
     }
 
-    private static Task<LSP.SymbolInformation[]?> RunGetWorkspaceSymbolsAsync(TestLspServer testLspServer, string query, IProgress<LSP.SumType<LSP.SymbolInformation[], LSP.WorkspaceSymbol[]>>? progress = null)
+    private static Task<LSP.SymbolInformation[]?> RunGetWorkspaceSymbolsAsync(TestLspServer testLspServer, string query, IProgress<LSP.WorkspaceSymbolResult?>? progress = null)
     {
         var request = new LSP.WorkspaceSymbolParams
         {

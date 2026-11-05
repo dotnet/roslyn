@@ -16,7 +16,7 @@ internal interface IRemoteCompletionService : IRemoteJsonService
     ValueTask<CompletionPositionInfo?> GetPositionInfoAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         Position position,
         CancellationToken cancellationToken);
 
@@ -24,15 +24,15 @@ internal interface IRemoteCompletionService : IRemoteJsonService
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         CompletionPositionInfo positionInfo,
-        VSInternalCompletionContext completionContext,
+        CompletionContext completionContext,
         RazorCompletionOptions razorCompletionOptions,
         Guid correlationId,
         CancellationToken cancellationToken);
 
-    ValueTask<VSInternalCompletionItem> ResolveCompletionItemAsync(
+    ValueTask<CompletionItem> ResolveCompletionItemAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId id,
-        VSInternalCompletionItem request,
+        CompletionItem request,
         RazorFormattingOptions formattingOptions,
         CancellationToken cancellationToken);
 }

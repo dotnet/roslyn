@@ -125,7 +125,7 @@ internal sealed class RemoteInlayHintService(in ServiceArgs args) : RazorDocumen
                             hint.TextEdits = ImmutableCollectionsMarshal.AsArray(textEdits);
                         }
 
-                        if (!seenHints.Add((hostDocumentPosition, hint.Label.First)))
+                        if (!seenHints.Add((hostDocumentPosition, (string)hint.Label.Value)))
                         {
                             continue;
                         }

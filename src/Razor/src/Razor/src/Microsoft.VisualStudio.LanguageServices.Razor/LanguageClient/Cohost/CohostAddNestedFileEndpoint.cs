@@ -66,7 +66,7 @@ internal sealed class CohostAddNestedFileEndpoint(
         }
 
         var razorCohostClientLanguageServerManager = context.GetRequiredService<IClientLanguageServerManager>();
-        var response = await razorCohostClientLanguageServerManager.SendRequestAsync<ApplyWorkspaceEditParams, ApplyWorkspaceEditResponse>(
+        var response = await razorCohostClientLanguageServerManager.SendRequestAsync<ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
             Methods.WorkspaceApplyEditName,
             new ApplyWorkspaceEditParams { Edit = workspaceEdit },
             cancellationToken).ConfigureAwait(false);

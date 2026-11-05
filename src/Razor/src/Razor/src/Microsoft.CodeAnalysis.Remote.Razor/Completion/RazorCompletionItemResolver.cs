@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal static class RazorCompletionItemResolver
 {
-    public static async Task<VSInternalCompletionItem?> ResolveAsync(VSInternalCompletionItem completionItem, VSInternalClientCapabilities? clientCapabilities, IComponentAvailabilityService componentAvailabilityService, RazorCompletionResolveContext razorCompletionResolveContext, CancellationToken cancellationToken)
+    public static async Task<CompletionItem?> ResolveAsync(CompletionItem completionItem, ClientCapabilities? clientCapabilities, IComponentAvailabilityService componentAvailabilityService, RazorCompletionResolveContext razorCompletionResolveContext, CancellationToken cancellationToken)
     {
         var associatedRazorCompletion = razorCompletionResolveContext.CompletionItems.FirstOrDefault(completion =>
         {

@@ -262,7 +262,7 @@ public sealed class ValidateBreakableRange(ITestOutputHelper testOutputHelper) :
             LSP.VSInternalMethods.TextDocumentValidateBreakableRangeName,
             new LSP.VSInternalValidateBreakableRangeParams()
             {
-                TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = caret.DocumentUri },
+                TextDocument = new LSP.TextDocumentIdentifier { Uri = caret.Uri },
                 Range = caret.Range
             },
             CancellationToken.None);

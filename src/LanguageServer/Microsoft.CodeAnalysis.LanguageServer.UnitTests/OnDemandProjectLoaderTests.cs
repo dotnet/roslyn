@@ -349,7 +349,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
     private OnDemandProjectLoader CreateOnDemandLoader(SingleServerTestLspServer server, TestProjectLoader loader, string workspaceFolder)
     {
         var tracker = new WorkspaceFolderTracker();
-        tracker.Update([new LSP.WorkspaceFolder { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspaceFolder), Name = "workspace" }], removedFolders: null);
+        tracker.Update([new LSP.WorkspaceFolder { Uri = ProtocolConversions.CreateAbsoluteDocumentUri(workspaceFolder), Name = "workspace" }], removedFolders: null);
         var globalOptions = server.ExportProvider.GetExportedValue<IGlobalOptionService>();
         var listener = server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
         return new OnDemandProjectLoader(

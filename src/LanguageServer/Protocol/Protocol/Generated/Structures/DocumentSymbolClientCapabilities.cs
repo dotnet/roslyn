@@ -37,7 +37,7 @@ internal partial class DocumentSymbolClientCapabilities
     /// The client supports tags on `SymbolInformation`. Tags are supported on
     /// `DocumentSymbol` if `hierarchicalDocumentSymbolSupport` is set to true.
     /// Clients supporting tags have to handle unknown tags gracefully.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tagSupport")]
@@ -47,7 +47,7 @@ internal partial class DocumentSymbolClientCapabilities
     /// <summary>
     /// The client supports an additional label presented in the UI when
     /// registering a document symbol provider.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("labelSupport")]

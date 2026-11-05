@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Represents a collection of <see cref="InlineCompletionItem">inline completion items</see> to be presented in the editor.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class InlineCompletionList

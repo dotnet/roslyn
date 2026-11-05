@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 using Roslyn.LanguageServer.Protocol;
 
@@ -23,7 +24,7 @@ internal sealed class ContextResolveParam
     public object? Data { get; set; }
 
     [JsonPropertyName("activeExperiments")]
-    public Dictionary<string, SumType<string, int, bool, string[]>>? ActiveExperiments { get; set; }
+    public Dictionary<string, ActiveExperiment>? ActiveExperiments { get; set; }
 
     public IReadOnlyDictionary<string, object> GetUnpackedActiveExperiments()
     {
@@ -35,28 +36,18 @@ internal sealed class ContextResolveParam
         var result = new Dictionary<string, object>(this.ActiveExperiments.Count);
         foreach (var kvp in this.ActiveExperiments)
         {
-            result[kvp.Key] = UnpackSumType(kvp.Value);
+            result[kvp.Key] = kvp.Value.Value;
         }
         return result;
     }
 
-    private static object UnpackSumType(SumType<string, int, bool, string[]> sumType)
+    [Union, JsonConverter(typeof(UnionConverter))]
+    internal sealed class ActiveExperiment : IUnion
     {
-        if (sumType.TryGetFirst(out var first))
-        {
-            return first;
-        }
-        else if (sumType.TryGetSecond(out var second))
-        {
-            return second;
-        }
-        else if (sumType.TryGetThird(out var third))
-        {
-            return third;
-        }
-        else
-        {
-            return sumType.Fourth;
-        }
+        public ActiveExperiment(string value) => Value = value;
+        public ActiveExperiment(int value) => Value = value;
+        public ActiveExperiment(bool value) => Value = value;
+        public ActiveExperiment(string[] value) => Value = value;
+        public object Value { get; }
     }
 }

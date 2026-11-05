@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Represents an incoming call, e.g. a caller of a method or constructor.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class CallHierarchyIncomingCall

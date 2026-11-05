@@ -32,7 +32,7 @@ public sealed class DiagnosticRegistrationTests : AbstractLanguageServerProtocol
         {
             TextDocument = new TextDocumentClientCapabilities
             {
-                Diagnostic = new DiagnosticSetting
+                Diagnostic = new DiagnosticClientCapabilities
                 {
                     DynamicRegistration = dynamicRegistration,
                 }
@@ -93,7 +93,7 @@ public sealed class DiagnosticRegistrationTests : AbstractLanguageServerProtocol
         }
         else
         {
-            var diagnosticOptions = (DiagnosticOptions?)serverCapabilities.DiagnosticOptions;
+            var diagnosticOptions = serverCapabilities.DiagnosticProvider;
 
             Assert.Empty(diagnosticRegistrations);
             Assert.NotNull(diagnosticOptions);

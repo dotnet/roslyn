@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A set of predefined position encoding kinds.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.StringEnumConverter<PositionEncodingKind>))]
@@ -21,7 +21,7 @@ internal readonly record struct PositionEncodingKind(string Value) : IStringEnum
 
     /// <summary>
     /// Character offsets count UTF-16 code units.
-    /// 
+    ///
     /// This is the default and must always be supported
     /// by servers
     /// </summary>
@@ -29,7 +29,7 @@ internal readonly record struct PositionEncodingKind(string Value) : IStringEnum
 
     /// <summary>
     /// Character offsets count UTF-32 code units.
-    /// 
+    ///
     /// Implementation note: these are the same as Unicode codepoints,
     /// so this `PositionEncodingKind` may also be used for an
     /// encoding-agnostic representation of character offsets.

@@ -9,13 +9,14 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Diagnostic registration options.
 /// </summary>
-internal partial class VSInternalDiagnosticRegistrationOptions : VSInternalDiagnosticOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
+internal partial record VSInternalDiagnosticRegistrationOptions : VSInternalDiagnosticOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
     /// <summary>
     /// A document selector to identify the scope of the registration. If set to null
     /// the document selector provided on the client side will be used.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("documentSelector")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public DocumentSelector? DocumentSelector { get; set; }
 
     /// <summary>

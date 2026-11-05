@@ -53,7 +53,7 @@ internal ref struct LogMessageInterpolatedStringHandler
 #if LSP
             LspRange range => range.ToDisplayString(),
             Position position => position.ToDisplayString(),
-            ISumType sumType => GetMessage(sumType.Value),
+            System.Runtime.CompilerServices.IUnion union => GetMessage(union.Value),
 #endif
 
             null => "[null]",

@@ -11,23 +11,23 @@ namespace Roslyn.LanguageServer.Protocol;
 /// value for properties like `commitCharacters` or the range of a text
 /// edit. A completion list can therefore define item defaults which will
 /// be used if a completion item itself doesn't specify the value.
-/// 
+///
 /// If a completion list specifies a default value and a completion item
 /// also specifies a corresponding value, the rules for combining these are
 /// defined by `applyKinds` (if the client supports it), defaulting to
 /// ApplyKind.Replace.
-/// 
+///
 /// Servers are only allowed to return default values if the client
 /// signals support for this via the `completionList.itemDefaults`
 /// capability.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class CompletionItemDefaults
 {
     /// <summary>
     /// A default commit character set.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("commitCharacters")]
@@ -36,7 +36,7 @@ internal partial class CompletionItemDefaults
 
     /// <summary>
     /// A default edit range.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("editRange")]
@@ -45,7 +45,7 @@ internal partial class CompletionItemDefaults
 
     /// <summary>
     /// A default insert text format.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertTextFormat")]
@@ -54,7 +54,7 @@ internal partial class CompletionItemDefaults
 
     /// <summary>
     /// A default insert text mode.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertTextMode")]
@@ -63,7 +63,7 @@ internal partial class CompletionItemDefaults
 
     /// <summary>
     /// A default data value.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("data")]
@@ -73,6 +73,7 @@ internal partial class CompletionItemDefaults
     /// <summary>
     /// A union of: Range | EditRangeWithInsertReplace.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _EditRange : System.Runtime.CompilerServices.IUnion
     {

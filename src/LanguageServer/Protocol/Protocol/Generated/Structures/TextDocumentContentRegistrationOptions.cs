@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Text document content provider registration options.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class TextDocumentContentRegistrationOptions : TextDocumentContentOptions, IStaticRegistrationOptions

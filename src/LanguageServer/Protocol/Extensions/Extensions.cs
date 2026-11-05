@@ -149,7 +149,7 @@ internal static partial class Extensions
     /// </summary>
     public static async ValueTask<TextDocument?> GetTextDocumentAsync(this Solution solution, TextDocumentIdentifier documentIdentifier, CancellationToken cancellationToken)
     {
-        var documents = await solution.GetTextDocumentsAsync(documentIdentifier.DocumentUri, cancellationToken).ConfigureAwait(false);
+        var documents = await solution.GetTextDocumentsAsync(documentIdentifier.Uri, cancellationToken).ConfigureAwait(false);
         return documents.Length == 0
             ? null
             : documents.FindDocumentInProjectContext(documentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
@@ -179,7 +179,7 @@ internal static partial class Extensions
         if (items.Length > 1)
         {
             // We have more than one document; try to find the one that matches the right context
-            if (itemIdentifier is VSTextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
+            if (itemIdentifier is TextDocumentIdentifier vsDocumentIdentifier && vsDocumentIdentifier.ProjectContext != null)
             {
                 var projectId = ProtocolConversions.ProjectContextToProjectId(vsDocumentIdentifier.ProjectContext);
                 var matchingItem = items.FirstOrDefault(d => projectIdGetter(d) == projectId);
@@ -218,7 +218,7 @@ internal static partial class Extensions
     public static Project? GetProject(this Solution solution, TextDocumentIdentifier projectIdentifier)
     {
         // We need to parse the URI (scheme, file path) to be able to lookup the URI in the solution.
-        var parsedDocumentUri = projectIdentifier.DocumentUri.ParsedDocumentUri;
+        var parsedDocumentUri = projectIdentifier.Uri.ParsedDocumentUri;
         if (parsedDocumentUri is null)
         {
             return null;
@@ -232,7 +232,7 @@ internal static partial class Extensions
 
     public static TextDocument? GetAdditionalDocument(this Solution solution, TextDocumentIdentifier documentIdentifier)
     {
-        var documentIds = GetDocumentIds(solution, documentIdentifier.DocumentUri);
+        var documentIds = GetDocumentIds(solution, documentIdentifier.Uri);
 
         // We don't call GetRequiredAdditionalDocument as the id could be referring to a regular document.
         var additionalDocuments = documentIds.Select(solution.GetAdditionalDocument).WhereNotNull().ToImmutableArray();
@@ -252,14 +252,7 @@ internal static partial class Extensions
     }
 
     public static bool HasVisualStudioLspCapability(this ClientCapabilities? clientCapabilities)
-    {
-        if (clientCapabilities is VSInternalClientCapabilities vsClientCapabilities)
-        {
-            return vsClientCapabilities.SupportsVisualStudioExtensions;
-        }
-
-        return false;
-    }
+        => clientCapabilities?.SupportsVisualStudioExtensions ?? false;
 
     public static bool HasCompletionListDataCapability(this ClientCapabilities clientCapabilities)
     {
@@ -303,32 +296,8 @@ internal static partial class Extensions
 
     private static bool TryGetVSCompletionListSetting(ClientCapabilities clientCapabilities, [NotNullWhen(returnValue: true)] out VSInternalCompletionListSetting? completionListSetting)
     {
-        if (clientCapabilities is not VSInternalClientCapabilities vsClientCapabilities)
-        {
-            completionListSetting = null;
-            return false;
-        }
-
-        var textDocumentCapability = vsClientCapabilities.TextDocument;
-        if (textDocumentCapability == null)
-        {
-            completionListSetting = null;
-            return false;
-        }
-
-        if (textDocumentCapability.Completion is not VSInternalCompletionSetting vsCompletionSetting)
-        {
-            completionListSetting = null;
-            return false;
-        }
-
-        completionListSetting = vsCompletionSetting.CompletionList;
-        if (completionListSetting == null)
-        {
-            return false;
-        }
-
-        return true;
+        completionListSetting = clientCapabilities?.TextDocument?.Completion?.VsCompletionList;
+        return completionListSetting is not null;
     }
 
     public static int CompareTo(this Position p1, Position p2)

@@ -990,10 +990,10 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Position = sourceText.GetPosition(input.Position),
-            Character = triggerCharacter,
+            Ch = triggerCharacter,
             Options = formattingOptions
         };
 

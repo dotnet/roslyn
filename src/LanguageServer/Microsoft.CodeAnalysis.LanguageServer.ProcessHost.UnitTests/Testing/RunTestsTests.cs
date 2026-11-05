@@ -46,7 +46,7 @@ public sealed class RunTestsTests(ITestOutputHelper testOutputHelper) : Abstract
             LSP.Methods.TextDocumentCodeLensName,
             new LSP.CodeLensParams
             {
-                TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = testMethodLocation.DocumentUri },
+                TextDocument = new LSP.TextDocumentIdentifier { Uri = testMethodLocation.Uri },
             },
             CancellationToken.None);
 
@@ -54,7 +54,7 @@ public sealed class RunTestsTests(ITestOutputHelper testOutputHelper) : Abstract
         var runTestsCodeLens = Assert.Single(
             codeLenses,
             codeLens => codeLens.Range == testMethodLocation.Range &&
-                codeLens.Command?.CommandIdentifier == CodeLensHandler.RunTestsCommandIdentifier &&
+                codeLens.Command?.CommandValue == CodeLensHandler.RunTestsCommandValue &&
                 codeLens.Command.Title == FeaturesResources.Run_Test);
         Assert.NotNull(runTestsCodeLens.Command);
         Assert.NotNull(runTestsCodeLens.Command.Arguments);

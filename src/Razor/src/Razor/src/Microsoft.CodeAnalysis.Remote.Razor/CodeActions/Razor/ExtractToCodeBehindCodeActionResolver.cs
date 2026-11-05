@@ -51,12 +51,12 @@ internal sealed class ExtractToCodeBehindCodeActionResolver : IRazorCodeActionRe
 
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri };
-        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = codeBehindUri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = documentSnapshot.Uri };
+        var codeBehindDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = codeBehindUri };
 
-        var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+        var documentChanges = new Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem[]
         {
-            new CreateFile { DocumentUri = codeBehindDocumentIdentifier.DocumentUri },
+            new CreateFile { Uri = codeBehindDocumentIdentifier.Uri },
             new TextDocumentEdit
             {
                 TextDocument = codeDocumentIdentifier,

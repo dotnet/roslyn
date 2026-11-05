@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using LSP = Roslyn.LanguageServer.Protocol;
-using SumType = Roslyn.LanguageServer.Protocol.SumType<Roslyn.LanguageServer.Protocol.FullDocumentDiagnosticReport, Roslyn.LanguageServer.Protocol.UnchangedDocumentDiagnosticReport>;
 
 namespace IdeBenchmarks.Lsp
 {
@@ -95,7 +94,7 @@ namespace IdeBenchmarks.Lsp
             var testServer = _testServer!;
 
             var typingLocation = testServer.GetLocations("typing").Single();
-            var documentUri = typingLocation.DocumentUri;
+            var documentUri = typingLocation.Uri;
             var typingLine = typingLocation.Range.Start.Line;
             var typingColumn = typingLocation.Range.Start.Character;
 
@@ -107,11 +106,11 @@ namespace IdeBenchmarks.Lsp
                 await testServer.WaitForSourceGeneratorsAsync();
 
                 await testServer.WaitForDiagnosticsAsync();
-                await testServer.ExecuteRequestAsync<LSP.DocumentDiagnosticParams, SumType>(
+                await testServer.ExecuteRequestAsync<LSP.DocumentDiagnosticParams, LSP.FullOrUnchangedDiagnosticReport>(
                     LSP.Methods.TextDocumentDiagnosticName,
                     new LSP.DocumentDiagnosticParams
                     {
-                        TextDocument = new LSP.TextDocumentIdentifier { DocumentUri = documentUri },
+                        TextDocument = new LSP.TextDocumentIdentifier { Uri = documentUri },
                     },
                     CancellationToken.None);
             }

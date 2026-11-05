@@ -46,8 +46,8 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
     public void WorkspaceFolderTrackerPreservesSetForEquivalentUpdate()
     {
         var tracker = new WorkspaceFolderTracker();
-        var workspaceFolder = new WorkspaceFolder { DocumentUri = new("file:///Workspace"), Name = "Workspace" };
-        var equivalentWorkspaceFolder = new WorkspaceFolder { DocumentUri = new("file:///Workspace/"), Name = "Workspace" };
+        var workspaceFolder = new WorkspaceFolder { Uri = new("file:///Workspace"), Name = "Workspace" };
+        var equivalentWorkspaceFolder = new WorkspaceFolder { Uri = new("file:///Workspace/"), Name = "Workspace" };
         var eventCount = 0;
         tracker.WorkspaceFoldersChanged += (_, _) => eventCount++;
 
@@ -57,7 +57,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         Assert.Equal(1, eventCount);
         Assert.Same(workspaceFolders, tracker.GetRequiredWorkspaceFolderPaths());
-        Assert.Equal(Path.GetFullPath(workspaceFolder.DocumentUri.GetDocumentFilePathFromUri()), Assert.Single(workspaceFolders));
+        Assert.Equal(Path.GetFullPath(workspaceFolder.Uri.GetDocumentFilePathFromUri()), Assert.Single(workspaceFolders));
     }
 
     [Theory, CombinatorialData]
@@ -67,7 +67,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
@@ -90,7 +90,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         await server.ExecuteNotificationAsync(TestNotificationHandler.MethodName, request);
@@ -115,7 +115,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.fs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.fs")
         });
         var response = await server.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
         Assert.Equal(typeof(TestLanguageSpecificHandler).Name, response);
@@ -128,7 +128,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestTypeTwo(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.vb")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.vb")
         });
         var response = await server.ExecuteRequestAsync<TestRequestTypeTwo, string>(TestDocumentHandler.MethodName, request, CancellationToken.None);
         Assert.Equal(typeof(TestLanguageSpecificHandlerWithDifferentParams).Name, response);
@@ -173,7 +173,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestWithDocument(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         var didReport = false;
@@ -201,7 +201,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestWithDocument(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         var didReport = false;
@@ -229,7 +229,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestWithDocument(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         var didReport = false;
@@ -259,7 +259,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestWithDocument(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         var didReport = false;
@@ -287,7 +287,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestWithDocument(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         var didReport = false;
@@ -321,7 +321,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
             var looseFileUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"untitled:untitledFile");
             var request = new TestRequestTypeOne(new TextDocumentIdentifier
             {
-                DocumentUri = looseFileUri
+                Uri = looseFileUri
             });
 
             await Assert.ThrowsAnyAsync<Exception>(async () => await testLspServer.ExecuteRequestAsync<TestRequestTypeOne, string>(TestDocumentHandler.MethodName, request, CancellationToken.None)).ConfigureAwait(false);
@@ -341,7 +341,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         var exception = await Assert.ThrowsAsync<RemoteMethodNotFoundException>(async ()
@@ -363,7 +363,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         await server.ExecuteNotificationAsync("nonExistentMethod", request);
@@ -382,7 +382,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         var exception = await Assert.ThrowsAsync<RemoteMethodNotFoundException>(async ()
@@ -404,7 +404,7 @@ public sealed class HandlerTests : AbstractLanguageServerProtocolTests
 
         var request = new TestRequestTypeOne(new TextDocumentIdentifier
         {
-            DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
+            Uri = ProtocolConversions.CreateAbsoluteDocumentUri(@"C:\test.cs")
         });
 
         await server.ExecuteNotificationAsync(TestFSharpOnlyNotificationHandler.MethodName, request);

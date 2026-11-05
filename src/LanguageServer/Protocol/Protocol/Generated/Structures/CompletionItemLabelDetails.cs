@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Additional details for a completion item label.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class CompletionItemLabelDetails

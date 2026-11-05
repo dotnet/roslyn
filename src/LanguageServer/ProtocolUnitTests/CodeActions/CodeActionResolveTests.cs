@@ -57,7 +57,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         //             var i = 1;
         //         }
         //     }
-        var expectedTextEdits = new SumType<TextEdit, AnnotatedTextEdit>[]
+        var expectedTextEdits = new Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem[]
         {
             GenerateTextEdit("var", new LSP.Range { Start = new Position(4, 8), End = new Position(4, 11) })
         };
@@ -103,15 +103,15 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
             applicableRange: new LSP.Range { Start = new Position { Line = 4, Character = 8 }, End = new Position { Line = 4, Character = 11 } },
             diagnostics: null);
 
-        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
+        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
 
         var typeRange = new LSP.Range { Start = new Position(4, 8), End = new Position(4, 11) };
         var textEdit = new LSP.TextEdit { Range = typeRange, NewText = "var" };
-        await testLspServer.ReplaceTextAsync(caretLocation.DocumentUri, (textEdit.Range, textEdit.NewText));
+        await testLspServer.ReplaceTextAsync(caretLocation.Uri, (textEdit.Range, textEdit.NewText));
 
         if (!mutatingLspWorkspace)
         {
-            var document = await testLspServer.GetDocumentAsync(caretLocation.DocumentUri);
+            var document = await testLspServer.GetDocumentAsync(caretLocation.Uri);
             var sourceText = await document.GetTextAsync(CancellationToken.None);
             var textChange = ProtocolConversions.TextEditToTextChange(textEdit, sourceText);
             await testLspServer.TestWorkspace.ChangeDocumentAsync(document.Id, sourceText.WithChanges(textChange));
@@ -163,7 +163,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         //             int i = V;
         //         }
         //     }
-        var expectedTextEdits = new SumType<TextEdit, AnnotatedTextEdit>[]
+        var expectedTextEdits = new Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem[]
         {
             GenerateTextEdit("""
                 private const int V = 1;
@@ -207,7 +207,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
             {
                 Workspace = new WorkspaceClientCapabilities
                 {
-                    WorkspaceEdit = new WorkspaceEditSetting
+                    WorkspaceEdit = new WorkspaceEditClientCapabilities
                     {
                         ResourceOperations = [ResourceOperationKind.Rename]
                     }
@@ -290,9 +290,9 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
 
         Assert.NotNull(actualResolvedAction.Edit);
-        var textDocumentEdit = (LSP.TextDocumentEdit[])actualResolvedAction.Edit.DocumentChanges!.Value;
+        var textDocumentEdit = actualResolvedAction.Edit.DocumentChanges!.Select(edit => Assert.IsType<LSP.TextDocumentEdit>(edit.Value)).ToArray();
         Assert.Single(textDocumentEdit);
-        var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.DocumentUri);
+        var originalText = await testLspServer.GetDocumentTextAsync(textDocumentEdit[0].TextDocument.Uri);
         var edits = textDocumentEdit[0].Edits.Select(e => (LSP.TextEdit)e.Value!).ToArray();
         var updatedText = ApplyTextEdits(edits, originalText);
         Assert.Equal("""
@@ -325,7 +325,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
             {
                 Workspace = new WorkspaceClientCapabilities
                 {
-                    WorkspaceEdit = new WorkspaceEditSetting
+                    WorkspaceEdit = new WorkspaceEditClientCapabilities
                     {
                         ResourceOperations = [ResourceOperationKind.Create]
                     }
@@ -354,14 +354,14 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         var existingDocumentUri = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id).GetURI();
         var workspaceEdit = new WorkspaceEdit()
         {
-            DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+            DocumentChanges = new Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem[]
             {
                 // Create file
-                new CreateFile() { DocumentUri = newDocumentUri },
+                new CreateFile() { Uri = newDocumentUri },
                 // Add content to file
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
                     Edits =
                     [
                         new TextEdit()
@@ -391,7 +391,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
                 // Remove the declaration from existing file
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = existingDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
                     Edits =
                     [
                         new TextEdit()
@@ -451,7 +451,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
             {
                 Workspace = new WorkspaceClientCapabilities
                 {
-                    WorkspaceEdit = new WorkspaceEditSetting
+                    WorkspaceEdit = new WorkspaceEditClientCapabilities
                     {
                         ResourceOperations = [ResourceOperationKind.Create]
                     }
@@ -485,14 +485,14 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
             Path.Combine(Path.GetDirectoryName(existingDocument.FilePath)!, "BCD.cs"));
         var workspaceEdit = new WorkspaceEdit()
         {
-            DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+            DocumentChanges = new Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem[]
             {
                 // Create file
-                new CreateFile() { DocumentUri = newDocumentUri },
+                new CreateFile() { Uri = newDocumentUri },
                 // Add content to file
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
                     Edits =
                     [
                         new TextEdit()
@@ -521,7 +521,7 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
                 // Remove the declaration from existing file
                 new TextDocumentEdit()
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = existingDocumentUri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
                     Edits =
                     [
                         new TextEdit()
@@ -562,11 +562,11 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         AssertJsonEquals(expectedCodeAction, actualResolvedAction);
     }
 
-    private static async Task<LSP.VSInternalCodeAction> RunGetCodeActionResolveAsync(
+    private static async Task<LSP.CodeAction> RunGetCodeActionResolveAsync(
         TestLspServer testLspServer,
-        VSInternalCodeAction unresolvedCodeAction)
+        CodeAction unresolvedCodeAction)
     {
-        var result = (VSInternalCodeAction?)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
+        var result = (CodeAction?)await testLspServer.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(
             LSP.Methods.CodeActionResolveName, unresolvedCodeAction, CancellationToken.None);
         return result!;
     }
@@ -580,16 +580,16 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
 
     private static WorkspaceEdit GenerateWorkspaceEdit(
         IList<LSP.Location> locations,
-        SumType<TextEdit, AnnotatedTextEdit>[] edits)
+        Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem[] edits)
         => new()
         {
-            DocumentChanges = new TextDocumentEdit[]
+            DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
             {
-                new()
+                new TextDocumentEdit()
                 {
                     TextDocument = new OptionalVersionedTextDocumentIdentifier
                     {
-                        DocumentUri = locations.Single().DocumentUri
+                        Uri = locations.Single().Uri
                     },
                     Edits = edits,
                 }
@@ -600,6 +600,6 @@ public sealed class CodeActionResolveTests : AbstractLanguageServerProtocolTests
         => new()
         {
             DocumentChanges = renameLocations.Select(
-                locations => new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(new RenameFile() { OldDocumentUri = locations.oldUri, NewDocumentUri = locations.newUri })).ToArray()
+                locations => new Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem(new RenameFile() { OldUri = locations.oldUri, NewUri = locations.newUri })).ToArray()
         };
 }

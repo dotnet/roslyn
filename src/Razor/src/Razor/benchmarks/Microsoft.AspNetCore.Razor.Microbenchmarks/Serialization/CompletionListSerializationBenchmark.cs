@@ -75,13 +75,13 @@ public class CompletionListSerializationBenchmark
         var razorCompletionItems = componentCompletionProvider.GetCompletionItems(context);
         var completionList = RazorCompletionListProvider.CreateLSPCompletionList(
             razorCompletionItems,
-            new VSInternalClientCapabilities()
+            new ClientCapabilities()
             {
                 TextDocument = new TextDocumentClientCapabilities()
                 {
-                    Completion = new VSInternalCompletionSetting()
+                    Completion = new CompletionClientCapabilities()
                     {
-                        CompletionItemKind = new CompletionItemKindSetting()
+                        CompletionItemKind = new ClientCompletionItemOptionsKind()
                         {
                             ValueSet = new[] { CompletionItemKind.TagHelper }
                         },

@@ -20,7 +20,7 @@ internal class HtmlCommitCharacterResponseRewriter
         string[]? itemCommitChars = null;
         if (completionList.CommitCharacters is { } commitCharacters)
         {
-            if (commitCharacters.TryGetFirst(out var commitChars))
+            if (commitCharacters.Value is string[] commitChars)
             {
                 itemCommitChars = commitChars.Where(s => s != " ").ToArray();
 
@@ -30,7 +30,7 @@ internal class HtmlCommitCharacterResponseRewriter
                     itemCommitChars = null;
                 }
             }
-            else if (commitCharacters.TryGetSecond(out var vsCommitChars))
+            else if (commitCharacters.Value is VSInternalCommitCharacter[] vsCommitChars)
             {
                 itemCommitChars = vsCommitChars.Where(s => s.Character != " ").Select(s => s.Character).ToArray();
 

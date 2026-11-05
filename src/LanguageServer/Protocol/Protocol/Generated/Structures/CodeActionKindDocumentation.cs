@@ -8,14 +8,14 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Documentation for a class of code actions.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class CodeActionKindDocumentation
 {
     /// <summary>
     /// The kind of the code action being documented.
-    /// 
+    ///
     /// If the kind is generic, such as `CodeActionKind.Refactor`, the documentation will be shown whenever any
     /// refactorings are returned. If the kind if more specific, such as `CodeActionKind.RefactorExtract`, the
     /// documentation will only be shown when extract refactoring code actions are returned.
@@ -26,7 +26,7 @@ internal partial class CodeActionKindDocumentation
 
     /// <summary>
     /// Command that is ued to display the documentation to the user.
-    /// 
+    ///
     /// The title of this documentation code action is taken from <see cref="Command.Title"/>
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("command")]

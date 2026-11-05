@@ -111,8 +111,8 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
                 BlockTypes.Comment => FoldingRangeKind.Comment,
                 BlockTypes.Imports => FoldingRangeKind.Imports,
                 BlockTypes.PreprocessorRegion => FoldingRangeKind.Region,
-                BlockTypes.Member => VSFoldingRangeKind.Implementation,
-                _ => span.AutoCollapse ? VSFoldingRangeKind.Implementation : null,
+                BlockTypes.Member => FoldingRangeKind.Implementation,
+                _ => span.AutoCollapse ? FoldingRangeKind.Implementation : null,
             };
 
             foldingRanges.Add(new FoldingRange()

@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Structure to capture a description for an error code.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class CodeDescription
@@ -17,7 +17,6 @@ internal partial class CodeDescription
     /// An URI to open with more information about the diagnostic error.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("href")]
-    [System.Text.Json.Serialization.JsonRequired]
     public URI Href { get; set; } = null!;
 
 }

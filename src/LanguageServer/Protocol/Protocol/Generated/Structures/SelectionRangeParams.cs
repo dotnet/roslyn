@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A parameter literal used in selection range requests.
 /// </summary>
-internal partial class SelectionRangeParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<SelectionRange[]?>
+internal partial class SelectionRangeParams : Roslyn.LanguageServer.Protocol.IPartialResultParams<SelectionRange[]?>, ITextDocumentParams
 {
     /// <summary>
     /// An optional token that a server can use to report work done progress.

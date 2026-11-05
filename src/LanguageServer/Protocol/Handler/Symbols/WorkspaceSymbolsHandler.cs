@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProvider listenerProvider)
-    : ILspServiceRequestHandler<WorkspaceSymbolParams, SumType<SymbolInformation[], WorkspaceSymbol[]>?>
+    : ILspServiceRequestHandler<WorkspaceSymbolParams, WorkspaceSymbolResult?>
 {
     private static readonly IImmutableSet<string> s_supportedKinds = [
         NavigateToItemKind.Class,
@@ -47,13 +47,13 @@ internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProv
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public async Task<SumType<SymbolInformation[], WorkspaceSymbol[]>?> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<WorkspaceSymbolResult?> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
     {
         var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-        using var progress = BufferedProgress.Create(
+        using var progress = BufferedProgress.Create<SymbolInformation[], WorkspaceSymbolResult?>(
             request.PartialResultToken,
-            (SymbolInformation[] t) => new SumType<SymbolInformation[], WorkspaceSymbol[]>(t));
+            t => new WorkspaceSymbolResult(t));
 
         var searcher = NavigateToSearcher.Create(
             solution,
@@ -64,7 +64,7 @@ internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProv
             cancellationToken);
 
         await searcher.SearchAsync(NavigateToSearchScope.Solution, cancellationToken).ConfigureAwait(false);
-        return progress.GetValues()?.Flatten().ToArray();
+        return progress.GetValues() is { } values ? new(values.Flatten().ToArray()) : null;
     }
 
     private sealed class LSPNavigateToCallback(

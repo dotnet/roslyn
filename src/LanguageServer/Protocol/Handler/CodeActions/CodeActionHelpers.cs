@@ -124,7 +124,7 @@ internal static class CodeActionHelpers
         {
             nestedCodeActionCommand = new LSP.Command
             {
-                CommandIdentifier = CodeActionsHandler.RunNestedCodeActionCommandName,
+                CommandValue = CodeActionsHandler.RunNestedCodeActionCommandName,
                 Title = title,
                 Arguments = [new CodeActionResolveData(title, codeAction.CustomTags, request.Range, request.TextDocument, [.. codeActionPathList], fixAllFlavors: null, nestedCodeActions: nestedCodeActions)]
             };
@@ -200,7 +200,7 @@ internal static class CodeActionHelpers
             var fixAllTitle = string.Format(FeaturesResources.Fix_All_0, title);
             var command = new LSP.Command
             {
-                CommandIdentifier = CodeActionsHandler.RunFixAllCodeActionCommandName,
+                CommandValue = CodeActionsHandler.RunFixAllCodeActionCommandName,
                 Title = fixAllTitle,
                 Arguments = [new CodeActionResolveData(fixAllTitle, codeAction.CustomTags, request.Range, request.TextDocument, codeActionPath, [.. flavorStrings], nestedCodeActions: null)]
             };
@@ -215,7 +215,7 @@ internal static class CodeActionHelpers
             });
         }
     }
-    private static VSInternalCodeAction GenerateVSCodeAction(
+    private static LSP.CodeAction GenerateVSCodeAction(
         CodeActionParams request,
         SourceText documentText,
         SuggestedAction suggestedAction,
@@ -233,7 +233,7 @@ internal static class CodeActionHelpers
         var nestedActions = GenerateNestedVSCodeActions(request, documentText, suggestedAction,
             codeActionKind, ref currentHighestSetNumber, codeActionPathList);
 
-        return new VSInternalCodeAction
+        return new LSP.CodeAction
         {
             Title = codeAction.Title,
             Kind = codeActionKind,
@@ -245,7 +245,7 @@ internal static class CodeActionHelpers
             Data = new CodeActionResolveData(codeAction.Title, codeAction.CustomTags, request.Range, request.TextDocument, fixAllFlavors: null, nestedCodeActions: null, codeActionPath: [.. codeActionPathList])
         };
 
-        static VSInternalCodeAction[] GenerateNestedVSCodeActions(
+        static LSP.CodeAction[] GenerateNestedVSCodeActions(
             CodeActionParams request,
             SourceText documentText,
             SuggestedAction suggestedAction,
@@ -256,7 +256,7 @@ internal static class CodeActionHelpers
             if (suggestedAction.NestedActionSets.IsEmpty)
                 return [];
 
-            using var _ = ArrayBuilder<VSInternalCodeAction>.GetInstance(out var nestedActions);
+            using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var nestedActions);
             foreach (var nestedActionSet in suggestedAction.NestedActionSets)
             {
                 // Nested code action sets should each have a unique set number that is not yet assigned to any set.

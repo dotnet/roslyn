@@ -81,7 +81,7 @@ internal static partial class ProtocolConversions
                 var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, supportsVisualStudioExtensions);
                 additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                 additionalDiagnostic.Range = GetRange(location);
-                additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip];
+                additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, DiagnosticTag.HiddenInEditor, DiagnosticTag.HiddenInErrorList, DiagnosticTag.SuppressEditorToolTip];
                 diagnosticsBuilder.Add(additionalDiagnostic);
             }
 
@@ -95,25 +95,30 @@ internal static partial class ProtocolConversions
                 Location = new LSP.Location
                 {
                     Range = GetRange(l),
-                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(l.UnmappedFileSpan.Path)
+                    Uri = ProtocolConversions.CreateAbsoluteDocumentUri(l.UnmappedFileSpan.Path)
                 },
-                Message = diagnostic.Message
+                Message = diagnostic.Message.Value switch
+                {
+                    string message => message,
+                    MarkupContent markup => markup.Value,
+                    _ => throw ExceptionUtilities.Unreachable(),
+                }
             }).ToArray();
             diagnostic.RelatedInformation = diagnosticRelatedInformation;
             return [diagnostic];
         }
     }
 
-    private static LSP.VSDiagnostic CreateLspDiagnostic(
+    private static LSP.Diagnostic CreateLspDiagnostic(
         DiagnosticData diagnosticData,
         Project project,
         bool supportsVisualStudioExtensions)
     {
         Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
 
-        // We can just use VSDiagnostic as it doesn't have any default properties set that
+        // We can just use Diagnostic as it doesn't have any default properties set that
         // would get automatically serialized.
-        var diagnostic = new LSP.VSDiagnostic
+        var diagnostic = new LSP.Diagnostic
         {
             Code = diagnosticData.Id,
             CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.HelpLink),
@@ -236,26 +241,26 @@ internal static partial class ProtocolConversions
 
         if (diagnosticData.Severity == DiagnosticSeverity.Hidden)
         {
-            result.Add(VSDiagnosticTags.HiddenInEditor);
-            result.Add(VSDiagnosticTags.HiddenInErrorList);
-            result.Add(VSDiagnosticTags.SuppressEditorToolTip);
+            result.Add(DiagnosticTag.HiddenInEditor);
+            result.Add(DiagnosticTag.HiddenInErrorList);
+            result.Add(DiagnosticTag.SuppressEditorToolTip);
         }
         else
         {
-            result.Add(VSDiagnosticTags.VisibleInErrorList);
+            result.Add(DiagnosticTag.VisibleInErrorList);
         }
 
         if (diagnosticData.CustomTags.Contains(PullDiagnosticConstants.TaskItemCustomTag))
-            result.Add(VSDiagnosticTags.TaskItem);
+            result.Add(DiagnosticTag.TaskItem);
 
         // If tagged as build, mark this also as a build error.  That way an explicitly kicked off build from a source like CPS can
         // override it.
         result.Add(diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Build)
-            ? VSDiagnosticTags.BuildError
-            : VSDiagnosticTags.IntellisenseError);
+            ? DiagnosticTag.BuildError
+            : DiagnosticTag.IntellisenseError);
 
         if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.EditAndContinue))
-            result.Add(VSDiagnosticTags.EditAndContinueError);
+            result.Add(DiagnosticTag.EditAndContinueError);
 
         return result.ToArray();
     }

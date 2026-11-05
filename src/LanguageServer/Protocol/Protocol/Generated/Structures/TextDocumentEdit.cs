@@ -23,10 +23,10 @@ internal partial class TextDocumentEdit
 
     /// <summary>
     /// The edits to be applied.
-    /// 
+    ///
     /// @since 3.16.0 - support for AnnotatedTextEdit. This is guarded using a
     /// client capability.
-    /// 
+    ///
     /// @since 3.18.0 - support for SnippetTextEdit. This is guarded using a
     /// client capability.
     /// </summary>
@@ -37,6 +37,7 @@ internal partial class TextDocumentEdit
     /// <summary>
     /// A union of: TextEdit | AnnotatedTextEdit | SnippetTextEdit.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _EditsItem : System.Runtime.CompilerServices.IUnion
     {

@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Server provided options for pull diagnostic requests.
 /// </summary>
-internal partial class VSInternalDiagnosticOptions
+internal partial record VSInternalDiagnosticOptions
 {
     /// <summary>
     /// Gets or sets a list of id's used to identify diagnostics that may be coming from build systems instead of a language server. VS client will then use the information to do any merging logic in the Error List. Maps to .

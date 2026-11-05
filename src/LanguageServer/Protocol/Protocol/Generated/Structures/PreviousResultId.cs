@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A previous result id in a workspace pull request.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class PreviousResultId
@@ -18,14 +18,12 @@ internal partial class PreviousResultId
     /// result id.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("uri")]
-    [System.Text.Json.Serialization.JsonRequired]
     public DocumentUri Uri { get; set; } = null!;
 
     /// <summary>
     /// The value of the previous result id.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("value")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Value { get; set; } = null!;
 
     /// <summary>

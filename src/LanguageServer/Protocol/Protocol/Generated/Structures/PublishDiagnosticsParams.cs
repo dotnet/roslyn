@@ -15,12 +15,11 @@ internal partial class PublishDiagnosticsParams
     /// The URI for which diagnostic information is reported.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("uri")]
-    [System.Text.Json.Serialization.JsonRequired]
     public DocumentUri Uri { get; set; } = null!;
 
     /// <summary>
     /// Optional the version number of the document the diagnostics are published for.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("version")]
@@ -31,7 +30,6 @@ internal partial class PublishDiagnosticsParams
     /// An array of diagnostic information items.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("diagnostics")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Diagnostic[] Diagnostics { get; set; } = null!;
 
 }

@@ -15,14 +15,12 @@ internal partial class VSImageId
     /// Gets or sets the <see cref="Guid"/> component of the unique identifier.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_guid")]
-    [System.Text.Json.Serialization.JsonRequired]
     public System.Guid Guid { get; set; }
 
     /// <summary>
     /// Gets or sets the integer component of the unique identifier.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_id")]
-    [System.Text.Json.Serialization.JsonRequired]
     public int Id { get; set; }
 
 }

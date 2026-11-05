@@ -14,7 +14,7 @@ internal static class SymbolInformationFactory
         if (supportsVSExtensions)
         {
 #pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
-            return new VSSymbolInformation
+            return new SymbolInformation
             {
                 Name = name,
                 ContainerName = containerName,

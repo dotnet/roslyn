@@ -56,9 +56,9 @@ internal sealed class CohostOnAutoInsertEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
-        if ((clientCapabilities.TextDocument as VSInternalTextDocumentClientCapabilities)?.OnAutoInsert?.DynamicRegistration == true)
+        if ((clientCapabilities.TextDocument as TextDocumentClientCapabilities)?.OnAutoInsert?.DynamicRegistration == true)
         {
             return [new Registration
             {
@@ -91,7 +91,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
             CSharpSyntaxFormattingOptions = resolvedCSharpSyntaxFormattingOptions
         };
 
-        _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Character}'");
+        _logger.LogDebug($"Calling OOP to resolve insertion at {request.Position} invoked by typing '{request.Ch}'");
         var data = await _remoteServiceInvoker.TryInvokeAsync<IRemoteAutoInsertService, Response>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
@@ -99,7 +99,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
                         solutionInfo,
                         razorDocument.Id,
                         request.Position.ToLinePosition(),
-                        request.Character,
+                        request.Ch,
                         razorFormattingOptions,
                         cancellationToken),
             cancellationToken).ConfigureAwait(false);
@@ -131,7 +131,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
         bool autoInsertAttributeQuotes,
         CancellationToken cancellationToken)
     {
-        if (!autoInsertAttributeQuotes && request.Character == "=")
+        if (!autoInsertAttributeQuotes && request.Ch == "=")
         {
             // Use Razor setting for auto insert attribute quotes. HTML Server doesn't have a way to pass that
             // information along so instead we just don't delegate the request.

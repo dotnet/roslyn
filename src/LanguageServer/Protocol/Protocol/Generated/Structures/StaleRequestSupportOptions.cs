@@ -15,6 +15,7 @@ internal partial class StaleRequestSupportOptions
     /// The client will actively cancel the request.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("cancel")]
+    [System.Text.Json.Serialization.JsonRequired]
     public bool Cancel { get; set; }
 
     /// <summary>
@@ -23,7 +24,6 @@ internal partial class StaleRequestSupportOptions
     /// response with error code `ContentModified`
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("retryOnContentModified")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string[] RetryOnContentModified { get; set; } = null!;
 
 }

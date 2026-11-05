@@ -164,7 +164,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
 
         var request = new CodeLensParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
         };
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
@@ -180,7 +180,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
 
             var tdi = resolveEndpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(codeLens);
             Assert.NotNull(tdi);
-            Assert.Equal(document.GetURI(), tdi.DocumentUri);
+            Assert.Equal(document.GetURI(), tdi.Uri);
 
             var resolved = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(codeLens, document, DisposalToken);
 
@@ -188,7 +188,7 @@ public class CohostCodeLensEndpointTest(ITestOutputHelper testOutputHelper) : Co
             Assert.NotNull(resolved.Command);
             Assert.NotNull(resolved.Command.Arguments);
             Assert.Equal(resolved.Command.Title, expectedTitles[i]);
-            Assert.Equal("roslyn.client.peekReferences", resolved.Command.CommandIdentifier);
+            Assert.Equal("roslyn.client.peekReferences", resolved.Command.CommandValue);
 
             var documentUri = Assert.IsType<DocumentUri>(resolved.Command.Arguments[0]);
             Assert.Equal(document.GetURI(), documentUri);

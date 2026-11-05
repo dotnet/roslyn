@@ -20,7 +20,7 @@ internal partial class DocumentLinkClientCapabilities
 
     /// <summary>
     /// Whether the client supports the `tooltip` property on `DocumentLink`.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tooltipSupport")]

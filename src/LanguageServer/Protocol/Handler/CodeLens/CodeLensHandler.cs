@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 [Method(LSP.Methods.TextDocumentCodeLensName)]
 internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]>
 {
-    public const string RunTestsCommandIdentifier = "dotnet.test.run";
+    public const string RunTestsCommandValue = "dotnet.test.run";
 
     private readonly IGlobalOptionService _globalOptionService;
 
@@ -199,7 +199,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Range = range,
                 Command = new LSP.Command
                 {
-                    CommandIdentifier = RunTestsCommandIdentifier,
+                    CommandValue = RunTestsCommandValue,
                     Arguments = [new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: false, runSettingsPath)],
                     Title = FeaturesResources.Run_Test
                 }
@@ -210,7 +210,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Range = range,
                 Command = new LSP.Command
                 {
-                    CommandIdentifier = RunTestsCommandIdentifier,
+                    CommandValue = RunTestsCommandValue,
                     Arguments = [new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: true, runSettingsPath)],
                     Title = FeaturesResources.Debug_Test
                 }
@@ -229,7 +229,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Range = range,
                 Command = new LSP.Command
                 {
-                    CommandIdentifier = RunTestsCommandIdentifier,
+                    CommandValue = RunTestsCommandValue,
                     Arguments = [new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: false, runSettingsPath)],
                     Title = FeaturesResources.Run_All_Tests
                 }
@@ -240,7 +240,7 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
                 Range = range,
                 Command = new LSP.Command
                 {
-                    CommandIdentifier = RunTestsCommandIdentifier,
+                    CommandValue = RunTestsCommandValue,
                     Arguments = [new RunTestsParams(textDocumentIdentifier, range, AttachDebugger: true, runSettingsPath)],
                     Title = FeaturesResources.Debug_All_Tests
                 }

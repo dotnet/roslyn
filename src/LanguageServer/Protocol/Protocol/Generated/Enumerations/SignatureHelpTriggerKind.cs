@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// How a signature help was triggered.
-/// 
+///
 /// @since 3.15.0
 /// </summary>
 internal enum SignatureHelpTriggerKind

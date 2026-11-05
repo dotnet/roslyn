@@ -11,12 +11,12 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal sealed class ThrowingSnippetCompletionItemResolveProvider : ISnippetCompletionItemProvider
 {
-    public void AddSnippetCompletions(ref PooledArrayBuilder<VSInternalCompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext)
+    public void AddSnippetCompletions(ref PooledArrayBuilder<CompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext)
     {
         throw new System.NotImplementedException();
     }
 
-    public bool TryResolveInsertString(VSInternalCompletionItem completionItem, [NotNullWhen(true)] out string? insertString)
+    public bool TryResolveInsertString(CompletionItem completionItem, [NotNullWhen(true)] out string? insertString)
     {
         throw new System.NotImplementedException();
     }

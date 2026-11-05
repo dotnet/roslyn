@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Additional information that describes document changes.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class ChangeAnnotation
@@ -26,8 +26,8 @@ internal partial class ChangeAnnotation
     /// before applying the change.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("needsConfirmation")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
-    public bool NeedsConfirmation { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public bool? NeedsConfirmation { get; set; }
 
     /// <summary>
     /// A human-readable string which is rendered less prominent in

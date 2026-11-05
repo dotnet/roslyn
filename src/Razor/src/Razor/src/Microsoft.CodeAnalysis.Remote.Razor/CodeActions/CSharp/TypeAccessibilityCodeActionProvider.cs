@@ -73,7 +73,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
     {
         var diagnostics = context.Request.Context.Diagnostics.Where(diagnostic =>
             diagnostic is { Severity: LspDiagnosticSeverity.Error, Code: { } code } &&
-            code.TryGetSecond(out var str) &&
+            code is string str &&
             s_supportedDiagnostics.Contains(str));
 
         if (diagnostics is null || !diagnostics.Any())
@@ -225,7 +225,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
         RazorVSInternalCodeAction nonFQNCodeAction,
         string fullyQualifiedName)
     {
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = context.Request.TextDocument.DocumentUri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier() { Uri = context.Request.TextDocument.Uri };
 
         var fqnTextEdit = LspFactory.CreateTextEdit(fqnDiagnostic.Range, fullyQualifiedName);
 
@@ -237,7 +237,7 @@ internal sealed class TypeAccessibilityCodeActionProvider : ICSharpCodeActionPro
 
         var fqnWorkspaceEdit = new WorkspaceEdit()
         {
-            DocumentChanges = new[] { fqnWorkspaceEditDocumentChange }
+            DocumentChanges = new WorkspaceEdit._DocumentChangesItem[] { fqnWorkspaceEditDocumentChange }
         };
 
         var codeAction = RazorCodeActionFactory.CreateFullyQualifyComponent(nonFQNCodeAction.Title, fqnWorkspaceEdit);

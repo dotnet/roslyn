@@ -18,7 +18,7 @@ internal partial class DocumentSymbolOptions
     /// <summary>
     /// A human-readable string that is shown when multiple outlines trees
     /// are shown for the same document.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("label")]

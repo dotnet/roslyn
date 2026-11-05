@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Text document content provider options.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class TextDocumentContentOptions
@@ -17,7 +17,6 @@ internal partial class TextDocumentContentOptions
     /// The schemes for which the server provides content.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("schemes")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string[] Schemes { get; set; } = null!;
 
 }

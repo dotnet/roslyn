@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The document diagnostic report kinds.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal static class DocumentDiagnosticReportKind

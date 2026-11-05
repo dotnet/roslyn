@@ -8,5 +8,5 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal interface IDynamicRegistrationProvider
 {
-    ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext);
+    ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext);
 }

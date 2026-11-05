@@ -15,7 +15,6 @@ internal partial class VersionedTextDocumentIdentifier : TextDocumentIdentifier
     /// The version number of this document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("version")]
-    [System.Text.Json.Serialization.JsonRequired]
     public int Version { get; set; }
 
 }

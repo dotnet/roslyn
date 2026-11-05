@@ -8,9 +8,9 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A special workspace symbol that supports locations without a range.
-/// 
+///
 /// See also SymbolInformation.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class WorkspaceSymbol : BaseSymbolInformation
@@ -19,7 +19,7 @@ internal partial class WorkspaceSymbol : BaseSymbolInformation
     /// The location of the symbol. Whether a server is allowed to
     /// return a location without a range depends on the client
     /// capability `workspace.symbol.resolveSupport`.
-    /// 
+    ///
     /// See SymbolInformation#location for more details.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("location")]
@@ -37,6 +37,7 @@ internal partial class WorkspaceSymbol : BaseSymbolInformation
     /// <summary>
     /// A union of: Location | LocationUriOnly.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Location : System.Runtime.CompilerServices.IUnion
     {

@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client capabilities specific to regular expressions.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class RegularExpressionsClientCapabilities

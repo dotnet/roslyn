@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
 [Method(LSP.Methods.TextDocumentReferencesName)]
-internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<VSInternalReferenceParams, LSP.SumType<VSInternalReferenceItem, LSP.Location>[]?>
+internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<ReferenceParams, VSInternalReferenceResult?>
 {
     private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
     private readonly IAsynchronousOperationListener _asyncListener;
@@ -43,10 +44,10 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalReferenceParams request) => request.TextDocument;
+    public TextDocumentIdentifier GetTextDocumentIdentifier(ReferenceParams request) => request.TextDocument;
 
-    public async Task<SumType<VSInternalReferenceItem, LSP.Location>[]?> HandleRequestAsync(
-        VSInternalReferenceParams referenceParams,
+    public async Task<VSInternalReferenceResult?> HandleRequestAsync(
+        ReferenceParams referenceParams,
         RequestContext context,
         CancellationToken cancellationToken)
     {
@@ -56,7 +57,9 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
         var linePosition = ProtocolConversions.PositionToLinePosition(referenceParams.Position);
         var clientCapabilities = context.GetRequiredClientCapabilities();
 
-        using var progress = BufferedProgress.Create(referenceParams.PartialResultToken);
+        var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
+        using var progress = BufferedProgress.Create<ReferenceItem[], VSInternalReferenceResult?>(
+            referenceParams.PartialResultToken, ToResult);
 
         var includeDeclaration = referenceParams.Context.IncludeDeclaration;
         var hasReferences = await FindReferencesAsync(progress, workspace, document, linePosition, clientCapabilities.HasVisualStudioLspCapability(), includeDeclaration, _globalOptions, _metadataAsSourceFileService, _asyncListener, cancellationToken).ConfigureAwait(false);
@@ -65,11 +68,16 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
         if (!hasReferences)
             await context.GetRequiredLspService<RequestTelemetryLogger>().ReportEmptySymbolResultAsync(LSP.Methods.TextDocumentReferencesName, document, referenceParams.Position, cancellationToken).ConfigureAwait(false);
 
-        return references;
+        return references is null ? null : ToResult(references);
+
+        VSInternalReferenceResult ToResult(ReferenceItem[] items)
+            => supportsVsExtensions
+                ? new(items.Select(item => (VSInternalReferenceItem)item.Value).ToArray())
+                : new(items.Select(item => (LSP.Location)item.Value).ToArray());
     }
 
     internal static async Task<bool> FindReferencesAsync(
-        IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> progress,
+        IProgress<ReferenceItem[]> progress,
         Workspace workspace,
         Document document,
         LinePosition linePosition,

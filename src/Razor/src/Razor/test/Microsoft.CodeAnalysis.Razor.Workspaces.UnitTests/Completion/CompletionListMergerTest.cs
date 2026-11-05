@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Razor.Completion;
 
 public class CompletionListMergerTest : ToolingTestBase
 {
-    private readonly VSInternalCompletionItem _completionItem1;
-    private readonly VSInternalCompletionItem _completionItem2;
-    private readonly VSInternalCompletionItem _completionItem3;
+    private readonly CompletionItem _completionItem1;
+    private readonly CompletionItem _completionItem2;
+    private readonly CompletionItem _completionItem3;
     private readonly RazorVSInternalCompletionList _completionListWith1;
     private readonly RazorVSInternalCompletionList _completionListWith2;
     private readonly RazorVSInternalCompletionList _completionListWith13;
@@ -20,17 +20,17 @@ public class CompletionListMergerTest : ToolingTestBase
     public CompletionListMergerTest(ITestOutputHelper testOutput)
         : base(testOutput)
     {
-        _completionItem1 = new VSInternalCompletionItem()
+        _completionItem1 = new CompletionItem()
         {
             Label = "CompletionItem1"
         };
 
-        _completionItem2 = new VSInternalCompletionItem()
+        _completionItem2 = new CompletionItem()
         {
             Label = "CompletionItem2"
         };
 
-        _completionItem3 = new VSInternalCompletionItem()
+        _completionItem3 = new CompletionItem()
         {
             Label = "CompletionItem3"
         };
@@ -133,7 +133,7 @@ public class CompletionListMergerTest : ToolingTestBase
         // Items that inherited from the list get per-item chars instead.
         Assert.NotNull(merged);
         Assert.Null(merged.CommitCharacters);
-        Assert.Equal(expectedCommitCharacters, _completionItem1.VsCommitCharacters);
+        Assert.Equal(expectedCommitCharacters, Assert.IsType<string[]>(_completionItem1.VsCommitCharacters?.Value));
     }
 
     [Fact]
@@ -154,10 +154,10 @@ public class CompletionListMergerTest : ToolingTestBase
         Assert.Null(merged.CommitCharacters);
 
         // Items from list2 got their list's chars
-        Assert.Equal(lesserCommitCharacters, _completionItem2.VsCommitCharacters);
+        Assert.Equal(lesserCommitCharacters, Assert.IsType<string[]>(_completionItem2.VsCommitCharacters?.Value));
         // Items from list13 got their list's chars
-        Assert.Equal(expectedCommitCharacters, _completionItem1.VsCommitCharacters);
-        Assert.Equal(expectedCommitCharacters, _completionItem3.VsCommitCharacters);
+        Assert.Equal(expectedCommitCharacters, Assert.IsType<string[]>(_completionItem1.VsCommitCharacters?.Value));
+        Assert.Equal(expectedCommitCharacters, Assert.IsType<string[]>(_completionItem3.VsCommitCharacters?.Value));
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public class CompletionListMergerTest : ToolingTestBase
         Assert.NotSame(data2, merged.Data);
     }
 
-    private static void AssertCompletionItemsEqual(VSInternalCompletionItem[] expected, CompletionItem[] actual)
+    private static void AssertCompletionItemsEqual(CompletionItem[] expected, CompletionItem[] actual)
     {
         var sortedExpected = expected.OrderByAsArray(item => item.Label);
         var sortedActual = actual.OrderByAsArray(item => item.Label);
@@ -216,11 +216,11 @@ public class CompletionListMergerTest : ToolingTestBase
         // Arrange — neither list has EditRange
         var listA = new RazorVSInternalCompletionList
         {
-            Items = [new VSInternalCompletionItem { Label = "item1", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(0, 0), End = new Position(0, 5) }, NewText = "item1" } }]
+            Items = [new CompletionItem { Label = "item1", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(0, 0), End = new Position(0, 5) }, NewText = "item1" } }]
         };
         var listB = new RazorVSInternalCompletionList
         {
-            Items = [new VSInternalCompletionItem { Label = "item2", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(0, 0), End = new Position(0, 5) }, NewText = "item2" } }]
+            Items = [new CompletionItem { Label = "item2", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(0, 0), End = new Position(0, 5) }, NewText = "item2" } }]
         };
 
         // Act
@@ -240,12 +240,12 @@ public class CompletionListMergerTest : ToolingTestBase
         var editRange = new LspRange { Start = new Position(1, 0), End = new Position(1, 10) };
         var listA = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRange },
-            Items = [new VSInternalCompletionItem { Label = "item1", TextEditText = "item1" }]
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRange },
+            Items = [new CompletionItem { Label = "item1", TextEditText = "item1" }]
         };
         var listB = new RazorVSInternalCompletionList
         {
-            Items = [new VSInternalCompletionItem { Label = "item2", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(2, 0), End = new Position(2, 5) }, NewText = "item2" } }]
+            Items = [new CompletionItem { Label = "item2", TextEdit = new TextEdit { Range = new LspRange { Start = new Position(2, 0), End = new Position(2, 5) }, NewText = "item2" } }]
         };
 
         // Act
@@ -254,7 +254,7 @@ public class CompletionListMergerTest : ToolingTestBase
         // Assert — listA's item still uses TextEditText (EditRange not dematerialized)
         Assert.NotNull(merged);
         var item1 = Assert.Single(merged.Items, i => i.Label == "item1");
-        Assert.Equal("item1", ((VSInternalCompletionItem)item1).TextEditText);
+        Assert.Equal("item1", ((CompletionItem)item1).TextEditText);
         Assert.Null(item1.TextEdit);
     }
 
@@ -265,13 +265,13 @@ public class CompletionListMergerTest : ToolingTestBase
         var editRange = new LspRange { Start = new Position(3, 5), End = new Position(3, 15) };
         var listA = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRange },
-            Items = [new VSInternalCompletionItem { Label = "item1", TextEditText = "item1" }]
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRange },
+            Items = [new CompletionItem { Label = "item1", TextEditText = "item1" }]
         };
         var listB = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRange },
-            Items = [new VSInternalCompletionItem { Label = "item2", TextEditText = "item2" }]
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRange },
+            Items = [new CompletionItem { Label = "item2", TextEditText = "item2" }]
         };
 
         // Act
@@ -281,8 +281,8 @@ public class CompletionListMergerTest : ToolingTestBase
         Assert.NotNull(merged);
         var item1 = Assert.Single(merged.Items, i => i.Label == "item1");
         var item2 = Assert.Single(merged.Items, i => i.Label == "item2");
-        Assert.Equal("item1", ((VSInternalCompletionItem)item1).TextEditText);
-        Assert.Equal("item2", ((VSInternalCompletionItem)item2).TextEditText);
+        Assert.Equal("item1", ((CompletionItem)item1).TextEditText);
+        Assert.Equal("item2", ((CompletionItem)item2).TextEditText);
         Assert.Null(item1.TextEdit);
         Assert.Null(item2.TextEdit);
     }
@@ -295,13 +295,13 @@ public class CompletionListMergerTest : ToolingTestBase
         var editRangeB = new LspRange { Start = new Position(1, 0), End = new Position(1, 15) };
         var listA = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeA },
-            Items = [new VSInternalCompletionItem { Label = "item1", TextEditText = "replaced1" }]
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRangeA },
+            Items = [new CompletionItem { Label = "item1", TextEditText = "replaced1" }]
         };
         var listB = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeB },
-            Items = [new VSInternalCompletionItem { Label = "item2", TextEditText = "replaced2" }]
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRangeB },
+            Items = [new CompletionItem { Label = "item2", TextEditText = "replaced2" }]
         };
 
         // Act
@@ -316,13 +316,13 @@ public class CompletionListMergerTest : ToolingTestBase
         var textEdit1 = (TextEdit)item1.TextEdit.Value;
         Assert.Equal("replaced1", textEdit1.NewText);
         Assert.Equal(editRangeA, textEdit1.Range);
-        Assert.Null(((VSInternalCompletionItem)item1).TextEditText);
+        Assert.Null(((CompletionItem)item1).TextEditText);
 
         Assert.NotNull(item2.TextEdit);
         var textEdit2 = (TextEdit)item2.TextEdit.Value;
         Assert.Equal("replaced2", textEdit2.NewText);
         Assert.Equal(editRangeB, textEdit2.Range);
-        Assert.Null(((VSInternalCompletionItem)item2).TextEditText);
+        Assert.Null(((CompletionItem)item2).TextEditText);
     }
 
     [Fact]
@@ -333,13 +333,13 @@ public class CompletionListMergerTest : ToolingTestBase
         var editRangeB = new LspRange { Start = new Position(0, 0), End = new Position(0, 8) };
         var listA = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeA },
-            Items = [new VSInternalCompletionItem { Label = "myLabel" }] // no TextEditText
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRangeA },
+            Items = [new CompletionItem { Label = "myLabel" }] // no TextEditText
         };
         var listB = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeB },
-            Items = [new VSInternalCompletionItem { Label = "other", TextEditText = "otherText" }]
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRangeB },
+            Items = [new CompletionItem { Label = "other", TextEditText = "otherText" }]
         };
 
         // Act
@@ -363,13 +363,13 @@ public class CompletionListMergerTest : ToolingTestBase
         var existingTextEdit = new TextEdit { Range = new LspRange { Start = new Position(0, 0), End = new Position(0, 3) }, NewText = "custom" };
         var listA = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeA },
-            Items = [new VSInternalCompletionItem { Label = "item1", TextEdit = existingTextEdit }]
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRangeA },
+            Items = [new CompletionItem { Label = "item1", TextEdit = existingTextEdit }]
         };
         var listB = new RazorVSInternalCompletionList
         {
-            ItemDefaults = new CompletionListItemDefaults { EditRange = editRangeB },
-            Items = [new VSInternalCompletionItem { Label = "item2", TextEditText = "item2" }]
+            ItemDefaults = new CompletionItemDefaults { EditRange = editRangeB },
+            Items = [new CompletionItem { Label = "item2", TextEditText = "item2" }]
         };
 
         // Act

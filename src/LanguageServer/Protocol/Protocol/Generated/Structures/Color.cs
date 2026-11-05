@@ -15,28 +15,24 @@ internal partial class Color
     /// The red component of this color in the range [0-1].
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("red")]
-    [System.Text.Json.Serialization.JsonRequired]
     public decimal Red { get; set; }
 
     /// <summary>
     /// The green component of this color in the range [0-1].
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("green")]
-    [System.Text.Json.Serialization.JsonRequired]
     public decimal Green { get; set; }
 
     /// <summary>
     /// The blue component of this color in the range [0-1].
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("blue")]
-    [System.Text.Json.Serialization.JsonRequired]
     public decimal Blue { get; set; }
 
     /// <summary>
     /// The alpha component of this color in the range [0-1].
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("alpha")]
-    [System.Text.Json.Serialization.JsonRequired]
     public decimal Alpha { get; set; }
 
 }

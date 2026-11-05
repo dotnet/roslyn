@@ -17,13 +17,13 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 {
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
-    public SumType<DocumentSymbol[], SymbolInformation[]>? GetDocumentSymbols(
+    public TextDocumentDocumentSymbolResult? GetDocumentSymbols(
         RazorFileKind fileKind,
         DocumentUri razorDocumentUri,
         RazorCSharpDocument implementationDocument,
-        SumType<DocumentSymbol[], SymbolInformation[]> implementationSymbols,
+        TextDocumentDocumentSymbolResult implementationSymbols,
         RazorCSharpDocument? declarationDocument,
-        SumType<DocumentSymbol[], SymbolInformation[]>? declarationSymbols,
+        TextDocumentDocumentSymbolResult? declarationSymbols,
         CancellationToken cancellationToken)
     {
         // Cancellation can arrive after Roslyn produces symbols, while Razor is remapping a large result.
@@ -31,14 +31,14 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 
         Debug.Assert((declarationDocument is null) == (declarationSymbols is null));
 
-        if (implementationSymbols.TryGetFirst(out var implementationDocumentSymbols))
+        if (implementationSymbols.Value is DocumentSymbol[] implementationDocumentSymbols)
         {
-            DocumentSymbol[]? declarationDocumentSymbols = null;
-            if (declarationSymbols is { } symbols &&
-                !symbols.TryGetFirst(out declarationDocumentSymbols))
+            var declarationDocumentSymbols = declarationSymbols?.Value switch
             {
-                throw CreateUnsupportedResponseTypeException();
-            }
+                null => null,
+                DocumentSymbol[] symbols => symbols,
+                _ => throw CreateUnsupportedResponseTypeException(),
+            };
 
             var mappedDeclarationSymbols = RemapDocumentSymbols(fileKind, declarationDocument, declarationDocumentSymbols, cancellationToken);
             var mappedImplementationSymbols = RemapDocumentSymbols(fileKind, implementationDocument, implementationDocumentSymbols, cancellationToken);
@@ -48,14 +48,14 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
                 ? [CreateRenderMethodDocumentSymbol(fileKind)]
                 : mergedSymbols;
         }
-        else if (implementationSymbols.TryGetSecond(out var implementationSymbolInformations))
+        else if (implementationSymbols.Value is SymbolInformation[] implementationSymbolInformations)
         {
-            SymbolInformation[]? declarationSymbolInformations = null;
-            if (declarationSymbols is { } symbols &&
-                !symbols.TryGetSecond(out declarationSymbolInformations))
+            var declarationSymbolInformations = declarationSymbols?.Value switch
             {
-                throw CreateUnsupportedResponseTypeException();
-            }
+                null => null,
+                SymbolInformation[] symbols => symbols,
+                _ => throw CreateUnsupportedResponseTypeException(),
+            };
 
             var mappedDeclarationSymbols = RemapSymbolInformations(fileKind, razorDocumentUri, declarationDocument, declarationSymbolInformations, cancellationToken);
             var mappedImplementationSymbols = RemapSymbolInformations(fileKind, razorDocumentUri, implementationDocument, implementationSymbolInformations, cancellationToken);
@@ -93,13 +93,13 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
             {
                 symbolInformation.Name = RenderMethodDisplay(fileKind);
                 symbolInformation.Location.Range = LspFactory.DefaultRange;
-                symbolInformation.Location.DocumentUri = razorDocumentUri;
+                symbolInformation.Location.Uri = razorDocumentUri;
                 mappedSymbols.Add(symbolInformation);
             }
             else if (_documentMappingService.TryMapToRazorDocumentRange(csharpDocument, symbolInformation.Location.Range, out var newRange))
             {
                 symbolInformation.Location.Range = newRange;
-                symbolInformation.Location.DocumentUri = razorDocumentUri;
+                symbolInformation.Location.Uri = razorDocumentUri;
                 mappedSymbols.Add(symbolInformation);
             }
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -124,6 +124,8 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 
             if (TryRemapRanges(csharpDocument, documentSymbol))
             {
+                // Razor responses omit Roslyn's glyph extension.
+                documentSymbol.Glyph = null;
                 documentSymbol.Children = RemapDocumentSymbols(fileKind, csharpDocument, documentSymbol.Children, cancellationToken);
 
                 mappedSymbols.Add(documentSymbol);
@@ -287,7 +289,7 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
             Kind = Roslyn.LanguageServer.Protocol.SymbolKind.Method,
             Location = new()
             {
-                DocumentUri = razorDocumentUri,
+                Uri = razorDocumentUri,
                 Range = LspFactory.DefaultRange,
             },
         };

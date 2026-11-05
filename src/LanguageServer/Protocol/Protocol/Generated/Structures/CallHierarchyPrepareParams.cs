@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The parameter of a `textDocument/prepareCallHierarchy` request.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class CallHierarchyPrepareParams : TextDocumentPositionParams

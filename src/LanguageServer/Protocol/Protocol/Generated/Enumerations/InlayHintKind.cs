@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Inlay hint kinds.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal enum InlayHintKind

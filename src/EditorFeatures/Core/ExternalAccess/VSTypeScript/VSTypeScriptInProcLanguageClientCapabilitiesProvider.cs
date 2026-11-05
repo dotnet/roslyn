@@ -25,7 +25,7 @@ internal sealed class VSTypeScriptInProcLanguageClientCapabilitiesProvider() : I
 {
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {
-        var serverCapabilities = new VSInternalServerCapabilities
+        var serverCapabilities = new ServerCapabilities
         {
             TextDocumentSync = new TextDocumentSyncOptions
             {
@@ -35,9 +35,9 @@ internal sealed class VSTypeScriptInProcLanguageClientCapabilitiesProvider() : I
 
             ProjectContextProvider = true,
 
-            DiagnosticProvider = new()
+            VsDiagnosticProvider = new()
             {
-                SupportsMultipleContextsDiagnostics = true,
+                SupportsMultipleContextDiagnostics = true,
                 DiagnosticKinds =
                 [
                     new(PullDiagnosticCategories.Task),

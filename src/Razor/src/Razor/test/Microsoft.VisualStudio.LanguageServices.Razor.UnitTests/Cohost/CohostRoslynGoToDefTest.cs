@@ -78,7 +78,7 @@ public class CohostRoslynGoToDefTest(ITestOutputHelper testOutputHelper) : Cohos
         var expectedRange = definition[0].Range.ToLinePositionSpan();
         Assert.All(definition, def =>
         {
-            Assert.Equal(expectedUri, def.DocumentUri);
+            Assert.Equal(expectedUri, def.Uri);
             Assert.Equal(expectedRange, def.Range.ToLinePositionSpan());
         });
     }

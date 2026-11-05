@@ -9,6 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A union of: TextDocumentContentChangePartial | TextDocumentContentChangeWholeDocument.
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
 [System.Runtime.CompilerServices.Union]
 internal sealed class TextDocumentContentChangeEvent : System.Runtime.CompilerServices.IUnion
 {

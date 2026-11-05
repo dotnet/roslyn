@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostFindAllReferencesEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker)
-    : AbstractCohostDocumentEndpoint<ReferenceParams, SumType<VSInternalReferenceItem, LspLocation>[]?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<ReferenceParams, ReferenceItem[]?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
 
@@ -31,7 +31,7 @@ internal sealed class CohostFindAllReferencesEndpoint(
 
     protected override bool RequiresLSPSolution => true;
 
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
+    public ImmutableArray<Registration> GetRegistrations(ClientCapabilities clientCapabilities, RequestContext requestContext)
     {
         if (clientCapabilities.TextDocument?.References?.DynamicRegistration == true)
         {
@@ -48,20 +48,20 @@ internal sealed class CohostFindAllReferencesEndpoint(
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(ReferenceParams request)
         => request.TextDocument;
 
-    protected override Task<SumType<VSInternalReferenceItem, LspLocation>[]?> HandleRequestAsync(ReferenceParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    protected override Task<ReferenceItem[]?> HandleRequestAsync(ReferenceParams request, TextDocument razorDocument, CancellationToken cancellationToken)
         => HandleRequestAsync(razorDocument, request.Position, cancellationToken);
 
-    private async Task<SumType<VSInternalReferenceItem, LspLocation>[]?> HandleRequestAsync(TextDocument razorDocument, Position position, CancellationToken cancellationToken)
+    private async Task<ReferenceItem[]?> HandleRequestAsync(TextDocument razorDocument, Position position, CancellationToken cancellationToken)
     {
         var response = await _remoteServiceInvoker
-            .TryInvokeAsync<IRemoteFindAllReferencesService, RemoteResponse<SumType<VSInternalReferenceItem, LspLocation>[]?>>(
+            .TryInvokeAsync<IRemoteFindAllReferencesService, RemoteResponse<ReferenceItem[]?>>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken) =>
                     service.FindAllReferencesAsync(solutionInfo, razorDocument.Id, position, cancellationToken),
                 cancellationToken)
             .ConfigureAwait(false);
 
-        if (response.Result is SumType<VSInternalReferenceItem, LspLocation>[] results)
+        if (response.Result is ReferenceItem[] results)
         {
             return results;
         }
@@ -73,7 +73,7 @@ internal sealed class CohostFindAllReferencesEndpoint(
 
     internal readonly struct TestAccessor(CohostFindAllReferencesEndpoint instance)
     {
-        public Task<SumType<VSInternalReferenceItem, LspLocation>[]?> HandleRequestAsync(TextDocument razorDocument, Position position, CancellationToken cancellationToken)
+        public Task<ReferenceItem[]?> HandleRequestAsync(TextDocument razorDocument, Position position, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(razorDocument, position, cancellationToken);
     }
 }

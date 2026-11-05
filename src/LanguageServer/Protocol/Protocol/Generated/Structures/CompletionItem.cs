@@ -14,10 +14,10 @@ internal partial class CompletionItem
 {
     /// <summary>
     /// The label of this completion item.
-    /// 
+    ///
     /// The label property is also by default the text that
     /// is inserted when selecting this completion.
-    /// 
+    ///
     /// If label details are provided the label itself should
     /// be an unqualified name of the completion item.
     /// </summary>
@@ -27,7 +27,7 @@ internal partial class CompletionItem
 
     /// <summary>
     /// Additional details for the label
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("labelDetails")]
@@ -44,7 +44,7 @@ internal partial class CompletionItem
 
     /// <summary>
     /// Tags for this completion item.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tags")]
@@ -68,7 +68,7 @@ internal partial class CompletionItem
 
     /// <summary>
     /// Select this item when showing.
-    /// 
+    ///
     /// *Note* that only one completion item can be selected and that the
     /// tool / client decides which item that is. The rule is that the *first*
     /// item of those that match best is selected.
@@ -99,7 +99,7 @@ internal partial class CompletionItem
     /// A string that should be inserted into a document when selecting
     /// this completion. When `falsy` the <see cref="CompletionItem.Label">label</see>
     /// is used.
-    /// 
+    ///
     /// The `insertText` is subject to interpretation by the client side.
     /// Some tools might not take the string literally. For example
     /// VS Code when code complete is requested in this example
@@ -116,30 +116,30 @@ internal partial class CompletionItem
     /// The format of the insert text. The format applies to both the
     /// `insertText` property and the `newText` property of a provided
     /// `textEdit`. If omitted defaults to `InsertTextFormat.PlainText`.
-    /// 
+    ///
     /// Please note that the insertTextFormat doesn't apply to
     /// `additionalTextEdits`.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertTextFormat")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public InsertTextFormat? InsertTextFormat { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public InsertTextFormat InsertTextFormat { get; set; } = InsertTextFormat.PlainText;
 
     /// <summary>
     /// How whitespace and indentation is handled during completion
     /// item insertion. If not provided the clients default value depends on
     /// the `textDocument.completion.insertTextMode` client capability.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("insertTextMode")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public InsertTextMode? InsertTextMode { get; set; }
 
     /// <summary>
     /// An <see cref="TextEdit">edit</see> which is applied to a document when selecting
     /// this completion. When an edit is provided the value of
     /// <see cref="CompletionItem.InsertText">insertText</see> is ignored.
-    /// 
+    ///
     /// Most editors support two different operations when accepting a completion
     /// item. One is to insert a completion text and the other is to replace an
     /// existing text with a completion text. Since this can usually not be
@@ -147,14 +147,14 @@ internal partial class CompletionItem
     /// signal support for `InsertReplaceEdits` via the
     /// `textDocument.completion.insertReplaceSupport` client capability
     /// property.
-    /// 
+    ///
     /// *Note 1:* The text edit's range as well as both ranges from an insert
     /// replace edit must be a [single line] and they must contain the position
     /// at which completion has been requested.
     /// *Note 2:* If an `InsertReplaceEdit` is returned the edit's insert range
     /// must be a prefix of the edit's replace range, that means it must be
     /// contained and starting at the same position.
-    /// 
+    ///
     /// @since 3.16.0 additional type `InsertReplaceEdit`
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textEdit")]
@@ -164,13 +164,13 @@ internal partial class CompletionItem
     /// <summary>
     /// The edit text used if the completion item is part of a CompletionList and
     /// CompletionList defines an item default for the text edit range.
-    /// 
+    ///
     /// Clients will only honor this property if they opt into completion list
     /// item defaults using the capability `completionList.itemDefaults`.
-    /// 
+    ///
     /// If not provided and a list's default range is provided the label
     /// property is used as a text.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textEditText")]
@@ -181,7 +181,7 @@ internal partial class CompletionItem
     /// An optional array of additional <see cref="TextEdit">text edits</see> that are applied when
     /// selecting this completion. Edits must not overlap (including the same insert position)
     /// with the main <see cref="CompletionItem.TextEdit">edit</see> nor with themselves.
-    /// 
+    ///
     /// Additional text edits should be used to change text unrelated to the current cursor position
     /// (for example adding an import statement at the top of the file if the completion item will
     /// insert an unqualified type).
@@ -248,12 +248,13 @@ internal partial class CompletionItem
     /// Gets or sets the match priority for this completion item. Used as a tiebreaker during best-match selection when multiple items have equal pattern match quality. Higher values are preferred. A value of 0 indicates default priority.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_matchPriority")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public int? MatchPriority { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public int MatchPriority { get; set; }
 
     /// <summary>
     /// A union of: string[] | VSInternalCommitCharacter[].
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _CommitCharacters : System.Runtime.CompilerServices.IUnion
     {
@@ -265,6 +266,7 @@ internal partial class CompletionItem
     /// <summary>
     /// A union of: string | MarkupContent.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Documentation : System.Runtime.CompilerServices.IUnion
     {
@@ -276,6 +278,7 @@ internal partial class CompletionItem
     /// <summary>
     /// A union of: TextEdit | InsertReplaceEdit.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _TextEdit : System.Runtime.CompilerServices.IUnion
     {

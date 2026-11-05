@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The result returned from the apply workspace edit request.
-/// 
+///
 /// @since 3.17 renamed from ApplyWorkspaceEditResponse
 /// </summary>
 internal partial class ApplyWorkspaceEditResult
@@ -17,6 +17,7 @@ internal partial class ApplyWorkspaceEditResult
     /// Indicates whether the edit was applied or not.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("applied")]
+    [System.Text.Json.Serialization.JsonRequired]
     public bool Applied { get; set; }
 
     /// <summary>

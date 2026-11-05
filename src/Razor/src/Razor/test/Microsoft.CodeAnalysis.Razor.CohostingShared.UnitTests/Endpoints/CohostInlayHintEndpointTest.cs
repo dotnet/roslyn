@@ -303,7 +303,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
         var request = new InlayHintParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
             Range = LspFactory.CreateRange(startLine, starChar, endLine, endChar)
         };
 
@@ -385,7 +385,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
 
         var request = new InlayHintParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
             Range = new()
             {
                 Start = new(0, 0),
@@ -402,7 +402,7 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
         foreach (var hint in hints)
         {
             // Because our test input data can't have colons in the input, but parameter info returned from Roslyn does, we have to strip them off.
-            var label = hint.Label.First.TrimEnd(':');
+            var label = Assert.IsType<string>(hint.Label.Value).TrimEnd(':');
             Assert.True(spansDict.TryGetValue(label, out var spans), $"Expected {label} to be in test provided markers");
 
             var span = Assert.Single(spans);
@@ -420,18 +420,18 @@ public class CohostInlayHintEndpointTest(ITestOutputHelper testOutputHelper) : C
             // Make sure we can resolve the document correctly
             var tdi = resolveEndpoint.GetTestAccessor().GetTextDocumentIdentifier(serializedHint);
             Assert.NotNull(tdi);
-            Assert.Equal(document.GetURI(), tdi.DocumentUri);
+            Assert.Equal(document.GetURI(), tdi.Uri);
 
             // Make sure we, or really Roslyn, can resolve the hint correctly
             var resolvedHint = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(serializedHint, document, DisposalToken);
             Assert.NotNull(resolvedHint);
-            Assert.NotNull(resolvedHint.ToolTip);
+            Assert.NotNull(resolvedHint.Tooltip);
 
-            if (resolvedHint.ToolTip.Value.TryGetFirst(out var plainTextTooltip))
+            if (resolvedHint.Tooltip is string plainTextTooltip)
             {
                 Assert.Equal(expectedTooltip, plainTextTooltip);
             }
-            else if (resolvedHint.ToolTip.Value.TryGetSecond(out var markupTooltip))
+            else if (resolvedHint.Tooltip is MarkupContent markupTooltip)
             {
                 Assert.Contains(expectedTooltip, markupTooltip.Value);
             }

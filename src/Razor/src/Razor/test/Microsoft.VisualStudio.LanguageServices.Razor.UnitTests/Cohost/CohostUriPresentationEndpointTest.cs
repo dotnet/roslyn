@@ -53,13 +53,13 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             uris: [new(siteCssFileUriString)],
             htmlResponse: new WorkspaceEdit
             {
-                DocumentChanges = new TextDocumentEdit[]
+                DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
                 {
-                    new()
+                    new TextDocumentEdit()
                     {
                         TextDocument = new()
                         {
-                            DocumentUri = FileUri($"File1.razor{LanguageServerConstants.HtmlVirtualDocumentSuffix}")
+                            Uri = FileUri($"File1.razor{LanguageServerConstants.HtmlVirtualDocumentSuffix}")
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
                     }
@@ -376,13 +376,13 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             uris: [FileUri("Other\\Component.razor")],
             htmlResponse: new WorkspaceEdit
             {
-                DocumentChanges = new TextDocumentEdit[]
+                DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
                 {
-                    new()
+                    new TextDocumentEdit()
                     {
                         TextDocument = new()
                         {
-                            DocumentUri = FileUri($"File1.cshtml{LanguageServerConstants.HtmlVirtualDocumentSuffix}")
+                            Uri = FileUri($"File1.cshtml{LanguageServerConstants.HtmlVirtualDocumentSuffix}")
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlResponseText)]
                     }
@@ -429,13 +429,13 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
             uris: [new(siteCssFileUriString)],
             htmlResponse: new WorkspaceEdit
             {
-                DocumentChanges = new TextDocumentEdit[]
+                DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
                 {
-                    new()
+                    new TextDocumentEdit()
                     {
                         TextDocument = new()
                         {
-                            DocumentUri = FileUri("File1.razor.g.html")
+                            Uri = FileUri("File1.razor.g.html")
                         },
                         Edits = [LspFactory.CreateTextEdit(position: (0, 0), htmlTag)]
                     }
@@ -589,7 +589,7 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Range = sourceText.GetRange(span),
             Uris = [.. uris.Select(u => u.GetRequiredSystemUri())]
@@ -605,8 +605,8 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
         {
             Assert.NotNull(result);
             Assert.NotNull(result.DocumentChanges);
-            Assert.Equal(expected, ((TextEdit)result.DocumentChanges.Value.First[0].Edits[0]).NewText);
-            Assert.Equal(document.GetURI(), result.DocumentChanges.Value.First[0].TextDocument.DocumentUri);
+            Assert.Equal(expected, Assert.IsType<TextEdit>(Assert.IsType<TextDocumentEdit>(result.DocumentChanges[0].Value).Edits[0].Value).NewText);
+            Assert.Equal(document.GetURI(), Assert.IsType<TextDocumentEdit>(result.DocumentChanges[0].Value).TextDocument.Uri);
         }
     }
 }

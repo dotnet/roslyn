@@ -45,7 +45,7 @@ internal class LspLogger(string categoryName, RazorClientServerManagerProvider r
 
         var @params = new LogMessageParams
         {
-            MessageType = messageType,
+            Type = messageType,
             Message = formattedMessage,
         };
 

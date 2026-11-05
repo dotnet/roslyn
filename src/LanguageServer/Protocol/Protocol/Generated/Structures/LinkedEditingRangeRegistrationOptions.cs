@@ -13,6 +13,7 @@ internal partial class LinkedEditingRangeRegistrationOptions : LinkedEditingRang
     /// the document selector provided on the client side will be used.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("documentSelector")]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public DocumentSelector? DocumentSelector { get; set; }
 
     /// <summary>

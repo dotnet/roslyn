@@ -169,7 +169,7 @@ public class CohostRangeFormattingEndpointTest(HtmlFormattingFixture htmlFormatt
                 });
     }
 
-    private async Task VerifyRangeFormattingAsync(TestCode input, string expected, Dictionary<string, SumType<bool, int, string>>? otherOptions = null)
+    private async Task VerifyRangeFormattingAsync(TestCode input, string expected, Dictionary<string, object>? otherOptions = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text);
         var inputText = await document.GetTextAsync(DisposalToken);
@@ -192,7 +192,7 @@ public class CohostRangeFormattingEndpointTest(HtmlFormattingFixture htmlFormatt
 
         var request = new DocumentRangeFormattingParams()
         {
-            TextDocument = new TextDocumentIdentifier() { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier() { Uri = document.GetURI() },
             Options = new FormattingOptions()
             {
                 TabSize = 4,

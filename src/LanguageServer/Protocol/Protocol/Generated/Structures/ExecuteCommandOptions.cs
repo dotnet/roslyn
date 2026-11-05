@@ -19,7 +19,6 @@ internal partial class ExecuteCommandOptions
     /// The commands to be executed on the server
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("commands")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string[] Commands { get; set; } = null!;
 
 }

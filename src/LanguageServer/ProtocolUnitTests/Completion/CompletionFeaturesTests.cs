@@ -36,19 +36,19 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
     {
         TextDocument = new LSP.TextDocumentClientCapabilities
         {
-            Completion = new LSP.CompletionSetting
+            Completion = new LSP.CompletionClientCapabilities
             {
-                CompletionItem = new LSP.CompletionItemSetting
+                CompletionItem = new LSP.ClientCompletionItemOptions
                 {
                     CommitCharactersSupport = true,
                     LabelDetailsSupport = true,
-                    ResolveSupport = new LSP.ResolveSupportSetting
+                    ResolveSupport = new LSP.ClientCompletionItemResolveOptions
                     {
                         Properties = ["documentation", "additionalTextEdits", "command", "labelDetail"]
                     }
                 },
 
-                CompletionListSetting = new LSP.CompletionListSetting
+                CompletionList = new LSP.CompletionListCapabilities
                 {
                     ItemDefaults = [CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.DataPropertyName, CompletionCapabilityHelper.CommitCharactersPropertyName]
                 },
@@ -81,7 +81,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -300,7 +300,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         var expectedEdit = new TextEdit { Range = new LSP.Range { Start = new(1, 5), End = new(1, 9) }, NewText = "summary" };
 
-        Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+        Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandValue);
         Assert.Equal(nameof(CompletionResultFactory.CompleteComplexEditCommand), resolvedItem.Command.Title);
         AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
         AssertJsonEquals(expectedEdit, resolvedItem.Command.Arguments[1]);
@@ -330,7 +330,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
+        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
 
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, true);
 
@@ -356,7 +356,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
             Assert.True(!someTextItem.Preselect && someTextItem.CommitCharacters == null);
         }
 
-        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
+        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
 
         completionParams = CreateCompletionParams(
             GetLocationPlusOne(caretLocation),
@@ -397,7 +397,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var clientCapability = DefaultClientCapabilities;
         if (!hasDefaultCommitCharCapability)
         {
-            clientCapability.TextDocument.Completion.CompletionListSetting.ItemDefaults
+            clientCapability.TextDocument.Completion.CompletionList.ItemDefaults
                 = [CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.DataPropertyName];
         }
 
@@ -459,7 +459,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -654,7 +654,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -667,7 +667,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var results = await testLspServer.ExecuteRequestAsync<LSP.CompletionParams, LSP.CompletionList>(LSP.Methods.TextDocumentCompletionName, completionParams, CancellationToken.None);
         Assert.NotNull(results);
         Assert.NotEmpty(results.Items);
-        Assert.Equal(new() { Start = new(2, 0), End = caret.Range.Start }, results.ItemDefaults.EditRange.Value.First);
+        Assert.Equal(new() { Start = new(2, 0), End = caret.Range.Start }, Assert.IsType<LSP.Range>(results.ItemDefaults.EditRange.Value));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/5916")]
@@ -761,7 +761,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -791,11 +791,11 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         mockService.ItemCounts = (10, 10);
 
         var caret = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caret.DocumentUri);
+        await testLspServer.OpenDocumentAsync(caret.Uri);
 
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -812,7 +812,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         foreach (var item in results.Items)
             Assert.Null(item.CommitCharacters);
 
-        await testLspServer.InsertTextAsync(caret.DocumentUri, (caret.Range.End.Line, caret.Range.End.Character, "i"));
+        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "i"));
 
         completionParams = CreateCompletionParams(
             GetLocationPlusOne(caret),
@@ -847,7 +847,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caretLocation = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri);
+        await testLspServer.OpenDocumentAsync(caretLocation.Uri);
 
         testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.TriggerInArgumentLists, LanguageNames.CSharp, true);
 
@@ -866,7 +866,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Equal("_someDiscard", actualItem.Label);
         Assert.Null(actualItem.CommitCharacters);
 
-        await testLspServer.InsertTextAsync(caretLocation.DocumentUri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
+        await testLspServer.InsertTextAsync(caretLocation.Uri, (caretLocation.Range.End.Line, caretLocation.Range.End.Character, "s"));
 
         completionParams = CreateCompletionParams(
             GetLocationPlusOne(caretLocation),
@@ -963,7 +963,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -999,7 +999,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
                 Assert.Null(resolvedItem.AdditionalTextEdits);
 
                 Assert.Equal(nameof(CompletionResultFactory.CompleteComplexEditCommand), resolvedItem.Command.Title);
-                Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+                Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandValue);
 
                 AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
@@ -1032,7 +1032,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         var caret = testLspServer.GetLocations("caret").Single();
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -1056,7 +1056,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Null(resolvedItem.AdditionalTextEdits);
 
         Assert.Equal(nameof(CompletionResultFactory.CompleteComplexEditCommand), resolvedItem.Command.Title);
-        Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandIdentifier);
+        Assert.Equal(CompletionResultFactory.CompleteComplexEditCommand, resolvedItem.Command.CommandValue);
 
         AssertJsonEquals(completionParams.TextDocument, resolvedItem.Command.Arguments[0]);
 
@@ -1085,11 +1085,11 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, DefaultClientCapabilities);
         var caret = testLspServer.GetLocations("caret").Single();
-        await testLspServer.OpenDocumentAsync(caret.DocumentUri);
+        await testLspServer.OpenDocumentAsync(caret.Uri);
 
         var completionParams = new LSP.CompletionParams()
         {
-            TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+            TextDocument = CreateTextDocumentIdentifier(caret.Uri),
             Position = caret.Range.Start,
             Context = new LSP.CompletionContext()
             {
@@ -1109,7 +1109,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.Equal(listMaxSize, results.Items.Length);
         Assert.False(results.Items.Any(i => i.Label == "if"));
 
-        await testLspServer.InsertTextAsync(caret.DocumentUri, (caret.Range.End.Line, caret.Range.End.Character, "f"));
+        await testLspServer.InsertTextAsync(caret.Uri, (caret.Range.End.Line, caret.Range.End.Character, "f"));
 
         completionParams = CreateCompletionParams(
             GetLocationPlusOne(caret),

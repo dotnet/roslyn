@@ -827,7 +827,7 @@ public sealed partial class DocumentSymbolsTests
     {
         TextDocument = new LSP.TextDocumentClientCapabilities()
         {
-            DocumentSymbol = new LSP.DocumentSymbolSetting()
+            DocumentSymbol = new LSP.DocumentSymbolClientCapabilities()
             {
                 HierarchicalDocumentSymbolSupport = true
             }

@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Code action tags are extra annotations that tweak the behavior of a code action.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal enum CodeActionTag

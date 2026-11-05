@@ -15,7 +15,6 @@ internal partial class ClientInlayHintResolveOptions
     /// The properties that a client can resolve lazily.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("properties")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string[] Properties { get; set; } = null!;
 
 }

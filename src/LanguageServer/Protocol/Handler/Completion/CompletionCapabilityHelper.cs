@@ -37,14 +37,14 @@ internal sealed class CompletionCapabilityHelper
     {
     }
 
-    public CompletionCapabilityHelper(bool supportsVSExtensions, CompletionSetting? completionSetting)
+    public CompletionCapabilityHelper(bool supportsVSExtensions, CompletionClientCapabilities? completionSetting)
     {
         // public LSP
         SupportSnippets = completionSetting?.CompletionItem?.SnippetSupport ?? false;
-        SupportDefaultEditRange = completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(EditRangePropertyName) == true;
+        SupportDefaultEditRange = completionSetting?.CompletionList?.ItemDefaults?.Contains(EditRangePropertyName) == true;
         SupportsMarkdownDocumentation = completionSetting?.CompletionItem?.DocumentationFormat?.Contains(MarkupKind.Markdown) == true;
-        SupportCompletionListData = completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(DataPropertyName) == true;
-        SupportDefaultCommitCharacters = completionSetting?.CompletionListSetting?.ItemDefaults?.Contains(CommitCharactersPropertyName) == true;
+        SupportCompletionListData = completionSetting?.CompletionList?.ItemDefaults?.Contains(DataPropertyName) == true;
+        SupportDefaultCommitCharacters = completionSetting?.CompletionList?.ItemDefaults?.Contains(CommitCharactersPropertyName) == true;
         SupportedItemKinds = completionSetting?.CompletionItemKind?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemKind>();
         SupportedItemTags = completionSetting?.CompletionItem?.TagSupport?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<CompletionItemTag>();
         SupportedInsertTextModes = completionSetting?.CompletionItem?.InsertTextModeSupport?.ValueSet?.ToSet() ?? SpecializedCollections.EmptySet<InsertTextMode>();
@@ -54,9 +54,9 @@ internal sealed class CompletionCapabilityHelper
         {
             SupportVSInternalClientCapabilities = true;
 
-            var vsCompletionSetting = completionSetting as VSInternalCompletionSetting;
-            SupportVSInternalCompletionListData = vsCompletionSetting?.CompletionList?.Data == true;
-            SupportVSInternalDefaultCommitCharacters = vsCompletionSetting?.CompletionList?.CommitCharacters == true;
+            var vsCompletionSetting = completionSetting as CompletionClientCapabilities;
+            SupportVSInternalCompletionListData = vsCompletionSetting?.VsCompletionList?.Data == true;
+            SupportVSInternalDefaultCommitCharacters = vsCompletionSetting?.VsCompletionList?.CommitCharacters == true;
         }
     }
 }

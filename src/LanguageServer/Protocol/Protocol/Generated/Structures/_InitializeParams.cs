@@ -21,7 +21,7 @@ internal partial class _InitializeParams
     /// <summary>
     /// The process Id of the parent process that started
     /// the server.
-    /// 
+    ///
     /// Is `null` if the process has not been started by another process.
     /// If the parent process is not alive then the server should exit.
     /// </summary>
@@ -30,21 +30,20 @@ internal partial class _InitializeParams
 
     /// <summary>
     /// Information about the client
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("clientInfo")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public ClientInfo? ClientInfo { get; set; }
 
     /// <summary>
     /// The locale the client is currently showing the user interface
     /// in. This must not necessarily be the locale of the operating
     /// system.
-    /// 
+    ///
     /// Uses IETF language tags as the value's syntax
     /// (See https://en.wikipedia.org/wiki/IETF_language_tag)
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("locale")]
@@ -55,7 +54,6 @@ internal partial class _InitializeParams
     /// The capabilities provided by the client (editor or tool)
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("capabilities")]
-    [System.Text.Json.Serialization.JsonRequired]
     public ClientCapabilities Capabilities { get; set; } = null!;
 
     /// <summary>

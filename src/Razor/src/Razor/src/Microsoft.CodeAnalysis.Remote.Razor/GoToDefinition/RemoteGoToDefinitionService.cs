@@ -148,7 +148,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
             return Response.Results(GoToDefinitionResponse.FromCSharpRequest(
                 new TextDocumentPositionParams
                 {
-                    TextDocument = new TextDocumentIdentifier { DocumentUri = generatedDocument.GetURI() },
+                    TextDocument = new TextDocumentIdentifier { Uri = generatedDocument.GetURI() },
                     Position = positionInfo.Position,
                 }));
         }

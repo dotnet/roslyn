@@ -208,7 +208,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
                     new FileEvent
                     {
                         Uri = ProtocolConversions.CreateAbsoluteDocumentUri(projectAssetsFile),
-                        FileChangeType = FileChangeType.Changed,
+                        Type = FileChangeType.Changed,
                     },
                 ],
             });
@@ -313,7 +313,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
+            WorkspaceFolders = [new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
             OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
         });
 
@@ -1087,9 +1087,9 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Issue a "textDocument/diagnostic" request for the closed document
         var exception = await Assert.ThrowsAsync<RemoteInvocationException>(() =>
-            testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(
+            testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, FullOrUnchangedDiagnosticReport>(
                 Methods.TextDocumentDiagnosticName,
-                new DocumentDiagnosticParams() { TextDocument = new TextDocumentIdentifier { DocumentUri = nonFileUri } },
+                new DocumentDiagnosticParams() { TextDocument = new TextDocumentIdentifier { Uri = nonFileUri } },
                 CancellationToken.None));
         Assert.Equal(RoslynLspErrorCodes.NonFatalRequestFailure, exception.ErrorCode);
 
@@ -1100,7 +1100,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         exception = await Assert.ThrowsAsync<RemoteInvocationException>(() =>
             testLspServer.ExecuteRequestAsync<HoverParams, Hover>(
                 Methods.TextDocumentHoverName,
-                new HoverParams() { Position = new Position(0, 0), TextDocument = new TextDocumentIdentifier { DocumentUri = nonFileUri } },
+                new HoverParams() { Position = new Position(0, 0), TextDocument = new TextDocumentIdentifier { Uri = nonFileUri } },
                 CancellationToken.None));
         Assert.Equal(RoslynLspErrorCodes.NonFatalRequestFailure, exception.ErrorCode);
     }
@@ -1427,7 +1427,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
+            WorkspaceFolders = [new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }],
             // Do not perform the background automatic discovery on startup.
             // Perform discovery only once we have set up initial state for the test.
             OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
@@ -1587,7 +1587,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+            WorkspaceFolders = [new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
@@ -1647,7 +1647,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+            WorkspaceFolders = [new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
@@ -1677,7 +1677,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+            WorkspaceFolders = [new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
@@ -1708,7 +1708,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+            WorkspaceFolders = [new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
@@ -1769,7 +1769,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
         {
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
-            WorkspaceFolders = [new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
+            WorkspaceFolders = [new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace" }]
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
@@ -1802,8 +1802,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             WorkspaceFolders =
             [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(src1Dir.Path), Name = "workspace1" },
-                new() { DocumentUri = CreateAbsoluteDocumentUri(src2Dir.Path), Name = "workspace2" },
+                new() { Uri = CreateAbsoluteDocumentUri(src1Dir.Path), Name = "workspace1" },
+                new() { Uri = CreateAbsoluteDocumentUri(src2Dir.Path), Name = "workspace2" },
             ]
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
@@ -1836,8 +1836,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             WorkspaceFolders =
             [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(src1Dir.Path), Name = "workspace1" },
-                new() { DocumentUri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace2" },
+                new() { Uri = CreateAbsoluteDocumentUri(src1Dir.Path), Name = "workspace1" },
+                new() { Uri = CreateAbsoluteDocumentUri(tempDir.Path), Name = "workspace2" },
             ]
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
@@ -1894,7 +1894,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
             WorkspaceFolders =
             [
-                new() { DocumentUri = CreateAbsoluteDocumentUri(src1Dir.Path), Name = "workspace1" }
+                new() { Uri = CreateAbsoluteDocumentUri(src1Dir.Path), Name = "workspace1" }
             ]
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));

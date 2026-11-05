@@ -201,7 +201,7 @@ internal sealed class LspFileChangeWatcher : AbstractConsolidatingFileChangeWatc
         {
             var unregistrationParams = new UnregistrationParams
             {
-                Unregistrations =
+                Unregisterations =
                 [
                     new Unregistration
                     {
@@ -240,12 +240,12 @@ internal sealed class LspFileChangeWatcher : AbstractConsolidatingFileChangeWatc
                     continue;
                 }
 
-                var changeKind = change.FileChangeType switch
+                var changeKind = change.Type switch
                 {
                     FileChangeType.Created => FileChangeKind.Created,
                     FileChangeType.Deleted => FileChangeKind.Deleted,
                     FileChangeType.Changed => FileChangeKind.Changed,
-                    _ => throw ExceptionUtilities.UnexpectedValue(change.FileChangeType),
+                    _ => throw ExceptionUtilities.UnexpectedValue(change.Type),
                 };
 
                 FileChanged?.Invoke(this, new(filePath, changeKind));

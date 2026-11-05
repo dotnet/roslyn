@@ -48,10 +48,10 @@ internal sealed class ExtractToCssCodeActionResolver(
         var cssContent = text.ToString(new TextSpan(actionParams.ExtractStart, actionParams.ExtractEnd - actionParams.ExtractStart)).Trim();
         var removeRange = codeDocument.Source.Text.GetRange(actionParams.RemoveStart, actionParams.RemoveEnd);
 
-        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri };
-        var cssDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { DocumentUri = cssFileUri };
+        var codeDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = documentSnapshot.Uri };
+        var cssDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier { Uri = cssFileUri };
 
-        using var changes = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(capacity: 3);
+        using var changes = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem>(capacity: 3);
 
         // First, an edit to remove the script tag and its contents.
         changes.Add(new TextDocumentEdit
@@ -78,7 +78,7 @@ internal sealed class ExtractToCssCodeActionResolver(
         else
         {
             // No CSS file, create it and fill it in
-            changes.Add(new CreateFile { DocumentUri = cssDocumentIdentifier.DocumentUri });
+            changes.Add(new CreateFile { Uri = cssDocumentIdentifier.Uri });
             changes.Add(new TextDocumentEdit
             {
                 TextDocument = cssDocumentIdentifier,

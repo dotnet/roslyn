@@ -18,7 +18,7 @@ internal partial class WorkspaceSymbolOptions
     /// <summary>
     /// The server provides support to resolve additional
     /// information for a workspace symbol.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("resolveProvider")]

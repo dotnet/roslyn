@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// The moniker kind.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.StringEnumConverter<MonikerKind>))]

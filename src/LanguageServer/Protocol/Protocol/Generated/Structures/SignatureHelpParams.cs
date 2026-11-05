@@ -21,7 +21,7 @@ internal partial class SignatureHelpParams : TextDocumentPositionParams
     /// <summary>
     /// The signature help context. This is only available if the client specifies
     /// to send this using the client capability `textDocument.signatureHelp.contextSupport === true`
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("context")]

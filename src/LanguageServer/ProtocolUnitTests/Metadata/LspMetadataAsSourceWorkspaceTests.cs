@@ -44,15 +44,15 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         Assert.NotNull(definition);
 
         // Open the metadata file and verify it gets added to the metadata workspace.
-        await testLspServer.OpenDocumentAsync(definition.Single().DocumentUri, text: string.Empty).ConfigureAwait(false);
+        await testLspServer.OpenDocumentAsync(definition.Single().Uri, text: string.Empty).ConfigureAwait(false);
 
-        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri)).Kind);
+        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().Uri)).Kind);
         await AssertMiscFileWorkspaceEmpty(testLspServer);
 
         // Close the metadata file - the file will still be present in MAS.
-        await testLspServer.CloseDocumentAsync(definition.Single().DocumentUri).ConfigureAwait(false);
+        await testLspServer.CloseDocumentAsync(definition.Single().Uri).ConfigureAwait(false);
 
-        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri)).Kind);
+        Assert.Equal(WorkspaceKind.MetadataAsSource, (await GetWorkspaceForDocument(testLspServer, definition.Single().Uri)).Kind);
         await AssertMiscFileWorkspaceEmpty(testLspServer);
     }
 
@@ -82,7 +82,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         // Open the metadata file and verify it gets added to the metadata workspace.
         // We don't have the real metadata source, so just populate it with our fake metadata source.
-        await testLspServer.OpenDocumentAsync(definition.Single().DocumentUri, text: """
+        await testLspServer.OpenDocumentAsync(definition.Single().Uri, text: """
             namespace System
             {
                 public class Console
@@ -91,7 +91,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
                 }
             }
             """).ConfigureAwait(false);
-        var workspaceForDocument = await GetWorkspaceForDocument(testLspServer, definition.Single().DocumentUri);
+        var workspaceForDocument = await GetWorkspaceForDocument(testLspServer, definition.Single().Uri);
         Assert.Equal(WorkspaceKind.MetadataAsSource, workspaceForDocument.Kind);
         await AssertMiscFileWorkspaceEmpty(testLspServer);
 
@@ -102,7 +102,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         var locationOfStringKeyword = new LSP.Location
         {
-            DocumentUri = definition.Single().DocumentUri,
+            Uri = definition.Single().Uri,
             Range = new LSP.Range
             {
                 Start = new LSP.Position { Line = 4, Character = 40 },
@@ -115,12 +115,12 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
 
         Assert.NotNull(definitionFromMetadata);
         Assert.NotEmpty(definitionFromMetadata);
-        Assert.Contains("String.cs", definitionFromMetadata.Single().DocumentUri.UriString);
+        Assert.Contains("String.cs", definitionFromMetadata.Single().Uri.UriString);
     }
 
     private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, DocumentUri fileUri)
     {
-        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri });
+        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { Uri = fileUri });
         Assert.NotNull(context);
         return context.Value.Workspace;
     }

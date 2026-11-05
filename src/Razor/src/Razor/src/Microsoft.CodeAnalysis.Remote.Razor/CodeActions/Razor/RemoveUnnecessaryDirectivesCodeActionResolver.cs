@@ -29,7 +29,7 @@ internal sealed class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCode
 
         var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        using var edits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
+        using var edits = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.TextDocumentEdit._EditsItem>();
         foreach (var directiveSpan in actionParams.UnusedDirectiveSpans)
         {
             edits.Add(UsingDirectiveHelper.GetRemoveDirectiveEdit(sourceText, directiveSpan.ToTextSpan()));
@@ -37,11 +37,11 @@ internal sealed class RemoveUnnecessaryDirectivesCodeActionResolver : IRazorCode
 
         return new WorkspaceEdit
         {
-            DocumentChanges = new TextDocumentEdit[]
+            DocumentChanges = new WorkspaceEdit._DocumentChangesItem[]
             {
                 new TextDocumentEdit
                 {
-                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri },
+                    TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = documentSnapshot.Uri },
                     Edits = edits.ToArrayAndClear(),
                 }
             }

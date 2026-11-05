@@ -418,7 +418,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
         var request = new CallHierarchyPrepareParams
         {
             Position = sourceText.GetPosition(input.Position),
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
         };
 
         var preparedItems = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
@@ -441,7 +441,7 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
 
         var data = RazorCallHierarchyResolveData.Unwrap(item);
         Assert.NotNull(data);
-        Assert.Equal(document.GetURI(), data.TextDocument.DocumentUri);
+        Assert.Equal(document.GetURI(), data.TextDocument.Uri);
         Assert.NotNull(data.OriginalData);
     }
 

@@ -48,10 +48,10 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
         request.Command = new LSP.Command
         {
             Title = string.Format(FeaturesResources._0_references_unquoted, "-"),
-            CommandIdentifier = ClientReferencesCommand,
+            CommandValue = ClientReferencesCommand,
             Arguments =
             [
-                resolveData.TextDocument.DocumentUri,
+                resolveData.TextDocument.Uri,
                 request.Range.Start
             ]
         };
@@ -76,10 +76,10 @@ internal sealed class CodeLensResolveHandler() : ILspServiceDocumentRequestHandl
             request.Command = new LSP.Command
             {
                 Title = referenceCount.Value.GetDescription(),
-                CommandIdentifier = ClientReferencesCommand,
+                CommandValue = ClientReferencesCommand,
                 Arguments =
                 [
-                    resolveData.TextDocument.DocumentUri,
+                    resolveData.TextDocument.Uri,
                     request.Range.Start,
                 ],
             };

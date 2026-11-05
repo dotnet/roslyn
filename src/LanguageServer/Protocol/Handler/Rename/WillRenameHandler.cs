@@ -29,7 +29,7 @@ internal sealed class WillRenameHandler(
     public async Task<WorkspaceEdit?> HandleRequestAsync(RenameFilesParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         using var _1 = PooledDictionary<string, ArrayBuilder<TextEdit>>.GetInstance(out var changesBuilder);
-        using var _2 = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(out var documentChangesBuilder);
+        using var _2 = ArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem>.GetInstance(out var documentChangesBuilder);
 
         foreach (var listener in renameListeners)
         {
@@ -55,20 +55,7 @@ internal sealed class WillRenameHandler(
             }
             else if (edit.DocumentChanges is { } documentChanges)
             {
-                if (documentChanges.TryGetFirst(out var textDocumentEdits))
-                {
-                    foreach (var textDocumentEdit in textDocumentEdits)
-                    {
-                        documentChangesBuilder.Add(textDocumentEdit);
-                    }
-                }
-                else if (documentChanges.TryGetSecond(out var sumTypes))
-                {
-                    foreach (var sumType in sumTypes)
-                    {
-                        documentChangesBuilder.Add(sumType);
-                    }
-                }
+                documentChangesBuilder.AddRange(documentChanges);
             }
         }
 

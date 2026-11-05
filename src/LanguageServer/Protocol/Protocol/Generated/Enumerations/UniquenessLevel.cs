@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Moniker uniqueness level to define scope of the moniker.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 [System.Text.Json.Serialization.JsonConverter(typeof(Roslyn.LanguageServer.Protocol.StringEnumConverter<UniquenessLevel>))]

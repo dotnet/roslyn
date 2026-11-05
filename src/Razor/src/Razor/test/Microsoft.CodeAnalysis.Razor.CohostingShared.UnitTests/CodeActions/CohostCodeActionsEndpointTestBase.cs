@@ -110,7 +110,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
         var index = codeActionIndex ?? 0;
         var codeActionToRun = codeActions.Length > index
-            ? (VSInternalCodeAction?)codeActions[index]
+            ? (CodeAction)codeActions[index].Value
             : null;
 
         if (!expectOffer)
@@ -133,17 +133,17 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         }
 
         // In VS Code, the C# extension has some custom code to handle child code actions, which we mimic here
-        if (codeActionToRun.Command is { CommandIdentifier: "roslyn.client.nestedCodeAction", Arguments: [JsonObject data] })
+        if (codeActionToRun.Command is { CommandValue: "roslyn.client.nestedCodeAction", Arguments: [JsonObject data] })
         {
             var nestedCodeAction = data["NestedCodeActions"].AssumeNotNull().AsArray()[childActionIndex];
-            codeActionToRun = JsonSerializer.Deserialize<VSInternalCodeAction>(nestedCodeAction, JsonHelpers.JsonSerializerOptions);
+            codeActionToRun = JsonSerializer.Deserialize<CodeAction>(nestedCodeAction, JsonHelpers.JsonSerializerOptions);
         }
 
         Assert.NotNull(codeActionToRun);
         return codeActionToRun;
     }
 
-    private protected async Task<SumType<Command, CodeAction>[]?> GetCodeActionsAsync(TextDocument document, TestCode input, bool makeDiagnosticsRequest = false)
+    private protected async Task<TextDocumentCodeActionResultItem[]?> GetCodeActionsAsync(TextDocument document, TestCode input, bool makeDiagnosticsRequest = false)
     {
         var requestInvoker = new TestHtmlRequestInvoker();
         var endpoint = new CohostCodeActionsEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, requestInvoker, NoOpTelemetryReporter.Instance);
@@ -187,9 +187,9 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
 
         var request = new VSCodeActionParams
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
             Range = range,
-            Context = new VSInternalCodeActionContext() { Diagnostics = diagnostics.ToArray() }
+            Context = new CodeActionContext() { Diagnostics = diagnostics.ToArray() }
         };
 
         if (input.TryGetNamedSpans("selection", out var selectionSpans))

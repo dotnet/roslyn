@@ -85,13 +85,13 @@ class A
         {|caret:|}
     }
 }";
-            await using var testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.VSInternalClientCapabilities
+            await using var testServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, new LSP.ClientCapabilities
             {
                 TextDocument = new LSP.TextDocumentClientCapabilities
                 {
-                    Completion = new LSP.CompletionSetting
+                    Completion = new LSP.CompletionClientCapabilities
                     {
-                        CompletionListSetting = new LSP.CompletionListSetting
+                        CompletionList = new LSP.CompletionListCapabilities
                         {
                             ItemDefaults = ["editRange", "commitCharacters", "data"],
                         }
@@ -105,7 +105,7 @@ class A
             var caret = testServer.GetLocations("caret").Single();
             var completionParams = new LSP.CompletionParams()
             {
-                TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
                 Context = new LSP.CompletionContext()
                 {

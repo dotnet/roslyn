@@ -17,7 +17,7 @@ internal partial class RenameOptions
 
     /// <summary>
     /// Renames should be checked and tested before being executed.
-    /// 
+    ///
     /// @since version 3.12.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("prepareProvider")]

@@ -24,7 +24,7 @@ internal abstract class AbstractDocumentDiagnosticSource<TDocument>(TDocument do
 
     public TextDocumentIdentifier? GetDocumentIdentifier()
         => !string.IsNullOrEmpty(Document.FilePath)
-            ? new VSTextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), DocumentUri = Document.GetURI() }
+            ? new TextDocumentIdentifier { ProjectContext = ProtocolConversions.ProjectToProjectContext(Document.Project), Uri = Document.GetURI() }
             : null;
 
     public string ToDisplayString() => $"{this.GetType().Name}: {Document.FilePath ?? Document.Name} in {Document.Project.Name}";

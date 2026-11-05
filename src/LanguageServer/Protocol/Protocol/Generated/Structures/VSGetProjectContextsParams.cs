@@ -15,7 +15,6 @@ internal partial class VSGetProjectContextsParams
     /// Gets or sets the document for which project contexts are queried.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_textDocument")]
-    [System.Text.Json.Serialization.JsonRequired]
     public TextDocumentItem TextDocument { get; set; } = null!;
 
 }

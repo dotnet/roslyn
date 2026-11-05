@@ -195,7 +195,7 @@ internal sealed class RemoteCallHierarchyService(in ServiceArgs args) : RazorDoc
         CancellationToken cancellationToken)
     {
         var resolveData = CallHierarchyHelpers.GetResolveData(item);
-        return await snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(resolveData.TextDocument.DocumentUri, cancellationToken).ConfigureAwait(false);
+        return await snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentAsync(resolveData.TextDocument.Uri, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<CallHierarchyItem[]?> MapItemsAsync(RemoteDocumentSnapshot snapshot, CallHierarchyItem[] items, CancellationToken cancellationToken)

@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Provides information about the context in which an inline completion was requested.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class InlineCompletionContext

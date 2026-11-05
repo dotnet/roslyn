@@ -21,8 +21,8 @@ internal partial class TextDocumentSyncOptions
     /// and TextDocumentSyncKind.Incremental. If omitted it defaults to TextDocumentSyncKind.None.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("change")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
-    public TextDocumentSyncKind Change { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public TextDocumentSyncKind? Change { get; set; }
 
     /// <summary>
     /// If present will save notifications are sent to the server. If omitted the notification should not be
@@ -49,12 +49,13 @@ internal partial class TextDocumentSyncOptions
     public _Save? Save { get; set; }
 
     /// <summary>
-    /// A union of: TextDocumentSaveRegistrationOptions | bool.
+    /// A union of: SaveOptions | bool.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Save : System.Runtime.CompilerServices.IUnion
     {
-        public _Save(TextDocumentSaveRegistrationOptions value) => Value = value;
+        public _Save(SaveOptions value) => Value = value;
         public _Save(bool value) => Value = value;
         public object Value { get; }
     }

@@ -20,7 +20,7 @@ internal sealed class CapabilitiesManager : IInitializeManager<InitializeParams,
     {
         var serverCapabilities = new ServerCapabilities()
         {
-            SemanticTokensOptions = new SemanticTokensOptions
+            SemanticTokensProvider = new SemanticTokensRegistrationOptions
             {
                 Range = true,
             },

@@ -505,7 +505,7 @@ public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) 
     {
         UpdateClientLSPInitializationOptions(c =>
         {
-            c.ClientCapabilities.TextDocument!.FoldingRange = new FoldingRangeSetting()
+            c.ClientCapabilities.TextDocument!.FoldingRange = new FoldingRangeClientCapabilities()
             {
                 LineFoldingOnly = lineFoldingOnly,
             };

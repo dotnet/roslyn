@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Class representing a streaming pull request parameter used.
 /// </summary>
-internal partial class VSInternalStreamingParams
+internal partial class VSInternalStreamingParams : ITextDocumentParams
 {
     /// <summary>
     /// Gets or sets the document for which the feature is being requested for.

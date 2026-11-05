@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client capabilities specific to the used markdown parser.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class MarkdownClientCapabilities
@@ -30,7 +30,7 @@ internal partial class MarkdownClientCapabilities
     /// <summary>
     /// A list of HTML tags that the client allows / supports in
     /// Markdown.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("allowedTags")]

@@ -294,7 +294,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     {
         foreach (var removedResult in removedPreviousResults)
         {
-            context.TraceDebug($"Clearing diagnostics for removed document: {removedResult.TextDocument.DocumentUri}");
+            context.TraceDebug($"Clearing diagnostics for removed document: {removedResult.TextDocument.Uri}");
 
             // Client is asking server about a document that no longer exists (i.e. was removed/deleted from
             // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that

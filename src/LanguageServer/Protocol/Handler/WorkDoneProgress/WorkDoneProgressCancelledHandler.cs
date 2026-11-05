@@ -25,6 +25,6 @@ internal sealed class WorkDoneProgressCancelledHandler() : ILspServiceNotificati
     {
         var manager = requestContext.GetRequiredLspService<WorkDoneProgressManager>();
         // We always create guid tokens, so use the string sumtype directly.
-        manager.CancelWorkDoneProgress(request.Token.Second);
+        manager.CancelWorkDoneProgress((string)request.Token.Value);
     }
 }

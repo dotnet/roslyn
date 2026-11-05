@@ -17,7 +17,7 @@ internal sealed class CohostActivator(ILspServerActivationTracker activationTrac
 
     public int Order => WellKnownStartupOrder.Default;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(ClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         _activationTracker.Activated();
 

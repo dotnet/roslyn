@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// A diagnostic report indicating that the last returned
 /// report is still accurate.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class UnchangedDocumentDiagnosticReport

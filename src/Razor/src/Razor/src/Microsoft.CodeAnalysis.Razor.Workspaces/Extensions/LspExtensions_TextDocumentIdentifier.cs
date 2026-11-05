@@ -6,7 +6,7 @@ namespace Roslyn.LanguageServer.Protocol;
 internal static partial class LspExtensions
 {
     public static VSProjectContext? GetProjectContext(this TextDocumentIdentifier textDocumentIdentifier)
-        => textDocumentIdentifier is VSTextDocumentIdentifier vsIdentifier
+        => textDocumentIdentifier is TextDocumentIdentifier vsIdentifier
             ? vsIdentifier.ProjectContext
             : null;
 
@@ -15,18 +15,18 @@ internal static partial class LspExtensions
     /// </summary>
     public static TextDocumentIdentifier WithUri(this TextDocumentIdentifier textDocumentIdentifier, DocumentUri uri)
     {
-        if (textDocumentIdentifier is VSTextDocumentIdentifier vsTdi)
+        if (textDocumentIdentifier is TextDocumentIdentifier vsTdi)
         {
-            return new VSTextDocumentIdentifier
+            return new TextDocumentIdentifier
             {
-                DocumentUri = uri,
+                Uri = uri,
                 ProjectContext = vsTdi.ProjectContext
             };
         }
 
         return new TextDocumentIdentifier
         {
-            DocumentUri = uri
+            Uri = uri
         };
     }
 }

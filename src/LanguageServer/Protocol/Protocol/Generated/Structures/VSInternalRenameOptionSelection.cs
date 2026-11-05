@@ -22,6 +22,7 @@ internal partial class VSInternalRenameOptionSelection
     /// Gets or sets a value indicating whether the user selected the option.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_value")]
+    [System.Text.Json.Serialization.JsonRequired]
     public bool Value { get; set; }
 
 }

@@ -20,7 +20,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<
-    Roslyn.LanguageServer.Protocol.SumType<Roslyn.LanguageServer.Protocol.VSInternalReferenceItem, Roslyn.LanguageServer.Protocol.Location>[]?>;
+    Roslyn.LanguageServer.Protocol.ReferenceItem[]?>;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -37,7 +37,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
 
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
-    public ValueTask<RemoteResponse<SumType<VSInternalReferenceItem, LspLocation>[]?>> FindAllReferencesAsync(
+    public ValueTask<RemoteResponse<ReferenceItem[]?>> FindAllReferencesAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
         Position position,
@@ -48,7 +48,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
             snapshot => FindAllReferencesAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<RemoteResponse<SumType<VSInternalReferenceItem, LspLocation>[]?>> FindAllReferencesAsync(
+    private async ValueTask<RemoteResponse<ReferenceItem[]?>> FindAllReferencesAsync(
         RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
@@ -76,7 +76,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
             .ConfigureAwait(false);
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var metadataAsSourceFileService = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IMetadataAsSourceFileService>();
-        var progress = BufferedProgress.Create<SumType<VSInternalReferenceItem, LspLocation>[]>(progress: null);
+        var progress = BufferedProgress.Create<ReferenceItem[]>(progress: null);
 
         await FindAllReferencesHandler.FindReferencesAsync(
             progress,
@@ -98,21 +98,22 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
             return NoFurtherHandling;
         }
 
-        using var mappedResults = new PooledArrayBuilder<SumType<VSInternalReferenceItem, LspLocation>>(results.Length);
+        using var mappedResults = new PooledArrayBuilder<ReferenceItem>(results.Length);
 
         // Map the C# locations back to the Razor file.
         foreach (var result in results)
         {
-            var location = result.TryGetFirst(out var referenceItem)
+            var referenceItem = result.Value as VSInternalReferenceItem;
+            var location = referenceItem is not null
                 ? referenceItem.Location
-                : result.Second;
+                : (LspLocation)result.Value;
 
             if (location is null)
             {
                 continue;
             }
 
-            var generatedDocumentUri = location.DocumentUri;
+            var generatedDocumentUri = location.Uri;
             var (mappedUri, mappedRange) = await DocumentMappingService
                 .MapToHostDocumentUriAndRangeAsync(
                     snapshot,
@@ -133,7 +134,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 referenceItem.Origin = VSInternalItemOrigin.Exact;
 
                 // If we're going to change the Uri, then also override the file paths
-                if (mappedUri != location.DocumentUri)
+                if (mappedUri != location.Uri)
                 {
                     var path = mappedUri.GetDocumentFilePathFromUri();
                     referenceItem.DisplayPath = path;
@@ -150,7 +151,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
                 }
             }
 
-            location.DocumentUri = mappedUri;
+            location.Uri = mappedUri;
             location.Range = mappedRange.ToRange();
 
             mappedResults.Add(result);

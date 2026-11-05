@@ -10,7 +10,7 @@ internal static class VSInternalCompletionItemExtensions
 {
     public const string ResultIdKey = "_resultId";
 
-    public static bool TryGetCompletionListResultIds(this VSInternalCompletionItem completion, out ImmutableArray<int> resultIds)
+    public static bool TryGetCompletionListResultIds(this CompletionItem completion, out ImmutableArray<int> resultIds)
     {
         if (!CompletionListMerger.TrySplit(completion.Data, out var splitData))
         {
@@ -40,9 +40,9 @@ internal static class VSInternalCompletionItemExtensions
     }
 
     public static void UseCommitCharactersFrom(
-        this VSInternalCompletionItem completionItem,
+        this CompletionItem completionItem,
         RazorCompletionItem razorCompletionItem,
-        VSInternalClientCapabilities clientCapabilities)
+        ClientCapabilities clientCapabilities)
     {
         var razorCommitCharacters = razorCompletionItem.CommitCharacters;
         if (razorCommitCharacters.IsEmpty)

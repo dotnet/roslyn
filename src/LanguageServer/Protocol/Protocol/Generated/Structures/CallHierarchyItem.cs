@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// Represents programming constructs like functions or constructors in the context
 /// of call hierarchy.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class CallHierarchyItem

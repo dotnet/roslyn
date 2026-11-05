@@ -39,7 +39,7 @@ public sealed class CallHierarchyTests(ITestOutputHelper testOutputHelper) : Abs
         var definition = testLspServer.GetLocations("definition").Single();
 
         Assert.Equal("C.M()", preparedItem.Name);
-        Assert.Equal(definition.DocumentUri, preparedItem.Uri);
+        Assert.Equal(definition.Uri, preparedItem.Uri);
         Assert.Equal(0, CompareRange(definition.Range, preparedItem.SelectionRange));
         Assert.NotNull(preparedItem.Data);
     }
@@ -78,11 +78,11 @@ public sealed class CallHierarchyTests(ITestOutputHelper testOutputHelper) : Abs
         var typeLocation = testLspServer.GetLocations("type").Single();
         var methodLocation = testLspServer.GetLocations("targetMethod").Single();
 
-        Assert.Equal(typeLocation.DocumentUri, constructorCall.To.Uri);
+        Assert.Equal(typeLocation.Uri, constructorCall.To.Uri);
         Assert.Equal(0, CompareRange(typeLocation.Range, constructorCall.To.SelectionRange));
         Assert.Single(constructorCall.FromRanges);
 
-        Assert.Equal(methodLocation.DocumentUri, methodCall.To.Uri);
+        Assert.Equal(methodLocation.Uri, methodCall.To.Uri);
         Assert.Equal(0, CompareRange(methodLocation.Range, methodCall.To.SelectionRange));
         Assert.Single(methodCall.FromRanges);
     }
@@ -181,7 +181,7 @@ public sealed class CallHierarchyTests(ITestOutputHelper testOutputHelper) : Abs
             LSP.Methods.PrepareCallHierarchyName,
             new LSP.CallHierarchyPrepareParams
             {
-                TextDocument = CreateTextDocumentIdentifier(caret.DocumentUri),
+                TextDocument = CreateTextDocumentIdentifier(caret.Uri),
                 Position = caret.Range.Start,
             },
             CancellationToken.None) ?? [];

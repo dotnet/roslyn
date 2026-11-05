@@ -52,12 +52,12 @@ internal sealed class RemoteAddNestedFileService(in ServiceArgs args)
 
         var nestedFileDocumentIdentifier = new OptionalVersionedTextDocumentIdentifier
         {
-            DocumentUri = nestedFileUri
+            Uri = nestedFileUri
         };
 
-        var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+        var documentChanges = new Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem[]
         {
-            new CreateFile { DocumentUri = nestedFileDocumentIdentifier.DocumentUri },
+            new CreateFile { Uri = nestedFileDocumentIdentifier.Uri },
             new TextDocumentEdit
             {
                 TextDocument = nestedFileDocumentIdentifier,

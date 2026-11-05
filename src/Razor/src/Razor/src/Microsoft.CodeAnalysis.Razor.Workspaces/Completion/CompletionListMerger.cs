@@ -37,7 +37,7 @@ internal static class CompletionListMerger
         EnsureMergeableData(razorCompletionList, delegatedCompletionList);
 
         var mergedIsIncomplete = razorCompletionList.IsIncomplete || delegatedCompletionList.IsIncomplete;
-        VSInternalCompletionItem[] mergedItems = [.. razorCompletionList.Items, .. delegatedCompletionList.Items];
+        CompletionItem[] mergedItems = [.. razorCompletionList.Items, .. delegatedCompletionList.Items];
         var mergedData = MergeData(razorCompletionList.Data, delegatedCompletionList.Data);
         var mergedSuggestionMode = razorCompletionList.SuggestionMode || delegatedCompletionList.SuggestionMode;
 
@@ -61,7 +61,7 @@ internal static class CompletionListMerger
             Items = mergedItems,
             SuggestionMode = mergedSuggestionMode,
             ContinueCharacters = mergedContinueWithCharacters,
-            ItemDefaults = new CompletionListItemDefaults()
+            ItemDefaults = new CompletionItemDefaults()
             {
                 Data = mergedItemDefaultsData,
                 EditRange = mergedEditRange,
@@ -206,9 +206,9 @@ internal static class CompletionListMerger
         {
             if (completionList.ItemDefaults?.EditRange?.Value is not LspRange range)
             {
-                // Either no EditRange, or it's an InsertReplaceRange. InsertReplaceRange is intentionally
+                // Either no EditRange, or it's an CompletionItemRanges. CompletionItemRanges is intentionally
                 // not dematerialized — it requires reconstructing InsertReplaceEdit (two ranges per item),
-                // and no current provider produces it. Items using InsertReplaceRange remain valid after
+                // and no current provider produces it. Items using CompletionItemRanges remain valid after
                 // merge because the merged ItemDefaults preserves it via null-coalescing.
                 return;
             }
@@ -252,11 +252,14 @@ internal static class CompletionListMerger
             {
                 foreach (var item in completionList.Items)
                 {
-                    if (item is VSInternalCompletionItem vsItem &&
-                        vsItem.CommitCharacters is null &&
-                        vsItem.VsCommitCharacters is null)
+                    if (item.CommitCharacters is null && item.VsCommitCharacters is null)
                     {
-                        vsItem.VsCommitCharacters = listChars;
+                        item.VsCommitCharacters = listChars.Value switch
+                        {
+                            string[] characters => characters,
+                            VSInternalCommitCharacter[] characters => characters,
+                            var unexpected => throw new System.InvalidOperationException($"Unexpected completion commit characters: {unexpected}"),
+                        };
                     }
                 }
             }

@@ -22,7 +22,7 @@ internal sealed class TextDocumentContentHandler() : ILspServiceDocumentRequestH
 
     public bool RequiresLSPSolution => true;
 
-    public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentContentParams request) => new() { DocumentUri = request.Uri };
+    public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentContentParams request) => new() { Uri = request.Uri };
 
     public async Task<TextDocumentContentResult> HandleRequestAsync(TextDocumentContentParams request, RequestContext context, CancellationToken cancellationToken)
     {

@@ -47,12 +47,12 @@ public sealed class VisualBasicInlayHintTests : AbstractInlayHintTests
     {
         await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
         {
-            ClientCapabilities = new LSP.VSInternalClientCapabilities
+            ClientCapabilities = new LSP.ClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
                 Workspace = new WorkspaceClientCapabilities
                 {
-                    InlayHint = new InlayHintWorkspaceSetting
+                    InlayHint = new InlayHintWorkspaceClientCapabilities
                     {
                         RefreshSupport = true
                     }

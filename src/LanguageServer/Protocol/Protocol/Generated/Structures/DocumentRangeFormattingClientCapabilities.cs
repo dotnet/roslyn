@@ -20,7 +20,7 @@ internal partial class DocumentRangeFormattingClientCapabilities
 
     /// <summary>
     /// Whether the client supports formatting multiple ranges at once.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("rangesSupport")]

@@ -3,7 +3,6 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
@@ -39,13 +38,13 @@ public partial class CohostDocumentPullDiagnosticsTest
         var diagnostic = Assert.Single(result);
         Assert.Equal(0, diagnostic.Range.Start.Line);
         Assert.Equal(0, diagnostic.Range.End.Line);
-        Assert.Equal("RZ0005", diagnostic.Code.AssumeNotNull().Second);
+        Assert.Equal("RZ0005", Assert.IsType<string>(diagnostic.Code?.Value));
         Assert.Equal(LspDiagnosticSeverity.Warning, diagnostic.Severity);
 
         var tags = Assert.IsType<DiagnosticTag[]>(diagnostic.Tags);
         Assert.Collection(
             tags,
-            tag => Assert.Equal(VSDiagnosticTags.HiddenInEditor, tag),
+            tag => Assert.Equal(DiagnosticTag.HiddenInEditor, tag),
             tag => Assert.Equal(DiagnosticTag.Unnecessary, tag));
     }
 
@@ -56,7 +55,7 @@ public partial class CohostDocumentPullDiagnosticsTest
             @{|CS0103:CallMeMaybe|}()
             """);
 
-        var diagnostic = Assert.IsType<VSDiagnostic>(Assert.Single(result));
+        var diagnostic = Assert.IsType<LspDiagnostic>(Assert.Single(result));
         Assert.NotNull(diagnostic.Identifier);
         Assert.NotNull(diagnostic.Projects);
         Assert.NotNull(Assert.Single(diagnostic.Projects).ProjectIdentifier);
@@ -99,7 +98,7 @@ public partial class CohostDocumentPullDiagnosticsTest
             {
                 Items =
                 [
-                    new VSDiagnostic
+                    new Diagnostic
                     {
                         Code = "HTM1337",
                         Range = SourceText.From(input.Text).GetRange(input.NamedSpans["HTM1337"].First()),
@@ -108,7 +107,7 @@ public partial class CohostDocumentPullDiagnosticsTest
                             ProjectIdentifier = "Html"
                         }]
                     },
-                    new VSDiagnostic
+                    new Diagnostic
                     {
                         Code = "TS2304",
                         Range = SourceText.From(input.Text).GetRange(input.NamedSpans["TS2304"].First()),
@@ -117,7 +116,7 @@ public partial class CohostDocumentPullDiagnosticsTest
                             ProjectIdentifier = "TypeScript"
                         }]
                     },
-                    new VSDiagnostic
+                    new Diagnostic
                     {
                         Code = "CSS002",
                         Range = SourceText.From(input.Text).GetRange(input.NamedSpans["CSS002"].First()),

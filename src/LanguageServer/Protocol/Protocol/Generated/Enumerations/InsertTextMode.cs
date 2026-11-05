@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// How whitespace and indentation is handled during completion
 /// item insertion.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal enum InsertTextMode
@@ -27,7 +27,7 @@ internal enum InsertTextMode
     /// The editor adjusts leading whitespace of new lines so that
     /// they match the indentation up to the cursor of the line for
     /// which the item is accepted.
-    /// 
+    ///
     /// Consider a line like this: &lt;2tabs&gt;&lt;cursor&gt;&lt;3tabs&gt;foo. Accepting a
     /// multi line completion item is indented using 2 tabs and all
     /// following lines inserted will be indented using 2 tabs as well.

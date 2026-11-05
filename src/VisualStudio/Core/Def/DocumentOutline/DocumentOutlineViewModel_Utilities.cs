@@ -25,15 +25,15 @@ internal sealed partial class DocumentOutlineViewModel
     /// Makes an LSP document symbol request and returns the response and the text snapshot used at 
     /// the time the LSP client sends the request to the server.
     /// </summary>
-    public static async Task<(RoslynDocumentSymbol[] response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
+    public static async Task<(DocumentSymbol[] response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
         ITextBuffer textBuffer,
-        LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> callbackAsync,
+        LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, DocumentSymbol[]> callbackAsync,
         string textViewFilePath,
         CancellationToken cancellationToken)
     {
         ITextSnapshot? requestSnapshot = null;
 
-        var request = new DocumentRequest<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>()
+        var request = new DocumentRequest<RoslynDocumentSymbolParams, DocumentSymbol[]>()
         {
             Method = Methods.TextDocumentDocumentSymbolName,
             LanguageServerName = WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
@@ -45,7 +45,7 @@ internal sealed partial class DocumentOutlineViewModel
                 {
                     TextDocument = new TextDocumentIdentifier
                     {
-                        DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(textViewFilePath),
+                        Uri = ProtocolConversions.CreateAbsoluteDocumentUri(textViewFilePath),
                     },
                     UseHierarchicalSymbols = true
                 };
@@ -62,11 +62,11 @@ internal sealed partial class DocumentOutlineViewModel
     /// <summary>
     /// Given an array of Document Symbols in a document, returns a DocumentSymbolDataModel.
     /// </summary>
-    public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(RoslynDocumentSymbol[] documentSymbols, ITextSnapshot textSnapshot)
+    public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(DocumentSymbol[] documentSymbols, ITextSnapshot textSnapshot)
     {
         return ConvertSymbols(documentSymbols);
 
-        ImmutableArray<DocumentSymbolData> ConvertSymbols(RoslynDocumentSymbol[]? symbols)
+        ImmutableArray<DocumentSymbolData> ConvertSymbols(DocumentSymbol[]? symbols)
         {
             if (symbols is null || symbols.Length == 0)
                 return [];
@@ -77,7 +77,7 @@ internal sealed partial class DocumentOutlineViewModel
                 var converted = new DocumentSymbolData(
                     symbol.Detail ?? symbol.Name,
                     (Roslyn.LanguageServer.Protocol.SymbolKind)symbol.Kind,
-                    (Glyph)symbol.Glyph,
+                    (Glyph)symbol.Glyph.GetValueOrDefault(),
                     GetSymbolRangeSpan(symbol.Range),
                     GetSymbolRangeSpan(symbol.SelectionRange),
                     ConvertSymbols(symbol.Children));

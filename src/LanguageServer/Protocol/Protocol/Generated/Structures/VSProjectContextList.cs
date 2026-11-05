@@ -15,14 +15,12 @@ internal partial class VSProjectContextList
     /// Gets or sets the document contexts associated with a text document.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_projectContexts")]
-    [System.Text.Json.Serialization.JsonRequired]
     public VSProjectContext[] ProjectContexts { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the index of the default entry of the <see cref="VSProjectContext"/> array.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_defaultIndex")]
-    [System.Text.Json.Serialization.JsonRequired]
     public int DefaultIndex { get; set; }
 
 }

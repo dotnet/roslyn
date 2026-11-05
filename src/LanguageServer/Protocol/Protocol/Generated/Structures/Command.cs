@@ -23,7 +23,7 @@ internal partial class Command
 
     /// <summary>
     /// An optional tooltip.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tooltip")]

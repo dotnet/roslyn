@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client workspace capabilities specific to inlay hints.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlayHintWorkspaceClientCapabilities
@@ -16,7 +16,7 @@ internal partial class InlayHintWorkspaceClientCapabilities
     /// <summary>
     /// Whether the client implementation supports a refresh request sent from
     /// the server to the client.
-    /// 
+    ///
     /// Note that this event is global and will force the client to refresh all
     /// inlay hints currently shown. It should be used with absolute care and
     /// is useful for situation where a server for example detects a project wide

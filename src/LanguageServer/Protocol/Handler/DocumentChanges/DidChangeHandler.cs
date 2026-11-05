@@ -29,11 +29,11 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
 
     public async Task<object?> HandleRequestAsync(DidChangeTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var text = context.GetTrackedDocumentInfo(request.TextDocument.DocumentUri).SourceText;
+        var text = context.GetTrackedDocumentInfo(request.TextDocument.Uri).SourceText;
 
         text = GetUpdatedSourceText(request.ContentChanges, text);
 
-        context.UpdateTrackedDocument(request.TextDocument.DocumentUri, text, request.TextDocument.Version);
+        context.UpdateTrackedDocument(request.TextDocument.Uri, text, request.TextDocument.Version);
 
         return null;
     }
@@ -54,7 +54,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
         return true;
     }
 
-    private static SourceText GetUpdatedSourceText(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges, SourceText text)
+    private static SourceText GetUpdatedSourceText(Roslyn.LanguageServer.Protocol.TextDocumentContentChangeEvent[] contentChanges, SourceText text)
     {
         (var remainingContentChanges, text) = GetUpdatedSourceTextAndChangesAfterFullTextReplacementHandled(contentChanges, text);
 
@@ -87,7 +87,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
         return text;
     }
 
-    private static (ImmutableArray<TextDocumentContentChangePartial>, SourceText) GetUpdatedSourceTextAndChangesAfterFullTextReplacementHandled(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>[] contentChanges, SourceText text)
+    private static (ImmutableArray<TextDocumentContentChangePartial>, SourceText) GetUpdatedSourceTextAndChangesAfterFullTextReplacementHandled(Roslyn.LanguageServer.Protocol.TextDocumentContentChangeEvent[] contentChanges, SourceText text)
     {
         // Per the LSP spec, each content change is either a range-based change (TextDocumentContentChangePartial)
         // or a full document text replacement (TextDocumentContentChangeWholeDocument). If a full replacement is found,
@@ -104,7 +104,7 @@ internal class DidChangeHandler() : ILspServiceDocumentRequestHandler<DidChangeT
             }
         }
 
-        var remainingContentChanges = contentChanges.Skip(lastFullTextChangeEventIndex + 1).SelectAsArray(c => c.First);
+        var remainingContentChanges = contentChanges.Skip(lastFullTextChangeEventIndex + 1).SelectAsArray(c => (TextDocumentContentChangePartial)c.Value);
         return (remainingContentChanges, text);
     }
 }

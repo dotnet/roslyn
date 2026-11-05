@@ -12,6 +12,7 @@ namespace Roslyn.LanguageServer.Protocol;
 internal partial class PrepareRenameDefaultBehavior
 {
     [System.Text.Json.Serialization.JsonPropertyName("defaultBehavior")]
+    [System.Text.Json.Serialization.JsonRequired]
     public bool DefaultBehavior { get; set; }
 
 }

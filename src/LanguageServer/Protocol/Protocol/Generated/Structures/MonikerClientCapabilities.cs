@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Client capabilities specific to the moniker request.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class MonikerClientCapabilities

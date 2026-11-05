@@ -67,9 +67,9 @@ internal static class RazorDiagnosticHelper
     }
 
     // Internal for testing
-    internal static VSDiagnostic ConvertToVSDiagnostic(RazorDiagnostic razorDiagnostic, SourceText sourceText, RemoteDocumentSnapshot? documentSnapshot)
+    internal static LspDiagnostic ConvertToVSDiagnostic(RazorDiagnostic razorDiagnostic, SourceText sourceText, RemoteDocumentSnapshot? documentSnapshot)
     {
-        var diagnostic = new VSDiagnostic()
+        var diagnostic = new LspDiagnostic()
         {
             Message = razorDiagnostic.GetMessage(CultureInfo.InvariantCulture),
             Code = razorDiagnostic.Id,

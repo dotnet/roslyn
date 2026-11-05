@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Matching options for the file operation pattern.
-/// 
+///
 /// @since 3.16.0
 /// </summary>
 internal partial class FileOperationPatternOptions

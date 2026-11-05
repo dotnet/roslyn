@@ -9,7 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <summary>
 /// The parameters sent in a close text document notification
 /// </summary>
-internal partial class DidCloseTextDocumentParams
+internal partial class DidCloseTextDocumentParams : ITextDocumentParams
 {
     /// <summary>
     /// The document that was closed.

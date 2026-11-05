@@ -15,14 +15,12 @@ internal partial class ColorInformation
     /// The range in the document where this color appears.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("range")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Range Range { get; set; } = null!;
 
     /// <summary>
     /// The actual color value for this color range.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("color")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Color Color { get; set; } = null!;
 
 }

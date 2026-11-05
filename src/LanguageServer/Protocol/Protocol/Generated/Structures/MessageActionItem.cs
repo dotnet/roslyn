@@ -12,7 +12,6 @@ internal partial class MessageActionItem
     /// A short title like 'Retry', 'Open Log' etc.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("title")]
-    [System.Text.Json.Serialization.JsonRequired]
     public string Title { get; set; } = null!;
 
 }

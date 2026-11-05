@@ -15,7 +15,6 @@ internal partial class ClientDiagnosticsTagOptions
     /// The tags supported by the client.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("valueSet")]
-    [System.Text.Json.Serialization.JsonRequired]
     public DiagnosticTag[] ValueSet { get; set; } = null!;
 
 }

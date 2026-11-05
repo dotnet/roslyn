@@ -20,7 +20,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Defines which filters the client supports.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("filters")]
@@ -50,7 +50,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `textDocument/declaration` request.
-    /// 
+    ///
     /// @since 3.14.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("declaration")]
@@ -66,7 +66,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `textDocument/typeDefinition` request.
-    /// 
+    ///
     /// @since 3.6.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("typeDefinition")]
@@ -75,7 +75,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `textDocument/implementation` request.
-    /// 
+    ///
     /// @since 3.6.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("implementation")]
@@ -127,7 +127,7 @@ internal partial class TextDocumentClientCapabilities
     /// <summary>
     /// Capabilities specific to the `textDocument/documentColor` and the
     /// `textDocument/colorPresentation` request.
-    /// 
+    ///
     /// @since 3.6.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("colorProvider")]
@@ -164,7 +164,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `textDocument/foldingRange` request.
-    /// 
+    ///
     /// @since 3.10.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("foldingRange")]
@@ -173,7 +173,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `textDocument/selectionRange` request.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("selectionRange")]
@@ -189,7 +189,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the various call hierarchy requests.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("callHierarchy")]
@@ -198,7 +198,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the various semantic token request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("semanticTokens")]
@@ -207,7 +207,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `textDocument/linkedEditingRange` request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("linkedEditingRange")]
@@ -216,7 +216,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Client capabilities specific to the `textDocument/moniker` request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("moniker")]
@@ -225,7 +225,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the various type hierarchy requests.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("typeHierarchy")]
@@ -234,7 +234,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `textDocument/inlineValue` request.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("inlineValue")]
@@ -243,7 +243,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `textDocument/inlayHint` request.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("inlayHint")]
@@ -252,7 +252,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the diagnostic pull model.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("diagnostic")]
@@ -261,7 +261,7 @@ internal partial class TextDocumentClientCapabilities
 
     /// <summary>
     /// Client capabilities specific to inline completions.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("inlineCompletion")]

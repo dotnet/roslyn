@@ -15,6 +15,7 @@ internal partial class DidChangeConfigurationRegistrationOptions
     /// <summary>
     /// A union of: string | string[].
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Section : System.Runtime.CompilerServices.IUnion
     {

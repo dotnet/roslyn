@@ -21,7 +21,7 @@ internal class RazorCohostDynamicRegistrationService(
     ILoggerFactory loggerFactory)
     : IRazorCohostStartupService
 {
-    private static readonly DocumentFilter[] s_filter = [new DocumentFilter()
+    private static readonly DocumentFilter[] s_filter = [new TextDocumentFilterLanguage()
     {
 #if VSCODE
         Language = "aspnetcorerazor",
@@ -36,7 +36,7 @@ internal class RazorCohostDynamicRegistrationService(
 
     public int Order => WellKnownStartupOrder.DynamicRegistration;
 
-    public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
+    public async Task StartupAsync(ClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         // We assume most registration providers will just return one, so whilst this isn't completely accurate, it's a
         // reasonable starting point

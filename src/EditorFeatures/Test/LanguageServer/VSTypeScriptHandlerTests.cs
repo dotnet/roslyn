@@ -52,13 +52,14 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
             TextDocument = CreateTextDocumentIdentifier(document.GetURI(), document.Project.Id)
         };
 
-        var publicDocumentResponse = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>(Methods.TextDocumentDiagnosticName, publicDocumentPullRequest, CancellationToken.None);
-        AssertEx.Empty(publicDocumentResponse.First.Items);
+        var publicDocumentResponse = await testLspServer.ExecuteRequestAsync<DocumentDiagnosticParams, FullOrUnchangedDiagnosticReport>(Methods.TextDocumentDiagnosticName, publicDocumentPullRequest, CancellationToken.None);
+        Assert.NotNull(publicDocumentResponse);
+        AssertEx.Empty(Assert.IsType<FullDocumentDiagnosticReport>(publicDocumentResponse.Value).Items);
 
         var publicWorkspacePullRequest = new WorkspaceDiagnosticParams
         {
             Identifier = PullDiagnosticCategories.WorkspaceDocumentsAndProject,
-            PreviousResultId = []
+            PreviousResultIds = []
         };
 
         var publicWorkspaceResponse = await testLspServer.ExecuteRequestAsync<WorkspaceDiagnosticParams, WorkspaceDiagnosticReport?>(Methods.WorkspaceDiagnosticName, publicWorkspacePullRequest, CancellationToken.None);

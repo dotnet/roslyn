@@ -13,7 +13,7 @@ internal static class Requests
 {
     /// <summary>
     /// A request to resolve the incoming calls for a given `CallHierarchyItem`.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string CallHierarchyIncomingCallsMethod = "callHierarchy/incomingCalls";
@@ -23,7 +23,7 @@ internal static class Requests
 
     /// <summary>
     /// A request to resolve the outgoing calls for a given `CallHierarchyItem`.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string CallHierarchyOutgoingCallsMethod = "callHierarchy/outgoingCalls";
@@ -103,7 +103,7 @@ internal static class Requests
     /// A request to resolve additional properties for an inlay hint.
     /// The request's parameter is of type <see cref="InlayHint"/>, the response is
     /// of type <see cref="InlayHint"/> or a Thenable that resolves to such.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string InlayHintResolveMethod = "inlayHint/resolve";
@@ -226,7 +226,7 @@ internal static class Requests
     /// parameter is of type TextDocumentPosition the response
     /// is of type <see cref="CompletionItem">CompletionItem[]</see> or <see cref="CompletionList"/>
     /// or a Thenable that resolves to such.
-    /// 
+    ///
     /// The request can delay the computation of the <see cref="CompletionItem.Detail">detail</see>
     /// and <see cref="CompletionItem.Documentation">documentation</see> properties to the `completionItem/resolve`
     /// request. However, properties that are needed for the initial sorting and filtering, like `sortText`,
@@ -261,8 +261,8 @@ internal static class Requests
 
     /// <summary>
     /// The document diagnostic request definition.
-    /// 
-    /// 
+    ///
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string TextDocumentDiagnosticMethod = "textDocument/diagnostic";
@@ -354,7 +354,7 @@ internal static class Requests
     /// A request to provide inlay hints in a document. The request's parameter is of
     /// type InlayHintsParams, the response is of type
     /// <see cref="InlayHint">InlayHint[]</see> or a Thenable that resolves to such.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string TextDocumentInlayHintMethod = "textDocument/inlayHint";
@@ -366,7 +366,7 @@ internal static class Requests
     /// A request to provide inline completions in a document. The request's parameter is of
     /// type <see cref="InlineCompletionParams"/>, the response is of type
     /// InlineCompletion[] or a Thenable that resolves to such.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     public const string TextDocumentInlineCompletionMethod = "textDocument/inlineCompletion";
@@ -378,7 +378,7 @@ internal static class Requests
     /// A request to provide inline values in a document. The request's parameter is of
     /// type <see cref="InlineValueParams"/>, the response is of type
     /// <see cref="InlineValue">InlineValue[]</see> or a Thenable that resolves to such.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string TextDocumentInlineValueMethod = "textDocument/inlineValue";
@@ -388,7 +388,7 @@ internal static class Requests
 
     /// <summary>
     /// A request to provide ranges that can be edited together.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string TextDocumentLinkedEditingRangeMethod = "textDocument/linkedEditingRange";
@@ -417,7 +417,7 @@ internal static class Requests
     /// <summary>
     /// A request to result a `CallHierarchyItem` in a document at a given position.
     /// Can be used as an input to an incoming or outgoing call hierarchy.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string TextDocumentPrepareCallHierarchyMethod = "textDocument/prepareCallHierarchy";
@@ -427,7 +427,7 @@ internal static class Requests
 
     /// <summary>
     /// A request to test and perform the setup necessary for a rename.
-    /// 
+    ///
     /// @since 3.16 - support for default behavior
     /// </summary>
     public const string TextDocumentPrepareRenameMethod = "textDocument/prepareRename";
@@ -438,7 +438,7 @@ internal static class Requests
     /// <summary>
     /// A request to result a `TypeHierarchyItem` in a document at a given position.
     /// Can be used as an input to a subtypes or supertypes type hierarchy.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string TextDocumentPrepareTypeHierarchyMethod = "textDocument/prepareTypeHierarchy";
@@ -456,7 +456,7 @@ internal static class Requests
 
     /// <summary>
     /// A request to format ranges in a document.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     public const string TextDocumentRangesFormattingMethod = "textDocument/rangesFormatting";
@@ -556,7 +556,7 @@ internal static class Requests
 
     /// <summary>
     /// A request to resolve the subtypes for a given `TypeHierarchyItem`.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string TypeHierarchySubtypesMethod = "typeHierarchy/subtypes";
@@ -566,7 +566,7 @@ internal static class Requests
 
     /// <summary>
     /// A request to resolve the supertypes for a given `TypeHierarchyItem`.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string TypeHierarchySupertypesMethod = "typeHierarchy/supertypes";
@@ -579,7 +579,7 @@ internal static class Requests
     /// external program depending on the value of the URI to open.
     /// For example a request to open `https://code.visualstudio.com/`
     /// will very likely open the URI in a WEB browser.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string WindowShowDocumentMethod = "window/showDocument";
@@ -631,7 +631,7 @@ internal static class Requests
 
     /// <summary>
     /// A request to refresh all code actions
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string WorkspaceCodeLensRefreshMethod = "workspace/codeLens/refresh";
@@ -642,7 +642,7 @@ internal static class Requests
     /// <summary>
     /// The 'workspace/configuration' request is sent from the server to the client to fetch a certain
     /// configuration setting.
-    /// 
+    ///
     /// This pull model replaces the old push model were the client signaled configuration change via an
     /// event. If the server still needs to react to configuration changes (since the server caches the
     /// result of `workspace/configuration` requests) the server should register for an empty configuration
@@ -655,7 +655,7 @@ internal static class Requests
 
     /// <summary>
     /// The workspace diagnostic request definition.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string WorkspaceDiagnosticMethod = "workspace/diagnostic";
@@ -665,7 +665,7 @@ internal static class Requests
 
     /// <summary>
     /// The diagnostic refresh request definition.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string WorkspaceDiagnosticRefreshMethod = "workspace/diagnostic/refresh";
@@ -684,7 +684,7 @@ internal static class Requests
 
     /// <summary>
     /// A request to refresh the folding ranges in a document.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     public const string WorkspaceFoldingRangeRefreshMethod = "workspace/foldingRange/refresh";
@@ -721,11 +721,11 @@ internal static class Requests
     /// by the <see cref="WorkspaceSymbolParams"/>. The response is
     /// of type <see cref="SymbolInformation">SymbolInformation[]</see> or a Thenable that
     /// resolves to such.
-    /// 
+    ///
     /// @since 3.17.0 - support for WorkspaceSymbol in the returned data. Clients
     ///  need to advertise support for WorkspaceSymbols via the client capability
     ///  `workspace.symbol.resolveSupport`.
-    /// 
+    ///
     /// </summary>
     public const string WorkspaceSymbolMethod = "workspace/symbol";
 
@@ -735,7 +735,7 @@ internal static class Requests
     /// <summary>
     /// The `workspace/textDocumentContent` request is sent from the client to the
     /// server to request the content of a text document.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     public const string WorkspaceTextDocumentContentMethod = "workspace/textDocumentContent";
@@ -746,7 +746,7 @@ internal static class Requests
     /// <summary>
     /// The `workspace/textDocumentContent` request is sent from the server to the client to refresh
     /// the content of a specific text document.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     public const string WorkspaceTextDocumentContentRefreshMethod = "workspace/textDocumentContent/refresh";
@@ -757,11 +757,11 @@ internal static class Requests
     /// <summary>
     /// The will create files request is sent from the client to the server before files are actually
     /// created as long as the creation is triggered from within the client.
-    /// 
+    ///
     /// The request can return a `WorkspaceEdit` which will be applied to workspace before the
     /// files are created. Hence the `WorkspaceEdit` can not manipulate the content of the file
     /// to be created.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string WorkspaceWillCreateFilesMethod = "workspace/willCreateFiles";
@@ -772,7 +772,7 @@ internal static class Requests
     /// <summary>
     /// The did delete files notification is sent from the client to the server when
     /// files were deleted from within the client.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string WorkspaceWillDeleteFilesMethod = "workspace/willDeleteFiles";
@@ -783,7 +783,7 @@ internal static class Requests
     /// <summary>
     /// The will rename files request is sent from the client to the server before files are actually
     /// renamed as long as the rename is triggered from within the client.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     public const string WorkspaceWillRenameFilesMethod = "workspace/willRenameFiles";
@@ -802,7 +802,7 @@ internal static class Requests
     /// <summary>
     /// A request to resolve the range inside the workspace
     /// symbol's location.
-    /// 
+    ///
     /// @since 3.17.0
     /// </summary>
     public const string WorkspaceSymbolResolveMethod = "workspaceSymbol/resolve";

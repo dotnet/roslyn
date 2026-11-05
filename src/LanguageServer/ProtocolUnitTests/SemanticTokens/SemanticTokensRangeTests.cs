@@ -78,7 +78,7 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
         var clientCapabilities = GetCapabilities(isVS);
         clientCapabilities.Workspace = new WorkspaceClientCapabilities
         {
-            SemanticTokens = new SemanticTokensWorkspaceSetting { RefreshSupport = true },
+            SemanticTokens = new SemanticTokensWorkspaceClientCapabilities { RefreshSupport = true },
         };
 
         var clientCallbackTarget = new SemanticTokensRefreshClientCallbackTarget();
@@ -94,7 +94,7 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
         await workspace.ChangeProjectAsync(projectId, workspace.CurrentSolution.WithHasAllInformation(projectId, hasAllInformation: false));
 
         var location = testLspServer.GetLocations("range").Single();
-        await testLspServer.OpenDocumentAsync(location.DocumentUri);
+        await testLspServer.OpenDocumentAsync(location.Uri);
         var loadingResults = await RunGetSemanticTokensRangeAsync(testLspServer, location);
         Assert.Empty(loadingResults.Data);
 

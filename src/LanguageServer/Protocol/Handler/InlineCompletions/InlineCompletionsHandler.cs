@@ -159,7 +159,7 @@ internal sealed partial class InlineCompletionsHandler : ILspServiceDocumentRequ
         {
             Range = ProtocolConversions.TextSpanToRange(wordOnLeft.Value, sourceText),
             Text = formattedLspSnippet,
-            TextFormat = InsertTextFormat.Snippet,
+            InsertTextFormat = InsertTextFormat.Snippet,
         };
     }
 

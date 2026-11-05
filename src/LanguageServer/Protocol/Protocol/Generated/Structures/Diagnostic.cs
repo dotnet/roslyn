@@ -16,7 +16,6 @@ internal partial class Diagnostic
     /// The range at which the message applies
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("range")]
-    [System.Text.Json.Serialization.JsonRequired]
     public Range Range { get; set; } = null!;
 
     /// <summary>
@@ -25,8 +24,8 @@ internal partial class Diagnostic
     /// always provide a severity value.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("severity")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
-    public DiagnosticSeverity Severity { get; set; } = DiagnosticSeverity.Error;
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public DiagnosticSeverity? Severity { get; set; }
 
     /// <summary>
     /// The diagnostic's code, which usually appear in the user interface.
@@ -38,7 +37,7 @@ internal partial class Diagnostic
     /// <summary>
     /// An optional property to describe the error code.
     /// Requires the code field (above) to be present/not null.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("codeDescription")]
@@ -56,17 +55,16 @@ internal partial class Diagnostic
 
     /// <summary>
     /// The diagnostic's message. It usually appears in the user interface.
-    /// 
+    ///
     /// @since 3.18.0 - support for MarkupContent. This is guarded by the client
     /// capability `textDocument.diagnostic.markupMessageSupport`.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("message")]
-    [System.Text.Json.Serialization.JsonRequired]
     public _Message Message { get; set; } = null!;
 
     /// <summary>
     /// Additional metadata about the diagnostic.
-    /// 
+    ///
     /// @since 3.15.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("tags")]
@@ -84,7 +82,7 @@ internal partial class Diagnostic
     /// <summary>
     /// A data entry field that is preserved between a `textDocument/publishDiagnostics`
     /// notification and `textDocument/codeAction` request.
-    /// 
+    ///
     /// @since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("data")]
@@ -143,6 +141,7 @@ internal partial class Diagnostic
     /// <summary>
     /// A union of: int | string.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Code : System.Runtime.CompilerServices.IUnion
     {
@@ -154,6 +153,7 @@ internal partial class Diagnostic
     /// <summary>
     /// A union of: string | MarkupContent.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Message : System.Runtime.CompilerServices.IUnion
     {

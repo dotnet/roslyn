@@ -22,7 +22,6 @@ internal partial class ExecuteCommandClientCapabilities
     /// Gets or sets a set of well-known commands name the given VS-LSP client supports.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_supportedCommands")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string[]? SupportedCommands { get; set; }
 
 }

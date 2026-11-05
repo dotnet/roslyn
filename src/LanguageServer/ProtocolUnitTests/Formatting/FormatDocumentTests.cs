@@ -34,7 +34,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             class A
             {
@@ -67,7 +67,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             using System;
             using System.Collections;
@@ -99,7 +99,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             using System;
             using System.Collections;
@@ -131,7 +131,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             using System;
             using System.Collections;
@@ -163,7 +163,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             using System;
             using System.Collections;
@@ -199,7 +199,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
         };
 
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, options);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             using System;
             using System.Collections;
@@ -227,7 +227,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             using System.Collections;
             using System;
@@ -252,7 +252,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             class A
             {
@@ -278,7 +278,7 @@ public sealed class FormatDocumentTests : AbstractLanguageServerProtocolTests
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var documentURI = testLspServer.GetLocations("caret").Single().DocumentUri;
+        var documentURI = testLspServer.GetLocations("caret").Single().Uri;
         await AssertFormatDocumentAsync(testLspServer, documentURI, """
             class A
             {

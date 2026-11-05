@@ -8,14 +8,14 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Inlay hint information.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlayHint
 {
     /// <summary>
     /// The position of this hint.
-    /// 
+    ///
     /// If multiple hints have the same position, they will be shown in the order
     /// they appear in the response.
     /// </summary>
@@ -26,7 +26,7 @@ internal partial class InlayHint
     /// <summary>
     /// The label of this hint. A human readable string or an array of
     /// InlayHintLabelPart label parts.
-    /// 
+    ///
     /// *Note* that neither the string nor the label part can be empty.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("label")]
@@ -43,7 +43,7 @@ internal partial class InlayHint
 
     /// <summary>
     /// Optional text edits that are performed when accepting this inlay hint.
-    /// 
+    ///
     /// *Note* that edits are expected to change the document so that the inlay
     /// hint (or its nearest variant) is now part of the document and the inlay
     /// hint itself is now obsolete.
@@ -61,7 +61,7 @@ internal partial class InlayHint
 
     /// <summary>
     /// Render padding before the hint.
-    /// 
+    ///
     /// Note: Padding should use the editor's background color, not the
     /// background color of the hint itself. That means padding can be used
     /// to visually align/separate an inlay hint.
@@ -72,7 +72,7 @@ internal partial class InlayHint
 
     /// <summary>
     /// Render padding after the hint.
-    /// 
+    ///
     /// Note: Padding should use the editor's background color, not the
     /// background color of the hint itself. That means padding can be used
     /// to visually align/separate an inlay hint.
@@ -92,6 +92,7 @@ internal partial class InlayHint
     /// <summary>
     /// A union of: string | InlayHintLabelPart[].
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Label : System.Runtime.CompilerServices.IUnion
     {
@@ -103,6 +104,7 @@ internal partial class InlayHint
     /// <summary>
     /// A union of: string | MarkupContent.
     /// </summary>
+    [System.Text.Json.Serialization.JsonConverter(typeof(UnionConverter))]
     [System.Runtime.CompilerServices.Union]
     internal sealed class _Tooltip : System.Runtime.CompilerServices.IUnion
     {

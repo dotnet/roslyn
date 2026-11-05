@@ -10,5 +10,5 @@ internal interface IClientCapabilitiesService
     /// </summary>
     bool CanGetClientCapabilities { get; }
 
-    VSInternalClientCapabilities ClientCapabilities { get; }
+    ClientCapabilities ClientCapabilities { get; }
 }

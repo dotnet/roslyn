@@ -8,20 +8,20 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// To compute an inline value through an expression evaluation.
-/// 
+///
 /// If only a range is specified, the expression should be
 /// extracted from the underlying document.
-/// 
+///
 /// An optional expression could be evaluated instead of
 /// the extracted expression.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlineValueEvaluatableExpression
 {
     /// <summary>
     /// The document range for which the inline value applies.
-    /// 
+    ///
     /// The range could be used to extract the evaluatable expression
     /// from the underlying document.
     /// </summary>

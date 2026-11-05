@@ -36,7 +36,7 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make a change that modifies the versions we use to cache.
@@ -65,7 +65,7 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make a global version change
@@ -95,7 +95,7 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
 
         await OpenDocumentAsync(testLspServer, document);
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
-        Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
+        Assert.Equal(TestDiagnosticSource.Id, Assert.IsType<string>(results[0].Diagnostics!.Single().Code!.Value));
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make another request without modifying anything and assert we did not re-calculate anything.

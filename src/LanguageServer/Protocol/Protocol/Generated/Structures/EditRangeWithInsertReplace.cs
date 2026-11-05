@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Edit range variant that includes ranges for insert and replace operations.
-/// 
+///
 /// @since 3.18.0
 /// </summary>
 internal partial class EditRangeWithInsertReplace

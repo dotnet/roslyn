@@ -14,7 +14,7 @@ internal partial class ClientSignatureParameterInformationOptions
     /// <summary>
     /// The client supports processing label offsets instead of a
     /// simple label string.
-    /// 
+    ///
     /// @since 3.14.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("labelOffsetSupport")]

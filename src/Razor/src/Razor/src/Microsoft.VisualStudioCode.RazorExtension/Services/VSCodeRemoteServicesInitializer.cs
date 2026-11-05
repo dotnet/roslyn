@@ -36,7 +36,7 @@ internal sealed class VSCodeRemoteServicesInitializer(
 
     public int Order => WellKnownStartupOrder.RemoteServices;
 
-    public async Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
+    public async Task StartupAsync(ClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         // Normal remote service invoker logic requires a solution, but we don't have one here. Fortunately we don't need one, and since
         // we know this is VS Code specific, its all just smoke and mirrors anyway. We can avoid the smoke :)

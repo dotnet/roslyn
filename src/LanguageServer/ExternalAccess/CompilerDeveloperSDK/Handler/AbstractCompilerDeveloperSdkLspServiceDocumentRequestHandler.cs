@@ -33,7 +33,7 @@ internal abstract class AbstractCompilerDeveloperSdkLspServiceDocumentRequestHan
     bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
 
     TextDocumentIdentifier ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier>.GetTextDocumentIdentifier(TRequest request)
-        => new() { DocumentUri = GetDocumentUri(request) };
+        => new() { Uri = GetDocumentUri(request) };
     Task<TResponse> IRequestHandler<TRequest, TResponse, LspRequestContext>.HandleRequestAsync(TRequest request, LspRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, new RequestContext(context), cancellationToken);
 }

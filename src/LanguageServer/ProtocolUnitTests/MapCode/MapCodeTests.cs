@@ -52,7 +52,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
         {
             Workspace = new LSP.WorkspaceClientCapabilities
             {
-                WorkspaceEdit = new LSP.WorkspaceEditSetting
+                WorkspaceEdit = new LSP.WorkspaceEditClientCapabilities
                 {
                     DocumentChanges = supportDocumentChanges,
                 }
@@ -78,7 +78,7 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
         var codeBlock = @"Console.WriteLine(string.Join("", "", args));";
         await using var testLspServer = await CreateTestLspServerAsync(code, mutatingLspWorkspace, CreateClientCapabilities(supportDocumentChanges));
         var ranges = testLspServer.GetLocations("range").ToArray();
-        var documentUri = ranges.Single().DocumentUri;
+        var documentUri = ranges.Single().Uri;
         var mapCodeParams = new LSP.VSInternalMapCodeParams()
         {
             Mappings =
@@ -104,10 +104,10 @@ public sealed class MapCodeTests : AbstractLanguageServerProtocolTests
             Assert.Null(results.Changes);
             Assert.NotNull(results.DocumentChanges);
 
-            var textDocumentEdits = results.DocumentChanges!.Value.First.Single();
-            Assert.Equal(textDocumentEdits.TextDocument.DocumentUri, mapCodeParams.Mappings.Single().TextDocument!.DocumentUri);
+            var textDocumentEdits = Assert.IsType<LSP.TextDocumentEdit>(results.DocumentChanges.Single().Value);
+            Assert.Equal(textDocumentEdits.TextDocument.Uri, mapCodeParams.Mappings.Single().TextDocument!.Uri);
 
-            edits = [.. textDocumentEdits.Edits.Select(e => e.Unify())];
+            edits = [.. textDocumentEdits.Edits.Select(e => Assert.IsAssignableFrom<TextEdit>(e.Value))];
         }
         else
         {

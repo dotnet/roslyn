@@ -15,7 +15,6 @@ internal partial class TextDocumentIdentifier
     /// The text document's uri.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("uri")]
-    [System.Text.Json.Serialization.JsonRequired]
     public DocumentUri Uri { get; set; } = null!;
 
     /// <summary>

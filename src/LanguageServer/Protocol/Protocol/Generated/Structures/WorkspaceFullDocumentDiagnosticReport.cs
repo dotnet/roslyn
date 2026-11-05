@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// A full document diagnostic report for a workspace diagnostic result.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagnosticReport
@@ -25,6 +25,7 @@ internal partial class WorkspaceFullDocumentDiagnosticReport : FullDocumentDiagn
     /// If the document is not marked as open `null` can be provided.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("version")]
+    [System.Text.Json.Serialization.JsonRequired]
     public int? Version { get; set; }
 
     /// <summary>

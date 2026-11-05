@@ -47,7 +47,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
     public ServerCapabilities GetCapabilities(ClientCapabilities clientCapabilities, ILspServices lspServices)
     {
         var supportsVsExtensions = clientCapabilities.HasVisualStudioLspCapability();
-        var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new VSInternalServerCapabilities();
+        var capabilities = supportsVsExtensions ? GetVSServerCapabilities() : new ServerCapabilities();
 
         var commitCharacters = CompletionResultFactory.DefaultCommitCharactersArray;
         var triggerCharacters = _completionProviders.SelectMany(
@@ -56,13 +56,13 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         capabilities.DefinitionProvider = true;
         capabilities.TypeDefinitionProvider = true;
         capabilities.DocumentHighlightProvider = true;
-        capabilities.RenameProvider = new RenameOptions
+        capabilities.RenameProvider = new RenameRegistrationOptions
         {
             PrepareProvider = true,
         };
         capabilities.ImplementationProvider = true;
-        capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor], ResolveProvider = true };
-        capabilities.CompletionProvider = new Roslyn.LanguageServer.Protocol.CompletionOptions
+        capabilities.CodeActionProvider = new CodeActionRegistrationOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor], ResolveProvider = true };
+        capabilities.CompletionProvider = new Roslyn.LanguageServer.Protocol.CompletionRegistrationOptions
         {
             ResolveProvider = true,
             AllCommitCharacters = commitCharacters,
@@ -74,13 +74,13 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         var signatureHelpRetriggerCharacters = _signatureHelpProviders.SelectMany(
             lz => lz.Value.RetriggerCharacters).Distinct().Select(c => c.ToString()).ToArray();
 
-        capabilities.SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = signatureHelpTriggerCharacters, RetriggerCharacters = signatureHelpRetriggerCharacters };
+        capabilities.SignatureHelpProvider = new SignatureHelpRegistrationOptions { TriggerCharacters = signatureHelpTriggerCharacters, RetriggerCharacters = signatureHelpRetriggerCharacters };
         capabilities.DocumentSymbolProvider = true;
         capabilities.WorkspaceSymbolProvider = true;
         capabilities.DocumentFormattingProvider = true;
         capabilities.DocumentRangeFormattingProvider = true;
-        capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = [";", "\n"] };
-        capabilities.ReferencesProvider = new ReferenceOptions
+        capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingRegistrationOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = [";", "\n"] };
+        capabilities.ReferencesProvider = new ReferenceRegistrationOptions
         {
             WorkDoneProgress = true,
         };
@@ -89,12 +89,12 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         capabilities.SelectionRangeProvider = true;
         capabilities.CallHierarchyProvider = true;
         capabilities.TypeHierarchyProvider = true;
-        capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = [] };
+        capabilities.ExecuteCommandProvider = new ExecuteCommandRegistrationOptions() { Commands = [] };
         capabilities.TextDocumentSync = new TextDocumentSyncOptions
         {
             Change = TextDocumentSyncKind.Incremental,
             OpenClose = true,
-            Save = new SaveOptions
+            Save = new TextDocumentSaveRegistrationOptions
             {
                 IncludeText = false,
             }
@@ -109,7 +109,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         // the client does not support ranges.
         var rangeCapabilities = clientCapabilities.TextDocument?.SemanticTokens?.Requests?.Range;
         var supportsSemanticTokensRange = rangeCapabilities?.Value is not (false or null);
-        capabilities.SemanticTokensOptions = new SemanticTokensOptions
+        capabilities.SemanticTokensProvider = new SemanticTokensRegistrationOptions
         {
             Full = !supportsSemanticTokensRange,
             Range = true,
@@ -120,7 +120,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
             }
         };
 
-        capabilities.CodeLensProvider = new CodeLensOptions
+        capabilities.CodeLensProvider = new CodeLensRegistrationOptions
         {
             ResolveProvider = true,
             // TODO - Code lens should support streaming
@@ -128,25 +128,25 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
             WorkDoneProgress = false,
         };
 
-        capabilities.InlayHintOptions = new InlayHintOptions
+        capabilities.InlayHintProvider = new InlayHintRegistrationOptions
         {
             ResolveProvider = true,
             WorkDoneProgress = false,
         };
 
         // Using VS server capabilities because we have our own custom client.
-        capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n", "\""] };
+        capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertRegistrationOptions { TriggerCharacters = ["'", "/", "\n", "\""] };
 
         var diagnosticDynamicRegistationCapabilities = clientCapabilities.TextDocument?.Diagnostic?.DynamicRegistration;
         if (diagnosticDynamicRegistationCapabilities is false)
         {
-            capabilities.DiagnosticOptions = new DiagnosticOptions()
+            capabilities.DiagnosticProvider = new DiagnosticRegistrationOptions()
             {
                 InterFileDependencies = true
             };
         }
 
-        capabilities.Workspace = new WorkspaceServerCapabilities
+        capabilities.Workspace = new WorkspaceOptions
         {
             FileOperations = GetWorkspaceFileOperationsCapabilities(),
             TextDocumentContent = GetTextDocumentContentCapabilities(),
@@ -154,7 +154,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 
         return capabilities;
 
-        WorkspaceFileOperationsServerCapabilities? GetWorkspaceFileOperationsCapabilities()
+        FileOperationOptions? GetWorkspaceFileOperationsCapabilities()
         {
             if (clientCapabilities.Workspace?.FileOperations is null)
                 return null;
@@ -172,7 +172,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
             if (filters.Count == 0)
                 return null;
 
-            return new WorkspaceFileOperationsServerCapabilities()
+            return new FileOperationOptions()
             {
                 WillRename = new FileOperationRegistrationOptions()
                 {
@@ -181,7 +181,7 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
             };
         }
 
-        TextDocumentContentOptions? GetTextDocumentContentCapabilities()
+        TextDocumentContentRegistrationOptions? GetTextDocumentContentCapabilities()
         {
             if (clientCapabilities.Workspace?.TextDocumentContent is null)
                 return null;
@@ -192,14 +192,14 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
             if (schemes.Length == 0)
                 return null;
 
-            return new TextDocumentContentOptions
+            return new TextDocumentContentRegistrationOptions
             {
                 Schemes = schemes
             };
         }
     }
 
-    private static VSInternalServerCapabilities GetVSServerCapabilities()
+    private static ServerCapabilities GetVSServerCapabilities()
         => new()
         {
             ProjectContextProvider = true,

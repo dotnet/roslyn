@@ -79,12 +79,12 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
 
         var removeRange = text.GetRange(actionParams.Start, actionParams.End);
 
-        var documentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+        var documentChanges = new Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem[]
         {
-            new CreateFile { DocumentUri = newComponentUri },
+            new CreateFile { Uri = newComponentUri },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = documentSnapshot.Uri },
                 Edits =
                 [
                     new TextEdit
@@ -96,7 +96,7 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
             },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = newComponentUri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newComponentUri },
                 Edits  =
                 [
                     new TextEdit

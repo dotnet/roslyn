@@ -195,7 +195,7 @@ public class CohostLinkedEditingRangeEndpointTest(ITestOutputHelper testOutputHe
         {
             TextDocument = new TextDocumentIdentifier()
             {
-                DocumentUri = document.GetURI()
+                Uri = document.GetURI()
             },
             Position = sourceText.GetPosition(cursorPosition)
         };

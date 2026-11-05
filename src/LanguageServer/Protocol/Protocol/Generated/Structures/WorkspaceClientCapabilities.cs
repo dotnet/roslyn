@@ -57,7 +57,7 @@ internal partial class WorkspaceClientCapabilities
 
     /// <summary>
     /// The client has support for workspace folders.
-    /// 
+    ///
     /// @since 3.6.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("workspaceFolders")]
@@ -66,7 +66,7 @@ internal partial class WorkspaceClientCapabilities
 
     /// <summary>
     /// The client supports `workspace/configuration` requests.
-    /// 
+    ///
     /// @since 3.6.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("configuration")]
@@ -76,7 +76,7 @@ internal partial class WorkspaceClientCapabilities
     /// <summary>
     /// Capabilities specific to the semantic token requests scoped to the
     /// workspace.
-    /// 
+    ///
     /// @since 3.16.0.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("semanticTokens")]
@@ -86,7 +86,7 @@ internal partial class WorkspaceClientCapabilities
     /// <summary>
     /// Capabilities specific to the code lens requests scoped to the
     /// workspace.
-    /// 
+    ///
     /// @since 3.16.0.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("codeLens")]
@@ -95,7 +95,7 @@ internal partial class WorkspaceClientCapabilities
 
     /// <summary>
     /// The client has support for file notifications/requests for user operations on files.
-    /// 
+    ///
     /// Since 3.16.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("fileOperations")]
@@ -105,7 +105,7 @@ internal partial class WorkspaceClientCapabilities
     /// <summary>
     /// Capabilities specific to the inline values requests scoped to the
     /// workspace.
-    /// 
+    ///
     /// @since 3.17.0.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("inlineValue")]
@@ -115,7 +115,7 @@ internal partial class WorkspaceClientCapabilities
     /// <summary>
     /// Capabilities specific to the inlay hint requests scoped to the
     /// workspace.
-    /// 
+    ///
     /// @since 3.17.0.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("inlayHint")]
@@ -125,7 +125,7 @@ internal partial class WorkspaceClientCapabilities
     /// <summary>
     /// Capabilities specific to the diagnostic requests scoped to the
     /// workspace.
-    /// 
+    ///
     /// @since 3.17.0.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("diagnostics")]
@@ -134,7 +134,7 @@ internal partial class WorkspaceClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the folding range requests scoped to the workspace.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("foldingRange")]
@@ -143,7 +143,7 @@ internal partial class WorkspaceClientCapabilities
 
     /// <summary>
     /// Capabilities specific to the `workspace/textDocumentContent` request.
-    /// 
+    ///
     /// @since 3.18.0
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("textDocumentContent")]

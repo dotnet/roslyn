@@ -15,14 +15,14 @@ internal partial class VSInternalDocumentOnAutoInsertResponseItem
     /// Gets or sets the insert text format of the primary text edit. <see cref="TextEditFormat"/> for supported formats.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_textEditFormat")]
-    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
-    public InsertTextFormat? TextEditFormat { get; set; }
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public InsertTextFormat TextEditFormat { get; set; }
 
     /// <summary>
     /// Gets or sets the text edit.
     /// </summary>
     [System.Text.Json.Serialization.JsonPropertyName("_vs_textEdit")]
-    [System.Text.Json.Serialization.JsonRequired]
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public TextEdit TextEdit { get; set; } = null!;
 
 }

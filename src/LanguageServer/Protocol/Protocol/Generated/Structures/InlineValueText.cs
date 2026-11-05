@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Returns inline value information as the complete text to be shown.
-/// 
+///
 /// @since 3.17.0
 /// </summary>
 internal partial class InlineValueText

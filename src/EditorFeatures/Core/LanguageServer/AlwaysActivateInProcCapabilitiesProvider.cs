@@ -30,8 +30,8 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
         var isLspEditorEnabled = globalOptions.GetOption(LspOptionsStorage.LspEditorFeatureFlag);
 
         var serverCapabilities = isLspEditorEnabled
-            ? (VSInternalServerCapabilities)defaultCapabilitiesProvider.GetCapabilities(clientCapabilities, lspServices)
-            : new VSInternalServerCapabilities()
+            ? defaultCapabilitiesProvider.GetCapabilities(clientCapabilities, lspServices)
+            : new ServerCapabilities()
             {
                 // Even if the flag is off, we want to include text sync capabilities.
                 TextDocumentSync = new TextDocumentSyncOptions
@@ -45,11 +45,11 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
         serverCapabilities.BreakableRangeProvider = true;
         serverCapabilities.DataTipRangeProvider = true;
 
-        serverCapabilities.DiagnosticProvider ??= new();
+        serverCapabilities.VsDiagnosticProvider ??= new();
 
-        serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
+        serverCapabilities.VsDiagnosticProvider = serverCapabilities.VsDiagnosticProvider with
         {
-            SupportsMultipleContextsDiagnostics = true,
+            SupportsMultipleContextDiagnostics = true,
             BuildOnlyDiagnosticIds = [.. buildOnlyDiagnostics
                 .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
                 .Distinct()],
@@ -70,7 +70,7 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
             // especially for larger files. With range handling, we only need to compute tokens for whatever is in view, while
             // with full/edits handling we need to compute tokens for the entire file and then potentially run a diff between
             // the old and new tokens.
-            serverCapabilities.SemanticTokensOptions = new SemanticTokensOptions
+            serverCapabilities.SemanticTokensProvider = new SemanticTokensRegistrationOptions
             {
                 Full = false,
                 Range = true,
@@ -87,7 +87,7 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
         // Enable go to definition, find all references, and go to implementation capabilities for experimentation.
         // These are enabled regardless of the LSP feature flag to allow clients to call these handlers.
         serverCapabilities.DefinitionProvider = true;
-        serverCapabilities.ReferencesProvider = new ReferenceOptions
+        serverCapabilities.ReferencesProvider = new ReferenceRegistrationOptions
         {
             WorkDoneProgress = true,
         };

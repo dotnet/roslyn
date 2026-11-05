@@ -24,7 +24,7 @@ internal sealed class SemanticTokensRefreshNotifier(IClientSettingsManager clien
 
     public int Order => WellKnownStartupOrder.Default;
 
-    public Task StartupAsync(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
+    public Task StartupAsync(ClientCapabilities clientCapabilities, RequestContext requestContext, CancellationToken cancellationToken)
     {
         _razorClientLanguageServerManager = requestContext.GetRequiredService<IClientLanguageServerManager>();
 

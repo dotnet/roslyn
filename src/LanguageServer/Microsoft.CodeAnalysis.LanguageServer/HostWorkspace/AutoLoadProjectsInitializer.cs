@@ -105,7 +105,7 @@ internal sealed class AutoLoadProjectsInitializer(
         using var _ = ArrayBuilder<string>.GetInstance(out var projectFiles);
         foreach (var folder in workspaceFolders)
         {
-            _logger.LogTrace("Searching for projects to load in workspace folder: {FolderUri}", folder.DocumentUri);
+            _logger.LogTrace("Searching for projects to load in workspace folder: {FolderUri}", folder.Uri);
             if (TryGetFolderPath(folder, _logger, out var folderPath))
             {
                 projectFiles.AddRange(Directory.EnumerateFiles(folderPath, "*.csproj", s_recursiveEnumerationOptions));
@@ -191,14 +191,14 @@ internal sealed class AutoLoadProjectsInitializer(
 
     internal static bool TryGetFolderPath(WorkspaceFolder folder, ILogger logger, [NotNullWhen(returnValue: true)] out string? folderPath)
     {
-        if (folder.DocumentUri.ParsedDocumentUri?.IsFile != true)
+        if (folder.Uri.ParsedDocumentUri?.IsFile != true)
         {
-            logger.LogWarning("Workspace folder {FolderUri} is not a file URI, skipping.", folder.DocumentUri);
+            logger.LogWarning("Workspace folder {FolderUri} is not a file URI, skipping.", folder.Uri);
             folderPath = null;
             return false;
         }
 
-        folderPath = folder.DocumentUri.GetDocumentFilePathFromUri();
+        folderPath = folder.Uri.GetDocumentFilePathFromUri();
         if (!Directory.Exists(folderPath))
         {
             logger.LogWarning("Workspace folder path {FolderPath} does not exist, skipping.", folderPath);
@@ -212,7 +212,7 @@ internal sealed class AutoLoadProjectsInitializer(
     {
         foreach (var folder in workspaceFolders)
         {
-            logger.LogTrace("Searching for VS Code settings to load in workspace folder: {FolderUri}", folder.DocumentUri);
+            logger.LogTrace("Searching for VS Code settings to load in workspace folder: {FolderUri}", folder.Uri);
 
             if (TryGetFolderPath(folder, logger, out var folderPath)
                 && VSCodeSettings.TryRead(Path.Combine(folderPath, ".vscode", "settings.json"), logger, out var settings)

@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
 /// Symbol tags are extra annotations that tweak the rendering of a symbol.
-/// 
+///
 /// @since 3.16
 /// </summary>
 internal enum SymbolTag

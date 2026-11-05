@@ -70,7 +70,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
             """;
 
         // This simply verifies that Hover will call into HTML.
-        var htmlResponse = new VSInternalHover();
+        var htmlResponse = new Hover();
 
         await VerifyHoverAsync(code, htmlResponse, h => Assert.Same(htmlResponse, h));
     }
@@ -84,7 +84,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
 
         // This verifies Hover calls into both razor and HTML, aggregating their results
         const string BodyDescription = "body description";
-        var htmlResponse = new VSInternalHover
+        var htmlResponse = new Hover
         {
             Range = new LspRange()
             {
@@ -140,7 +140,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
             """;
 
         // This simply verifies that Hover will call into HTML.
-        var htmlResponse = new VSInternalHover();
+        var htmlResponse = new Hover();
 
         await VerifyHoverAsync(code, htmlResponse, h => Assert.Same(htmlResponse, h));
     }
@@ -468,7 +468,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
             Position = LspFactory.CreatePosition(linePosition),
-            TextDocument = new TextDocumentIdentifier { DocumentUri = document.GetURI() },
+            TextDocument = new TextDocumentIdentifier { Uri = document.GetURI() },
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(textDocumentPositionParams, document, DisposalToken);

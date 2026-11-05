@@ -38,9 +38,9 @@ public class HtmlCodeActionProviderTest
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = documentUri },
+            TextDocument = new TextDocumentIdentifier { Uri = documentUri },
             Range = LspFactory.DefaultRange,
-            Context = new VSInternalCodeActionContext()
+            Context = new CodeActionContext()
         };
 
         var (context, workspace) = await CreateRazorCodeActionContextAsync(request, cursorPosition, documentPath, contents);
@@ -71,9 +71,9 @@ public class HtmlCodeActionProviderTest
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
         var request = new VSCodeActionParams()
         {
-            TextDocument = new VSTextDocumentIdentifier { DocumentUri = documentUri },
+            TextDocument = new TextDocumentIdentifier { Uri = documentUri },
             Range = LspFactory.DefaultRange,
-            Context = new VSInternalCodeActionContext()
+            Context = new CodeActionContext()
         };
 
         var (context, workspace) = await CreateRazorCodeActionContextAsync(request, cursorPosition, documentPath, contents);
@@ -85,7 +85,7 @@ public class HtmlCodeActionProviderTest
             .Callback<Solution, WorkspaceEdit, CancellationToken>((_, edit, _) =>
             {
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
-                textDocumentEdit.TextDocument.DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
+                textDocumentEdit.TextDocument.Uri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath);
                 textDocumentEdit.Edits = [LspFactory.CreateTextEdit(context.SourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
             })
             .Returns(Task.CompletedTask);
@@ -99,16 +99,17 @@ public class HtmlCodeActionProviderTest
                 Name = "Test",
                 Edit = new WorkspaceEdit
                 {
-                    DocumentChanges = new TextDocumentEdit[]
-                    {
-                        new() {
+                    DocumentChanges =
+                    [
+                        new TextDocumentEdit()
+                        {
                             TextDocument = new OptionalVersionedTextDocumentIdentifier
                             {
-                                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath + ".html"),
+                                Uri = ProtocolConversions.CreateAbsoluteDocumentUri(documentPath + ".html"),
                             },
                             Edits = [LspFactory.CreateTextEdit(position: (0, 0), "Goo")]
                         }
-                    }
+                    ]
                 }
             }
         ];
@@ -121,10 +122,10 @@ public class HtmlCodeActionProviderTest
         Assert.NotNull(action.Edit);
         var documentEdits = action.Edit.EnumerateTextDocumentEdits().ToArray();
         Assert.NotEmpty(documentEdits);
-        Assert.Equal(documentUri, documentEdits[0].TextDocument.DocumentUri);
+        Assert.Equal(documentUri, documentEdits[0].TextDocument.Uri);
 
         var text = SourceText.From(contents);
-        var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange((TextEdit)e)));
+        var changed = text.WithChanges(documentEdits[0].Edits.Select(e => text.GetTextChange(Assert.IsType<TextEdit>(e.Value))));
         Assert.Equal("Goo @(DateTime.Now) Bar", changed.ToString());
     }
 

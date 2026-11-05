@@ -7,13 +7,13 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 
 internal abstract class AbstractClientCapabilitiesService : IClientCapabilitiesService
 {
-    private VSInternalClientCapabilities? _clientCapabilities;
+    private ClientCapabilities? _clientCapabilities;
 
     public bool CanGetClientCapabilities => _clientCapabilities is not null;
 
-    public VSInternalClientCapabilities ClientCapabilities => _clientCapabilities ?? throw new InvalidOperationException("Client capabilities requested before initialized.");
+    public ClientCapabilities ClientCapabilities => _clientCapabilities ?? throw new InvalidOperationException("Client capabilities requested before initialized.");
 
-    public void SetCapabilities(VSInternalClientCapabilities clientCapabilities)
+    public void SetCapabilities(ClientCapabilities clientCapabilities)
     {
         _clientCapabilities = clientCapabilities;
     }

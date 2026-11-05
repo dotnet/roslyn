@@ -67,7 +67,7 @@ internal sealed class RenameService(
             return new(Edit: null, FallbackToCSharp: false);
         }
 
-        using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        using var documentChanges = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem>();
 
         var fileRename = GetRenameFileEdit(originComponentDocumentFilePath, newPath);
         documentChanges.Add(fileRename);
@@ -76,10 +76,10 @@ internal sealed class RenameService(
 
         foreach (var documentChange in documentChanges)
         {
-            if (documentChange.TryGetFirst(out var textDocumentEdit) &&
-                textDocumentEdit.TextDocument.DocumentUri == fileRename.OldDocumentUri)
+            if (documentChange is TextDocumentEdit textDocumentEdit &&
+                textDocumentEdit.TextDocument.Uri == fileRename.OldUri)
             {
-                textDocumentEdit.TextDocument.DocumentUri = fileRename.NewDocumentUri;
+                textDocumentEdit.TextDocument.Uri = fileRename.NewUri;
             }
         }
 
@@ -97,7 +97,7 @@ internal sealed class RenameService(
         var oldPath = documentSnapshot.FilePath;
         var newPath = MakeNewPath(oldPath, newName);
 
-        using var documentChanges = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        using var documentChanges = new PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem>();
 
         AddAdditionalFileRenames(ref documentChanges.AsRef(), oldPath, newPath);
 
@@ -115,7 +115,7 @@ internal sealed class RenameService(
     }
 
     private void AddAdditionalFileRenames(
-        ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges,
+        ref PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem> documentChanges,
         string oldFilePath, string newFilePath)
     {
         TryAdd(".cs", ref documentChanges);
@@ -123,7 +123,7 @@ internal sealed class RenameService(
 
         void TryAdd(
             string extension,
-            ref PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>> documentChanges)
+            ref PooledArrayBuilder<Roslyn.LanguageServer.Protocol.WorkspaceEdit._DocumentChangesItem> documentChanges)
         {
             var changedPath = oldFilePath + extension;
 
@@ -137,8 +137,8 @@ internal sealed class RenameService(
     private RenameFile GetRenameFileEdit(string oldFilePath, string newFilePath)
         => new()
         {
-            OldDocumentUri = LspFactory.CreateFilePathUri(oldFilePath),
-            NewDocumentUri = LspFactory.CreateFilePathUri(newFilePath),
+            OldUri = LspFactory.CreateFilePathUri(oldFilePath),
+            NewUri = LspFactory.CreateFilePathUri(newFilePath),
         };
 
     private static string MakeNewPath(string originalPath, string newName)
