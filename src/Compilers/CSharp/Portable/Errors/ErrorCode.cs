@@ -2464,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadCollectionArgumentsArgCount = 9359,
 
         ERR_UnsafeOperation = 9360,
-        ERR_UnsafeUninitializedStackAlloc = 9361,
+        // 9361 was used for ERR_UnsafeUninitializedStackAlloc
         ERR_UnsafeMemberOperation = 9362,
         ERR_UnsafeMemberOperationCompat = 9363,
         ERR_RequiresUnsafeOverridingSafe = 9364,
