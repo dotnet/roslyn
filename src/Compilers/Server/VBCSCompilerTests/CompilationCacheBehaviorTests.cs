@@ -556,8 +556,7 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         var buildPaths = new BuildPaths(
             clientDir: Path.GetDirectoryName(typeof(CommonCompiler).Assembly.Location),
             workingDir: currentDirectory.Path,
-            sdkDir: ServerUtil.DefaultSdkDirectory,
-            tempDir: Path.GetTempPath());
+            sdkDir: ServerUtil.DefaultSdkDirectory);
 
         var (result, output) = UseTextWriter(
             redirectEncoding,

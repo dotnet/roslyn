@@ -72,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             RequestLanguage language,
             List<string> arguments,
             string workingDirectory,
-            string? tempDirectory,
             string? keepAlive,
             string? libDirectory,
             string? compilerHash = null)
@@ -83,7 +82,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 language,
                 arguments,
                 workingDirectory: workingDirectory,
-                tempDirectory: tempDirectory,
                 compilerHash: compilerHash ?? BuildProtocolConstants.GetCommitHash() ?? "",
                 requestId: requestId,
                 keepAlive: keepAlive,

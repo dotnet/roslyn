@@ -24,16 +24,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public string RequestId { get; }
         public string Language { get; }
         public string? WorkingDirectory { get; }
-        public string? TempDirectory { get; }
         public string? LibDirectory { get; }
         public string[] Arguments { get; }
 
-        public RunRequest(string requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
+        public RunRequest(string requestId, string language, string? workingDirectory, string? libDirectory, string[] arguments)
         {
             RequestId = requestId;
             Language = language;
             WorkingDirectory = workingDirectory;
-            TempDirectory = tempDirectory;
             LibDirectory = libDirectory;
             Arguments = arguments;
         }
@@ -123,16 +121,7 @@ Run Compilation for {request.RequestId}
                 return new RejectedBuildResponse(message);
             }
 
-            // Compiler server must be provided with a valid temporary directory in order to correctly
-            // isolate signing between compilations.
-            if (string.IsNullOrEmpty(request.TempDirectory))
-            {
-                var message = "Missing temp directory";
-                Logger.Log($"Rejected: {request.RequestId}: {message}");
-                return new RejectedBuildResponse(message);
-            }
-
-            var buildPaths = new BuildPaths(ClientDirectory, request.WorkingDirectory, SdkDirectory, request.TempDirectory);
+            var buildPaths = new BuildPaths(ClientDirectory, request.WorkingDirectory, SdkDirectory);
             if (!TryCreateCompiler(request, buildPaths, out CommonCompiler? compiler))
             {
                 var message = $"Cannot create compiler for language id {request.Language}";

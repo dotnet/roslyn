@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// This form of signing occurs using the <see cref="IClrStrongName"/> COM APIs. This form of signing
             /// requires the unsigned PE to be written to disk before it can be signed (typically by writing it
-            /// out to the %TEMP% folder). This signing is used when the key in a key container, the signing 
+            /// out to an explicitly supplied signing directory). This signing is used when the key in a key container, the signing
             /// requires a counter signature or customers opted in via the UseLegacyStrongNameProvider feature 
             /// flag.
             /// </summary>
@@ -142,9 +142,10 @@ namespace Microsoft.CodeAnalysis
                     string tempFilePath;
                     try
                     {
-                        Func<string, Stream> streamConstructor = path => fileSystem.CreateFileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                        Func<string, Stream> streamConstructor = path => fileSystem.CreateFileStream(
+                            path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-                        tempFilePath = Path.Combine(tempDir, Guid.NewGuid().ToString("N"));
+                        tempFilePath = Path.Combine(tempDir, $"legacy-sign.{Guid.NewGuid():N}.dll");
                         tempStream = FileUtilities.CreateFileStreamChecked(streamConstructor, tempFilePath);
                     }
                     catch (IOException e)

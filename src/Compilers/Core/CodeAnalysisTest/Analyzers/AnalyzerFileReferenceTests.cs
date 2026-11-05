@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 CSharpCommandLineParser.Default,
                 responseFile: null,
                 args: new[] { "/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithLaterFakeCompilerDependency}""", "/nostdlib", $@"/r:""{corlib}""", "/out:something.dll", source.Path },
-                new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null, tempDir: null),
+                new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null),
                 additionalReferenceDirectories: null,
                 new AnalyzerAssemblyLoader());
 
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 CSharpCommandLineParser.Default,
                 responseFile: null,
                 args: new[] { "/nologo", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency}""", $@"/analyzer:""{_testFixture.AnalyzerWithFakeCompilerDependency}""", "/nostdlib", $@"/r:""{corlib}""", "/out:something.dll", source.Path },
-                new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null, tempDir: null),
+                new BuildPaths(clientDir: directory.Path, workingDir: directory.Path, sdkDir: null),
                 additionalReferenceDirectories: null,
                 new AnalyzerAssemblyLoader());
 
