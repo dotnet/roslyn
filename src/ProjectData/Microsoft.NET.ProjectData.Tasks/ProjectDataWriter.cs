@@ -4,7 +4,6 @@
 
 using System.Buffers;
 using System.Collections.Frozen;
-using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Build.Framework;
@@ -531,19 +530,17 @@ internal static class ProjectDataWriter
 	private static void AtomicReplace(string outputPath, byte[] content, int length, string? tempDirectory)
 	{
 		string? outputDir = Path.GetDirectoryName(outputPath);
-		if (outputDir != null) Directory.CreateDirectory(outputDir);
+		if (!string.IsNullOrEmpty(outputDir)) Directory.CreateDirectory(outputDir);
 
 		// Keep the transient side-file out of the (committed, watched) project folder by preferring
 		// the intermediate output directory, falling back to the output directory when none is given
 		// or it is on a different volume.
-		string tempDir = ResolveTempDirectory(tempDirectory, outputPath, outputDir);
+		string tempDir = ResolveTempDirectory(tempDirectory, outputDir);
 		string tempPath = Path.Combine(tempDir, Path.GetFileName(outputPath) + "." + Guid.NewGuid().ToString("N") + ".tmp");
 		try
 		{
-			using (var stream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096))
-				stream.Write(content, 0, length);
-
-			ReplaceOrMove(tempPath, outputPath);
+			File.WriteAllBytes(tempPath, content.AsSpan(0, length));
+			File.Move(tempPath, outputPath, overwrite: true);
 		}
 		finally
 		{
@@ -556,10 +553,10 @@ internal static class ProjectDataWriter
 	/// Chooses the directory for the atomic-write temp side-file. Prefers <paramref name="tempDirectory"/>
 	/// (the project's intermediate output directory) so transient <c>.tmp</c> files never appear next
 	/// to committed source. Falls back to the output directory when no temp directory is requested,
-	/// when it is on a different volume (<see cref="File.Replace(string, string, string)"/> requires
-	/// the temp file and the destination to share a volume), or when it cannot be created.
+	/// when it is on a different volume (so <see cref="File.Move(string, string, bool)"/> performs an
+	/// atomic same-volume rename rather than a cross-volume copy), or when it cannot be created.
 	/// </summary>
-	private static string ResolveTempDirectory(string? tempDirectory, string outputPath, string? outputDir)
+	private static string ResolveTempDirectory(string? tempDirectory, string? outputDir)
 	{
 		string fallback = string.IsNullOrEmpty(outputDir) ? "." : outputDir!;
 		if (string.IsNullOrEmpty(tempDirectory))
@@ -568,11 +565,11 @@ internal static class ProjectDataWriter
 		try
 		{
 			string full = Path.GetFullPath(tempDirectory!);
-			StringComparison comparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-				? StringComparison.OrdinalIgnoreCase
-				: StringComparison.Ordinal;
-			if (!string.Equals(Path.GetPathRoot(full), Path.GetPathRoot(Path.GetFullPath(outputPath)), comparison))
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+				!string.Equals(Path.GetPathRoot(full), Path.GetPathRoot(Path.GetFullPath(fallback)), StringComparison.OrdinalIgnoreCase))
+			{
 				return fallback;
+			}
 
 			Directory.CreateDirectory(full);
 			return full;
@@ -587,33 +584,6 @@ internal static class ProjectDataWriter
 		=> content.IndexOf('\r') < 0
 			? content
 			: content.Replace("\r\n", "\n").Replace('\r', '\n');
-
-	private static void ReplaceOrMove(string tempPath, string outputPath)
-	{
-		try
-		{
-			File.Replace(tempPath, outputPath, null);
-		}
-		catch (FileNotFoundException)
-		{
-			try
-			{
-				File.Move(tempPath, outputPath);
-			}
-			catch (IOException moveException)
-			{
-				try
-				{
-					File.Replace(tempPath, outputPath, null);
-				}
-				catch (FileNotFoundException)
-				{
-					ExceptionDispatchInfo.Capture(moveException).Throw();
-					throw;
-				}
-			}
-		}
-	}
 
 	// Returns true for command-line args that represent file inputs. These are
 	// excluded from [commandLineArguments] because CPS puts them in dedicated sections.
