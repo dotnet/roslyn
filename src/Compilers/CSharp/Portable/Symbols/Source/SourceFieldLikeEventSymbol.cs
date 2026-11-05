@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -254,6 +255,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override Accessibility DeclaredAccessibility => AssociatedEvent.DeclaredAccessibility;
 
             public override bool IsImplicitlyDeclared => true;
+
+            public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default)
+                => SourceEventSymbol.IsDefinedInSourceTree(AssociatedEvent, tree, definedWithinSpan) ||
+                   PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
 
             internal override bool GenerateDebugInfo => true;
 

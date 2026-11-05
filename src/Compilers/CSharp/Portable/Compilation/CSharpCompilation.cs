@@ -3433,24 +3433,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
 
+            // Do not check CLSCompliance if we are doing ENC.
+            ImmutableArray<AssemblySymbol> dependencies;
+            if (symbolFilter == null)
+            {
+                ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+                result = result.Concat(clsDiagnostics.Diagnostics);
+                dependencies = clsDiagnostics.Dependencies;
+            }
+            else
+            {
+                dependencies = ImmutableArray<AssemblySymbol>.Empty;
+            }
+
             if (locationFilterOpt != null)
             {
                 RoslynDebug.Assert(syntaxTree != null);
                 result = locationFilterOpt(result, syntaxTree, filterSpanWithinTree);
             }
 
-            // Do not check CLSCompliance if we are doing ENC.
-            if (symbolFilter == null)
-            {
-
-                // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
-                ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
-                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
-            }
-            else
-            {
-                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable(), ImmutableArray<AssemblySymbol>.Empty);
-            }
+            return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable(), dependencies);
         }
 
         private ReadOnlyBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
