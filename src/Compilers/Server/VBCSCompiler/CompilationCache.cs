@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string currentKey,
             ICompilerServerLogger logger)
         {
-            if (!logger.IsLogging)
+            if (!logger.IsEnabled(CompilerServerLogKind.Trace))
             {
                 return;
             }
