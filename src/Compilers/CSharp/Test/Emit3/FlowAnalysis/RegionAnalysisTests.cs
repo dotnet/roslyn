@@ -1679,6 +1679,40 @@ class Program
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
+        [Fact]
+        public void TestAddressOfUnassignedParenthesizedStructField()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        S s;
+                        int* p = &((s.F));
+                    }
+                }
+
+                public struct S
+                {
+                    public int F;
+                    public int G;
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
         [WorkItem(543987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
         [Fact]
         public void TestAddressOfAssignedStructField()
@@ -14095,6 +14129,130 @@ class B
 
             Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("x, y", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void InlineArrays_AddressOfUnassignedInlineArrayElement()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        Buffer2 b;
+                        int* p = &b[0];
+                    }
+                }
+                """ + InlineArray2Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void InlineArrays_AddressOfAssignedInlineArrayElement()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        Buffer2 b = default;
+                        int* p = &b[0];
+                    }
+                }
+                """ + InlineArray2Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void InlineArrays_AddressOfUnassignedNestedInlineArrayElement()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        S s;
+                        int i = 0;
+                        int* p = &s.F[0][i];
+                    }
+                }
+
+                public struct S
+                {
+                    public Buffer22 F;
+                }
+                """ + InlineArray22Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void InlineArrays_AddressOfIndexAssignsNestedReceiver()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        Buffer22 b;
+                        int* p = &b[Initialize(out b)][0];
+                    }
+
+                    static int Initialize(out Buffer22 b)
+                    {
+                        b = default;
+                        return 0;
+                    }
+                }
+                """ + InlineArray22Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69148")]

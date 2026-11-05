@@ -1455,6 +1455,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expression = fieldAccess.ReceiverOpt;
                             continue;
                         }
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)expression;
+                            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                            {
+                                expression = elementAccess.Expression;
+                                continue;
+                            }
+                            goto default;
+                        }
                     case BoundKind.Local:
                         var result = ((BoundLocal)expression).LocalSymbol;
                         _usedVariables.Add(result);
