@@ -58,9 +58,9 @@
     <Compile Include="..\Microsoft.NET.ProjectData\HexEncoder.cs" Link="Shared\HexEncoder.cs" />
   </ItemGroup>
 
-  <!-- During evaluation, IntermediateOutputPath does not yet include the target framework.
-       Computing this path then would place the file one directory above the final intermediate directory,
-       where Clean would not delete it. -->
+  <!-- When this project body is evaluated, IntermediateOutputPath does not yet include the target framework;
+       the SDK appends it later during evaluation. Compute the path during target execution so Clean can track
+       the file in the final intermediate directory, and add the None item before AssignTargetPaths processes it. -->
   <Target Name="_InitializeProjectDataSchemaProps"
           BeforeTargets="AssignTargetPaths">
     <PropertyGroup>
