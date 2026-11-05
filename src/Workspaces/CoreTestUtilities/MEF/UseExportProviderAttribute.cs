@@ -222,7 +222,7 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
         public ExportProviderMefHostServices(ExportProvider exportProvider)
             : base(new ContainerConfiguration().CreateContainer())
         {
-            _vsHostServices = VisualStudioMefHostServices.Create(exportProvider);
+            _vsHostServices = ExportProviderCache.GetOrCreateHostServices(exportProvider);
         }
 
         protected internal override HostWorkspaceServices CreateWorkspaceServices(Workspace workspace)

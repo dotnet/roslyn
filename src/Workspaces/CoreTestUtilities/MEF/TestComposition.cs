@@ -85,14 +85,13 @@ public sealed class TestComposition
     }
 
     /// <summary>
-    /// Returns a new instance of <see cref="HostServices"/> for the composition. This will either be a MEF composition or VS MEF composition host, 
-    /// depending on what layer the composition is for. Editor Features and VS layers use VS MEF composition while anything else uses System.Composition.
+    /// Returns the host services for the composition's export provider, shared within the current test scope.
     /// </summary>
     public HostServices GetHostServices()
         => GetHostServices(out _);
 
     public HostServices GetHostServices(out ExportProvider exportProvider)
-        => VisualStudioMefHostServices.Create(exportProvider = ExportProviderFactory.CreateExportProvider());
+        => ExportProviderCache.GetOrCreateHostServices(exportProvider = ExportProviderFactory.CreateExportProvider());
 
     /// <summary>
     /// VS MEF <see cref="ExportProvider"/>.
