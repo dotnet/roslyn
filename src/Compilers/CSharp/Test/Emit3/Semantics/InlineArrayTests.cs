@@ -19013,6 +19013,34 @@ struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedFixedBuffer()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void M()
+                    {
+                        Buffer10<S> b = default;
+                        System.Func<int> f = () => b[0].F[0];
+                        _ = f();
+                        _ = b;
+                    }
+                }
+
+                public unsafe struct S
+                {
+                    public fixed int F[1];
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,36): error CS1686: Local 'b' or its members cannot have their address taken and be used inside an anonymous method or lambda expression
+                //         System.Func<int> f = () => b[0].F[0];
+                Diagnostic(ErrorCode.ERR_LocalCantBeFixedAndHoisted, "b[0].F").WithArguments("b").WithLocation(6, 36));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
         public void ElementPointer_CapturedParameter_Nested()
         {
             var src = """
