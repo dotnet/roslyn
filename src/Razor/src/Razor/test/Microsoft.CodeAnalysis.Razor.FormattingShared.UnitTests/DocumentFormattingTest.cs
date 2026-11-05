@@ -393,6 +393,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </PageTitle>
                 </PageTitle>
                 """",
+            dotNetFormatExpected: """"
+                <PageTitle>
+                    <PageTitle>
+                        @("""
+                          <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
+                
+                          <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
+                          <Title>Aanmaak scherm</Title>
+                          <Body>
+                                <label>Vul hier een tekst in</label>
+                                <input @bind=_createItem />
+                          </Body>
+                          <Footer>
+                                <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
+                                <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
+                          </Footer>
+                          </FCBS5Modal>
+                          """)</PageTitle>
+                    </PageTitle>
+                """",
             expected: """"
                 <PageTitle>
                     <PageTitle>
@@ -762,6 +782,12 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
                 </div>
                 """,
+            dotNetFormatExpected: """
+                <div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
             validateHtmlFormattedMatchesWebTools: false);
     }
 
@@ -780,6 +806,12 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
                 </div>
                 """,
             expected: """
@@ -810,6 +842,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"></button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button class="navbar-toggler"
+                            type="button" data-bs-toggle="collapse"
+                            data-bs-target=".navbar-collapse"
+                            aria-controls="navbarSupportedContent"
+                            aria-expanded="false"
+                            aria-label="Toggle navigation"></button>
                 </div>
                 """,
             expected: """
@@ -849,6 +891,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </div>
                 </body>
 
+                </html>
+                """,
+            dotNetFormatExpected: """
+                <html>
+                <head>
+                    <title>Goo</title>
+                </head>
+                <body>
+                    <div>
+                    </div>
+                </body>
                 </html>
                 """,
             expected: """
@@ -1656,6 +1709,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 </script>
                 """,
+            dotNetFormatExpected: """
+                <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                </script>
+                """,
             expected: """
                 <script>
                     function initialize() {
@@ -1717,6 +1779,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                 start();
                             }
                         }
+                    </script>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
                     </script>
                 </div>
                 """,
@@ -1794,6 +1867,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </section>
                 </main>
                 """,
+            dotNetFormatExpected: """
+                <main>
+                    <section>
+                        <script>
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
+                        </script>
+                    </section>
+                </main>
+                """,
             expected: """
                 <main>
                     <section>
@@ -1866,6 +1952,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </script>
                 }
                 """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script>
+                            function initialize() {
+                                if (ready) {
+                                    start();
+                                }
+                            }
+                    </script>
+                }
+                """,
             expected: """
                 @section Scripts {
                     <script>
@@ -1905,6 +2002,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }
                     }
                 </script>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script>
+                    function initialize() {
+                    if (ready) {
+                    start();
+                    }
+                    }
+                    </script>
                 }
                 """,
             expected: """
@@ -1954,6 +2062,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </div>
                 }
                 """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <div>
+                        <script>
+                                function initialize() {
+                                    if (ready) {
+                                        start();
+                                    }
+                                }
+                        </script>
+                    </div>
+                }
+                """,
             expected: """
                 @section Scripts {
                     <div>
@@ -1999,6 +2120,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }
                     </script>
                 </div>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <div>
+                        <script>
+                    function initialize() {
+                    if (ready) {
+                    start();
+                    }
+                    }
+                        </script>
+                    </div>
                 }
                 """,
             expected: """
@@ -2052,6 +2186,21 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </script>
                     </section>
                 </main>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <main>
+                        <section>
+                            <script>
+                                    function initialize() {
+                                        if (ready) {
+                                            start();
+                                        }
+                                    }
+                            </script>
+                        </section>
+                    </main>
                 }
                 """,
             expected: """
@@ -2122,6 +2271,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </section>
                 </main>
                 """,
+            dotNetFormatExpected: """
+                <main>
+                    <section>
+                        <style>
+                .card {
+                color: red;
+                }
+                        </style>
+                    </section>
+                </main>
+                """,
             expected: """
                 <main>
                     <section>
@@ -2165,6 +2325,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </div>
                 }
                 """,
+            dotNetFormatExpected: """
+                @section Styles {
+                    <div>
+                        <style>
+                                .card {
+                                    color: red;
+                                }
+                        </style>
+                    </div>
+                }
+                """,
             expected: """
                 @section Styles {
                     <div>
@@ -2204,6 +2375,17 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }
                     </style>
                 </div>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Styles {
+                    <div>
+                        <style>
+                    .card {
+                    color: red;
+                    }
+                        </style>
+                    </div>
                 }
                 """,
             expected: """
@@ -2276,6 +2458,32 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 
                 </script>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                        var data = null;
+                            var allocationMoveTemplateFn = null;
+                            var allocationTableTemplateFn = null;
+                                var manufactureOrderInfoTemplateFn = null;
+                            var selectionsJsonTemplateFn = null;
+                
+                            function getAllocationMoveTemplate() {
+                                if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                                var sourceEl = document.getElementById('allocationMoveTemplate');
+                                if (!sourceEl || typeof Handlebars === 'undefined') {
+                                    return null;
+                                }
+                
+                                allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                                return allocationMoveTemplateFn;
+                            }
+                
+                    </script>
                 }
                 """,
             expected: """
@@ -2453,6 +2661,34 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 
                 </script>
                 ~
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                    </script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                    </script>
+                    <script>
+                        var data = null;
+                            var allocationMoveTemplateFn = null;
+                            var allocationTableTemplateFn = null;
+                                var manufactureOrderInfoTemplateFn = null;
+                            var selectionsJsonTemplateFn = null;
+                
+                            function getAllocationMoveTemplate() {
+                                if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                
+                                var sourceEl = document.getElementById('allocationMoveTemplate');
+                                if (!sourceEl || typeof Handlebars === 'undefined') {
+                                    return null;
+                                }
+                
+                                allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                                return allocationMoveTemplateFn;
+                            }
+                
+                    </script>
+                }
                 """,
             expected: """
                 @section Scripts {
@@ -4053,6 +4289,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </body>
                 </html>
                 """,
+            dotNetFormatExpected: """
+                <html>
+                <head>
+                    <title>Hello</title></head>
+                    <body><div>
+                    </div>
+                </body>
+                </html>
+                """,
             expected: """
                 <html>
                 <head>
@@ -4120,6 +4365,30 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         </div>
                     </div>
                 </p>
+                """,
+            dotNetFormatExpected: """
+                @page "/error"
+                
+                <h1 class=
+                "text-danger">Error.</h1>
+                <h2 class="text-danger">An error occurred while processing your request.</h2>
+                
+                <h3>Development Mode</h3>
+                <p>
+                    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</p>
+                    <p>
+                        <strong>The Development environment shouldn't be enabled for deployed applications.
+                        </strong>
+                        <div>
+                            <div>
+                                <div>
+                                    <div>
+                                        This is heavily nested
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </p>
                 """,
             expected: """
                 @page "/error"
@@ -4394,6 +4663,36 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     var t = 1;
                     }
                 </p>
+                }
+                
+                @(DateTime
+                    .Now
+                .ToString())
+                
+                @(
+                    Foo.Values.Select(f =>
+                    {
+                        return f.ToString();
+                    })
+                )
+                """,
+            dotNetFormatExpected: """
+                @page "/test"
+                
+                <div
+                attr='val'
+                class=@className>Some Text</div>
+                
+                @{
+                    @: Hi!
+                    var x = DateTime
+                        .Now.ToString();
+                    <p>
+                        @if (true)
+                        {
+                            var t = 1;
+                        }
+                    </p>
                 }
                 
                 @(DateTime
@@ -5441,6 +5740,24 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
+            dotNetFormatExpected: """
+                @code
+                {
+                    public void DoStuff(RenderFragment renderFragment)
+                    {
+                        DoThings();
+                        renderFragment(@<PageTitle Title="Foo" />);
+                        DoThings();
+                        renderFragment(@<PageTitle          Title="Foo"             />);
+                
+                        @* comment *@
+                        <div></div>
+                
+                        @* comment *@
+                        <div></div>
+                    }
+                }
+                """,
             expected: """
                 @code
                 {
@@ -5543,6 +5860,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div></div>
                 
                     @* comment *@<div></div>
+                    }
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    @{
+                        renderFragment(@<PageTitle      Title=  "Foo"     />);
+                
+                        @* comment *@
+                        <div></div>
+                
+                        @* comment *@
+                        <div></div>
                     }
                 </div>
                 """,
@@ -5793,6 +6123,33 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 public bool VarBool {get;set;}
                 }
                 """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    <CascadingValue Value="Variable1">
+                        <CascadingValue Value="Variable2">
+                            <PageTitle  />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <PageTitle  />
+                                    <PageTitle  />
+                                </div>
+                            }
+                        </CascadingValue>
+                    </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
+                }
+                """,
             expected: """
                 @using Microsoft.AspNetCore.Components.Forms;
 
@@ -5876,6 +6233,31 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     public object Variable1 {get;set;}
                 public object Variable2 {get;set;}
                 public bool VarBool {get;set;}
+                }
+                """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    <CascadingValue Value="Variable1">
+                        <PageTitle  />
+                        @if (VarBool)
+                        {
+                            <div class="mb-16">
+                                <PageTitle  />
+                                <PageTitle  />
+                            </div>
+                        }
+                    </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
                 }
                 """,
             expected: """
@@ -5963,6 +6345,32 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 public bool VarBool {get;set;}
                 }
                 """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    @if (VarBool)
+                    {
+                        <PageTitle  />
+                        @if (VarBool)
+                        {
+                            <div class="mb-16">
+                                <PageTitle  />
+                                <PageTitle  />
+                            </div>
+                        }
+                    }
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
+                }
+                """,
             expected: """
                 @using Microsoft.AspNetCore.Components.Forms;
 
@@ -6039,6 +6447,28 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     public object Variable1 {get;set;}
                 public object Variable2 {get;set;}
                 public bool VarBool {get;set;}
+                }
+                """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                <CascadingValue Value="Variable1">
+                    <PageTitle  />
+                    @if (VarBool)
+                    {
+                        <div class="mb-16">
+                            <PageTitle  />
+                            <PageTitle  />
+                        </div>
+                    }
+                </CascadingValue>
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
                 }
                 """,
             expected: """
@@ -6119,6 +6549,31 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     public object Variable1 {get;set;}
                 public object Variable2 {get;set;}
                 public bool VarBool {get;set;}
+                }
+                """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    <PageTitle>
+                        <PageTitle  />
+                        @if (VarBool)
+                        {
+                            <div class="mb-16">
+                                <PageTitle  />
+                                <PageTitle  />
+                            </div>
+                        }
+                    </PageTitle>
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
                 }
                 """,
             expected: """
@@ -6206,6 +6661,33 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     public object Variable1 {get;set;}
                 public object Variable2 {get;set;}
                 public bool VarBool {get;set;}
+                }
+                """,
+            dotNetFormatExpected: """
+                @using Microsoft.AspNetCore.Components.Forms;
+                
+                @if (Object1 != null)
+                {
+                    <CascadingValue Value="Variable1">
+                        <div>
+                            <PageTitle  />
+                            @if (VarBool)
+                            {
+                                <div class="mb-16">
+                                    <PageTitle  />
+                                    <PageTitle  />
+                                </div>
+                            }
+                        </div>
+                    </CascadingValue>
+                }
+                
+                @code
+                {
+                    public object Object1 { get; set; }
+                    public object Variable1 { get; set; }
+                    public object Variable2 { get; set; }
+                    public bool VarBool { get; set; }
                 }
                 """,
             expected: """
@@ -7353,6 +7835,49 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 }
                 """,
+            dotNetFormatExpected: """
+                @using System.Text;
+                
+                <div>
+                    @(new C()
+                            .M("Hello")
+                        .M("World")
+                        .M(source =>
+                        {
+                            if (source.Length > 0)
+                            {
+                                source.ToString();
+                            }
+                        }))
+                
+                    @(DateTime.Now)
+                
+                    @(DateTime
+                .Now
+                .ToString())
+                
+                    @(Html.DisplayNameFor(@<text>
+                        <p >
+                            <h2 ></h2>
+                        </p>
+                    </text>)
+                .ToString())
+                
+                    @{
+                        var x = @<p>Hi there!</p>;
+                    }
+                    @x()
+                    @(@x())
+                </div>
+                
+                @functions {
+                    class C
+                    {
+                        C M(string a) => this;
+                        C M(Func<string, C> a) => this;
+                    }
+                }
+                """,
             expected: """
                 @using System.Text;
 
@@ -7466,6 +7991,38 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     2, 4,
                     1,   3, @<div></div>,
                     4))
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    @(Html.DisplayNameFor(@<text>
+                        <p >
+                            <h2 ></h2>
+                        </p>
+                    </text>)
+                       .ToString())
+                
+                    @(Html.DisplayNameFor(@<div></div>,
+                       1, 3, 4))
+                
+                    @(Html.DisplayNameFor(@<div></div>,
+                       1, 3, @<div></div>,
+                       2, 4))
+                
+                    @(Html.DisplayNameFor(
+                       1, 3, @<div></div>,
+                       2, 4))
+                
+                    @(Html.DisplayNameFor(
+                       1, 3,
+                       2, 4))
+                
+                    @(Html.DisplayNameFor(
+                       2, 4,
+                       1, 3, @<div></div>,
+                       2, 4,
+                       1, 3, @<div></div>,
+                       4))
                 </div>
                 """,
             expected: """
@@ -7594,6 +8151,12 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         void M() { }
                         }
                 """,
+            dotNetFormatExpected: """
+                <button
+                @functions {
+                void M() { }
+                }
+                """,
             expected: """
                 <button @functions {
                     void M() { }
@@ -7719,6 +8282,64 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                    }
                    }
                    }
+                }
+                """,
+            dotNetFormatExpected: """
+                Welcome.
+                
+                <div class="goo"
+                     align="center">
+                </div>
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red" />
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red"></PageTitle>
+                
+                <PageTitle Title="How is Blazor working for you?"
+                           Color="Red">
+                    Hello
+                </PageTitle>
+                
+                @if (true)
+                {
+                    <div class="goo"
+                         align="center">
+                    </div>
+                
+                    <PageTitle Title="How is Blazor working for you?"
+                               Color="Red" />
+                
+                    <tag attr1="value1"
+                         attr2="value2"
+                         attr3="value3"
+                    />
+                
+                    <tag attr1="value1"
+                         attr2="value2"
+                         attr3="value3"></tag>
+                
+                    <tag attr1="value1"
+                         attr2="value2"
+                         attr3="value3">
+                        Hello
+                    </tag>
+                
+                    @if (true)
+                    {
+                        @if (true)
+                        {
+                            @if (true)
+                            {
+                                <table width="10"
+                                       height="10"
+                                       cols="3"
+                                       rows="3">
+                                </table>
+                            }
+                        }
+                    }
                 }
                 """,
             expected: """
@@ -7897,6 +8518,27 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                 }
                             </div>
                 </section>
+                """,
+            dotNetFormatExpected: """
+                @page
+                @model BlazorApp58.Pages.Index2Model
+                @{
+                }
+                
+                <section class="section">
+                    <div class="container">
+                        <h1 class="title">Managed pohotos</h1>
+                        <p class="subtitle">@Model.ReferenceNumber</p>
+                    </div>
+                </section>
+                <section class="section">
+                    <div class="container">
+                        @foreach (var item in Model.Images)
+                        {
+                            <div><div>
+                                }
+                            </div>
+                        </section>
                 """,
             expected: """
                 @page
@@ -8637,6 +9279,25 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 }
                 }
                 """,
+            dotNetFormatExpected: """
+                @functions {
+                    public class Foo
+                    {
+                        void Method() { }
+                    }
+                }
+                
+                @section Scripts {
+                    <meta property="a" content="b">
+                    <meta property="a" content="b"/>
+                    <meta property="a" content="b">
+                
+                    @if (true)
+                    {
+                        <p>this is a paragraph</p>
+                    }
+                }
+                """,
             expected: """
                 @functions {
                     public class Foo
@@ -8699,6 +9360,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 {
                 <p>this is a paragraph</p>
                 }
+                }
+                """,
+            dotNetFormatExpected: """
+                @functions {
+                    public class Foo
+                    {
+                        void Method() { }
+                    }
+                }
+                
+                @section Scripts
+                {
+                    <meta property="a" content="b">
+                    <meta property="a" content="b"/>
+                    <meta property="a" content="b">
+                
+                    @if (true)
+                    {
+                        <p>this is a paragraph</p>
+                    }
                 }
                 """,
             expected: """
@@ -15206,6 +15887,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </InputSelect>
                 </div>
                 """,
+            dotNetFormatExpected: """
+                <div class="foo"
+                     disabled
+                     style="hello"
+                     @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                                 TValue="Guid?"
+                                 disabled
+                                 style="hello">
+                        <p></p><a href="#"
+                                  disabled
+                                  style="hello"
+                                  @onclick="foo()"/>
+                        <br class="a"
+                            style="b"
+                            disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
             expected: """
                 <div class="foo"
                      disabled
@@ -15243,6 +15944,14 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                      disabled
                      style="hello"
                      @onclick="foo()">
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div
+                    class="foo"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
                 </div>
                 """,
             expected: """
@@ -15289,6 +15998,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                   disabled
                                   style="hello"
                                   @onclick="foo()" />
+                        <br class="a"
+                            style="b"
+                            disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div class="foo"
+                    disabled
+                    style="hello"
+                    @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                        TValue="Guid?"
+                        disabled
+                        style="hello">
+                        <p></p><a href="#"
+                            disabled
+                            style="hello"
+                            @onclick="foo()"/>
                         <br class="a"
                             style="b"
                             disabled>
@@ -15357,6 +16086,26 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         <br class="a"
                             style="b"
                             disabled>
+                        <br />
+                    </InputSelect>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div class="foo"
+                        disabled
+                        style="hello"
+                        @onclick="foo()">
+                    <InputSelect @onclick="foo()"
+                            TValue="Guid?"
+                            disabled
+                            style="hello">
+                        <p></p><a href="#"
+                                disabled
+                                style="hello"
+                                @onclick="foo()"/>
+                        <br class="a"
+                                style="b"
+                                disabled>
                         <br />
                     </InputSelect>
                 </div>
@@ -15957,6 +16706,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             htmlFormatted: """
                 <Icon Name="@(expanded?ParentDataGrid.SelfReferenceCollapseIcon:ParentDataGrid.SelfReferenceExpandIcon)" />
                 """,
+            dotNetFormatExpected: """
+                <Icon Name="@(expanded ? ParentDataGrid.SelfReferenceCollapseIcon : ParentDataGrid.SelfReferenceExpandIcon)"/>
+                """,
             expected: """
                 <Icon Name="@(expanded ? ParentDataGrid.SelfReferenceCollapseIcon : ParentDataGrid.SelfReferenceExpandIcon)" />
                 """,
@@ -15989,6 +16741,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         .ipam-card-header-row h3 {
                             margin: 0;
                         }
+                </style>
+                """,
+            dotNetFormatExpected: """
+                @using System
+                
+                <style>
+                    /* Card header row */
+                    .ipam-card-header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+                    .ipam-card-header-row h3 { margin: 0; }
                 </style>
                 """,
             expected: """
@@ -16038,6 +16799,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         .ipam-card-header-row h3 {
                             margin: 0;
                         }
+                </style>
+                """,
+            dotNetFormatExpected: """
+                @using System
+                
+                <style>
+                    /* Card header row */
+                    .ipam-card-header-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+                
+                    .ipam-card-header-row h3 { margin: 0; }
                 </style>
                 """,
             expected: """
@@ -16100,6 +16871,28 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                 $.ajax({
                                     url: url,
                                     method: 'POST',
+                                    success: function (response) {
+                                        alert('Content published successfully!');
+                                    },
+                                    error: function (xhr, status, error) {
+                                        alert('Error publishing content: ' + error);
+                                    }
+                                });
+                            });
+                        });
+                    </script>
+                    """,
+                dotNetFormatExpected: $$"""
+                    {{directive}}
+
+                    <script type="text/javascript">
+                        $(document).ready(function () {
+                            $('.dropdown-item').click(function (e) {
+                                e.preventDefault();
+                                var url = $(this).attr('href');
+                                $.ajax({
+                                    url: url,
+                                                method: 'POST',
                                     success: function (response) {
                                         alert('Content published successfully!');
                                     },
@@ -16238,6 +17031,21 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             </tr>
                         </thead>
                     </table>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            @*
+                            <tr class="row-1">
+                                <th>Group A</th>
+                            </tr>
+                 *@         <tr>
+                            <th>ID</th>
+                        </tr>
+                    </thead>
+                </table>
                 </div>
                 """,
             expected: """
@@ -16613,6 +17421,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     }
                 </script>
                 """,
+            dotNetFormatExpected: """
+                <script
+                    type="text/javascript">
+                        @foreach (var item in items)
+                        {
+                            @:use(item);
+                        }
+                </script>
+                """,
             expected: """
                 <script type="text/javascript">
                         @foreach (var item in items)
@@ -16638,6 +17455,13 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <script type="application/json">@Model.Value</script>
                 @{
                 var value=1;
+                }
+                """,
+            dotNetFormatExpected: """
+                <script
+                type="application/json">@Model.Value</script>
+                @{
+                    var value = 1;
                 }
                 """,
             expected: """
