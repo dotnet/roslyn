@@ -20,6 +20,15 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
   unit-test projects import that suite.
 - Prefer existing host-specific test classes over conditions or preprocessor
   directives in shared test files.
+- Document-formatting scenarios shared by VS, VS Code, and dotnet format go in
+  `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.FormattingShared.UnitTests`.
+  Its `.projitems` is imported directly by the VS, VS Code, and dotnet-format test
+  projects, alongside the cohost suite where applicable.
+  Supply `htmlFormatted` for delegated HTML changes and `dotNetFormatExpected`
+  when the CLI's lack of an HTML formatter intentionally changes the result.
+  Range formatting lives in the cohost suite's `DocumentRangeFormattingTest`;
+  on-type formatting and host-specific infrastructure tests also stay in their
+  host suites.
 - Cohost tests that exercise C# formatting options should supply `.editorconfig`
   paths and contents through `additionalFiles`. `CohostTestBase` registers files
   named `.editorconfig` as analyzer-config documents, including nested configs,
