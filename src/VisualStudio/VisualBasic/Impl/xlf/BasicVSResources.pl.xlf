@@ -2,15 +2,35 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="A_utomatic_insertion_of_end_constructs">
+        <source>Automatic insertion of end constructs</source>
+        <target state="translated">Automatyczne wstawianie konstrukcji końcowych</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_imports_on_paste">
         <source>Add missing imports on paste</source>
         <target state="translated">Dodaj brakujące dyrektywy import przy wklejaniu</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
+        <source>Automatic insertion of Interface and MustOverride members</source>
+        <target state="translated">Automatyczne wstawianie składowych Interface i MustOverride</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_imports_on_file_open">
         <source>Collapse Imports on file open</source>
         <target state="translated">Zwiń importy przy otwieraniu pliku</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter outlining mode when files open</source>
+        <target state="translated">Przejdź do trybu konspektu przy otwieraniu plików</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>Generate XML documentation comments for '''</source>
+        <target state="translated">Generuj komentarze dokumentacji XML dla '''</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
@@ -27,9 +47,14 @@
         <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
-        <source>Automatic _insertion of Interface and MustOverride members</source>
-        <target state="translated">Automatyczne _wstawianie składowych Interface i MustOverride</target>
+      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
+        <source>Navigate to Object Browser for symbols defined in metadata</source>
+        <target state="translated">Przejdź do przeglądarki obiektów, aby uzyskać symbole zdefiniowane w metadanych</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_imports">
+        <source>Place 'System' directives first when sorting imports</source>
+        <target state="translated">Umieść najpierw dyrektywy „System” podczas sortowania dyrektyw import</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -47,34 +72,14 @@
         <target state="translated">Preferuj uproszczone tworzenie obiektów</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pretty_listing_reformatting_of_code">
+        <source>Pretty listing (reformatting) of code</source>
+        <target state="translated">Automatyczne formatowanie (ponowne formatowanie) kodu</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
         <target state="translated">Pokaż wskazówki dla wyrażeń „New”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_utomatic_insertion_of_end_constructs">
-        <source>A_utomatic insertion of end constructs</source>
-        <target state="translated">A_utomatyczne wstawianie konstrukcji końcowych</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pretty_listing_reformatting_of_code">
-        <source>_Pretty listing (reformatting) of code</source>
-        <target state="translated">_Automatyczne formatowanie (ponowne formatowanie) kodu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>_Enter outlining mode when files open</source>
-        <target state="translated">_Przejdź do trybu konspektu przy otwieraniu plików</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_Generuj komentarze dokumentacji XML dla '''</target>
-        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
-        <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="translated">_Przejdź do przeglądarki obiektów, aby uzyskać symbole zdefiniowane w metadanych</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -83,18 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
-        <source>Suggest imports for types in _NuGet packages</source>
-        <target state="translated">Sugeruj dyrektywy import dla typów w pakietach _NuGet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
-        <source>Suggest imports for types in _reference assemblies</source>
-        <target state="translated">Sugeruj dyrektywy import dla typów w zestawach _referencyjnych</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_imports">
-        <source>_Place 'System' directives first when sorting imports</source>
-        <target state="translated">_Umieść najpierw dyrektywy „System” podczas sortowania dyrektyw import</target>
+        <source>Suggest imports for types in NuGet packages</source>
+        <target state="translated">Sugeruj dyrektywy import dla typów w pakietach NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
@@ -140,6 +135,11 @@
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
         <target state="translated">Listy uzupełniania</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
+        <source>Suggest imports for types in reference assemblies</source>
+        <target state="translated">Sugeruj dyrektywy import dla typów w zestawach referencyjnych</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

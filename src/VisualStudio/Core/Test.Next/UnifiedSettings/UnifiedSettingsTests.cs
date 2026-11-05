@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
@@ -137,7 +138,7 @@ public sealed class UnifiedSettingsTests
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
-        Assert.Equal(2, propertyToCategory.Count);
+        VerifyTaskOrientedCategories(propertyToCategory.Keys, "csharp");
         Assert.Equal("C#", propertyToCategory["languages.csharp"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.csharp.intellisense"]!.Title);
     }
@@ -245,7 +246,7 @@ public sealed class UnifiedSettingsTests
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
-        Assert.Equal(2, propertyToCategory.Count);
+        VerifyTaskOrientedCategories(propertyToCategory.Keys, "basic");
         Assert.Equal("Visual Basic", propertyToCategory["languages.basic"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.basic.intellisense"]!.Title);
     }
@@ -266,7 +267,9 @@ public sealed class UnifiedSettingsTests
     private static void VerifyProperties(JsonNode jsonDocument, string prefix, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
     {
         var properties = jsonDocument!.Root["properties"]!.AsObject().SelectAsArray(
-            predicate: jsonObject => jsonObject.Key.StartsWith(prefix),
+            predicate: jsonObject => jsonObject.Key.StartsWith(prefix + ".", StringComparison.Ordinal)
+                && !jsonObject.Key[(prefix.Length + 1)..].Contains('.')
+                && jsonObject.Key != prefix + ".showRemarksInQuickInfo",
             selector: jsonObject => jsonObject.Value);
         Assert.Equal(expectedOptionToSettings.Length, properties.Length);
         foreach (var (actualJson, (expectedOption, expectedSetting)) in properties.Zip(expectedOptionToSettings, (actual, expected) => (actual, expected)))
@@ -282,6 +285,19 @@ public sealed class UnifiedSettingsTests
     #endregion
 
     #region Helpers
+
+    private static void VerifyTaskOrientedCategories(IEnumerable<string> categories, string languageId)
+    {
+        string[] paths =
+        [
+            "", ".intellisense", ".intellisense.browsingNavigation", ".intellisense.refactoring",
+            ".intellisense.inlineHints", ".intellisense.embeddedLanguages",
+            ".textEditor", ".textEditor.highlighting", ".textEditor.outlining", ".textEditor.structureGuides",
+            ".codeStyle", ".codeStyle.formatting", ".codeStyle.formatting.general", ".codeStyle.comments",
+            ".codeCleanup", ".codeCleanup.imports", ".analysis",
+        ];
+        Assert.Equal(paths.Select(path => $"languages.{languageId}{path}").OrderBy(path => path), categories.OrderBy(path => path));
+    }
 
     private static UnifiedSettingsOption<bool> CreateBooleanOption(
         IOption2 onboardedOption,

@@ -1,5 +1,310 @@
 {
   "properties": {
+    "languages.basic.analysis.backgroundAnalysisScope": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Run_background_code_analysis_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "default": "currentDocument",
+      "order": 0,
+      "transientScopesSupported": false,
+      "enum": [
+        "none",
+        "currentDocument",
+        "openDocuments",
+        "entireSolution"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll"
+      ],
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.VisualBasic.Specific.BackgroundAnalysisScopeOption"
+            }
+          ],
+          "map": [
+            {
+              "result": "@default",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "none",
+              "matches": [
+                3
+              ]
+            },
+            {
+              "result": "currentDocument",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "openDocuments",
+              "matches": [
+                1
+              ]
+            },
+            {
+              "result": "entireSolution",
+              "matches": [
+                2
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@any"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.basic.analysis.compilerDiagnosticsScope": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_compiler_errors_and_warnings_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "default": "openDocuments",
+      "order": 10,
+      "transientScopesSupported": false,
+      "enum": [
+        "none",
+        "currentDocument",
+        "openDocuments",
+        "entireSolution"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Current_document;..\\Microsoft.VisualStudio.LanguageServices.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Open_documents;..\\Microsoft.VisualStudio.LanguageServices.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Entire_solution;..\\Microsoft.VisualStudio.LanguageServices.dll"
+      ],
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.VisualBasic.Specific.CompilerDiagnosticsScopeOption"
+            }
+          ],
+          "map": [
+            {
+              "result": "@default",
+              "matches": [
+                2
+              ]
+            },
+            {
+              "result": "none",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "currentDocument",
+              "matches": [
+                1
+              ]
+            },
+            {
+              "result": "openDocuments",
+              "matches": [
+                2
+              ]
+            },
+            {
+              "result": "entireSolution",
+              "matches": [
+                3
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@any"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.basic.analysis.inlineDiagnosticsLocation": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Inline_diagnostic_location;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "default": "placedAtEndOfCode",
+      "order": 30,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.analysis.enableInlineDiagnostics}=='true'",
+      "enum": [
+        "placedAtEndOfCode",
+        "placedAtEndOfEditor"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:at_the_end_of_the_line_of_code;..\\Microsoft.VisualStudio.LanguageServices.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:on_the_right_edge_of_the_editor_window;..\\Microsoft.VisualStudio.LanguageServices.dll"
+      ],
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.VisualBasic.Specific.InlineDiagnostics.LocationOption"
+            }
+          ],
+          "map": [
+            {
+              "result": "@default",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "placedAtEndOfCode",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "placedAtEndOfEditor",
+              "matches": [
+                1
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@any"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.basic.intellisense.refactoring.implementType.insertionBehavior": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:When_inserting_properties_events_and_methods_place_them;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "default": "withOtherMembersOfTheSameKind",
+      "order": 10,
+      "transientScopesSupported": false,
+      "enum": [
+        "withOtherMembersOfTheSameKind",
+        "atTheEnd"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:with_other_members_of_the_same_kind;..\\Microsoft.VisualStudio.LanguageServices.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:at_the_end;..\\Microsoft.VisualStudio.LanguageServices.dll"
+      ],
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.refactoring",
+          "order": 10
+        }
+      ],
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.VisualBasic.ImplementTypeOptions.InsertionBehavior"
+            }
+          ],
+          "map": [
+            {
+              "result": "@default",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "withOtherMembersOfTheSameKind",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "atTheEnd",
+              "matches": [
+                1
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@any"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.basic.intellisense.refactoring.implementType.propertyGenerationBehavior": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:When_generating_properties;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "string",
+      "default": "preferThrowingProperties",
+      "order": 20,
+      "transientScopesSupported": false,
+      "enum": [
+        "preferThrowingProperties",
+        "preferAutoProperties"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:prefer_throwing_properties;..\\Microsoft.VisualStudio.LanguageServices.dll",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:codegen_prefer_auto_properties;..\\Microsoft.VisualStudio.LanguageServices.dll"
+      ],
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.refactoring",
+          "order": 20
+        }
+      ],
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.VisualBasic.ImplementTypeOptions.PropertyGenerationBehavior"
+            }
+          ],
+          "map": [
+            {
+              "result": "@default",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "preferThrowingProperties",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "preferAutoProperties",
+              "matches": [
+                1
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@any"
+              ]
+            }
+          ]
+        }
+      }
+    },
     // CompletionOptionsStorage.TriggerOnTypingLetters
     "languages.basic.intellisense.triggerCompletionOnTypingLetters": {
       "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.dll",
@@ -64,8 +369,16 @@
     "languages.basic.intellisense.snippetsBehavior": {
       "title": "@Snippets_behavior;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
-      "enum": [ "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
-      "enumItemLabels": [ "@Never_include_snippets;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Always_include_snippets;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Include_snippets_when_Tab_is_typed_after_an_identifier;{574fc912-f74f-4b4e-92c3-f695c208a2bb}" ],
+      "enum": [
+        "neverInclude",
+        "alwaysInclude",
+        "includeAfterTypingIdentifierQuestionTab"
+      ],
+      "enumItemLabels": [
+        "@Never_include_snippets;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+        "@Always_include_snippets;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+        "@Include_snippets_when_Tab_is_typed_after_an_identifier;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+      ],
       "default": "includeAfterTypingIdentifierQuestionTab",
       "order": 30,
       "migration": {
@@ -103,8 +416,16 @@
     "languages.basic.intellisense.returnKeyCompletionBehavior": {
       "title": "@Enter_key_behavior;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
-      "enum": [ "never", "afterFullyTypedWord", "always" ],
-      "enumItemLabels": [ "@Never_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Always_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}" ],
+      "enum": [
+        "never",
+        "afterFullyTypedWord",
+        "always"
+      ],
+      "enumItemLabels": [
+        "@Never_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+        "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+        "@Always_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+      ],
       "default": "always",
       "order": 40,
       "migration": {
@@ -157,8 +478,16 @@
     "languages.basic.intellisense.importCompletionCommitBehavior": {
       "title": "@Completion_behavior_for_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
-      "enum": [ "alwaysAddImport", "neverAddImport", "onlyAddImportIfExplicitlyCompleted" ],
-      "enumItemLabels": [ "@Always_add_import;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Never_add_import;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll", "@Only_add_import_if_explicitly_completed;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" ],
+      "enum": [
+        "alwaysAddImport",
+        "neverAddImport",
+        "onlyAddImportIfExplicitlyCompleted"
+      ],
+      "enumItemLabels": [
+        "@Always_add_import;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+        "@Never_add_import;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+        "@Only_add_import_if_explicitly_completed;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll"
+      ],
       "default": "alwaysAddImport",
       "order": 51,
       "enableWhen": "${config:languages.basic.intellisense.showCompletionItemsFromUnimportedNamespaces}=='true'",
@@ -204,14 +533,1017 @@
           }
         }
       }
+    },
+    // Installed TextEditor.* IsRoamed/IsShared metadata upgrades this supported mode to FullWithoutDefaults.
+    "languages.basic.intellisense.inlineHints.colorize": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Color_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ColorHints"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.inlineHints.parameters.show": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Display_inline_parameter_name_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 20,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.inlineHints",
+          "order": 20
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineParameterNameHints"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.inlineHints.parameters.forLiterals": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_hints_for_literals;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.intellisense.inlineHints.parameters.show}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineParameterNameHints.ForLiteralParameters"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.inlineHints.parameters.forObjectCreation": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Show_hints_for_New_expressions;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.intellisense.inlineHints.parameters.show}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineParameterNameHints.ForObjectCreationParameters"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.inlineHints.parameters.forOtherArguments": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_hints_for_everything_else;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 50,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.intellisense.inlineHints.parameters.show}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineParameterNameHints.ForOtherParameters"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.inlineHints.parameters.forIndexers": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_hints_for_indexers;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 60,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.intellisense.inlineHints.parameters.show}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineParameterNameHints.ForArrayIndexers"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.inlineHints.parameters.suppressWhenMatchingMethodIntent": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Suppress_hints_when_parameter_name_matches_the_method_s_intent;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 70,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.intellisense.inlineHints.parameters.show}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineParameterNameHints.SuppressForParametersThatMatchMethodIntent"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.inlineHints.parameters.suppressWhenDifferingOnlyBySuffix": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Suppress_hints_when_parameter_names_differ_only_by_suffix;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 80,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.intellisense.inlineHints.parameters.show}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineParameterNameHints.SuppressForParametersThatDifferOnlyBySuffix"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.inlineHints.parameters.suppressWhenMatchingArgumentName": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Suppress_hints_when_argument_matches_parameter_name;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 90,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.intellisense.inlineHints.parameters.show}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineParameterNameHints.SuppressForParametersThatMatchArgumentName"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.browsingNavigation.inheritanceMargin.show": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_inheritance_margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.browsingNavigation",
+          "order": 40
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowInheritanceMargin"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.browsingNavigation.inheritanceMargin.includeGlobalImports": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Include_global_imports;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 60,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.browsingNavigation",
+          "order": 60
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InheritanceMarginIncludeGlobalImports"
+          }
+        }
+      }
+    },
+    "languages.basic.analysis.enableInlineDiagnostics": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Display_diagnostics_inline;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 20,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.InlineDiagnostics"
+          }
+        }
+      }
+    },
+    "languages.basic.codeCleanup.imports.placeSystemNamespaceFirst": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Place_System_directives_first_when_sorting_imports;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.PlaceSystemNamespaceFirst"
+          }
+        }
+      }
+    },
+    "languages.basic.codeCleanup.imports.separateImportDirectiveGroups": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Separate_import_directive_groups;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 10,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.SeparateImportDirectiveGroups"
+          }
+        }
+      }
+    },
+    "languages.basic.codeCleanup.imports.searchReferenceAssemblies": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Suggest_imports_for_types_in_reference_assemblies;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 20,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.SuggestForTypesInReferenceAssemblies"
+          }
+        }
+      }
+    },
+    "languages.basic.codeCleanup.imports.searchNuGetPackages": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Suggest_imports_for_types_in_NuGet_packages;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.SuggestForTypesInNuGetPackages"
+          }
+        }
+      }
+    },
+    "languages.basic.codeCleanup.imports.addImportsOnPaste": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Add_missing_imports_on_paste;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.AddImportsOnPaste2"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.highlighting.referenceHighlighting": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlight_references_to_symbol_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.EnableHighlightReferences"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.highlighting.keywordHighlighting": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlight_related_keywords_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.EnableHighlightRelatedKeywords"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.onFileOpen": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Enter_outlining_mode_when_files_open;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.Outlining"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.onFileOpen.collapseRegions": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Collapse_regions_on_file_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.textEditor.outlining.onFileOpen}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.CollapseRegionsWhenFirstOpened"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.onFileOpen.collapseImports": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Collapse_imports_on_file_open;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 20,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.textEditor.outlining.onFileOpen}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.CollapseImportsWhenFirstOpened"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.onFileOpen.collapseSourceLinkEmbeddedDecompiledFiles": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Collapse_sourcelink_embedded_decompiled_files_on_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 30,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.textEditor.outlining.onFileOpen}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.CollapseMetadataImplementationsWhenFirstOpened"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.onFileOpen.collapseMetadataSignatureFiles": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Collapse_metadata_signature_files_on_open;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "enableWhen": "${config:languages.basic.textEditor.outlining.onFileOpen}=='true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.CollapseEmptyMetadataImplementationsWhenFirstOpened"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.lineSeparator": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_procedure_line_separators;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.DisplayLineSeparators"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.showOutliningForDeclarationLevelConstructs": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_outlining_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 60,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowOutliningForDeclarationLevelConstructs"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.showOutliningForCodeLevelConstructs": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_outlining_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 70,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowOutliningForCodeLevelConstructs"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.showOutliningForCommentsAndPreprocessorRegions": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_outlining_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 80,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowOutliningForCommentsAndPreprocessorRegions"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.outlining.collapseRegionsWhenCollapsingToDefinitions": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Collapse_regions_when_collapsing_to_definitions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 90,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.CollapseRegionsWhenCollapsingToDefinitions"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.highlighting.fadeOutUnusedImports": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Fade_out_unused_imports;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.FadeOutUnusedImports"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.highlighting.fadeOutUnusedMembers": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Fade_out_unused_members;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 50,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.FadeOutUnusedMembers"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.structureGuides.showBlockStructureGuidesForDeclarationLevelConstructs": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_guides_for_declaration_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowBlockStructureGuidesForDeclarationLevelConstructs"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.structureGuides.showBlockStructureGuidesForCodeLevelConstructs": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_guides_for_code_level_constructs;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowBlockStructureGuidesForCodeLevelConstructs"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.structureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_guides_for_comments_and_preprocessor_regions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 20,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions"
+          }
+        }
+      }
+    },
+    "languages.basic.codeStyle.comments.autoXmlDocCommentGeneration": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Generate_XML_documentation_comments_for;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.AutoComment"
+          }
+        }
+      }
+    },
+    "languages.basic.codeStyle.comments.generateSummaryTagOnSingleLine": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Generate_summary_on_single_line;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 10,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.GenerateSummaryTagOnSingleLine"
+          }
+        }
+      }
+    },
+    "languages.basic.codeStyle.comments.generateOnlySummaryTag": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Generate_only_summary_tag;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 20,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.GenerateOnlySummaryTag"
+          }
+        }
+      }
+    },
+    "languages.basic.codeStyle.comments.splitComments": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Insert_apostrophe_at_the_start_of_new_lines_when_writing_apostrophe_comments;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.SplitComments"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.endConstruct": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:A_utomatic_insertion_of_end_constructs;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.AutoEndInsert"
+          }
+        }
+      }
+    },
+    "languages.basic.codeStyle.formatting.general.prettyListing": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Pretty_listing_reformatting_of_code;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.PrettyListing"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.refactoring.automaticInsertionOfAbstractOrInterfaceMembers": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Automatic_insertion_of_Interface_and_MustOverride_members;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.AutoRequiredMemberInsert"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.showRemarksInQuickInfo": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_remarks_in_Quick_Info;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 110,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowRemarks"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.refactoring.renameTrackingPreview": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_preview_for_rename_tracking;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.RenameTrackingPreview"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.embeddedLanguages.compositeFormatting.reportInvalidPlaceholders": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Report_invalid_placeholders_in_string_dot_format_calls;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 70,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.embeddedLanguages",
+          "order": 70
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.WarnOnInvalidStringDotFormatCalls"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.highlighting.classifyReassignedVariables": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Underline_reassigned_variables;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 20,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ClassificationOptions.ClassifyReassignedVariables"
+          }
+        }
+      }
+    },
+    "languages.basic.textEditor.highlighting.classifyObsoleteSymbols": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Strike_out_obsolete_symbols;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ClassificationOptions.ClassifyObsoleteSymbols"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.browsingNavigation.navigateToObjectBrowser": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Navigate_to_Object_Browser_for_symbols_defined_in_metadata;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 30,
+      "transientScopesSupported": false,
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.NavigateToObjectBrowser"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.embeddedLanguages.regularExpressions.colorize": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Colorize_regular_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.embeddedLanguages",
+          "order": 0
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ColorizeRegexPatterns"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.embeddedLanguages.regularExpressions.reportInvalidPatterns": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Report_invalid_regular_expressions;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.embeddedLanguages",
+          "order": 10
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ReportInvalidRegexPatterns"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.embeddedLanguages.regularExpressions.highlightRelatedComponents": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlight_related_regular_expression_components_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 20,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.embeddedLanguages",
+          "order": 20
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.HighlightRelatedRegexComponentsUnderCursor"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.embeddedLanguages.regularExpressions.showCompletions": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_regular_expression_completion_list;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.embeddedLanguages",
+          "order": 30
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ProvideRegexCompletions"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.embeddedLanguages.json.colorize": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Colorize_JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.embeddedLanguages",
+          "order": 40
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ColorizeJsonPatterns"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.embeddedLanguages.json.reportInvalidPatterns": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Report_invalid_JSON_strings;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 50,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.embeddedLanguages",
+          "order": 50
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ReportInvalidJsonPatterns"
+          }
+        }
+      }
+    },
+    "languages.basic.intellisense.embeddedLanguages.json.highlightRelatedComponents": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlight_related_JSON_components_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 60,
+      "transientScopesSupported": false,
+      "placements": [
+        {
+          "category": "languages.basic.intellisense.embeddedLanguages",
+          "order": 60
+        }
+      ],
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.HighlightRelatedJsonComponentsUnderCursor"
+          }
+        }
+      }
     }
   },
   "categories": {
-    "languages.basic":{
+    "languages.basic": {
       "title": "@101;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
     },
     "languages.basic.intellisense": {
-      "title": "@112;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
+      "title": "@112;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 100
+    },
+    "languages.basic.intellisense.browsingNavigation": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Browsing_and_navigation;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 0
+    },
+    "languages.basic.intellisense.refactoring": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Refactoring;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 10
+    },
+    "languages.basic.intellisense.inlineHints": {
+      "title": "@Microsoft.CodeAnalysis.EditorFeaturesResources:Inline_Hints;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+      "order": 20
+    },
+    "languages.basic.intellisense.embeddedLanguages": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Embedded_languages;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 30
+    },
+    "languages.basic.textEditor": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Text_editor;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 110
+    },
+    "languages.basic.textEditor.highlighting": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlighting;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 0
+    },
+    "languages.basic.textEditor.outlining": {
+      "title": "@Microsoft.CodeAnalysis.EditorFeaturesResources:Outlining;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+      "order": 10
+    },
+    "languages.basic.textEditor.structureGuides": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Structure_guides;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 20
+    },
+    "languages.basic.codeStyle": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_Style;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 120
+    },
+    "languages.basic.codeStyle.formatting": {
+      "title": "@Microsoft.CodeAnalysis.EditorFeaturesResources:Formatting;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+      "order": 0
+    },
+    "languages.basic.codeStyle.formatting.general": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:General;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 0
+    },
+    "languages.basic.codeStyle.comments": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Comments;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 10
+    },
+    "languages.basic.codeCleanup": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_cleanup;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 130
+    },
+    "languages.basic.codeCleanup.imports": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Import_Directives;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "order": 0
+    },
+    "languages.basic.analysis": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Analysis;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "order": 140
     }
   }
 }

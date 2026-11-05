@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
-public sealed class VisualStudioSettingsOptionPersisterTests
+public sealed partial class VisualStudioSettingsOptionPersisterTests
 {
     private sealed class MockSettingsSubset : ISettingsSubset
     {
