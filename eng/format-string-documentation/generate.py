@@ -10,6 +10,7 @@ import html
 import json
 import re
 import xml.etree.ElementTree as ET
+from urllib.request import urlopen
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -26,8 +27,28 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def read_source(meta):
+    path = HERE / '.cache' / meta['git_blob']
+    cached = path.exists()
+    if cached:
+        data = path.read_bytes()
+    else:
+        url = f"https://raw.githubusercontent.com/{meta['repository']}/{meta['commit']}/{meta['path']}"
+        with urlopen(url, timeout=30) as response:
+            data = response.read()
+    blob = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
+    require(blob == meta['git_blob'], f'Source snapshot changed: {meta["file"]}')
+    if not cached:
+        path.parent.mkdir(exist_ok=True)
+        path.write_bytes(data)
+    return data
+
+
+DATA = {meta['file']: read_source(meta) for meta in SOURCES}
+
+
 def source(file):
-    return (HERE / 'sources' / file).read_text(encoding='utf-8-sig')
+    return DATA[file].decode('utf-8-sig')
 
 
 def plain(text):
@@ -125,7 +146,7 @@ add('numeric-hex-float', ['X', 'x'], 'net11-libraries.md',
     {'heading': heading, 'paragraph': 0, 'sentence': 0}, re.split(r'(?<=\.)\s+', paragraph)[0], 'whole')
 
 # Select the XML overload before its embedded Markdown table.
-guid = ET.parse(HERE / 'sources/Guid.xml').getroot()
+guid = ET.fromstring(DATA['Guid.xml'])
 members = [m for m in guid.findall('./Members/Member')
            if m.attrib['MemberName'] == 'ToString' and
            [p.attrib['Type'] for p in m.findall('./Parameters/Parameter')] == ['System.String']]
@@ -175,18 +196,13 @@ def generated_outputs():
         for key in e['specifiers']:
             code += f'            ({json.dumps(e["family"])}, {json.dumps(key)}) => CSharpFeaturesResources.{e["resource"]},\n'
     code += '            _ => null,\n        };\n}\n'
-    return {RESX: ('\ufeff' + resx).encode('utf-8'), GENERATED: ('\ufeff' + code).encode('utf-8'),
-            HERE / 'extractions.json': (json.dumps(entries, indent=2, ensure_ascii=False) + '\n').encode()}
+    return {RESX: ('\ufeff' + resx).encode('utf-8'), GENERATED: ('\ufeff' + code).encode('utf-8')}
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--check', action='store_true', help='Verify snapshots and generated output without writes.')
+    parser.add_argument('--check', action='store_true', help='Verify pinned sources and generated output.')
     args = parser.parse_args()
-    for s in SOURCES:
-        data = (HERE / 'sources' / s['file']).read_bytes()
-        blob = hashlib.sha1(b'blob ' + str(len(data)).encode() + b'\0' + data).hexdigest()
-        require(blob == s['git_blob'], f'Source snapshot changed: {s["file"]}')
     allowed = {'Format_example_heading', 'Format_preview_heading', 'Format_0_for_1', 'Format_example_omitted', 'Microsoft_Learn_format_strings'}
     for node in ET.parse(RESX).getroot().findall('data'):
         name = node.attrib['name']

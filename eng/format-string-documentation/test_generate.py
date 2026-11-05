@@ -3,6 +3,7 @@
 # See the LICENSE file in the project root for more information.
 
 """Exercise the provenance checks against isolated copies of the real inputs."""
+import json
 import shutil
 import subprocess
 import sys
@@ -16,6 +17,10 @@ FEATURE = Path('src/Features/CSharp/Portable')
 
 
 class ProvenanceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        subprocess.run([sys.executable, str(HERE / 'generate.py'), '--check'], check=True, capture_output=True)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
@@ -38,7 +43,8 @@ class ProvenanceTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stderr)
 
     def test_modified_source_fails(self):
-        with (self.tool / 'sources/numeric-standard.md').open('a') as output:
+        meta = next(s for s in json.loads((self.tool / 'sources.json').read_text()) if s['file'] == 'numeric-standard.md')
+        with (self.tool / '.cache' / meta['git_blob']).open('a') as output:
             output.write('\n')
         result = self.check()
         self.assertNotEqual(0, result.returncode)

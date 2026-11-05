@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 /// </summary>
 internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticModel, CancellationToken cancellationToken) : IDisposable
 {
+    private enum ScopeState { Valid, Invalid, TooLarge }
+
     // Bound recursive work and intermediate values before they can expand into expensive operations.
     internal const int OperationBudget = 64;
     internal const int RequestOperationBudget = 4096;
@@ -31,11 +33,10 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
     internal const int LocalLimit = 128;
     internal const int StringLimit = 256;
     private const int IntegerByteLimit = 512;
-    private readonly PooledDictionary<ILocalSymbol, CSharpFormatStringValue> _locals = PooledDictionary<ILocalSymbol, CSharpFormatStringValue>.GetInstance();
-    private readonly PooledDictionary<SyntaxNode, FormatStringValueReason> _scopes = PooledDictionary<SyntaxNode, FormatStringValueReason>.GetInstance();
+    private readonly PooledDictionary<ILocalSymbol, Optional<object?>> _locals = PooledDictionary<ILocalSymbol, Optional<object?>>.GetInstance();
+    private readonly PooledDictionary<SyntaxNode, ScopeState> _scopes = PooledDictionary<SyntaxNode, ScopeState>.GetInstance();
     private int _requestRemaining = RequestOperationBudget;
     private int _dataFlowRemaining = DataFlowLimit;
-    private FormatStringValueReason _reason;
     private int _remaining;
     private bool _exhausted;
 
@@ -47,27 +48,24 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
         _scopes.Free();
     }
 
-    public CSharpFormatStringValue GetValue(IOperation? operation)
+    public Optional<object?> GetValue(IOperation? operation)
     {
         _remaining = OperationBudget;
         _exhausted = false;
-        _reason = FormatStringValueReason.UnknownInput;
         try
         {
-            var value = Evaluate(operation);
-            return new(value, operation?.Type, value.HasValue ? FormatStringValueReason.Known : _reason);
+            return Evaluate(operation);
         }
         catch (Exception e) when (e is ArgumentException or ArithmeticException or InvalidOperationException ||
             e is TargetInvocationException { InnerException: ArgumentException or ArithmeticException or FormatException })
         {
-            return new(default, operation?.Type, FormatStringValueReason.InvalidValue);
+            return default;
         }
     }
 
-    private Optional<object?> Unknown(FormatStringValueReason reason)
+    private Optional<object?> Exhausted()
     {
-        _reason = reason;
-        _exhausted |= reason == FormatStringValueReason.WorkLimit;
+        _exhausted = true;
         return default;
     }
 
@@ -77,7 +75,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
         if (operation is null)
             return default;
         if (_remaining-- <= 0 || _requestRemaining-- <= 0)
-            return Unknown(FormatStringValueReason.WorkLimit);
+            return Exhausted();
         if (operation.ConstantValue.HasValue)
             return Bounded(operation.ConstantValue.Value);
 
@@ -114,7 +112,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
                 {
                     var value = Evaluate(coalesce.Value);
                     return !value.HasValue ? default : value.Value is null ? Evaluate(coalesce.WhenNull)
-                        : coalesce.ValueConversion.IsUserDefined ? Unknown(FormatStringValueReason.UnsupportedOperation)
+                        : coalesce.ValueConversion.IsUserDefined ? default
                         : ConvertValue(value.Value, coalesce.Type, isChecked: false);
                 }
             case IUnaryOperation unary:
@@ -154,7 +152,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
                     return member is { IsInitOnly: true } or { IsLiteral: true } ? Bounded(member.GetValue(null)) : default;
                 }
             default:
-                return Unknown(FormatStringValueReason.UnsupportedOperation);
+                return default;
         }
     }
 
@@ -162,13 +160,9 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
     {
         var local = operation.Local;
         if (_locals.TryGetValue(local, out var cached))
-        {
-            if (!cached.IsKnown)
-                _reason = cached.Reason;
-            return cached.Value;
-        }
+            return cached;
         if (_locals.Count >= LocalLimit || _dataFlowRemaining <= 0)
-            return Unknown(FormatStringValueReason.WorkLimit);
+            return Exhausted();
         if (local.RefKind != RefKind.None || local.DeclaringSyntaxReferences is not [var reference] ||
             reference.SyntaxTree != semanticModel.SyntaxTree ||
             reference.GetSyntax(cancellationToken) is not VariableDeclaratorSyntax
@@ -177,7 +171,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
             declarator.Span.End > operation.Syntax.SpanStart ||
             semanticModel.GetOperation(declarator, cancellationToken) is not IVariableDeclaratorOperation { Initializer.Value: { } initializer })
         {
-            return Unknown(FormatStringValueReason.UnsupportedOperation);
+            return default;
         }
 
         var scope = declaration.SyntaxTree.GetRoot(cancellationToken);
@@ -191,33 +185,33 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
         }
         if (!_scopes.TryGetValue(scope, out var scopeReason))
         {
-            scopeReason = FormatStringValueReason.Known;
+            scopeReason = ScopeState.Valid;
             var remaining = ScopeNodeLimit;
             foreach (var node in scope.DescendantNodes())
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (--remaining < 0)
                 {
-                    scopeReason = FormatStringValueReason.WorkLimit;
+                    scopeReason = ScopeState.TooLarge;
                     break;
                 }
                 // A jump can bypass an initializer that lexically precedes its use.
                 if (node is GotoStatementSyntax)
                 {
-                    scopeReason = FormatStringValueReason.UnsupportedOperation;
+                    scopeReason = ScopeState.Invalid;
                     break;
                 }
             }
             _scopes.Add(scope, scopeReason);
         }
-        if (scopeReason != FormatStringValueReason.Known)
-            return Unknown(scopeReason);
+        if (scopeReason != ScopeState.Valid)
+            return scopeReason == ScopeState.TooLarge ? Exhausted() : default;
 
         var value = Evaluate(initializer);
         if (value.HasValue)
         {
             if (_dataFlowRemaining <= 0)
-                return Unknown(FormatStringValueReason.WorkLimit);
+                return Exhausted();
             _dataFlowRemaining--;
             cancellationToken.ThrowIfCancellationRequested();
             var flow = semanticModel.AnalyzeDataFlow(declaration);
@@ -227,7 +221,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
             if (flow is not { Succeeded: true } || flow.WrittenOutside.Contains(local) ||
                 flow.UnsafeAddressTaken.Contains(local) || flow.Captured.Contains(local))
             {
-                value = Unknown(FormatStringValueReason.MutationOrEscape);
+                value = default;
             }
             else
             {
@@ -246,7 +240,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
                             syntax = parentheses;
                         if (use.Parent is IArgumentOperation { Parameter.RefKind: not RefKind.None } || syntax.Parent is RefExpressionSyntax)
                         {
-                            value = Unknown(FormatStringValueReason.MutationOrEscape);
+                            value = default;
                             break;
                         }
                     }
@@ -254,7 +248,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
             }
         }
         if (!_exhausted && _locals.Count < LocalLimit)
-            _locals[local] = new(value, local.Type, value.HasValue ? FormatStringValueReason.Known : _reason);
+            _locals[local] = value;
         return value;
     }
 
@@ -275,7 +269,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
             left.Value is null or string && right.Value is null or string)
         {
             return (((string?)left.Value)?.Length ?? 0) + (((string?)right.Value)?.Length ?? 0) > StringLimit
-                ? Unknown(FormatStringValueReason.WorkLimit) : Bounded((string?)left.Value + (string?)right.Value);
+                ? Exhausted() : Bounded((string?)left.Value + (string?)right.Value);
         }
         if (left.Value is BigInteger && right.Value is int shift &&
             operation.OperatorKind is BinaryOperatorKind.LeftShift or BinaryOperatorKind.RightShift && Math.Abs((long)shift) > IntegerByteLimit * 8)
@@ -297,7 +291,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
         if (operation.OperatorMethod is { } method)
             return left.Value is null || right.Value is null ? default : Invoke(method, null, [left.Value, right.Value]);
         if (operation.LeftOperand.Type?.SpecialType is SpecialType.System_Single or SpecialType.System_Double)
-            return Unknown(FormatStringValueReason.UnsupportedOperation);
+            return default;
         var leftExpression = Typed(left.Value, RuntimeType(operation.LeftOperand.Type));
         var rightExpression = Typed(right.Value, RuntimeType(operation.RightOperand.Type));
         if (leftExpression is null || rightExpression is null)
@@ -330,7 +324,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
     private Optional<object?> EvaluateCall(IMethodSymbol method, IOperation? instance, ImmutableArray<IArgumentOperation> arguments)
     {
         if (!IsAllowed(method) || arguments.Length != method.Parameters.Length)
-            return Unknown(FormatStringValueReason.UnsupportedOperation);
+            return default;
         object? receiver = null;
         if (instance is not null)
         {
@@ -371,7 +365,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
         }
 
         if (Array.Exists(arguments, value => value is StringComparison comparison && comparison != StringComparison.Ordinal))
-            return Unknown(FormatStringValueReason.UnsupportedOperation);
+            return default;
 
         if (type == typeof(Guid) && arguments.Length is 1 or 2 && arguments[0] is string input)
         {
@@ -385,9 +379,9 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
                 _ => null,
             };
             if (format is null || arguments.Length == 2 && !string.Equals(format, arguments[1] as string, StringComparison.OrdinalIgnoreCase))
-                return Unknown(FormatStringValueReason.UnsupportedOperation);
+                return default;
             return Guid.TryParseExact(input, format, out var guid) && input.Equals(guid.ToString(format), StringComparison.OrdinalIgnoreCase)
-                ? Bounded(guid) : Unknown(FormatStringValueReason.InvalidValue);
+                ? Bounded(guid) : default;
         }
 
         // Integral time units have the same exact tick result on both sides of .NET 7's precision change.
@@ -407,7 +401,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
             if (double.IsNaN(amount) || double.IsInfinity(amount) || amount != Math.Truncate(amount) ||
                 Math.Abs(amount) > (1L << 53) / ticksPerUnit)
             {
-                return Unknown(FormatStringValueReason.UnsupportedOperation);
+                return default;
             }
             var ticks = checked((long)amount * ticksPerUnit);
             return Bounded(receiver is DateTime date ? date.AddTicks(ticks) :
@@ -428,7 +422,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
                     length += ((arguments[1] as string)?.Length ?? 0) - oldValue.Length;
             }
             if (length > StringLimit)
-                return Unknown(FormatStringValueReason.WorkLimit);
+                return Exhausted();
         }
         if (type == typeof(BigInteger) && arguments.Length > 0 && arguments[0] is BigInteger integer)
         {
@@ -442,7 +436,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
                 _ => (long)bytes,
             };
             if (maximum > IntegerByteLimit)
-                return Unknown(FormatStringValueReason.WorkLimit);
+                return Exhausted();
         }
 
         if (type == typeof(DateTimeOffset))
@@ -616,7 +610,7 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
             return Bounded(value);
         // Nonconstant floating conversions can depend on the target runtime's overflow behavior.
         if (value is float or double)
-            return Unknown(FormatStringValueReason.UnsupportedOperation);
+            return default;
         if (type.IsEnum)
             return Bounded(Enum.ToObject(type, value));
         return Bounded(Interpret(isChecked ? Expression.ConvertChecked(Expression.Constant(value), type)
@@ -632,9 +626,9 @@ internal sealed class CSharpFormatStringValueEvaluator(SemanticModel semanticMod
     private Optional<object?> Bounded(object? value)
     {
         if (value is DateTime { Kind: DateTimeKind.Local })
-            return Unknown(FormatStringValueReason.UnsupportedOperation);
+            return default;
         if (value is string { Length: > StringLimit } || value is BigInteger integer && integer.ToByteArray().Length > IntegerByteLimit)
-            return Unknown(FormatStringValueReason.WorkLimit);
+            return Exhausted();
         // Roslyn enum constants use the underlying numeric value, including for format X.
         return new Optional<object?>(value is Enum enumeration
             ? Convert.ChangeType(enumeration, Enum.GetUnderlyingType(enumeration.GetType()), CultureInfo.InvariantCulture) : value);

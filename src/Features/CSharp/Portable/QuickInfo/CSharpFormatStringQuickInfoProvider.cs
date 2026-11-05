@@ -61,7 +61,7 @@ internal sealed class CSharpFormatStringQuickInfoProvider() : CommonQuickInfoPro
         info = default;
         isNullable = false;
         ITypeSymbol? type;
-        CSharpFormatStringValue sourceValue = default;
+        Optional<object?> sourceValue = default;
         CSharpFormatStringContext context = default;
 
         if (token.Parent is InterpolationFormatClauseSyntax clause &&
@@ -98,14 +98,14 @@ internal sealed class CSharpFormatStringQuickInfoProvider() : CommonQuickInfoPro
 
             format = chars.CreateString();
             type = semanticModel.GetTypeInfo(interpolation.Expression, cancellationToken).Type;
-            sourceValue = CSharpFormatStringValue.Create(semanticModel.GetConstantValue(interpolation.Expression, cancellationToken), type);
+            sourceValue = semanticModel.GetConstantValue(interpolation.Expression, cancellationToken);
             var expression = interpolation.Expression;
             while (expression is ParenthesizedExpressionSyntax or CheckedExpressionSyntax)
             {
                 expression = expression is ParenthesizedExpressionSyntax parentheses ? parentheses.Expression
                     : ((CheckedExpressionSyntax)expression).Expression;
             }
-            if (!sourceValue.IsKnown &&
+            if (!sourceValue.HasValue &&
                 !(expression is IdentifierNameSyntax && semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol is IParameterSymbol))
             {
                 sourceValue = GetKnownValue(semanticModel.GetOperation(expression, cancellationToken), semanticModel, ref evaluator, cancellationToken);
@@ -130,7 +130,7 @@ internal sealed class CSharpFormatStringQuickInfoProvider() : CommonQuickInfoPro
                 }
             }
             if (method.Name is "Write" or "WriteLine")
-                context = context with { ProviderKind = FormatStringProviderKind.Unresolved, HasUnknownFormatter = true };
+                context = context with { HasUnknownFormatter = true };
             span = literal.Span;
             type = method.ContainingType;
             if (method.Name is "ToString" or "TryFormat" or "ParseExact" or "TryParseExact")
@@ -225,16 +225,16 @@ internal sealed class CSharpFormatStringQuickInfoProvider() : CommonQuickInfoPro
         return SymbolEqualityComparer.Default.Equals(type, coreAssembly.GetTypeByMetadataName(metadataName));
     }
 
-    private static CSharpFormatStringValue GetKnownValue(IOperation? value, SemanticModel semanticModel,
+    private static Optional<object?> GetKnownValue(IOperation? value, SemanticModel semanticModel,
         ref CSharpFormatStringValueEvaluator? evaluator, CancellationToken cancellationToken)
     {
         if (value is null)
             return default;
         value = UnwrapConversion(value);
         if (value.ConstantValue.HasValue)
-            return CSharpFormatStringValue.Create(value.ConstantValue, value.Type);
+            return value.ConstantValue;
         if (value is IParameterReferenceOperation)
-            return new(default, value.Type, FormatStringValueReason.UnknownInput);
+            return default;
         return (evaluator ??= new CSharpFormatStringValueEvaluator(semanticModel, cancellationToken)).GetValue(value);
     }
 
@@ -268,13 +268,13 @@ internal sealed class CSharpFormatStringQuickInfoProvider() : CommonQuickInfoPro
     {
         value = UnwrapConversion(value);
         if (value.ConstantValue is { HasValue: true, Value: null })
-            return new(ProviderKind: FormatStringProviderKind.Null);
+            return default;
         if (!IsFrameworkType(value.Type, "System.Globalization.CultureInfo", compilation))
-            return new(ProviderKind: FormatStringProviderKind.Unresolved);
+            return default;
         if (value is IPropertyReferenceOperation { Property: { Name: "InvariantCulture" } property } &&
             IsFrameworkType(property.ContainingType, "System.Globalization.CultureInfo", compilation))
         {
-            return new(CultureInfo.InvariantCulture, FormatStringProviderKind.ExplicitCulture, UsesUserOverrides: false);
+            return new(CultureInfo.InvariantCulture);
         }
 
         var arguments = value switch
@@ -284,34 +284,30 @@ internal sealed class CSharpFormatStringQuickInfoProvider() : CommonQuickInfoPro
                 when IsFrameworkType(method.ContainingType, "System.Globalization.CultureInfo", compilation) && method.Parameters.Length == 1 => invocation.Arguments,
             _ => default,
         };
-        var unresolved = new CSharpFormatStringContext(ProviderKind: FormatStringProviderKind.Unresolved);
         if (arguments.IsDefault)
-            return unresolved;
+            return default;
 
         string? name = null;
-        var useUserOverride = value is IObjectCreationOperation or IInvocationOperation { TargetMethod.Name: "CreateSpecificCulture" };
         foreach (var argument in arguments)
         {
             if (argument.Parameter?.Name == "name" && argument.Value.ConstantValue is { HasValue: true, Value: string cultureName })
                 name = cultureName;
-            else if (argument.Parameter?.Name == "useUserOverride" && argument.Value.ConstantValue is { HasValue: true, Value: bool useOverride })
-                useUserOverride = useOverride;
-            else
-                return unresolved;
+            else if (argument.Parameter?.Name != "useUserOverride" || argument.Value.ConstantValue is not { HasValue: true, Value: bool })
+                return default;
         }
         if (name is null || name.Length > CSharpFormatStringValueEvaluator.StringLimit)
-            return unresolved;
+            return default;
 
         try
         {
             if (value is IInvocationOperation { TargetMethod.Name: "CreateSpecificCulture" })
                 name = CultureInfo.CreateSpecificCulture(name).Name;
             // Standard read-only editor data keeps local user overrides out of the selected context.
-            return new(CultureInfo.GetCultureInfo(name), FormatStringProviderKind.ExplicitCulture, useUserOverride);
+            return new(CultureInfo.GetCultureInfo(name));
         }
         catch (CultureNotFoundException)
         {
-            return unresolved;
+            return default;
         }
     }
 

@@ -140,6 +140,13 @@ public sealed class FormatStringHoverTests(ITestOutputHelper testOutputHelper) :
     {
         var markup = "class C { string M(" + type + " value) => $\"{value:{|caret:" + format.Replace("\\", "\\\\") + "|}}\"; }";
         var hover = await GetHoverAsync(markup);
+#if NETFRAMEWORK
+        if (format == "B16")
+        {
+            Assert.Null(hover);
+            return;
+        }
+#endif
         Assert.NotNull(hover);
         var markdown = hover.Contents.Fourth.Value;
         Assert.Contains(example, markdown);
@@ -494,6 +501,13 @@ public sealed class FormatStringHoverTests(ITestOutputHelper testOutputHelper) :
     public async Task ComposedValuesProducePreviews(string declarations, string expression, string format, string expected)
     {
         var hover = await GetHoverAsync("class C { string M() { " + declarations + " return $\"{" + expression + ":{|caret:" + format + "|}}\"; } }", modernReferences: true);
+#if NETFRAMEWORK
+        if (declarations.Contains("System.DateOnly") || declarations.Contains("System.TimeOnly"))
+        {
+            Assert.Null(hover);
+            return;
+        }
+#endif
         Assert.NotNull(hover);
         Assert.Contains("## Preview", hover.Contents.Fourth.Value);
         Assert.Contains("```text\n" + expected + "\n```", hover.Contents.Fourth.Value.ReplaceLineEndings("\n"));
@@ -742,8 +756,12 @@ public sealed class FormatStringHoverTests(ITestOutputHelper testOutputHelper) :
     public async Task UnsupportedTargetBinaryFormatDoesNotClaimAPreview()
     {
         var hover = await GetHoverAsync("""class C { string M() => $"{42:{|caret:B16|}}"; }""", modernReferences: true);
+#if NETFRAMEWORK
+        Assert.Null(hover);
+#else
         Assert.NotNull(hover);
         Assert.Contains("## Example", hover.Contents.Fourth.Value);
+#endif
     }
 
     [Theory]
@@ -784,6 +802,13 @@ public sealed class FormatStringHoverTests(ITestOutputHelper testOutputHelper) :
     public async Task InferenceContractKeepsUnprovenValuesAsExamples(string declarations, string expression, string format)
     {
         var hover = await GetHoverAsync("class C { string M() { " + declarations + " return $\"{" + expression + ":{|caret:" + format + "|}}\"; } }", modernReferences: true);
+#if NETFRAMEWORK
+        if (expression.Contains("System.TimeOnly"))
+        {
+            Assert.Null(hover);
+            return;
+        }
+#endif
         Assert.NotNull(hover);
         Assert.Contains("## Example", hover.Contents.Fourth.Value);
         Assert.DoesNotContain("## Preview", hover.Contents.Fourth.Value);

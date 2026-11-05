@@ -15,28 +15,27 @@ namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 /// </summary>
 internal readonly record struct CSharpFormatStringInfo(
     string TypeName, string Description, string Example, string DocumentationUrl,
-    CSharpFormatStringValue SourceValue = default, CSharpFormatStringContext Context = default, FormatStringOutputKind OutputKind = FormatStringOutputKind.Example)
+    FormatStringOutputKind OutputKind = FormatStringOutputKind.Example)
 {
     private const string Docs = "https://learn.microsoft.com/en-us/dotnet/standard/base-types/";
-    public bool IsPreview => OutputKind == FormatStringOutputKind.Preview && SourceValue.IsKnown;
+    public bool IsPreview => OutputKind == FormatStringOutputKind.Preview;
     private static readonly IFormattable s_guid = new Guid("12345678-1234-5678-9abc-def012345678");
     private static readonly IFormattable s_date = new DateTime(2026, 7, 4, 13, 45, 6, DateTimeKind.Utc).AddTicks(1234567);
     private static readonly IFormattable s_dateOffset = new DateTimeOffset(DateTime.SpecifyKind((DateTime)s_date, DateTimeKind.Unspecified), TimeSpan.FromHours(2));
     private static readonly IFormattable s_duration = new TimeSpan(2, 13, 45, 6).Add(TimeSpan.FromTicks(1234567));
 
     public static bool TryCreate(ITypeSymbol type, Compilation compilation, string format, out CSharpFormatStringInfo info, Optional<object?> constantValue = default, CultureInfo? culture = null)
-        => TryCreate(type, compilation, format, out info, CSharpFormatStringValue.Create(constantValue, type),
-            new CSharpFormatStringContext(culture, culture is null ? FormatStringProviderKind.Absent : FormatStringProviderKind.ExplicitCulture));
+        => TryCreate(type, compilation, format, out info, constantValue, new CSharpFormatStringContext(culture));
 
     internal static bool TryCreate(ITypeSymbol type, Compilation compilation, string format, out CSharpFormatStringInfo info,
-        CSharpFormatStringValue sourceValue, CSharpFormatStringContext context)
+        Optional<object?> sourceValue, CSharpFormatStringContext context)
     {
         info = default;
         if (format.Length > CSharpFormatStringValueEvaluator.StringLimit)
             return false;
         if (type.TypeKind == TypeKind.Enum)
             return TryCreateEnum((INamedTypeSymbol)type, compilation, format, sourceValue, context, out info);
-        var constantValue = context.HasUnknownFormatter ? default : sourceValue.Value;
+        var constantValue = context.HasUnknownFormatter ? default : sourceValue;
         if (type is not INamedTypeSymbol)
             return false;
 
@@ -210,7 +209,7 @@ internal readonly record struct CSharpFormatStringInfo(
         if (previewOmitted)
             description += "\n\n" + CSharpFeaturesResources.Format_example_omitted;
         info = new(type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), description, example, url,
-            sourceValue, context, previewOmitted ? FormatStringOutputKind.Omitted :
+            previewOmitted ? FormatStringOutputKind.Omitted :
                 constantValue.HasValue ? FormatStringOutputKind.Preview : FormatStringOutputKind.Example);
         return true;
     }
@@ -296,10 +295,10 @@ internal readonly record struct CSharpFormatStringInfo(
     }
 
     private static bool TryCreateEnum(INamedTypeSymbol type, Compilation compilation, string format,
-        CSharpFormatStringValue sourceValue, CSharpFormatStringContext context, out CSharpFormatStringInfo info)
+        Optional<object?> sourceValue, CSharpFormatStringContext context, out CSharpFormatStringInfo info)
     {
         info = default;
-        var constantValue = context.HasUnknownFormatter ? default : sourceValue.Value;
+        var constantValue = context.HasUnknownFormatter ? default : sourceValue;
         var specifier = format.Length == 0 ? "G" : format.ToUpperInvariant();
         var description = CSharpFormatStringDocumentation.Get("enum", specifier);
         if (description is null)
@@ -322,7 +321,7 @@ internal readonly record struct CSharpFormatStringInfo(
                 _ => FormatEnumConstant(type, compilation, value, specifier, out isPreview, out omitted),
             };
             omitted |= example.Length > CSharpFormatStringValueEvaluator.StringLimit;
-            info = new(type.Name, description, omitted ? "" : example, Docs + "enumeration-format-strings", sourceValue, context,
+            info = new(type.Name, description, omitted ? "" : example, Docs + "enumeration-format-strings",
                 omitted ? FormatStringOutputKind.Omitted : isPreview ? FormatStringOutputKind.Preview : FormatStringOutputKind.Example);
             return true;
         }
@@ -337,12 +336,12 @@ internal readonly record struct CSharpFormatStringInfo(
                 _ => field.Name,
             };
             var omitted = example.Length > CSharpFormatStringValueEvaluator.StringLimit;
-            info = new(type.Name, description, omitted ? "" : example, Docs + "enumeration-format-strings", sourceValue, context,
+            info = new(type.Name, description, omitted ? "" : example, Docs + "enumeration-format-strings",
                 omitted ? FormatStringOutputKind.Omitted : FormatStringOutputKind.Example);
             return true;
         }
         var zero = specifier == "X" ? new string('0', hexWidth) : "0";
-        info = new(type.Name, description, zero, Docs + "enumeration-format-strings", sourceValue, context);
+        info = new(type.Name, description, zero, Docs + "enumeration-format-strings");
         return true;
     }
 

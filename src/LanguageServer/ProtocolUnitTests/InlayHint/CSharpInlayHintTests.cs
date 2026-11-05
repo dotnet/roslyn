@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -43,8 +44,9 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
         var markup = "class C { void M(decimal unknown, System.IFormatProvider provider) { " + expression + "; } }";
         var workspace = LspTestWorkspace.CreateWorkspaceElement(LanguageNames.CSharp, files: [markup]);
         var project = workspace.Element("Project")!;
-        project.Element("Document")!.SetAttributeValue("FilePath", "/Format.cs");
-        project.Add(new XElement("AnalyzerConfigDocument", new XAttribute("FilePath", "/.editorconfig"), """
+        var directory = Path.GetTempPath();
+        project.Element("Document")!.SetAttributeValue("FilePath", Path.Combine(directory, "Format.cs"));
+        project.Add(new XElement("AnalyzerConfigDocument", new XAttribute("FilePath", Path.Combine(directory, ".editorconfig")), """
             root = true
             [*.cs]
             dotnet_format_string_preview_hints =

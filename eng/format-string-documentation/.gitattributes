@@ -1,3 +1,2 @@
-# Preserve the exact upstream bytes used by the provenance checks.
-sources/* -text
-sources/*LICENSE whitespace=-blank-at-eol
+# Preserve the upstream license bytes.
+LICENSE -text whitespace=-blank-at-eol
