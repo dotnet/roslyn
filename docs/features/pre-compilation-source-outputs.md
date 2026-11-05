@@ -154,17 +154,20 @@ The updated pipeline execution order is:
 
 Concretely, in the generator driver:
 
-1. Post-initialization sources are collected as today.
+1. Every generator is initialized and its post-initialization sources are collected, independently of the generator filter.
 2. A `DriverStateTable.Builder` is created **without** the compilation or syntax store - these are not yet available.
-3. Pre-compilation output nodes are evaluated for all generators. Their sources are parsed into syntax trees.
-4. The initial compilation is augmented: `compilation = compilation.AddSyntaxTrees(preCompilationTrees)`.
+3. Pre-compilation output nodes are evaluated for every generator, independently of the generator filter. After evaluation, their current sources are parsed into syntax trees, reusing trees when source identity and parse options match.
+4. When pre-compilation sources are present, the compilation cache adds them to the compilation containing every generator's current post-initialization trees, or reuses the previous augmented compilation if its inputs match.
 5. `DriverStateTable.Builder.SetCompilation` is called, which stores the compilation and creates the `SyntaxStore.Builder` internally.
-6. Standard source output nodes execute against the augmented compilation.
+6. Standard source, implementation, and host output nodes execute for generators selected by the filter.
 
 This means:
 - **Within a single generator**: A `RegisterSourceOutput` callback can query the semantic model and see types produced by that same generator's `RegisterPreCompilationSourceOutput`.
 - **Across generators**: Generator B's `RegisterSourceOutput` can see types produced by Generator A's `RegisterPreCompilationSourceOutput`.
 - **Incremental behavior**: Pre-compilation outputs participate in the standard incremental caching. If the inputs (e.g., additional files) haven't changed, the pre-compilation sources are cached and the compilation is not rebuilt unnecessarily.
+- **Filtered runs**: The filter applies only to regular source, implementation, and host outputs. Initialization and shared-source phases still run, including on a driver's first filtered pass, because other generators depend on their sources. Pre-compilation callbacks remain incremental: they execute only when their inputs change. Excluded regular outputs retain their last results, and their syntax callbacks are not evaluated. Explicitly disabled output kinds remain disabled.
+
+If a current shared source uses a retained regular source's hint name, the shared source takes precedence in the published results. The regular source is retained internally and becomes visible again when the collision disappears; filtering does not execute its callback to resolve the conflict. A regular callback that actually executes must still produce unique hint names across all phases. Retained diagnostics whose source locations no longer belong to the current output are omitted until regular execution produces current diagnostics; locationless failure diagnostics remain available.
 
 ## Phase Enforcement
 
@@ -184,6 +187,10 @@ To catch this, the `DriverStateTable.Builder` does **not** have the `Compilation
 
 When a pre-compilation output fails (whether from accessing compilation-dependent inputs or from any other exception), the generator is placed in **error state**: a diagnostic is reported, and the generator's standard phase is **skipped entirely**. Other generators are unaffected - their pre-compilation and standard phases continue to execute normally.
 
+Previously successful regular sources and host outputs are hidden while the shared phase is failed, not discarded. If a later filtered run recovers the shared phase, its last regular result becomes available again without executing filtered callbacks. A previous regular-phase failure remains observable until that phase successfully executes. Recovery does not override the regular-output filter or create a regular result when that phase has never run.
+
+The IDE's Balanced execution policy keeps optional generators eligible until their selected regular execution succeeds, including a successful execution that produces no files. Shared initialization is not treated as regular completion. Once a valid regular result exists, ordinary required-only runs retain it without re-executing the optional regular phase; a failure during an explicitly selected full run makes that generator eligible to retry.
+
 ### Why Not Compile-Time Safety?
 
 A more principled approach would introduce a parallel type system (`PreCompilationValueProvider<T>` / `PreCompilationValuesProvider<T>`) that prevents compilation-dependent providers from being passed to `RegisterPreCompilationSourceOutput` at compile time. However, this would require duplicating every transform operation (`Select`, `Where`, `Collect`, `SelectMany`, `Combine`, `WithComparer`, `WithTrackingName`) for the pre-compilation provider types, creating a significantly larger API surface. Given that this is an experimental API, runtime enforcement with clear error messages is sufficient for the initial release. If the feature proves valuable and the runtime safety issue becomes a real pain point, a compile-time safe type system can be pursued in a future iteration.
@@ -198,7 +205,7 @@ Pre-compilation sources appear in `GeneratorRunResult.GeneratedSources` alongsid
 
 ## Parse Options Reparse
 
-Like post-initialization trees, pre-compilation trees are reparsed when parse options change between driver runs. A unified `RequiresConstantTreeReparse` check handles both post-init and pre-compilation trees in a single pass.
+The driver reparses every generator's post-initialization and pre-compilation trees when parse options change, even if its regular outputs are filtered out. Selected generators therefore observe shared sources parsed with the current options. Reparsing preserves excluded regular outputs and does not rerun post-initialization callbacks; pre-compilation pipelines observe the updated inputs through normal incremental evaluation.
 
 ## Implementation Architecture
 

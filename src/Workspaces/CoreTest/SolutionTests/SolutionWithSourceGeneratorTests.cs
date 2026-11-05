@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -149,6 +150,265 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
     }
+
+#pragma warning disable RSEXPERIMENTAL007
+    [Fact]
+    public async Task BalancedModeInitialRunSeesSharedSources()
+    {
+        using var workspace = CreateWorkspace();
+        var configuration = Assert.IsType<TestWorkspaceConfigurationService>(
+            workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        configuration.Options = configuration.Options with { SourceGeneratorExecution = SourceGeneratorExecutionPreference.Balanced };
+        var parseOptions = CSharpParseOptions.Default;
+        var regularCallCount = 0;
+        var generator = new PipelineCallbackGenerator(ic =>
+        {
+            ic.RegisterPostInitializationOutput(ctx => ctx.AddSource("postInit", "public class PostInitMarker { }"));
+            ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider,
+                (ctx, _) => ctx.AddSource("preCompilation", "public class PreCompilationMarker { }"));
+            ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, compilation) =>
+            {
+                regularCallCount++;
+                Assert.NotNull(compilation.GetTypeByMetadataName("PostInitMarker"));
+                Assert.NotNull(compilation.GetTypeByMetadataName("PreCompilationMarker"));
+                ctx.AddSource("regular", "public class RegularMarker { }");
+            });
+        }).AsSourceGenerator();
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .WithParseOptions(parseOptions)
+            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+            .AddAnalyzerReference(new TestGeneratorReference(generator));
+        var result = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Equal(1, regularCallCount);
+        Assert.NotNull(result.GetTypeByMetadataName("RegularMarker"));
+        using var image = new MemoryStream();
+        var emit = result.Emit(image);
+        Assert.True(emit.Success, string.Join(Environment.NewLine, emit.Diagnostics));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task BalancedModeRunsFirstRegularOutputsAfterGeneratorFailure(
+        bool producePostInit, [CombinatorialValues("none", "precomp-fail", "regular-fail")] string initialFailure)
+    {
+        using var workspace = CreateWorkspace();
+        var configuration = Assert.IsType<TestWorkspaceConfigurationService>(
+            workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        configuration.Options = configuration.Options with { SourceGeneratorExecution = SourceGeneratorExecutionPreference.Balanced };
+        var requiredCallCount = 0;
+        var required = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator(ctx =>
+        {
+            requiredCallCount++;
+            ctx.AddSource("required", "public class RequiredMarker { }");
+        });
+        var regularCallCount = 0;
+        var regularAttemptCount = 0;
+        var sharedCallCount = 0;
+        var optional = new PipelineCallbackGenerator(ic =>
+        {
+            if (producePostInit)
+                ic.RegisterPostInitializationOutput(ctx => ctx.AddSource("postInit", "public class PostInitMarker { }"));
+            var texts = ic.AdditionalTextsProvider;
+            ic.RegisterPreCompilationSourceOutput(texts, (ctx, text) =>
+            {
+                sharedCallCount++;
+                if (text.GetText(ctx.CancellationToken)!.ToString().StartsWith("precomp-fail", StringComparison.Ordinal))
+                    throw new InvalidOperationException("shared failure");
+                ctx.AddSource("shared", "public class SharedMarker { }");
+            });
+            ic.RegisterSourceOutput(ic.CompilationProvider.Combine(texts.Collect()), (ctx, input) =>
+            {
+                regularAttemptCount++;
+                if (input.Right.Single().GetText(ctx.CancellationToken)!.ToString().StartsWith("regular-fail", StringComparison.Ordinal))
+                    throw new InvalidOperationException("regular failure");
+                regularCallCount++;
+                Assert.NotNull(input.Left.GetTypeByMetadataName("SharedMarker"));
+                ctx.AddSource("regular", "public class RegularMarker { }");
+            });
+        }).AsSourceGenerator();
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+            .AddAnalyzerReferences([new TestGeneratorReference(required), new TestGeneratorReference(optional)])
+            .AddDocument("User.cs", "class C { public int M() => 1; }").Project;
+        var additional = project.AddAdditionalDocument("state.txt", initialFailure);
+        project = additional.Project;
+        var initial = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        var firstRunFailed = initialFailure != "none";
+        Assert.Equal(firstRunFailed ? 0 : 1, regularCallCount);
+        Assert.Equal(initialFailure == "precomp-fail" ? 0 : 1, regularAttemptCount);
+        Assert.Equal(1, sharedCallCount);
+        Assert.Equal(1, requiredCallCount);
+        Assert.Equal(!firstRunFailed, initial.GetTypeByMetadataName("RegularMarker") is not null);
+
+        if (firstRunFailed)
+        {
+            project = project.Solution.WithAdditionalDocumentText(additional.Id, SourceText.From(initialFailure + " again")).GetRequiredProject(project.Id);
+            await project.GetRequiredCompilationAsync(CancellationToken.None);
+            Assert.Equal(0, regularCallCount);
+            Assert.Equal(initialFailure == "precomp-fail" ? 0 : 2, regularAttemptCount);
+            Assert.Equal(2, sharedCallCount);
+            Assert.Equal(2, requiredCallCount);
+        }
+
+        project = project.Solution.WithAdditionalDocumentText(additional.Id, SourceText.From("recovered")).GetRequiredProject(project.Id);
+        var recovered = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Equal(firstRunFailed ? 3 : 2, sharedCallCount);
+        Assert.Equal(firstRunFailed ? 3 : 2, requiredCallCount);
+        Assert.NotNull(recovered.GetTypeByMetadataName("SharedMarker"));
+        Assert.Equal(1, regularCallCount);
+        Assert.NotNull(recovered.GetTypeByMetadataName("RegularMarker"));
+
+        project = project.Solution.WithAdditionalDocumentText(additional.Id, SourceText.From("precomp-fail after success")).GetRequiredProject(project.Id);
+        var failedAfterSuccess = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Null(failedAfterSuccess.GetTypeByMetadataName("RegularMarker"));
+        Assert.Equal(1, regularCallCount);
+        project = project.Solution.WithAdditionalDocumentText(additional.Id, SourceText.From("recovered again")).GetRequiredProject(project.Id);
+        var recoveredAgain = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.NotNull(recoveredAgain.GetTypeByMetadataName("RegularMarker"));
+        Assert.Equal(1, regularCallCount);
+        var completedAttemptCount = regularAttemptCount;
+
+        var document = project.Documents.Single();
+        project = document.WithText(SourceText.From("class C { public int M() => 2; }")).Project;
+        var edited = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Equal(1, regularCallCount);
+        Assert.Equal(completedAttemptCount, regularAttemptCount);
+        Assert.NotNull(edited.GetTypeByMetadataName("RegularMarker"));
+        Assert.Equal(firstRunFailed ? 6 : 5, requiredCallCount);
+        using var image = new MemoryStream();
+        var emit = edited.Emit(image);
+        Assert.True(emit.Success, string.Join(Environment.NewLine, emit.Diagnostics));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task BalancedModeRetriesRegularFailureAfterExplicitRun(bool forceDriverReset)
+    {
+        using var workspace = CreateWorkspace();
+        var configuration = Assert.IsType<TestWorkspaceConfigurationService>(
+            workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        configuration.Options = configuration.Options with { SourceGeneratorExecution = SourceGeneratorExecutionPreference.Balanced };
+        var requiredCallCount = 0;
+        var required = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator(ctx =>
+        {
+            requiredCallCount++;
+            ctx.AddSource("required", "public class RequiredMarker { }");
+        });
+        var regularAttemptCount = 0;
+        var optional = new PipelineCallbackGenerator(ic =>
+        {
+            var texts = ic.AdditionalTextsProvider;
+            ic.RegisterPreCompilationSourceOutput(texts, (ctx, _) => ctx.AddSource("shared", "public class SharedMarker { }"));
+            ic.RegisterSourceOutput(ic.CompilationProvider.Combine(texts.Collect()), (ctx, input) =>
+            {
+                regularAttemptCount++;
+                if (input.Right.Single().GetText(ctx.CancellationToken)!.ToString() == "fail")
+                    throw new InvalidOperationException("regular failure");
+                ctx.AddSource("regular", "public class RegularMarker { }");
+            });
+        }).AsSourceGenerator();
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReferences([new TestGeneratorReference(required), new TestGeneratorReference(optional)]);
+        var additional = project.AddAdditionalDocument("state.txt", "success");
+        project = additional.Project;
+        var initial = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.NotNull(initial.GetTypeByMetadataName("RegularMarker"));
+        Assert.Equal(1, regularAttemptCount);
+
+        var failedSolution = project.Solution.WithAdditionalDocumentText(additional.Id, SourceText.From("fail"));
+        if (forceDriverReset)
+        {
+            var version = failedSolution.GetSourceGeneratorExecutionVersion(project.Id).IncrementMajorVersion();
+            failedSolution = failedSolution.UpdateSpecificSourceGeneratorExecutionVersions(
+                new SourceGeneratorExecutionVersionMap(ImmutableSortedDictionary<ProjectId, SourceGeneratorExecutionVersion>.Empty.Add(project.Id, version)));
+        }
+        else
+        {
+            failedSolution = failedSolution.WithUpToDateSourceGeneratorDocuments([project.Id]);
+        }
+        project = failedSolution.GetRequiredProject(project.Id);
+        var failed = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Null(failed.GetTypeByMetadataName("RegularMarker"));
+        Assert.Equal(2, regularAttemptCount);
+
+        project = project.Solution.WithAdditionalDocumentText(additional.Id, SourceText.From("success again")).GetRequiredProject(project.Id);
+        var recovered = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.NotNull(recovered.GetTypeByMetadataName("RegularMarker"));
+        Assert.Equal(3, regularAttemptCount);
+        Assert.Equal(3, requiredCallCount);
+
+        project = project.AddDocument("User.cs", "class C { }").Project;
+        var edited = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.NotNull(edited.GetTypeByMetadataName("RegularMarker"));
+        Assert.Equal(3, regularAttemptCount);
+        Assert.Equal(4, requiredCallCount);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task BalancedModeRunsReaddedGeneratorInstance(bool runWhileRemoved, bool replaceInstance)
+    {
+        using var workspace = CreateWorkspace();
+        var configuration = Assert.IsType<TestWorkspaceConfigurationService>(
+            workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        configuration.Options = configuration.Options with { SourceGeneratorExecution = SourceGeneratorExecutionPreference.Balanced };
+        var required = new TestGeneratorReference(new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator(
+            ctx => ctx.AddSource("required", "public class RequiredMarker { }")));
+        var regularCallCount = 0;
+        var optional = CreateOptionalReference();
+        var project = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReferences([required, optional]);
+        await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Equal(1, regularCallCount);
+        project = project.WithAnalyzerReferences([required]);
+        if (runWhileRemoved)
+        {
+            var removed = await project.GetRequiredCompilationAsync(CancellationToken.None);
+            Assert.Null(removed.GetTypeByMetadataName("RegularMarker"));
+        }
+        if (replaceInstance)
+            optional = CreateOptionalReference();
+        project = project.WithAnalyzerReferences([required, optional]);
+        var readded = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.NotNull(readded.GetTypeByMetadataName("RegularMarker"));
+        Assert.Equal(2, regularCallCount);
+
+        TestGeneratorReference CreateOptionalReference()
+            => new(new PipelineCallbackGenerator(ic =>
+                ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, _) =>
+                {
+                    regularCallCount++;
+                    ctx.AddSource("regular", "public class RegularMarker { }");
+                })).AsSourceGenerator());
+    }
+
+    [Fact]
+    public async Task BalancedModeRetainsSuccessfulEmptyRegularResult()
+    {
+        using var workspace = CreateWorkspace();
+        var configuration = Assert.IsType<TestWorkspaceConfigurationService>(
+            workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        configuration.Options = configuration.Options with { SourceGeneratorExecution = SourceGeneratorExecutionPreference.Balanced };
+        var requiredCallCount = 0;
+        var required = new Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator(ctx =>
+        {
+            requiredCallCount++;
+            ctx.AddSource("required", "public class RequiredMarker { }");
+        });
+        var regularCallCount = 0;
+        var optional = new PipelineCallbackGenerator(ic =>
+            ic.RegisterSourceOutput(ic.CompilationProvider, (_, _) => regularCallCount++)).AsSourceGenerator();
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .AddAnalyzerReferences([new TestGeneratorReference(required), new TestGeneratorReference(optional)]);
+        await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Equal(1, regularCallCount);
+        for (var edit = 0; edit < 2; edit++)
+        {
+            project = project.AddDocument("User" + edit + ".cs", $"class C{edit} {{ }}").Project;
+            await project.GetRequiredCompilationAsync(CancellationToken.None);
+            Assert.Equal(1, regularCallCount);
+        }
+        Assert.Equal(3, requiredCallCount);
+    }
+#pragma warning restore RSEXPERIMENTAL007
 
     // We only run this test on Release, as the compiler has asserts that trigger in Debug that the type names probably shouldn't be the same.
     [ConditionalTheory(typeof(IsRelease)), CombinatorialData]
