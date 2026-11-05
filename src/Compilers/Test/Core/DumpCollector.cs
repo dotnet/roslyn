@@ -24,12 +24,15 @@ namespace Roslyn.Test.Utilities
         {
             try
             {
-                if (IsNetCoreProcess(process))
+                log?.Invoke($"Dump backend discovery started for PID={process.Id}, path={dumpFilePath}.");
+                if (IsNetCoreProcess(process, log))
                 {
+                    log?.Invoke($"DiagnosticsClient.WriteDump started for PID={process.Id}.");
                     return TryDumpNetCoreProcess(process, dumpFilePath, log);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
+                    log?.Invoke($"MiniDumpWriteDump started for PID={process.Id}.");
                     return TryDumpWithMiniDumpWriteDump(process, dumpFilePath, log);
                 }
                 else
@@ -40,7 +43,7 @@ namespace Roslyn.Test.Utilities
             }
             catch (Exception ex)
             {
-                log?.Invoke($"Failed to dump process {process.ProcessName} ({process.Id}): {ex.Message}");
+                log?.Invoke($"Failed to dump process PID={process.Id}: {ex}");
                 return false;
             }
         }
@@ -51,11 +54,12 @@ namespace Roslyn.Test.Utilities
             {
                 var client = new DiagnosticsClient(process.Id);
                 client.WriteDump(DumpType.Full, dumpFilePath, logDumpGeneration: false);
+                log?.Invoke($"DiagnosticsClient.WriteDump returned for PID={process.Id}.");
                 return File.Exists(dumpFilePath);
             }
             catch (Exception ex)
             {
-                log?.Invoke($"DiagnosticsClient.WriteDump failed for process {process.Id}: {ex.Message}");
+                log?.Invoke($"DiagnosticsClient.WriteDump failed for process {process.Id}: {ex}");
                 return false;
             }
         }
@@ -64,7 +68,7 @@ namespace Roslyn.Test.Utilities
         /// Determines if a process is a .NET Core process by checking if the diagnostics
         /// IPC channel is available (the pipe/socket exists).
         /// </summary>
-        private static bool IsNetCoreProcess(Process process)
+        private static bool IsNetCoreProcess(Process process, Action<string>? log)
         {
             try
             {
@@ -79,8 +83,9 @@ namespace Roslyn.Test.Utilities
 
                 return false;
             }
-            catch
+            catch (Exception ex)
             {
+                log?.Invoke($"Diagnostic-port discovery failed for PID={process.Id}: {ex}");
                 return false;
             }
         }
@@ -100,10 +105,11 @@ namespace Roslyn.Test.Utilities
                     IntPtr.Zero,
                     IntPtr.Zero,
                     IntPtr.Zero);
+                var errorCode = success ? 0 : Marshal.GetLastWin32Error();
+                log?.Invoke($"MiniDumpWriteDump returned for PID={process.Id}: success={success}, error={errorCode}.");
 
                 if (!success)
                 {
-                    var errorCode = Marshal.GetLastWin32Error();
                     log?.Invoke($"MiniDumpWriteDump failed for process {process.Id} with error code {errorCode}");
                     // Clean up the empty/partial file
                     try
