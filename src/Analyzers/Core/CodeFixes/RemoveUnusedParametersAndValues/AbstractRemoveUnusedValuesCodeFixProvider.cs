@@ -40,13 +40,12 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedParametersAndValues;
 ///        language version supports discard variable, we recommend assigning the value to discard.
 ///     3. Otherwise, we recommend assigning the value to a new unused local variable which has no reads.
 /// </summary>
-internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyntax, TStatementSyntax, TBlockSyntax,
+internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyntax, TStatementSyntax,
     TExpressionStatementSyntax, TLocalDeclarationStatementSyntax, TVariableDeclaratorSyntax, TForEachStatementSyntax,
     TSwitchCaseBlockSyntax, TSwitchCaseLabelOrClauseSyntax, TCatchStatementSyntax, TCatchBlockSyntax>
     : SyntaxEditorBasedCodeFixProvider
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
-    where TBlockSyntax : TStatementSyntax
     where TExpressionStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TForEachStatementSyntax : TStatementSyntax
@@ -80,10 +79,10 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
     protected abstract SyntaxToken GetForEachStatementIdentifier(TForEachStatementSyntax node);
 
     /// <summary>
-    /// Wraps the given statements within a block statement.
-    /// Note this method is invoked when replacing a statement that is parented by a non-block statement syntax.
+    /// Wraps the given declaration within a block when the expression statement is an embedded statement.
     /// </summary>
-    protected abstract TBlockSyntax WrapWithBlockIfNecessary(IEnumerable<TStatementSyntax> statements);
+    protected abstract TStatementSyntax WrapWithBlockIfNecessary(
+        TExpressionStatementSyntax expressionStatement, TLocalDeclarationStatementSyntax declarationStatement);
 
     /// <summary>
     /// Inserts the given declaration statement at the start of the given switch case block.
@@ -164,6 +163,13 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
                     var root = await context.Document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
                     var node = root.FindNode(context.Span, getInnermostNodeForTie: true);
 
+                    if (diagnostic.Id == IDEDiagnosticIds.ExpressionValueIsUnusedDiagnosticId)
+                    {
+                        var semanticModel = await context.Document.GetRequiredSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+                        if (HasDiscardNameConflict(semanticModel, node))
+                            title = CodeFixesResources.Use_discarded_local;
+                    }
+
                     // Check if this is compound assignment which is not parented by an expression statement,
                     // for example "return x += M();" OR "=> x ??= new C();"
                     // If so, we will be replacing this compound assignment with the underlying binary operation.
@@ -210,6 +216,9 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
 
     private static string GetEquivalenceKey(UnusedValuePreference preference, bool isRemovableAssignment)
         => preference.ToString() + isRemovableAssignment;
+
+    private static bool HasDiscardNameConflict(SemanticModel semanticModel, SyntaxNode node)
+        => !semanticModel.LookupSymbols(node.SpanStart, name: AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName).IsEmpty;
 
     private static string GetEquivalenceKey(Diagnostic diagnostic)
     {
@@ -379,7 +388,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         }
     }
 
-    private static void FixAllExpressionValueIsUnusedDiagnostics(
+    private void FixAllExpressionValueIsUnusedDiagnostics(
         IOrderedEnumerable<Diagnostic> diagnostics,
         Document document,
         SemanticModel semanticModel,
@@ -408,33 +417,51 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
             {
                 case UnusedValuePreference.DiscardVariable:
                     Debug.Assert(semanticModel.Language != LanguageNames.VisualBasic);
-                    var expression = syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
-                    editor.ReplaceNode(expression, (node, generator) =>
+                    if (HasDiscardNameConflict(semanticModel, expressionStatement))
                     {
-                        var discardAssignmentExpression = (TExpressionSyntax)generator.AssignmentStatement(
-                                                                left: generator.IdentifierName(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName),
-                                                                right: node.WithoutTrivia())
-                                                            .WithTriviaFrom(node)
-                                                            .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
-                        return discardAssignmentExpression;
-                    });
+                        ReplaceWithLocalDeclaration(
+                            expressionStatement,
+                            nameGenerator.GenerateUniqueNameAtSpanStart(
+                                expressionStatement, AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName).ValueText);
+                    }
+                    else
+                    {
+                        var expression = syntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
+                        editor.ReplaceNode(expression, (node, generator) =>
+                        {
+                            var discardAssignmentExpression = (TExpressionSyntax)generator.AssignmentStatement(
+                                                                    left: generator.IdentifierName(AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName),
+                                                                    right: node.WithoutTrivia())
+                                                                .WithTriviaFrom(node)
+                                                                .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
+                            return discardAssignmentExpression;
+                        });
+                    }
+
                     break;
 
                 case UnusedValuePreference.UnusedLocalVariable:
-                    var name = nameGenerator.GenerateUniqueNameAtSpanStart(expressionStatement).ValueText;
-                    editor.ReplaceNode(expressionStatement, (node, generator) =>
-                    {
-                        var expression = syntaxFacts.GetExpressionOfExpressionStatement(node);
-                        // Add Simplifier annotation so that 'var'/explicit type is correctly added based on user options.
-                        var localDecl = editor.Generator.LocalDeclarationStatement(
+                    ReplaceWithLocalDeclaration(
+                        expressionStatement, nameGenerator.GenerateUniqueNameAtSpanStart(expressionStatement).ValueText);
+                    break;
+            }
+        }
+
+        return;
+
+        void ReplaceWithLocalDeclaration(TExpressionStatementSyntax expressionStatement, string name)
+        {
+            editor.ReplaceNode(expressionStatement, (node, _) =>
+            {
+                var expression = syntaxFacts.GetExpressionOfExpressionStatement(node);
+                // Add Simplifier annotation so that 'var'/explicit type is correctly added based on user options.
+                var localDeclaration = (TLocalDeclarationStatementSyntax)editor.Generator.LocalDeclarationStatement(
                                             name: name,
                                             initializer: expression.WithoutLeadingTrivia())
                                         .WithTriviaFrom(node)
                                         .WithAdditionalAnnotations(Simplifier.Annotation, Formatter.Annotation);
-                        return localDecl;
-                    });
-                    break;
-            }
+                return WrapWithBlockIfNecessary((TExpressionStatementSyntax)node, localDeclaration);
+            });
         }
     }
 
@@ -749,11 +776,11 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         UnusedValuePreference preference,
         CancellationToken cancellationToken)
     {
-        // If we added discard assignments, replace all discard variable declarations in
-        // this method with discard assignments, i.e. "var _ = M();" is replaced with "_ = M();"
-        // This is done to prevent compiler errors where the existing method has a discard
-        // variable declaration at a line following the one we added a discard assignment in our fix.
-        if (preference == UnusedValuePreference.DiscardVariable)
+        // For IDE0059 fixes that add discard assignments, replace all discard variable declarations in
+        // the member with discard assignments, i.e. "var _ = M();" is replaced with "_ = M();".
+        // IDE0058 fixes avoid adding a discard assignment when '_' already binds to a symbol.
+        if (diagnosticId == IDEDiagnosticIds.ValueAssignedIsUnusedDiagnosticId &&
+            preference == UnusedValuePreference.DiscardVariable)
         {
             currentRoot = await PostProcessDocumentCoreAsync(
                 ReplaceDiscardDeclarationsWithAssignmentsAsync, currentRoot, document, options, cancellationToken).ConfigureAwait(false);
@@ -937,9 +964,9 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         private readonly CancellationToken _cancellationToken = cancellationToken;
         private readonly PooledHashSet<string> _usedNames = PooledHashSet<string>.GetInstance();
 
-        public SyntaxToken GenerateUniqueNameAtSpanStart(SyntaxNode node)
+        public SyntaxToken GenerateUniqueNameAtSpanStart(SyntaxNode node, string baseName = "unused")
         {
-            var nameToken = _semanticFacts.GenerateUniqueName(_semanticModel, node, _memberDeclaration, "unused", _usedNames, _cancellationToken);
+            var nameToken = _semanticFacts.GenerateUniqueName(_semanticModel, node, _memberDeclaration, baseName, _usedNames, _cancellationToken);
             _usedNames.Add(nameToken.ValueText);
             return nameToken;
         }

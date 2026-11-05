@@ -78,6 +78,288 @@ public sealed partial class RemoveUnusedValueExpressionStatementTests : RemoveUn
             """, new TestParameters(options: PreferDiscard,
             parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6)));
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86168")]
+    [InlineData("_ =>")]
+    [InlineData("(_) =>")]
+    [InlineData("(int _) =>")]
+    [InlineData("delegate(int _)")]
+    public Task ExpressionStatement_PreferDiscard_UnderscoreLambdaParameter(string lambda)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    System.Func<int, int> f = {{lambda}}
+                    {
+                        [|M2()|];
+                        System.Console.WriteLine(_);
+                        return _;
+                    };
+                }
+
+                int M2() => 42;
+            }
+            """,
+            $$"""
+            class C
+            {
+                void M()
+                {
+                    System.Func<int, int> f = {{lambda}}
+                    {
+                        var _1 = M2();
+                        System.Console.WriteLine(_);
+                        return _;
+                    };
+                }
+
+                int M2() => 42;
+            }
+            """, new TestParameters(options: PreferDiscard));
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86168")]
+    [InlineData("void M(int _)")]
+    [InlineData("int _; void M()")]
+    [InlineData("int _ { get; set; } void M()")]
+    public Task ExpressionStatement_PreferDiscard_UnderscoreInScope(string member)
+        => TestInRegularAndScriptAsync(
+            $$"""
+            class C
+            {
+                {{member}}
+                {
+                    [|M2()|];
+                    System.Console.WriteLine(_);
+                }
+
+                int M2() => 42;
+            }
+            """,
+            $$"""
+            class C
+            {
+                {{member}}
+                {
+                    var _1 = M2();
+                    System.Console.WriteLine(_);
+                }
+
+                int M2() => 42;
+            }
+            """, new TestParameters(options: PreferDiscard));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86168")]
+    public Task ExpressionStatement_PreferDiscard_UnderscoreLocal()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int _ = 7;
+                    int _1 = 8;
+                    [|M2()|];
+                    System.Console.WriteLine(_ + _1);
+                }
+
+                int M2() => 42;
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int _ = 7;
+                    int _1 = 8;
+                    var _2 = M2();
+                    System.Console.WriteLine(_ + _1);
+                }
+
+                int M2() => 42;
+            }
+            """, new TestParameters(options: PreferDiscard));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86168")]
+    public Task ExpressionStatement_PreferDiscard_LambdaDiscards()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    System.Action<int, int> f = (_, _) =>
+                    {
+                        [|M2()|];
+                    };
+                }
+
+                int M2() => 42;
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    System.Action<int, int> f = (_, _) =>
+                    {
+                        _ = M2();
+                    };
+                }
+
+                int M2() => 42;
+            }
+            """, new TestParameters(options: PreferDiscard));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86168")]
+    public Task ExpressionStatement_PreferDiscard_UnderscoreInScope_IfEmbeddedStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(int _)
+                {
+                    if (_ > 0)
+                        [|M2()|];
+                }
+
+                int M2() => 42;
+            }
+            """,
+            """
+            class C
+            {
+                void M(int _)
+                {
+                    if (_ > 0)
+                    {
+                        var _1 = M2();
+                    }
+                }
+
+                int M2() => 42;
+            }
+            """, new TestParameters(options: PreferDiscard));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86168")]
+    public Task ExpressionStatement_PreferDiscard_UnderscoreInScope_WhileEmbeddedStatement()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(int _)
+                {
+                    while (_ > 0)
+                        [|M2()|];
+                }
+
+                int M2() => 42;
+            }
+            """,
+            """
+            class C
+            {
+                void M(int _)
+                {
+                    while (_ > 0)
+                    {
+                        var _1 = M2();
+                    }
+                }
+
+                int M2() => 42;
+            }
+            """, new TestParameters(options: PreferDiscard));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86168")]
+    public async Task ExpressionStatement_PreferDiscard_UnderscoreInScope_DoesNotTriggerIDE0059()
+    {
+        var options = PreferDiscard;
+        options.Add(
+            CSharpCodeStyleOptions.UnusedValueAssignment,
+            new CodeStyleOption2<UnusedValuePreference>(UnusedValuePreference.DiscardVariable, NotificationOption2.Silent));
+
+        const string initial = """
+            class C
+            {
+                void M(int _)
+                {
+                    [|M2()|];
+                    System.Console.WriteLine(_);
+                }
+
+                int M2() => 42;
+            }
+            """;
+        const string fixedCode = """
+            class C
+            {
+                void M(int _)
+                {
+                    var _1 = M2();
+                    System.Console.WriteLine(_);
+                }
+
+                int M2() => 42;
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(initial, fixedCode, new TestParameters(options: options));
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(int _)
+                {
+                    var [|_1|] = M2();
+                    System.Console.WriteLine(_);
+                }
+
+                int M2() => 42;
+            }
+            """, new TestParameters(options: options));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86168")]
+    public Task ExpressionStatement_PreferDiscard_UnderscoreInScope_FixAll()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(int unused)
+                {
+                    M2();
+                    System.Func<int, int> f = _ =>
+                    {
+                        {|FixAllInDocument:M2()|};
+                        M2();
+                        return _;
+                    };
+                }
+
+                int M2() => 42;
+            }
+            """,
+            """
+            class C
+            {
+                void M(int unused)
+                {
+                    _ = M2();
+                    System.Func<int, int> f = _ =>
+                    {
+                        var _2 = M2();
+                        var _1 = M2();
+                        return _;
+                    };
+                }
+
+                int M2() => 42;
+            }
+            """, new TestParameters(options: PreferDiscard));
+
     [Theory]
     [InlineData(nameof(PreferDiscard))]
     [InlineData(nameof(PreferUnusedLocal))]
