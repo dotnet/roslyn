@@ -3225,4 +3225,34 @@ public sealed partial class UseImplicitTypeTests(ITestOutputHelper? logger = nul
                 }
             }
             """, new(options: ImplicitTypeWhereApparent()));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/59337")]
+    public Task DoNotSuggestForDeclarationExpressionIfVarBreaksGenericInference()
+        => TestMissingInRegularAndScriptAsync("""
+            public interface ITyped<T>
+            {
+            }
+
+            public interface IUntyped : ITyped<string>, ITyped<int>
+            {
+            }
+
+            public static class Extensions
+            {
+                public static void Run()
+                {
+                    IUntyped o = null;
+                    o.Invokee(out [|string|] value);
+                }
+
+                public static void Invokee(this IUntyped o)
+                {
+                }
+
+                public static void Invokee<T>(this ITyped<T> o, out T value)
+                {
+                    value = default;
+                }
+            }
+            """, new TestParameters(options: ImplicitTypeEverywhere()));
 }
