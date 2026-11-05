@@ -10,7 +10,4 @@
             IntermediateToken -  - CSharp - __EmptyLayout
             IntermediateToken -  - CSharp - ))]
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
-        ClassDeclaration -  - file sealed - __EmptyLayout - global::Microsoft.AspNetCore.Components.LayoutComponentBase - 
-            MethodDeclaration -  - protected override - void - BuildRenderTree
-                CSharpCode - 
-                    IntermediateToken -  - CSharp - __builder.AddContent(0, Body);
+        EmptyLayout - 

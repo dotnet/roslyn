@@ -324,7 +324,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
             // A compiler-synthesized decoration (e.g. the @rendermode attribute helper) is impl-half plumbing
             // and isn't shared into the decl, so it stays in the impl.
             if (children[i] is CSharpCodeIntermediateNode { IsSynthesizedHelper: false } or
-                ClassDeclarationIntermediateNode { IsPrimaryClass: false, IsSynthesizedHelper: false } or
+                EmptyLayoutIntermediateNode or
                 RouteAttributeExtensionNode or DocumentationIntermediateNode)
             {
                 children.RemoveAt(i);

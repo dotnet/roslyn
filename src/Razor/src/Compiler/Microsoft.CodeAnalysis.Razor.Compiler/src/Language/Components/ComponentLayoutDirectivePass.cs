@@ -9,8 +9,6 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 
 internal sealed class ComponentLayoutDirectivePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
 {
-    private const string EmptyLayoutTypeName = "__EmptyLayout";
-
     protected override void ExecuteCore(
         RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode,
@@ -49,40 +47,14 @@ internal sealed class ComponentLayoutDirectivePass : IntermediateNodePassBase, I
 
             // Omitting the attribute would leave router defaults and inherited layouts in effect.
             // The file-local helper must stay with its attribute in the declaration file.
-            var emptyLayout = new ClassDeclarationIntermediateNode
-            {
-                Name = EmptyLayoutTypeName,
-                BaseType = new BaseTypeWithModel($"global::{ComponentsApi.LayoutComponentBase.FullTypeName}"),
-                Modifiers = CommonModifiers.FileSealed,
-            };
-            emptyLayout.Children.Add(new MethodDeclarationIntermediateNode
-            {
-                Name = ComponentsApi.ComponentBase.BuildRenderTree,
-                ReturnType = "void",
-                Modifiers = CommonModifiers.ProtectedOverride,
-                Parameters = [new(
-                    name: ComponentsApi.RenderTreeBuilder.BuilderParameter,
-                    type: $"global::{ComponentsApi.RenderTreeBuilder.FullTypeName}")],
-                Children =
-                {
-                    new CSharpCodeIntermediateNode
-                    {
-                        Children =
-                        {
-                            IntermediateNodeFactory.CSharpToken(
-                                $"{ComponentsApi.RenderTreeBuilder.BuilderParameter}.{ComponentsApi.RenderTreeBuilder.AddContent}(0, {ComponentsApi.LayoutComponentBase.Body});")
-                        }
-                    }
-                }
-            });
-            @namespace.Children.Add(emptyLayout);
+            @namespace.Children.Add(new EmptyLayoutIntermediateNode());
         }
 
         var attributeNode = new CSharpCodeIntermediateNode();
         attributeNode.Children.AddRange([
             IntermediateNodeFactory.CSharpToken($"[global::{ComponentsApi.LayoutAttribute.FullTypeName}(typeof("),
             IntermediateNodeFactory.CSharpToken(
-                isEmptyLayout ? EmptyLayoutTypeName : token.Content,
+                isEmptyLayout ? EmptyLayoutIntermediateNode.TypeName : token.Content,
                 isEmptyLayout ? null : token.Source),
             IntermediateNodeFactory.CSharpToken("))]")
         ]);
