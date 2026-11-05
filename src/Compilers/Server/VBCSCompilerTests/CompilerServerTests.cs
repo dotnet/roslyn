@@ -166,8 +166,7 @@ End Module")
             var buildPaths = new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(CommonCompiler).Assembly.Location),
                 workingDir: currentDirectory.Path,
-                sdkDir: sdkDir,
-                tempDir: Path.GetTempPath());
+                sdkDir: sdkDir);
 
             var (result, output) = UseTextWriter(redirectEncoding, writer => ApplyEnvironmentVariables(additionalEnvironmentVars, () => client.RunCompilation(arguments, buildPaths, writer)));
             Assert.Equal(shouldRunOnServer, result.RanOnServer);
