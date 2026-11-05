@@ -349,21 +349,23 @@ namespace N1
             Assert.True(compilationStartedFired);
 
             // NB: NonPartialEvent2 is missing here because we only asked for diagnostics in tree1.
-            // PartialEvent2 is missing because it is the implementation part and that is removed (only the definition part is kept).
             AssertEx.Equal([
                 "",
                 "add_ImplOnlyPartialEvent",
                 "add_NonPartialEvent1",
                 "add_PartialEvent1",
+                "add_PartialEvent2",
                 "Class",
                 "DefOnlyPartialEvent",
                 "ImplOnlyPartialEvent",
                 "N1",
                 "NonPartialEvent1",
                 "PartialEvent1",
+                "PartialEvent2",
                 "remove_ImplOnlyPartialEvent",
                 "remove_NonPartialEvent1",
                 "remove_PartialEvent1",
+                "remove_PartialEvent2",
             ], declaredSymbolNames.OrderBy(name => name));
 
             AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
@@ -423,6 +425,7 @@ namespace N1
                 "N1.Class..ctor(System.Int32 a, System.Int32 b)",
                 "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c)",
                 "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d)",
+                "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e)",
             ], declaredSymbols.OrderBy(name => name, StringComparer.Ordinal));
 
             AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
