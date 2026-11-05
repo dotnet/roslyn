@@ -8946,6 +8946,50 @@ IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { ')
       Initializers(0)");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81666")]
+        public void WithIndexerMember()
+        {
+            var src = @"
+record C(int X)
+{
+    public int this[int i] { get => 0; set { } }
+}
+
+class Program
+{
+    static void M(C c, int x)
+    {
+        _ = c with { [0] = 1 };
+        _ = c with { X = 1, [0] = 2 };
+        _ = c with { [undefined] = 1 };
+        _ = c with { [0] = ""s"" };
+        _ = c with { [0] = ref x };
+    }
+}";
+
+            // `[0] = ref x` checks that a ref on the right-hand side is unwrapped, so only CS0747 is reported.
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (11,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [0] = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 1").WithLocation(11, 22),
+                // (12,29): error CS0747: Invalid initializer member declarator
+                //         _ = c with { X = 1, [0] = 2 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 2").WithLocation(12, 29),
+                // (13,23): error CS0103: The name 'undefined' does not exist in the current context
+                //         _ = c with { [undefined] = 1 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "undefined").WithArguments("undefined").WithLocation(13, 23),
+                // (13,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [undefined] = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[undefined] = 1").WithLocation(13, 22),
+                // (14,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [0] = "s" };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"[0] = ""s""").WithLocation(14, 22),
+                // (15,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [0] = ref x };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = ref x").WithLocation(15, 22));
+        }
+
         [Fact]
         public void WithExpr_DefiniteAssignment_01()
         {
