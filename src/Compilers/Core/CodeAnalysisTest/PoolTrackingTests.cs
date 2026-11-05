@@ -69,6 +69,22 @@ public class PoolTrackingTests
     }
 
     [Fact]
+    public void StopAcceptingAllocations_IgnoresNewAllocationsButTracksFrees()
+    {
+        PoolTracker.StartTracking(out var context);
+        var before = ArrayBuilder<int>.GetInstance();
+
+        context.StopAcceptingAllocations();
+        var after = ArrayBuilder<int>.GetInstance();
+        Assert.True(context.HasLeaks);
+
+        before.Free();
+        PoolTracker.StopTracking();
+        Assert.False(context.HasLeaks);
+        after.Free();
+    }
+
+    [Fact]
     public void WaitForOutstandingObjectsToBeFreed_TimesOutForLeak()
     {
         PoolTracker.StartTracking(out var context);
