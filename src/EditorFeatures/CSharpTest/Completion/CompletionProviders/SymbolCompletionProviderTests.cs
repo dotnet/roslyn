@@ -5562,6 +5562,229 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             referencedLanguage: LanguageNames.CSharp);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_HidesBaseMethod()
+    {
+        var markup = """
+            class Program
+            {
+                void M()
+                {
+                    Goo.$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public class Goo
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                public static new bool Equals(object a, object b) => false;
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Equals",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_KeepsBaseOverloadWithDifferentSignature()
+    {
+        var markup = """
+            class Program
+            {
+                void M()
+                {
+                    new Derived().$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public class Base
+            {
+                public void Goo(int x) { }
+            }
+
+            public class Derived : Base
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                public void Goo() { }
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Goo",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 1,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateAdvanced_DoesNotHideBaseMethod()
+    {
+        var markup = """
+            class Program
+            {
+                void M()
+                {
+                    Derived.$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public class Base
+            {
+                public static void M() { }
+            }
+
+            public class Derived : Base
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+                public static new void M() { }
+            }
+            """;
+
+        HideAdvancedMembers = false;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "M",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 2,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+
+        HideAdvancedMembers = true;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "M",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 1,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_HidesBaseInterfaceMethod()
+    {
+        var markup = """
+            class Program
+            {
+                void M(IDerived d)
+                {
+                    d.$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public interface IBase
+            {
+                void M();
+            }
+
+            public interface IDerived : IBase
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                new void M();
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "M",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_HidesObjectMethodOnInterface()
+    {
+        var markup = """
+            class Program
+            {
+                void M(I d)
+                {
+                    d.$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public interface I
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                new bool Equals(object obj);
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Equals",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_ExtensionDoesNotHideInstanceMethod()
+    {
+        var markup = """
+            class Program
+            {
+                void M()
+                {
+                    new Derived().$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public class Base
+            {
+                public void Goo() { }
+            }
+
+            public class Derived : Base
+            {
+            }
+
+            public static class Extensions
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                public static void Goo(this Derived derived) { }
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Goo",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 1,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
     [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_ExtensionMethod_BrowsableAlways()
     {
