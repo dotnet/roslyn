@@ -1125,6 +1125,51 @@ goto Label;");
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.Extensions)]
+        public void DefineExtensionBlock_TopLevel()
+        {
+            var references = new[] { NetFramework.SystemCore };
+            var parseOptions = TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp14);
+
+            // No error for an extension block declared at the top level of a submission, and its members (both static and instance) 
+            // are usable within the same submission. The non-static script class acts as the container.
+            var s0 = CreateSubmission(@"
+extension(string s)
+{
+    public static string Hello => ""Hello!"";
+    public bool IsEmpty => s.Length == 0;
+}
+string h = string.Hello;
+bool e = """".IsEmpty;
+", references, parseOptions: parseOptions);
+            s0.VerifyDiagnostics();
+
+            // Members declared in one submission are usable in a later submission that chains onto it.
+            var s1 = CreateSubmission(@"
+string h = string.Hello;
+bool e = """".IsEmpty;
+", references, parseOptions: parseOptions, previous: s0);
+            s1.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Extensions)]
+        public void DefineExtensionBlock_NestedInInstanceClassStillIllegal()
+        {
+            var parseOptions = TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp14);
+
+            // The script-class relaxation only applies to the script class itself. An extension block nested inside an 
+            // explicit (non-static) class at script top level remains illegal.
+            var s0 = CreateSubmission(
+                "class C { extension(string) { public static string Hello => \"Hello!\"; } }",
+                parseOptions: parseOptions);
+            s0.VerifyDiagnostics(
+                // (1,11): error CS9283: Extensions must be declared in a top-level, non-generic, static class
+                // class C { extension(string) { public static string Hello => "Hello!"; } }
+                Diagnostic(ErrorCode.ERR_BadExtensionContainingType, "extension").WithLocation(1, 11));
+        }
+
+        [Fact]
         [WorkItem(13590, "https://github.com/dotnet/roslyn/issues/13590")]
         public void FixedBuffer_01()
         {
