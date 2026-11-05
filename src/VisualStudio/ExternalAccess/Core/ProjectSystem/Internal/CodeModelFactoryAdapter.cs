@@ -5,13 +5,13 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Api = Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Api;
+using ProjectSystemApi = global::Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem;
 using Legacy = Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Internal;
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Internal;
 
-[Export(typeof(Api.ICodeModelFactory)), Shared]
-internal sealed class CodeModelFactoryAdapter : Api.ICodeModelFactory
+[Export(typeof(ProjectSystemApi.ICodeModelFactory)), Shared]
+internal sealed class CodeModelFactoryAdapter : ProjectSystemApi.ICodeModelFactory
 {
     private readonly Legacy.ICodeModelFactory _factory;
 
@@ -20,10 +20,10 @@ internal sealed class CodeModelFactoryAdapter : Api.ICodeModelFactory
     public CodeModelFactoryAdapter(Legacy.ICodeModelFactory factory)
         => _factory = factory;
 
-    public EnvDTE.FileCodeModel GetFileCodeModel(Api.IWorkspaceProjectContext context, EnvDTE.ProjectItem item)
+    public EnvDTE.FileCodeModel GetFileCodeModel(ProjectSystemApi.IWorkspaceProjectContext context, EnvDTE.ProjectItem item)
         => _factory.GetFileCodeModel(WorkspaceProjectContextAdapter.GetUnderlying(context), item);
 
-    public EnvDTE.CodeModel GetCodeModel(Api.IWorkspaceProjectContext context, EnvDTE.Project project)
+    public EnvDTE.CodeModel GetCodeModel(ProjectSystemApi.IWorkspaceProjectContext context, EnvDTE.Project project)
         => _factory.GetCodeModel(WorkspaceProjectContextAdapter.GetUnderlying(context), project);
 
 }

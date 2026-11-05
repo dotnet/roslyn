@@ -13,8 +13,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Api;
-using Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Internal;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Internal;
 using Xunit;
 using Legacy = Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api;
 
@@ -164,7 +164,7 @@ public class ReferenceCleanupBridgeTests
 
     [Export(typeof(IProjectSystemReferenceCleanupService))]
     [Shared, PartNotDiscoverable]
-    private sealed class ExportedUnifiedCleanupService : IProjectSystemReferenceCleanupService2
+    private sealed class ExportedUnifiedCleanupService : IProjectSystemReferenceCleanupService
     {
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -174,9 +174,6 @@ public class ReferenceCleanupBridgeTests
 
         public Task<ImmutableArray<ProjectSystemReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
             => Task.FromResult(ImmutableArray.Create(new ProjectSystemReferenceInfo(ProjectSystemReferenceType.Package, "UnifiedExport", treatAsUsed: false)));
-
-        public Task<bool> TryUpdateReferenceAsync(string projectPath, ProjectSystemReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
-            => Task.FromException<bool>(new Xunit.Sdk.XunitException("The obsolete direct update method must not be used."));
 
         public Task<IProjectSystemUpdateReferenceOperation> GetUpdateReferenceOperationAsync(
             string projectPath,
@@ -217,13 +214,10 @@ public class ReferenceCleanupBridgeTests
     private sealed class FakeUnifiedCleanupService(
         string itemSpecification,
         FakeUnifiedOperation operation,
-        ProjectSystemReferenceType referenceType = ProjectSystemReferenceType.Package) : IProjectSystemReferenceCleanupService2
+        ProjectSystemReferenceType referenceType = ProjectSystemReferenceType.Package) : IProjectSystemReferenceCleanupService
     {
         public Task<ImmutableArray<ProjectSystemReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
             => Task.FromResult(ImmutableArray.Create(new ProjectSystemReferenceInfo(referenceType, itemSpecification, treatAsUsed: false)));
-
-        public Task<bool> TryUpdateReferenceAsync(string projectPath, ProjectSystemReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
-            => Task.FromException<bool>(new Xunit.Sdk.XunitException("The obsolete direct update method must not be used."));
 
         public Task<IProjectSystemUpdateReferenceOperation> GetUpdateReferenceOperationAsync(string projectPath, ProjectSystemReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
         {

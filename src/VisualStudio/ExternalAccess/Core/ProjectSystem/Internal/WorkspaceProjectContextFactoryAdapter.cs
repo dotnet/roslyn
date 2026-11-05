@@ -8,13 +8,13 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Api = Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Api;
+using ProjectSystemApi = global::Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem;
 using Legacy = Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Internal;
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Internal;
 
-[Export(typeof(Api.IWorkspaceProjectContextFactory)), Shared]
-internal sealed class WorkspaceProjectContextFactoryAdapter : Api.IWorkspaceProjectContextFactory
+[Export(typeof(ProjectSystemApi.IWorkspaceProjectContextFactory)), Shared]
+internal sealed class WorkspaceProjectContextFactoryAdapter : ProjectSystemApi.IWorkspaceProjectContextFactory
 {
     private readonly Legacy.IWorkspaceProjectContextFactory _factory;
 
@@ -23,11 +23,11 @@ internal sealed class WorkspaceProjectContextFactoryAdapter : Api.IWorkspaceProj
     public WorkspaceProjectContextFactoryAdapter(Legacy.IWorkspaceProjectContextFactory factory)
         => _factory = factory;
 
-    public async Task<Api.IWorkspaceProjectContext> CreateProjectContextAsync(
+    public async Task<ProjectSystemApi.IWorkspaceProjectContext> CreateProjectContextAsync(
         Guid id,
         string uniqueName,
         string languageName,
-        Api.EvaluationData data,
+        ProjectSystemApi.EvaluationData data,
         object? hostObject,
         CancellationToken cancellationToken)
     {
@@ -42,7 +42,7 @@ internal sealed class WorkspaceProjectContextFactoryAdapter : Api.IWorkspaceProj
         return new WorkspaceProjectContextAdapter(context);
     }
 
-    private sealed class EvaluationDataAdapter(Api.EvaluationData data) : Legacy.EvaluationData
+    private sealed class EvaluationDataAdapter(ProjectSystemApi.EvaluationData data) : Legacy.EvaluationData
     {
         public override string GetPropertyValue(string name)
             => data.GetPropertyValue(name);

@@ -8,13 +8,13 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Api = Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Api;
+using ProjectSystemApi = global::Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem;
 using Legacy = Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Internal;
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Internal;
 
-[Export(typeof(Api.ITempPECompiler)), Shared]
-internal sealed class TempPECompilerAdapter : Api.ITempPECompiler
+[Export(typeof(ProjectSystemApi.ITempPECompiler)), Shared]
+internal sealed class TempPECompilerAdapter : ProjectSystemApi.ITempPECompiler
 {
     private readonly Legacy.ITempPECompiler _compiler;
 
@@ -23,7 +23,7 @@ internal sealed class TempPECompilerAdapter : Api.ITempPECompiler
     public TempPECompilerAdapter(Legacy.ITempPECompiler compiler)
         => _compiler = compiler;
 
-    public Task<bool> CompileAsync(Api.IWorkspaceProjectContext context, string outputFileName, ISet<string> filesToInclude, CancellationToken cancellationToken)
+    public Task<bool> CompileAsync(ProjectSystemApi.IWorkspaceProjectContext context, string outputFileName, ISet<string> filesToInclude, CancellationToken cancellationToken)
         => _compiler.CompileAsync(WorkspaceProjectContextAdapter.GetUnderlying(context), outputFileName, filesToInclude, cancellationToken);
 
 }

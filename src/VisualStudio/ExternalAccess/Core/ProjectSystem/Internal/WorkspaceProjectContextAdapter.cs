@@ -8,12 +8,12 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Api = Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Api;
+using ProjectSystemApi = global::Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem;
 using Legacy = Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Internal;
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Internal;
 
-internal sealed class WorkspaceProjectContextAdapter(Legacy.IWorkspaceProjectContext context) : Api.IWorkspaceProjectContext
+internal sealed class WorkspaceProjectContextAdapter(Legacy.IWorkspaceProjectContext context) : ProjectSystemApi.IWorkspaceProjectContext
 {
     private Legacy.IWorkspaceProjectContext? _context = context;
 
@@ -94,17 +94,6 @@ internal sealed class WorkspaceProjectContextAdapter(Legacy.IWorkspaceProjectCon
     public ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken)
         => UnderlyingContext.CreateBatchScopeAsync(cancellationToken);
 
-    public void Dispose()
-    {
-        var context = Interlocked.Exchange(ref _context, null);
-        if (context is null)
-            return;
-
-#pragma warning disable CS0618 // Use the legacy synchronous disposal path only when the caller requests it.
-        context.Dispose();
-#pragma warning restore CS0618
-    }
-
     public async ValueTask DisposeAsync()
     {
         var context = Interlocked.Exchange(ref _context, null);
@@ -112,7 +101,7 @@ internal sealed class WorkspaceProjectContextAdapter(Legacy.IWorkspaceProjectCon
             await context.DisposeAsync().ConfigureAwait(false);
     }
 
-    internal static Legacy.IWorkspaceProjectContext GetUnderlying(Api.IWorkspaceProjectContext context)
+    internal static Legacy.IWorkspaceProjectContext GetUnderlying(ProjectSystemApi.IWorkspaceProjectContext context)
     {
         if (context is WorkspaceProjectContextAdapter adapter)
             return adapter.UnderlyingContext;

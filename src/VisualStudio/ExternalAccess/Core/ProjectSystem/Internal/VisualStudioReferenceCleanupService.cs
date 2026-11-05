@@ -11,22 +11,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
-using Api = Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Api;
+using ProjectSystemApi = global::Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem;
 using Legacy = Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Internal;
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Internal;
 
 [ExportWorkspaceService(typeof(IReferenceCleanupService), ServiceLayer.Host), Shared]
 internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupService
 {
     private readonly Legacy.IProjectSystemReferenceCleanupService? _legacyService;
-    private readonly Api.IProjectSystemReferenceCleanupService? _unifiedService;
+    private readonly ProjectSystemApi.IProjectSystemReferenceCleanupService? _unifiedService;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioReferenceCleanupService(
         [Import(AllowDefault = true)] Legacy.IProjectSystemReferenceCleanupService? legacyService,
-        [Import(AllowDefault = true)] Api.IProjectSystemReferenceCleanupService? unifiedService)
+        [Import(AllowDefault = true)] ProjectSystemApi.IProjectSystemReferenceCleanupService? unifiedService)
     {
         _legacyService = legacyService;
         _unifiedService = unifiedService;
@@ -63,21 +63,19 @@ internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupSer
     {
         if (_unifiedService is not null)
         {
-            var service = _unifiedService as Api.IProjectSystemReferenceCleanupService2
-                ?? throw new InvalidOperationException("The unified project-system reference cleanup service does not support update operations.");
             var referenceInfo = referenceUpdate.ReferenceInfo;
-            var operation = await service.GetUpdateReferenceOperationAsync(
+            var operation = await _unifiedService.GetUpdateReferenceOperationAsync(
                 projectPath,
-                new Api.ProjectSystemReferenceUpdate(
+                new ProjectSystemApi.ProjectSystemReferenceUpdate(
                     referenceUpdate.Action switch
                     {
-                        UpdateAction.TreatAsUsed => Api.ProjectSystemUpdateAction.SetTreatAsUsed,
-                        UpdateAction.TreatAsUnused => Api.ProjectSystemUpdateAction.UnsetTreatAsUsed,
-                        UpdateAction.Remove => Api.ProjectSystemUpdateAction.Remove,
+                        UpdateAction.TreatAsUsed => ProjectSystemApi.ProjectSystemUpdateAction.SetTreatAsUsed,
+                        UpdateAction.TreatAsUnused => ProjectSystemApi.ProjectSystemUpdateAction.UnsetTreatAsUsed,
+                        UpdateAction.Remove => ProjectSystemApi.ProjectSystemUpdateAction.Remove,
                         _ => throw ExceptionUtilities.Unreachable()
                     },
-                    new Api.ProjectSystemReferenceInfo(
-                        (Api.ProjectSystemReferenceType)referenceInfo.ReferenceType,
+                    new ProjectSystemApi.ProjectSystemReferenceInfo(
+                        (ProjectSystemApi.ProjectSystemReferenceType)referenceInfo.ReferenceType,
                         referenceInfo.ItemSpecification,
                         referenceInfo.TreatAsUsed)),
                 cancellationToken).ConfigureAwait(true);

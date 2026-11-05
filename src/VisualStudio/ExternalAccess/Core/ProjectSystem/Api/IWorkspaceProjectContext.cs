@@ -9,13 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Api;
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem;
 
-internal interface IWorkspaceProjectContext : IDisposable, IAsyncDisposable
+internal interface IWorkspaceProjectContext : IAsyncDisposable
 {
-    [Obsolete("Use DisposeAsync instead.")]
-    new void Dispose();
-
     string? ProjectFilePath { get; set; }
     bool LastDesignTimeBuildSucceeded { get; set; }
     string? BinOutputPath { get; set; }

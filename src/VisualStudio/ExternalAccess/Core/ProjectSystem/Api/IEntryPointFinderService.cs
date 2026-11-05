@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.Unified.ProjectSystem.Api;
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem;
 
 internal interface IEntryPointFinderService : ILanguageService
 {
