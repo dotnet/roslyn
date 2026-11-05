@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "public class C { }",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(provider).WithCryptoKeyFile(key.Path),
                 parseOptions: TestOptions.RegularWithLegacyStrongName);
+            // Compilation setup may emit while validating used assembly references.
+            stagingPaths.Clear();
             using var output = new MemoryStream();
             using var reference = new MemoryStream();
             var result = compilation.Emit(output, metadataPEStream: reference);

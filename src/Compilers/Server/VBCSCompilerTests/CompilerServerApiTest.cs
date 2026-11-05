@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         [ConditionalTheory(typeof(WindowsOnly))]
         [InlineData(true)]
         [InlineData(false)]
-        public async Task LegacySigningUsesOutputDirectory(bool isCSharp)
+        public async Task LegacySigningThroughServer(bool isCSharp)
         {
             var directory = Temp.CreateDirectory();
             var outputDirectory = directory.CreateDirectory("bin");

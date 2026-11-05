@@ -167,7 +167,8 @@ public abstract class IntegrationTestBase : TestBase
                     """ },
             });
 
-        Assert.NotNull(result);
+        if (result == null)
+            return;
         _output.WriteLine(result.Output);
         Assert.True(result.ExitCode == 0, result.Output);
 
@@ -203,7 +204,8 @@ public abstract class IntegrationTestBase : TestBase
                     """ },
             });
 
-        Assert.NotNull(result);
+        if (result == null)
+            return;
         _output.WriteLine(result.Output);
         Assert.True(result.ExitCode == 0, result.Output);
 

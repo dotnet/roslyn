@@ -102,11 +102,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal("file", read.Arguments[1].Value);
         }
 
-        [Theory]
-        [InlineData(true, false)]
-        [InlineData(false, false)]
-        [InlineData(true, true)]
-        [InlineData(false, true)]
+        [Theory, CombinatorialData]
         public async Task ReadWriteCreatedRequest(bool isCSharp, bool includeOptionalArguments)
         {
             var language = isCSharp ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
