@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return (IsDeclaredReadOnly || ContainingType?.IsReadOnly == true) && IsValidReadOnlyTarget;
                 }
 
-                static bool isExtensionEffectivelyReadOnly(ParameterSymbol? receiverParameter)
+                static bool isExtensionEffectivelyReadOnly(ParameterSymbol receiverParameter)
                 {
                     return receiverParameter is { Type.IsValueType: true, RefKind: RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None };
                 }
