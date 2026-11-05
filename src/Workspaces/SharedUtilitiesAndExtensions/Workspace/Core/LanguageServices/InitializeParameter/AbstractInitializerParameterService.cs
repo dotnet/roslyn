@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,6 +24,8 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
     protected abstract bool IsFunctionDeclaration(SyntaxNode node);
 
     protected abstract SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken);
+
+    protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax, bool useAutoProperty);
 
     protected abstract SyntaxNode GetBody(SyntaxNode methodNode);
     protected abstract SyntaxNode? TryGetLastStatement(IBlockOperation? blockStatement);
@@ -190,8 +194,31 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
         return TryGetLastStatement(blockStatement);
     }
 
-    public bool IsThrowNotImplementedProperty(Compilation compilation, IPropertySymbol property, CancellationToken cancellationToken)
+    public async Task<Solution> RemoveThrowNotImplementedAsync(
+        Document document, IPropertySymbol property, bool useAutoProperty, CancellationToken cancellationToken)
     {
+        var solution = document.Project.Solution;
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var currentProperty = SymbolFinder.FindSimilarSymbols(property, compilation, cancellationToken).FirstOrDefault();
+        if (currentProperty == null)
+            return solution;
+
+        var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+        var propertySyntax = await declarationService.GetDeclarations(currentProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+        var propertyDocument = solution.GetDocument(propertySyntax.SyntaxTree);
+        if (propertyDocument == null)
+            return solution;
+
+        var root = await propertyDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var replacement = RemoveThrowNotImplemented(propertySyntax, useAutoProperty).WithAdditionalAnnotations(Formatter.Annotation);
+        return solution.WithDocumentSyntaxRoot(propertyDocument.Id, root.ReplaceNode(propertySyntax, replacement));
+    }
+
+    public async Task<bool> IsThrowNotImplementedPropertyAsync(Solution solution, IPropertySymbol property, CancellationToken cancellationToken)
+    {
+        if (property.RefKind != RefKind.None)
+            return false;
+
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
 
         if (property.GetMethod != null)
@@ -205,8 +232,12 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
 
         foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
         {
-            var semanticModel = compilation.GetSemanticModel(group.Key);
-            foreach (var accessorBody in accessors)
+            var document = solution.GetRequiredDocument(group.Key);
+            if (document is SourceGeneratedDocument)
+                return false;
+
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var accessorBody in group)
             {
                 var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
                 if (operation is null)
