@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Intents;
@@ -237,5 +238,38 @@ public sealed class GenerateConstructorIntentTests : IntentTestsBase
             {
                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.WhenPossibleWithSilentEnforcement }
             }).ConfigureAwait(false);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83836")]
+    public async Task GenerateConstructorForRecordWithPrimaryConstructor()
+    {
+        // lang=json
+        var intentData = @"{ ""accessibility"": ""Private""}";
+
+        await VerifyExpectedTextAsync(WellKnownIntents.GenerateConstructor, """
+            record C(int X)
+            {
+                string Y { get; init; }
+
+                {|priorSelection:|}
+            }
+            """, """
+            record C(int X)
+            {
+                string Y { get; init; }
+
+                private C
+            }
+            """, """
+            record C(int X)
+            {
+                string Y { get; init; }
+
+                private C(int x, string y) : this(x)
+                {
+                    Y = y;
+                }
+            }
+            """, intentData: intentData).ConfigureAwait(false);
     }
 }
