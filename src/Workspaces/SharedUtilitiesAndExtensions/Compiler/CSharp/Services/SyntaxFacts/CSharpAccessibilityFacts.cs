@@ -139,6 +139,7 @@ internal sealed class CSharpAccessibilityFacts : IAccessibilityFacts
                 SyntaxKind.FileKeyword => Modifiers.File,
 #if !OLDER_ROSLYN
                 SyntaxKind.ClosedKeyword => Modifiers.Closed,
+                SyntaxKind.SafeKeyword => Modifiers.Safe,
 #endif
                 SyntaxKind.RequiredKeyword => Modifiers.Required,
                 SyntaxKind.FixedKeyword => Modifiers.Fixed,

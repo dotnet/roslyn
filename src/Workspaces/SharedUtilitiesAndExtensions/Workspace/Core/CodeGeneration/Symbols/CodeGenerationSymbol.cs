@@ -21,6 +21,8 @@ internal abstract class CodeGenerationSymbol : ISymbol
     private readonly ImmutableArray<AttributeData> _attributes;
     protected readonly string _documentationCommentXml;
 
+    // Indicates whether this symbol follows the updated memory safety rules.
+    internal bool UsesUpdatedMemorySafetyRules { get; }
     public Accessibility DeclaredAccessibility { get; }
     protected internal DeclarationModifiers Modifiers { get; }
     public string Name { get; }
@@ -33,13 +35,17 @@ internal abstract class CodeGenerationSymbol : ISymbol
         Accessibility declaredAccessibility,
         DeclarationModifiers modifiers,
         string name,
-        string documentationCommentXml = null)
+        string documentationCommentXml = null,
+        bool requiresUnsafeContext = false,
+        bool usesUpdatedMemorySafetyRules = false)
     {
         this.ContainingAssembly = containingAssembly;
         this.ContainingType = containingType;
         _attributes = attributes.NullToEmpty();
         this.DeclaredAccessibility = declaredAccessibility;
         this.Modifiers = modifiers;
+        this.RequiresUnsafeContext = requiresUnsafeContext;
+        this.UsesUpdatedMemorySafetyRules = usesUpdatedMemorySafetyRules;
         this.Name = name;
         _documentationCommentXml = documentationCommentXml;
     }
@@ -130,10 +136,7 @@ internal abstract class CodeGenerationSymbol : ISymbol
 
     public bool IsImplicitlyDeclared => false;
 
-    // CA1822 suppression is needed until all projects using this file are updated to newest Roslyn which has this member on ISymbol.
-#pragma warning disable CA1822 // Mark members as static
-    public bool RequiresUnsafeContext => false;
-#pragma warning restore CA1822
+    public bool RequiresUnsafeContext { get; }
 
     public bool CanBeReferencedByName => true;
 

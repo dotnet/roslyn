@@ -281,7 +281,8 @@ internal static partial class SyntaxGeneratorExtensions
     }
 
     public static ImmutableArray<ISymbol> CreateFieldsForParameters(
-        ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewFieldMap, bool isContainedInUnsafeType)
+        ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewFieldMap, bool isContainedInUnsafeType,
+        bool usesUpdatedMemorySafetyRules = false)
     {
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
         foreach (var parameter in parameters)
@@ -293,9 +294,10 @@ internal static partial class SyntaxGeneratorExtensions
                 result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                     attributes: default,
                     accessibility: Accessibility.Private,
-                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderLegacyRules()),
                     type: parameter.Type,
-                    name: fieldName));
+                    name: fieldName,
+                    usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules));
             }
         }
 
@@ -303,7 +305,8 @@ internal static partial class SyntaxGeneratorExtensions
     }
 
     public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
-        ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewPropertyMap, bool isContainedInUnsafeType)
+        ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewPropertyMap, bool isContainedInUnsafeType,
+        bool usesUpdatedMemorySafetyRules = false)
     {
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
         foreach (var parameter in parameters)
@@ -315,7 +318,7 @@ internal static partial class SyntaxGeneratorExtensions
                 result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderLegacyRules()),
                     type: parameter.Type,
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: [],
@@ -324,8 +327,10 @@ internal static partial class SyntaxGeneratorExtensions
                     getMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         attributes: default,
                         accessibility: default,
-                        statements: default),
-                    setMethod: null));
+                        statements: default,
+                        usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules),
+                    setMethod: null,
+                    usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules));
             }
         }
 

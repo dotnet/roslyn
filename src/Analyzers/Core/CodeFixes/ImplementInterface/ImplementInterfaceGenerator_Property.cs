@@ -115,7 +115,10 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 accessibility: accessibility,
                 explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property.SetMethod] : default,
                 statements: GetSetAccessorStatements(
-                    compilation, property, conflictingProperty, generateAbstractly, propertyGenerationBehavior));
+                    compilation, property, conflictingProperty, generateAbstractly, propertyGenerationBehavior),
+                modifiers: setMethod.UsesUpdatedMemorySafetyRules()
+                    ? setMethod.GetSymbolModifiers().WithIsUnsafe(false).WithIsSafe(false)
+                    : null);
         }
 
         private IMethodSymbol? GenerateGetAccessor(
@@ -141,7 +144,10 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 accessibility: accessibility,
                 explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property.GetMethod] : default,
                 statements: GetGetAccessorStatements(
-                    compilation, property, conflictingProperty, generateAbstractly, propertyGenerationBehavior));
+                    compilation, property, conflictingProperty, generateAbstractly, propertyGenerationBehavior),
+                modifiers: getMethod.UsesUpdatedMemorySafetyRules()
+                    ? getMethod.GetSymbolModifiers().WithIsUnsafe(false).WithIsSafe(false)
+                    : null);
         }
 
         private ImmutableArray<SyntaxNode> GetSetAccessorStatements(

@@ -488,9 +488,10 @@ internal static partial class SyntaxGeneratorExtensions
         bool generateProperties,
         bool isContainedInUnsafeType)
     {
+        var usesUpdatedMemorySafetyRules = semanticModel.Compilation.SourceModule.UsesUpdatedMemorySafetyRules();
         var newMembers = generateProperties
-            ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType)
-            : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType);
+            ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType, usesUpdatedMemorySafetyRules)
+            : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType, usesUpdatedMemorySafetyRules);
         var statements = factory.CreateAssignmentStatements(
             generatorInternal, semanticModel,
             parameters, parameterToExistingMemberMap, parameterToNewMemberMap,
@@ -500,13 +501,14 @@ internal static partial class SyntaxGeneratorExtensions
         var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
             attributes: default,
             accessibility: accessibility,
-            modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
+            modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifierUnderLegacyRules())),
             typeName: typeName,
             parameters: parameters,
             statements: statements,
             thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
                 ? []
-                : default);
+                : default,
+            usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules);
 
         return newMembers.Concat(constructor);
     }

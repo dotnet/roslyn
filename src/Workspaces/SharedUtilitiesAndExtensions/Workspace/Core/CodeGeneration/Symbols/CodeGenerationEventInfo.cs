@@ -13,12 +13,17 @@ internal sealed class CodeGenerationEventInfo
     private static readonly ConditionalWeakTable<IEventSymbol, CodeGenerationEventInfo> s_eventToInfoMap = new();
 
     private readonly bool _isUnsafe;
-    private CodeGenerationEventInfo(bool isUnsafe)
-        => _isUnsafe = isUnsafe;
+    private readonly bool _requiresSafeForBackingField;
 
-    public static void Attach(IEventSymbol @event, bool isUnsafe)
+    private CodeGenerationEventInfo(bool isUnsafe, bool requiresSafeForBackingField)
     {
-        var info = new CodeGenerationEventInfo(isUnsafe);
+        _isUnsafe = isUnsafe;
+        _requiresSafeForBackingField = requiresSafeForBackingField;
+    }
+
+    public static void Attach(IEventSymbol @event, bool isUnsafe, bool requiresSafeForBackingField = false)
+    {
+        var info = new CodeGenerationEventInfo(isUnsafe, requiresSafeForBackingField);
         s_eventToInfoMap.Add(@event, info);
     }
 
@@ -30,6 +35,9 @@ internal sealed class CodeGenerationEventInfo
 
     public static bool GetIsUnsafe(IEventSymbol @event)
         => GetIsUnsafe(GetInfo(@event));
+
+    public static bool GetRequiresSafeForBackingField(IEventSymbol @event)
+        => GetInfo(@event)?._requiresSafeForBackingField == true;
 
     private static bool GetIsUnsafe(CodeGenerationEventInfo info)
         => info != null && info._isUnsafe;

@@ -46,7 +46,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
-            var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifier() &&
+            var generateUnsafe = _state.TypeMemberType.RequiresUnsafeModifierUnderLegacyRules() &&
                                  !_state.IsContainedInUnsafeType;
 
             var context = new CodeGenerationSolutionContext(

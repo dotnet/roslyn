@@ -322,14 +322,13 @@ internal static class MethodGenerator
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
-        // Only "static" and "unsafe" modifiers allowed if we're an explicit impl.
+        // Only "static" and safety modifiers allowed if we're an explicit impl.
         if (method.ExplicitInterfaceImplementations.Any())
         {
             if (method.IsStatic)
                 tokens.Add(StaticKeyword);
 
-            if (CodeGenerationMethodInfo.GetIsUnsafe(method))
-                tokens.Add(UnsafeKeyword);
+            AddSafetyModifierTokens(method, tokens, emitUnsafeForLegacyRules: CodeGenerationMethodInfo.GetIsUnsafe(method));
         }
         else
         {
@@ -377,8 +376,7 @@ internal static class MethodGenerator
                     tokens.Add(StaticKeyword);
             }
 
-            if (CodeGenerationMethodInfo.GetIsUnsafe(method))
-                tokens.Add(UnsafeKeyword);
+            AddSafetyModifierTokens(method, tokens, emitUnsafeForLegacyRules: CodeGenerationMethodInfo.GetIsUnsafe(method));
 
             if (CodeGenerationMethodInfo.GetIsNew(method))
                 tokens.Add(NewKeyword);

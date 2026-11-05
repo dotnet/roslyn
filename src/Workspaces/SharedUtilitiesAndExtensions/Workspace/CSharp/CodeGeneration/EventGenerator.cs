@@ -118,7 +118,7 @@ internal static class EventGenerator
             AddAnnotationsTo(@event,
                 EventFieldDeclaration(
                     AttributeGenerator.GenerateAttributeLists(@event.GetAttributes(), info),
-                    GenerateModifiers(@event, destination, info),
+                    GenerateModifiers(@event, destination, info, hasBackingField: true),
                     VariableDeclaration(
                         @event.Type.GenerateTypeSyntax(),
                         [VariableDeclarator(@event.Name.ToIdentifierToken())]))));
@@ -132,7 +132,7 @@ internal static class EventGenerator
         var isExplicit = explicitInterfaceSpecifier is not null;
         return AddFormatterAndCodeGeneratorAnnotationsTo(EventDeclaration(
             attributeLists: GenerateAttributes(@event, isExplicit, info),
-            modifiers: GenerateModifiers(@event, destination, info),
+            modifiers: GenerateModifiers(@event, destination, info, hasBackingField: false),
             type: @event.Type.GenerateTypeSyntax(),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: @event.Name.ToIdentifierToken(),
@@ -209,7 +209,7 @@ internal static class EventGenerator
     }
 
     private static SyntaxTokenList GenerateModifiers(
-        IEventSymbol @event, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
+        IEventSymbol @event, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info, bool hasBackingField)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
@@ -256,8 +256,7 @@ internal static class EventGenerator
             }
         }
 
-        if (CodeGenerationEventInfo.GetIsUnsafe(@event))
-            tokens.Add(UnsafeKeyword);
+        AddSafetyModifierTokens(@event, tokens, emitUnsafeForLegacyRules: CodeGenerationEventInfo.GetIsUnsafe(@event), hasBackingField: hasBackingField);
 
         return [.. tokens];
     }

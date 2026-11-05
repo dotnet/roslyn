@@ -5,10 +5,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 using static Microsoft.CodeAnalysis.CSharp.CodeGeneration.CSharpCodeGenerationHelpers;
 
@@ -102,19 +101,18 @@ internal static class ConversionGenerator
 
     private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination)
     {
-        // If these appear in interfaces they must be static abstract
-        if (destination is CodeGenerationDestination.InterfaceType)
-            return [StaticKeyword, AbstractKeyword];
+        using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
-        using var tokens = TemporaryArray<SyntaxToken>.Empty;
-
-        if (method.ExplicitInterfaceImplementations.Length == 0)
+        if (destination is not CodeGenerationDestination.InterfaceType && method.ExplicitInterfaceImplementations.Length == 0)
             tokens.Add(PublicKeyword);
 
         tokens.Add(StaticKeyword);
 
-        if (method.IsAbstract)
+        // If these appear in interfaces they must be static abstract
+        if (destination is CodeGenerationDestination.InterfaceType || method.IsAbstract)
             tokens.Add(AbstractKeyword);
+
+        AddSafetyModifierTokens(method, tokens, emitUnsafeForLegacyRules: false);
 
         return [.. tokens.ToImmutableAndClear()];
     }

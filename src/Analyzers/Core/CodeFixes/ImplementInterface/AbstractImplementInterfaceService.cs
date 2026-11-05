@@ -137,7 +137,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             generateInvisibly: generator.ShouldGenerateInvisibleMember(document.Project.ParseOptions!, interfaceMember, interfaceMember.Name, supportsImplementingLessAccessibleMember),
             generateAbstractly: configuration.Abstractly,
             addNew: false,
-            interfaceMember.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(info.ContextNode),
+            RequiresUnsafeModifierForImplementationSignature(interfaceMember, info.ContextNode, syntaxFacts),
             options.PropertyGenerationBehavior);
 
         return implementedMembers;

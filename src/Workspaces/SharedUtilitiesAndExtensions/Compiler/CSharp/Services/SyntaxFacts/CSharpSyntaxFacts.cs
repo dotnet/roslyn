@@ -84,6 +84,15 @@ internal class CSharpSyntaxFacts : AbstractSyntaxFacts, ISyntaxFacts
         // TODO: Enable once Dictionary-Expressions go in.
         => false;
 
+    public bool SupportsUnsafeEvolution(ParseOptions options)
+    {
+#if !OLDER_ROSLYN
+        return options.LanguageVersion() >= LanguageVersion.Preview;
+#else
+        return false;
+#endif
+    }
+
     public SyntaxToken ParseToken(string text)
         => SyntaxFactory.ParseToken(text);
 

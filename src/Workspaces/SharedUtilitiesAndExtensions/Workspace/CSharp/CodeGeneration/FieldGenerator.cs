@@ -139,8 +139,7 @@ internal static class FieldGenerator
                 tokens.Add(RequiredKeyword);
         }
 
-        if (CodeGenerationFieldInfo.GetIsUnsafe(field))
-            tokens.Add(UnsafeKeyword);
+        AddSafetyModifierTokens(field, tokens, emitUnsafeForLegacyRules: CodeGenerationFieldInfo.GetIsUnsafe(field));
 
         return [.. tokens];
     }

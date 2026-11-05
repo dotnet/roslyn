@@ -31,6 +31,7 @@ internal static class INamedTypeSymbolExtensions
             namedType.NullableAnnotation,
             namedType.GetMembers().WhereAsArray(s => s is not INamedTypeSymbol),
             namedType.GetTypeMembers().SelectAsArray(t => t.ToCodeGenerationSymbol()),
-            namedType.EnumUnderlyingType);
+            namedType.EnumUnderlyingType,
+            namedType.UsesUpdatedMemorySafetyRules());
     }
 }

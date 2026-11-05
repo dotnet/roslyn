@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -39,6 +40,9 @@ public sealed class SyntaxGeneratorTests
     private SyntaxGenerator Generator
         => _generator ??= SyntaxGenerator.GetGenerator(Workspace, LanguageNames.CSharp);
 
+    private ICodeGenerationService CodeGenerationService
+        => Workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<ICodeGenerationService>();
+
     public static Compilation Compile(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code)
     {
@@ -46,6 +50,14 @@ public sealed class SyntaxGeneratorTests
             .AddReferences(NetFramework.mscorlib, NetFramework.System, NetFramework.SystemCore, NetFramework.SystemRuntime, NetFramework.SystemValueTuple)
             .AddSyntaxTrees(ParseSyntaxTree(code));
     }
+
+    private CSharpCompilation CompileWithUpdatedMemorySafetyRules(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code)
+        => CSharpCompilation.Create("Safety",
+            [ParseSyntaxTree(code, new CSharpParseOptions(LanguageVersion.Preview))],
+            _emptyCompilation.References,
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)
+                .WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2));
 
     private static void VerifySyntax<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
     {
@@ -3225,7 +3237,7 @@ public sealed class SyntaxGeneratorTests
             Generator.GetModifiers(Generator.WithModifiers(Generator.CustomEventDeclaration("ep", Generator.IdentifierName("t")), allModifiers)));
 
         Assert.Equal(
-            DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly,
+            DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe,
             Generator.GetModifiers(Generator.WithModifiers(AccessorDeclaration(SyntaxKind.GetAccessorDeclaration), allModifiers)));
     }
 
@@ -5781,5 +5793,256 @@ public sealed class SyntaxGeneratorTests
         var enumValueReference = (MemberAccessExpressionSyntax)attributeArgument.Expression;
         var typeReference = enumValueReference.Expression;
         Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, typeReference.Kind());
+    }
+
+    [Fact]
+    public void TestMemorySafetyRulesModifiersFromMetadata()
+    {
+        var compilation = CompileWithUpdatedMemorySafetyRules("""
+            public class C
+            {
+                public unsafe void Marked() { }
+                public safe void ExplicitSafe() { }
+                public void Pointer(int* p) { }
+                [System.Runtime.InteropServices.DllImport("test")]
+                public static safe extern void Trusted();
+            }
+            """);
+        var type = _emptyCompilation.AddReferences(compilation.EmitToImageReference()).GetTypeByMetadataName("C");
+
+        Assert.True(Generator.GetModifiers(Generator.Declaration(type.GetMembers("Marked").Single())).IsUnsafe);
+        Assert.False(Generator.GetModifiers(Generator.Declaration(type.GetMembers("Pointer").Single())).IsUnsafe);
+        Assert.True(DeclarationModifiers.From(type.GetMembers("Trusted").Single()).IsSafe);
+        Assert.False(Generator.GetModifiers(Generator.Declaration(type.GetMembers("ExplicitSafe").Single())).IsSafe);
+    }
+
+    [Fact]
+    public void TestLayoutSafetyModifiersFollowGeneratedStorage()
+    {
+        var compilation = CompileWithUpdatedMemorySafetyRules("""
+            using System.Runtime.InteropServices;
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            public struct S
+            {
+                public safe int P { get; }
+                public event System.Action E { add { } remove { } }
+            }
+            """);
+        var type = compilation.GetTypeByMetadataName("S");
+        var property = (IPropertySymbol)type.GetMembers("P").Single();
+        var propertyCopy = CodeGenerationSymbolFactory.CreatePropertySymbol(property, getMethod: property.GetMethod);
+
+        // Removing the property's storage makes safe optional.
+        VerifySyntax<PropertyDeclarationSyntax>(
+            Generator.PropertyDeclaration(propertyCopy, getAccessorStatements: [ParseStatement("return 0;")]),
+            """
+            public global::System.Int32 P
+            {
+                get
+                {
+                    return 0;
+                }
+            }
+            """);
+
+        // Adding event storage in a packed struct requires safe.
+        var eventCopy = CodeGenerationSymbolFactory.CreateEventSymbol((IEventSymbol)type.GetMembers("E").Single());
+        VerifySyntax<EventFieldDeclarationSyntax>(
+            Generator.EventDeclaration(eventCopy),
+            "public safe event global::System.Action E;");
+    }
+
+    [Fact]
+    public void TestExplicitLayoutFieldRequiresSafeFromMetadata()
+    {
+        var compilation = CompileWithUpdatedMemorySafetyRules("""
+            using System.Runtime.InteropServices;
+            [StructLayout(LayoutKind.Explicit)]
+            public struct S
+            {
+                [FieldOffset(0)]
+                public safe int F;
+            }
+            """);
+        var metadata = _emptyCompilation.AddReferences(compilation.EmitToImageReference());
+        var field = metadata.GetTypeByMetadataName("S").GetMembers("F").Single();
+
+        VerifySyntax<FieldDeclarationSyntax>(Generator.Declaration(field), "public safe global::System.Int32 F;");
+    }
+
+    [Fact]
+    public void TestSyntheticSafeMethod()
+    {
+        var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
+            attributes: default, Accessibility.Public, DeclarationModifiers.Safe,
+            _emptyCompilation.GetSpecialType(SpecialType.System_Void), RefKind.None,
+            explicitInterfaceImplementations: default, "M", typeParameters: default, parameters: default,
+            usesUpdatedMemorySafetyRules: true);
+
+        VerifySyntax<MethodDeclarationSyntax>(Generator.Declaration(method), """
+            public safe void M()
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestLegacySyntheticPointerMethodSafety()
+    {
+        var pointerType = CodeGenerationSymbolFactory.CreatePointerTypeSymbol(_emptyCompilation.GetSpecialType(SpecialType.System_Int32));
+        var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
+            attributes: default, Accessibility.Public, DeclarationModifiers.None, pointerType, RefKind.None,
+            explicitInterfaceImplementations: default, "M", typeParameters: default, parameters: default,
+            usesUpdatedMemorySafetyRules: false);
+        Assert.Equal(DeclarationModifiers.Unsafe, DeclarationModifiers.From(method));
+    }
+
+    [Fact]
+    public void TestCopiedMethodPreservesUnsafeModifier()
+    {
+        var compilation = CompileWithUpdatedMemorySafetyRules("public class C { public unsafe void M() { } }");
+        var method = compilation.GetTypeByMetadataName("C").GetMembers("M").OfType<IMethodSymbol>().Single();
+        var copy = CodeGenerationSymbolFactory.CreateMethodSymbol(method, name: "Copy");
+
+        VerifySyntax<MethodDeclarationSyntax>(Generator.Declaration(copy), """
+            public unsafe void Copy()
+            {
+            }
+            """);
+    }
+
+    [Fact]
+    public void TestFreshPointerMethodUsesContainingTypeSafetyRules()
+    {
+        var compilation = CompileWithUpdatedMemorySafetyRules("public class C { }");
+        var destination = compilation.GetTypeByMetadataName("C");
+        var pointerType = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Int32));
+
+        var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
+            containingType: destination, attributes: default, Accessibility.Public, DeclarationModifiers.None,
+            pointerType, RefKind.None, explicitInterfaceImplementations: default, "M",
+            typeParameters: default, parameters: default);
+        Assert.False(Generator.GetModifiers(Generator.Declaration(method)).IsUnsafe);
+    }
+
+    [Fact]
+    public void TestPropertyAccessorSafetyFromMetadata()
+    {
+        var compilation = CompileWithUpdatedMemorySafetyRules("""
+            public class C
+            {
+                public int P { unsafe get => 0; set { } }
+                public unsafe int WholeProperty { get => 0; set { } }
+            }
+            """);
+        var type = _emptyCompilation.AddReferences(compilation.EmitToImageReference())
+            .GetTypeByMetadataName("C");
+
+        VerifySyntax<PropertyDeclarationSyntax>(Generator.Declaration(type.GetMembers("P").Single()),
+            "public global::System.Int32 P { unsafe get; set; }");
+        VerifySyntax<PropertyDeclarationSyntax>(Generator.Declaration(type.GetMembers("WholeProperty").Single()),
+            "public unsafe global::System.Int32 WholeProperty { get; set; }");
+    }
+
+    [Fact]
+    public void TestSingleAccessorSafety()
+    {
+        var compilation = CompileWithUpdatedMemorySafetyRules("""
+            public class B { public virtual int P { unsafe get => 0; set { } } }
+            public class C : B { public override int P { unsafe get => 0; } }
+            """);
+        var property = compilation.GetTypeByMetadataName("C").GetMembers().OfType<IPropertySymbol>().Single();
+        var copy = CodeGenerationSymbolFactory.CreatePropertySymbol(property,
+            getMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(property.GetMethod,
+                statements: [ParseStatement("return 0;")]));
+        var info = CodeGenerationService.GetInfo(
+            CodeGenerationContext.Default, CodeGenerationService.DefaultOptions, compilation.SyntaxTrees.Single().Options);
+
+        VerifySyntax<PropertyDeclarationSyntax>(
+            CodeGenerationService.CreatePropertyDeclaration(copy, CodeGenerationDestination.ClassType, info, CancellationToken.None),
+            "public override global::System.Int32 P { unsafe get => 0; }");
+    }
+
+    [Fact]
+    public void TestDocumentConversionPreservesUnsafeModifier()
+    {
+        var compilation = CompileWithUpdatedMemorySafetyRules("""
+            public interface I<T> where T : I<T>
+            {
+                static abstract unsafe explicit operator int(T value);
+            }
+            """).WithReferences(NetCoreApp.References);
+        var conversion = (IMethodSymbol)compilation.GetTypeByMetadataName("I`1")
+            .GetMembers(WellKnownMemberNames.ExplicitConversionName).Single();
+        var info = CodeGenerationService.GetInfo(CodeGenerationContext.Default.With(generateMethodBodies: false),
+            CodeGenerationService.DefaultOptions, compilation.SyntaxTrees.Single().Options);
+
+        VerifySyntax<ConversionOperatorDeclarationSyntax>(
+            CodeGenerationService.CreateMethodDeclaration(conversion, CodeGenerationDestination.InterfaceType, info, CancellationToken.None),
+            "static abstract unsafe explicit operator global::System.Int32(T value);");
+    }
+
+    [Fact]
+    public void TestGeneratedFieldPreservesSafeModifier()
+    {
+        var field = CodeGenerationSymbolFactory.CreateFieldSymbol(
+            attributes: default, Accessibility.Public, DeclarationModifiers.Safe,
+            _emptyCompilation.GetSpecialType(SpecialType.System_Int32), "F", usesUpdatedMemorySafetyRules: true);
+        var info = CodeGenerationService.GetInfo(
+            CodeGenerationContext.Default, CodeGenerationService.DefaultOptions, new CSharpParseOptions(LanguageVersion.Preview));
+
+        VerifySyntax<FieldDeclarationSyntax>(
+            CodeGenerationService.CreateFieldDeclaration(field, CodeGenerationDestination.ClassType, info, CancellationToken.None),
+            "public safe global::System.Int32 F;");
+    }
+
+    [Fact]
+    public void TestSafeModifierRoundTrip()
+    {
+        var declaration = ParseMemberDeclaration("safe extern int M();");
+        var modifiers = Generator.GetModifiers(declaration);
+        Assert.Equal(DeclarationModifiers.Safe | DeclarationModifiers.Extern, modifiers);
+
+        var withoutSafe = Generator.WithModifiers(declaration, modifiers.WithIsSafe(false));
+        VerifySyntax<MethodDeclarationSyntax>(withoutSafe, "extern int M();");
+
+        var withSafe = Generator.WithModifiers(withoutSafe, modifiers);
+        VerifySyntax<MethodDeclarationSyntax>(withSafe, "safe extern int M();");
+    }
+
+    [Fact]
+    public void TestSafeLocalFunctionModifier()
+    {
+        var declaration = ParseStatement("extern void M();");
+        var modifiers = DeclarationModifiers.Safe | DeclarationModifiers.Extern;
+        var withSafe = Generator.WithModifiers(declaration, modifiers);
+        Assert.Equal(modifiers, Generator.GetModifiers(withSafe));
+        VerifySyntax<LocalFunctionStatementSyntax>(withSafe, """
+            safe extern void M();
+            """);
+    }
+
+    [Fact]
+    public void TestInterfaceInsertionPreservesSafetyModifiers()
+    {
+        Verify("public unsafe void M() { }", "unsafe void M();");
+        Verify("public safe void M() { }", "safe void M();");
+        Verify("public unsafe int P { get; set; }", "unsafe int P { get; set; }");
+        Verify("public unsafe int this[int index] { get; }", "unsafe int this[int index] { get; }");
+        Verify("public unsafe event System.Action E { add { } remove { } }", "unsafe event System.Action E;");
+        Verify("public unsafe event System.Action E;", "unsafe event System.Action E;");
+        Verify("static abstract unsafe I operator +(I left, I right);", "static abstract unsafe I operator +(I left, I right);");
+
+        void Verify(string memberDeclaration, string expectedMember)
+        {
+            var declaration = Generator.AddMembers(Generator.InterfaceDeclaration("I"), ParseMemberDeclaration(memberDeclaration));
+
+            VerifySyntax<InterfaceDeclarationSyntax>(declaration, $$"""
+                interface I
+                {
+                    {{expectedMember}}
+                }
+                """);
+        }
     }
 }
