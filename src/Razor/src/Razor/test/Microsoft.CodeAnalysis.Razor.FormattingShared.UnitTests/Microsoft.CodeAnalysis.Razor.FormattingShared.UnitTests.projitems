@@ -7,5 +7,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Razor.FormattingShared.UnitTests</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormattingTest.cs" />
   </ItemGroup>
 </Project>
