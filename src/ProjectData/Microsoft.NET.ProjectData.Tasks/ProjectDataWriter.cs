@@ -535,13 +535,11 @@ internal static class ProjectDataWriter
 		// Keep the transient side-file out of the (committed, watched) project folder by preferring
 		// the intermediate output directory, falling back to the output directory when none is given
 		// or it is on a different volume.
-		string tempDir = ResolveTempDirectory(tempDirectory, outputPath, outputDir);
+		string tempDir = ResolveTempDirectory(tempDirectory, outputDir);
 		string tempPath = Path.Combine(tempDir, Path.GetFileName(outputPath) + "." + Guid.NewGuid().ToString("N") + ".tmp");
 		try
 		{
-			using (var stream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096))
-				stream.Write(content, 0, length);
-
+			File.WriteAllBytes(tempPath, content.AsSpan(0, length));
 			File.Move(tempPath, outputPath, overwrite: true);
 		}
 		finally
@@ -558,7 +556,7 @@ internal static class ProjectDataWriter
 	/// when it is on a different volume (so <see cref="File.Move(string, string, bool)"/> performs an
 	/// atomic same-volume rename rather than a cross-volume copy), or when it cannot be created.
 	/// </summary>
-	private static string ResolveTempDirectory(string? tempDirectory, string outputPath, string? outputDir)
+	private static string ResolveTempDirectory(string? tempDirectory, string? outputDir)
 	{
 		string fallback = string.IsNullOrEmpty(outputDir) ? "." : outputDir!;
 		if (string.IsNullOrEmpty(tempDirectory))
@@ -567,11 +565,11 @@ internal static class ProjectDataWriter
 		try
 		{
 			string full = Path.GetFullPath(tempDirectory!);
-			StringComparison comparison = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-				? StringComparison.OrdinalIgnoreCase
-				: StringComparison.Ordinal;
-			if (!string.Equals(Path.GetPathRoot(full), Path.GetPathRoot(Path.GetFullPath(outputPath)), comparison))
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) &&
+				!string.Equals(Path.GetPathRoot(full), Path.GetPathRoot(Path.GetFullPath(fallback)), StringComparison.OrdinalIgnoreCase))
+			{
 				return fallback;
+			}
 
 			Directory.CreateDirectory(full);
 			return full;

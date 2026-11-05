@@ -867,6 +867,9 @@ public class ProjectDataWriterTests
 		}
 	}
 
+	// Holding outputPath open with FileShare.None only blocks File.Move from replacing the
+	// destination on Windows; Unix rename(2) replaces the directory entry regardless of open
+	// file descriptors.
 	[ConditionalFact(typeof(WindowsOnly))]
 	public void AtomicWrite_CleansUpAndPreservesOutput_WhenReplacementFails()
 	{
