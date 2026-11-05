@@ -697,16 +697,6 @@
         <target state="translated">Déplacer vers un espace de noms</target>
         <note />
       </trans-unit>
-      <trans-unit id="Multiple_members_are_inherited">
-        <source>Multiple members are inherited</source>
-        <target state="translated">Plusieurs membres sont hérités</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Multiple_members_are_inherited_on_line_0">
-        <source>Multiple members are inherited on line {0}</source>
-        <target state="translated">Plusieurs membres sont hérités à la ligne {0}</target>
-        <note>Line number info is needed for accessibility purpose.</note>
-      </trans-unit>
       <trans-unit id="Name_conflicts_with_an_existing_type_name">
         <source>Name conflicts with an existing type name.</source>
         <target state="translated">Le nom est en conflit avec un nom de type existant.</target>
@@ -1302,6 +1292,36 @@
         <target state="translated">Afficher la commande « Supprimer les références inutilisées » dans l’Explorateur de solutions</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_base_and_derived_types_for_0">
+        <source>Show base and derived types for {0}</source>
+        <target state="new">Show base and derived types for {0}</target>
+        <note>Tooltip and accessible name for navigation to both base and derived types. {0} is the type declaration.</note>
+      </trans-unit>
+      <trans-unit id="Show_base_interfaces_for_0">
+        <source>Show base interfaces for {0}</source>
+        <target state="new">Show base interfaces for {0}</target>
+        <note>Tooltip and accessible name for navigation to interfaces inherited by another interface. {0} is the interface declaration.</note>
+      </trans-unit>
+      <trans-unit id="Show_base_members_and_overrides_for_0">
+        <source>Show base members and overrides for {0}</source>
+        <target state="new">Show base members and overrides for {0}</target>
+        <note>Tooltip and accessible name for navigation both up and down an override chain. {0} is the member declaration.</note>
+      </trans-unit>
+      <trans-unit id="Show_base_members_for_0">
+        <source>Show base members for {0}</source>
+        <target state="new">Show base members for {0}</target>
+        <note>Tooltip and accessible name for navigation to overridden members in base types. {0} is the overriding member declaration. There can be several targets in an override chain.</note>
+      </trans-unit>
+      <trans-unit id="Show_base_types_and_implemented_interfaces_for_0">
+        <source>Show base types and implemented interfaces for {0}</source>
+        <target state="new">Show base types and implemented interfaces for {0}</target>
+        <note>Tooltip and accessible name for navigation to both base types and implemented interfaces. {0} is the type declaration.</note>
+      </trans-unit>
+      <trans-unit id="Show_base_types_for_0">
+        <source>Show base types for {0}</source>
+        <target state="new">Show base types for {0}</target>
+        <note>Tooltip and accessible name for inheritance navigation. {0} is a type declaration, for example "class C".</note>
+      </trans-unit>
       <trans-unit id="Show_compiler_errors_and_warnings_for_colon">
         <source>Show compiler errors and warnings for:</source>
         <target state="translated">Afficher les erreurs et avertissements du compilateur pour :</target>
@@ -1336,6 +1356,11 @@
         <source>Show completion list after a character is typed</source>
         <target state="translated">Afficher la liste de saisie semi-automatique après l'entrée d'un caractère</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Show_derived_types_for_0">
+        <source>Show derived types for {0}</source>
+        <target state="new">Show derived types for {0}</target>
+        <note>Tooltip and accessible name for inheritance navigation. {0} is a type declaration, for example "class C".</note>
       </trans-unit>
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
         <source>Show guides for comments and preprocessor regions</source>
@@ -1377,6 +1402,41 @@
         <target state="translated">Afficher les indicateurs pour les variables ayant des types déduits</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_implementations_for_0">
+        <source>Show implementations for {0}</source>
+        <target state="new">Show implementations for {0}</target>
+        <note>Tooltip and accessible name for navigation to implementing types or members. {0} is the interface or member declaration.</note>
+      </trans-unit>
+      <trans-unit id="Show_implemented_and_overridden_members_for_0">
+        <source>Show implemented and overridden members for {0}</source>
+        <target state="new">Show implemented and overridden members for {0}</target>
+        <note>Tooltip and accessible name for navigation to both implemented interface members and overridden base members. {0} is the implementing and overriding member declaration.</note>
+      </trans-unit>
+      <trans-unit id="Show_implemented_interfaces_for_0">
+        <source>Show implemented interfaces for {0}</source>
+        <target state="new">Show implemented interfaces for {0}</target>
+        <note>Tooltip and accessible name for navigation to interfaces implemented by a type. {0} is the type declaration, for example "class C".</note>
+      </trans-unit>
+      <trans-unit id="Show_implemented_members_for_0">
+        <source>Show implemented members for {0}</source>
+        <target state="new">Show implemented members for {0}</target>
+        <note>Tooltip and accessible name for navigation to interface members implemented by a member. {0} is the implementing member declaration.</note>
+      </trans-unit>
+      <trans-unit id="Show_inheritance_for_0">
+        <source>Show inheritance for {0}</source>
+        <target state="new">Show inheritance for {0}</target>
+        <note>Fallback tooltip and accessible name when a margin button offers several kinds of inheritance or implementation targets. {0} is a declaration, for example "class C" or "void C.M()".</note>
+      </trans-unit>
+      <trans-unit id="Show_inheritance_for_members_on_line_0">
+        <source>Show inheritance for members on line {0}</source>
+        <target state="new">Show inheritance for members on line {0}</target>
+        <note>Accessible name for a margin button that opens inheritance and implementation navigation for multiple declarations. {0} is the line number.</note>
+      </trans-unit>
+      <trans-unit id="Show_inheritance_for_members_on_this_line">
+        <source>Show inheritance for members on this line</source>
+        <target state="new">Show inheritance for members on this line</target>
+        <note>Tooltip for a margin button that opens inheritance and implementation navigation for multiple declarations on the same line.</note>
+      </trans-unit>
       <trans-unit id="Show_inheritance_margin">
         <source>Show inheritance margin</source>
         <target state="translated">Afficher la marge d’héritage</target>
@@ -1386,6 +1446,11 @@
         <source>Show items from unimported namespaces</source>
         <target state="translated">Afficher les éléments des espaces de noms qui ne sont pas importés</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Show_overrides_for_0">
+        <source>Show overrides for {0}</source>
+        <target state="new">Show overrides for {0}</target>
+        <note>Tooltip and accessible name for navigation to members that override a member. {0} is the overridden member declaration.</note>
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename _tracking</source>
@@ -1741,11 +1806,6 @@
         <source>{0} ({1})</source>
         <target state="translated">{0} ({1})</target>
         <note>Used to show a symbol name, followed by the project name it came from</note>
-      </trans-unit>
-      <trans-unit id="_0_is_inherited">
-        <source>'{0}' is inherited</source>
-        <target state="translated">« {0} » est hérité</target>
-        <note />
       </trans-unit>
       <trans-unit id="_0_will_be_changed_to_abstract">
         <source>'{0}' will be changed to abstract.</source>

@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 /// </summary>
 internal class TargetMenuItemViewModel : MenuItemViewModel
 {
+    public override bool IsIndented { get; }
+
     /// <summary>
     /// DefinitionItem used for navigation.
     /// </summary>
@@ -23,14 +25,17 @@ internal class TargetMenuItemViewModel : MenuItemViewModel
     internal TargetMenuItemViewModel(
         string displayContent,
         ImageMoniker imageMoniker,
-        DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker)
+        DetachedDefinitionItem definitionItem,
+        bool isIndented = true) : base(displayContent, imageMoniker)
     {
         DefinitionItem = definitionItem;
+        IsIndented = isIndented;
     }
 
     public static TargetMenuItemViewModel Create(InheritanceTargetItem target, string displayContent)
         => new(
             displayContent,
             target.Glyph.GetImageMoniker(),
-            target.DefinitionItem);
+            target.DefinitionItem,
+            isIndented: target.RelationToMember != InheritanceRelationship.InheritedImport);
 }

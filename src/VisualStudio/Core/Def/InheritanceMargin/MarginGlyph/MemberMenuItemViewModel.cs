@@ -25,7 +25,7 @@ internal sealed class MemberMenuItemViewModel : MenuItemViewModel
     /// <summary>
     /// Inheritance Targets for this member.
     /// </summary>
-    public ImmutableArray<MenuItemViewModel> Targets { get; }
+    public override ImmutableArray<MenuItemViewModel> Targets { get; }
 
     public MemberMenuItemViewModel(
         string displayContent,
