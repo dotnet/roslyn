@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -17552,4 +17553,866 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 csharp_new_line_between_query_expression_clauses = false
                 """)
         ];
+
+    [Fact]
+    public Task FormatsRazorAndCSharpWithoutFormattingHtml()
+        => RunFormattingTestAsync(
+            input: """
+                <div><span>HTML remains on one line</span></div>
+                @code {
+                class C
+                {
+                void M()
+                {
+                }
+                }
+                }
+                """,
+            htmlFormatted: """
+                <div><span>HTML remains on one line</span></div>
+                @code {
+                class C
+                {
+                void M()
+                {
+                }
+                }
+                }
+                """,
+            expected: """
+                <div><span>HTML remains on one line</span></div>
+                @code {
+                    class C
+                    {
+                        void M()
+                        {
+                        }
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesScriptBlock()
+        => RunFormattingTestAsync(
+            input: """
+                <script>
+                function logValue( ){
+                const value=1;
+                  console.log( value );
+                }
+                </script>
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                <script>
+                function logValue( ){
+                const value=1;
+                  console.log( value );
+                }
+                </script>
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                <script>
+                function logValue( ){
+                const value=1;
+                  console.log( value );
+                }
+                </script>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesStyleBlock()
+        => RunFormattingTestAsync(
+            input: """
+                <style>
+                .example{
+                color:red;
+                  padding:0  4px;
+                }
+                </style>
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                <style>
+                .example{
+                color:red;
+                  padding:0  4px;
+                }
+                </style>
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                <style>
+                .example{
+                color:red;
+                  padding:0  4px;
+                }
+                </style>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task IndentsNestedHtml()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                <span>Content</span>
+                </section>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                <section>
+                <span>Content</span>
+                </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <span>Content</span>
+                    </section>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task IndentsHtmlInsideRazorBlock()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                <div>
+                <span>Content</span>
+                </div>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                <span>Content</span>
+                </div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <span>Content</span>
+                    </div>
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task IndentsRazorBlockInsideHtml()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                @if (true)
+                {
+                <span>@DateTime.Now</span>
+                }
+                </section>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                <section>
+                @if (true)
+                {
+                <span>@DateTime.Now</span>
+                }
+                </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        @if (true)
+                        {
+                            <span>@DateTime.Now</span>
+                        }
+                    </section>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task FormatsCshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                class C
+                {
+                void M()
+                {
+                }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                class C
+                {
+                void M()
+                {
+                }
+                }
+                }
+                """,
+            expected: """
+                @functions {
+                    class C
+                    {
+                        void M()
+                        {
+                        }
+                    }
+                }
+                """,
+            documentFilePath: TestProjectData.SomeProjectCshtmlComponentFile5.FilePath,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task UsesNestedEditorConfig()
+    {
+        var projectDirectory = Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!;
+        var nestedDirectory = Path.Combine(projectDirectory, "Nested");
+
+        return RunFormattingTestAsync(
+            input: """
+                @code {
+                class C
+                {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                }
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                class C
+                {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                }
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    class C {
+                        void M() {
+                            if(true) {
+                            }
+                        }
+                    }
+                }
+                """,
+            documentFilePath: Path.Combine(nestedDirectory, "File1.razor"),
+            additionalFiles:
+            [
+                (Path.Combine(projectDirectory, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """),
+                (Path.Combine(nestedDirectory, ".editorconfig"), """
+                    [*.razor]
+                    csharp_space_after_keywords_in_control_flow_statements = false
+                    """),
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorEditorConfig_Razor_BraceOnNextLine()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @code
+                {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".razor"),
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorEditorConfig_Razor_BraceOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @code {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".razor"),
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorEditorConfig_Cshtml_BraceOnNextLine()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @functions
+                {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".cshtml"),
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorEditorConfig_Cshtml_BraceOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @functions {
+                    int Value = 1;
+                }
+                """,
+            documentFilePath: Path.ChangeExtension(TestProjectData.SomeProjectComponentFile1.FilePath, ".cshtml"),
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorAttributeIndentEditorConfig_AlignWithFirst()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                     id="content">
+                </div>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = align_with_first
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorAttributeIndentEditorConfig_IndentByOne()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                    id="content">
+                </div>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_one
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesRazorAttributeIndentEditorConfig_IndentByTwo()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                        id="content">
+                </div>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_two
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesComplexRazorIndentationEditorConfig_Script_True()
+        => RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = true
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesComplexRazorIndentationEditorConfig_Script_False()
+        => RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </script>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = false
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesComplexRazorIndentationEditorConfig_Style_True()
+        => RunFormattingTestAsync(
+            input: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            htmlFormatted: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            expected: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = true
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task UsesComplexRazorIndentationEditorConfig_Style_False()
+        => RunFormattingTestAsync(
+            input: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            htmlFormatted: """
+                <style>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </style>
+                """,
+            expected: """
+                <style>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </style>
+                """,
+            additionalFiles:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = false
+                    """)
+            ],
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineRawStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """"
+                @code {
+                void M()
+                {
+                var text = """
+                    first
+                        second
+                    """;
+                }
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                void M()
+                {
+                var text = """
+                    first
+                        second
+                    """;
+                }
+                }
+                """",
+            expected: """"
+                @code {
+                    void M()
+                    {
+                        var text = """
+                    first
+                        second
+                    """;
+                    }
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineUtf8RawStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """"
+                @code {
+                void M()
+                {
+                var text = """
+                    first
+                        second
+                    """u8;
+                }
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                void M()
+                {
+                var text = """
+                    first
+                        second
+                    """u8;
+                }
+                }
+                """",
+            expected: """"
+                @code {
+                    void M()
+                    {
+                        var text = """
+                    first
+                        second
+                    """u8;
+                    }
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineInterpolatedRawStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """"
+                @code {
+                void M()
+                {
+                var text = $"""
+                    first
+                        second
+                    """;
+                }
+                }
+                """",
+            htmlFormatted: """"
+                @code {
+                void M()
+                {
+                var text = $"""
+                    first
+                        second
+                    """;
+                }
+                }
+                """",
+            expected: """"
+                @code {
+                    void M()
+                    {
+                        var text = $"""
+                    first
+                        second
+                    """;
+                    }
+                }
+                """",
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineVerbatimStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                void M()
+                {
+                var text = @"
+                    first
+                        second
+                    ";
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                void M()
+                {
+                var text = @"
+                    first
+                        second
+                    ";
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    void M()
+                    {
+                        var text = @"
+                    first
+                        second
+                    ";
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task PreservesMultilineInterpolatedVerbatimStringLiteralContents()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                void M()
+                {
+                var text = $@"
+                    first
+                        second
+                    ";
+                }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                void M()
+                {
+                var text = $@"
+                    first
+                        second
+                    ";
+                }
+                }
+                """,
+            expected: """
+                @code {
+                    void M()
+                    {
+                        var text = $@"
+                    first
+                        second
+                    ";
+                    }
+                }
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
 }
