@@ -77,6 +77,11 @@
         <target state="translated">Параметр DateTimeKind должен содержать время и дату в формате UTC</target>
         <note />
       </trans-unit>
+      <trans-unit id="Error_encountered_while_processing_0">
+        <source>Error encountered while processing: '{0}'</source>
+        <target state="new">Error encountered while processing: '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
         <target state="translated">Ошибка при чтении содержимого исходного файла "{0}" — "{1}".</target>
