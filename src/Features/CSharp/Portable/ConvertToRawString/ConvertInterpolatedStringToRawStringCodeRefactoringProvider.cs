@@ -248,7 +248,9 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
                 cleanedExpression, formattingOptions, indentation, rootAnchorIndentation, cancellationToken);
 
             // Finally, parse the text back into an interpolated string so that all the contents are correct.
-            var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(indentedText.ToString(), options: stringExpression.SyntaxTree.Options);
+            var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(
+                NormalizeLineEndings(indentedText.ToString(), formattingOptions.NewLine),
+                options: stringExpression.SyntaxTree.Options);
             return parsed.WithTriviaFrom(stringExpression);
         }
 
@@ -628,7 +630,9 @@ internal sealed partial class ConvertInterpolatedStringToRawStringProvider
         // Add the line with the final delimiter
         AppendFullLine(builder, lines[^1]);
 
-        var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(builder.ToString(), options: stringExpression.SyntaxTree.Options);
+        var parsed = (InterpolatedStringExpressionSyntax)ParseExpression(
+            NormalizeLineEndings(builder.ToString(), Environment.NewLine),
+            options: stringExpression.SyntaxTree.Options);
         return parsed.WithTriviaFrom(stringExpression);
     }
 
