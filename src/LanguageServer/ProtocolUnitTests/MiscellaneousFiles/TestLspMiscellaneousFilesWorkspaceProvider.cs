@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 
@@ -27,8 +28,10 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
         return new TestLspMiscellaneousFilesWorkspaceProvider(hostServices);
     }
 
-    private class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
+    internal sealed class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
     {
+        internal bool EnableCompilerDiagnostics { get; set; }
+
         public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
         {
             if (trackedDocumentInfo is null)
@@ -38,6 +41,14 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
             var sourceTextLoader = new SourceTextLoader(trackedDocumentInfo.Value.SourceText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
                 this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), trackedDocumentInfo.Value.SourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
+            if (EnableCompilerDiagnostics)
+            {
+                // Compiler semantic diagnostics require a complete project; other misc-file tests retain the unloaded state.
+                projectInfo = projectInfo.WithHasAllInformation(true)
+                    .WithMetadataReferences([TestBase.MscorlibRef])
+                    .WithAnalyzerReferences([DiagnosticExtensions.GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp)]);
+            }
+
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
