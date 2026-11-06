@@ -34,7 +34,7 @@ internal sealed class WorkspaceSymbol
     /// </summary>
     [JsonPropertyName("tags")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public SymbolTag? Tags { get; init; }
+    public SymbolTag[]? Tags { get; init; }
 
     /// <summary>
     /// The name of the symbol containing this symbol. This information is for
@@ -54,6 +54,7 @@ internal sealed class WorkspaceSymbol
     /// <seealso cref="SymbolInformation.Location"/>
     [JsonPropertyName("location")]
     [JsonRequired]
+    [JsonConverter(typeof(WorkspaceSymbolLocationConverter))]
     public SumType<Location, WorkspaceSymbolLocation> Location { get; init; }
 
     /// <summary>
