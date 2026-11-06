@@ -12,14 +12,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
 internal sealed class AggregatedFormattingResult : AbstractAggregatedFormattingResult
 {
-    public AggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans)
+    private readonly SyntaxFormattingOptions _options;
+
+    public AggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans, SyntaxFormattingOptions options)
         : base(node, results, formattingSpans)
     {
+        _options = options;
     }
 
     protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> map, CancellationToken cancellationToken)
     {
-        var rewriter = new TriviaRewriter(this.Node, GetFormattingSpans(), map, cancellationToken);
+        var rewriter = new TriviaRewriter(this.Node, GetFormattingSpans(), map, this._options, cancellationToken);
         return rewriter.Transform();
     }
 }

@@ -9504,7 +9504,7 @@ public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : Abst
                             </Workspace>
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public Task TestIfGeneratingInPartialClassWithFileFromSourceGenerator()
         => TestInRegularAndScriptAsync(
             """
@@ -10650,7 +10650,7 @@ public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : Abst
             """);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public async Task GenerateInCollection3()
     {
         await TestInRegularAndScriptAsync(
@@ -10724,7 +10724,7 @@ public sealed partial class GenerateMethodTests(ITestOutputHelper logger) : Abst
             """);
     }
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [Fact]
     public async Task GenerateInCollection5()
     {
         await TestInRegularAndScriptAsync(
