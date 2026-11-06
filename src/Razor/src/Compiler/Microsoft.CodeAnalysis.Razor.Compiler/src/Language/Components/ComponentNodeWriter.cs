@@ -378,7 +378,7 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         }
     }
 
-    private static void WriteComponentAttributeName(CodeRenderingContext context, ComponentAttributeIntermediateNode attribute, bool allowNameof = true)
+    private void WriteComponentAttributeName(CodeRenderingContext context, ComponentAttributeIntermediateNode attribute, bool allowNameof = true)
     {
         if (allowNameof && attribute.BoundAttribute?.ContainingType is string containingType)
         {
@@ -387,7 +387,11 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
             // nameof(containingType.PropertyName)
             // This allows things like Find All References to work in the IDE as we have an actual reference to the parameter
             context.CodeWriter.Write("nameof(");
-            TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, containingType);
+
+            if (!TryWriteContainingTypeWithMappedTypeArguments(context, attribute, containingType))
+            {
+                TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, containingType);
+            }
             context.CodeWriter.Write(".");
 
             if (!attribute.IsSynthesized)
@@ -410,6 +414,47 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         {
             context.CodeWriter.WriteStringLiteral(attribute.AttributeName);
         }
+    }
+
+    // The containing type of a generic component is flattened into a string before code generation,
+    // which loses the source mappings of its type arguments. A user-written type argument is then
+    // emitted in a #nullable disable region, so a nullable annotation in one (for example, string?)
+    // produces a warning in the generated code. When the generic type pass recorded the type
+    // argument nodes on the attribute, write the type the way OpenComponent is written instead: the
+    // type name as-is, and each type argument from its node, which keeps its source mapping.
+    private bool TryWriteContainingTypeWithMappedTypeArguments(CodeRenderingContext context, ComponentAttributeIntermediateNode attribute, string containingType)
+    {
+        var typeArguments = attribute.ContainingTypeArguments;
+        if (typeArguments.IsDefaultOrEmpty)
+        {
+            return false;
+        }
+
+        var nonGenericTypeName = TypeNameHelper.GetNonGenericTypeName(containingType, out _);
+        var flattened = $"{nonGenericTypeName}<{string.Join(", ", typeArguments.Select(a => a?.Value?.Content))}>";
+
+        // Return false when the recorded arguments do not exactly reproduce the containing type.
+        // That can happen when the type was rewritten again after the arguments were recorded;
+        // the caller then writes the flattened string.
+        if (!string.Equals(flattened, containingType, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        TypeNameHelper.WriteGloballyQualifiedName(context.CodeWriter, nonGenericTypeName);
+        context.CodeWriter.Write("<");
+
+        for (var i = 0; i < typeArguments.Length; i++)
+        {
+            WriteComponentTypeArgument(context, typeArguments[i]);
+            if (i != typeArguments.Length - 1)
+            {
+                context.CodeWriter.Write(", ");
+            }
+        }
+
+        context.CodeWriter.Write(">");
+        return true;
     }
 
     private static void GetTypeInferenceMethodParameters(ComponentTypeInferenceMethodIntermediateNode node, List<TypeInferenceMethodParameter> p)
@@ -1282,7 +1327,7 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         context.CodeWriter.WriteLine();
     }
 
-    private static void WriteDesignTimePropertyAccessor(CodeRenderingContext context, ComponentAttributeIntermediateNode attribute)
+    private void WriteDesignTimePropertyAccessor(CodeRenderingContext context, ComponentAttributeIntermediateNode attribute)
     {
         // These attributes don't really exist in the emitted code, but have a representation in the razor document.
         // We emit a small piece of empty code that is elided by the compiler, so that the IDE has something to reference

@@ -8,13 +8,18 @@ Source Location: (16:0,16 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (799:22,0 [6] )
 |MyType|
 
+Source Location: (16:0,16 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyType|
+Generated Location: (1040:31,0 [6] )
+|MyType|
+
 Source Location: (24:0,24 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 |OnClick|
-Generated Location: (1048:31,0 [7] )
+Generated Location: (1196:39,0 [7] )
 |OnClick|
 
 Source Location: (33:0,33 [9] x:\dir\subdir\Test\TestComponent.cshtml)
 |Increment|
-Generated Location: (1434:39,0 [9] )
+Generated Location: (1582:47,0 [9] )
 |Increment|
 
