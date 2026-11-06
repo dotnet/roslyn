@@ -4697,6 +4697,35 @@ class C
                 );
         }
 
+        [WorkItem(22813, "https://github.com/dotnet/roslyn/issues/67518")]
+        [Fact]
+        public void TestDynamicOperationRefStructArgument()
+        {
+            string source = @"
+static class Program
+{
+    static void Main()
+    {
+        dynamic d = 0;
+        R x = new R(d);
+        R y;
+        y = new R(default(R), d);
+    }
+}
+
+readonly ref struct R
+{
+    public R(int i) { }
+    public R(R r, int i) { }
+}
+";
+            CreateCompilationWithMscorlib40AndSystemCore(source, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+                // (9,19): error CS1978: Cannot use an expression of type 'R' as an argument to a dynamically dispatched operation
+                //         y = new R(default(R), d);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "default(R)").WithArguments("R").WithLocation(9, 19)
+            );
+        }
+
         [Fact]
         public void UserDefinedConversion_01()
         {
