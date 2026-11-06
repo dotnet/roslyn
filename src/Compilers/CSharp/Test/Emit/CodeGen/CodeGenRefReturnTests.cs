@@ -44,21 +44,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static unsafe {{refKind}} int Method()
                     {
                         int local = 0;
-                        local++;
                         return ref local;
                     }
 
                     static {{refKind}} int Block()
                     {
                         int local = 0;
-                        local++;
                         unsafe { return ref local; }
                     }
 
                     static D Lambda() => () =>
                     {
                         int local = 0;
-                        local++;
                         unsafe { return ref local; }
                     };
                 }
@@ -66,32 +63,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var expectedDiagnostics = new[]
             {
-                // (8,20): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                // (7,20): warning CS9091: This returns local 'local' by reference but it is not a ref local
                 //         return ref local;
-                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(8, 20),
-                // (15,29): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(7, 20),
+                // (13,29): warning CS9091: This returns local 'local' by reference but it is not a ref local
                 //         unsafe { return ref local; }
-                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(15, 29),
-                // (22,29): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(13, 29),
+                // (19,29): warning CS9091: This returns local 'local' by reference but it is not a ref local
                 //         unsafe { return ref local; }
-                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(22, 29)
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(19, 29)
             };
 
             var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
             verifier.VerifyDiagnostics(expectedDiagnostics);
             var expectedIL = """
                 {
-                  // Code size        9 (0x9)
-                  .maxstack  2
+                  // Code size        5 (0x5)
+                  .maxstack  1
                   .locals init (int V_0) //local
                   IL_0000:  ldc.i4.0
                   IL_0001:  stloc.0
-                  IL_0002:  ldloc.0
-                  IL_0003:  ldc.i4.1
-                  IL_0004:  add
-                  IL_0005:  stloc.0
-                  IL_0006:  ldloca.s   V_0
-                  IL_0008:  ret
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  ret
                 }
                 """;
             verifier.VerifyIL("C.Method()", expectedIL);
@@ -102,43 +95,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics(expectedDiagnostics);
             verifier.VerifyIL("C.Method()", """
                 {
-                  // Code size       14 (0xe)
-                  .maxstack  2
+                  // Code size       10 (0xa)
+                  .maxstack  1
                   .locals init (int V_0, //local
                                 int& V_1)
                   IL_0000:  nop
                   IL_0001:  ldc.i4.0
                   IL_0002:  stloc.0
-                  IL_0003:  ldloc.0
-                  IL_0004:  ldc.i4.1
-                  IL_0005:  add
-                  IL_0006:  stloc.0
-                  IL_0007:  ldloca.s   V_0
-                  IL_0009:  stloc.1
-                  IL_000a:  br.s       IL_000c
-                  IL_000c:  ldloc.1
-                  IL_000d:  ret
+                  IL_0003:  ldloca.s   V_0
+                  IL_0005:  stloc.1
+                  IL_0006:  br.s       IL_0008
+                  IL_0008:  ldloc.1
+                  IL_0009:  ret
                 }
                 """);
             expectedIL = """
                 {
-                  // Code size       15 (0xf)
-                  .maxstack  2
+                  // Code size       11 (0xb)
+                  .maxstack  1
                   .locals init (int V_0, //local
                                 int& V_1)
                   IL_0000:  nop
                   IL_0001:  ldc.i4.0
                   IL_0002:  stloc.0
-                  IL_0003:  ldloc.0
-                  IL_0004:  ldc.i4.1
-                  IL_0005:  add
-                  IL_0006:  stloc.0
-                  IL_0007:  nop
-                  IL_0008:  ldloca.s   V_0
-                  IL_000a:  stloc.1
-                  IL_000b:  br.s       IL_000d
-                  IL_000d:  ldloc.1
-                  IL_000e:  ret
+                  IL_0003:  nop
+                  IL_0004:  ldloca.s   V_0
+                  IL_0006:  stloc.1
+                  IL_0007:  br.s       IL_0009
+                  IL_0009:  ldloc.1
+                  IL_000a:  ret
                 }
                 """;
             verifier.VerifyIL("C.Block()", expectedIL);
