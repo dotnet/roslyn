@@ -118,15 +118,20 @@ internal partial class DocumentState : TextDocumentState
         LanguageServices languageServices,
         PreservationMode mode = PreservationMode.PreserveValue)
     {
+        var initialTextSource = AsyncLazy<TextAndVersion>.Create(
+            static (arg, c) => arg.newTextSource.GetValueAsync(arg.loadTextOptions, c),
+            static (arg, c) => arg.newTextSource.GetValue(arg.loadTextOptions, c),
+            (newTextSource, loadTextOptions));
+
         return SimpleTreeAndVersionSource.Create(
-            static (arg, c) => FullyParseTreeAsync(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
-            static (arg, c) => FullyParseTree(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
-            arg: (newTextSource, loadTextOptions, filePath, options, languageServices, mode));
+            static (arg, c) => FullyParseTreeAsync(arg.initialTextSource, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
+            static (arg, c) => FullyParseTree(arg.initialTextSource, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
+            arg: (initialTextSource, filePath, options, languageServices, mode),
+            initialTextSource: initialTextSource);
     }
 
     private static async Task<TreeAndVersion> FullyParseTreeAsync(
-        ITextAndVersionSource newTextSource,
-        LoadTextOptions loadTextOptions,
+        AsyncLazy<TextAndVersion> initialTextSource,
         string? filePath,
         ParseOptions options,
         LanguageServices languageServices,
@@ -135,14 +140,13 @@ internal partial class DocumentState : TextDocumentState
     {
         using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
         {
-            var textAndVersion = await newTextSource.GetValueAsync(loadTextOptions, cancellationToken).ConfigureAwait(false);
+            var textAndVersion = await initialTextSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
         }
     }
 
     private static TreeAndVersion FullyParseTree(
-        ITextAndVersionSource newTextSource,
-        LoadTextOptions loadTextOptions,
+        AsyncLazy<TextAndVersion> initialTextSource,
         string? filePath,
         ParseOptions options,
         LanguageServices languageServices,
@@ -151,7 +155,7 @@ internal partial class DocumentState : TextDocumentState
     {
         using (Logger.LogBlock(FunctionId.Workspace_Document_State_FullyParseSyntaxTree, s_fullParseLog, filePath, mode, cancellationToken))
         {
-            var textAndVersion = newTextSource.GetValue(loadTextOptions, cancellationToken);
+            var textAndVersion = initialTextSource.GetValue(cancellationToken);
             return CreateTreeAndVersion(filePath, options, languageServices, textAndVersion, cancellationToken);
         }
     }
@@ -621,16 +625,11 @@ internal partial class DocumentState : TextDocumentState
 
     public bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
     {
-        if (TreeSource != null && TreeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)
-        {
-            version = treeAndVersion.Version;
-            return true;
-        }
-        else
-        {
-            version = default;
-            return false;
-        }
+        if (TreeSource != null)
+            return TreeSource.TryGetVersion(out version);
+
+        version = default;
+        return false;
     }
 
     public override async ValueTask<VersionStamp> GetTopLevelChangeTextVersionAsync(CancellationToken cancellationToken)
@@ -640,13 +639,10 @@ internal partial class DocumentState : TextDocumentState
             return await GetTextVersionAsync(cancellationToken).ConfigureAwait(false);
         }
 
-        if (TreeSource.TryGetValue(out var treeAndVersion) && treeAndVersion != null)
-        {
-            return treeAndVersion.Version;
-        }
+        if (TreeSource.TryGetVersion(out var version))
+            return version;
 
-        treeAndVersion = await TreeSource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-        return treeAndVersion.Version;
+        return await TreeSource.GetVersionAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static void BindSyntaxTreeToId(SyntaxTree tree, DocumentId id)
