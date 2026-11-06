@@ -12,8 +12,10 @@ using System.Text.Json.Serialization;
 /// </summary>
 [JsonConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>))]
 [TypeConverter(typeof(StringEnumConverter<VSInternalDiagnosticKind>.TypeConverter))]
-internal readonly record struct VSInternalDiagnosticKind(string Value) : IStringEnum
+internal readonly record struct VSInternalDiagnosticKind(string Value) : IStringEnum<VSInternalDiagnosticKind>
 {
+    VSInternalDiagnosticKind IStringEnum<VSInternalDiagnosticKind>.Create(string value) => new(value);
+
     /// <summary>
     /// Task list diagnostic kind.
     /// </summary>

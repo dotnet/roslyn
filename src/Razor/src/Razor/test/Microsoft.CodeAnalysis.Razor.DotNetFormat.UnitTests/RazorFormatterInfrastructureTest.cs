@@ -4,11 +4,14 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -37,6 +40,35 @@ public partial class RazorFormatterTest
             }
         }
         """;
+
+    [Fact]
+    public void FormattingLoggerRejectsMissingMetadataInStrictValidation()
+    {
+        using var tempRoot = new TempRoot();
+        var factory = new FormattingLoggerFactory();
+        factory.SetLogDirectory(tempRoot.CreateDirectory().Path);
+        var logger = Assert.IsType<FormattingLogger>(factory.CreateLogger("test.razor", "DotNetFormat", FormattingJsonSerializerContext.JsonSerializerOptions));
+
+        Assert.Throws<NotSupportedException>(() => logger.LogObject("Unknown", new Version(1, 2)));
+    }
+
+    [Fact]
+    public void FormattingLoggerPreservesLogShape()
+    {
+        using var tempRoot = new TempRoot();
+        var logDirectory = tempRoot.CreateDirectory().Path;
+        var factory = new FormattingLoggerFactory();
+        factory.SetLogDirectory(logDirectory);
+        var logger = Assert.IsType<FormattingLogger>(factory.CreateLogger("test.razor", "DotNetFormat", FormattingJsonSerializerContext.JsonSerializerOptions));
+        var value = new FormattingEngineOptions();
+
+        logger.LogObject("Options", value);
+        logger.LogObject<LinePositionSpan?>("Range", null);
+
+        var folder = Assert.Single(Directory.GetDirectories(logDirectory));
+        Assert.Equal(JsonSerializer.Serialize(value, JsonSerializerOptions.Default), File.ReadAllText(Path.Combine(folder, "Options.json")));
+        Assert.Equal("null", File.ReadAllText(Path.Combine(folder, "Range.json")));
+    }
 
     [Fact]
     public async Task TryFormatAsync_AfterAdditionalDocumentChanged_UsesUpdatedGeneratorOutput()

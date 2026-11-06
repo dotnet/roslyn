@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer;
 
@@ -21,6 +22,14 @@ internal struct SumType<T1, T2> : ISumType, IEquatable<SumType<T1, T2>>
     where T1 : notnull
     where T2 : notnull
 {
+    SumConverter.SumTypeInfoCache ISumType.CreateTypeInfo() => new(
+    [
+        new(typeof(T1), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T1>(ref reader, options)!))),
+        new(typeof(T2), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T2>(ref reader, options)!))),
+    ]);
+
     static SumType()
     {
         SumTypeUtils.ValidateTypeParameter(typeof(T1));
@@ -214,6 +223,16 @@ internal struct SumType<T1, T2, T3> : ISumType, IEquatable<SumType<T1, T2, T3>>
     where T2 : notnull
     where T3 : notnull
 {
+    SumConverter.SumTypeInfoCache ISumType.CreateTypeInfo() => new(
+    [
+        new(typeof(T1), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2, T3>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T1>(ref reader, options)!))),
+        new(typeof(T2), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2, T3>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T2>(ref reader, options)!))),
+        new(typeof(T3), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2, T3>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T3>(ref reader, options)!))),
+    ]);
+
     static SumType()
     {
         SumTypeUtils.ValidateTypeParameter(typeof(T1));
@@ -499,6 +518,18 @@ internal struct SumType<T1, T2, T3, T4> : ISumType, IEquatable<SumType<T1, T2, T
     where T3 : notnull
     where T4 : notnull
 {
+    SumConverter.SumTypeInfoCache ISumType.CreateTypeInfo() => new(
+    [
+        new(typeof(T1), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2, T3, T4>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T1>(ref reader, options)!))),
+        new(typeof(T2), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2, T3, T4>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T2>(ref reader, options)!))),
+        new(typeof(T3), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2, T3, T4>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T3>(ref reader, options)!))),
+        new(typeof(T4), (SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<SumType<T1, T2, T3, T4>>)
+            (static (ref Utf8JsonReader reader, JsonSerializerOptions options) => new(JsonSerializer.Deserialize<T4>(ref reader, options)!))),
+    ]);
+
     static SumType()
     {
         SumTypeUtils.ValidateTypeParameter(typeof(T1));

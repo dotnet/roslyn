@@ -8,13 +8,14 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
-internal sealed class FormattingLogger(string logFolder) : IFormattingLogger
+internal sealed class FormattingLogger(string logFolder, JsonSerializerOptions serializerOptions) : IFormattingLogger
 {
     private readonly string _logFolder = logFolder;
+    private readonly JsonSerializerOptions _serializerOptions = serializerOptions;
 
     public void LogObject<T>(string name, T value)
     {
-        Log($"{name}.json", writer => writer.Write(JsonSerializer.Serialize(value, JsonSerializerOptions.Default)));
+        Log($"{name}.json", writer => writer.Write(JsonSerializer.Serialize(value, _serializerOptions)));
     }
 
     public void LogSourceText(string name, SourceText sourceText)

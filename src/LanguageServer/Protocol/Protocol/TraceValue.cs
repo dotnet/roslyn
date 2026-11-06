@@ -16,8 +16,10 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </summary>
 [JsonConverter(typeof(StringEnumConverter<TraceValue>))]
 [TypeConverter(typeof(StringEnumConverter<TraceValue>.TypeConverter))]
-internal readonly record struct TraceValue(string Value) : IStringEnum
+internal readonly record struct TraceValue(string Value) : IStringEnum<TraceValue>
 {
+    TraceValue IStringEnum<TraceValue>.Create(string value) => new(value);
+
     public static readonly TraceValue Off = new("off");
     public static readonly TraceValue Messages = new("messages");
     public static readonly TraceValue Verbose = new("verbose");

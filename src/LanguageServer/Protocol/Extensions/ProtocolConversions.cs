@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,11 +105,32 @@ internal static partial class ProtocolConversions
         { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
     }.ToImmutableDictionary();
 
+    /// <summary>
+    /// Configures generated metadata and converters for Roslyn's built-in protocol contracts.
+    /// Callers with additional contracts should add their generated metadata with <see cref="AddLspSerializerContext"/>.
+    /// MEF-hosted LSP extensions can export <see cref="System.Text.Json.Serialization.Metadata.IJsonTypeInfoResolver"/>
+    /// under their LSP language contract from an assembly in the host's MEF catalog
+    /// to provide metadata before server initialization. Missing contracts use an audited reflection fallback,
+    /// or fail validation when ROSLYN_REQUIRE_GENERATED_JSON_METADATA is set to 1.
+    /// </summary>
     public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
     {
+        options.TypeInfoResolver = LSP.LspJsonSerializerContext.Resolver;
+        options.TypeInfoResolverChain.Add(LSP.ReflectionFallbackJsonTypeInfoResolver.Instance);
         LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
         options.Converters.Add(new LSP.NaturalObjectConverter());
         options.Converters.Add(new DocumentUriConverter());
+        return options;
+    }
+
+    /// <summary>
+    /// Adds metadata before the audited reflection fallback.
+    /// </summary>
+    public static JsonSerializerOptions AddLspSerializerContext(this JsonSerializerOptions options, IJsonTypeInfoResolver resolver)
+    {
+        var fallbackIndex = options.TypeInfoResolverChain.IndexOf(LSP.ReflectionFallbackJsonTypeInfoResolver.Instance);
+        Contract.ThrowIfFalse(fallbackIndex >= 0);
+        options.TypeInfoResolverChain.Insert(fallbackIndex, resolver);
         return options;
     }
 

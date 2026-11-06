@@ -263,7 +263,7 @@ internal static class CompletionListMerger
         }
     }
 
-    private record MergedCompletionListData(
+    internal sealed record MergedCompletionListData(
         [property: JsonPropertyName(Data1Key)] object Data1,
         [property: JsonPropertyName(Data2Key)] object Data2);
 }

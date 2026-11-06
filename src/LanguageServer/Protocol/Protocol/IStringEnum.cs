@@ -9,8 +9,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// String-based enumerations are serialized simply as their <see cref="Value"/>.
 /// </summary>
 /// <remarks>
-/// When implementing this interface, a constructor that takes a single string as parameters is required by
-/// <see cref="StringEnumConverter{TStringEnumType}"/>.
+/// Implementations also implement <see cref="IStringEnum{TSelf}"/> to construct values without emitting code.
 /// </remarks>
 internal interface IStringEnum
 {
@@ -18,4 +17,9 @@ internal interface IStringEnum
     /// Gets the value of the enumeration.
     /// </summary>
     string Value { get; }
+}
+
+internal interface IStringEnum<TSelf> : IStringEnum
+{
+    TSelf Create(string value);
 }

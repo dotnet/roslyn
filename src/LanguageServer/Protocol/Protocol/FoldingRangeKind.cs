@@ -16,8 +16,10 @@ using System.Text.Json.Serialization;
 /// <remarks>Since LSP 3.17</remarks>
 [JsonConverter(typeof(StringEnumConverter<FoldingRangeKind>))]
 [TypeConverter(typeof(StringEnumConverter<FoldingRangeKind>.TypeConverter))]
-internal readonly record struct FoldingRangeKind(string Value) : IStringEnum
+internal readonly record struct FoldingRangeKind(string Value) : IStringEnum<FoldingRangeKind>
 {
+    FoldingRangeKind IStringEnum<FoldingRangeKind>.Create(string value) => new(value);
+
     /// <summary>
     /// Comment folding range.
     /// </summary>

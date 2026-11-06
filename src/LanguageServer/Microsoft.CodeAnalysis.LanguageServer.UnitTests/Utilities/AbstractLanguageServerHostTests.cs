@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO.Pipelines;
 using System.IO.Pipes;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Host;
@@ -163,7 +164,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         private JsonRpc CreateClientRpc(Stream outputStream, Stream inputStream, ITestOutputHelper testOutputHelper)
         {
-            var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+            var messageFormatter = LanguageServerHost.CreateJsonMessageFormatter();
+            messageFormatter.JsonSerializerOptions.AddLspSerializerContext(new TestJsonTypeInfoResolver(typeof(AbstractLanguageServerHostTests).Assembly));
             var clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter))
             {
                 AllowModificationWhileListening = true,

@@ -16,8 +16,10 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <remarks>Since LSP 3.16</remarks>
 [JsonConverter(typeof(StringEnumConverter<FileOperationPatternKind>))]
 [TypeConverter(typeof(StringEnumConverter<FileOperationPatternKind>.TypeConverter))]
-internal readonly record struct FileOperationPatternKind(string Value) : IStringEnum
+internal readonly record struct FileOperationPatternKind(string Value) : IStringEnum<FileOperationPatternKind>
 {
+    FileOperationPatternKind IStringEnum<FileOperationPatternKind>.Create(string value) => new(value);
+
     /// <summary>
     /// The pattern matches a file only.
     /// </summary>

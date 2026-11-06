@@ -17,8 +17,10 @@ using System.Text.Json.Serialization;
 /// 
 [JsonConverter(typeof(StringEnumConverter<UniquenessLevel>))]
 [TypeConverter(typeof(StringEnumConverter<UniquenessLevel>.TypeConverter))]
-internal readonly record struct UniquenessLevel(string Value) : IStringEnum
+internal readonly record struct UniquenessLevel(string Value) : IStringEnum<UniquenessLevel>
 {
+    UniquenessLevel IStringEnum<UniquenessLevel>.Create(string value) => new(value);
+
     /// <summary>
     /// The moniker is only unique inside a document
     /// </summary>
