@@ -9,7 +9,7 @@
     <_BasicReferenceAssembliesVersion>1.8.8</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should be updated together with version of SDK in global.json -->
     <CodeStyleAnalyzerVersion>5.9.0</CodeStyleAnalyzerVersion>
-    <VisualStudioEditorPackagesVersion>18.12.46</VisualStudioEditorPackagesVersion>
+    <VisualStudioEditorPackagesVersion>18.13.5</VisualStudioEditorPackagesVersion>
     <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
@@ -76,8 +76,8 @@
     <!--
       Visual Studio
     -->
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="18.9.438" />
-    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.9.317" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Interop" Version="18.11.573" />
+    <PackageVersion Include="Microsoft.Internal.VisualStudio.Shell.Framework" Version="18.11.573" />
     <PackageVersion Include="Microsoft.ServiceHub.Client" Version="4.6.3200" />
     <PackageVersion Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.CodeAnalysis.Sdk.UI" Version="15.8.27812-alpha" />
@@ -131,7 +131,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="18.12.772" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.12.48" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.14.30" />
     <PackageVersion Include="Microsoft.VisualStudio.OLE.Interop" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="18.12.772" />
@@ -192,7 +192,7 @@
     <!--
       Language Server
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="18.12.48" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="18.14.30" />
     <PackageVersion Include="NuGet.ProjectModel" Version="6.14.3" />
     <PackageVersion Include="NuGet.Versioning" Version="$(NuGetVersioningVersion)" />
     <PackageVersion Include="MSTest.TestAdapter" Version="3.10.4" />
