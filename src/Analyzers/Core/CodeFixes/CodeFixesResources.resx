@@ -156,6 +156,9 @@
   <data name="Make_class_abstract" xml:space="preserve">
     <value>Make class 'abstract'</value>
   </data>
+  <data name="Make_class_closed" xml:space="preserve">
+    <value>Make class 'closed'</value>
+  </data>
   <data name="Make_member_static" xml:space="preserve">
     <value>Make static</value>
   </data>
