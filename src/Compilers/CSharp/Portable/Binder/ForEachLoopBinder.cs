@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
-                if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
+                if ((collectionExprType.Kind == SymbolKind.ArrayType && !isAsync) || collectionExprType.Kind == SymbolKind.DynamicType)
                 {
                     builder = GetDefaultEnumeratorInfo(syntax, builder, diagnostics, collectionExprType);
                     return EnumeratorResult.Succeeded;
