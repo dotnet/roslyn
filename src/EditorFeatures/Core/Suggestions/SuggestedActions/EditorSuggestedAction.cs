@@ -319,6 +319,21 @@ internal abstract partial class EditorSuggestedAction(
         CodeAction codeAction)
         => new TrivialSuggestedAction(action.ThreadingContext, action.SourceProvider, action.OriginalSolution, action.SubjectBuffer, action.Provider, codeAction);
 
+    public static EditorSuggestedAction Create(
+        IThreadingContext threadingContext,
+        SuggestedActionsSourceProvider sourceProvider,
+        TextDocument originalDocument,
+        ITextBuffer subjectBuffer,
+        object provider,
+        CodeAction codeAction,
+        SuggestedActionSet fixAllFlavors,
+        ImmutableArray<Diagnostic> diagnostics)
+        => codeAction is CodeActionWithOptions && fixAllFlavors is null && codeAction.AdditionalPreviewFlavors.IsEmpty
+            ? new TrivialSuggestedAction(
+                threadingContext, sourceProvider, originalDocument.Project.Solution, subjectBuffer, provider, codeAction)
+            : new EditorSuggestedActionWithNestedFlavors(
+                threadingContext, sourceProvider, originalDocument, subjectBuffer, provider, codeAction, fixAllFlavors, diagnostics);
+
     private sealed class TrivialSuggestedAction(
         IThreadingContext threadingContext,
         SuggestedActionsSourceProvider sourceProvider,
