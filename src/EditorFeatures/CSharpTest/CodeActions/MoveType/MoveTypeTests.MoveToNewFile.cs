@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -46,6 +47,43 @@ public sealed partial class MoveTypeTests : CSharpMoveTypeTestsBase
             class Class1 { }
 
             """);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/84258")]
+    public Task TestMoveToNewFile_DoesNotOverwriteExistingFileWithSameBaseName()
+        => TestMoveTypeToNewFileAsync("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="z:\Code\File1.cs">[||]class C&lt;T&gt; { }
+            class D { }</Document>
+                    <Document FilePath="z:\Code\C.cs">class C { }</Document>
+                </Project>
+            </Workspace>
+            """, @"class D { }", "C1.cs", """
+            class C<T> { }
+
+            """,
+            // The moved type must go into a new C1.cs file; the pre-existing C.cs must keep its original contents.
+            expectedUnchangedDocuments: [("C.cs", "class C { }")]);
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/84258")]
+    public async Task TestMoveToNewFile_OffersNonConflictingFileNameInTitle()
+    {
+        using var workspace = CreateWorkspaceFromOptions("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document FilePath="z:\Code\File1.cs">[||]class C&lt;T&gt; { }
+            class D { }</Document>
+                    <Document FilePath="z:\Code\C.cs">class C { }</Document>
+                </Project>
+            </Workspace>
+            """, new TestParameters());
+
+        var (actions, _) = await GetCodeActionsAsync(workspace, new TestParameters());
+
+        // "C.cs" is taken by the other type, so the action should offer "C1.cs", not "C.cs".
+        Assert.Contains(actions, a => a.Title == string.Format(FeaturesResources.Move_type_to_0, "C1.cs"));
+        Assert.DoesNotContain(actions, a => a.Title == string.Format(FeaturesResources.Move_type_to_0, "C.cs"));
+    }
 
     [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/14008")]
     public Task TestMoveToNewFileWithFolders()
