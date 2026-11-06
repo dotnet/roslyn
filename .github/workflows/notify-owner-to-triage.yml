@@ -1,0 +1,47 @@
+name: 'Notify Area Owners to Triage Issues'
+
+on:
+  workflow_dispatch: 
+
+permissions:
+  issues: read
+  contents: read
+  
+jobs:
+  notify-area-owners:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Notify area owners about issues waiting for triage
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const untriagedLabel = 'untriaged';  // The label indicating the issue needs triage
+            const daysWithoutAction = 7;  // If the issue is in triage for more than 7 days
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: untriagedLabel,
+              state: 'open',
+            });
+
+            const currentTime = new Date();
+            const timeThreshold = daysWithoutAction * 24 * 60 * 60 * 1000; 
+
+            for (const issue of issues) {
+              // Check if the issue does not have the "Area-Compilers" label
+              if (issue.labels.some(label => label.name === 'Area-Compilers')) {
+                continue;
+              }
+
+              const issueCreatedAt = new Date(issue.created_at);
+              const timeSinceCreated = currentTime - issueCreatedAt;
+
+              // Check if the issue has been in the untriaged state for more than the threshold (7 days)
+              if (timeSinceCreated > timeThreshold) {
+                console.log(`Issue #${issue.number} has been in the "untriaged" state for over a week and hasn't been triaged yet.`);
+              }
+            }
