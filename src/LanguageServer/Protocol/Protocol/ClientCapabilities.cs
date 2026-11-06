@@ -40,7 +40,7 @@ internal class ClientCapabilities
     /// Capabilities specific to the notebook document support.
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    [JsonPropertyName("notebook")]
+    [JsonPropertyName("notebookDocument")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public NotebookDocumentClientCapabilities? Notebook { get; init; }
 

@@ -195,9 +195,9 @@ internal sealed class OptimizedVSCompletionListJsonConverter : JsonConverter<Opt
             writer.WriteString("insertText", completionItem.InsertText);
         }
 
-        if (completionItem.InsertTextFormat is not 0 and not InsertTextFormat.Plaintext)
+        if (completionItem.InsertTextFormat is { } insertTextFormat)
         {
-            writer.WriteNumber("insertTextFormat", (int)completionItem.InsertTextFormat);
+            writer.WriteNumber("insertTextFormat", (int)insertTextFormat);
         }
 
         if (completionItem.TextEdit != null)
