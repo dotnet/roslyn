@@ -1,3 +1,4 @@
+# random change
 # Publishes our build assets to nuget, Azure DevOps, dotnet/versions, etc ..
 #
 # The publish operation is best visioned as an optional yet repeatable post build operation. It can be
