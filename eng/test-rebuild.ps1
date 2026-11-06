@@ -40,8 +40,6 @@ try {
     Test-LastExitCode
   }
 
-  Subst-TempDir
-
   $dotnetInstallDir = (InitializeDotNetCli -install:$true)
   $rebuildArgs = ("--verbose" +
   " --assembliesPath `"$ArtifactsDir/obj/`"" +
@@ -109,6 +107,5 @@ catch {
   ExitWithExitCode 1
 }
 finally {
-  Unsubst-TempDir
   Pop-Location
 }

@@ -344,8 +344,6 @@ try {
 
   Push-Location $RepoRoot
 
-  Subst-TempDir
-
   if ($ci) {
     List-Processes
     EnablePreviewSdks
@@ -408,8 +406,5 @@ catch {
   ExitWithExitCode 1
 }
 finally {
-  if (Test-Path Function:\Unsubst-TempDir) {
-    Unsubst-TempDir
-  }
   Pop-Location
 }
