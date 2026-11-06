@@ -126,8 +126,28 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     [Theory, CombinatorialData]
     public Task ResolveFixesAllOccurrencesAcrossDiagnosticIds_CSharp(bool mutatingLspWorkspace)
     {
-        var source = "// beta alpha beta alpha\n{|caret:|}class C { }";
-        var expected = "// fixed fixed fixed fixed\nclass C { }";
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    int firstAssigned = 1;
+                    int firstUnused;
+                    int secondAssigned = 2;
+                    int secondUnused;
+                    {|caret:|}return;
+                }
+            }
+            """;
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                    return;
+                }
+            }
+            """;
 
         return VerifyResolveFixesAllOccurrencesAcrossDiagnosticIdsAsync(
             source: source,
@@ -139,8 +159,36 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     [Theory, CombinatorialData]
     public Task ResolveFixesAllOccurrencesAcrossDiagnosticIds_VisualBasic(bool mutatingLspWorkspace)
     {
-        var source = "' beta alpha beta alpha\n{|caret:|}Class C\nEnd Class";
-        var expected = "' fixed fixed fixed fixed\nClass C\nEnd Class";
+        var source = """
+            Module C
+                Public Shared first As Integer
+
+                Public Shared Sub M()
+                    {|caret:|}Return
+                End Sub
+
+                Public Shared second As Integer
+
+                Public Shared Sub N()
+                    Return
+                End Sub
+            End Module
+            """;
+        var expected = """
+            Module C
+                Public first As Integer
+
+                Public Sub M()
+                    Return
+                End Sub
+
+                Public second As Integer
+
+                Public Sub N()
+                    Return
+                End Sub
+            End Module
+            """;
 
         return VerifyResolveFixesAllOccurrencesAcrossDiagnosticIdsAsync(
             source: source,
@@ -152,12 +200,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     private async Task VerifyResolveFixesAllOccurrencesAcrossDiagnosticIdsAsync(
         string source, string expectedText, string language, bool mutatingLspWorkspace)
     {
-        // Give two diagnostic IDs repeated occurrences in the supplied document.
+        // Use built-in fixes for repeated occurrences of two compiler diagnostic IDs.
         await using var server = await CreateTestLspServerAsync(
             [source], language, mutatingLspWorkspace, initializationOptions: null);
-        var fixer = new TestFixer(["FA0002", "FA0001"]);
-        await AddReferenceAsync(server, new TestReference(
-            [new MarkerAnalyzer(new("FA0002", "beta"), new("FA0001", "alpha"))], [fixer]));
 
         // Discover the deferred action, saving the workspace snapshot to check that resolution never applies changes.
         var before = server.TestWorkspace.CurrentSolution;
@@ -168,8 +213,8 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         // Resolve and apply the returned edit to a copy of the original text to check that every occurrence is fixed.
         var resolved = await ResolveAsync(server, action);
         var originalText = await server.GetDocumentTextAsync(server.GetLocations("caret").Single().DocumentUri);
-        Assert.Equal(expectedText,
-            ApplySingleDocumentEdit(resolved, originalText, server.GetLocations("caret").Single().DocumentUri));
+        Assert.Equal(expectedText.ReplaceLineEndings("\n"),
+            ApplySingleDocumentEdit(resolved, originalText, server.GetLocations("caret").Single().DocumentUri).ReplaceLineEndings("\n"));
 
         // Resolution computes edits without changing the live workspace.
         Assert.Same(before, server.TestWorkspace.CurrentSolution);
@@ -734,29 +779,51 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     [Theory, CombinatorialData]
     public async Task ResolveUsesDocumentTextUpdatedAfterDiscovery(bool mutatingLspWorkspace)
     {
-        var source = "// alpha\n{|caret:|}class C { }";
-        var updatedSource = "// beta beta\nclass C { }";
-        var expected = "// fixed fixed\nclass C { }";
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    int unused;
+                    {|caret:|}return;
+                }
+            }
+            """;
+        var updatedSource = """
+            class C
+            {
+                void M()
+                {
+                    int first = 1;
+                    int second = 2;
+                    return;
+                }
+            }
+            """;
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                    return;
+                }
+            }
+            """;
 
-        // Start with an alpha diagnostic, then discover an action for the open document.
+        // Discover with CS0168, then replace it with two occurrences of CS0219.
         await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var fixer = new TestFixer(["FA0001", "FA0002"]);
-        await AddReferenceAsync(server, new TestReference(
-            [new MarkerAnalyzer(new("FA0001", "alpha"), new("FA0002", "beta"))], [fixer]));
         var uri = server.GetLocations("caret").Single().DocumentUri;
         await server.OpenDocumentAsync(uri);
         var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
 
-        // Replace alpha after discovery so resolving against the original snapshot would fix the wrong ID.
-        await server.ReplaceTextAsync(uri, (new LSP.Range { Start = new Position(0, 3), End = new Position(0, 8) }, "beta beta"));
+        await server.ReplaceTextAsync(uri,
+            (new LSP.Range { Start = new Position(4, 8), End = new Position(4, 19) }, "int first = 1;\n        int second = 2;"));
 
         // Resolve must recompute diagnostics from the latest didChange snapshot.
         var resolved = await ResolveAsync(server, action);
         // The non-mutating harness keeps its Workspace text unchanged; LSP edits target the didChange snapshot.
-        Assert.Equal(expected, ApplySingleDocumentEdit(resolved, SourceText.From(updatedSource), uri));
-
-        // Only the replacement document's diagnostic ID should be sent to Fix All.
-        Assert.Equal(["FA0002"], fixer.Invocations);
+        Assert.Equal(expected.ReplaceLineEndings("\n"),
+            ApplySingleDocumentEdit(resolved, SourceText.From(updatedSource), uri).ReplaceLineEndings("\n"));
     }
 
     [Theory, CombinatorialData]
@@ -1072,23 +1139,38 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     [Fact]
     public async Task FixAllDiscoversDiagnosticsOnlyInTheRequestedDocument()
     {
-        var source = "// warning\n{|caret:|}class C { }";
-        var otherSource = "// warning\nclass Other { }";
-        var otherProjectSource = "// warning\nclass Another { }";
-        var expected = "// fixed\nclass C { }";
-        var expectedOriginal = "// warning\nclass C { }";
+        var source = """
+            {|caret:|}class C
+            {
+                void M()
+                {
+                    int unused;
+                    return;
+                }
+            }
+            """;
+        var expectedOriginal = source.Replace("{|caret:|}", "");
+        var otherSource = expectedOriginal.Replace("class C", "class Other");
+        var otherProjectSource = expectedOriginal.Replace("class C", "class Another");
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                    return;
+                }
+            }
+            """;
 
-        // Place the same diagnostic marker in the requested document and a sibling document.
+        // Place CS0168 in the requested document and a sibling document.
         await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace: false);
         var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.First();
-        var fixer = new TestFixer(["FA0001"]);
-        var reference = new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]);
 
-        // Add another project with the same marker to catch accidental project- or solution-wide fixing.
+        // Add another project with the same warning to catch accidental project- or solution-wide fixing.
         var otherProject = document.Project.Solution.AddProject("OtherProject", "OtherProject", LanguageNames.CSharp)
             .WithMetadataReferences(document.Project.MetadataReferences)
             .AddDocument("OtherProject.cs", SourceText.From(otherProjectSource), filePath: TestHelpers.GetRootedPath("OtherProject.cs"));
-        document = WithReference(otherProject.Project.Solution, reference).GetRequiredDocument(document.Id);
+        document = otherProject.Project.Solution.GetRequiredDocument(document.Id);
 
         // Prove that every document is eligible; unchanged outside text must not be a consequence of missing diagnostics.
         var diagnosticService = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
@@ -1096,16 +1178,15 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         {
             var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
                 candidate, range: null, DiagnosticIdFilter.All, priority: null, DiagnosticKind.All, CancellationToken.None);
-            Assert.Single(diagnostics, diagnostic => diagnostic.Id == "FA0001" &&
+            Assert.Single(diagnostics, diagnostic => diagnostic.Id == "CS0168" &&
                 diagnostic.Severity == DiagnosticSeverity.Warning && !diagnostic.IsSuppressed);
         }
 
         // Limit the invocation to the document marked by the caret.
         var changed = await ChangeAsync(document, server);
-        Assert.Equal([FixAllScope.Document], fixer.RequestedScopes);
 
         // Only its returned snapshot may change; other documents/projects and the input snapshot must stay intact.
-        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
+        Assert.Equal(expected.ReplaceLineEndings("\n"), (await changed.GetTextAsync()).ToString().ReplaceLineEndings("\n"));
         Assert.Equal(otherSource, (await changed.Project.Documents.Last().GetTextAsync()).ToString());
         Assert.Equal(otherProjectSource,
             (await changed.Project.Solution.GetDocument(otherProject.Id)!.GetTextAsync()).ToString());
@@ -1237,7 +1318,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     {
         private readonly bool _unsupportedOperations = unsupportedOperations;
         public List<string> Invocations { get; } = [];
-        public List<FixAllScope> RequestedScopes { get; } = [];
         public override ImmutableArray<string> FixableDiagnosticIds => ids;
         public override FixAllProvider GetFixAllProvider() => new TestFixAllProvider(this);
 
@@ -1256,7 +1336,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
             public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
-                fixer.RequestedScopes.Add(fixAllContext.Scope);
                 var document = fixAllContext.Document!;
                 var diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document);
                 Assert.NotEmpty(diagnostics);

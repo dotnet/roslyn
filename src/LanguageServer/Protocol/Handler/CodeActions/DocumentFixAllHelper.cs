@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -130,8 +131,8 @@ internal static class DocumentFixAllHelper
     {
         // The normal linked merger merges differing source text (including conflict comments) and skips additions
         // and non-source documents. Here we must reject differing text and update every context before the next fix.
-        using var _1 = PooledDictionary<DocumentUri, SourceText>.GetInstance(out var textsByUri);
-        using var _2 = PooledDictionary<DocumentId, SourceText>.GetInstance(out var textsById);
+        var textsByFilePath = new Dictionary<string, SourceText>(SolutionState.FilePathComparer);
+        using var _ = PooledDictionary<DocumentId, SourceText>.GetInstance(out var textsById);
         foreach (var projectChange in changedSolution.GetChanges(solution).GetProjectChanges())
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -148,7 +149,7 @@ internal static class DocumentFixAllHelper
                     continue;
                 }
 
-                // The final validator rejects unusable output locations; avoid constructing their URIs during normalization.
+                // The final validator rejects unusable output locations; skip them during normalization.
                 if (updated.FilePath is null &&
                     (updated.Project.FilePath is not { } projectPath || !PathUtilities.IsAbsolute(projectPath)))
                 {
@@ -160,11 +161,10 @@ internal static class DocumentFixAllHelper
                     continue;
 
                 // Different text for linked contexts cannot be represented by one physical-file edit.
-                var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
-                if (textsByUri.TryGetValue(uri, out var previousText) && !previousText.ContentEquals(text))
+                if (textsByFilePath.TryGetValue(filePath, out var previousText) && !previousText.ContentEquals(text))
                     return null;
 
-                textsByUri[uri] = text;
+                textsByFilePath[filePath] = text;
                 foreach (var linkedId in changedSolution.GetDocumentIdsWithFilePath(filePath).Add(id))
                 {
                     if (textsById.TryGetValue(linkedId, out previousText) && !previousText.ContentEquals(text))
