@@ -17,6 +17,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -37,6 +38,9 @@ using static TemporaryStorageService;
 [ExportWorkspaceService(typeof(VisualStudioMetadataReferenceManager), ServiceLayer.Host), Shared]
 internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
 {
+    // Keep file reads large without allocating buffers on the large object heap.
+    private static readonly ObjectPool<byte[]> s_metadataCopyBufferPool = new(() => new byte[64 * 1024], size: 20);
+
     private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
     /// <summary>
@@ -256,7 +260,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         {
             source.Position = start;
 
-            var buffer = SharedPools.ByteArray.Allocate();
+            var pool = length <= SharedPools.ByteBufferSize ? SharedPools.ByteArray : s_metadataCopyBufferPool;
+            using var pooledBuffer = pool.GetPooledObject();
+            var buffer = pooledBuffer.Object;
 
             int read;
             var left = length;
@@ -265,8 +271,6 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 destination.Write(buffer, 0, read);
                 left -= read;
             }
-
-            SharedPools.ByteArray.Free(buffer);
         }
     }
 
