@@ -422,10 +422,6 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
     // produces a warning in the generated code. When the generic type pass recorded the type
     // argument nodes on the attribute, write the type the way OpenComponent is written instead: the
     // type name as-is, and each type argument from its node, which keeps its source mapping.
-    //
-    // Returns false when the recorded type arguments do not exactly reproduce the containing type.
-    // That can happen when the type was rewritten again after the arguments were recorded, and the
-    // caller then writes the flattened string.
     private bool TryWriteContainingTypeWithMappedTypeArguments(CodeRenderingContext context, ComponentAttributeIntermediateNode attribute, string containingType)
     {
         var typeArguments = attribute.ContainingTypeArguments;
@@ -436,6 +432,10 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
 
         var nonGenericTypeName = TypeNameHelper.GetNonGenericTypeName(containingType, out _);
         var flattened = $"{nonGenericTypeName}<{string.Join(", ", typeArguments.Select(a => a?.Value?.Content))}>";
+
+        // Return false when the recorded arguments do not exactly reproduce the containing type.
+        // That can happen when the type was rewritten again after the arguments were recorded;
+        // the caller then writes the flattened string.
         if (!string.Equals(flattened, containingType, StringComparison.Ordinal))
         {
             return false;
