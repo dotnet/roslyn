@@ -288,6 +288,7 @@ internal abstract class AbstractTriviaFormatter
         var previousWhitespaceTrivia = default(SyntaxTrivia);
         var previousTrivia = default(SyntaxTrivia);
         var implicitLineBreak = false;
+        var whitespaceStartIndex = 0;
 
         var list = new TriviaList(this.Token1.TrailingTrivia, this.Token2.LeadingTrivia);
 
@@ -339,8 +340,10 @@ internal abstract class AbstractTriviaFormatter
             lineColumn = FormatFirstTriviaAndWhitespaceAfter(
                 lineColumn,
                 previousTrivia, existingWhitespaceDelta, trivia,
+                list, whitespaceStartIndex, i,
                 formatter, whitespaceAdder,
                 changes, implicitLineBreak, cancellationToken);
+            whitespaceStartIndex = i + 1;
 
             if (previousLineColumn.Column != 0
                 && previousLineColumn.Column < lineColumn.Column
@@ -361,6 +364,7 @@ internal abstract class AbstractTriviaFormatter
         lineColumn = FormatFirstTriviaAndWhitespaceAfter(
             lineColumn,
             previousTrivia, existingWhitespaceDelta, default,
+            list, whitespaceStartIndex, list.Count,
             formatter, whitespaceAdder,
             changes, implicitLineBreak, cancellationToken);
 
@@ -372,6 +376,9 @@ internal abstract class AbstractTriviaFormatter
         SyntaxTrivia trivia1,
         LineColumnDelta existingWhitespaceBetween,
         SyntaxTrivia trivia2,
+        TriviaList triviaList,
+        int whitespaceStartIndex,
+        int whitespaceEndIndex,
         Formatter<T> format,
         WhitespaceAppender<T> addWhitespaceTrivia,
         ArrayBuilder<T> changes,
@@ -384,10 +391,57 @@ internal abstract class AbstractTriviaFormatter
         var rule = GetOverallLineColumnRuleBetween(trivia1, existingWhitespaceBetween, implicitLineBreak, trivia2, cancellationToken);
         var whitespaceDelta = Apply(lineColumnBeforeTrivia1, trivia1, lineColumnAfterTrivia1, existingWhitespaceBetween, trivia2, rule);
 
-        var span = GetTextSpan(trivia1, trivia2);
-        addWhitespaceTrivia(lineColumnAfterTrivia1, whitespaceDelta, span, changes);
+        if (CanPreserveWhitespace(triviaList, whitespaceStartIndex, whitespaceEndIndex, lineColumnAfterTrivia1, whitespaceDelta))
+        {
+            // Like ordinary whitespace, unchanged complex-trivia whitespace need not adopt the preferred EOL.
+            var lineColumn = lineColumnAfterTrivia1;
+            for (var i = whitespaceStartIndex; i < whitespaceEndIndex; i++)
+            {
+                lineColumn = lineColumn.With(format(lineColumn, triviaList[i], changes, cancellationToken));
+            }
+        }
+        else
+        {
+            var span = GetTextSpan(trivia1, trivia2);
+            addWhitespaceTrivia(lineColumnAfterTrivia1, whitespaceDelta, span, changes);
+        }
 
         return lineColumnAfterTrivia1.With(whitespaceDelta);
+    }
+
+    private bool CanPreserveWhitespace(TriviaList triviaList, int startIndex, int endIndex, LineColumn lineColumn, LineColumnDelta delta)
+    {
+        var desiredWhitespace = GetWhitespaceString(lineColumn, delta);
+        var position = 0;
+
+        for (var i = startIndex; i < endIndex; i++)
+        {
+            var trivia = triviaList[i];
+            if (trivia.IsElastic())
+                return false;
+
+            if (IsEndOfLine(trivia))
+            {
+                if (position == desiredWhitespace.Length || !IsNewLine(desiredWhitespace[position]))
+                    return false;
+
+                position += desiredWhitespace[position] == '\r' &&
+                    position + 1 < desiredWhitespace.Length && desiredWhitespace[position + 1] == '\n' ? 2 : 1;
+            }
+            else
+            {
+                var text = trivia.ToFullString();
+                if (position + text.Length > desiredWhitespace.Length ||
+                    string.CompareOrdinal(text, 0, desiredWhitespace, position, text.Length) != 0)
+                {
+                    return false;
+                }
+
+                position += text.Length;
+            }
+        }
+
+        return position == desiredWhitespace.Length;
     }
 
     /// <summary>
