@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
 
             ITypeSymbol? scopeType = enterScopeMethod.ReturnType;
             if (scopeType is not INamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } ||
-                !lockType.Equals(scopeType.ContainingType, SymbolEqualityComparer.ConsiderEverything))
+                !lockType.Equals(scopeType.ContainingType, SymbolEqualityComparer.Default))
             {
                 return null;
             }
