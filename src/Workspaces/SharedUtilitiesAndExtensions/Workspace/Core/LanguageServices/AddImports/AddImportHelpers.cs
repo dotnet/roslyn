@@ -16,7 +16,8 @@ internal static class AddImportHelpers
         ISyntaxFacts syntaxFacts,
         TRootSyntax root,
         SyntaxList<TImportDirectiveSyntax> existingImports,
-        List<TImportDirectiveSyntax> newImports)
+        List<TImportDirectiveSyntax> newImports,
+        SyntaxTrivia fallbackEndOfLine)
         where TRootSyntax : SyntaxNode
         where TImportDirectiveSyntax : SyntaxNode
     {
@@ -33,7 +34,7 @@ internal static class AddImportHelpers
             // already in the file (like a class) and we don't want it to move to
             // the using.
             var firstToken = root.GetFirstToken();
-            var endOfLine = root.DescendantTrivia().FirstOrNull((trivia, syntaxFacts) => syntaxFacts.IsEndOfLineTrivia(trivia), syntaxFacts) ?? syntaxFacts.ElasticCarriageReturnLineFeed;
+            var endOfLine = root.DescendantTrivia().FirstOrNull((trivia, syntaxFacts) => syntaxFacts.IsEndOfLineTrivia(trivia), syntaxFacts) ?? fallbackEndOfLine;
 
             // Remove the leading directives from the first token.
             var newFirstToken = firstToken.WithLeadingTrivia(
@@ -65,7 +66,7 @@ internal static class AddImportHelpers
             var originalFirstUsingTrailingTrivia = originalFirstUsing.GetTrailingTrivia();
             var originalFirstUsingLineEnding = originalFirstUsingTrailingTrivia.Any() && syntaxFacts.IsEndOfLineTrivia(originalFirstUsingTrailingTrivia[^1])
                 ? originalFirstUsingTrailingTrivia[^1]
-                : syntaxFacts.ElasticCarriageReturnLineFeed;
+                : fallbackEndOfLine;
 
             if (originalFirstUsingCurrentIndex != 0)
             {

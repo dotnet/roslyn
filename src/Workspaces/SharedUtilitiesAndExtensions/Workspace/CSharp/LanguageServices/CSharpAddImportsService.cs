@@ -149,9 +149,9 @@ internal sealed class CSharpAddImportsService() : AbstractAddImportsService<
             if (!node.CanAddUsingDirectives(options.AllowInHiddenRegions, cancellationToken))
                 return rewritten;
 
-            rewritten = node == aliasContainer ? rewritten.AddUsingDirectives(aliasDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
-            rewritten = node == usingContainer ? rewritten.AddUsingDirectives(usingDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
-            rewritten = node == staticUsingContainer ? rewritten.AddUsingDirectives(staticUsingDirectives, options.PlaceSystemNamespaceFirst) : rewritten;
+            rewritten = node == aliasContainer ? rewritten.AddUsingDirectives(aliasDirectives, options.PlaceSystemNamespaceFirst, SyntaxFactory.ElasticEndOfLine(options.NewLine)) : rewritten;
+            rewritten = node == usingContainer ? rewritten.AddUsingDirectives(usingDirectives, options.PlaceSystemNamespaceFirst, SyntaxFactory.ElasticEndOfLine(options.NewLine)) : rewritten;
+            rewritten = node == staticUsingContainer ? rewritten.AddUsingDirectives(staticUsingDirectives, options.PlaceSystemNamespaceFirst, SyntaxFactory.ElasticEndOfLine(options.NewLine)) : rewritten;
             rewritten = node == externContainer ? rewritten.AddExterns(externAliases) : rewritten;
 
             return rewritten;
