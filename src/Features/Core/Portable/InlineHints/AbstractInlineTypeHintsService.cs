@@ -26,6 +26,8 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
         bool forLambdaParameterTypes,
         bool forImplicitObjectCreation,
         bool forCollectionExpressions,
+        bool suppressForTargetTypedNew,
+        bool suppressForTargetTypedCollectionExpressions,
         CancellationToken cancellationToken);
 
     public async Task AddInlineHintsAsync(
@@ -48,6 +50,9 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
         if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !forCollectionExpressions && !displayAllOverride)
             return;
 
+        var suppressForTargetTypedNew = !displayAllOverride && options.SuppressForTargetTypedNew;
+        var suppressForTargetTypedCollectionExpressions = !displayAllOverride && options.SuppressForTargetTypedCollectionExpressions;
+
         var anonymousTypeService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -61,6 +66,8 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
                 forLambdaParameterTypes,
                 forImplicitObjectCreation,
                 forCollectionExpressions,
+                suppressForTargetTypedNew,
+                suppressForTargetTypedCollectionExpressions,
                 cancellationToken);
             if (hint is not var (type, span, textChange, prefix, suffix))
                 continue;
