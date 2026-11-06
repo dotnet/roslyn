@@ -1,0 +1,4 @@
+#nullable enable
+*REMOVED*abstract Microsoft.VisualStudio.LanguageServer.ContainedLanguage.FormattingOptionsProvider.GetOptions(System.Uri! uri) -> Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions?
+*REMOVED*Microsoft.VisualStudio.LanguageServer.ContainedLanguage.FormattingOptionsProvider
+*REMOVED*Microsoft.VisualStudio.LanguageServer.ContainedLanguage.FormattingOptionsProvider.FormattingOptionsProvider() -> void
