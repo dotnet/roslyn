@@ -5,8 +5,6 @@
 #nullable disable
 
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client;
 
@@ -27,23 +25,4 @@ internal static class LanguageServicesUtils
 
     public static bool IsContentTypeRemote(string contentType)
         => contentType.EndsWith("-remote");
-
-    public static bool TryParseJson<T>(object json, out T t)
-    {
-        t = default;
-        if (json == null)
-        {
-            return true;
-        }
-
-        try
-        {
-            t = ((JObject)json).ToObject<T>();
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
-    }
 }
