@@ -6,7 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);WORKSPACE;ROSLYN_SNAPSHOT_DIAGNOSTICS</DefineConstants>
     <GeneratePerformanceSensitiveAttribute>true</GeneratePerformanceSensitiveAttribute>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
