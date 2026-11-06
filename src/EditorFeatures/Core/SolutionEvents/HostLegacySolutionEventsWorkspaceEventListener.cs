@@ -74,20 +74,27 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
     private void OnWorkspaceChanged(WorkspaceChangeEventArgs e)
     {
         // Legacy workspace events exist solely to let unit testing continue to work using their own fork of solution
-        // crawler.  As such, they only need events for the project types they care about.  Specifically, that is only
-        // for VB and C#.  This is relevant as well as we don't sync any other project types to OOP.  So sending 
-        // notifications about other projects that don't even exist on the other side isn't helpful.
+        // crawler.  As such, they only need events for the project types they care about: the ones whose tests can be
+        // discovered from source.  Sending notifications about any other project isn't helpful.
 
-        var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
-        if (projectId != null)
-        {
-            var project = e.OldSolution.GetProject(projectId) ?? e.NewSolution.GetProject(projectId);
-            if (project != null && !RemoteSupportedLanguages.IsSupported(project.Language))
-                return;
-        }
+        var project = GetProject(e);
+        if (project != null && !IsUnitTestingSupported(project.Language))
+            return;
 
         _eventQueue.AddWork(e);
     }
+
+    private static Project? GetProject(WorkspaceChangeEventArgs e)
+    {
+        var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
+        return projectId is null ? null : e.OldSolution.GetProject(projectId) ?? e.NewSolution.GetProject(projectId);
+    }
+
+    private static bool IsUnitTestingSupported(string language)
+        => RemoteSupportedLanguages.IsSupported(language) || language is LanguageNames.FSharp;
+
+    private static bool CanBeAggregatedRemotely(WorkspaceChangeEventArgs e)
+        => GetProject(e) is not { } project || RemoteSupportedLanguages.IsSupported(project.Language);
 
     private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> events, CancellationToken cancellationToken)
     {
@@ -102,17 +109,22 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
 
         var client = await RemoteHostClient.TryGetClientAsync(workspace, cancellationToken).ConfigureAwait(false);
 
-        if (client is null)
+        // Projects the remote process never sees - F# ones - can only be aggregated here, even when OOP is running.
+        var localEvents = client is null
+            ? events.ToArray()
+            : events.Where(e => !CanBeAggregatedRemotely(e)).ToArray();
+
+        if (localEvents.Length > 0)
         {
             var aggregationService = workspace.Services.GetRequiredService<ILegacySolutionEventsAggregationService>();
-            var shouldReport = aggregationService.ShouldReportChanges(workspace.Services.SolutionServices);
-            if (!shouldReport)
-                return;
-
-            foreach (var args in events)
-                await aggregationService.OnWorkspaceChangedAsync(args, _processSourceGeneratedDocuments.Value, cancellationToken).ConfigureAwait(false);
+            if (aggregationService.ShouldReportChanges(workspace.Services.SolutionServices))
+            {
+                foreach (var args in localEvents)
+                    await aggregationService.OnWorkspaceChangedAsync(args, _processSourceGeneratedDocuments.Value, cancellationToken).ConfigureAwait(false);
+            }
         }
-        else
+
+        if (client is not null)
         {
             // Notifying OOP of workspace events can be expensive (there may be a lot of them, and they involve
             // syncing over entire solution snapshots).  As such, do not bother to do this if the remote side says
@@ -127,6 +139,9 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
 
             foreach (var args in events)
             {
+                if (!CanBeAggregatedRemotely(args))
+                    continue;
+
                 await client.TryInvokeAsync<IRemoteLegacySolutionEventsAggregationService>(
                     args.OldSolution, args.NewSolution,
                     (service, oldSolutionChecksum, newSolutionChecksum, cancellationToken) =>
