@@ -4,14 +4,15 @@
 
 namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
 {
+    using System;
     using System.Collections.Immutable;
     using System.IO;
+    using System.Text;
     using System.Threading.Tasks;
     using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp.Testing;
     using Microsoft.CodeAnalysis.Testing;
     using Xunit;
-    using VerifyCS = Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.Verifiers.CSharpSourceGeneratorVerifier<
-        Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.TestServicesSourceGenerator>;
 
     public class TestServicesSourceGeneratorTests
     {
@@ -177,14 +178,15 @@ namespace System.Diagnostics.CodeAnalysis
         [Fact]
         public async Task TestGenerationForVS18()
         {
-            await new VerifyCS.Test
+            var test = new CSharpSourceGeneratorTest<TestServicesSourceGenerator, DefaultVerifier>
             {
+                CompilerDiagnostics = CompilerDiagnostics.Warnings,
                 TestState =
                 {
                     ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default
                         .AddPackages(ImmutableArray.Create(
                             new PackageIdentity("Microsoft.VisualStudio.SDK", "17.0.31902.203"),
-                            new PackageIdentity("xunit", "2.4.1"))),
+                            new PackageIdentity("xunit.v3", "4.0.0"))),
                     AdditionalReferences =
                     {
                         ExtensibilityTestingLibrary,
@@ -194,7 +196,28 @@ namespace System.Diagnostics.CodeAnalysis
                         ("Nullable.cs", NullableAttributesSource),
                     },
                 },
-            }.AddGeneratedSources().RunAsync();
+            };
+
+            AddGeneratedSourcesFromResources(test.TestState, nameof(TestGenerationForVS18));
+
+            await test.RunAsync(TestContext.Current.CancellationToken);
+        }
+
+        private static void AddGeneratedSourcesFromResources(SolutionState testState, string testName)
+        {
+            var assembly = typeof(TestServicesSourceGeneratorTests).Assembly;
+            var prefix = $"{typeof(TestServicesSourceGeneratorTests).Namespace}.Resources.{testName}.";
+            foreach (var resourceName in assembly.GetManifestResourceNames())
+            {
+                if (!resourceName.StartsWith(prefix, StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                using var resourceStream = assembly.GetManifestResourceStream(resourceName)!;
+                using var reader = new StreamReader(resourceStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                testState.GeneratedSources.Add((typeof(TestServicesSourceGenerator), resourceName.Substring(prefix.Length), reader.ReadToEnd()));
+            }
         }
     }
 }
