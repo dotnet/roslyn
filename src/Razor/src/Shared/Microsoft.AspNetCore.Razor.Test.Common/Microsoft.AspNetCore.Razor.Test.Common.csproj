@@ -19,11 +19,16 @@
     <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" />
     <PackageReference Include="DiffPlex" />
-    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.v3.assert" />
     <PackageReference Include="xunit.analyzers" />
-    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.v3.common" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
     <PackageReference Include="Basic.Reference.Assemblies.AspNet80" />
     <PackageReference Include="Basic.Reference.Assemblies.Net80" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Compilers\Test\Core\XunitAbstractionsNamespace.cs" Link="XunitAbstractionsNamespace.cs" />
   </ItemGroup>
 
   <ItemGroup>

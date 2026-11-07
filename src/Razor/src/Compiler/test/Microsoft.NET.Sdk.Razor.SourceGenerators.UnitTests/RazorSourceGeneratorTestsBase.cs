@@ -327,7 +327,20 @@ public abstract class RazorSourceGeneratorTestsBase
 
         foreach (var defaultCompileLibrary in DependencyContext.Load(typeof(RazorSourceGeneratorTestsBase).Assembly)!.CompileLibraries)
         {
-            foreach (var resolveReferencePath in defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(AppContext.BaseDirectory)))
+            IEnumerable<string> resolveReferencePaths;
+
+            try
+            {
+                resolveReferencePaths = defaultCompileLibrary.ResolveReferencePaths(new AppLocalResolver(AppContext.BaseDirectory));
+            }
+            catch (InvalidOperationException)
+            {
+                // Packages that the ASP.NET Core shared framework supplies at runtime are only listed for compilation
+                // and aren't copied to the output. They can only be found on machines that have the NuGet package cache.
+                continue;
+            }
+
+            foreach (var resolveReferencePath in resolveReferencePaths)
             {
                 if (resolveReferencePath.Contains("Shim."))
                 {

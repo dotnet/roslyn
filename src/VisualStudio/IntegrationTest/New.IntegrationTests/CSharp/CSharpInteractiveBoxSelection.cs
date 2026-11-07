@@ -13,13 +13,13 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 public class CSharpInteractiveBoxSelection : AbstractInteractiveWindowTest
 {
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
         await TestServices.InteractiveWindow.SubmitTextAsync("#cls", HangMitigatingCancellationToken);
     }
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.SelectionCancel, HangMitigatingCancellationToken);
         await base.DisposeAsync();

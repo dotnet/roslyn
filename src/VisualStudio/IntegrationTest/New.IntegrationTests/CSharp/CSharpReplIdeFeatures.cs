@@ -13,7 +13,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 public class CSharpReplIdeFeatures : AbstractInteractiveWindowTest
 {
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await TestServices.Editor.SetUseSuggestionModeAsync(false, HangMitigatingCancellationToken);
         await TestServices.InteractiveWindow.ClearReplTextAsync(HangMitigatingCancellationToken);

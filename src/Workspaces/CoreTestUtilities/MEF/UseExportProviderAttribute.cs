@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -63,7 +65,7 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
         RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
     }
 
-    public override void Before(MethodInfo? methodUnderTest)
+    public override void Before(MethodInfo? methodUnderTest, IXunitTest test)
     {
         // Need to clear cached MefHostServices between test runs.
         MefHostServices.TestAccessor.HookServiceCreation(CreateMefHostServices);
@@ -85,7 +87,7 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
     /// <item>Clearing static state variables related to the use of MEF during a test.</item>
     /// </list>
     /// </remarks>
-    public override void After(MethodInfo? methodUnderTest)
+    public override void After(MethodInfo? methodUnderTest, IXunitTest test)
     {
         try
         {
@@ -143,6 +145,14 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
                     }
                     else
                     {
+                        // Task.Wait wraps failures in an AggregateException. Wait on a continuation that can't fault, so only
+                        // the timeout can throw here, then use GetResult to rethrow any failure from the waiter unwrapped.
+                        waiter.ContinueWith(
+                            static _ => { },
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default).Wait(timeoutTokenSource.Token);
+
                         waiter.GetAwaiter().GetResult();
                     }
                 }

@@ -79,7 +79,7 @@ Class Class1
 End Class", testHost)
         End Function
 
-        <ConditionalFact>
+        <Fact>
         Public Async Function TestSmartTagDisplay() As Task
             Await TestSmartTagTextAsync(
 "Class Class1
@@ -319,7 +319,7 @@ Namespace Outer
 End Namespace", testHost)
         End Function
 
-        <ConditionalFact>
+        <Fact>
         Public Async Function TestAddImportsNotSuggestedForImportsStatement() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports [|InnerNamespace|]
@@ -331,7 +331,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <ConditionalFact>
+        <Fact>
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersOfClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -344,7 +344,7 @@ Namespace SomeNamespace
 End Namespace")
         End Function
 
-        <ConditionalFact>
+        <Fact>
         Public Async Function TestAddImportsNotSuggestedForGenericTypeParametersAsClause() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class SomeClass
@@ -440,7 +440,7 @@ Class Goo
 End Class", testHost)
         End Function
 
-        <ConditionalFact>
+        <Fact>
         Public Async Function TestGenericWithWrongArgs1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Goo
@@ -449,7 +449,7 @@ End Class", testHost)
 End Class")
         End Function
 
-        <ConditionalFact>
+        <Fact>
         Public Async Function TestGenericWithWrongArgs2() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Class Goo
@@ -856,7 +856,7 @@ Class C
 End Class", testHost)
         End Function
 
-        <ConditionalFact>
+        <Fact>
         Public Async Function TestDoNotAddIntoHiddenRegion() As Task
             Await TestMissingInRegularAndScriptAsync(
 "Imports System

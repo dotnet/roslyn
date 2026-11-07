@@ -148,10 +148,10 @@ class B
             // Assert.NotEqual(default, typeInfo);
 
             var methodGroup = model.GetMemberGroup(expr);
-            Assert.NotEqual(default, methodGroup);
+            Assert.False(methodGroup.IsDefault);
 
             var indexerGroup = model.GetIndexerGroup(expr);
-            Assert.NotEqual(default, indexerGroup);
+            Assert.False(indexerGroup.IsDefault);
 
             var position = GetPositionForBinding(tree);
 

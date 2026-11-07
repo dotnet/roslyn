@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\XunitGlobalUsings.cs" Link="XunitGlobalUsings.cs" />
     <ProjectReference Include="..\..\..\Shared\Microsoft.AspNetCore.Razor.Test.Common\Microsoft.AspNetCore.Razor.Test.Common.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
@@ -42,8 +43,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Moq" />
+    <PackageReference Include="xunit.v3.assert" />
     <PackageReference Include="xunit.analyzers" />
-    <PackageReference Include="xunit.extensibility.execution" />
+    <PackageReference Include="xunit.v3.common" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="Xunit.StaFact" />
   </ItemGroup>

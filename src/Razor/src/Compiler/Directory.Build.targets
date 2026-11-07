@@ -4,8 +4,8 @@
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))" />
 
   <ItemGroup>
-    <!-- Remove unneeded reference to AspNetCore.App -->
-    <KnownFrameworkReference Remove="Microsoft.AspNetCore.App" />
+    <!-- Remove unneeded reference to AspNetCore.App. Projects that run on the ASP.NET Core shared framework set UseAspNetCoreFramework=true. -->
+    <KnownFrameworkReference Remove="Microsoft.AspNetCore.App" Condition="'$(UseAspNetCoreFramework)' != 'true'" />
   </ItemGroup>
 
 </Project>
