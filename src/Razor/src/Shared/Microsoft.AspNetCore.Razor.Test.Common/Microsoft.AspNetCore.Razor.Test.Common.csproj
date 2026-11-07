@@ -27,6 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\..\Compilers\Test\Core\XunitAbstractionsNamespace.cs" Link="XunitAbstractionsNamespace.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Mvc.Razor.Extensions.Version1_X.UnitTests" Key="$(RazorKey)" />

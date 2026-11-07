@@ -49,7 +49,7 @@ dotnet_diagnostic.RS0101.severity = none
 dotnet_diagnostic.RS0102.severity = none
 
 # IDE0005: Using directive is unnecessary.
-dotnet_diagnostic.IDE0005.severity = warning
+dotnet_diagnostic.IDE0005.severity = none
 
 # IDE0039: Use local function
 dotnet_diagnostic.IDE0039.severity = suggestion
