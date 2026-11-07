@@ -22,7 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Xunit.Abstractions;
+    using Xunit;
 
     public abstract class AbstractInteractiveHostTests : CSharpTestBase, IAsyncLifetime
     {
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
         internal abstract InteractiveHostPlatform DefaultPlatform { get; }
         internal abstract bool UseDefaultInitializationFile { get; }
 
-        public async Task InitializeAsync()
+        public async ValueTask InitializeAsync()
         {
             var initializationFileName = UseDefaultInitializationFile ? "CSharpInteractive.rsp" : null;
 
@@ -103,19 +103,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
             ClearOutput();
         }
 
-        public async Task DisposeAsync()
+        public async ValueTask DisposeAsync()
         {
-            var service = await Host.TryGetServiceAsync();
-            Assert.NotNull(service);
-
-            var process = service!.Process;
-
-            Host.Dispose();
-
-            // the process should be terminated
-            if (process != null && !process.HasExited)
+            try
             {
-                process.WaitForExit();
+                var service = await Host.TryGetServiceAsync();
+                Assert.NotNull(service);
+
+                var process = service!.Process;
+
+                Host.Dispose();
+
+                // the process should be terminated
+                if (process != null && !process.HasExited)
+                {
+                    process.WaitForExit();
+                }
+            }
+            finally
+            {
+                // xUnit calls only DisposeAsync when a class implements both IAsyncDisposable and IDisposable, so TestBase's cleanup has to be invoked here.
+                base.Dispose();
             }
         }
 

@@ -14,8 +14,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 

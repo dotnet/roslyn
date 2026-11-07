@@ -37,7 +37,7 @@ namespace IdeBenchmarks.Lsp
 
         private async Task LoadSolutionAsync()
         {
-            _useExportProviderAttribute.Before(null);
+            _useExportProviderAttribute.Before(null, null!);
 
             var markup =
 @"using System;
@@ -112,7 +112,7 @@ class A
             {
                 await _testServer.DisposeAsync();
             }
-            _useExportProviderAttribute.After(null);
+            _useExportProviderAttribute.After(null, null!);
         }
     }
 }

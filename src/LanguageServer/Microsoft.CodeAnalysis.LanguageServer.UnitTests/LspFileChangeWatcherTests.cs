@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

@@ -7,7 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Build.Framework;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
@@ -40,14 +40,16 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         public void LogCustomEvent(CustomBuildEventArgs eventArgs)
         {
-            _testOutputHelper?.WriteLine(eventArgs.Message);
-            _log.AppendLine(eventArgs.Message);
+            var message = eventArgs.Message ?? "(null)";
+            _testOutputHelper?.WriteLine(message);
+            _log.AppendLine(message);
         }
 
         public void LogMessageEvent(BuildMessageEventArgs eventArgs)
         {
-            _testOutputHelper?.WriteLine(eventArgs.Message);
-            _log.AppendLine(eventArgs.Message);
+            var message = eventArgs.Message ?? "(null)";
+            _testOutputHelper?.WriteLine(message);
+            _log.AppendLine(message);
             BuildMessages.Add(eventArgs);
         }
 

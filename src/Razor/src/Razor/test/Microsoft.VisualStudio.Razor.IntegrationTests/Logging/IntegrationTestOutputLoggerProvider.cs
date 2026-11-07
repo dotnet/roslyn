@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.IntegrationTests.Logging;
 

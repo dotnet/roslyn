@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.CSharp.GenerateVariable
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
-Imports Xunit.Abstractions
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateVariable
     Partial Public Class GenerateVariableCrossLanguageUserDiagnosticTests

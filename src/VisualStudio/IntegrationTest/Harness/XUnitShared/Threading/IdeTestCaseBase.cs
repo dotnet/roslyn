@@ -7,22 +7,23 @@ namespace Xunit.Threading
     using System;
     using System.ComponentModel;
     using System.Linq;
-    using Xunit.Abstractions;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Xunit.Harness;
     using Xunit.Sdk;
+    using Xunit.v3;
 
-    public abstract class IdeTestCaseBase : XunitTestCase
+    public abstract class IdeTestCaseBase : XunitTestCase, ISelfExecutingXunitTestCase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
         [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         protected IdeTestCaseBase()
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
+            SharedData = WpfTestSharedData.Instance;
         }
 
-        protected IdeTestCaseBase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, testMethodArguments)
+        protected IdeTestCaseBase(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffixInDisplayName, object?[]? testMethodArguments = null)
+            : base(testMethod, GetDisplayName(testMethod, visualStudioInstanceKey, includeRootSuffixInDisplayName, testMethodArguments), GetUniqueID(testMethod, visualStudioInstanceKey, testMethodArguments), @explicit: false, testMethodArguments: testMethodArguments)
         {
             SharedData = WpfTestSharedData.Instance;
             VisualStudioInstanceKey = visualStudioInstanceKey;
@@ -39,66 +40,80 @@ namespace Xunit.Threading
             private set;
         }
 
-        public new TestMethodDisplay DefaultMethodDisplay => base.DefaultMethodDisplay;
-
-        public new TestMethodDisplayOptions DefaultMethodDisplayOptions => base.DefaultMethodDisplayOptions;
-
         public WpfTestSharedData SharedData
         {
             get;
             private set;
         }
 
-        protected virtual bool IncludeRootSuffixInDisplayName => false;
-
-        protected override string GetDisplayName(IAttributeInfo factAttribute, string displayName)
+        private static string GetDisplayName(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, bool includeRootSuffixInDisplayName, object?[]? testMethodArguments)
         {
-            var baseName = base.GetDisplayName(factAttribute, displayName);
-            if (!IncludeRootSuffixInDisplayName || string.IsNullOrEmpty(VisualStudioInstanceKey.RootSuffix))
+            var methodDisplayName = testMethodArguments is null
+                ? testMethod.MethodName
+                : testMethod.GetDisplayName(testMethod.MethodName, label: null, testMethodArguments, methodGenericTypes: null);
+
+            if (!includeRootSuffixInDisplayName || string.IsNullOrEmpty(visualStudioInstanceKey.RootSuffix))
             {
-                return $"{baseName} ({VisualStudioInstanceKey.Version})";
+                return $"{methodDisplayName} ({visualStudioInstanceKey.Version})";
             }
             else
             {
-                return $"{baseName} ({VisualStudioInstanceKey.Version}, {VisualStudioInstanceKey.RootSuffix})";
+                return $"{methodDisplayName} ({visualStudioInstanceKey.Version}, {visualStudioInstanceKey.RootSuffix})";
             }
         }
 
-        protected override string GetUniqueID()
+        private static string GetUniqueID(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments)
         {
-            if (string.IsNullOrEmpty(VisualStudioInstanceKey.RootSuffix))
+            // Data rows of the same theory share a test method, so the arguments are included to keep their IDs distinct.
+            var baseUniqueID = testMethodArguments is null
+                ? testMethod.UniqueID
+                : UniqueIDGenerator.ForTestCase(testMethod.UniqueID, (Type[]?)null, testMethodArguments);
+
+            if (string.IsNullOrEmpty(visualStudioInstanceKey.RootSuffix))
             {
-                return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.Version}";
+                return $"{baseUniqueID}_{visualStudioInstanceKey.Version}";
             }
             else
             {
-                return $"{base.GetUniqueID()}_{VisualStudioInstanceKey.RootSuffix}_{VisualStudioInstanceKey.Version}";
+                return $"{baseUniqueID}_{visualStudioInstanceKey.RootSuffix}_{visualStudioInstanceKey.Version}";
             }
         }
 
-        public override void Serialize(IXunitSerializationInfo data)
+        protected override void Serialize(IXunitSerializationInfo data)
         {
-            if (data is null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
             base.Serialize(data);
             data.AddValue(nameof(VisualStudioInstanceKey), VisualStudioInstanceKey.SerializeToString());
             data.AddValue(nameof(SkipReason), SkipReason);
         }
 
-        public override void Deserialize(IXunitSerializationInfo data)
+        protected override void Deserialize(IXunitSerializationInfo data)
         {
-            if (data is null)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-
-            VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey)));
+            VisualStudioInstanceKey = VisualStudioInstanceKey.DeserializeFromString(data.GetValue<string>(nameof(VisualStudioInstanceKey))!);
             base.Deserialize(data);
             SkipReason = data.GetValue<string>(nameof(SkipReason));
             SharedData = WpfTestSharedData.Instance;
+        }
+
+        public async ValueTask<RunSummary> Run(
+            ExplicitOption explicitOption,
+            IMessageBus messageBus,
+            object?[] constructorArguments,
+            ExceptionAggregator aggregator,
+            CancellationTokenSource cancellationTokenSource,
+            ParallelMode parallelMode,
+            ExecutionScheduler scheduler,
+            FixtureMappingManager methodFixtureMappings)
+        {
+            if (!string.IsNullOrEmpty(SkipReason))
+            {
+                // Use XunitTestCaseRunner so the skip gets reported without trying to access Visual Studio
+                return await XunitTestCaseRunner.Instance.Run(this, await CreateTests().ConfigureAwait(true), messageBus, aggregator, cancellationTokenSource, parallelMode, scheduler, TestCaseDisplayName, SkipReason, explicitOption, constructorArguments, methodFixtureMappings).ConfigureAwait(true);
+            }
+
+            // This runner does not inspect WpfTestSharedData.Exception or report harness failures through
+            // ErrorReportingIdeTestRunner. Test cases that are not skipped are expected to run inside devenv, where
+            // they are invoked by InProcessIdeTestAssemblyRunner.
+            return await InProcessIdeTestCaseRunner.Instance.Run(this, await CreateTests().ConfigureAwait(true), messageBus, aggregator, cancellationTokenSource, parallelMode, scheduler, TestCaseDisplayName, SkipReason, explicitOption, constructorArguments, methodFixtureMappings).ConfigureAwait(true);
         }
 
         internal static bool IsInstalled(VisualStudioVersion visualStudioVersion)
