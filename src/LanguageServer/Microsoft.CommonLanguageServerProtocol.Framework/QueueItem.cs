@@ -27,6 +27,10 @@ internal sealed class QueueItem<TRequestContext>
     private readonly ILspLogger _logger;
     private readonly AbstractRequestScope? _requestTelemetryScope;
     private readonly CancellationToken _cancellationToken;
+    private readonly IDisposable? _requestOperationScope;
+    // 0: queued, 1: processing, 2: completed or cancelled before processing.
+    private int _requestOperationState;
+    private bool _requestOperationScheduled;
 
     /// <summary>
     /// True if this queue item has actually started handling the request
@@ -52,16 +56,11 @@ internal sealed class QueueItem<TRequestContext>
         object? serializedRequest,
         ILspServices lspServices,
         ILspLogger logger,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IDisposable? requestOperationScope = null)
     {
-        // Set the tcs state to cancelled if the token gets cancelled outside of our callback (for example the server shutting down).
+        _requestOperationScope = requestOperationScope;
         _cancellationToken = cancellationToken;
-        cancellationToken.Register(static state =>
-        {
-            var queueItem = (QueueItem<TRequestContext>)state!;
-            queueItem._completionSource.TrySetCanceled(queueItem._cancellationToken);
-        }, this);
-
         _logger = logger;
         SerializedRequest = serializedRequest;
         LspServices = lspServices;
@@ -71,6 +70,16 @@ internal sealed class QueueItem<TRequestContext>
         var telemetryService = lspServices.GetService<AbstractTelemetryService>();
 
         _requestTelemetryScope = telemetryService?.CreateRequestScope(methodName);
+
+        // A cancelled client response does not mean an executing handler has stopped.
+        cancellationToken.Register(static state =>
+        {
+            var queueItem = (QueueItem<TRequestContext>)state!;
+            queueItem._completionSource.TrySetCanceled(queueItem._cancellationToken);
+            if (queueItem._requestOperationScope is not null
+                && Interlocked.CompareExchange(ref queueItem._requestOperationState, 2, 0) == 0)
+                queueItem._requestOperationScope?.Dispose();
+        }, this);
     }
 
     public static (QueueItem<TRequestContext>, Task<object?>) Create(
@@ -78,16 +87,40 @@ internal sealed class QueueItem<TRequestContext>
         object? serializedRequest,
         ILspServices lspServices,
         ILspLogger logger,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IDisposable? requestOperationScope = null)
     {
         var queueItem = new QueueItem<TRequestContext>(
             methodName,
             serializedRequest,
             lspServices,
             logger,
-            cancellationToken);
+            cancellationToken,
+            requestOperationScope);
 
         return (queueItem, queueItem._completionSource.Task);
+    }
+
+    public bool HasRequestOperationScope => _requestOperationScope is not null;
+
+    public bool TryStartRequestOperation()
+        => _requestOperationScope is null
+           || Interlocked.CompareExchange(ref _requestOperationState, 1, 0) == 0;
+
+    public void MarkRequestOperationScheduled()
+        => _requestOperationScheduled = true;
+
+    public void CompleteRequestOperationIfNotScheduled()
+    {
+        if (!_requestOperationScheduled)
+            CompleteRequestOperation();
+    }
+
+    public void CompleteRequestOperation()
+    {
+        if (_requestOperationScope is not null
+            && Interlocked.Exchange(ref _requestOperationState, 2) != 2)
+            _requestOperationScope?.Dispose();
     }
 
     public async Task<(TRequestContext, TRequest)?> CreateRequestContextAsync<TRequest>(IMethodHandler handler, RequestHandlerMetadata requestHandlerMetadata, AbstractLanguageServer<TRequestContext> languageServer, CancellationToken cancellationToken)

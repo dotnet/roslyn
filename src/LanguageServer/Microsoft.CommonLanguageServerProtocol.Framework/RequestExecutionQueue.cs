@@ -175,12 +175,24 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         // shutting down cancels the request.
         var combinedTokenSource = _cancelSource.Token.CombineWith(requestCancellationToken);
         var combinedCancellationToken = combinedTokenSource.Token;
-        var (item, resultTask) = QueueItem<TRequestContext>.Create(
-            methodName,
-            serializedRequest,
-            lspServices,
-            _logger,
-            combinedCancellationToken);
+        var requestOperationScope = CreateRequestOperationScope(methodName);
+        QueueItem<TRequestContext> item;
+        Task<object?> resultTask;
+        try
+        {
+            (item, resultTask) = QueueItem<TRequestContext>.Create(
+                methodName,
+                serializedRequest,
+                lspServices,
+                _logger,
+                combinedCancellationToken,
+                requestOperationScope);
+            requestOperationScope = null;
+        }
+        finally
+        {
+            requestOperationScope?.Dispose();
+        }
 
         // Run a continuation to ensure the cts is disposed of.
         // We pass CancellationToken.None as we always want to dispose of the source
@@ -192,10 +204,16 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
         // If the queue has been shut down the enqueue will fail, so we just fault the task immediately.
         // The queue itself is threadsafe (_queue.TryEnqueue and _queue.Complete use the same lock).
         if (!didEnqueue)
+        {
+            item.CompleteRequestOperation();
             return Task.FromException<object?>(new InvalidOperationException("Server was requested to shut down."));
+        }
 
         return resultTask;
     }
+
+    protected virtual IDisposable? CreateRequestOperationScope(string methodName)
+        => null;
 
     private async Task ProcessQueueAsync()
     {
@@ -220,9 +238,12 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     return;
                 }
 
+                var (work, activityId, cancellationToken) = queueItem;
+                if (!work.TryStartRequestOperation())
+                    continue;
+
                 try
                 {
-                    var (work, activityId, cancellationToken) = queueItem;
                     CancellationTokenSource? currentWorkCts = null;
                     lspServices = work.LspServices;
 
@@ -306,6 +327,10 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                     //   1.  If the queue is shutting down, then while loop will exit before the next iteration since it checks for cancellation.
                     //   2.  Request cancellations are normal so no need to report anything there.
                 }
+                finally
+                {
+                    work.CompleteRequestOperationIfNotScheduled();
+                }
             }
         }
         catch (Exception ex)
@@ -369,7 +394,9 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             Debug.Assert(!concurrentlyExecutingTasks.Any(t => !t.Key.IsCompleted), "The tasks should have all been drained before continuing");
             // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
             // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-            await WrapStartRequestTaskAsync(work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
+            var requestTask = work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken);
+            work.MarkRequestOperationScheduled();
+            await WrapTrackedRequestTaskAsync(work, requestTask, rethrowExceptions: true).ConfigureAwait(false);
         }
         else
         {
@@ -378,7 +405,9 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             // though these errors don't put us into a bad state as far as the rest of the queue goes.
             // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
             // blocking the request queue for longer periods of time (it enforces parallelizability).
-            var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), cancellationToken), rethrowExceptions: false);
+            var requestTask = Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), cancellationToken);
+            work.MarkRequestOperationScheduled();
+            var currentWorkTask = WrapTrackedRequestTaskAsync(work, requestTask, rethrowExceptions: false);
 
             if (CancelInProgressWorkUponMutatingRequest)
             {
@@ -437,6 +466,26 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
     public virtual Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
     {
         return requestTask;
+    }
+
+    private Task WrapTrackedRequestTaskAsync(QueueItem<TRequestContext> work, Task requestTask, bool rethrowExceptions)
+    {
+        if (!work.HasRequestOperationScope)
+            return WrapStartRequestTaskAsync(requestTask, rethrowExceptions);
+
+        return CompleteRequestOperationAsync(work, requestTask, rethrowExceptions);
+    }
+
+    private async Task CompleteRequestOperationAsync(QueueItem<TRequestContext> work, Task requestTask, bool rethrowExceptions)
+    {
+        try
+        {
+            await WrapStartRequestTaskAsync(requestTask, rethrowExceptions).ConfigureAwait(false);
+        }
+        finally
+        {
+            work.CompleteRequestOperation();
+        }
     }
 
     /// <summary>

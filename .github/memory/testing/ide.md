@@ -38,6 +38,8 @@ public class MyTests
 - When a test needs a feature waiter, retrieve the concrete
   `AsynchronousOperationListenerProvider` from the export provider and call
   `GetWaiter`; do not retrieve the interface and cast the listener.
+- The `LanguageServer` feature waiter includes finite [Roslyn request-queue work](../../../src/LanguageServer/Protocol/RoslynRequestExecutionQueue.cs), from enqueueing through actual execution completion, including cancellation cleanup.
+  Long-polling `workspace/diagnostic` requests are excluded because they wait for future workspace changes rather than completion of the current edit.
 - Language Server orchestration tests can pass additional MEF parts to
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time

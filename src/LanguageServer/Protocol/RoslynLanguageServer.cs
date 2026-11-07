@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
@@ -29,6 +30,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
     private readonly AbstractLspServiceProvider _lspServiceProvider;
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
     private readonly WellKnownLspServerKinds _serverKind;
+    private readonly IAsynchronousOperationListenerProvider _asynchronousOperationListenerProvider;
 
     public RoslynLanguageServer(
         AbstractLspServiceProvider lspServiceProvider,
@@ -37,12 +39,14 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         HostServices hostServices,
         ImmutableArray<string> supportedLanguages,
         WellKnownLspServerKinds serverKind,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         AbstractTypeRefResolver? typeRefResolver = null,
         ILspLogger? logger = null)
         : base(jsonRpc, serializerOptions, typeRefResolver)
     {
         _lspServiceProvider = lspServiceProvider;
         _serverKind = serverKind;
+        _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
 
         // Create services that require base dependencies (jsonrpc) or are more complex to create to the set manually.
         _baseServices = GetBaseServices(jsonRpc, hostServices, serverKind, supportedLanguages, logger);
@@ -104,7 +108,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
 
     protected override IRequestExecutionQueue<RequestContext> ConstructRequestExecutionQueue()
     {
-        var queue = new RoslynRequestExecutionQueue(this, HandlerProvider);
+        var queue = new RoslynRequestExecutionQueue(this, HandlerProvider, _asynchronousOperationListenerProvider);
         queue.Start();
         return queue;
     }
