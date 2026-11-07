@@ -11,11 +11,12 @@ using Xunit.Abstractions;
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 [Collection(HtmlFormattingCollection.Name)]
-public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
-    : FormattingTestBase(context, fixture.Service, testOutput), IClassFixture<FormattingTestContext>
+public class OnTypeFormattingTest(HtmlFormattingFixture fixture, ITestOutputHelper testOutput)
+    : FormattingTestBase(fixture.Service, testOutput)
 {
-    [FormattingTestFact]
-    public async Task FormatsElseCloseBrace()
+    [Theory]
+    [CombinatorialData]
+    public async Task FormatsElseCloseBrace(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -49,11 +50,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         private string? streetKind;
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_ExplicitStatement_PreservesOpeningBraceAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_ExplicitStatement_PreservesOpeningBraceAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -94,11 +97,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         private bool booleanValue = true;
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task FormatsIfStatementInComponent()
+    [Theory]
+    [CombinatorialData]
+    public async Task FormatsIfStatementInComponent(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -121,11 +126,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         </InputSelect>
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task FormatsIfStatementInComponent2()
+    [Theory]
+    [CombinatorialData]
+    public async Task FormatsIfStatementInComponent2(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -147,11 +154,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         </InputSelect>
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Class_SingleLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Class_SingleLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -165,11 +174,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: '}',
+            flipLineEndings,
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Class_SingleLine_UseTabsAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Class_SingleLine_UseTabsAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -183,12 +194,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: '}',
+            flipLineEndings,
             insertSpaces: false,
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Class_SingleLine_AdjustTabSizeAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Class_SingleLine_AdjustTabSizeAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -202,12 +215,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: '}',
+            flipLineEndings,
             tabSize: 6,
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Class_MultiLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Class_MultiLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -223,11 +238,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Method_SingleLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Method_SingleLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -241,11 +258,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: '}',
+            flipLineEndings,
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Method_MultiLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Method_MultiLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -261,12 +280,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/razor/issues/7962")]
-    public async Task CloseCurly_DoesNotIndentPropertyAfterCursorAsync()
+    public async Task CloseCurly_DoesNotIndentPropertyAfterCursorAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -295,12 +316,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/razor/issues/12627")]
-    public async Task CloseCurly_Method_RestoresCodeBlockClosingBraceAsync()
+    public async Task CloseCurly_Method_RestoresCodeBlockClosingBraceAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -317,11 +340,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Property_SingleLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Property_SingleLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -334,11 +359,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         public string Foo { get; set; }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Property_MultiLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Property_MultiLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -355,11 +382,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_Property_StartOfBlockAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_Property_StartOfBlockAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -371,11 +400,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         public string Foo { get; set; }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task Semicolon_ClassField_SingleLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task Semicolon_ClassField_SingleLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -388,11 +419,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         public class Foo { private int _hello = 0; }
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task Semicolon_ClassField_MultiLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task Semicolon_ClassField_MultiLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -407,11 +440,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                             private int _hello = 0; }
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task Semicolon_MethodVariableAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task Semicolon_MethodVariableAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -430,12 +465,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27135")]
-    public async Task Semicolon_Fluent_CallAsync()
+    public async Task Semicolon_Fluent_CallAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -464,11 +501,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
 
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task ClosingBrace_MatchesCSharpIndentationAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task ClosingBrace_MatchesCSharpIndentationAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -512,11 +551,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task ClosingBrace_DoesntMatchCSharpIndentationAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task ClosingBrace_DoesntMatchCSharpIndentationAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -560,12 +601,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-    public async Task CodeBlock_SemiColon_SingleLine1Async()
+    public async Task CodeBlock_SemiColon_SingleLine1Async(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -580,12 +623,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     <div></div>
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-    public async Task CodeBlock_SemiColon_SingleLine2Async()
+    public async Task CodeBlock_SemiColon_SingleLine2Async(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -600,12 +645,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     <div></div>
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-    public async Task CodeBlock_SemiColon_SingleLine3Async()
+    public async Task CodeBlock_SemiColon_SingleLine3Async(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -620,12 +667,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     </div>
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/27102")]
-    public async Task CodeBlock_SemiColon_MultiLineAsync()
+    public async Task CodeBlock_SemiColon_MultiLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -642,12 +691,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     <div></div>
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
-    public async Task Switch_Statment_NestedHtml_NestedCodeBlock()
+    public async Task Switch_Statment_NestedHtml_NestedCodeBlock(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -684,12 +735,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                             break;
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
-    public async Task NestedHtml_NestedCodeBlock()
+    public async Task NestedHtml_NestedCodeBlock(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -722,12 +775,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         </div>
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
-    public async Task NestedHtml_NestedCodeBlock_EndingBrace()
+    public async Task NestedHtml_NestedCodeBlock_EndingBrace(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -758,12 +813,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         </div>
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
-    public async Task NestedHtml_NestedCodeBlock_EndingBrace_WithCode()
+    public async Task NestedHtml_NestedCodeBlock_EndingBrace_WithCode(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -796,12 +853,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         </div>
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
-    public async Task Semicolon_NoDocumentChanges()
+    public async Task Semicolon_NoDocumentChanges(bool flipLineEndings)
     {
         var input = """
                 @page "/"
@@ -814,12 +873,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                 }
                 """;
 
-        await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';');
+        await RunOnTypeFormattingTestAsync(input, input.Replace("$$", ""), triggerCharacter: ';', flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5698")]
-    public async Task Semicolon_NoDocumentChanges2()
+    public async Task Semicolon_NoDocumentChanges2(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -855,13 +915,15 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: ';',
+            flipLineEndings,
             tabSize: 3,
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/5693")]
-    public async Task IfStatementInsideLambda()
+    public async Task IfStatementInsideLambda(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -894,11 +956,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task ComponentInCSharp1()
+    [Theory]
+    [CombinatorialData]
+    public async Task ComponentInCSharp1(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -931,11 +995,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task ComponentInCSharp2()
+    [Theory]
+    [CombinatorialData]
+    public async Task ComponentInCSharp2(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -968,12 +1034,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/razor-tooling/issues/6158")]
-    public async Task Format_NestedLambdas()
+    public async Task Format_NestedLambdas(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1026,11 +1094,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_UnrelatedEdit_DoesNothing()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_UnrelatedEdit_DoesNothing(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1058,11 +1128,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: '}',
+            flipLineEndings,
             insertSpaces: false);
     }
 
-    [FormattingTestFact]
-    public async Task CloseCurly_IfBlock_SingleLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task CloseCurly_IfBlock_SingleLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1075,12 +1147,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         if (true) { }
                     }
                     """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestTheory]
+    [Theory]
     [CombinatorialData]
-    public async Task CloseCurly_IfBlock_MultiLineAsync(bool inGlobalNamespace)
+    public async Task CloseCurly_IfBlock_MultiLineAsync(bool inGlobalNamespace, bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1098,12 +1171,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: '}',
+            flipLineEndings,
             inGlobalNamespace: inGlobalNamespace);
     }
 
-    [FormattingTestTheory]
+    [Theory]
     [CombinatorialData]
-    public async Task CloseCurly_MultipleStatementBlocksAsync(bool inGlobalNamespace)
+    public async Task CloseCurly_MultipleStatementBlocksAsync(bool inGlobalNamespace, bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1133,11 +1207,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: '}',
+            flipLineEndings,
             inGlobalNamespace: inGlobalNamespace);
     }
 
-    [FormattingTestFact]
-    public async Task Semicolon_Variable_SingleLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task Semicolon_Variable_SingleLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1150,11 +1226,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         var x = 'foo';
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task Semicolon_Variable_MultiLineAsync()
+    [Theory]
+    [CombinatorialData]
+    public async Task Semicolon_Variable_MultiLineAsync(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1169,11 +1247,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     foo";
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task Semicolon_PropertyGet()
+    [Theory]
+    [CombinatorialData]
+    public async Task Semicolon_PropertyGet(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1186,11 +1266,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         private string Name { get; }
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task Semicolon_AddsLineAtEndOfDocument()
+    [Theory]
+    [CombinatorialData]
+    public async Task Semicolon_AddsLineAtEndOfDocument(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1205,11 +1287,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         var x = new HtmlString("sdf"); 
                     }
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
-    public async Task FormatsSimpleHtmlTag_OnType()
+    [Theory]
+    [CombinatorialData]
+    public async Task FormatsSimpleHtmlTag_OnType(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1233,11 +1317,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     </html>
                     """,
             triggerCharacter: ';',
+            flipLineEndings,
             fileKind: RazorFileKind.Legacy);
     }
 
-    [FormattingTestFact]
-    public async Task OnTypeFormatting_Enabled()
+    [Theory]
+    [CombinatorialData]
+    public async Task OnTypeFormatting_Enabled(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1259,12 +1345,14 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                 }
             }
             """,
-            triggerCharacter: '}');
+            triggerCharacter: '}',
+            flipLineEndings);
     }
 
-    [FormattingTestFact]
+    [Theory]
+    [CombinatorialData]
     [WorkItem("https://github.com/dotnet/razor/issues/11117")]
-    public async Task SemiColon_DoesntBreakHtmlAttributes()
+    public async Task SemiColon_DoesntBreakHtmlAttributes(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1298,11 +1386,13 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                     }
                     """,
             triggerCharacter: '}',
+            flipLineEndings,
             expectedChangedLines: 1);
     }
 
-    [FormattingTestFact]
-    public async Task Semicolon_VariableDeclaration()
+    [Theory]
+    [CombinatorialData]
+    public async Task Semicolon_VariableDeclaration(bool flipLineEndings)
     {
         await RunOnTypeFormattingTestAsync(
             input: """
@@ -1325,6 +1415,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
                         }
                     </div>
                     """,
-            triggerCharacter: ';');
+            triggerCharacter: ';',
+            flipLineEndings);
     }
 }
