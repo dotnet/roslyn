@@ -4,10 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,12 +29,109 @@ public sealed partial class RequestOrderingTests : AbstractLanguageServerProtoco
     }
 
     protected override TestComposition Composition => base.Composition
+        .AddExcludedPartTypes(typeof(WorkspacePullDiagnosticHandlerFactory))
         .AddParts(typeof(MutatingRequestHandler))
         .AddParts(typeof(NonMutatingRequestHandler))
         .AddParts(typeof(FailingRequestHandler))
         .AddParts(typeof(FailingMutatingRequestHandler))
         .AddParts(typeof(NonLSPSolutionRequestHandler))
-        .AddParts(typeof(LongRunningNonMutatingRequestHandler));
+        .AddParts(typeof(LongRunningNonMutatingRequestHandler))
+        .AddParts(typeof(OperationTrackingRequestHandler))
+        .AddParts(typeof(LongPollingOperationTrackingRequestHandler));
+
+    [Theory, CombinatorialData]
+    public async Task OperationWaiterIncludesInProgressRequests(bool mutatingLspWorkspace)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var testLspServer = await CreateTestLspServerAsync("class C { }", mutatingLspWorkspace);
+        var handler = testLspServer.GetRequiredLspService<OperationTrackingRequestHandler>();
+        var operations = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+        var request = testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(
+            OperationTrackingRequestHandler.MethodName,
+            new TestRequest(OperationTrackingRequestHandler.MethodName),
+            timeout.Token);
+
+        await handler.Started.Task.WithCancellation(timeout.Token);
+        try
+        {
+            Assert.True(operations.HasPendingWaiter(FeatureAttribute.LanguageServer));
+            var wait = operations.GetWaiter(FeatureAttribute.LanguageServer).ExpeditedWaitAsync();
+            Assert.False(wait.IsCompleted);
+
+            handler.Response.SetResult(new TestResponse());
+            Assert.NotNull(await request);
+            await wait.WithCancellation(timeout.Token);
+            Assert.False(operations.HasPendingWaiter(FeatureAttribute.LanguageServer));
+        }
+        finally
+        {
+            handler.Response.TrySetResult(new TestResponse());
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task OperationWaiterExcludesLongPollingWorkspaceDiagnostics(bool mutatingLspWorkspace)
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        await using var testLspServer = await CreateTestLspServerAsync("class C { }", mutatingLspWorkspace);
+        var handler = testLspServer.GetRequiredLspService<LongPollingOperationTrackingRequestHandler>();
+        var operations = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+        await operations.GetWaiter(FeatureAttribute.LanguageServer).ExpeditedWaitAsync().WithCancellation(timeout.Token);
+        var request = testLspServer.ExecuteRequestAsync<TestRequest, TestResponse>(
+            Methods.WorkspaceDiagnosticName, new TestRequest(Methods.WorkspaceDiagnosticName), timeout.Token);
+
+        await handler.Started.Task.WithCancellation(timeout.Token);
+        try
+        {
+            Assert.False(request.IsCompleted);
+            Assert.False(operations.HasPendingWaiter(FeatureAttribute.LanguageServer));
+            await operations.GetWaiter(FeatureAttribute.LanguageServer).ExpeditedWaitAsync().WithCancellation(timeout.Token);
+        }
+        finally
+        {
+            handler.Response.TrySetResult(new TestResponse());
+        }
+
+        Assert.NotNull(await request);
+    }
+
+    [ExportCSharpVisualBasicStatelessLspService(typeof(OperationTrackingRequestHandler)), PartNotDiscoverable, Shared]
+    [Method(MethodName)]
+    private sealed class OperationTrackingRequestHandler : GatedOperationTrackingRequestHandler
+    {
+        public const string MethodName = nameof(OperationTrackingRequestHandler);
+
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public OperationTrackingRequestHandler()
+        {
+        }
+    }
+
+    [ExportCSharpVisualBasicStatelessLspService(typeof(LongPollingOperationTrackingRequestHandler)), PartNotDiscoverable, Shared]
+    [Method(Methods.WorkspaceDiagnosticName)]
+    private sealed class LongPollingOperationTrackingRequestHandler : GatedOperationTrackingRequestHandler
+    {
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public LongPollingOperationTrackingRequestHandler()
+        {
+        }
+    }
+
+    private abstract class GatedOperationTrackingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
+    {
+        public TaskCompletionSource<object?> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource<TestResponse> Response { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public bool MutatesSolutionState => false;
+        public bool RequiresLSPSolution => true;
+
+        public Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
+        {
+            Started.SetResult(null);
+            return Response.Task.WithCancellation(cancellationToken);
+        }
+    }
 
     [Theory, CombinatorialData]
     public async Task MutatingRequestsDoNotOverlap(bool mutatingLspWorkspace)

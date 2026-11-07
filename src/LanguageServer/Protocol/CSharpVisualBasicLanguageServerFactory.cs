@@ -8,6 +8,7 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using StreamJsonRpc;
 
@@ -17,13 +18,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal sealed class CSharpVisualBasicLanguageServerFactory
 {
     private readonly AbstractLspServiceProvider _lspServiceProvider;
+    private readonly IAsynchronousOperationListenerProvider _asynchronousOperationListenerProvider;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CSharpVisualBasicLanguageServerFactory(
-        CSharpVisualBasicLspServiceProvider lspServiceProvider)
+        CSharpVisualBasicLspServiceProvider lspServiceProvider,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
     {
         _lspServiceProvider = lspServiceProvider;
+        _asynchronousOperationListenerProvider = asynchronousOperationListenerProvider;
     }
 
     public AbstractLanguageServer<RequestContext> Create(
@@ -40,6 +44,7 @@ internal sealed class CSharpVisualBasicLanguageServerFactory
             hostServices,
             ProtocolConstants.RoslynLspLanguages,
             serverKind,
+            _asynchronousOperationListenerProvider,
             typeRefResolver);
 
         return server;
