@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -143,6 +144,14 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
                     }
                     else
                     {
+                        // Task.Wait wraps failures in an AggregateException. Wait on a continuation that can't fault, so only
+                        // the timeout can throw here, then use GetResult to rethrow any failure from the waiter unwrapped.
+                        waiter.ContinueWith(
+                            static _ => { },
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default).Wait(timeoutTokenSource.Token);
+
                         waiter.GetAwaiter().GetResult();
                     }
                 }
