@@ -15,7 +15,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
 public class BasicProjectExistsUIContext : AbstractIntegrationTest
 {
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
         await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(BasicProjectExistsUIContext), HangMitigatingCancellationToken);

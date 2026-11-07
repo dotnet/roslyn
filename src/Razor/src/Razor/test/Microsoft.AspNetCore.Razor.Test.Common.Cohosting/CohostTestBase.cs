@@ -26,8 +26,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -62,7 +60,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     /// </summary>
     private protected ExportProvider OOPExportProvider => _exportProvider.AssumeNotNull();
 
-    protected override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 
@@ -112,11 +110,10 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         remoteClientManager.Update(_clientSettingsManager.AssumeNotNull().GetClientSettings());
     }
 
-    protected override Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         _clientSettingsManager?.ClientSettingsChanged -= ClientSettingsManager_ClientSettingsChanged;
-
-        return base.DisposeAsync();
+        await base.DisposeAsync();
     }
 
     private AdhocWorkspace CreateLocalWorkspace()

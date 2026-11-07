@@ -38,7 +38,7 @@ public abstract class BasicEditAndContinue(string projectTemplate)
 
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

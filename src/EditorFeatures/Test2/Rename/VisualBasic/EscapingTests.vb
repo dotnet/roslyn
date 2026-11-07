@@ -8,9 +8,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.Rename)>
     Public Class EscapingTests
-        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+        Private ReadOnly _outputHelper As ITestOutputHelper
 
-        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+        Public Sub New(outputHelper As ITestOutputHelper)
             _outputHelper = outputHelper
         End Sub
 

@@ -96,6 +96,16 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
+    <!-- xunit.v3 test projects are executables: .exe on .NET Framework, .dll plus an app host on .NET Core. -->
+    <OutputType Condition="'$(OutputType)' == ''">Exe</OutputType>
+
+    <!--
+      Without an explicit PlatformTarget, the SDK gives .NET Framework executables a default win-x86
+      RuntimeIdentifier and builds them as x86 when they have native package dependencies. Keep test
+      executables AnyCPU, matching their behavior as libraries.
+    -->
+    <PlatformTarget Condition="'$(PlatformTarget)' == ''">AnyCPU</PlatformTarget>
+
     <!--
       Choose default target frameworks to use for testing on Mono and Core.
       These may be overridden by projects that need to be skipped.

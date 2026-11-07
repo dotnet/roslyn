@@ -10,7 +10,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests;
 
 public abstract class AbstractInteractiveWindowTest : AbstractIntegrationTest
 {
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

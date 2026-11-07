@@ -48,13 +48,6 @@ internal sealed class HelixTestRunner
     internal static TimeSpan WorkItemScheduleTime { get; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// In xUnit v2, IAsyncLifetime.InitializeAsync and DisposeAsync are not included in the
-    /// reported test duration (DurationInMs). This is the per-theory-instance overhead adjustment
-    /// applied to tests whose class implements IAsyncLifetime.
-    /// </summary>
-    internal static TimeSpan AsyncLifetimeInstanceOverhead { get; } = TimeSpan.FromMilliseconds(700);
-
-    /// <summary>
     /// This is the maximum time a Helix work item is allowed to execute. This value is passed to Helix
     /// as the work item timeout.
     /// </summary>
