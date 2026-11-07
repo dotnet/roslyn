@@ -1469,7 +1469,7 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45977")]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45977")]
     public async Task TestRegion()
     {
         var expected1 = """
@@ -2013,7 +2013,7 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45987")]
     public async Task TestAttributes3()
     {
         var expected1 = """
@@ -2074,7 +2074,7 @@ public sealed class ExtractClassTests
         }.RunAsync();
     }
 
-    [ConditionalFact(AlwaysSkip = "https://github.com/dotnet/roslyn/issues/45987")]
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/45987")]
     public async Task TestAttributes4()
     {
         var expected1 = """
