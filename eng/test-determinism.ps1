@@ -28,7 +28,7 @@ if ($help) {
 # makes them non-deterministic.
 $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
-  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
+  "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.exe",
 
   # Work around the same XLF ResXFileRef determinism issue in Razor's VSIX package resources.
   "Microsoft.VisualStudio.RazorExtension.dll.key",

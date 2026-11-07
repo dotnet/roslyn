@@ -7,7 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis" />
     <PackageReference Include="Moq" />
-    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.v3.assert" />
   </ItemGroup>
 
 </Project>

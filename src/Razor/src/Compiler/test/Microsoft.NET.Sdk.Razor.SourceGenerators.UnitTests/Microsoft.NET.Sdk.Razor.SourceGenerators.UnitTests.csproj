@@ -47,56 +47,7 @@
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App.Ref" GeneratePathProperty="true" ExcludeAssets="all" />
-    <PackageReference Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" ExcludeAssets="all" GeneratePathProperty="true" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="$(PkgMicrosoft_AspNetCore_App_Ref)\ref\net10.0\*.dll" Private="false" />
-  </ItemGroup>
-
-  <Choose>
-    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-x64'">
-      <PropertyGroup>
-        <AspNetCoreRuntimePackageDirectory>$(PkgMicrosoft_AspNetCore_App_Runtime_win-x64)</AspNetCoreRuntimePackageDirectory>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-arm64'">
-      <PropertyGroup>
-        <AspNetCoreRuntimePackageDirectory>$(PkgMicrosoft_AspNetCore_App_Runtime_win-arm64)</AspNetCoreRuntimePackageDirectory>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'linux-x64'">
-      <PropertyGroup>
-        <AspNetCoreRuntimePackageDirectory>$(PkgMicrosoft_AspNetCore_App_Runtime_linux-x64)</AspNetCoreRuntimePackageDirectory>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'osx-x64'">
-      <PropertyGroup>
-        <AspNetCoreRuntimePackageDirectory>$(PkgMicrosoft_AspNetCore_App_Runtime_osx-x64)</AspNetCoreRuntimePackageDirectory>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'osx-arm64'">
-      <PropertyGroup>
-        <AspNetCoreRuntimePackageDirectory>$(PkgMicrosoft_AspNetCore_App_Runtime_osx-arm64)</AspNetCoreRuntimePackageDirectory>
-      </PropertyGroup>
-    </When>
-  </Choose>
-
-  <PropertyGroup Condition="'$(AspNetCoreRuntimePackageDirectory)' != ''">
-    <AspNetCoreRuntimeAssemblyDirectory>$(AspNetCoreRuntimePackageDirectory)\runtimes\$(NetCoreSDKRuntimeIdentifier)\lib\net10.0</AspNetCoreRuntimeAssemblyDirectory>
-  </PropertyGroup>
-
-  <ItemGroup Condition="'$(AspNetCoreRuntimeAssemblyDirectory)' != ''">
-    <!-- These assemblies are already supplied by NuGet dependencies. -->
-    <None Include="$(AspNetCoreRuntimeAssemblyDirectory)\*.dll"
-          Exclude="$(AspNetCoreRuntimeAssemblyDirectory)\System.Diagnostics.EventLog.dll;
-                   $(AspNetCoreRuntimeAssemblyDirectory)\System.Security.Cryptography.Pkcs.dll;
-                   $(AspNetCoreRuntimeAssemblyDirectory)\Microsoft.Extensions.Logging.Abstractions.dll;
-                   $(AspNetCoreRuntimeAssemblyDirectory)\Microsoft.Extensions.DependencyInjection.Abstractions.dll"
-          CopyToOutputDirectory="PreserveNewest"
-          TargetPath="%(Filename)%(Extension)"
-          Visible="false" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

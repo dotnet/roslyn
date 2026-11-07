@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities;
 
@@ -29,17 +28,8 @@ internal sealed partial class TestExportJoinableTaskContext
     {
         DispatcherTaskJoiner = dispatcherTaskJoiner;
 
-        var synchronizationContext = SynchronizationContext.Current;
-        try
-        {
-            SynchronizationContext.SetSynchronizationContext(GetEffectiveSynchronizationContext());
-            (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext(dispatcherTaskJoiner);
-            ResetThreadAffinity(JoinableTaskContext.Factory);
-        }
-        finally
-        {
-            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
-        }
+        (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext(dispatcherTaskJoiner);
+        ResetThreadAffinity(JoinableTaskContext.Factory);
     }
 
     private static (JoinableTaskContext joinableTaskContext, SynchronizationContext synchronizationContext) CreateJoinableTaskContext(IDispatcherTaskJoiner? dispatcherTaskJoiner)
@@ -81,26 +71,6 @@ internal sealed partial class TestExportJoinableTaskContext
     internal SynchronizationContext SynchronizationContext
     {
         get;
-    }
-
-    internal static SynchronizationContext? GetEffectiveSynchronizationContext()
-    {
-        if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
-        {
-            SynchronizationContext? innerSynchronizationContext = null;
-            asyncTestSyncContext.Send(
-                _ =>
-                {
-                    innerSynchronizationContext = SynchronizationContext.Current;
-                },
-                null);
-
-            return innerSynchronizationContext == asyncTestSyncContext ? null : innerSynchronizationContext;
-        }
-        else
-        {
-            return SynchronizationContext.Current;
-        }
     }
 
     /// <summary>

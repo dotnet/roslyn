@@ -402,11 +402,17 @@ End Namespace
     Checks assumptions made by TestUsingOptimizedRunner function in build.ps1.
   -->
   <Target Name="_CheckTestProjectTargetFileName" BeforeTargets="Build" Condition="'$(TargetFramework)' != ''">
-    <Error Text="Unit test project TargetFileName must end with '.UnitTests.dll': '$(TargetFileName)'"
-           Condition="$(IsUnitTestProject) != $(TargetFileName.EndsWith('.UnitTests.dll'))" />
+    <PropertyGroup>
+      <_UnitTestFileNameMatches>false</_UnitTestFileNameMatches>
+      <_UnitTestFileNameMatches Condition="$(TargetFileName.EndsWith('.UnitTests.dll')) or $(TargetFileName.EndsWith('.UnitTests.exe'))">true</_UnitTestFileNameMatches>
+      <_IntegrationTestFileNameMatches>false</_IntegrationTestFileNameMatches>
+      <_IntegrationTestFileNameMatches Condition="$(TargetFileName.EndsWith('.IntegrationTests.dll')) or $(TargetFileName.EndsWith('.IntegrationTests.exe'))">true</_IntegrationTestFileNameMatches>
+    </PropertyGroup>
+    <Error Text="Unit test project TargetFileName must end with '.UnitTests.dll' or '.UnitTests.exe': '$(TargetFileName)'"
+           Condition="$(IsUnitTestProject) != $(_UnitTestFileNameMatches)" />
 
-    <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll': '$(TargetFileName)'"
-           Condition="$(IsIntegrationTestProject) != $(TargetFileName.EndsWith('.IntegrationTests.dll'))" />
+    <Error Text="Unit test project TargetFileName must end with '.IntegrationTests.dll' or '.IntegrationTests.exe': '$(TargetFileName)'"
+           Condition="$(IsIntegrationTestProject) != $(_IntegrationTestFileNameMatches)" />
   </Target>
 
   <!-- Work around for https://github.com/dotnet/sdk/issues/10591 -->

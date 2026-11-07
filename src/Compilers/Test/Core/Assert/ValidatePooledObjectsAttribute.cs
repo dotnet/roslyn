@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Xunit;
 using Xunit.Sdk;
+using Xunit.v3;
 using Microsoft.CodeAnalysis;
 
 #if DEBUG
@@ -61,7 +62,7 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     private PoolTrackingContext? _context;
 #endif
 
-    public override void Before(MethodInfo methodUnderTest)
+    public override void Before(MethodInfo methodUnderTest, IXunitTest test)
     {
 #if DEBUG
         if (Skip is not null)
@@ -83,7 +84,7 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
 #endif
     }
 
-    public override void After(MethodInfo methodUnderTest)
+    public override void After(MethodInfo methodUnderTest, IXunitTest test)
     {
 #if DEBUG
         if (Skip is not null)

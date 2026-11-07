@@ -1513,7 +1513,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 {{
 {string.Join(Environment.NewLine, usings.Select(u => $"    using {u};"))}
 
-    internal abstract class InProcComponent : IAsyncLifetime
+    internal abstract class InProcComponent : IAsyncLifetime, System.IAsyncDisposable
     {{
         protected InProcComponent(TestServices testServices)
         {{
@@ -1524,19 +1524,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
 
-        Task IAsyncLifetime.InitializeAsync()
+        ValueTask IAsyncLifetime.InitializeAsync()
         {{
             return InitializeCoreAsync();
         }}
 
-        Task IAsyncLifetime.DisposeAsync()
+        ValueTask System.IAsyncDisposable.DisposeAsync()
         {{
-            return Task.CompletedTask;
+            return default;
         }}
 
-        protected virtual Task InitializeCoreAsync()
+        protected virtual ValueTask InitializeCoreAsync()
         {{
-            return Task.CompletedTask;
+            return default;
         }}
 
         protected async Task<TInterface> GetRequiredGlobalServiceAsync<TService, TInterface>(CancellationToken cancellationToken)
@@ -1753,13 +1753,12 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     }
 
                     usings2.Add("global::Xunit");
+                    usings2.Add("global::Xunit.v3");
 
                     if (!referenceDataModel.HasThreadHelperJoinableTaskContext)
                     {
                         usings2.Add("global::Xunit.Harness");
                     }
-
-                    usings2.Add("global::Xunit.Sdk");
 
                     if (referenceDataModel.HasThreadHelperJoinableTaskContext)
                     {
@@ -1769,9 +1768,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
                     {
                         usings2.Add("Microsoft.VisualStudio.Shell.Interop");
                     }
-
                     usings2.Add("Microsoft.VisualStudio.Threading");
-                    usings2.Add("Task = System.Threading.Tasks.Task");
 
                     string joinableTaskContextInitializer;
                     if (referenceDataModel.HasThreadHelperJoinableTaskContext)
@@ -1819,11 +1816,10 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     /// <item><description><see cref=""BeforeAfterTestAttribute.Before""/></description></item>
     /// <item><description>Test method</description></item>
     /// <item><description><see cref=""BeforeAfterTestAttribute.After""/></description></item>
-    /// <item><description><see cref=""IAsyncLifetime.DisposeAsync""/></description></item>
-    /// <item><description><see cref=""IDisposable.Dispose""/></description></item>
+    /// <item><description><see cref=""System.IAsyncDisposable.DisposeAsync""/></description></item>
     /// </list>
     /// </remarks>
-    public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, IDisposable
+    public abstract class AbstractIdeIntegrationTest : IAsyncLifetime, System.IAsyncDisposable
     {{
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
@@ -1926,39 +1922,36 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             => _cleanupCancellationTokenSource.Token;
 
         /// <inheritdoc/>
-        public virtual async Task InitializeAsync()
+        public virtual async ValueTask InitializeAsync()
         {{
             TestServices = await CreateTestServicesAsync();
         }}
 
         /// <summary>
-        /// This method implements <see cref=""IAsyncLifetime.DisposeAsync""/>, and is used for releasing resources
+        /// This method implements <see cref=""System.IAsyncDisposable.DisposeAsync""/>, and is used for releasing resources
         /// created by <see cref=""IAsyncLifetime.InitializeAsync""/>. This method is only called if
         /// <see cref=""InitializeAsync""/> completes successfully.
         /// </summary>
-        public virtual async Task DisposeAsync()
+        public virtual async ValueTask DisposeAsync()
         {{
-            _cleanupCancellationTokenSource.CancelAfter(CleanupHangMitigatingTimeout);
-
-            await TestServices.SolutionExplorer.CloseSolutionAsync(CleanupCancellationToken);
-
-            if (_joinableTaskCollection is object)
+            try
             {{
-                {joinTillEmpty}
+                _cleanupCancellationTokenSource.CancelAfter(CleanupHangMitigatingTimeout);
+
+                await TestServices.SolutionExplorer.CloseSolutionAsync(CleanupCancellationToken);
+
+                if (_joinableTaskCollection is object)
+                {{
+                    {joinTillEmpty}
+                }}
+
+                JoinableTaskContext = null;
             }}
-
-            JoinableTaskContext = null;
-        }}
-
-        /// <summary>
-        /// This method provides the implementation for <see cref=""IDisposable.Dispose""/>.
-        /// This method is called via the <see cref=""IDisposable""/> interface if the constructor completes successfully.
-        /// The <see cref=""InitializeAsync""/> may or may not have completed successfully.
-        /// </summary>
-        public virtual void Dispose()
-        {{
-            _hangMitigatingCancellationTokenSource.Dispose();
-            _cleanupCancellationTokenSource.Dispose();
+            finally
+            {{
+                _hangMitigatingCancellationTokenSource.Dispose();
+                _cleanupCancellationTokenSource.Dispose();
+            }}
         }}
 
         private protected virtual async Task<TestServices> CreateTestServicesAsync()

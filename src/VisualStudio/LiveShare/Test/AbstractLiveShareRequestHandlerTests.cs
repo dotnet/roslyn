@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.LiveShare.LanguageServices;
 using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests;
 

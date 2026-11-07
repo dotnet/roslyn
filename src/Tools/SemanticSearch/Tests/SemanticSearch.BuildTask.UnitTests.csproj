@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>

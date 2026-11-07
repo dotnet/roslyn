@@ -3,7 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
-Imports Xunit.Abstractions
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
     <UseExportProvider>
