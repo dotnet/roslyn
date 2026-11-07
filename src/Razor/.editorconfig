@@ -37,7 +37,8 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
 # IDE0005 - Remove unnecessary imports
-dotnet_diagnostic.IDE0005.severity = warning
+# Disabled because test files keep `using Xunit.Abstractions;`, which only resolves through a placeholder type.
+dotnet_diagnostic.IDE0005.severity = none
 
 # IDE0052 - Private member can be removed
 dotnet_diagnostic.IDE0052.severity = warning
