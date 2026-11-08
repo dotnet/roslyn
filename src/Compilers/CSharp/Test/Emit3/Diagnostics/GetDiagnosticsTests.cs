@@ -656,6 +656,40 @@ class C
         }
 
         [Fact]
+        public async Task TestCompilerAnalyzerSingleFileAnalysisDoesNotRetainCompilationEvents()
+        {
+            var source1 = @"
+class C
+{
+    void M()
+    {
+        int x;
+        new D().N();
+    }
+}
+";
+            var source2 = @"
+class D
+{
+    public void N() { }
+    public int P { get; set; }
+    public event System.Action E;
+}
+";
+            var compilation = CreateCompilation(new[] { source1, source2 });
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
+
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                var model = compilation.GetSemanticModel(tree);
+                _ = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
+            }
+
+            Assert.Equal(0, compilationWithAnalyzers.Compilation.EventQueue!.Count);
+        }
+
+        [Fact]
         [WorkItem(42116, "https://github.com/dotnet/roslyn/issues/42116")]
         public async Task TestAnalyzerConfigurationDoesNotAffectCompilerDiagnostics()
         {

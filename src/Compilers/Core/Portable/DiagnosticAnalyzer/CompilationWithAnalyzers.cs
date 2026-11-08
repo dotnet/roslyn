@@ -803,6 +803,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     finally
                     {
                         builder.Free();
+
+                        if (analysisScope.IsSingleFileAnalysisForCompilerAnalyzer)
+                        {
+                            while (compilation.EventQueue!.TryDequeue(out _))
+                            {
+                            }
+                        }
                     }
                 }
             }
