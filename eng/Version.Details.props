@@ -21,7 +21,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftExtensionsOptionsPackageVersion>10.0.10</MicrosoftExtensionsOptionsPackageVersion>
     <MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>10.0.10</MicrosoftExtensionsOptionsConfigurationExtensionPackageVersion>
     <MicrosoftExtensionsPrimitivesPackageVersion>10.0.10</MicrosoftExtensionsPrimitivesPackageVersion>
-    <NuGetVersioningPackageVersion>8.0.0-rc.48205</NuGetVersioningPackageVersion>
+    <NuGetVersioningPackageVersion>8.2.0-rc.5713</NuGetVersioningPackageVersion>
     <SystemCodeDomPackageVersion>10.0.10</SystemCodeDomPackageVersion>
     <SystemCollectionsImmutablePackageVersion>10.0.10</SystemCollectionsImmutablePackageVersion>
     <SystemCommandLinePackageVersion>3.0.0-rtm.26480.105</SystemCommandLinePackageVersion>
@@ -34,7 +34,9 @@ This file should be imported by eng/Versions.props
     <SystemIOPipelinesPackageVersion>10.0.10</SystemIOPipelinesPackageVersion>
     <SystemReflectionMetadataPackageVersion>10.0.10</SystemReflectionMetadataPackageVersion>
     <SystemResourcesExtensionsPackageVersion>10.0.10</SystemResourcesExtensionsPackageVersion>
+    <SystemSecurityCryptographyPkcsPackageVersion>10.0.10</SystemSecurityCryptographyPkcsPackageVersion>
     <SystemSecurityCryptographyProtectedDataPackageVersion>10.0.10</SystemSecurityCryptographyProtectedDataPackageVersion>
+    <SystemSecurityCryptographyXmlPackageVersion>10.0.10</SystemSecurityCryptographyXmlPackageVersion>
     <SystemSecurityPermissionsPackageVersion>10.0.10</SystemSecurityPermissionsPackageVersion>
     <SystemTextEncodingsWebPackageVersion>10.0.10</SystemTextEncodingsWebPackageVersion>
     <SystemTextJsonPackageVersion>10.0.10</SystemTextJsonPackageVersion>
@@ -81,7 +83,9 @@ This file should be imported by eng/Versions.props
     <SystemIOPipelinesVersion>$(SystemIOPipelinesPackageVersion)</SystemIOPipelinesVersion>
     <SystemReflectionMetadataVersion>$(SystemReflectionMetadataPackageVersion)</SystemReflectionMetadataVersion>
     <SystemResourcesExtensionsVersion>$(SystemResourcesExtensionsPackageVersion)</SystemResourcesExtensionsVersion>
+    <SystemSecurityCryptographyPkcsVersion>$(SystemSecurityCryptographyPkcsPackageVersion)</SystemSecurityCryptographyPkcsVersion>
     <SystemSecurityCryptographyProtectedDataVersion>$(SystemSecurityCryptographyProtectedDataPackageVersion)</SystemSecurityCryptographyProtectedDataVersion>
+    <SystemSecurityCryptographyXmlVersion>$(SystemSecurityCryptographyXmlPackageVersion)</SystemSecurityCryptographyXmlVersion>
     <SystemSecurityPermissionsVersion>$(SystemSecurityPermissionsPackageVersion)</SystemSecurityPermissionsVersion>
     <SystemTextEncodingsWebVersion>$(SystemTextEncodingsWebPackageVersion)</SystemTextEncodingsWebVersion>
     <SystemTextJsonVersion>$(SystemTextJsonPackageVersion)</SystemTextJsonVersion>
