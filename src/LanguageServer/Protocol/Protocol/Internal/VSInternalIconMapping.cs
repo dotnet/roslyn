@@ -78,12 +78,14 @@ internal sealed class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
 
     private static bool CheckImagesAreEqual(VSImageId[]? current, VSImageId[]? other)
     {
-        if (current?.Length != other?.Length)
+        if (current == null ^ other == null)
         {
             return false;
         }
 
-        if (current != null && other != null)
+        if (current != null &&
+            other != null &&
+            current.Length == other.Length)
         {
             for (var i = 0; i < current.Length; i++)
             {
@@ -104,12 +106,14 @@ internal sealed class VSInternalIconMapping : IEquatable<VSInternalIconMapping>
 
     private static bool CheckTagsAreEqual(string[]? current, string[]? other)
     {
-        if (current?.Length != other?.Length)
+        if (current == null ^ other == null)
         {
             return false;
         }
 
-        if (current != null && other != null)
+        if (current != null &&
+            other != null &&
+            current.Length == other.Length)
         {
             for (var i = 0; i < current.Length; i++)
             {

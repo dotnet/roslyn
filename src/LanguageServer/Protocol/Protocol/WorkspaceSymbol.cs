@@ -54,7 +54,6 @@ internal sealed class WorkspaceSymbol
     /// <seealso cref="SymbolInformation.Location"/>
     [JsonPropertyName("location")]
     [JsonRequired]
-    [JsonConverter(typeof(WorkspaceSymbolLocationConverter))]
     public SumType<Location, WorkspaceSymbolLocation> Location { get; init; }
 
     /// <summary>
