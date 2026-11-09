@@ -48377,7 +48377,7 @@ class Program
             // This output is expected. For consistency with legacy extension methods, receiver for extension block methods is
             // treated as a regular parameter for the purpose of lowering and IL generation. Therefore, it is expected to be dereferenced
             // before arguments are evaluated. 
-            // Receviers of extension properties and indexers are expected to be treated more like true receivers
+            // Receivers of extension properties and indexers are expected to be treated more like true receivers
             // since there was no legacy behavior to maintain.
             var expectedOutput = "originaloriginal";
             var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
