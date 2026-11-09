@@ -327,6 +327,87 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Returns the index of <paramref name="child"/> in the children of <paramref name="parent"/>, or -1 if
+        /// <paramref name="child"/> is not one of them.
+        /// </summary>
+        /// <remarks>
+        /// Uses the position of <paramref name="child"/> to go straight to the slot (and list element) that holds it,
+        /// so the cost does not grow with the number of children that come before it.
+        /// </remarks>
+        internal static int IndexOf(SyntaxNode parent, SyntaxNode child)
+        {
+            var green = parent.Green;
+            var targetPosition = child.Position;
+            var position = parent.Position;
+            var index = 0;
+
+            for (int slot = 0, slotCount = green.SlotCount; slot < slotCount; slot++)
+            {
+                var greenChild = green.GetSlot(slot);
+                if (greenChild == null)
+                {
+                    continue;
+                }
+
+                if (targetPosition < position)
+                {
+                    break;
+                }
+
+                // A zero-width child can sit at the end of one slot or at the start of the next one, so both get checked.
+                var endPosition = position + greenChild.FullWidth;
+                if (targetPosition <= endPosition)
+                {
+                    if (!greenChild.IsList)
+                    {
+                        if (greenChild == child.Green && parent.GetNodeSlot(slot) == child)
+                        {
+                            return index;
+                        }
+                    }
+                    else if (greenChild.SlotCount > 0 && parent.GetNodeSlot(slot) is { } redList)
+                    {
+                        var indexInList = IndexOfInList(greenChild, redList, targetPosition - position, child);
+                        if (indexInList >= 0)
+                        {
+                            return index + indexInList;
+                        }
+                    }
+                }
+
+                position = endPosition;
+                index += Occupancy(greenChild);
+            }
+
+            return -1;
+        }
+
+        private static int IndexOfInList(GreenNode greenList, SyntaxNode redList, int offset, SyntaxNode child)
+        {
+            // Start with the element that contains the offset (or the last one, when the child is a zero-width element
+            // at the end of the list). Zero-width elements just before it start at the same offset, so look at those too.
+            var elementIndex = offset < greenList.FullWidth
+                ? greenList.FindSlotIndexContainingOffset(offset)
+                : greenList.SlotCount - 1;
+
+            for (; elementIndex >= 0; elementIndex--)
+            {
+                var greenElement = greenList.GetSlot(elementIndex);
+                if (greenElement == child.Green && redList.GetNodeSlot(elementIndex) == child)
+                {
+                    return elementIndex;
+                }
+
+                if (elementIndex == 0 || greenList.GetSlot(elementIndex - 1)?.FullWidth != 0)
+                {
+                    break;
+                }
+            }
+
+            return -1;
+        }
+
+        /// <summary>
         /// internal indexer that does not verify index.
         /// Used when caller has already ensured that index is within bounds.
         /// </summary>
