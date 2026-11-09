@@ -35,9 +35,10 @@
 
     <!--
       NU5100: Since this is not a standard nuget package and is only consumed by the extension build, we don't care if the folder structure doesn't match what nuget expects.
+      NU5123: Package might not work without long file path support.
       NETSDK1206: Until we move to a newer release of the SQLitePCLRaw packages (2.1.6+) that removes the libs for alpine RIDs, we have to ignore the SDK warning about distribution specific RIDs.
     -->
-    <NoWarn>$(NoWarn);NU5100;NETSDK1206</NoWarn>
+    <NoWarn>$(NoWarn);NU5100;NU5123;NETSDK1206</NoWarn>
 
     <!-- Publishing settings -->
     <SelfContained>false</SelfContained>
