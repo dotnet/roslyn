@@ -21,8 +21,8 @@ internal abstract class CodeGenerationSymbol : ISymbol
     private readonly ImmutableArray<AttributeData> _attributes;
     protected readonly string _documentationCommentXml;
 
-    // Indicates whether this symbol follows the updated memory safety rules.
-    internal bool UsesUpdatedMemorySafetyRules { get; }
+    // Indicates whether this symbol follows version 2 memory safety rules.
+    internal bool UsesMemorySafetyRulesVersion2 { get; }
     public Accessibility DeclaredAccessibility { get; }
     protected internal DeclarationModifiers Modifiers { get; }
     public string Name { get; }
@@ -37,7 +37,7 @@ internal abstract class CodeGenerationSymbol : ISymbol
         string name,
         string documentationCommentXml = null,
         bool requiresUnsafeContext = false,
-        bool usesUpdatedMemorySafetyRules = false)
+        bool usesMemorySafetyRulesVersion2 = false)
     {
         this.ContainingAssembly = containingAssembly;
         this.ContainingType = containingType;
@@ -45,7 +45,7 @@ internal abstract class CodeGenerationSymbol : ISymbol
         this.DeclaredAccessibility = declaredAccessibility;
         this.Modifiers = modifiers;
         this.RequiresUnsafeContext = requiresUnsafeContext;
-        this.UsesUpdatedMemorySafetyRules = usesUpdatedMemorySafetyRules;
+        this.UsesMemorySafetyRulesVersion2 = usesMemorySafetyRulesVersion2;
         this.Name = name;
         _documentationCommentXml = documentationCommentXml;
     }

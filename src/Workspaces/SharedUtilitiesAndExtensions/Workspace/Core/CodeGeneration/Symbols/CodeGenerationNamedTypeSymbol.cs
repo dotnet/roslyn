@@ -36,8 +36,8 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
         ImmutableArray<ISymbol> members,
         ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
         INamedTypeSymbol enumUnderlyingType,
-        bool usesUpdatedMemorySafetyRules = false)
-        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, typeMembers, usesUpdatedMemorySafetyRules)
+        bool usesMemorySafetyRulesVersion2 = false)
+        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, typeMembers, usesMemorySafetyRulesVersion2)
     {
         IsRecord = isRecord;
         TypeKind = typeKind;
@@ -56,7 +56,7 @@ internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractName
             this.ContainingAssembly, this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.IsRecord, this.TypeKind, this.Name, _typeParameters, this.BaseType,
             _interfaces, this.SpecialType, nullableAnnotation, _members, this.TypeMembers,
-            this.EnumUnderlyingType, this.UsesUpdatedMemorySafetyRules);
+            this.EnumUnderlyingType, this.UsesMemorySafetyRulesVersion2);
     }
 
     public override bool IsRecord { get; }

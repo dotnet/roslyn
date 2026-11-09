@@ -347,7 +347,7 @@ internal abstract partial class AbstractEncapsulateFieldService<
         var propertySymbol = annotation.AddAnnotationToSymbol(CodeGenerationSymbolFactory.CreatePropertySymbol(containingType: containingSymbol,
             attributes: [],
             accessibility: ComputeAccessibility(accessibility, field.Type),
-            modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.RequiresUnsafeModifierUnderLegacyRules()),
+            modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.RequiresUnsafeModifierUnderVersion1Rules()),
             type: field.Type,
             refKind: RefKind.None,
             explicitInterfaceImplementations: default,

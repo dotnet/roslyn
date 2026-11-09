@@ -18,11 +18,11 @@ internal static class ImplementHelpers
 {
     public static bool RequiresUnsafeModifierForImplementationSignature(ISymbol member, SyntaxNode contextNode, ISyntaxFactsService syntaxFacts)
     {
-        // Under unsafe evolution, pointer-containing signatures do not require an unsafe context.
-        if (syntaxFacts.SupportsUnsafeEvolution(contextNode.SyntaxTree.Options))
+        // Under unsafe V2, pointer-containing signatures do not require an unsafe context.
+        if (syntaxFacts.SupportsUnsafeV2(contextNode.SyntaxTree.Options))
             return false;
 
-        if (!member.RequiresUnsafeModifierUnderLegacyRules())
+        if (!member.RequiresUnsafeModifierUnderVersion1Rules())
             return false;
 
         return !syntaxFacts.IsUnsafeContext(contextNode);

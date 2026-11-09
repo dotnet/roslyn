@@ -121,7 +121,7 @@ public sealed class ImplementInterfaceCodeFixTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 
-    private static Solution EnableUpdatedMemorySafetyRules(Solution solution, ProjectId projectId)
+    private static Solution EnableMemorySafetyRulesVersion2(Solution solution, ProjectId projectId)
     {
         var options = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
         return solution.WithProjectCompilationOptions(
@@ -216,11 +216,11 @@ public sealed class ImplementInterfaceCodeFixTests
                 """,
             LanguageVersion = LanguageVersion.Preview,
             Options = { AllOptionsOff },
-            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+            SolutionTransforms = { EnableMemorySafetyRulesVersion2 },
         }.RunAsync();
 
     [Fact]
-    public Task TestLegacyPointerPropertySafety()
+    public Task TestVersion1PointerPropertySafety()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -271,7 +271,7 @@ public sealed class ImplementInterfaceCodeFixTests
     [Theory]
     [InlineData(LanguageVersion.CSharp15, true)]
     [InlineData(LanguageVersion.Preview, false)]
-    public Task TestSafePointerSignatureFromUpdatedRulesMetadata(LanguageVersion languageVersion, bool needsUnsafe)
+    public Task TestSafePointerSignatureFromVersion2RulesMetadata(LanguageVersion languageVersion, bool needsUnsafe)
     {
         var metadataReference = CSharpCompilation.Create("Interface",
             [CSharpSyntaxTree.ParseText("public interface I { int* M(); unsafe void N(); }", new CSharpParseOptions(LanguageVersion.Preview))],
@@ -370,7 +370,7 @@ public sealed class ImplementInterfaceCodeFixTests
                 """,
             LanguageVersion = LanguageVersion.Preview,
             Options = { AllOptionsOff },
-            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+            SolutionTransforms = { EnableMemorySafetyRulesVersion2 },
         }.RunAsync();
     }
 

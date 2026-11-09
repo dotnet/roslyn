@@ -212,7 +212,7 @@ internal sealed class ImplementAbstractClassData(
                 accessibility: property.GetMethod.ComputeResultantAccessibility(ClassType),
                 statements: generator.GetGetAccessorStatements(
                     compilation, property, conflictingProperty: null, throughMember, preferAutoProperties),
-                modifiers: property.GetMethod.UsesUpdatedMemorySafetyRules()
+                modifiers: property.GetMethod.UsesMemorySafetyRulesVersion2()
                     ? property.GetMethod.GetSymbolModifiers().WithIsUnsafe(false).WithIsSafe(false)
                     : null)
             : null;
@@ -224,7 +224,7 @@ internal sealed class ImplementAbstractClassData(
                 accessibility: property.SetMethod.ComputeResultantAccessibility(ClassType),
                 statements: generator.GetSetAccessorStatements(
                     compilation, property, conflictingProperty: null, throughMember, preferAutoProperties),
-                modifiers: property.SetMethod.UsesUpdatedMemorySafetyRules()
+                modifiers: property.SetMethod.UsesMemorySafetyRulesVersion2()
                     ? property.SetMethod.GetSymbolModifiers().WithIsUnsafe(false).WithIsSafe(false)
                     : null)
             : null;

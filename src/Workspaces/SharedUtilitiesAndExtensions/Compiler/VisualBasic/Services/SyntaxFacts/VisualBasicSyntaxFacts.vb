@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return False
         End Function
 
-        Public Function SupportsUnsafeEvolution(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsUnsafeEvolution
+        Public Function SupportsUnsafeV2(options As ParseOptions) As Boolean Implements ISyntaxFacts.SupportsUnsafeV2
             Return False
         End Function
 

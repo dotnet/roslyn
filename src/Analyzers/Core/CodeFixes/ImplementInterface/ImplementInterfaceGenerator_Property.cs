@@ -116,7 +116,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property.SetMethod] : default,
                 statements: GetSetAccessorStatements(
                     compilation, property, conflictingProperty, generateAbstractly, propertyGenerationBehavior),
-                modifiers: setMethod.UsesUpdatedMemorySafetyRules()
+                modifiers: setMethod.UsesMemorySafetyRulesVersion2()
                     ? setMethod.GetSymbolModifiers().WithIsUnsafe(false).WithIsSafe(false)
                     : null);
         }
@@ -145,7 +145,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 explicitInterfaceImplementations: useExplicitInterfaceSymbol ? [property.GetMethod] : default,
                 statements: GetGetAccessorStatements(
                     compilation, property, conflictingProperty, generateAbstractly, propertyGenerationBehavior),
-                modifiers: getMethod.UsesUpdatedMemorySafetyRules()
+                modifiers: getMethod.UsesMemorySafetyRulesVersion2()
                     ? getMethod.GetSymbolModifiers().WithIsUnsafe(false).WithIsSafe(false)
                     : null);
         }

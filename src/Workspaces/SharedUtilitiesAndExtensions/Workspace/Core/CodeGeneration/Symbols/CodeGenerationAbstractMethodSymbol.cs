@@ -27,9 +27,9 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
         string name,
         ImmutableArray<AttributeData> returnTypeAttributes,
         bool requiresUnsafeContext,
-        bool usesUpdatedMemorySafetyRules,
+        bool usesMemorySafetyRulesVersion2,
         string documentationCommentXml = null)
-        : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml, requiresUnsafeContext, usesUpdatedMemorySafetyRules)
+        : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml, requiresUnsafeContext, usesMemorySafetyRulesVersion2)
     {
         _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
     }

@@ -107,7 +107,7 @@ internal sealed class CSharpUseTupleSwapDiagnosticAnalyzer : AbstractBuiltInCode
         // Can't swap ref-structs.
         var semanticModel = syntaxContext.SemanticModel;
         var local = (ILocalSymbol)semanticModel.GetRequiredDeclaredSymbol(variableDeclarator, cancellationToken);
-        if (local.Type.IsRefLikeType || local.Type.RequiresUnsafeModifierUnderLegacyRules())
+        if (local.Type.IsRefLikeType || local.Type.RequiresUnsafeModifierUnderVersion1Rules())
             return;
 
         var additionalLocations = ImmutableArray.Create(

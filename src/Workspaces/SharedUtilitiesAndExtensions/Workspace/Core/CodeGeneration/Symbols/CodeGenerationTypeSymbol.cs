@@ -20,8 +20,8 @@ internal abstract class CodeGenerationTypeSymbol(
     string name,
     SpecialType specialType,
     NullableAnnotation nullableAnnotation,
-    bool usesUpdatedMemorySafetyRules = false)
-    : CodeGenerationNamespaceOrTypeSymbol(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, usesUpdatedMemorySafetyRules), ITypeSymbol
+    bool usesMemorySafetyRulesVersion2 = false)
+    : CodeGenerationNamespaceOrTypeSymbol(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, usesMemorySafetyRulesVersion2), ITypeSymbol
 {
     public SpecialType SpecialType { get; protected set; } = specialType;
 

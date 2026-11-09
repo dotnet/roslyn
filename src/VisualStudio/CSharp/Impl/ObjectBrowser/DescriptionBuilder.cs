@@ -264,7 +264,7 @@ internal sealed class DescriptionBuilder(
             BuildAccessibility(memberSymbol);
         }
 
-        if (memberSymbol.RequiresUnsafeModifierUnderLegacyRules())
+        if (memberSymbol.RequiresUnsafeModifierUnderVersion1Rules())
         {
             AddText("unsafe ");
         }

@@ -96,7 +96,7 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             var isUnsafe = false;
             if (!State.IsContainedInUnsafeType)
             {
-                isUnsafe = returnType.RequiresUnsafeModifierUnderLegacyRules() || parameters.Any(static p => p.Type.RequiresUnsafeModifierUnderLegacyRules());
+                isUnsafe = returnType.RequiresUnsafeModifierUnderVersion1Rules() || parameters.Any(static p => p.Type.RequiresUnsafeModifierUnderVersion1Rules());
             }
 
             var knownTypes = new KnownTaskTypes(Document.SemanticModel.Compilation);

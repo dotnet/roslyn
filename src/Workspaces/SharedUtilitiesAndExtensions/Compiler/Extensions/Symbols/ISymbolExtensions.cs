@@ -476,12 +476,12 @@ internal static partial class ISymbolExtensions
         => (symbol as ITypeSymbol)?.IsAttribute() == true;
 
     /// <summary>
-    /// Under legacy memory safety rules, returns <see langword="true"/> if the signature of
+    /// Under version 1 memory safety rules, returns <see langword="true"/> if the signature of
     /// this symbol requires the <see langword="unsafe"/> modifier.  For example a method that
     /// takes <c>List&lt;int*[]&gt;</c> is unsafe, as is <c>int* Goo { get; }</c>. This will
     /// return <see langword="false"/> for symbols that cannot have the <see langword="unsafe"/> modifier on them.
     /// </summary>
-    public static bool RequiresUnsafeModifierUnderLegacyRules([NotNullWhen(true)] this ISymbol? member)
+    public static bool RequiresUnsafeModifierUnderVersion1Rules([NotNullWhen(true)] this ISymbol? member)
     {
         // TODO(cyrusn): Defer to compiler code to handle this once it can.
         return member?.Accept(new RequiresUnsafeModifierVisitor()) == true;

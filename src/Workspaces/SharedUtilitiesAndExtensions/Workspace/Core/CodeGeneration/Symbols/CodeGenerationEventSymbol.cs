@@ -20,7 +20,7 @@ internal sealed class CodeGenerationEventSymbol(
     IMethodSymbol? removeMethod,
     IMethodSymbol? raiseMethod,
     bool requiresUnsafeContext,
-    bool usesUpdatedMemorySafetyRules) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, requiresUnsafeContext: requiresUnsafeContext, usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules), IEventSymbol
+    bool usesMemorySafetyRulesVersion2) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, requiresUnsafeContext: requiresUnsafeContext, usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2), IEventSymbol
 {
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
@@ -36,9 +36,9 @@ internal sealed class CodeGenerationEventSymbol(
         var result = new CodeGenerationEventSymbol(
             this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.Type, this.ExplicitInterfaceImplementations,
-            this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod, this.RequiresUnsafeContext, this.UsesUpdatedMemorySafetyRules);
-        // V2 needs the storage requirement; leave legacy event-clone output unchanged.
-        if (this.UsesUpdatedMemorySafetyRules)
+            this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod, this.RequiresUnsafeContext, this.UsesMemorySafetyRulesVersion2);
+        // V2 needs the storage requirement; leave V1 event-clone output unchanged.
+        if (this.UsesMemorySafetyRulesVersion2)
         {
             CodeGenerationEventInfo.Attach(result,
                 CodeGenerationEventInfo.GetIsUnsafe(this),

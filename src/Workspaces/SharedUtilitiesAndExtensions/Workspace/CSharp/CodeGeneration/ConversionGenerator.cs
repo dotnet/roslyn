@@ -112,7 +112,7 @@ internal static class ConversionGenerator
         if (destination is CodeGenerationDestination.InterfaceType || method.IsAbstract)
             tokens.Add(AbstractKeyword);
 
-        AddSafetyModifierTokens(method, tokens, emitUnsafeForLegacyRules: false);
+        AddSafetyModifierTokens(method, tokens, emitUnsafeForVersion1Rules: false);
 
         return [.. tokens.ToImmutableAndClear()];
     }

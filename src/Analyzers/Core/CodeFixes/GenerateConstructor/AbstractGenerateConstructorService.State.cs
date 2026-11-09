@@ -431,7 +431,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var delegatingArguments = this.GetRequiredLanguageService<SyntaxGenerator>(TypeToGenerateIn.Language).CreateArguments(_delegatedConstructor.Parameters);
 
             var newParameters = _delegatedConstructor.Parameters.Concat(_parameters);
-            var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifierUnderLegacyRules());
+            var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifierUnderVersion1Rules());
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
@@ -460,9 +460,9 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
 
-            var usesUpdatedMemorySafetyRules = TypeToGenerateIn.UsesUpdatedMemorySafetyRules();
-            var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType, usesUpdatedMemorySafetyRules) :
-                          withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType, usesUpdatedMemorySafetyRules) :
+            var usesMemorySafetyRulesVersion2 = TypeToGenerateIn.UsesMemorySafetyRulesVersion2();
+            var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType, usesMemorySafetyRulesVersion2) :
+                          withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType, usesMemorySafetyRulesVersion2) :
                           [];
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

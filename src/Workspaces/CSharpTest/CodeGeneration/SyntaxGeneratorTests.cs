@@ -51,7 +51,7 @@ public sealed class SyntaxGeneratorTests
             .AddSyntaxTrees(ParseSyntaxTree(code));
     }
 
-    private CSharpCompilation CompileWithUpdatedMemorySafetyRules(
+    private CSharpCompilation CompileWithMemorySafetyRulesVersion2(
         [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string code)
         => CSharpCompilation.Create("Safety",
             [ParseSyntaxTree(code, new CSharpParseOptions(LanguageVersion.Preview))],
@@ -5798,7 +5798,7 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestMemorySafetyRulesModifiersFromMetadata()
     {
-        var compilation = CompileWithUpdatedMemorySafetyRules("""
+        var compilation = CompileWithMemorySafetyRulesVersion2("""
             public class C
             {
                 public unsafe void Marked() { }
@@ -5819,7 +5819,7 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestLayoutSafetyModifiersFollowGeneratedStorage()
     {
-        var compilation = CompileWithUpdatedMemorySafetyRules("""
+        var compilation = CompileWithMemorySafetyRulesVersion2("""
             using System.Runtime.InteropServices;
             [StructLayout(LayoutKind.Sequential, Pack = 1)]
             public struct S
@@ -5855,7 +5855,7 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestExplicitLayoutFieldRequiresSafeFromMetadata()
     {
-        var compilation = CompileWithUpdatedMemorySafetyRules("""
+        var compilation = CompileWithMemorySafetyRulesVersion2("""
             using System.Runtime.InteropServices;
             [StructLayout(LayoutKind.Explicit)]
             public struct S
@@ -5877,7 +5877,7 @@ public sealed class SyntaxGeneratorTests
             attributes: default, Accessibility.Public, DeclarationModifiers.Safe,
             _emptyCompilation.GetSpecialType(SpecialType.System_Void), RefKind.None,
             explicitInterfaceImplementations: default, "M", typeParameters: default, parameters: default,
-            usesUpdatedMemorySafetyRules: true);
+            usesMemorySafetyRulesVersion2: true);
 
         VerifySyntax<MethodDeclarationSyntax>(Generator.Declaration(method), """
             public safe void M()
@@ -5887,20 +5887,20 @@ public sealed class SyntaxGeneratorTests
     }
 
     [Fact]
-    public void TestLegacySyntheticPointerMethodSafety()
+    public void TestVersion1SyntheticPointerMethodSafety()
     {
         var pointerType = CodeGenerationSymbolFactory.CreatePointerTypeSymbol(_emptyCompilation.GetSpecialType(SpecialType.System_Int32));
         var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
             attributes: default, Accessibility.Public, DeclarationModifiers.None, pointerType, RefKind.None,
             explicitInterfaceImplementations: default, "M", typeParameters: default, parameters: default,
-            usesUpdatedMemorySafetyRules: false);
+            usesMemorySafetyRulesVersion2: false);
         Assert.Equal(DeclarationModifiers.Unsafe, DeclarationModifiers.From(method));
     }
 
     [Fact]
     public void TestCopiedMethodPreservesUnsafeModifier()
     {
-        var compilation = CompileWithUpdatedMemorySafetyRules("public class C { public unsafe void M() { } }");
+        var compilation = CompileWithMemorySafetyRulesVersion2("public class C { public unsafe void M() { } }");
         var method = compilation.GetTypeByMetadataName("C").GetMembers("M").OfType<IMethodSymbol>().Single();
         var copy = CodeGenerationSymbolFactory.CreateMethodSymbol(method, name: "Copy");
 
@@ -5914,7 +5914,7 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestFreshPointerMethodUsesContainingTypeSafetyRules()
     {
-        var compilation = CompileWithUpdatedMemorySafetyRules("public class C { }");
+        var compilation = CompileWithMemorySafetyRulesVersion2("public class C { }");
         var destination = compilation.GetTypeByMetadataName("C");
         var pointerType = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_Int32));
 
@@ -5928,7 +5928,7 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestPropertyAccessorSafetyFromMetadata()
     {
-        var compilation = CompileWithUpdatedMemorySafetyRules("""
+        var compilation = CompileWithMemorySafetyRulesVersion2("""
             public class C
             {
                 public int P { unsafe get => 0; set { } }
@@ -5947,7 +5947,7 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestSingleAccessorSafety()
     {
-        var compilation = CompileWithUpdatedMemorySafetyRules("""
+        var compilation = CompileWithMemorySafetyRulesVersion2("""
             public class B { public virtual int P { unsafe get => 0; set { } } }
             public class C : B { public override int P { unsafe get => 0; } }
             """);
@@ -5966,7 +5966,7 @@ public sealed class SyntaxGeneratorTests
     [Fact]
     public void TestDocumentConversionPreservesUnsafeModifier()
     {
-        var compilation = CompileWithUpdatedMemorySafetyRules("""
+        var compilation = CompileWithMemorySafetyRulesVersion2("""
             public interface I<T> where T : I<T>
             {
                 static abstract unsafe explicit operator int(T value);
@@ -5987,7 +5987,7 @@ public sealed class SyntaxGeneratorTests
     {
         var field = CodeGenerationSymbolFactory.CreateFieldSymbol(
             attributes: default, Accessibility.Public, DeclarationModifiers.Safe,
-            _emptyCompilation.GetSpecialType(SpecialType.System_Int32), "F", usesUpdatedMemorySafetyRules: true);
+            _emptyCompilation.GetSpecialType(SpecialType.System_Int32), "F", usesMemorySafetyRulesVersion2: true);
         var info = CodeGenerationService.GetInfo(
             CodeGenerationContext.Default, CodeGenerationService.DefaultOptions, new CSharpParseOptions(LanguageVersion.Preview));
 

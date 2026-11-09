@@ -45,7 +45,7 @@ internal static partial class ISymbolExtensions
 
     /// <summary>
     /// Infers safety modifiers from a symbol using the compiler module's rules or stored generation rules.
-    /// Legacy rules use pointer types in the signature; updated rules use the unsafe requirement
+    /// Version 1 rules use pointer types in the signature; version 2 rules use the unsafe requirement
     /// and add safe only when an explicit safety annotation is required.
     /// <paramref name="hasBackingField"/> describes actual generated property/event storage;
     /// null uses available symbol information.
@@ -53,8 +53,8 @@ internal static partial class ISymbolExtensions
     public static DeclarationModifiers InferSafetyModifiersFromSymbol(this ISymbol symbol, bool? hasBackingField = null)
     {
         // Check unsafe v1.
-        if (!symbol.UsesUpdatedMemorySafetyRules())
-            return symbol.RequiresUnsafeModifierUnderLegacyRules() ? DeclarationModifiers.Unsafe : DeclarationModifiers.None;
+        if (!symbol.UsesMemorySafetyRulesVersion2())
+            return symbol.RequiresUnsafeModifierUnderVersion1Rules() ? DeclarationModifiers.Unsafe : DeclarationModifiers.None;
 
         // Check unsafe v2.
 #if !OLDER_ROSLYN
@@ -68,11 +68,11 @@ internal static partial class ISymbolExtensions
         return DeclarationModifiers.None;
     }
 
-    public static bool UsesUpdatedMemorySafetyRules(this ISymbol symbol)
+    public static bool UsesMemorySafetyRulesVersion2(this ISymbol symbol)
     {
 #if !OLDER_ROSLYN
         if (symbol is CodeGenerationSymbol generated)
-            return generated.UsesUpdatedMemorySafetyRules;
+            return generated.UsesMemorySafetyRulesVersion2;
 
         var module = symbol as IModuleSymbol ?? symbol.ContainingModule;
         return module?.MemorySafetyRulesVersion is MemorySafetyRulesVersion.Version2;
@@ -140,7 +140,7 @@ internal static partial class ISymbolExtensions
 
     // An override can declare just one accessor and inherit the other, so do not require both to be present.
     public static bool RequiresAccessorSafetyModifiers(this IPropertySymbol property)
-        => property.UsesUpdatedMemorySafetyRules() && !property.RequiresUnsafeContext &&
+        => property.UsesMemorySafetyRulesVersion2() && !property.RequiresUnsafeContext &&
            (property.GetMethod?.RequiresUnsafeContext == true || property.SetMethod?.RequiresUnsafeContext == true);
 #endif
 

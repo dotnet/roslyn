@@ -14,7 +14,7 @@ internal sealed class CodeGenerationConstructorSymbol(
     DeclarationModifiers modifiers,
     ImmutableArray<IParameterSymbol> parameters,
     bool requiresUnsafeContext,
-    bool usesUpdatedMemorySafetyRules) : CodeGenerationMethodSymbol(containingType,
+    bool usesMemorySafetyRulesVersion2) : CodeGenerationMethodSymbol(containingType,
            attributes,
            accessibility,
            modifiers,
@@ -26,13 +26,13 @@ internal sealed class CodeGenerationConstructorSymbol(
            parameters: parameters,
            returnTypeAttributes: [],
            requiresUnsafeContext: requiresUnsafeContext,
-           usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules)
+           usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2)
 {
     public override MethodKind MethodKind => MethodKind.Constructor;
 
     protected override CodeGenerationSymbol Clone()
     {
-        var result = new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters, this.RequiresUnsafeContext, this.UsesUpdatedMemorySafetyRules);
+        var result = new CodeGenerationConstructorSymbol(this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers, this.Parameters, this.RequiresUnsafeContext, this.UsesMemorySafetyRulesVersion2);
 
         CodeGenerationConstructorInfo.Attach(result,
             CodeGenerationConstructorInfo.GetIsPrimaryConstructor(this),

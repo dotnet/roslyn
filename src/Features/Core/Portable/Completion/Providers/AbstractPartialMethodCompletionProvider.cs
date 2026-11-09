@@ -101,7 +101,7 @@ internal abstract partial class AbstractPartialMethodCompletionProvider : Abstra
 
     private CompletionItem CreateItem(IMethodSymbol method, int line, TextSpan span, SemanticModel semanticModel, DeclarationModifiers modifiers, SyntaxToken token)
     {
-        modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.RequiresUnsafeModifierUnderLegacyRules(), isPartial: true, isAsync: modifiers.IsAsync);
+        modifiers = new DeclarationModifiers(method.IsStatic, isUnsafe: method.RequiresUnsafeModifierUnderVersion1Rules(), isPartial: true, isAsync: modifiers.IsAsync);
         var displayText = GetDisplayText(method, semanticModel, span.Start);
 
         return MemberInsertionCompletionItem.Create(

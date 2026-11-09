@@ -16,8 +16,8 @@ internal abstract class CodeGenerationNamespaceOrTypeSymbol : CodeGenerationSymb
         Accessibility declaredAccessibility,
         DeclarationModifiers modifiers,
         string name,
-        bool usesUpdatedMemorySafetyRules = false)
-        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules)
+        bool usesMemorySafetyRulesVersion2 = false)
+        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2)
     {
     }
 

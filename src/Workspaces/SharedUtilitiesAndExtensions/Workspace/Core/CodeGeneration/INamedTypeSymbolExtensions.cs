@@ -32,6 +32,6 @@ internal static class INamedTypeSymbolExtensions
             namedType.GetMembers().WhereAsArray(s => s is not INamedTypeSymbol),
             namedType.GetTypeMembers().SelectAsArray(t => t.ToCodeGenerationSymbol()),
             namedType.EnumUnderlyingType,
-            namedType.UsesUpdatedMemorySafetyRules());
+            namedType.UsesMemorySafetyRulesVersion2());
     }
 }

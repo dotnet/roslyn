@@ -27,11 +27,11 @@ internal static class CSharpCodeGenerationHelpers
     public static void AddSafetyModifierTokens(
         ISymbol symbol,
         ArrayBuilder<SyntaxToken> tokens,
-        bool emitUnsafeForLegacyRules,
+        bool emitUnsafeForVersion1Rules,
         bool? hasBackingField = null)
     {
 #if !OLDER_ROSLYN
-        if (symbol.UsesUpdatedMemorySafetyRules())
+        if (symbol.UsesMemorySafetyRulesVersion2())
         {
             var modifiers = symbol.InferSafetyModifiersFromSymbol(hasBackingField);
             if (modifiers.IsUnsafe)
@@ -43,9 +43,9 @@ internal static class CSharpCodeGenerationHelpers
             return;
         }
 #endif
-        // Keep legacy document generation unchanged: write 'unsafe' only when requested.
+        // Keep version 1 document generation unchanged: write 'unsafe' only when requested.
         // Inferring it from pointer types here would change that behavior.
-        if (emitUnsafeForLegacyRules)
+        if (emitUnsafeForVersion1Rules)
             tokens.Add(UnsafeKeyword);
     }
 

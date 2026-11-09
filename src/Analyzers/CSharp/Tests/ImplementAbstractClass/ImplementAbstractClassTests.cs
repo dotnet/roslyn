@@ -126,7 +126,7 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
     [Theory]
     [InlineData(LanguageVersion.CSharp15, true)]
     [InlineData(LanguageVersion.Preview, false)]
-    public Task TestAbstractSafePointerSignatureFromUpdatedRulesMetadata(LanguageVersion languageVersion, bool needsUnsafe)
+    public Task TestAbstractSafePointerSignatureFromVersion2RulesMetadata(LanguageVersion languageVersion, bool needsUnsafe)
     {
         var metadataReference = CSharpCompilation.Create("AbstractBase",
             [CSharpSyntaxTree.ParseText("public abstract class B { public abstract int* M(); }",

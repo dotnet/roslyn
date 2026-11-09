@@ -19,7 +19,7 @@ internal sealed class CodeGenerationFieldSymbol(
     bool hasConstantValue,
     object constantValue,
     bool requiresUnsafeContext,
-    bool usesUpdatedMemorySafetyRules) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, accessibility, modifiers, name, requiresUnsafeContext: requiresUnsafeContext, usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules), IFieldSymbol
+    bool usesMemorySafetyRulesVersion2) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, accessibility, modifiers, name, requiresUnsafeContext: requiresUnsafeContext, usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2), IFieldSymbol
 {
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
@@ -30,7 +30,7 @@ internal sealed class CodeGenerationFieldSymbol(
     {
         return new CodeGenerationFieldSymbol(
             this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-            this.Modifiers, this.Type, this.Name, this.HasConstantValue, this.ConstantValue, this.RequiresUnsafeContext, this.UsesUpdatedMemorySafetyRules);
+            this.Modifiers, this.Type, this.Name, this.HasConstantValue, this.ConstantValue, this.RequiresUnsafeContext, this.UsesMemorySafetyRulesVersion2);
     }
 
     public new IFieldSymbol OriginalDefinition

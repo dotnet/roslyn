@@ -32,11 +32,11 @@ internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethod
         ImmutableArray<IParameterSymbol> parameters,
         ImmutableArray<AttributeData> returnTypeAttributes,
         bool requiresUnsafeContext,
-        bool usesUpdatedMemorySafetyRules,
+        bool usesMemorySafetyRulesVersion2,
         string documentationCommentXml = null,
         MethodKind methodKind = MethodKind.Ordinary,
         bool isInitOnly = false)
-        : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes, requiresUnsafeContext, usesUpdatedMemorySafetyRules, documentationCommentXml)
+        : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes, requiresUnsafeContext, usesMemorySafetyRulesVersion2, documentationCommentXml)
     {
         this.ReturnType = returnType;
         this.RefKind = refKind;
@@ -58,7 +58,7 @@ internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethod
             this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
             this.ReturnType, this.RefKind, this.ExplicitInterfaceImplementations,
             this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes(),
-            this.RequiresUnsafeContext, this.UsesUpdatedMemorySafetyRules, _documentationCommentXml, this.MethodKind, this.IsInitOnly);
+            this.RequiresUnsafeContext, this.UsesMemorySafetyRulesVersion2, _documentationCommentXml, this.MethodKind, this.IsInitOnly);
 
         CodeGenerationMethodInfo.Attach(result,
             CodeGenerationMethodInfo.GetIsNew(this),
