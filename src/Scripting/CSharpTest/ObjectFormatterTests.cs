@@ -887,26 +887,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("object..ctor()", signature); // Checking for exceptions, more than particular output.
         }
 
-        // The stack trace contains line numbers.  We use a #line directive
-        // so that the baseline doesn't need to be updated every time this
-        // file changes.
-        //
-        // When adding a new test to this region, ADD IT ADD THE END, so you
-        // don't have to update all the other baselines.
-#line 10000 "z:\Fixture.cs"
+        // The stack trace contains line numbers. We use #line directives around the throwing
+        // and calling statements so that the baselines don't need to be updated every time this
+        // file changes. The directives are reset right afterwards so that the rest of the
+        // code, including the test attributes, still maps to this file.
 
         private static class Fixture
         {
             [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method()
             {
+#line 10006 "z:\Fixture.cs"
                 throw new Exception();
+#line default
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method<U>()
             {
+#line 10012 "z:\Fixture.cs"
                 throw new Exception();
+#line default
             }
         }
 
@@ -915,13 +916,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method()
             {
+#line 10021 "z:\Fixture.cs"
                 throw new Exception();
+#line default
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method<U>()
             {
+#line 10027 "z:\Fixture.cs"
                 throw new Exception();
+#line default
             }
         }
 
@@ -932,7 +937,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
         {
             try
             {
+#line 10036 "z:\Fixture.cs"
                 Fixture.Method();
+#line default
             }
             catch (Exception e)
             {
@@ -955,7 +962,9 @@ $@"{new Exception().Message}
         {
             try
             {
+#line 10057 "z:\Fixture.cs"
                 Fixture.Method<char>();
+#line default
             }
             catch (Exception e)
             {
@@ -979,7 +988,9 @@ $@"{new Exception().Message}
         {
             try
             {
+#line 10079 "z:\Fixture.cs"
                 Fixture<int>.Method();
+#line default
             }
             catch (Exception e)
             {
@@ -1003,7 +1014,9 @@ $@"{new Exception().Message}
         {
             try
             {
+#line 10101 "z:\Fixture.cs"
                 Fixture<int>.Method<char>();
+#line default
             }
             catch (Exception e)
             {
@@ -1025,7 +1038,9 @@ $@"{new Exception().Message}
             [MethodImpl(MethodImplOptions.NoInlining)]
             public static void MethodDynamic()
             {
+#line 10123 "z:\Fixture.cs"
                 ((dynamic)new object()).x();
+#line default
             }
         }
 
@@ -1035,7 +1050,9 @@ $@"{new Exception().Message}
         {
             try
             {
+#line 10132 "z:\Fixture.cs"
                 Fixture2.MethodDynamic();
+#line default
                 Assert.False(true);
             }
             catch (Exception e)
@@ -1058,13 +1075,17 @@ $@"'object' does not contain a definition for 'x'
             [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method(ref char c, out DateTime d)
             {
+#line 10155 "z:\Fixture.cs"
                 throw new Exception();
+#line default
             }
 
             [MethodImpl(MethodImplOptions.NoInlining)]
             public static void Method<U>(ref U u)
             {
+#line 10161 "z:\Fixture.cs"
                 throw new Exception();
+#line default
             }
         }
 
@@ -1077,7 +1098,9 @@ $@"'object' does not contain a definition for 'x'
             {
                 char c = ' ';
                 DateTime date;
+#line 10172 "z:\Fixture.cs"
                 ParametersFixture.Method(ref c, out date);
+#line default
             }
             catch (Exception e)
             {
@@ -1101,7 +1124,9 @@ $@"{new Exception().Message}
             try
             {
                 char c = ' ';
+#line 10194 "z:\Fixture.cs"
                 ParametersFixture.Method<char>(ref c);
+#line default
             }
             catch (Exception e)
             {
