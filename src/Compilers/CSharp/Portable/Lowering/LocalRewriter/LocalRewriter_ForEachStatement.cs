@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out _);
             TypeSymbol? nodeExpressionType = collectionExpression.Type;
             Debug.Assert(nodeExpressionType is { });
-            if (nodeExpressionType.Kind == SymbolKind.ArrayType && node.EnumeratorInfoOpt?.MoveNextAwaitableInfo is null)
+            if (nodeExpressionType.Kind == SymbolKind.ArrayType)
             {
                 ArrayTypeSymbol arrayType = (ArrayTypeSymbol)nodeExpressionType;
                 if (arrayType.IsSZArray)

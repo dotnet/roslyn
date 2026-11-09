@@ -2338,7 +2338,7 @@ class C
         }
 
         [Fact]
-        public void TestWithArrayAndExtensionGetAsyncEnumerator()
+        public void TestWithArrayAndExtensionGetAsyncEnumerator_NotUsed()
         {
             string source = @"
 using System;
@@ -2363,8 +2363,11 @@ public static class Extensions
     public static C.Enumerator GetAsyncEnumerator(this int[] self) => new C.Enumerator();
 }";
             var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "123");
+            comp.VerifyDiagnostics(
+                // (8,33): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'int[]' because 'int[]' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach (var i in new int[] { 7, 8, 9 })
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "new int[] { 7, 8, 9 }").WithArguments("int[]", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
         }
 
         [Fact]
