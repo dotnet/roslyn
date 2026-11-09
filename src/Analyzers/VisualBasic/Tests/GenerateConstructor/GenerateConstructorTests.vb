@@ -1661,37 +1661,6 @@ Module P
 End Module")
         End Function
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82157")>
-        Public Async Function TestWithExistingThrowNotImplementedProperty() As Task
-            Await TestInRegularAndScriptAsync(
-"Class C
-    ReadOnly Property Value As Integer
-        Get
-            Throw New System.NotImplementedException()
-        End Get
-    End Property
-End Class
-Module P
-    Sub M()
-        Dim value = 42
-        Dim c = New C([|value|])
-    End Sub
-End Module",
-"Class C
-    Public Sub New(value As Integer)
-        Me.Value = value
-    End Sub
-
-    ReadOnly Property Value As Integer
-End Class
-Module P
-    Sub M()
-        Dim value = 42
-        Dim c = New C(value)
-    End Sub
-End Module")
-        End Function
-
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21692")>
         Public Async Function TestDelegateConstructor1() As Task
             Await TestInRegularAndScriptAsync(

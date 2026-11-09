@@ -33,24 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsFunctionDeclaration(node)
         End Function
 
-        Protected Overrides Function RemoveThrowNotImplemented(propertySyntax As SyntaxNode, useAutoProperty As Boolean) As SyntaxNode
-            Dim propertyBlock = TryCast(propertySyntax, PropertyBlockSyntax)
-            If propertyBlock IsNot Nothing Then
-                If useAutoProperty Then
-                    Return propertyBlock.PropertyStatement.WithTriviaFrom(propertyBlock)
-                End If
-
-                Dim accessors = SyntaxFactory.List(propertyBlock.Accessors.Select(Function(a) RemoveThrowNotImplemented(a)))
-                Return propertyBlock.WithAccessors(accessors)
-            End If
-
-            Return propertySyntax
-        End Function
-
-        Private Overloads Shared Function RemoveThrowNotImplemented(accessorBlock As AccessorBlockSyntax) As AccessorBlockSyntax
-            Return accessorBlock.WithStatements(Nothing)
-        End Function
-
         Protected Overrides Sub InsertStatement(editor As SyntaxEditor, functionDeclaration As SyntaxNode, returnsVoid As Boolean, statementToAddAfter As SyntaxNode, statement As StatementSyntax)
             InitializeParameterHelpers.InsertStatement(editor, functionDeclaration, statementToAddAfter, statement)
         End Sub

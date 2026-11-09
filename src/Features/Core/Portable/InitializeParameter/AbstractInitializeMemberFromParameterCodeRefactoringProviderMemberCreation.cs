@@ -44,6 +44,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 {
     protected abstract Accessibility DetermineDefaultFieldAccessibility(INamedTypeSymbol containingType);
     protected abstract Accessibility DetermineDefaultPropertyAccessibility();
+    protected abstract SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax);
 
     protected sealed override Task<ImmutableArray<CodeAction>> GetRefactoringsForAllParametersAsync(
         Document document, SyntaxNode functionDeclaration, IMethodSymbol method, IBlockOperation? blockStatementOpt,
@@ -232,7 +233,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         return result.ToImmutableAndClear();
     }
 
-    private static ImmutableArray<CodeAction> HandleExistingFieldOrProperty(
+    private ImmutableArray<CodeAction> HandleExistingFieldOrProperty(
         Document document,
         IParameterSymbol parameter,
         SyntaxNode functionDeclaration,
@@ -352,7 +353,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         throw ExceptionUtilities.Unreachable();
     }
 
-    private static async Task<Solution> AddAllSymbolInitializationsAsync(
+    private async Task<Solution> AddAllSymbolInitializationsAsync(
         Document document,
         SyntaxNode constructorDeclaration,
         IBlockOperation? blockStatement,
@@ -416,7 +417,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         return currentSolution;
     }
 
-    private static async Task<Solution> AddSingleSymbolInitializationAsync(
+    private async Task<Solution> AddSingleSymbolInitializationAsync(
         Document document,
         SyntaxNode constructorDeclaration,
         IBlockOperation? blockStatement,
@@ -441,15 +442,28 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
 
         // If the user had a property that has 'throw NotImplementedException' in it, then remove those throws as the
         // constructor is now initializing the property properly with a value.
-        if (isThrowNotImplementedProperty && currentFieldOrProperty is IPropertySymbol property)
+        var finalSolution = solutionWithAssignmentAdded;
+        if (isThrowNotImplementedProperty && currentFieldOrProperty != null)
         {
-            var currentDocument = await solutionWithAssignmentAdded.GetRequiredDocumentAsync(
-                documentWithMemberAdded.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            return await initializeParameterService.RemoveThrowNotImplementedAsync(
-                currentDocument, property, useAutoProperty: false, cancellationToken).ConfigureAwait(false);
+            var compilation = await finalSolution.GetRequiredProject(documentWithMemberAdded.Project.Id).GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var finalFieldOrProperty = SymbolFinder.FindSimilarSymbols(currentFieldOrProperty, compilation, cancellationToken).FirstOrDefault();
+            if (finalFieldOrProperty != null)
+            {
+                var declarationService = document.GetRequiredLanguageService<ISymbolDeclarationService>();
+                var propertySyntax = await declarationService.GetDeclarations(finalFieldOrProperty)[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                var withoutThrowNotImplemented = RemoveThrowNotImplemented(propertySyntax);
+
+                var otherDocument = finalSolution.GetDocument(propertySyntax.SyntaxTree);
+                if (otherDocument != null)
+                {
+                    var otherRoot = await propertySyntax.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    finalSolution = finalSolution.WithDocumentSyntaxRoot(
+                        otherDocument.Id, otherRoot.ReplaceNode(propertySyntax, withoutThrowNotImplemented));
+                }
+            }
         }
 
-        return solutionWithAssignmentAdded;
+        return finalSolution;
     }
 
     private static async Task<(Document documentWithMemberAdded, IParameterSymbol? currentParameter, ISymbol? currentFieldOrProperty)> AddMissingFieldOrPropertyAsync(
@@ -640,9 +654,7 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                     // properties with ease.
                     if (await initializeParameterService.IsThrowNotImplementedPropertyAsync(
                         document.Project.Solution, property, cancellationToken).ConfigureAwait(false))
-                    {
                         return (property, isThrowNotImplementedProperty: true);
-                    }
 
                     if (property.IsWritableInConstructor())
                         return (property, isThrowNotImplementedProperty: false);

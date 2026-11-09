@@ -25,9 +25,6 @@ internal sealed class CSharpInitializeParameterService() : AbstractInitializerPa
     protected override SyntaxNode? GetAccessorBody(IMethodSymbol accessor, CancellationToken cancellationToken)
         => InitializeParameterHelpers.GetAccessorBody(accessor, cancellationToken);
 
-    protected override SyntaxNode RemoveThrowNotImplemented(SyntaxNode propertySyntax, bool useAutoProperty)
-        => InitializeParameterHelpers.RemoveThrowNotImplemented(propertySyntax);
-
     protected override bool IsFunctionDeclaration(SyntaxNode node)
         => InitializeParameterHelpers.IsFunctionDeclaration(node);
 

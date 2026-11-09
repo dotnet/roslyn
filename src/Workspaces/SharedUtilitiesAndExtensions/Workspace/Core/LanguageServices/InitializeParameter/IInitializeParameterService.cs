@@ -15,9 +15,6 @@ internal interface IInitializeParameterService : ILanguageService
 {
     Task<bool> IsThrowNotImplementedPropertyAsync(Solution solution, IPropertySymbol property, CancellationToken cancellationToken);
 
-    Task<Solution> RemoveThrowNotImplementedAsync(
-        Document document, IPropertySymbol property, bool useAutoProperty, CancellationToken cancellationToken);
-
     void InsertStatement(
         SyntaxEditor editor, SyntaxNode functionDeclaration, bool returnsVoid, SyntaxNode? statementToAddAfter, SyntaxNode statement);
 
