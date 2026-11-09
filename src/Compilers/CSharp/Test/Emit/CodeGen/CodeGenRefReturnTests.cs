@@ -130,6 +130,97 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyIL("C.<>c.<Lambda>b__2_0()", expectedIL);
         }
 
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/83549")]
+        public void RefReturnLocalInUnsafeContextWithFinally(string refKind)
+        {
+            var source = $$"""
+                class C
+                {
+                    static unsafe {{refKind}} int Method()
+                    {
+                        int local;
+                        try
+                        {
+                            local = 1;
+                            return ref local;
+                        }
+                        finally
+                        {
+                            local = 42;
+                        }
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,24): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //             return ref local;
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(9, 24)
+            };
+
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            verifier.VerifyDiagnostics(expectedDiagnostics);
+            verifier.VerifyIL("C.Method()", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  .locals init (int V_0, //local
+                                int& V_1)
+                  .try
+                  {
+                    IL_0000:  ldc.i4.1
+                    IL_0001:  stloc.0
+                    IL_0002:  ldloca.s   V_0
+                    IL_0004:  stloc.1
+                    IL_0005:  leave.s    IL_000b
+                  }
+                  finally
+                  {
+                    IL_0007:  ldc.i4.s   42
+                    IL_0009:  stloc.0
+                    IL_000a:  endfinally
+                  }
+                  IL_000b:  ldloc.1
+                  IL_000c:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, verify: Verification.Fails);
+            verifier.VerifyDiagnostics(expectedDiagnostics);
+            verifier.VerifyIL("C.Method()", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  .locals init (int V_0, //local
+                                int& V_1)
+                  IL_0000:  nop
+                  .try
+                  {
+                    IL_0001:  nop
+                    IL_0002:  ldc.i4.1
+                    IL_0003:  stloc.0
+                    IL_0004:  ldloca.s   V_0
+                    IL_0006:  stloc.1
+                    IL_0007:  leave.s    IL_000f
+                  }
+                  finally
+                  {
+                    IL_0009:  nop
+                    IL_000a:  ldc.i4.s   42
+                    IL_000c:  stloc.0
+                    IL_000d:  nop
+                    IL_000e:  endfinally
+                  }
+                  IL_000f:  ldloc.1
+                  IL_0010:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void RefReturnRefAssignment()
         {
