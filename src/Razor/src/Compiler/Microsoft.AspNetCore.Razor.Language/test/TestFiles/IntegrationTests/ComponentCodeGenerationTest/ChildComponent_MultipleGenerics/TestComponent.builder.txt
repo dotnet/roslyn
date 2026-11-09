@@ -15,7 +15,7 @@ int
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<string, int>. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>( "hi" ))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< string , int >. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>( "hi" ))
 [0002] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment<string>)((context) => (__builder2) => { __builder2.OpenElement(3, "div"); __builder2.AddContent(4, context.ToLower() ); __builder2.CloseElement(); } ))
 [0003] OpenElement("div")
 [0004] AddContent(context.ToLower())
