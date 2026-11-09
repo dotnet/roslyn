@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -14,6 +15,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LanguageServerConnectionManager
 {
+    private static readonly TimeSpan s_handshakeTimeout = TimeSpan.FromSeconds(30);
+
     private readonly object _gate = new();
     private ImmutableArray<ServerEntry> _servers = [];
     private long _connectionsAccepted;
@@ -151,12 +154,21 @@ internal sealed class LanguageServerConnectionManager
             LanguageServerHost server;
             try
             {
+                string? copilotSessionId = null;
+                if (exportProvider.GetExportedValue<ServerConfiguration>().IsDaemon)
+                {
+                    using var handshakeCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    handshakeCancellation.CancelAfter(s_handshakeTimeout);
+                    copilotSessionId = await DaemonHandshake.ReadAsync(connection.InputStream, handshakeCancellation.Token).ConfigureAwait(false);
+                }
+
                 server = new LanguageServerHost(
                     connection.InputStream,
                     connection.OutputStream,
                     exportProvider,
                     typeRefResolver,
-                    daemonTelemetry);
+                    daemonTelemetry,
+                    copilotSessionId);
             }
             catch
             {
