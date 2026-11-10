@@ -3,6 +3,7 @@
 
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -771,6 +772,15 @@ public class RazorDirectivesTest() : ParserTestBase(layer: TestProject.Layer.Com
     {
         ParseDocumentTest(
             "@inherits string",
+            [InheritsDirective.Directive]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void InheritsDirectiveSupportsEscapedIdentifiersAfterDot()
+    {
+        ParseDocumentTest(
+            "@inherits Foo.@class",
             [InheritsDirective.Directive]);
     }
 
