@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FlowAnalysis.SymbolUsageAnalysis;
 
@@ -66,10 +67,11 @@ internal static partial class SymbolUsageAnalysis
         protected abstract PooledHashSet<ISymbol> SymbolsReadBuilder { get; }
 
         /// <summary>
-        /// Set of lambda/local functions whose invocations are currently being analyzed to prevent
+        /// Lambda/local functions whose invocations are currently being analyzed, to prevent
         /// infinite recursion for analyzing code with recursive lambda/local function calls.
+        /// The value is true once a recursive invocation of the function has been found.
         /// </summary>
-        protected abstract PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
+        protected abstract PooledDictionary<IMethodSymbol, bool> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
         /// <summary>
         /// Current block analysis data used for analysis.
@@ -95,32 +97,94 @@ internal static partial class SymbolUsageAnalysis
             // Use the original definition of the local function for flow analysis.
             localFunction = localFunction.OriginalDefinition;
 
-            if (!LambdaOrLocalFunctionsBeingAnalyzed.Add(localFunction))
+            if (LambdaOrLocalFunctionsBeingAnalyzed.ContainsKey(localFunction))
             {
-                ResetState();
-                return CurrentBlockAnalysisData;
+                return OnRecursiveInvocation(localFunction);
             }
-            else
-            {
-                var result = AnalyzeLocalFunctionInvocationCore(localFunction, cancellationToken);
-                LambdaOrLocalFunctionsBeingAnalyzed.Remove(localFunction);
-                return result;
-            }
+
+            LambdaOrLocalFunctionsBeingAnalyzed.Add(localFunction, false);
+            var result = AnalyzeLocalFunctionInvocationCore(localFunction, cancellationToken);
+            OnInvocationAnalyzed(localFunction, result);
+            return result;
         }
 
         public BasicBlockAnalysisData AnalyzeLambdaInvocation(IFlowAnonymousFunctionOperation lambda, CancellationToken cancellationToken)
         {
-            if (!LambdaOrLocalFunctionsBeingAnalyzed.Add(lambda.Symbol))
+            if (LambdaOrLocalFunctionsBeingAnalyzed.ContainsKey(lambda.Symbol))
             {
-                ResetState();
-                return CurrentBlockAnalysisData;
+                return OnRecursiveInvocation(lambda.Symbol);
             }
-            else
+
+            LambdaOrLocalFunctionsBeingAnalyzed.Add(lambda.Symbol, false);
+            var result = AnalyzeLambdaInvocationCore(lambda, cancellationToken);
+            OnInvocationAnalyzed(lambda.Symbol, result);
+            return result;
+        }
+
+        private BasicBlockAnalysisData OnRecursiveInvocation(IMethodSymbol lambdaOrLocalFunction)
+        {
+            LambdaOrLocalFunctionsBeingAnalyzed[lambdaOrLocalFunction] = true;
+            ResetState();
+            return CurrentBlockAnalysisData;
+        }
+
+        private void OnInvocationAnalyzed(IMethodSymbol lambdaOrLocalFunction, BasicBlockAnalysisData resultAtExit)
+        {
+            var wasInvokedRecursively = LambdaOrLocalFunctionsBeingAnalyzed[lambdaOrLocalFunction];
+            LambdaOrLocalFunctionsBeingAnalyzed.Remove(lambdaOrLocalFunction);
+
+            if (wasInvokedRecursively)
             {
-                var result = AnalyzeLambdaInvocationCore(lambda, cancellationToken);
-                LambdaOrLocalFunctionsBeingAnalyzed.Remove(lambda.Symbol);
-                return result;
+                MarkWritesFlowingBackToRecursiveCallersAsRead(lambdaOrLocalFunction, resultAtExit);
             }
+        }
+
+        /// <summary>
+        /// A recursive invocation only resets the state at the call site, so it covers the writes made before the
+        /// call. Writes made after the last recursive call also flow back to the recursive call sites when the inner
+        /// invocation returns, and the code after those call sites may read them. For example:
+        /// <code>
+        ///     int Recurse()
+        ///     {
+        ///         if (i > 10) return i;
+        ///         var a = Recurse(); // reads the 'i += 1' below, made by the inner invocation
+        ///         i += 1;
+        ///         return a;
+        ///     }
+        /// </code>
+        /// Mark the writes that reach the end of the function and are made in its body to variables declared
+        /// outside of it as read. Variables declared inside it, including its parameters, are separate for each
+        /// invocation, so their writes can't flow back to the caller.
+        /// </summary>
+        private void MarkWritesFlowingBackToRecursiveCallersAsRead(IMethodSymbol lambdaOrLocalFunction, BasicBlockAnalysisData resultAtExit)
+        {
+            var declaration = lambdaOrLocalFunction.DeclaringSyntaxReferences.FirstOrDefault();
+            if (declaration == null)
+            {
+                return;
+            }
+
+            foreach (var symbol in SymbolsWriteBuilder.Keys.Select(d => d.symbol).Distinct().ToArray())
+            {
+                if (symbol.DeclaringSyntaxReferences.Any(r => IsInside(r.SyntaxTree, r.Span, declaration)))
+                {
+                    continue;
+                }
+
+                resultAtExit.ForEachCurrentWrite(
+                    symbol,
+                    static (write, arg) =>
+                    {
+                        if (write?.Syntax is { } syntax && IsInside(syntax.SyntaxTree, syntax.Span, arg.declaration))
+                        {
+                            arg.self.SymbolsWriteBuilder[(arg.symbol, write)] = true;
+                        }
+                    },
+                    (symbol, declaration, self: this));
+            }
+
+            static bool IsInside(SyntaxTree tree, TextSpan span, SyntaxReference declaration)
+                => tree == declaration.SyntaxTree && declaration.Span.Contains(span);
         }
 
         protected abstract BasicBlockAnalysisData AnalyzeLocalFunctionInvocationCore(IMethodSymbol localFunction, CancellationToken cancellationToken);
