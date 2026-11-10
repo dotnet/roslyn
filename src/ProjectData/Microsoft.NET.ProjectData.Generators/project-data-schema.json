@@ -91,7 +91,7 @@
       { "name": "commandLineArguments", "description": "Compiler command-line arguments in evaluation order." },
       { "name": "sourceFiles", "description": "Source files in the @(Compile) item set.", "itemType": "Compile" },
       { "name": "metadataReferences", "description": "Assembly references (@(MetadataReference)) with optional aliases/embedInteropTypes.", "itemType": "MetadataReference" },
-      { "name": "analyzerReferences", "description": "Roslyn analyzer assemblies (@(AnalyzerReference))." },
+      { "name": "analyzerReferences", "description": "Analyzers references selected by the project, including ordinary NuGet packages and project-built analyzers. For NuGet packages, keep the selected version in the path so the reader uses the version chosen by the project, not another locally installed version. Both this section and sdkAnalyzerPackageReferences can contain NuGet analyzers; the difference is who selects the version." },
       { "name": "analyzerConfigFiles", "description": "EditorConfig / global analyzer config files." },
       { "name": "additionalFiles", "description": "Files passed to analyzers via @(AdditionalFile)." },
       { "name": "projectReferences", "description": "Resolved project-to-project references.", "itemType": "ProjectReference" },
@@ -99,7 +99,7 @@
       { "name": "capabilities", "description": "Project capabilities flags." },
       { "name": "frameworkPacks", "description": "Ref-pack names for metadata references only (e.g. Microsoft.NETCore.App.Ref); reader probes the SDK install first, then the NuGet cache, so the same cache works whether the writing machine resolved the pack from <DOTNET>/packs/ or from <NUGET>/. Does not imply any analyzer selection." },
       { "name": "frameworkAnalyzerReferences", "description": "Selected framework-pack analyzers as pack-name/analyzers/relative-path entries with path compression. Versions and installation locations are resolved locally. Absent entries mean no selected analyzers, independently of frameworkPacks. Entries remain in their TFM slices when merging so local resolution uses the correct target framework." },
-      { "name": "sdkAnalyzerPackageReferences", "description": "Selected analyzers from SDK-known NuGet packages as package-id/analyzers/relative-path entries with path compression. Only the recorded files are loaded from the locally resolved package. Entries remain in their TFM slices when merging." },
+      { "name": "sdkAnalyzerPackageReferences", "description": "Analyzer references from NuGet packages selected by the SDK, such as Microsoft.NET.ILLink.Tasks. Leave out the package version so the reader can find the matching version in the local SDK for the target framework. Only the recorded analyzer files are loaded. Entries stay in their target framework slices when merged." },
       { "name": "sdkAnalyzerConfigPolicy", "description": "Policy entries for SDK-shipped analyzer config files; reader resolves them under the bound SDK." }
     ]
   },

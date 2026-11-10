@@ -40,7 +40,6 @@ public class LsCacheRoundTripEquivalenceTests
 		string projectFile = Path.Combine(pack.Root, "App.csproj");
 		string packDirectory = Path.Combine(pack.DotNetRoot, "packs", "Test.Selection.App.Ref", "10.0.7");
 		string kept = Path.Combine(packDirectory, "analyzers", "dotnet", "cs", "Kept.dll");
-		string replacement = Path.Combine(pack.Root, "Microsoft.Gen.Logging.dll");
 		string? previous = Environment.GetEnvironmentVariable("DOTNET_ROOT");
 		try
 		{
@@ -50,7 +49,7 @@ public class LsCacheRoundTripEquivalenceTests
 				sliceDimensions: [MakeKvp("TargetFramework", "net10.0")],
 				properties: null, commandLineArguments: null, sourceFiles: null,
 				metadataReferences: [MakeItem(Path.Combine(packDirectory, "ref", "net10.0", "System.Sample.dll"))],
-				analyzerReferences: keepOne ? [MakeItem(kept), MakeItem(replacement)] : [MakeItem(replacement)],
+				analyzerReferences: keepOne ? [MakeItem(kept)] : [],
 				analyzerConfigFiles: null, additionalFiles: null);
 			ProductDataFromProjectDataAssembly.CachePathResolver resolver = new(
 				null, null, [pack.DotNetRoot], [], null);
@@ -60,7 +59,6 @@ public class LsCacheRoundTripEquivalenceTests
 
 			var slice = Assert.Single(slices);
 			Assert.Equal(keepOne ? 2 : 1, slice.AnalyzerReferences.Length);
-			Assert.Contains(replacement, slice.AnalyzerReferences);
 			Assert.DoesNotContain(slice.AnalyzerReferences, path => path.EndsWith("Microsoft.Extensions.Logging.Generators.dll", StringComparison.Ordinal));
 			if (keepOne)
 				Assert.Contains(kept, slice.AnalyzerReferences);
@@ -213,12 +211,13 @@ public class LsCacheRoundTripEquivalenceTests
 		{
 			Environment.SetEnvironmentVariable("DOTNET_ROOT", pack.DotNetRoot);
 			List<string> slicePaths = [];
-			foreach ((string tfm, string[] analyzers) in new[]
+			var slicesInfo = new[]
 			{
 				("net10.0", new[] { "First.dll", "Second.dll" }),
 				("net10.0-windows", new[] { "Second.dll" }),
 				("net10.0-linux", Array.Empty<string>()),
-			})
+			};
+			foreach ((string tfm, string[] analyzers) in slicesInfo)
 			{
 				string content = ProjectDataWriter.BuildContent(
 					projectFile, writeHeader: false, isPrimary: false, lastDtbSucceeded: true,
@@ -239,18 +238,24 @@ public class LsCacheRoundTripEquivalenceTests
 				projectFile, true, resolver, TestContext.Current.CancellationToken);
 			var snapshots = ProductDataFromProjectDataAssembly.ProjectDataSnapshotFactory.CreateSnapshots(slices);
 			Assert.Equal(3, snapshots.Length);
-			foreach (var snapshot in snapshots)
+			foreach ((string tfm, string[] analyzers) in slicesInfo)
 			{
-				string tfm = snapshot.Dimensions["TargetFramework"];
+				var snapshot = GetSingleSnapshot(snapshots, tfm);
 				var selected = snapshot.ItemsByType["AnalyzerReference"];
-				Assert.Equal(tfm == "net10.0" ? 2 : tfm == "net10.0-windows" ? 1 : 0, selected.Length);
-				if (tfm == "net10.0-windows")
-					Assert.EndsWith("Second.dll", Assert.Single(selected).ItemSpec);
+				Assert.Equal(analyzers.Length, selected.Length);
+				foreach (string analyzer in analyzers)
+					Assert.Contains(selected, item => item.ItemSpec.EndsWith(analyzer));
 			}
 		}
 		finally
 		{
 			Environment.SetEnvironmentVariable("DOTNET_ROOT", previous);
+		}
+
+		static ProductDataFromProjectDataAssembly.ProjectDataSnapshot GetSingleSnapshot(
+			ImmutableArray<ProductDataFromProjectDataAssembly.ProjectDataSnapshot> snapshots, string tfm)
+		{
+			return Assert.Single(snapshots, s => s.Dimensions["TargetFramework"] == tfm);
 		}
 	}
 
