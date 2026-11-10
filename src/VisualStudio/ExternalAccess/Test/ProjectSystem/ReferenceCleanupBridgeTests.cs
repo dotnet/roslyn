@@ -52,12 +52,14 @@ public class ReferenceCleanupBridgeTests
     }
 
     [Fact]
-    public async Task MissingServiceFailsExplicitly()
+    public void MissingUnifiedServiceFailsWorkspaceServiceResolution()
     {
-        var service = CreateImportingConstructor<VisualStudioReferenceCleanupService>((object?)null);
-
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.GetProjectReferencesAsync("project.csproj", CancellationToken.None));
-        await Assert.ThrowsAsync<InvalidOperationException>(() => service.TryUpdateReferenceAsync("project.csproj", CreateUpdate(), CancellationToken.None));
+        Assert.Throws<InvalidOperationException>(() =>
+        {
+            var composition = TestComposition.Default.AddParts(typeof(VisualStudioReferenceCleanupService));
+            using var workspace = new AdhocWorkspace(composition.GetHostServices(), ServiceLayer.Host);
+            workspace.Services.GetRequiredService<IReferenceCleanupService>();
+        });
     }
 
     private static ReferenceUpdate CreateUpdate()
