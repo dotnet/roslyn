@@ -43,7 +43,7 @@ extends:
           inputs:
             packageType: sdk
             version: 10.0.x
-        - template: /eng/common/core-templates/steps/get-github-app-token.yml
+        - template: /eng/common/core-templates/steps/get-github-app-token.yml@self
           parameters:
             is1ESPipeline: true
             azureSubscription: 'Roslyn PRTagger: DevDiv'
