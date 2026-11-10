@@ -268,6 +268,103 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             """,
             parameters: new TestParameters(options: UseBlockBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71637")]
+    public Task TestAnonymousMethodBodyIsReindented()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                Action A => [||]delegate
+                {
+                    Console.WriteLine();
+                };
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                Action A
+                {
+                    get
+                    {
+                        return delegate
+                        {
+                            Console.WriteLine();
+                        };
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71637")]
+    public Task TestLambdaBodyIsReindented()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                Action A => [||]() =>
+                {
+                    Console.WriteLine();
+                };
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                Action A
+                {
+                    get
+                    {
+                        return () =>
+                        {
+                            Console.WriteLine();
+                        };
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71637")]
+    public Task TestEmptyLambdaBodyIsReindented()
+        => TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                Action A => [||]() =>
+                {
+                };
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                Action A
+                {
+                    get
+                    {
+                        return () =>
+                        {
+                        };
+                    }
+                }
+            }
+            """,
+            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20363")]
     public Task TestOfferedIfUserPrefersExpressionBodiesAndInExpressionBody()
         => TestInRegularAndScriptAsync(
