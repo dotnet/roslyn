@@ -256,7 +256,7 @@ internal static class EventGenerator
             }
         }
 
-        AddSafetyModifierTokens(@event, tokens, emitUnsafeForVersion1Rules: CodeGenerationEventInfo.GetIsUnsafe(@event), hasBackingField: hasBackingField);
+        AddSafetyModifierTokens(@event, tokens, info, emitUnsafeForVersion1Rules: CodeGenerationEventInfo.GetIsUnsafe(@event), hasBackingField: hasBackingField);
 
         return [.. tokens];
     }

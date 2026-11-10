@@ -294,7 +294,7 @@ internal static partial class SyntaxGeneratorExtensions
                 result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                     attributes: default,
                     accessibility: Accessibility.Private,
-                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules()),
+                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules()),
                     type: parameter.Type,
                     name: fieldName,
                     usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2));
@@ -318,7 +318,7 @@ internal static partial class SyntaxGeneratorExtensions
                 result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules()),
+                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules()),
                     type: parameter.Type,
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: [],

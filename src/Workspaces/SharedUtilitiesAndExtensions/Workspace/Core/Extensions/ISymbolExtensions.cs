@@ -61,6 +61,15 @@ internal static partial class ISymbolExtensions
         if (symbol.RequiresUnsafeContext)
             return DeclarationModifiers.Unsafe;
 
+        // Filtering can remove the safe accessor. Mark the property instead of every remaining accessor,
+        // since putting the same safety modifier on all declared accessors is invalid.
+        if (symbol is IPropertySymbol property &&
+            !property.RequiresAccessorSafetyModifiers() &&
+            (property.GetMethod?.RequiresUnsafeContext == true || property.SetMethod?.RequiresUnsafeContext == true))
+        {
+            return DeclarationModifiers.Unsafe;
+        }
+
         if (RequiresExplicitSafetyModifier(symbol, hasBackingField))
             return DeclarationModifiers.Safe;
 #endif
@@ -138,10 +147,18 @@ internal static partial class ISymbolExtensions
             layout.PackingSize != 0 || hasExplicitSize;
     }
 
-    // An override can declare just one accessor and inherit the other, so do not require both to be present.
     public static bool RequiresAccessorSafetyModifiers(this IPropertySymbol property)
-        => property.UsesMemorySafetyRulesVersion2() && !property.RequiresUnsafeContext &&
-           (property.GetMethod?.RequiresUnsafeContext == true || property.SetMethod?.RequiresUnsafeContext == true);
+    {
+        if (!property.UsesMemorySafetyRulesVersion2() || property.RequiresUnsafeContext)
+            return false;
+
+        var getterRequiresUnsafe = property.GetMethod?.RequiresUnsafeContext == true;
+        var setterRequiresUnsafe = property.SetMethod?.RequiresUnsafeContext == true;
+
+        // A single-accessor override can inherit its other accessor, whose contract must not change.
+        return getterRequiresUnsafe != setterRequiresUnsafe &&
+            (property.IsOverride || property.GetMethod is not null && property.SetMethod is not null);
+    }
 #endif
 
 #if !OLDER_ROSLYN

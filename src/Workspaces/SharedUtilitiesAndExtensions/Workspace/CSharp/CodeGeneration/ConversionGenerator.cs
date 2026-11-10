@@ -65,7 +65,7 @@ internal static class ConversionGenerator
 
         var declaration = ConversionOperatorDeclaration(
             attributeLists: AttributeGenerator.GenerateAttributeLists(method.GetAttributes(), info),
-            modifiers: GenerateModifiers(method, destination),
+            modifiers: GenerateModifiers(method, destination, info),
             implicitOrExplicitKeyword: keyword,
             explicitInterfaceSpecifier: GenerateExplicitInterfaceSpecifier(method.ExplicitInterfaceImplementations),
             operatorKeyword: OperatorKeyword,
@@ -99,7 +99,8 @@ internal static class ConversionGenerator
         return declaration;
     }
 
-    private static SyntaxTokenList GenerateModifiers(IMethodSymbol method, CodeGenerationDestination destination)
+    private static SyntaxTokenList GenerateModifiers(
+        IMethodSymbol method, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
     {
         using var _ = ArrayBuilder<SyntaxToken>.GetInstance(out var tokens);
 
@@ -112,7 +113,7 @@ internal static class ConversionGenerator
         if (destination is CodeGenerationDestination.InterfaceType || method.IsAbstract)
             tokens.Add(AbstractKeyword);
 
-        AddSafetyModifierTokens(method, tokens, emitUnsafeForVersion1Rules: false);
+        AddSafetyModifierTokens(method, tokens, info, emitUnsafeForVersion1Rules: false);
 
         return [.. tokens.ToImmutableAndClear()];
     }

@@ -431,7 +431,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var delegatingArguments = this.GetRequiredLanguageService<SyntaxGenerator>(TypeToGenerateIn.Language).CreateArguments(_delegatedConstructor.Parameters);
 
             var newParameters = _delegatedConstructor.Parameters.Concat(_parameters);
-            var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifierUnderVersion1Rules());
+            var usesMemorySafetyRulesVersion2 = TypeToGenerateIn.UsesMemorySafetyRulesVersion2();
+            var generateUnsafe = !usesMemorySafetyRulesVersion2 && !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifierUnderVersion1Rules());
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
@@ -441,7 +442,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 parameters: newParameters,
                 statements: assignments,
                 baseConstructorArguments: isThis ? default : delegatingArguments,
-                thisConstructorArguments: isThis ? delegatingArguments : default);
+                thisConstructorArguments: isThis ? delegatingArguments : default,
+                usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2);
 
             var context = new CodeGenerationSolutionContext(
                 document.Project.Solution,

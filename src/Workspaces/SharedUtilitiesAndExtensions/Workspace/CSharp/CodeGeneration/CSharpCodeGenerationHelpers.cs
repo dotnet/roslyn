@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -27,6 +28,7 @@ internal static class CSharpCodeGenerationHelpers
     public static void AddSafetyModifierTokens(
         ISymbol symbol,
         ArrayBuilder<SyntaxToken> tokens,
+        CSharpCodeGenerationContextInfo info,
         bool emitUnsafeForVersion1Rules,
         bool? hasBackingField = null)
     {
@@ -37,7 +39,8 @@ internal static class CSharpCodeGenerationHelpers
             if (modifiers.IsUnsafe)
                 tokens.Add(UnsafeKeyword);
 
-            if (modifiers.IsSafe)
+            // Symbols from newer assemblies may be generated into documents that do not support 'safe'.
+            if (modifiers.IsSafe && info.LanguageVersion.IsCSharp16OrAbove())
                 tokens.Add(SafeKeyword);
 
             return;

@@ -501,7 +501,7 @@ internal static partial class SyntaxGeneratorExtensions
         var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
             attributes: default,
             accessibility: accessibility,
-            modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifierUnderVersion1Rules())),
+            modifiers: DeclarationModifiers.None.WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifierUnderVersion1Rules())),
             typeName: typeName,
             parameters: parameters,
             statements: statements,

@@ -425,7 +425,7 @@ internal static class PropertyGenerator
             }
         }
 
-        AddSafetyModifierTokens(property, tokens, emitUnsafeForVersion1Rules: CodeGenerationPropertyInfo.GetIsUnsafe(property), hasBackingField: hasBackingField);
+        AddSafetyModifierTokens(property, tokens, info, emitUnsafeForVersion1Rules: CodeGenerationPropertyInfo.GetIsUnsafe(property), hasBackingField: hasBackingField);
 
         return [.. tokens];
     }

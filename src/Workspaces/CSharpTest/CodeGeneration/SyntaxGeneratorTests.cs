@@ -5871,6 +5871,28 @@ public sealed class SyntaxGeneratorTests
     }
 
     [Fact]
+    public void TestMetadataFieldOmitsSafeInCSharp15()
+    {
+        var compilation = CompileWithMemorySafetyRulesVersion2("""
+            using System.Runtime.InteropServices;
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            public struct S
+            {
+                public safe int F;
+            }
+            """);
+        var metadata = _emptyCompilation.AddReferences(compilation.EmitToImageReference());
+        var field = (IFieldSymbol)metadata.GetTypeByMetadataName("S").GetMembers("F").Single();
+        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp15);
+        var info = CodeGenerationService.GetInfo(
+            CodeGenerationContext.Default, CodeGenerationService.DefaultOptions, parseOptions);
+        var declaration = CodeGenerationService.CreateFieldDeclaration(
+            field, CodeGenerationDestination.StructType, info, CancellationToken.None);
+
+        Assert.False(Generator.GetModifiers(declaration).IsSafe);
+    }
+
+    [Fact]
     public void TestSyntheticSafeMethod()
     {
         var method = CodeGenerationSymbolFactory.CreateMethodSymbol(

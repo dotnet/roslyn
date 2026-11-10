@@ -328,7 +328,7 @@ internal static class MethodGenerator
             if (method.IsStatic)
                 tokens.Add(StaticKeyword);
 
-            AddSafetyModifierTokens(method, tokens, emitUnsafeForVersion1Rules: CodeGenerationMethodInfo.GetIsUnsafe(method));
+            AddSafetyModifierTokens(method, tokens, info, emitUnsafeForVersion1Rules: CodeGenerationMethodInfo.GetIsUnsafe(method));
         }
         else
         {
@@ -376,7 +376,7 @@ internal static class MethodGenerator
                     tokens.Add(StaticKeyword);
             }
 
-            AddSafetyModifierTokens(method, tokens, emitUnsafeForVersion1Rules: CodeGenerationMethodInfo.GetIsUnsafe(method));
+            AddSafetyModifierTokens(method, tokens, info, emitUnsafeForVersion1Rules: CodeGenerationMethodInfo.GetIsUnsafe(method));
 
             if (CodeGenerationMethodInfo.GetIsNew(method))
                 tokens.Add(NewKeyword);
