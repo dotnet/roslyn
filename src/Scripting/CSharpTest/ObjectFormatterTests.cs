@@ -79,6 +79,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.Equal("(1, 2)", s_formatter.FormatObject(tup));
         }
 
+        private ref struct RefStruct
+        {
+        }
+
+        private class RefStructPropertyHolder
+        {
+            public int Value => 1;
+            public RefStruct RefStructValue => default;
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/51548")]
+        public void RefStructPropertiesAreSkipped()
+        {
+            var str = s_formatter.FormatObject(new RefStructPropertyHolder(), SingleLineOptions);
+            Assert.Equal("ObjectFormatterTests.RefStructPropertyHolder { Value=1 }", str);
+        }
+
         [Fact]
         public void ValueTupleType()
         {
