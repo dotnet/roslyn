@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -721,6 +722,31 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 """);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task RemoveAndSort_AliasesUsedOnlyInComponentTags()
+        // Component tags must keep both type and namespace aliases alive without C# expressions using them.
+        => VerifyRemoveAndSortUsingsAsync(
+            input: """
+                @using Unused = My.Other.UnusedComponent
+                @using UI = My.Foo
+                @using Button = My.Foo.Component
+                @using My.Other
+
+                <Button />
+                <UI.Component />
+                """,
+            expected: """
+                @using Button = My.Foo.Component
+                @using UI = My.Foo
+
+                <Button />
+                <UI.Component />
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), "@namespace My.Foo"),
+                (FilePath("UnusedComponent.razor"), "@namespace My.Other")]);
+
+    [Fact]
     public Task RemoveAndSort_AliasesUsedOnlyInCSharp()
         => VerifyRemoveAndSortUsingsAsync(
             input: """
@@ -753,6 +779,57 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
 
                 <div>@Abs(-1) @IsNullOrEmpty("")</div>
                 """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task RemoveAndSort_DistinctAliasesForSameComponent()
+        // Sharing a target does not make two used aliases duplicates.
+        => VerifyRemoveAndSortUsingsAsync(
+            input: """
+                @using Second = My.Foo.Component
+                @using Unused = My.Foo.Component
+                @using First = My.Foo.Component
+
+                <First />
+                <Second />
+                """,
+            expected: """
+                @using First = My.Foo.Component
+                @using Second = My.Foo.Component
+
+                <First />
+                <Second />
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task RemoveAndSort_UsedAliasesLast()
+        => VerifyRemoveAndSortUsingsAsync(
+            input: """
+                @using UI = My.Foo
+                @using Button = My.Foo.Component
+                @using System.Text
+                @using My.Foo
+                @using System
+
+                <Button />
+                <UI.Component />
+                <Component />
+                <div>@typeof(Console)</div>
+                """,
+            expected: """
+                @using System
+                @using My.Foo
+                @using Button = My.Foo.Component
+                @using UI = My.Foo
+
+                <Button />
+                <UI.Component />
+                <Component />
+                <div>@typeof(Console)</div>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")]);
 
     private async Task VerifyRemoveAndSortUsingsAsync(TestCode input, string expected, (string filePath, string contents)[]? additionalFiles = null, RazorFileKind? fileKind = null)
     {

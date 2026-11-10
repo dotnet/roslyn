@@ -13,6 +13,455 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 public class RemoveUnnecessaryDirectiveTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_OnlyOrdinaryImportRemoved()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using UI = global::Library
+                <UI.Button />
+                """,
+            expected: """
+                @using UI = global::Library
+                <UI.Button />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task SameNameTypeAlias_PreferredOverOrdinaryImport()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using Button = global::Library.Button
+                <Button />
+                """,
+            expected: """
+                @using Button = global::Library.Button
+                <Button />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_OrdinaryAndAliasedTagsKeepBothDirectives()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using UI = global::Library
+                <UI.Button />
+                <Button />
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_UnusedAliasRemovedDespiteOrdinaryTag()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using Library
+                @using [||]UI = global::Library
+                <Button />
+                """,
+            expected: """
+                @using Library
+                <Button />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_ChildContentDoesNotKeepOrdinaryImport()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using UI = global::Library
+                <UI.Button><ChildContent>Hello</ChildContent></UI.Button>
+                """,
+            expected: """
+                @using UI = global::Library
+                <UI.Button><ChildContent>Hello</ChildContent></UI.Button>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase
+                    {
+                        [Microsoft.AspNetCore.Components.Parameter]
+                        public Microsoft.AspNetCore.Components.RenderFragment ChildContent { get; set; }
+                    }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task TypeAlias_MatchingChildContentNameDoesNotKeepUnusedAlias()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using Library
+                @using [||]Header = global::Library.Modal
+                <Modal><Header>Title</Header></Modal>
+                """,
+            expected: """
+                @using Library
+                <Modal><Header>Title</Header></Modal>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Modal.cs"), """
+                    namespace Library;
+                    public class Modal : Microsoft.AspNetCore.Components.ComponentBase
+                    {
+                        [Microsoft.AspNetCore.Components.Parameter]
+                        public Microsoft.AspNetCore.Components.RenderFragment Header { get; set; }
+                    }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task TypeAlias_ChildContentDoesNotKeepOrdinaryImport()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using Button = global::Library.Button
+                <Button><ChildContent>Hello</ChildContent></Button>
+                """,
+            expected: """
+                @using Button = global::Library.Button
+                <Button><ChildContent>Hello</ChildContent></Button>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase
+                    {
+                        [Microsoft.AspNetCore.Components.Parameter]
+                        public Microsoft.AspNetCore.Components.RenderFragment ChildContent { get; set; }
+                    }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_EventHandlerImportKept()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]CustomEvents
+                @using UI = global::Library
+                <UI.Button @oncustom="() => { }" />
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """),
+                (FilePath("EventHandlers.cs"), """
+                    namespace CustomEvents;
+                    [Microsoft.AspNetCore.Components.EventHandler("oncustom", typeof(System.EventArgs), true, true)]
+                    public static class EventHandlers { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_OrdinaryImportUsedInCSharpKept()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using UI = global::Library
+                <UI.Button />
+                @code { private Button CreateButton() => new Button(); }
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_UsedInCSharpKeptWithoutAliasedTag()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using Library
+                @using [||]UI = global::Library
+                <Button />
+                @code { private UI.Button CreateButton() => new UI.Button(); }
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_FromImportsAllowsOrdinaryImportRemoval()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                <UI.Button />
+                """,
+            expected: """
+                <UI.Button />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("_Imports.razor"), "@using UI = global::Library"),
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            addDefaultImports: false,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task TypeAlias_OtherComponentKeepsOrdinaryImport()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using Button = global::Library.Button
+                <Button />
+                <OtherComponent />
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Components.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    public class OtherComponent : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task TypeAlias_ComponentBindDoesNotKeepOrdinaryImport()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using Button = global::Library.Button
+                <Button @bind-Value="value" />
+                @code { private string value = ""; }
+                """,
+            expected: """
+                @using Button = global::Library.Button
+                <Button @bind-Value="value" />
+                @code { private string value = ""; }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase
+                    {
+                        [Microsoft.AspNetCore.Components.Parameter]
+                        public string Value { get; set; }
+                        [Microsoft.AspNetCore.Components.Parameter]
+                        public Microsoft.AspNetCore.Components.EventCallback<string> ValueChanged { get; set; }
+                    }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_EventHandlerInComponentNamespaceKeepsOrdinaryImport()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using UI = global::Library
+                <UI.Button @oncustom="() => { }" />
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Components.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    [Microsoft.AspNetCore.Components.EventHandler("oncustom", typeof(System.EventArgs), true, true)]
+                    public static class EventHandlers { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_NestedNamespaceDoesNotKeepOrdinaryImport()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library.Controls
+                @using UI = global::Library
+                <UI.Controls.Button />
+                """,
+            expected: """
+                @using UI = global::Library
+                <UI.Controls.Button />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library.Controls;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task EscapedNamespaceAlias_OnlyOrdinaryImportRemoved()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using @UI = global::Library
+                <UI.Button />
+                """,
+            expected: """
+                @using @UI = global::Library
+                <UI.Button />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_UnusedAliasAndOrdinaryImportRemoved()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Library
+                @using UI = global::Library
+                <div>Hello</div>
+                """,
+            expected: """
+                <div>Hello</div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase { }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task NamespaceAlias_OrdinaryChildContentKeepsOrdinaryImport()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using Library
+                @using [||]UI = global::Library
+                <Button><ChildContent>Hello</ChildContent></Button>
+                """,
+            expected: """
+                @using Library
+                <Button><ChildContent>Hello</ChildContent></Button>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            additionalFiles: [
+                (FilePath("Button.cs"), """
+                    namespace Library;
+                    public class Button : Microsoft.AspNetCore.Components.ComponentBase
+                    {
+                        [Microsoft.AspNetCore.Components.Parameter]
+                        public Microsoft.AspNetCore.Components.RenderFragment ChildContent { get; set; }
+                    }
+                    """)
+            ],
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
     public async Task RemoveUnusedUsingDirective()
     {
         await VerifyCodeActionAsync(

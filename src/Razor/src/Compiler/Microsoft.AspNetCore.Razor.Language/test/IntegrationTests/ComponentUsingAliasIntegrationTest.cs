@@ -71,6 +71,124 @@ public class ComponentUsingAliasIntegrationTest()
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_UsingAlias_UsageDoesNotLeakBetweenDocuments()
+    {
+        var builder = TagHelperDescriptorBuilder.Create(TagHelperKind.Component, "Library.Button", "Library");
+        builder.SetTypeName("Library.Button", "Library", "Button");
+        builder.TagMatchingRule(rule => rule.TagName = "Button");
+        var descriptors = TagHelperCollection.Create([builder.Build()]);
+        var engine = RazorProjectEngine.Create(new RazorConfiguration(RazorLanguageVersion.Version_12_0, "test", Extensions: []), RazorProjectFileSystem.Empty);
+        var used = engine.Process(RazorSourceDocument.Create("""
+            @using Library
+            @using UI = Library
+            <UI.Button />
+            """, "Used.razor"), RazorFileKind.Component, [], descriptors);
+        var unused = engine.Process(RazorSourceDocument.Create("""
+            @using Library
+            @using UI = Library
+            <Button />
+            """, "Unused.razor"), RazorFileKind.Component, [], descriptors);
+        var usedDirective = used.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()[^1];
+        var unusedDirective = unused.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()[^1];
+
+        // Sharing immutable binding inputs must not share evidence about which tags a document actually uses.
+        Assert.Same(used.GetRequiredTagHelperContext(), unused.GetRequiredTagHelperContext());
+        Assert.True(used.IsDirectiveUsed(usedDirective));
+        Assert.False(unused.IsDirectiveUsed(unusedDirective));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_UsingAlias_DoesNotMarkOrdinaryImportUsed()
+    {
+        var document = CreateAliasUsageTestDocument("""
+            @using Library
+            @using UI = global::Library
+            <UI.Button />
+            """);
+        var directive = document.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()[0];
+
+        Assert.False(document.IsDirectiveUsed(directive));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_UsingAlias_SameNameTypeAliasDoesNotMarkOrdinaryImportUsed()
+    {
+        var document = CreateAliasUsageTestDocument("""
+            @using Library
+            @using Button = global::Library.Button
+            <Button />
+            """);
+        var directive = document.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()[0];
+
+        Assert.False(document.IsDirectiveUsed(directive));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_UsingAlias_OrdinaryTagStillMarksImportUsed()
+    {
+        var document = CreateAliasUsageTestDocument("""
+            @using Library
+            @using UI = global::Library
+            <UI.Button />
+            <Button />
+            """);
+        var directive = document.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()[0];
+
+        Assert.True(document.IsDirectiveUsed(directive));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_UsingAlias_ToolingQueriesDoNotMarkDirectiveUsed()
+    {
+        var builder = TagHelperDescriptorBuilder.Create(TagHelperKind.Component, "Library.Button", "Library");
+        builder.SetTypeName("Library.Button", "Library", "Button");
+        builder.TagMatchingRule(rule => rule.TagName = "Button");
+        var descriptors = TagHelperCollection.Create([builder.Build()]);
+        var engine = RazorProjectEngine.Create(new RazorConfiguration(RazorLanguageVersion.Version_12_0, "test", Extensions: []), RazorProjectFileSystem.Empty);
+        var document = engine.Process(RazorSourceDocument.Create("""
+            @using Library
+            @using UI = Library
+            <Button />
+            """, "Index.razor"), RazorFileKind.Component, [], descriptors);
+        var directive = document.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()[^1];
+
+        // Completion and other tooling can ask about a tag that isn't present in the document.
+        Assert.NotNull(document.GetRequiredTagHelperContext().GetBinder().GetBinding("UI.Button", [], parentTagName: null, parentIsTagHelper: false));
+        Assert.False(document.IsDirectiveUsed(directive));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_UsingAlias_RemovingUsageDoesNotKeepDirectiveUsed()
+    {
+        var builder = TagHelperDescriptorBuilder.Create(TagHelperKind.Component, "Library.Button", "Library");
+        builder.SetTypeName("Library.Button", "Library", "Button");
+        builder.TagMatchingRule(rule => rule.TagName = "Button");
+        var descriptors = TagHelperCollection.Create([builder.Build()]);
+        var engine = RazorProjectEngine.Create(new RazorConfiguration(RazorLanguageVersion.Version_12_0, "test", Extensions: []), RazorProjectFileSystem.Empty);
+        var original = engine.Process(RazorSourceDocument.Create("""
+            @using Library
+            @using UI = Library
+            <UI.Button />
+            """, "Index.razor"), RazorFileKind.Component, [], descriptors);
+        var updated = engine.Process(RazorSourceDocument.Create("""
+            @using Library
+            @using UI = Library
+            <Button />
+            """, "Index.razor"), RazorFileKind.Component, [], descriptors);
+        var originalDirective = original.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()[^1];
+        var updatedDirective = updated.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray()[^1];
+
+        Assert.True(original.IsDirectiveUsed(originalDirective));
+        Assert.False(updated.IsDirectiveUsed(updatedDirective));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
     public void ComponentDiscovery_UsingAlias_ExplicitDescriptorsDoNotOverrideUnresolvedTargets()
     {
         var builder = TagHelperDescriptorBuilder.Create(TagHelperKind.Component, "Library.Button", "Library");
@@ -650,6 +768,16 @@ public class ComponentUsingAliasIntegrationTest()
     {
         var usingDirective = Assert.Single(codeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorUsingDirectiveSyntax>().ToImmutableArray());
         Assert.True(codeDocument.IsDirectiveUsed(usingDirective));
+    }
+
+    private static RazorCodeDocument CreateAliasUsageTestDocument(string content)
+    {
+        var builder = TagHelperDescriptorBuilder.Create(TagHelperKind.Component, "Library.Button", "Library");
+        builder.SetTypeName("Library.Button", "Library", "Button");
+        builder.TagMatchingRule(rule => rule.TagName = "Button");
+        var descriptors = TagHelperCollection.Create([builder.Build()]);
+        var engine = RazorProjectEngine.Create(new RazorConfiguration(RazorLanguageVersion.Version_12_0, "test", Extensions: []), RazorProjectFileSystem.Empty);
+        return engine.Process(RazorSourceDocument.Create(content, "Index.razor"), RazorFileKind.Component, [], descriptors);
     }
 
     private void AddConflictingButtonComponents()
