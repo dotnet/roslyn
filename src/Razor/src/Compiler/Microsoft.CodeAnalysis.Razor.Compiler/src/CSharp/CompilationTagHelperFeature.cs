@@ -8,10 +8,11 @@ using System.Threading;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
-public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHelperFeature
+public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHelperFeature, IComponentAliasTargetFeature
 {
     private ITagHelperDiscoveryService? _discoveryService;
     private IMetadataReferenceFeature? _referenceFeature;
@@ -27,6 +28,27 @@ public sealed class CompilationTagHelperFeature : RazorEngineFeatureBase, ITagHe
         Assumed.NotNull(_discoveryService);
 
         return _discoveryService.GetTagHelpers(compilation, cancellationToken);
+    }
+
+    ComponentAliasTargetMap? IComponentAliasTargetFeature.GetAliasTargets(RazorCodeDocument document, CancellationToken cancellationToken)
+    {
+        var aliases = ComponentAliasTargetMap.GetAliasInfos(document);
+        if (aliases.IsEmpty)
+        {
+            return ComponentAliasTargetMap.Empty;
+        }
+
+        // Compilation-backed project-engine callers need the same complete lookup as the generator.
+        // Keep this input on the document, not on the shared engine or its descriptor caches.
+        var compilation = CSharpCompilation.Create("__Aliases", references: _referenceFeature?.References);
+        if (!IsValidCompilation(compilation))
+        {
+            // Hosts can supply descriptors without references. Missing compilation information must
+            // preserve that fallback, rather than authoritatively rejecting every supplied alias.
+            return null;
+        }
+
+        return ComponentAliasTargetMap.Create([aliases], compilation, cancellationToken);
     }
 
     protected override void OnInitialized()
