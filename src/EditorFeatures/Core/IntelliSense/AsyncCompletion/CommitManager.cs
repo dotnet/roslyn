@@ -260,12 +260,15 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
             var lspSnippetText = change.Properties[SnippetCompletionItem.LSPSnippetKey];
 
             Contract.ThrowIfNull(lspSnippetText);
-            if (!_languageServerSnippetExpander.TryExpand(lspSnippetText, mappedSpan, _textView))
+            var expanded = _languageServerSnippetExpander.TryExpand(lspSnippetText, mappedSpan, _textView);
+            if (!expanded)
             {
                 FatalError.ReportAndCatch(new InvalidOperationException("The invoked LSP snippet expander came back as false."), ErrorSeverity.Critical);
             }
 
-            return new AsyncCompletionData.CommitResult(isHandled: true, AsyncCompletionData.CommitBehavior.None);
+            return new AsyncCompletionData.CommitResult(isHandled: true, expanded && change.IncludesCommitCharacter
+                ? AsyncCompletionData.CommitBehavior.SuppressFurtherTypeCharCommandHandlers
+                : AsyncCompletionData.CommitBehavior.None);
         }
 
         ITextSnapshot updatedCurrentSnapshot;
