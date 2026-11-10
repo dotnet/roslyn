@@ -1,0 +1,40 @@
+﻿Source Location: (1:0,1 [24] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Components.Library|
+Generated Location: (372:12,0 [24] )
+|using Components.Library|
+
+Source Location: (28:1,1 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|using First = Components.Library.MyButton|
+Generated Location: (507:18,0 [41] )
+|using First = Components.Library.MyButton|
+
+Source Location: (72:2,1 [42] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Second = Components.Library.MyButton|
+Generated Location: (659:24,0 [42] )
+|using Second = Components.Library.MyButton|
+
+Source Location: (117:3,1 [29] x:\dir\subdir\Test\TestComponent.cshtml)
+|using UI = Components.Library|
+Generated Location: (812:30,0 [29] )
+|using UI = Components.Library|
+
+Source Location: (149:4,1 [42] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Unused = Components.Library.MyButton|
+Generated Location: (952:36,0 [42] )
+|using Unused = Components.Library.MyButton|
+
+Source Location: (222:8,4 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyButton|
+Generated Location: (1792:55,63 [8] )
+|MyButton|
+
+Source Location: (236:9,1 [8] x:\dir\subdir\Test\TestComponent.cshtml)
+|MyButton|
+Generated Location: (1963:58,63 [8] )
+|MyButton|
+
+Source Location: (250:10,1 [27] x:\dir\subdir\Test\TestComponent.cshtml)
+|Components.Library.MyButton|
+Generated Location: (2115:61,44 [27] )
+|Components.Library.MyButton|
+

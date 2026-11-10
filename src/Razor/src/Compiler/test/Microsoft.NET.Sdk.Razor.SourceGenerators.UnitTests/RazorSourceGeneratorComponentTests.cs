@@ -216,6 +216,46 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_TypeAliasAvoidsNamespaceMemberConflicts()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["TypeConflict.razor"] = """
+                @namespace MyApp.TypeConflict
+                @using Button = global::Library.Button
+                <Button />
+                """,
+            ["NamespaceConflict.razor"] = """
+                @namespace MyApp.NamespaceConflict
+                @using Button = global::Library.Button
+                <Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                namespace MyApp.TypeConflict { public class Button { } }
+                namespace MyApp.NamespaceConflict.Button { public class Helper { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver, out _, output =>
+        {
+            Assert.DoesNotContain(output.GetDiagnostics(), diagnostic => diagnostic.Id == "CS0576");
+        });
+
+        Assert.Contains("OpenComponent<global::Library.Button>",
+            result.GeneratedSources.Single(source => source.HintName == "TypeConflict_razor.g.cs").SourceText.ToString());
+        Assert.Contains("OpenComponent<global::Library.Button>",
+            result.GeneratedSources.Single(source => source.HintName == "NamespaceConflict_razor.g.cs").SourceText.ToString());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
     public async Task ComponentAlias_MalformedGlobalTargetDoesNotAffectOtherDocuments()
     {
         var project = CreateTestProject(new()

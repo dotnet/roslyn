@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
@@ -188,6 +189,114 @@ namespace Test.AnotherNamespace
 
         Assert.Empty(result.RazorDiagnostics);
         AssertCSharpDocumentMatchesBaseline(result.CodeDocument);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_TypeAliasUsesFullyQualifiedNameWhenCurrentNamespaceHasSameType()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Library
+            {
+                public class Button : ComponentBase
+                {
+                }
+            }
+
+            namespace Test
+            {
+                public class Button : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Test
+            @using Button = global::Library.Button
+
+            <Button />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        CompileToAssembly(result);
+        Assert.Contains("OpenComponent<global::Library.Button>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_TypeAliasAvoidsCurrentNamespaceTypeConflict()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Library
+            {
+                public class Button : ComponentBase
+                {
+                }
+            }
+
+            namespace Test
+            {
+                public class Button
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Test
+            @using Button = global::Library.Button
+
+            <Button />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        CompileToAssembly(result);
+        Assert.Contains("OpenComponent<global::Library.Button>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_TypeAliasAvoidsCurrentNamespaceConflict()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Library
+            {
+                public class Button : ComponentBase
+                {
+                }
+            }
+
+            namespace Test.Button
+            {
+                public class Helper
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Test
+            @using Button = global::Library.Button
+
+            <Button />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("OpenComponent<global::Library.Button>", result.Code);
         CompileToAssembly(result);
     }
 
