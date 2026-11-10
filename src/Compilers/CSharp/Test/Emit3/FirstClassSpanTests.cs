@@ -21,13 +21,13 @@ public class FirstClassSpanTests : CSharpTestBase
 {
     public static TheoryDataRow<LanguageVersion>[] LangVersions() =>
     [
-        new(LanguageVersion.CSharp13),
-        new(LanguageVersion.CSharp14),
-        new(LanguageVersion.Preview),
+        new TheoryDataRow<LanguageVersion>(LanguageVersion.CSharp13),
+        new TheoryDataRow<LanguageVersion>(LanguageVersion.CSharp14),
+        new TheoryDataRow<LanguageVersion>(LanguageVersion.Preview),
     ];
 
     private sealed class CombinatorialLangVersions()
-        : CombinatorialValuesAttribute(LangVersions().Select(row => ((ITheoryDataRow)row).GetData()[0]).ToArray());
+        : CombinatorialValuesAttribute(LangVersions().Select(row => (object)row.Data).ToArray());
 
     [Fact, WorkItem("https://github.com/dotnet/runtime/issues/101261")]
     public void Example_StringValuesAmbiguity()
