@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var scopeType = enterScopeMethod.ReturnType;
             if (scopeType is not NamedTypeSymbol { Name: WellKnownMemberNames.LockScopeTypeName, Arity: 0, IsValueType: true, IsRefLikeType: true, DeclaredAccessibility: Accessibility.Public } ||
-                !TypeSymbol.Equals(scopeType.ContainingType, lockType, TypeCompareKind.ConsiderEverything))
+                !TypeSymbol.Equals(scopeType.ContainingType, lockType, TypeCompareKind.AllIgnoreOptions))
             {
                 Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, WellKnownMemberNames.EnterScopeMethodName);
                 return null;
