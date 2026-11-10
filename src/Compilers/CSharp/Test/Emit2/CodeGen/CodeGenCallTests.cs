@@ -47978,5 +47978,555 @@ class Program
 
             CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_01(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int P {set;}
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int P
+    {
+        set
+        {
+            Console.Write(ToString());
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test<T>(" + parameterModifier + @" T value) where T : I1
+    {
+        value.P = GetVal();
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ? "replacement" : "original";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0019
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.GetVal()""
+  IL_001e:  constrained. ""T""
+  IL_0024:  callvirt   ""void I1.P.set""
+  IL_0029:  ret
+}
+" :
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.GetVal()""
+  IL_000e:  constrained. ""T""
+  IL_0014:  callvirt   ""void I1.P.set""
+  IL_0019:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_02(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+    public int this[int i]
+    {
+        get
+        {
+            Console.Write(ToString());
+            return i;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test(" + parameterModifier + @" Item value)
+    {
+        _ = value[GetVal()];
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ? "replacement" : "original";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test", parameterModifier == "ref" ?
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetVal()""
+  IL_0006:  call       ""int Item.this[int].get""
+  IL_000b:  pop
+  IL_000c:  ret
+}
+" :
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (Item V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.GetVal()""
+  IL_000e:  call       ""int Item.this[int].get""
+  IL_0013:  pop
+  IL_0014:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_03(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+    public void M(int i)
+    {
+        Console.Write(ToString());
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test(" + parameterModifier + @" Item value)
+    {
+        value.M(GetVal());
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ? "replacement" : "original";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test", parameterModifier == "ref" ?
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetVal()""
+  IL_0006:  call       ""void Item.M(int)""
+  IL_000b:  ret
+}
+" :
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (Item V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.GetVal()""
+  IL_000e:  call       ""void Item.M(int)""
+  IL_0013:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_04()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+    public void M(int i)
+    {
+        Console.Write(ToString());
+    }
+}
+
+struct Container(Item item)
+{
+    public readonly Item Item = item;
+}
+
+class Program
+{
+    public static Container Current;
+
+    static void Test1()
+    {
+        Current.Item.M(GetVal());
+    } 
+
+    static async Task Test2()
+    {
+        Current.Item.M(await GetValAsync());
+    } 
+
+    static async Task Main()
+    {
+        Current = new Container(new Item(""Original1""));
+        Test1();
+
+        Current = new Container(new Item(""Original2""));
+        await Test2();
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Container(new Item(""Replacement""));
+        return 1;
+    }
+
+    static async Task<int> GetValAsync()
+    {
+        await Task.Yield();
+        return GetVal();
+    }
+
+}
+";
+
+            var expectedOutput = "Original1Replacement";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (Item V_0)
+  IL_0000:  ldsflda    ""Container Program.Current""
+  IL_0005:  ldfld      ""Item Container.Item""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int Program.GetVal()""
+  IL_0012:  call       ""void Item.M(int)""
+  IL_0017:  ret
+}
+");
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_05(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+static class Extension
+{
+    extension (Item x)
+    {
+        public void M1(int i)
+        {
+            Console.Write(x.ToString());
+        }
+    }
+
+    public static void M2(this Item x, int i)
+    {
+        Console.Write(x.ToString());
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test1(" + parameterModifier + @" Item value)
+    {
+        value.M1(GetVal());
+    } 
+
+    static void Test2(" + parameterModifier + @" Item value)
+    {
+        value.M2(GetVal());
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test1(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+
+        Current = new Item(""original"");
+        Test2(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            // This output is expected. For consistency with legacy extension methods, receiver for extension block methods is
+            // treated as a regular parameter for the purpose of lowering and IL generation. Therefore, it is expected to be dereferenced
+            // before arguments are evaluated. 
+            // Receivers of extension properties and indexers are expected to be treated more like true receivers
+            // since there was no legacy behavior to maintain.
+            var expectedOutput = "originaloriginal";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", parameterModifier == "ref" ?
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  call       ""int Program.GetVal()""
+  IL_000b:  call       ""void Extension.M1(Item, int)""
+  IL_0010:  ret
+}
+" :
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  call       ""int Program.GetVal()""
+  IL_000b:  call       ""void Extension.M1(Item, int)""
+  IL_0010:  ret
+}
+"
+);
+
+            verifier.VerifyIL("Program.Test2", parameterModifier == "ref" ?
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  call       ""int Program.GetVal()""
+  IL_000b:  call       ""void Extension.M2(Item, int)""
+  IL_0010:  ret
+}
+" :
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  call       ""int Program.GetVal()""
+  IL_000b:  call       ""void Extension.M2(Item, int)""
+  IL_0010:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_06(
+            [CombinatorialValues("ref readonly", "in")] string receiverModifier,
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+static class Extension
+{
+    extension (" + receiverModifier + @" Item x)
+    {
+        public void M1(int i)
+        {
+            Console.Write(x.ToString());
+        }
+    }
+
+    public static void M2(this " + receiverModifier + @" Item x, int i)
+    {
+        Console.Write(x.ToString());
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test1(" + parameterModifier + @" Item value)
+    {
+        value.M1(GetVal());
+    } 
+
+    static void Test2(" + parameterModifier + @" Item value)
+    {
+        value.M2(GetVal());
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test1(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+        Current = new Item(""original"");
+        Test2(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            var expectedOutput = "replacementreplacement";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetVal()""
+  IL_0006:  call       ""void Extension.M1(" + receiverModifier + @" Item, int)""
+  IL_000b:  ret
+}
+"
+);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetVal()""
+  IL_0006:  call       ""void Extension.M2(" + receiverModifier + @" Item, int)""
+  IL_000b:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
     }
 }
