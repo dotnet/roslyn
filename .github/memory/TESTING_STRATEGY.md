@@ -97,7 +97,6 @@ executable above its hosting runtime directory, so `--dotnet` is unnecessary.
   services. It configures architecture-specific `DOTNET_ROOT` variables so
   native testhosts use the repository's SDK runtime.
 - A handful of tests fail only for environmental reasons:
-  - `RuntimeHostInfoTests.DotNetInPath_Symlinked` requires symlink-creation privilege (run elevated).
   - `Workspaces.MSBuild` `NewlyCreatedProjectsFromDotNetNew.Validate*TemplateProjects` fail without mobile (ios/tvos/macos/maccatalyst) dotnet workloads installed.
 
 ## CI

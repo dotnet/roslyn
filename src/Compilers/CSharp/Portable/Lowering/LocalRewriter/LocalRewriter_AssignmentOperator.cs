@@ -246,10 +246,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DiscardExpression:
                     {
-                        if (isRef && !used)
+                        if (!used)
                         {
-                            Debug.Assert(rewrittenRight.Type is not null);
-                            return new BoundRefAccess(syntax, RefKindExtensions.StrictIn, rewrittenRight, rewrittenRight.Type);
+                            if (isRef)
+                            {
+                                Debug.Assert(rewrittenRight.Type is not null);
+                                return new BoundRefAccess(syntax, RefKindExtensions.StrictIn, rewrittenRight, rewrittenRight.Type);
+                            }
+                            else if (CodeGen.CodeGenerator.IsRef(rewrittenRight))
+                            {
+                                // Preserve the fact that it was a value
+                                return new BoundPassByCopy(syntax, rewrittenRight, rewrittenRight.Type);
+                            }
                         }
 
                         return rewrittenRight;

@@ -168,6 +168,11 @@ internal sealed class AssemblyResolver : IAssemblyResolver
     private void Log(string format, params object[] args)
         => _logger.AppendFormat(format + Environment.NewLine, args);
 
+    public IDisposable BeginSnapshot()
+    {
+        return null;
+    }
+
     internal static class TestAccessor
     {
         public static void AddInMemoryImage(MetadataReference reference, string fileName, ImmutableArray<byte> image)

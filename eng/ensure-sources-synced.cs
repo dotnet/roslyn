@@ -14,18 +14,22 @@ using System.Text.Json;
 //   dotnet run --file eng/ensure-sources-synced.cs -- --verify
 //   dotnet run --file eng/ensure-sources-synced.cs -- --update
 //   dotnet run --file eng/ensure-sources-synced.cs -- --update --sdk-branch <branch>
+//   dotnet run --file eng/ensure-sources-synced.cs -- --update --repo-root <path> --fail-on-rate-limit
 //
 // Default mode when no args are passed: update
 //
 // When `--sdk-branch` is passed, the `commitid.txt` file is updated from a dotnet/sdk branch on GitHub, before updating the source files.
 // This is the preferred way to pick up new upstream changes, e.g.:
 //   dotnet run --file eng/ensure-sources-synced.cs -- --sdk-branch release/11.0.1xx
+//
+// Automation can use --repo-root to update another checkout and --fail-on-rate-limit to require a complete sync.
+// Set GITHUB_TOKEN to authenticate GitHub API requests.
 
 try
 {
     await MainAsync(args).ConfigureAwait(false);
 }
-catch (GitHubRateLimitException ex)
+catch (GitHubRateLimitException ex) when (!args.Contains("--fail-on-rate-limit", StringComparer.Ordinal))
 {
     LogAzDoWarning($"Skipping synced source check due to GitHub rate limit: {ex.Message}");
 }
@@ -34,10 +38,10 @@ return;
 
 static async Task MainAsync(string[] args)
 {
-    var root = Path.Join(AppContext.GetData("EntryPointFileDirectoryPath") as string, "..");
-    if (!Directory.Exists(root)) throw new InvalidOperationException($"Could not locate repo root: {root}");
+    var (mode, sdkBranch, repoRoot) = ParseArgs(args);
 
-    var (mode, sdkBranch) = ParseArgs(args);
+    var root = repoRoot ?? Path.Join(AppContext.GetData("EntryPointFileDirectoryPath") as string, "..");
+    if (!Directory.Exists(root)) throw new InvalidOperationException($"Could not locate repo root: {root}");
 
     var commitIdPath = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "commitid.txt");
     if (!File.Exists(commitIdPath)) throw new InvalidOperationException($"'{commitIdPath}' not found.");
@@ -172,10 +176,11 @@ static async Task MainAsync(string[] args)
     Console.WriteLine("OK");
 }
 
-static (SyncMode Mode, string? SdkBranch) ParseArgs(string[] args)
+static (SyncMode Mode, string? SdkBranch, string? RepoRoot) ParseArgs(string[] args)
 {
     SyncMode? mode = null;
     string? sdkBranch = null;
+    string? repoRoot = null;
 
     for (var i = 0; i < args.Length; i++)
     {
@@ -201,8 +206,19 @@ static (SyncMode Mode, string? SdkBranch) ParseArgs(string[] args)
                 sdkBranch = args[i];
                 break;
 
+            case "--repo-root":
+                i++;
+                if (i == args.Length)
+                    throw new InvalidOperationException("'--repo-root' requires a path argument.");
+
+                repoRoot = Path.GetFullPath(args[i]);
+                break;
+
+            case "--fail-on-rate-limit":
+                break;
+
             default:
-                throw new InvalidOperationException($"Unrecognized argument: '{args[i]}'. Expected '--update', '--verify', and/or '--sdk-branch <branch>'.");
+                throw new InvalidOperationException($"Unrecognized argument: '{args[i]}'. Expected '--update', '--verify', '--sdk-branch <branch>', '--repo-root <path>', or '--fail-on-rate-limit'.");
         }
     }
 
@@ -211,7 +227,7 @@ static (SyncMode Mode, string? SdkBranch) ParseArgs(string[] args)
     if (sdkBranch is not null && mode != SyncMode.Update)
         throw new InvalidOperationException("'--sdk-branch' is only valid together with '--update' (or the default update mode).");
 
-    return (mode.Value, sdkBranch);
+    return (mode.Value, sdkBranch, repoRoot);
 }
 
 static HttpClient CreateHttpClient()
@@ -223,7 +239,12 @@ static HttpClient CreateHttpClient()
 
 static async Task<string> GetGitHubStringAsync(HttpClient client, string url)
 {
-    using var response = await client.GetAsync(url).ConfigureAwait(false);
+    using var request = new HttpRequestMessage(HttpMethod.Get, url);
+    var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+    if (request.RequestUri?.Host == "api.github.com" && !string.IsNullOrWhiteSpace(token))
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+    using var response = await client.SendAsync(request).ConfigureAwait(false);
     var payload = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
     if (IsRateLimitResponse(response.StatusCode, response.Headers, payload))

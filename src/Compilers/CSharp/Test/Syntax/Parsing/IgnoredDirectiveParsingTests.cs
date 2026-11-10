@@ -5,6 +5,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -219,6 +220,83 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 }
             }
         }
+        EOF();
+    }
+
+    [Theory, CombinatorialData]
+    public void ShebangInDisabledRegion(bool script, bool featureFlag)
+    {
+        var options = script ? TestOptions.Script : TestOptions.Regular;
+
+        if (featureFlag)
+        {
+            options = options.WithFeature(FeatureName);
+        }
+
+        var source = """
+            #if false
+            #!xyz
+             # !abc
+            #if true
+            #!nested
+            #endif
+            #endif
+            #if true
+            #else
+            #!else
+            #endif
+            """;
+
+        var root = SyntaxFactory.ParseCompilationUnit(source, options: options);
+        root.GetDiagnostics().Verify();
+        Assert.Equal(source, root.ToFullString());
+
+        var shebangs = root.DescendantTrivia()
+            .Select(trivia => trivia.GetStructure())
+            .OfType<ShebangDirectiveTriviaSyntax>()
+            .ToArray();
+        AssertEx.Equal(["xyz", "abc", "nested", "else"], shebangs.Select(shebang => shebang.Content.ValueText));
+        Assert.All(shebangs, shebang => Assert.False(shebang.IsActive));
+    }
+
+    [Theory, CombinatorialData]
+    public void ShebangAfterDisabledRegion(bool script, bool featureFlag)
+    {
+        var options = script ? TestOptions.Script : TestOptions.Regular;
+
+        if (featureFlag)
+        {
+            options = options.WithFeature(FeatureName);
+        }
+
+        var source = """
+            #if false
+            #!ignored
+            #endif
+            #!active
+            """;
+
+        DiagnosticDescription[] expectedDiagnostics = script || featureFlag
+            ?
+            [
+                // (4,1): error CS9378: '#!' must be the first characters on the first line of the file
+                // #!active
+                Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(4, 1),
+            ]
+            :
+            [
+                // (4,1): error CS9378: '#!' must be the first characters on the first line of the file
+                // #!active
+                Diagnostic(ErrorCode.ERR_PPShebangNotOnFirstLine, "#").WithLocation(4, 1),
+                // (4,2): error CS9314: '#!' directives can be only used in scripts or file-based programs
+                // #!active
+                Diagnostic(ErrorCode.ERR_PPShebangInProjectBasedProgram, "!").WithLocation(4, 2),
+            ];
+
+        UsingTree(source, options, expectedDiagnostics);
+
+        N(SyntaxKind.CompilationUnit);
+        N(SyntaxKind.EndOfFileToken);
         EOF();
     }
 

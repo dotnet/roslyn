@@ -7,4 +7,4 @@ string
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.C<string>. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>( 1 ))
+[0001] AddComponentParameter(nameof(global::Test.C< string >. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>( 1 ))

@@ -498,4 +498,12 @@ internal static class ComponentDiagnosticFactory
 
     public static RazorDiagnostic CreateAssetPath_NonStringParameter(SourceSpan? source, string parameter)
         => RazorDiagnostic.Create(AssetPath_NonStringParameter, source, parameter);
+
+    public static readonly RazorDiagnosticDescriptor LayoutNull_UnsupportedCSharpVersion =
+        new($"{DiagnosticPrefix}10031",
+            "'@layout null' requires C# language version 11.0 or higher.",
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateLayoutNull_UnsupportedCSharpVersion(SourceSpan? source)
+        => RazorDiagnostic.Create(LayoutNull_UnsupportedCSharpVersion, source);
 }

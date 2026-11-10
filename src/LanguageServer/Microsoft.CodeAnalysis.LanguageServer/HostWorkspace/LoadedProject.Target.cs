@@ -93,6 +93,8 @@ internal sealed partial class LoadedProject
 
         public ProjectId ProjectId => _projectSystemProject.Id;
 
+        public IEnumerable<ProjectFileReference> GetProjectReferences() => _mostRecentFileInfo?.ProjectReferences ?? [];
+
         /// <summary>
         /// Unloads the target and removes it from the workspace.
         /// </summary>
@@ -115,6 +117,15 @@ internal sealed partial class LoadedProject
             ILogger logger)
         {
             Contract.ThrowIfFalse(_project._gate.CurrentCount == 0, $"We should be holding {nameof(LoadedProject)}.{nameof(LoadedProject._gate)} for all methods in this class.");
+
+            // FilePath defines project-system document identity, while other properties such as Folders describe
+            // the state applied to that document. Normalize by identity before comparing or retaining the snapshot.
+            newProjectInfo = newProjectInfo with
+            {
+                Documents = [.. newProjectInfo.Documents.DistinctBy(static document => document.FilePath)],
+                AdditionalDocuments = [.. newProjectInfo.AdditionalDocuments.DistinctBy(static document => document.FilePath)],
+                AnalyzerConfigDocuments = [.. newProjectInfo.AnalyzerConfigDocuments.DistinctBy(static document => document.FilePath)],
+            };
 
             if (_mostRecentFileInfo != null)
             {
@@ -173,8 +184,14 @@ internal sealed partial class LoadedProject
                 },
                 "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
 
+            var metadataReferences = newProjectInfo.MetadataReferences is { } references
+                ? references.SelectAsArray(static reference => new CommandLineReference(
+                    reference.Path,
+                    new MetadataReferenceProperties(aliases: [.. reference.Aliases], embedInteropTypes: reference.EmbedInteropTypes)))
+                : commandLineArguments.MetadataReferences;
+
             var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
-            var metadataReferences = commandLineArguments.MetadataReferences.Select(cr =>
+            metadataReferences = metadataReferences.Select(cr =>
             {
                 // The relative path resolver calls File.Exists() to see if the path doesn't exist; it guarantees that generally the path returned
                 // is to an actual file on disk. And it needs to call File.Exists() in some cases if there are reference paths to have to search. But as a fallback
@@ -197,7 +214,11 @@ internal sealed partial class LoadedProject
             // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
             _mostRecentMetadataReferences = metadataReferences;
 
-            var analyzerReferences = commandLineArguments.AnalyzerReferences.Select(cr =>
+            var analyzerReferences = newProjectInfo.AnalyzerReferences is { } analyzers
+                ? analyzers.SelectAsArray(static path => new CommandLineAnalyzerReference(path))
+                : commandLineArguments.AnalyzerReferences;
+
+            analyzerReferences = analyzerReferences.Select(cr =>
             {
                 // Note that unlike regular references, we do not resolve these with the relative path resolver that searches reference paths
                 var absolutePath = FileUtilities.ResolveRelativePath(cr.FilePath, commandLineArguments.BaseDirectory);
@@ -251,31 +272,39 @@ internal sealed partial class LoadedProject
             return;
 
             // logMessage must have 4 placeholders: project name, number of items, added items count, and removed items count.
-            void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)
+            void UpdateProjectSystemProjectCollection<T>(
+                IEnumerable<T> loadedCollection,
+                IEnumerable<T>? oldLoadedCollection,
+                IEqualityComparer<T> comparer,
+                Action<T> addItem,
+                Action<T> removeItem,
+                string logMessage)
             {
                 var newItems = new HashSet<T>(loadedCollection, comparer);
                 var oldItems = new HashSet<T>(oldLoadedCollection ?? [], comparer);
+                var finalItemCount = newItems.Count;
+                var removedCount = 0;
 
-                var addedCount = 0;
-
-                foreach (var newItem in newItems)
+                // Remove changed items first because project-system document collections reject duplicate file paths.
+                foreach (var oldItem in oldItems)
                 {
-                    // If oldItems already has this, we don't need to add it again. We'll remove it, and what is left in oldItems is stuff to remove
-                    if (!oldItems.Remove(newItem))
+                    // If newItems already has this, we don't need to add it again. We'll remove it, and what is left in newItems is stuff to add.
+                    if (!newItems.Remove(oldItem))
                     {
-                        addItem(newItem);
-                        addedCount++;
+                        removeItem(oldItem);
+                        removedCount++;
                     }
                 }
 
-                var removedCount = oldItems.Count;
-                foreach (var oldItem in oldItems)
+                var addedCount = newItems.Count;
+
+                foreach (var newItem in newItems)
                 {
-                    removeItem(oldItem);
+                    addItem(newItem);
                 }
 
                 if (addedCount != 0 || removedCount != 0)
-                    logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count, addedCount, removedCount);
+                    logger.LogTrace(logMessage, projectFullPathWithTargetFramework, finalItemCount, addedCount, removedCount);
             }
 
             void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo)

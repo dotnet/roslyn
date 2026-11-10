@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Basic.Reference.Assemblies;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -108,13 +109,46 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         [WorkItem(13995, "https://github.com/dotnet/roslyn/issues/13995")]
         [Fact]
-        public async Task RejectEmptyTempPath()
+        public async Task AcceptCompilationRequest()
         {
             using var temp = new TempRoot();
             using var serverData = await ServerUtil.CreateServer(Logger);
-            var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, tempDirectory: null, compilerHash: BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
+            var request = BuildRequest.Create(RequestLanguage.CSharpCompile, workingDirectory: temp.CreateDirectory().Path, compilerHash: BuildProtocolConstants.GetCommitHash(), libDirectory: null, args: Array.Empty<string>());
             var response = await serverData.SendAsync(request);
-            Assert.Equal(ResponseType.Rejected, response.Type);
+            Assert.Equal(ResponseType.Completed, response.Type);
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task LegacySigningThroughServer(bool isCSharp)
+        {
+            var directory = Temp.CreateDirectory();
+            var outputDirectory = directory.CreateDirectory("bin");
+            var language = isCSharp ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
+            var source = directory.CreateFile(isCSharp ? "Library.cs" : "Library.vb")
+                .WriteAllText(isCSharp ? "public class C { }" : "Public Class C : End Class");
+            var key = directory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+            var reference = directory.CreateFile("mscorlib.dll").WriteAllBytes(Net40.Resources.mscorlib);
+            var arguments = new List<string>
+            {
+                "/nologo", "/nostdlib", "/target:library", "/features:UseLegacyStrongNameProvider",
+                "/keyfile:" + key.Path, "/r:" + reference.Path, "/out:bin\\Library.dll", source.Path
+            };
+            if (!isCSharp)
+            {
+                arguments.Add("/vbruntime-");
+                arguments.Add("/define:_MYTYPE=\"Empty\"");
+            }
+
+            using var server = await ServerUtil.CreateServer(Logger);
+            var request = BuildRequest.Create(language, arguments, directory.Path, BuildProtocolConstants.GetCommitHash());
+            var response = Assert.IsType<CompletedBuildResponse>(await server.SendAsync(request));
+            Assert.True(response.ReturnCode == 0, response.Output);
+            var outputPath = Path.Combine(outputDirectory.Path, "Library.dll");
+            using var stream = File.OpenRead(outputPath);
+            Assert.True(ILValidation.IsStreamFullSigned(stream));
+            AssertEx.Equal(new[] { outputPath }, Directory.GetFiles(outputDirectory.Path));
         }
 
         [Fact]

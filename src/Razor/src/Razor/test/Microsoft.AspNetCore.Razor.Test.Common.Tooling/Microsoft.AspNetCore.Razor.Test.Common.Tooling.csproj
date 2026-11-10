@@ -54,7 +54,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit.analyzers" />
     <PackageReference Include="xunit.extensibility.execution" />

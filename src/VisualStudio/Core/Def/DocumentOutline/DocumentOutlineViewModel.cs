@@ -55,6 +55,11 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>
+    /// Raised on the UI thread with the search text and the number of displayed symbols, including nested symbols.
+    /// </summary>
+    public event Action<string, uint>? SearchCompleted;
+
     private DocumentOutlineViewState _lastPresentedViewState_doNotAccessDirectly;
     private bool _isDisposed;
 
@@ -335,6 +340,7 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
 
         this.LastPresentedViewState = newViewState;
         this.DocumentSymbolViewModelItems = newViewModelItems;
+        SearchCompleted?.Invoke(searchText, (uint)models.Count);
 
         // Now that we've updated our state, enqueue the work to expand/select the right item.
         ExpandAndSelectItemAtCaretPosition();

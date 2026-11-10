@@ -160,10 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    if (used) // unused this has no side-effects
-                    {
-                        EmitThisReferenceExpression((BoundThisReference)expression);
-                    }
+                    EmitThisReferenceExpression((BoundThisReference)expression, used);
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -829,15 +826,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
         }
 
-        private void EmitThisReferenceExpression(BoundThisReference thisRef)
+        private void EmitThisReferenceExpression(BoundThisReference thisRef, bool used)
         {
             var thisType = thisRef.Type;
             Debug.Assert(thisType.TypeKind != TypeKind.TypeParameter);
 
-            _builder.EmitOpCode(ILOpCode.Ldarg_0);
-            if (thisType.IsValueType)
+            if (used || thisType.IsValueType)
             {
-                EmitLoadIndirect(thisType, thisRef.Syntax);
+                if (!used && thisType.IsDisplayClassType())
+                {
+                    // Cannot be a null ref
+                    return;
+                }
+
+                _builder.EmitOpCode(ILOpCode.Ldarg_0);
+                if (thisType.IsValueType)
+                {
+                    EmitLoadIndirect(thisType, thisRef.Syntax);
+                }
+
+                EmitPopIfUnused(used);
             }
         }
 
@@ -1194,6 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     case BoundKind.FieldAccess:
                     case BoundKind.RefValueOperator:
                     case BoundKind.Dup:
+                    case BoundKind.ThisReference when receiver.Type.IsValueType:
                         return true;
 
                     case BoundKind.Call:
@@ -2351,6 +2360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.RefValueOperator:
                     return true;
+
+                case BoundKind.ThisReference:
+                    return receiver.Type.IsValueType;
             }
 
             return false;

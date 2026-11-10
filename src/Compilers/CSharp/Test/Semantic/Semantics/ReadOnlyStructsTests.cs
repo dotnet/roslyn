@@ -1267,11 +1267,11 @@ public static class C
             var semanticModel = comp.GetSemanticModel(testMethodSyntax.SyntaxTree);
             var statements = testMethodSyntax.Body.Statements;
 
-            testStatement(statements[1], false);
+            testStatement(statements[1], isEffectivelyReadOnly: true);
             testStatement(statements[2], false);
             testStatement(statements[3], true);
 
-            testStatement(statements[5], false);
+            testStatement(statements[5], isEffectivelyReadOnly: true);
             testStatement(statements[6], false);
             testStatement(statements[7], true);
 

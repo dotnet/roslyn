@@ -4,8 +4,11 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
@@ -20,11 +23,18 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
         RazorFileKind fileKind,
         DocumentUri razorDocumentUri,
         RazorCSharpDocument implementationDocument,
+        SyntaxNode implementationSyntaxRoot,
         SumType<DocumentSymbol[], SymbolInformation[]> implementationSymbols,
         RazorCSharpDocument? declarationDocument,
-        SumType<DocumentSymbol[], SymbolInformation[]>? declarationSymbols)
+        SyntaxNode? declarationSyntaxRoot,
+        SumType<DocumentSymbol[], SymbolInformation[]>? declarationSymbols,
+        CancellationToken cancellationToken)
     {
+        // Cancellation can arrive after Roslyn produces symbols, while Razor is remapping a large result.
+        cancellationToken.ThrowIfCancellationRequested();
+
         Debug.Assert((declarationDocument is null) == (declarationSymbols is null));
+        Debug.Assert((declarationDocument is null) == (declarationSyntaxRoot is null));
 
         if (implementationSymbols.TryGetFirst(out var implementationDocumentSymbols))
         {
@@ -35,9 +45,9 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
                 throw CreateUnsupportedResponseTypeException();
             }
 
-            var mappedDeclarationSymbols = RemapDocumentSymbols(fileKind, declarationDocument, declarationDocumentSymbols);
-            var mappedImplementationSymbols = RemapDocumentSymbols(fileKind, implementationDocument, implementationDocumentSymbols);
-            var mergedSymbols = MergeDocumentSymbols(mappedDeclarationSymbols, mappedImplementationSymbols);
+            var mappedDeclarationSymbols = RemapDocumentSymbols(fileKind, declarationDocument, declarationSyntaxRoot, declarationDocumentSymbols, cancellationToken);
+            var mappedImplementationSymbols = RemapDocumentSymbols(fileKind, implementationDocument, implementationSyntaxRoot, implementationDocumentSymbols, cancellationToken);
+            var mergedSymbols = MergeDocumentSymbols(mappedDeclarationSymbols, mappedImplementationSymbols, cancellationToken);
 
             return mergedSymbols.Length == 0
                 ? [CreateRenderMethodDocumentSymbol(fileKind)]
@@ -52,10 +62,10 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
                 throw CreateUnsupportedResponseTypeException();
             }
 
-            var mappedDeclarationSymbols = RemapSymbolInformations(fileKind, razorDocumentUri, declarationDocument, declarationSymbolInformations);
-            var mappedImplementationSymbols = RemapSymbolInformations(fileKind, razorDocumentUri, implementationDocument, implementationSymbolInformations);
+            var mappedDeclarationSymbols = RemapSymbolInformations(fileKind, razorDocumentUri, declarationDocument, declarationSyntaxRoot, declarationSymbolInformations, cancellationToken);
+            var mappedImplementationSymbols = RemapSymbolInformations(fileKind, razorDocumentUri, implementationDocument, implementationSyntaxRoot, implementationSymbolInformations, cancellationToken);
 
-            return MergeSymbolInformations(fileKind, razorDocumentUri, mappedDeclarationSymbols, mappedImplementationSymbols);
+            return MergeSymbolInformations(fileKind, razorDocumentUri, mappedDeclarationSymbols, mappedImplementationSymbols, cancellationToken);
         }
         else
         {
@@ -67,9 +77,12 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
         RazorFileKind fileKind,
         DocumentUri razorDocumentUri,
         RazorCSharpDocument? csharpDocument,
-        SymbolInformation[]? symbolInformations)
+        SyntaxNode? syntaxRoot,
+        SymbolInformation[]? symbolInformations,
+        CancellationToken cancellationToken)
     {
         if (csharpDocument is null ||
+            syntaxRoot is null ||
             symbolInformations is null)
         {
             return null;
@@ -79,9 +92,12 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 
         foreach (var symbolInformation in symbolInformations)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             // SymbolInformation is obsolete, but things still return it so we have to handle it
 #pragma warning disable CS0618 // Type or member is obsolete
-            if (symbolInformation.Name == RenderMethodSignature(fileKind))
+            if (symbolInformation.Name == RenderMethodSignature(fileKind) &&
+                IsPrimaryRenderMethod(csharpDocument, syntaxRoot, symbolInformation.Location.Range))
             {
                 symbolInformation.Name = RenderMethodDisplay(fileKind);
                 symbolInformation.Location.Range = LspFactory.DefaultRange;
@@ -100,9 +116,10 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
         return mappedSymbols.ToArray();
     }
 
-    private DocumentSymbol[]? RemapDocumentSymbols(RazorFileKind fileKind, RazorCSharpDocument? csharpDocument, DocumentSymbol[]? documentSymbols)
+    private DocumentSymbol[]? RemapDocumentSymbols(RazorFileKind fileKind, RazorCSharpDocument? csharpDocument, SyntaxNode? syntaxRoot, DocumentSymbol[]? documentSymbols, CancellationToken cancellationToken)
     {
         if (csharpDocument is null ||
+            syntaxRoot is null ||
             documentSymbols is null)
         {
             return null;
@@ -112,14 +129,16 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 
         foreach (var documentSymbol in documentSymbols)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (TryRemapRanges(csharpDocument, documentSymbol))
             {
-                documentSymbol.Children = RemapDocumentSymbols(fileKind, csharpDocument, documentSymbol.Children);
+                documentSymbol.Children = RemapDocumentSymbols(fileKind, csharpDocument, syntaxRoot, documentSymbol.Children, cancellationToken);
 
                 mappedSymbols.Add(documentSymbol);
             }
             else if (documentSymbol.Children is [_, ..] &&
-                RemapDocumentSymbols(fileKind, csharpDocument, documentSymbol.Children) is [_, ..] mappedChildren)
+                RemapDocumentSymbols(fileKind, csharpDocument, syntaxRoot, documentSymbol.Children, cancellationToken) is [_, ..] mappedChildren)
             {
                 // This range didn't map, but some/all of its children did, so we promote them to this level so we don't
                 // lose any information.
@@ -131,7 +150,8 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 
         bool TryRemapRanges(RazorCSharpDocument csharpDocument, DocumentSymbol documentSymbol)
         {
-            if (documentSymbol.Detail == RenderMethodSignature(fileKind))
+            if (documentSymbol.Detail == RenderMethodSignature(fileKind) &&
+                IsPrimaryRenderMethod(csharpDocument, syntaxRoot, documentSymbol.SelectionRange))
             {
                 // Special case BuildRenderTree to always map to the top of the document
                 documentSymbol.Detail = RenderMethodDisplay(fileKind);
@@ -153,8 +173,29 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
         }
     }
 
-    private static DocumentSymbol[] MergeDocumentSymbols(DocumentSymbol[]? declarationSymbols, DocumentSymbol[]? implementationSymbols)
+    private static bool IsPrimaryRenderMethod(RazorCSharpDocument csharpDocument, SyntaxNode syntaxRoot, LspRange range)
     {
+        // Generated helpers can have the same render signature. Only the primary class gets the
+        // unmapped render-method exception; helpers and user-authored methods use normal source mapping.
+        var position = csharpDocument.Text.GetRequiredAbsoluteIndex(range.Start);
+        if (syntaxRoot.FindToken(position).Parent?.FirstAncestorOrSelf<MethodDeclarationSyntax>()?.Parent is not ClassDeclarationSyntax
+            {
+                Parent: BaseNamespaceDeclarationSyntax or CompilationUnitSyntax
+            } containingClass)
+        {
+            return false;
+        }
+
+        var primaryClass = csharpDocument.CodeDocument.GetRequiredDocumentNode().FindPrimaryClass();
+        return primaryClass is not null &&
+            containingClass.Identifier.ValueText == primaryClass.Name &&
+            (containingClass.TypeParameterList?.Parameters.Count ?? 0) == primaryClass.TypeParameters.Length;
+    }
+
+    private static DocumentSymbol[] MergeDocumentSymbols(DocumentSymbol[]? declarationSymbols, DocumentSymbol[]? implementationSymbols, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (declarationSymbols is null)
         {
             return implementationSymbols ?? [];
@@ -182,6 +223,8 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 
             foreach (var symbol in symbols)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var key = SymbolData.Create(symbol.Name, symbol.Kind, symbol.SelectionRange);
                 if (symbolIndices.TryGetValue(key, out var existingIndex))
                 {
@@ -189,7 +232,7 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
                     if (symbol.Children is [_, ..])
                     {
                         existingSymbol.Children = existingSymbol.Children is [_, ..]
-                            ? MergeDocumentSymbols(existingSymbol.Children, symbol.Children)
+                            ? MergeDocumentSymbols(existingSymbol.Children, symbol.Children, cancellationToken)
                             : symbol.Children;
                     }
                 }
@@ -207,8 +250,11 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
         RazorFileKind fileKind,
         DocumentUri razorDocumentUri,
         SymbolInformation[]? declarationSymbols,
-        SymbolInformation[]? implementationSymbols)
+        SymbolInformation[]? implementationSymbols,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         using var _1 = ListPool<SymbolInformation>.GetPooledObject(out var mergedSymbols);
         using var _2 = HashSetPool<SymbolData>.GetPooledObject(out var seenSymbols);
         var foundRenderMethodSymbol = false;
@@ -232,6 +278,8 @@ internal sealed class DocumentSymbolService(IDocumentMappingService documentMapp
 
             foreach (var symbol in symbols)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 foundRenderMethodSymbol |= symbol.Name == RenderMethodDisplay(fileKind);
                 if (seenSymbols.Add(SymbolData.Create(symbol.Name, symbol.Kind, symbol.Location.Range)))
                 {

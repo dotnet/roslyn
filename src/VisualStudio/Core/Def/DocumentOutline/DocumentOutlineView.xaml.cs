@@ -9,11 +9,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -42,6 +42,8 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
     private readonly DocumentOutlineViewModel _viewModel;
     private readonly IVsToolbarTrayHost _toolbarTrayHost;
     private readonly IVsWindowSearchHost _windowSearchHost;
+    private readonly IVsUIDataSource _searchControlDataSource;
+    private DocumentOutlineSearchTask? _searchTask;
 
     public DocumentOutlineView(
         IVsUIShell4 uiShell,
@@ -73,8 +75,13 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
         _windowSearchHost = windowSearchHostFactory.CreateWindowSearchHost(SearchHost);
         _windowSearchHost.SetupSearch(this);
 
+        var searchControl = (SearchControl)((IVsWindowSearchHostPrivate)_windowSearchHost).SearchControl;
+        searchControl.SetResourceReference(FrameworkElement.StyleProperty, SearchControl.ToolBarStyleKey);
+        _searchControlDataSource = (IVsUIDataSource)searchControl.DataContext;
+
         this.PreviewKeyDown += OnPreviewKeyDown;
         viewTracker.CaretMovedOrActiveViewChanged += ViewTracker_CaretMovedOrActiveViewChanged;
+        viewModel.SearchCompleted += OnSearchCompleted;
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -111,6 +118,9 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
     public void Dispose()
     {
         this.PreviewKeyDown -= OnPreviewKeyDown;
+        _viewModel.SearchCompleted -= OnSearchCompleted;
+        _searchTask?.Stop();
+        _searchTask = null;
         _toolbarTrayHost.Close();
         _windowSearchHost.TerminateSearch();
         _viewTracker.CaretMovedOrActiveViewChanged -= ViewTracker_CaretMovedOrActiveViewChanged;
@@ -207,12 +217,28 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
 
     IVsSearchTask IVsWindowSearch.CreateSearch(uint dwCookie, IVsSearchQuery pSearchQuery, IVsSearchCallback pSearchCallback)
     {
-        _viewModel.SearchText = pSearchQuery.SearchString;
-        return new VsSearchTask(dwCookie, pSearchQuery, pSearchCallback);
+        _searchTask = new DocumentOutlineSearchTask(_threadingContext, _viewModel, dwCookie, pSearchQuery, pSearchCallback);
+        return _searchTask;
+    }
+
+    private void OnSearchCompleted(string searchText, uint resultCount)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        if (_searchTask is DocumentOutlineSearchTask searchTask && searchTask.SearchQuery.SearchString == searchText)
+        {
+            searchTask.Complete(resultCount);
+
+            // Task completion is one-shot, but document edits can continue changing the visible result count.
+            if (ReferenceEquals(_searchTask, searchTask) && searchTask.TaskStatus == VSConstants.VsSearchTaskStatus.Completed)
+                InternalUtilities.SetValue(_searchControlDataSource, SearchControlDataSource.PropertyNames.SearchResultsCount, (int)resultCount);
+        }
     }
 
     void IVsWindowSearch.ClearSearch()
     {
+        _searchTask?.Stop();
+        _searchTask = null;
         _viewModel.SearchText = "";
     }
 
@@ -349,33 +375,8 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
     /// </summary>
     private void SymbolTreeItem_Selected(object sender, RoutedEventArgs e)
     {
-        // Construct a rectangle at the left of the item to avoid horizontal scrolling when the items is longer than
-        // fits in the view. We make the rectangle 25% the width of the containing tree view to ensure at least some
-        // of the text is visible for deeply nested items.
         if (e.OriginalSource is TreeViewItem item)
-        {
-            double renderHeight;
-            if (item.IsExpanded && item.HasItems)
-            {
-                // The first child is a container. Inside the container are three children:
-                // 1. The expander
-                // 2. The border for the header item
-                // 3. The container for the children
-                //
-                // For expanded items, we want to only consider the render heigh of the header item, since that is
-                // the specific item which is selected.
-                var container = VisualTreeHelper.GetChild(item, 0);
-                var border = VisualTreeHelper.GetChild(container, 1);
-                renderHeight = ((UIElement)border).RenderSize.Height;
-            }
-            else
-            {
-                renderHeight = item.RenderSize.Height;
-            }
-
-            var croppedRenderWidth = Math.Min(item.RenderSize.Width, SymbolTree.RenderSize.Width / 4);
-            item.BringIntoView(new Rect(new Point(0, 0), new Size(croppedRenderWidth, renderHeight)));
-        }
+            item.BringIntoView();
     }
 
     /// <summary>

@@ -77,9 +77,19 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         ClientCapabilities? clientCapabilities = null,
         ServerConfiguration? serverConfiguration = null,
         ClientInfo? clientInfo = null,
-        LanguageServerTelemetry? processTelemetry = null)
+        LanguageServerTelemetry? processTelemetry = null,
+        IReadOnlyList<string>? workspaceFolderPaths = null)
     {
-        var initializeParams = new InitializeParams { Capabilities = clientCapabilities ?? new ClientCapabilities(), ClientInfo = clientInfo };
+        var initializeParams = new InitializeParams
+        {
+            Capabilities = clientCapabilities ?? new ClientCapabilities(),
+            ClientInfo = clientInfo,
+            WorkspaceFolders = workspaceFolderPaths?.Select(static path => new WorkspaceFolder
+            {
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
+                Name = path,
+            }).ToArray(),
+        };
         return SingleServerTestLspServer.CreateAsync(initializeParams, LoggerFactory, serverConfiguration ?? DefaultServerConfiguration, this, processTelemetry);
     }
 

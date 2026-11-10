@@ -25,12 +25,7 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
 
     public async Task HandleMissingDocumentAsync(TextDocumentIdentifier? textDocumentIdentifier, RequestContext context, CancellationToken cancellationToken)
     {
-        if (await context.GetSolutionAsync(cancellationToken).ConfigureAwait(false) is not Solution solution)
-        {
-            // If the solution is null, we have no idea what is going on, so err on the side of ignoring this request
-            // and not annoying the user.
-            return;
-        }
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
 #pragma warning disable CS0618 // Type or member is obsolete - https://github.com/dotnet/roslyn/issues/84785
         if (textDocumentIdentifier?.DocumentUri.ParsedUri is not Uri uri)

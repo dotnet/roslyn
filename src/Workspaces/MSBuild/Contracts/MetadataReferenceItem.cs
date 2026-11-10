@@ -12,5 +12,6 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 #endif
 internal readonly record struct MetadataReferenceItem(
     [property: DataMember(Order = 0)] string Path,
-    [property: DataMember(Order = 1)] string[] Aliases
+    [property: DataMember(Order = 1)] string[] Aliases,
+    [property: DataMember(Order = 2)] bool EmbedInteropTypes
 );

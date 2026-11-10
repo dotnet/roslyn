@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
             /// <summary>
             /// This form of signing occurs using the <see cref="IClrStrongName"/> COM APIs. This form of signing
             /// requires the unsigned PE to be written to disk before it can be signed (typically by writing it
-            /// out to the %TEMP% folder). This signing is used when the key in a key container, the signing 
+            /// out to an explicitly supplied signing directory). This signing is used when the key in a key container, the signing
             /// requires a counter signature or customers opted in via the UseLegacyStrongNameProvider feature 
             /// flag.
             /// </summary>
@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis
                     RoslynDebug.Assert(_strongNameProvider != null);
 
                     var fileSystem = _strongNameProvider.FileSystem;
-                    var tempDir = fileSystem.GetSigningTempPath();
-                    if (tempDir is null)
+                    var signingDirectory = fileSystem.GetSigningPath();
+                    if (signingDirectory is null)
                     {
                         diagnostics.Add(StrongNameKeys.GetError(
                             _strongNameKeys.KeyFilePath,
@@ -142,9 +142,10 @@ namespace Microsoft.CodeAnalysis
                     string tempFilePath;
                     try
                     {
-                        Func<string, Stream> streamConstructor = path => fileSystem.CreateFileStream(path, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
+                        Func<string, Stream> streamConstructor = path => fileSystem.CreateFileStream(
+                            path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.ReadWrite);
 
-                        tempFilePath = Path.Combine(tempDir, Guid.NewGuid().ToString("N"));
+                        tempFilePath = Path.Combine(signingDirectory, $"legacy-sign.{Guid.NewGuid():N}.dll");
                         tempStream = FileUtilities.CreateFileStreamChecked(streamConstructor, tempFilePath);
                     }
                     catch (IOException e)

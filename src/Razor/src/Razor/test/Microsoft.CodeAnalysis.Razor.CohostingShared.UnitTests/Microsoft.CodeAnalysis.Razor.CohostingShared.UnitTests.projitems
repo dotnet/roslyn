@@ -72,7 +72,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CodeDirectiveFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest_Generator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentRangeFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\DocumentFormattingTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingContentValidationPassTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingDiagnosticValidationPassTest.cs" />

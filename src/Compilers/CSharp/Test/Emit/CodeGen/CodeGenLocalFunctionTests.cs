@@ -86,6 +86,223 @@ class C
         }
 
         [Fact]
+        [WorkItem(23303, "https://github.com/dotnet/roslyn/issues/23303")]
+        public void AccessModifiersForLocalFunctions_NoCapture()
+        {
+            var code = """
+                public static class App{
+                    static void Main()
+                    {
+                        local();
+                        void local() {
+                            System.Console.WriteLine("Hello");
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "Hello";
+            var verifier = CompileAndVerify(code,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: expectedOutput,
+                symbolValidator: validateSymbols
+            );
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.True(app.IsStatic);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var local = app.GetMethod("<Main>g__local|0_0");
+                Assert.Equal(Accessibility.Private, local.DeclaredAccessibility);
+                Assert.True(local.IsStatic);
+            }
+        }
+
+        [Fact]
+        [WorkItem(23303, "https://github.com/dotnet/roslyn/issues/23303")]
+        public void AccessModifiersForLocalFunctions_ThisCapture()
+        {
+            var code = """
+                public class App{
+                    static void Main() => new App().Do();
+
+                    void Do()
+                    {
+                        local();
+                        void local() {
+                            System.Console.WriteLine(this.ToString());
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "App";
+            var verifier = CompileAndVerify(code,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: expectedOutput,
+                symbolValidator: validateSymbols
+            );
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.False(app.IsStatic);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var doMethod = app.GetMethod("Do");
+                Assert.Equal(Accessibility.Private, doMethod.DeclaredAccessibility);
+                Assert.False(doMethod.IsStatic);
+                var local = app.GetMethod("<Do>g__local|1_0");
+                Assert.Equal(Accessibility.Private, local.DeclaredAccessibility);
+                Assert.False(local.IsStatic);
+            }
+        }
+
+        [Fact]
+        [WorkItem(23303, "https://github.com/dotnet/roslyn/issues/23303")]
+        public void AccessModifiersForLocalFunctions_CaptureLocal()
+        {
+            var code = """
+                public class App{
+                    static void Main() => new App().Do();
+
+                    void Do()
+                    {
+                        var text = "Hello";
+                        local();
+
+                        void local() {
+                            System.Console.WriteLine(text);
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "Hello";
+            var verifier = CompileAndVerify(code,
+                expectedOutput: expectedOutput,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validateSymbols
+            );
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.False(app.IsStatic);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var doMethod = app.GetMethod("Do");
+                Assert.Equal(Accessibility.Private, doMethod.DeclaredAccessibility);
+                Assert.False(doMethod.IsStatic);
+                var local = app.GetMethod("<Do>g__local|1_0");
+                Assert.Equal(Accessibility.Private, local.DeclaredAccessibility);
+                Assert.True(local.IsStatic);
+            }
+        }
+
+        [Fact]
+        [WorkItem(23303, "https://github.com/dotnet/roslyn/issues/23303")]
+        public void AccessModifiersForLocalFunctions_CaptureLocalWithLambda()
+        {
+            var code = """
+                public class App{
+                    static void Main() => new App().Do();
+
+                    void Do()
+                    {
+                        var text = "Hello";
+                        
+                        System.Action lambda = () => {
+                            System.Console.Write(text);
+                            text = " World";
+                        };
+
+                        lambda();
+                        local();
+
+                        void local() {
+                            System.Console.WriteLine(text);
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "Hello World";
+            var verifier = CompileAndVerify(code,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: expectedOutput,
+                symbolValidator: validateSymbols
+            );
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.False(app.IsStatic);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var doMethod = app.GetMethod("Do");
+                Assert.Equal(Accessibility.Private, doMethod.DeclaredAccessibility);
+                Assert.False(doMethod.IsStatic);
+
+                var displayClass = app.GetTypeMember("<>c__DisplayClass1_0");
+                Assert.Equal(Accessibility.Private, displayClass.DeclaredAccessibility);
+
+                var local = displayClass.GetMethod("<Do>g__local|1");
+                Assert.Equal(Accessibility.Internal, local.DeclaredAccessibility);
+                Assert.False(local.IsStatic);
+
+                var lambda = displayClass.GetMethod("<Do>b__0");
+                Assert.Equal(Accessibility.Internal, lambda.DeclaredAccessibility);
+                Assert.False(lambda.IsStatic);
+            }
+        }
+
+        [Fact]
+        [WorkItem(86043, "https://github.com/dotnet/roslyn/issues/86043")]
+        public void AccessModifiersForLocalFunctions_StaticLocalFunction()
+        {
+            var code = """
+                using System;
+
+                public struct App
+                {
+                    public static void Main()
+                    {
+                        Do();
+                        static void Do(){
+                            Console.WriteLine("Hello World!");
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "Hello World!";
+            var verifier = CompileAndVerify(code,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: expectedOutput,
+                symbolValidator: validateSymbols
+            );
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.True(app.IsValueType);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Public, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var doMethod = app.GetMethod("<Main>g__Do|0_0");
+                Assert.Equal(Accessibility.Private, doMethod.DeclaredAccessibility);
+                Assert.True(doMethod.IsStatic);
+            }
+        }
+
+        [Fact]
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {
@@ -2086,7 +2303,7 @@ public class C
             CompileAndVerify(comp, expectedSignatures: new SignatureDescription[]
             {
                 Signature("C", "Main", ".method public hidebysig static System.Void Main() cil managed"),
-                Signature("C", "<Main>g__LocalFunc|0_0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] assembly hidebysig static System.Void <Main>g__LocalFunc|0_0([opt] System.Int32 a = 2) cil managed")
+                Signature("C", "<Main>g__LocalFunc|0_0", ".method [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] private hidebysig static System.Void <Main>g__LocalFunc|0_0([opt] System.Int32 a = 2) cil managed")
             });
         }
 
@@ -5699,7 +5916,7 @@ class C
     		IL_0006: nop
     		IL_0007: ret
     	} // end of method C::.ctor
-    	.method assembly hidebysig static 
+    	.method private hidebysig static 
     		void '<M>g__local1|0_0' () cil managed 
     	{
     		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -6307,7 +6524,7 @@ public class CAttribute : System.Attribute { }
         IL_0001: call instance void [mscorlib]System.Object::.ctor()
         IL_0006: ret
     } // end of method C::.ctor
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M>g__local|0_0' (
             int32 i
         ) cil managed 

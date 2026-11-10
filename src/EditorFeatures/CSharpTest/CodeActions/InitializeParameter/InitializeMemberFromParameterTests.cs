@@ -2357,4 +2357,27 @@ class C
                 </Project>
             </Workspace>
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/57896")]
+    public Task TestSnakeCaseFieldNamingStyle_CreateAndInitField()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public C([||]string my_parameter)
+                {
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private readonly string _my_parameter;
+
+                public C(string my_parameter)
+                {
+                    _my_parameter = my_parameter;
+                }
+            }
+            """, index: 1, parameters: new TestParameters(options: options.FieldNamesAreSnakeCaseWithUnderscorePrefix));
 }

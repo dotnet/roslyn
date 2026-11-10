@@ -7,5 +7,5 @@ CustomValue
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<CustomValue>. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<CustomValue>( ParentValue ))
-[0002] AddComponentParameter(nameof(global::Test.MyComponent<CustomValue>.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<CustomValue>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<CustomValue>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, UpdateValue , ParentValue))))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< CustomValue >. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<CustomValue>( ParentValue ))
+[0002] AddComponentParameter(nameof(global::Test.MyComponent< CustomValue >.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<CustomValue>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<CustomValue>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, UpdateValue , ParentValue))))

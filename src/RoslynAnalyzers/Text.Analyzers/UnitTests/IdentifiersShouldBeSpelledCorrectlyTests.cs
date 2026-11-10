@@ -41,6 +41,7 @@ namespace Text.Analyzers.UnitTests
                 new object[] { CreateTypeWithConstructor("A", constructorName: "{|#0:A|}", isStatic: false), "A" },
                 [CreateTypeWithConstructor("B", constructorName: "{|#0:B|}", isStatic: false), "B"],
                 [CreateTypeWithField("Program", "{|#0:_c|}"), "c"],
+                [CreateTypeWithField("Program", "{|#0:_1|}"), "1"],
                 [CreateTypeWithEvent("Program", "{|#0:D|}"), "D"],
                 [CreateTypeWithProperty("Program", "{|#0:E|}"), "E"],
                 [CreateTypeWithMethod("Program", "{|#0:F|}"), "F"],
@@ -235,6 +236,7 @@ namespace Text.Analyzers.UnitTests
         [InlineData("struct {|#0:B|} {}", "B")]
         [InlineData("enum {|#0:C|} {}", "C")]
         [InlineData("interface {|#0:ID|} {}", "D")]
+        [InlineData("interface {|#0:I1|} {}", "1")]
         [InlineData("delegate int {|#0:E|}();", "E")]
         public Task TypeUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName)
             => VerifyCSharpAsync(
@@ -242,6 +244,43 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments(typeName));
+
+        [Theory]
+        [InlineData("System.EventArgs")]
+        [InlineData("System.ComponentModel.CancelEventArgs")]
+        [InlineData("Notification")]
+        public Task MemberParameterEventArgsNamedE_Verify_NoDiagnosticsAsync(string eventArgsType)
+            => VerifyCSharpAsync($$"""
+                class Notification : System.EventArgs { }
+
+                class Program
+                {
+                    void OnChanged(object sender, {{eventArgsType}} e) { }
+                }
+                """);
+
+        [Fact]
+        public Task MemberParameterEventArgsNotNamedE_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "class Program { void OnChanged(object sender, System.EventArgs {|#0:a|}) { } }",
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("Program.OnChanged(object, System.EventArgs)", "a"));
+
+        [Fact]
+        public Task MemberParameterNamedENotEventArgs_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "class Program { void Method(string {|#0:e|}) { } }",
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("Program.Method(string)", "e"));
+
+        [Theory]
+        [InlineData("class Program { void Method(string _) { } }")]
+        [InlineData("class Program { Program(int _) { } }")]
+        [InlineData("delegate void Callback(int _);")]
+        public Task MemberParameterDiscard_Verify_NoDiagnosticsAsync(string source)
+            => VerifyCSharpAsync(source);
 
         [Theory]
         [MemberData(nameof(MisspelledMembers))]
@@ -642,6 +681,15 @@ namespace Text.Analyzers.UnitTests
                     .WithLocation(0)
                     .WithArguments(typeName, typeParameterName));
 
+        [Theory]
+        [InlineData("class MyClass<T1, T2> { }")]
+        [InlineData("class MyOtherClass<T10> { }")]
+        [InlineData("struct MyStructure<T1> { }")]
+        [InlineData("interface IInterface<T1> { }")]
+        [InlineData("delegate int MyDelegate<T1>();")]
+        public Task TypeTypeParameterNumeric_Verify_NoDiagnosticsAsync(string source)
+            => VerifyCSharpAsync(source);
+
         [Fact]
         public Task MethodTypeParameterMisspelled_Verify_EmitsDiagnosticAsync()
             => VerifyCSharpAsync(
@@ -671,6 +719,18 @@ namespace Text.Analyzers.UnitTests
                 VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MethodTypeParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
                     .WithArguments("Program.Method<TA>(TA)", "TA"));
+
+        [Fact]
+        public Task MethodTypeParameterNumeric_Verify_NoDiagnosticsAsync()
+            => VerifyCSharpAsync(
+                """
+                class Program
+                {
+                    void Method<T1, T2>(T1 first, T2 second)
+                    {
+                    }
+                }
+                """);
 
         [Fact]
         public Task MisspellingContainsOnlyCapitalizedLetters_Verify_NoDiagnosticsAsync()

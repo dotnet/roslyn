@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using IServiceProvider = Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
@@ -33,14 +34,14 @@ internal static class VSServiceHelpers
         where TService : class
     {
         var service = (TServiceInterface?)GetService(GlobalServiceProvider, typeof(TService).GUID, false);
-        Assumes.Present(service);
+        Contract.ThrowIfNull(service);
         return service;
     }
 
     internal static TServiceInterface GetRequiredMefService<TServiceInterface>() where TServiceInterface : class
     {
         var componentModel = GetRequiredMefService<IComponentModel, SComponentModel>();
-        Assumes.Present(componentModel);
+        Contract.ThrowIfNull(componentModel);
         return componentModel.GetService<TServiceInterface>();
     }
 

@@ -64,22 +64,42 @@ internal class GlobalQualifiedTypeNameRewriter : TypeNameRewriter
             // Need to rewrite postorder so we can rewrite the names of generic type arguments.
             node = (QualifiedNameSyntax)base.VisitQualifiedName(node);
 
-            // Rewriting these is complicated, best to just tostring and parse again.
-            return SyntaxFactory.ParseTypeName(IsGloballyQualified(node) ? node.ToString() : "global::" + node.ToString())
-                .WithTriviaFrom(node);
+            // Qualify only the leftmost name. Reusing the rewritten children avoids serializing
+            // and reparsing the entire name, including all of its generic type arguments.
+            return Qualify(node);
 
-            static bool IsGloballyQualified(QualifiedNameSyntax node)
+            static NameSyntax Qualify(QualifiedNameSyntax node)
             {
-                var candidate = node;
-                while (candidate != null)
+                NameSyntax name = node;
+                // Find the leftmost name so the qualifier applies to the whole name, not its final segment.
+                while (name is QualifiedNameSyntax qualified)
                 {
-                    if (candidate.Left is AliasQualifiedNameSyntax)
-                    {
-                        return true;
-                    }
-                    candidate = candidate.Left as QualifiedNameSyntax;
+                    name = qualified.Left;
                 }
-                return false;
+
+                // An existing global:: or custom alias already anchors the name, so don't add another qualifier.
+                if (name is AliasQualifiedNameSyntax)
+                {
+                    return node;
+                }
+
+                // With qualified and alias-qualified names excluded, only identifier and generic names remain,
+                // which both inherit from SimpleNameSyntax.
+                var simple = (SimpleNameSyntax)name;
+                NameSyntax rewritten = SyntaxFactory.AliasQualifiedName(
+                    SyntaxFactory.IdentifierName(SyntaxFactory.Token(CSharp.SyntaxKind.GlobalKeyword)),
+                    simple.WithoutLeadingTrivia()).WithLeadingTrivia(simple.GetLeadingTrivia());
+
+                // The original parent links let us rebuild from the inside out without recursion
+                // or a separate stack, even for long namespace-qualified names.
+                while (name != node)
+                {
+                    var parent = (QualifiedNameSyntax)name.Parent;
+                    rewritten = parent.WithLeft(rewritten);
+                    name = parent;
+                }
+
+                return rewritten;
             }
         }
 
