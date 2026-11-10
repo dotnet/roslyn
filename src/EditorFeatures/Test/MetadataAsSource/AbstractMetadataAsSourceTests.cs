@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
 [UseExportProvider]
 public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
 {
-    protected static readonly string ICSharpCodeDecompilerVersion = "11.2.0.10050";
+    protected static readonly string ICSharpCodeDecompilerVersion = typeof(ICSharpCode.Decompiler.CSharp.CSharpDecompiler).Assembly.GetName().Version.ToString();
 
     public virtual async Task InitializeAsync()
     {
