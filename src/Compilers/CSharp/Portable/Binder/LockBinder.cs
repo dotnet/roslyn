@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const string LockTypeFullName = $"{nameof(System)}.{nameof(System.Threading)}.{WellKnownMemberNames.LockTypeName}";
 
-            var enterScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterScopeMethodName);
+            var enterScopeMethod = TryFindPublicParameterlessMethod(lockType, WellKnownMemberNames.EnterScopeMethodName);
             if (enterScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
             {
                 Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, LockTypeFullName, WellKnownMemberNames.EnterScopeMethodName);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var disposeMethod = TryFindPublicVoidParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
+            var disposeMethod = TryFindPublicParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
             if (disposeMethod is not { ReturnsVoid: true })
             {
                 Error(diagnostics, ErrorCode.ERR_MissingPredefinedMember, syntax, $"{LockTypeFullName}+{WellKnownMemberNames.LockScopeTypeName}", WellKnownMemberNames.DisposeMethodName);
@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             };
         }
 
-        // Keep consistent with ISymbolExtensions.TryFindPublicVoidParameterlessMethod.
-        private static MethodSymbol? TryFindPublicVoidParameterlessMethod(TypeSymbol type, string name)
+        // Keep consistent with ISymbolExtensions.TryFindPublicParameterlessMethod.
+        private static MethodSymbol? TryFindPublicParameterlessMethod(TypeSymbol type, string name)
         {
             var members = type.GetMembers(name);
             MethodSymbol? result = null;

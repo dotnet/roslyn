@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         // Keep consistent with LockBinder.TryFindLockTypeInfo.
         internal static LockTypeInfo? TryFindLockTypeInfo(this ITypeSymbol lockType)
         {
-            IMethodSymbol? enterScopeMethod = TryFindPublicVoidParameterlessMethod(lockType, WellKnownMemberNames.EnterScopeMethodName);
+            IMethodSymbol? enterScopeMethod = TryFindPublicParameterlessMethod(lockType, WellKnownMemberNames.EnterScopeMethodName);
             if (enterScopeMethod is not { ReturnsVoid: false, RefKind: RefKind.None })
             {
                 return null;
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            IMethodSymbol? disposeMethod = TryFindPublicVoidParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
+            IMethodSymbol? disposeMethod = TryFindPublicParameterlessMethod(scopeType, WellKnownMemberNames.DisposeMethodName);
             if (disposeMethod is not { ReturnsVoid: true })
             {
                 return null;
@@ -168,8 +168,8 @@ namespace Microsoft.CodeAnalysis
             };
         }
 
-        // Keep consistent with LockBinder.TryFindPublicVoidParameterlessMethod.
-        private static IMethodSymbol? TryFindPublicVoidParameterlessMethod(ITypeSymbol type, string name)
+        // Keep consistent with LockBinder.TryFindPublicParameterlessMethod.
+        private static IMethodSymbol? TryFindPublicParameterlessMethod(ITypeSymbol type, string name)
         {
             var members = type.GetMembers(name);
             IMethodSymbol? result = null;
