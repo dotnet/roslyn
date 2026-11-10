@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, namedArgument);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, namedArgument, InUnsafeRegion);
 
                     if (setMethod.IsInitOnly && setMethod.DeclaringCompilation != this.Compilation)
                     {
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, namedArgumentNameSymbol, namedArgument);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, namedArgumentNameSymbol, namedArgument, InUnsafeRegion);
             }
 
             Debug.Assert(resultKind == LookupResultKind.Viable || wasError);

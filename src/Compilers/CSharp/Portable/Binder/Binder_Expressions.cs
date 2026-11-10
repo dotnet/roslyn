@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol exprType = expr.Type;
                 if ((object)exprType != null && exprType.ContainsPointerOrFunctionPointer())
                 {
-                    ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                    ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
             }
@@ -1478,7 +1478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, isInUnsafeRegion: InUnsafeRegion, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
-            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, sizeOfTypeOpt: type, disallowedUnder: MemorySafetyRulesVersion.Version1);
+            bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, sizeOfTypeOpt: type, disallowedUnder: MemorySafetyRulesVersion.Version1);
             return new BoundSizeOfOperator(node, isInUnsafeRegion: InUnsafeRegion, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
@@ -2068,7 +2068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
             {
                 ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node, InUnsafeRegion);
             }
 
             switch (symbol.Kind)
@@ -3736,7 +3736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!methodResult.Member.IsIndexer() && !argument.HasAnyErrors && parameterTypeWithAnnotations.Type.ContainsPointerOrFunctionPointer())
                 {
                     // CONSIDER: dev10 uses the call syntax, but this seems clearer.
-                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                    ReportUnsafeIfNotAllowed(argument.Syntax, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
                     //CONSIDER: Return a bad expression so that HasErrors is true?
                 }
             }
@@ -5135,11 +5135,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Don't worry about double reporting (i.e. for both the argument and the parameter)
                     // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                    hasErrors = ReportUnsafeIfNotAllowed(errorLocation, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                    hasErrors = ReportUnsafeIfNotAllowed(errorLocation, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
                 }
 
                 ReportDiagnosticsIfObsolete(diagnostics, resultMember, nonNullSyntax, hasBaseReceiver: isBaseConstructorInitializer);
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, resultMember, nonNullSyntax);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, resultMember, nonNullSyntax, InUnsafeRegion);
 
                 var expanded = memberResolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
 
@@ -7002,11 +7002,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                hasError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1) || hasError;
+                hasError = ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1) || hasError;
             }
 
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node, InUnsafeRegion);
             // NOTE: Use-site diagnostics were reported during overload resolution.
 
             ConstantValue constantValueOpt = (initializerSyntaxOpt == null && method.IsDefaultValueTypeConstructor()) ?
@@ -7705,7 +7705,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!boundLeft.HasErrors)
                     {
-                        ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRulesVersion.Version2);
+                        ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, InUnsafeRegion, MemorySafetyRulesVersion.Version2);
                     }
                 }
             }
@@ -8124,7 +8124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         ReportDiagnosticsIfObsolete(diagnostics, type, node, hasBaseReceiver: false);
-                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, type, node);
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, type, node, InUnsafeRegion);
 
                         return new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, null, type);
                     }
@@ -8726,7 +8726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.Kind is not (SymbolKind.Event or SymbolKind.Property))
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: left.Kind == BoundKind.BaseReference);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node, InUnsafeRegion);
                 }
 
                 switch (symbol.Kind)
@@ -10330,7 +10330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasErrors && receiver.Type?.IsPointerOrFunctionPointer() == true)
             {
                 Debug.Assert(receiver.Type?.IsFunctionPointer() != true, "There should have been an error reported for indexing into a function pointer.");
-                ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, MemorySafetyRulesVersion.Version2);
+                ReportUnsafeIfNotAllowed(node.ArgumentList.OpenBracketToken.GetLocation(), diagnostics, InUnsafeRegion, MemorySafetyRulesVersion.Version2);
             }
 
             return result;

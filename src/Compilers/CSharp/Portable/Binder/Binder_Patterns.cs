@@ -1497,8 +1497,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.ReportUseSite(iTupleGetItem, node);
 
             AssertNotUnsafeMemberAccess(iTupleType);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, iTupleGetLength, node);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, iTupleGetItem, node);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, iTupleGetLength, node, InUnsafeRegion);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, iTupleGetItem, node, InUnsafeRegion);
 
             return true;
 

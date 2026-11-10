@@ -24,11 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
-        internal void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
-        {
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, node, InUnsafeRegion);
-        }
-
         internal void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, bool isInUnsafeRegion)
         {
             if (diagnostics.DiagnosticBag is { } bag)
@@ -37,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location)
+        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location, bool isInUnsafeRegion)
         {
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l, InUnsafeRegion);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l, isInUnsafeRegion);
         }
 
         private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location, bool isInUnsafeRegion)
@@ -148,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If this fails, call <see cref="ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag, Symbol, SyntaxNodeOrToken)"/> for the <paramref name="symbol"/> instead and add corresponding tests.
+        /// If this fails, call <see cref="ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag, Symbol, SyntaxNodeOrToken, bool)"/> for the <paramref name="symbol"/> instead and add corresponding tests.
         /// </summary>
         [Conditional("DEBUG")]
         internal void AssertNotUnsafeMemberAccess(Symbol symbol)
@@ -207,24 +202,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             object[]? customArgs = null)
         {
             return diagnostics.DiagnosticBag is { } bag &&
-                ReportUnsafeIfNotAllowed(node, static node => node.GetLocation(), bag, isInUnsafeRegion, disallowedUnder, sizeOfTypeOpt, customErrorCode, customArgs);
-        }
-
-        internal bool ReportUnsafeIfNotAllowed(
-            SyntaxNodeOrToken node,
-            BindingDiagnosticBag diagnostics,
-            MemorySafetyRulesVersion disallowedUnder,
-            TypeSymbol? sizeOfTypeOpt = null,
-            ErrorCode? customErrorCode = null,
-            object[]? customArgs = null)
-        {
-            return diagnostics.DiagnosticBag is { } bag &&
-                ReportUnsafeIfNotAllowed(node, bag, disallowedUnder, sizeOfTypeOpt, customErrorCode, customArgs);
+                ReportUnsafeIfNotAllowed(node, bag, isInUnsafeRegion, disallowedUnder, sizeOfTypeOpt, customErrorCode, customArgs);
         }
 
         internal bool ReportUnsafeIfNotAllowed(
             SyntaxNodeOrToken node,
             DiagnosticBag diagnostics,
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             TypeSymbol? sizeOfTypeOpt = null,
             ErrorCode? customErrorCode = null,
@@ -235,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 static node => node.GetLocation(),
                 diagnostics,
-                InUnsafeRegion,
+                isInUnsafeRegion,
                 disallowedUnder,
                 sizeOfTypeOpt,
                 customErrorCode,
@@ -245,17 +229,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool ReportUnsafeIfNotAllowed(
             Location? location,
             BindingDiagnosticBag diagnostics,
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
             return diagnostics.DiagnosticBag is { } bag &&
-                ReportUnsafeIfNotAllowed(location, bag, disallowedUnder, customErrorCode, customArgs);
+                ReportUnsafeIfNotAllowed(location, bag, isInUnsafeRegion, disallowedUnder, customErrorCode, customArgs);
         }
 
         internal bool ReportUnsafeIfNotAllowed(
             Location? location,
             DiagnosticBag diagnostics,
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
@@ -264,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 location,
                 static l => l,
                 diagnostics,
-                InUnsafeRegion,
+                isInUnsafeRegion,
                 disallowedUnder,
                 sizeOfTypeOpt: null,
                 customErrorCode,

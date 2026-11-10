@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
                     symbol.TypeWithAnnotations.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
-                    if (symbol.TypeWithAnnotations.IsResolved) ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol.TypeWithAnnotations.Type, syntax);
+                    if (symbol.TypeWithAnnotations.IsResolved) ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol.TypeWithAnnotations.Type, syntax, InUnsafeRegion);
                 }
 
                 return symbol;
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = (PointerTypeSyntax)syntax;
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
 
                 if ((Flags & BinderFlags.SuppressConstraintChecks) != BinderFlags.SuppressConstraintChecks)
                 {
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (type.ContainsPointerOrFunctionPointer())
                         {
-                            ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                            ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
                         }
                     }
                 }
@@ -1672,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = BindNamespaceOrTypeSymbol(leftName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics: false).NamespaceOrTypeSymbol;
             ReportDiagnosticsIfObsolete(diagnostics, left, leftName, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, left, leftName);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, left, leftName, InUnsafeRegion);
 
             bool isLeftUnboundGenericType = left.Kind == SymbolKind.NamedType &&
                 ((NamedTypeSymbol)left).IsUnboundGenericType;

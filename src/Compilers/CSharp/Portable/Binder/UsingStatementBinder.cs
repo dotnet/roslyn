@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var disposeMethod = originalBinder.Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
                         if (disposeMethod != null)
                         {
-                            originalBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, syntax);
+                            originalBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, syntax, originalBinder.InUnsafeRegion);
                         }
                     }
 

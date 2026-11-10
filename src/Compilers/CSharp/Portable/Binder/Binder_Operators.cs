@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression rightConverted = CreateConversion(right, overloadResolutionResult.ValidResult.Result.ConversionForArg(isExtension ? 1 : 0), method.Parameters[0].Type, diagnostics);
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node, InUnsafeRegion);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
 
                     BoundValuePlaceholder? leftPlaceholder = null;
@@ -747,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiverOpt, method, diagnostics);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node.OperatorToken);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node.OperatorToken, InUnsafeRegion);
                 }
 
                 if (eventSymbol.IsWindowsRuntimeEvent)
@@ -2226,7 +2226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ReportUseSite(operatorMethod, diagnostics, node);
                 ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, operatorMethod, node);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, operatorMethod, node, InUnsafeRegion);
 
                 if (operatorMethod.ContainingType.IsInterface &&
                     operatorMethod.ContainingModule != Compilation.SourceModule)
@@ -3594,7 +3594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var method = overloadResolutionResult.ValidResult.Member;
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node, InUnsafeRegion);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
 
                     BoundValuePlaceholder? operandPlaceholder = null;
@@ -4102,7 +4102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.HasErrors)
             {
-                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRulesVersion.Version2);
+                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, InUnsafeRegion, MemorySafetyRulesVersion.Version2);
             }
 
             return result;

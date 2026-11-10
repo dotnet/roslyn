@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 @this.ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
                 @this.ReportDiagnosticsIfObsolete(diagnostics, method.ContainingType, syntax, hasBaseReceiver: false);
-                @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, syntax);
+                @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, syntax, @this.InUnsafeRegion);
             }
         }
 
