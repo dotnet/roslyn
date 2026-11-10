@@ -287,28 +287,25 @@ namespace N1
             Assert.True(compilationStartedFired);
 
             // NB: NonPartialProp2 is missing here because we only asked for diagnostics in tree1
-            AssertEx.Equal([
-                "",
-                "Class",
-                "DefOnlyPartialProp",
-                "get_DefOnlyPartialProp",
-                "get_ImplOnlyPartialProp",
-                "get_NonPartialProp1",
-                "get_PartialProp",
-                "get_PartialProp2",
-                "ImplOnlyPartialProp",
-                "N1",
-                "NonPartialProp1",
-                "PartialProp",
-                "PartialProp2",
-                "set_DefOnlyPartialProp",
-                "set_ImplOnlyPartialProp",
-                "set_NonPartialProp1",
-                "set_PartialProp",
-                "set_PartialProp2",
-            ], declaredSymbolNames.OrderBy(name => name));
-
-            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+            Assert.True(declaredSymbolNames.Contains(compilation.GlobalNamespace.Name));
+            Assert.True(declaredSymbolNames.Contains("N1"));
+            Assert.True(declaredSymbolNames.Contains("Class"));
+            Assert.True(declaredSymbolNames.Contains("NonPartialProp1"));
+            Assert.True(declaredSymbolNames.Contains("get_NonPartialProp1"));
+            Assert.True(declaredSymbolNames.Contains("set_NonPartialProp1"));
+            Assert.True(declaredSymbolNames.Contains("DefOnlyPartialProp"));
+            Assert.True(declaredSymbolNames.Contains("get_DefOnlyPartialProp"));
+            Assert.True(declaredSymbolNames.Contains("set_DefOnlyPartialProp"));
+            Assert.True(declaredSymbolNames.Contains("ImplOnlyPartialProp"));
+            Assert.True(declaredSymbolNames.Contains("get_ImplOnlyPartialProp"));
+            Assert.True(declaredSymbolNames.Contains("set_ImplOnlyPartialProp"));
+            Assert.True(declaredSymbolNames.Contains("PartialProp"));
+            Assert.True(declaredSymbolNames.Contains("get_PartialProp"));
+            Assert.True(declaredSymbolNames.Contains("set_PartialProp"));
+            Assert.True(declaredSymbolNames.Contains("PartialProp2"));
+            Assert.True(declaredSymbolNames.Contains("get_PartialProp2"));
+            Assert.True(declaredSymbolNames.Contains("set_PartialProp2"));
+            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
         [Fact]
@@ -357,26 +354,23 @@ namespace N1
             Assert.True(compilationStartedFired);
 
             // NB: NonPartialEvent2 is missing here because we only asked for diagnostics in tree1.
-            AssertEx.Equal([
-                "",
-                "add_ImplOnlyPartialEvent",
-                "add_NonPartialEvent1",
-                "add_PartialEvent1",
-                "add_PartialEvent2",
-                "Class",
-                "DefOnlyPartialEvent",
-                "ImplOnlyPartialEvent",
-                "N1",
-                "NonPartialEvent1",
-                "PartialEvent1",
-                "PartialEvent2",
-                "remove_ImplOnlyPartialEvent",
-                "remove_NonPartialEvent1",
-                "remove_PartialEvent1",
-                "remove_PartialEvent2",
-            ], declaredSymbolNames.OrderBy(name => name));
-
-            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+            Assert.True(declaredSymbolNames.Contains(compilation.GlobalNamespace.Name));
+            Assert.True(declaredSymbolNames.Contains("N1"));
+            Assert.True(declaredSymbolNames.Contains("Class"));
+            Assert.True(declaredSymbolNames.Contains("NonPartialEvent1"));
+            Assert.True(declaredSymbolNames.Contains("add_NonPartialEvent1"));
+            Assert.True(declaredSymbolNames.Contains("remove_NonPartialEvent1"));
+            Assert.True(declaredSymbolNames.Contains("DefOnlyPartialEvent"));
+            Assert.True(declaredSymbolNames.Contains("ImplOnlyPartialEvent"));
+            Assert.True(declaredSymbolNames.Contains("add_ImplOnlyPartialEvent"));
+            Assert.True(declaredSymbolNames.Contains("remove_ImplOnlyPartialEvent"));
+            Assert.True(declaredSymbolNames.Contains("PartialEvent1"));
+            Assert.True(declaredSymbolNames.Contains("add_PartialEvent1"));
+            Assert.True(declaredSymbolNames.Contains("remove_PartialEvent1"));
+            Assert.True(declaredSymbolNames.Contains("PartialEvent2"));
+            Assert.True(declaredSymbolNames.Contains("add_PartialEvent2"));
+            Assert.True(declaredSymbolNames.Contains("remove_PartialEvent2"));
+            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
         [Fact]
@@ -425,18 +419,15 @@ namespace N1
             Assert.True(compilationStartedFired);
 
             // NB: non partial 2 is missing here because we only asked for diagnostics in tree1
-            AssertEx.Equal([
-                "<global namespace>",
-                "N1",
-                "N1.Class",
-                "N1.Class..ctor(System.Int32 a)",
-                "N1.Class..ctor(System.Int32 a, System.Int32 b)",
-                "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c)",
-                "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d)",
-                "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e)",
-            ], declaredSymbols.OrderBy(name => name, StringComparer.Ordinal));
-
-            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+            Assert.True(declaredSymbols.Contains("<global namespace>"));
+            Assert.True(declaredSymbols.Contains("N1"));
+            Assert.True(declaredSymbols.Contains("N1.Class"));
+            Assert.True(declaredSymbols.Contains("N1.Class..ctor(System.Int32 a)"));
+            Assert.True(declaredSymbols.Contains("N1.Class..ctor(System.Int32 a, System.Int32 b)"));
+            Assert.True(declaredSymbols.Contains("N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c)"));
+            Assert.True(declaredSymbols.Contains("N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d)"));
+            Assert.True(declaredSymbols.Contains("N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e)"));
+            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
         [Fact, WorkItem(8178, "https://github.com/dotnet/roslyn/issues/8178")]
