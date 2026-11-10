@@ -174,6 +174,20 @@ internal sealed class RenameService(
             return false;
         }
 
+        // An unqualified tag bound through a type alias should rename the alias, not the component file, so bail
+        // out and let C# handle it. We ask the tag helper context rather than comparing against the component name,
+        // because an alias can have the same name as its target (eg "@using Button = My.Foo.Button"). Dotted tags
+        // are left alone, as they're either fully qualified or go through a namespace alias, and in both cases the
+        // last segment really is the component name.
+        var tagName = binding.TagName;
+        if (tagName.IndexOf('.') < 0 &&
+            codeDocument.GetTagHelperContext() is { } tagHelperContext &&
+            tagHelperContext.IsAliasTagName(tagName))
+        {
+            originTagHelpers = default;
+            return false;
+        }
+
         var tagHelpers = codeDocument.GetRequiredTagHelpers();
         var associatedTagHelper = TryFindAssociatedTagHelper(primaryTagHelper, tagHelpers);
 

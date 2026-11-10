@@ -414,6 +414,71 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
          newName: "DifferentName",
          expected: "");
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_ImportedTypeAlias_ReturnsNull()
+        => VerifyRenamesAsync(
+            // Invoke rename directly: clients without prepareRename must also reject imported aliases.
+            input: """
+                <Ali$$as></Alias>
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [
+                (FilePath("Aliases/_Imports.razor"), "@using Alias = My.Foo.Component"),
+                (FilePath("Component.razor"), "@namespace My.Foo")
+            ],
+            newName: "DifferentAlias",
+            expected: "");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_ImportedTypeAlias_FromInlineExpression_ReturnsNull()
+        => VerifyRenamesAsync(
+            input: """
+                @((Ali$$as)null)
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [(FilePath("Aliases/_Imports.razor"), "@using Alias = System.String")],
+            newName: "DifferentAlias",
+            expected: "");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_ImportedNamespaceAlias_FromInlineExpression_ReturnsNull()
+        => VerifyRenamesAsync(
+            input: """
+                @((Ali$$as.StringBuilder)null)
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [(FilePath("Aliases/_Imports.razor"), "@using Alias = System.Text")],
+            newName: "DifferentAlias",
+            expected: "");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_ImportedTypeAlias_FromDeclaration_ReturnsNull()
+        => VerifyRenamesAsync(
+            input: """
+                @code {
+                    private Ali$$as? _value;
+                }
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [(FilePath("Aliases/_Imports.razor"), "@using Alias = System.String")],
+            newName: "DifferentAlias",
+            expected: "");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_GlobalAlias_ReturnsNull()
+        => VerifyRenamesAsync(
+            input: """
+                @((Ali$$as)null)
+                """,
+            additionalFiles: [(FilePath("GlobalUsings.cs"), "global using Alias = System.String;")],
+            newName: "DifferentAlias",
+            expected: "");
+
     [Theory]
     [InlineData("$$Component")]
     [InlineData("Com$$ponent")]
@@ -864,6 +929,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 <My.F$$oo.Component />
                 <Component />
+                <Alias />
                 @((Component)null)
                 @((Alias)null)
 
@@ -880,6 +946,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
                 <My.DifferentName.Component />
                 <Component />
+                <Alias />
                 @((Component)null)
                 @((Alias)null)
 
@@ -898,6 +965,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 @using Alias = My.Foo.Component
 
                 <Component />
+                <Alias />
                 @((Component)null)
                 @((Ali$$as)null)
 
@@ -913,6 +981,7 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 @using DifferentAlias = My.Foo.Component
 
                 <Component />
+                <DifferentAlias />
                 @((Component)null)
                 @((DifferentAlias)null)
 
@@ -922,6 +991,549 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 }
                 """,
             additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTarget()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo.Component
+                @using UI = My.Foo
+                <My.Foo.Compo$$nent />
+                <Alias></Alias>
+                <UI.Component></UI.Component>
+                @((Alias)null)
+                @((UI.Component)null)
+
+                @code {
+                    private Alias? _aliasedComponent;
+                    private UI.Component? _qualifiedComponent;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using Alias = My.Foo.DifferentName
+                @using UI = My.Foo
+                <My.Foo.DifferentName />
+                <Alias></Alias>
+                <UI.DifferentName></UI.DifferentName>
+                @((Alias)null)
+                @((UI.DifferentName)null)
+
+                @code {
+                    private Alias? _aliasedComponent;
+                    private UI.DifferentName? _qualifiedComponent;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithSameNamedAlias()
+        // Roslyn also renames aliases that have the same name as their target type.
+        => VerifyRenamesAsync(
+            input: """
+                @using Component = My.Foo.Component
+                @using UI = My.Foo
+                <My.Foo.Compo$$nent />
+                <Component></Component>
+                <UI.Component></UI.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using DifferentName = My.Foo.DifferentName
+                @using UI = My.Foo
+                <My.Foo.DifferentName />
+                <DifferentName></DifferentName>
+                <UI.DifferentName></UI.DifferentName>
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameTarget()
+        => VerifyRenamesAsync(
+            input: """
+                @using UI = My.Foo
+                <UI.Compo$$nent></UI.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using UI = My.Foo
+                <UI.DifferentName></UI.DifferentName>
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                <Alias.Component />
+                @((Ali$$as.Component)null)
+
+                @code {
+                    private Alias.Component? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component />
+                @((DifferentAlias.Component)null)
+
+                @code {
+                    private DifferentAlias.Component? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasFromStartTagWithoutCSharpReferences()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                <Ali$$as.Component></Alias.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component></DifferentAlias.Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasFromEndTagWithoutCSharpReferences()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                <Alias.Component></Ali$$as.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component></DifferentAlias.Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasFromTagAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                <Ali$$as.Component></Alias.Component>
+                @((Alias.Component)null)
+
+                @code {
+                    private Alias.Component? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component></DifferentAlias.Component>
+                @((DifferentAlias.Component)null)
+
+                @code {
+                    private DifferentAlias.Component? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasFromNestedNamespaceTag()
+        => VerifyRenamesAsync(
+            input: """
+                @using /* alias */ Alias = My.Foo
+
+                <Ali$$as.Controls.Component></Alias.Controls.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo.Controls")],
+            newName: "DifferentAlias",
+            expected: """
+                @using /* alias */ DifferentAlias = My.Foo
+
+                <DifferentAlias.Controls.Component></DifferentAlias.Controls.Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo.Controls")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameFromNestedNamespaceSegmentReturnsNull()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                <Alias.Con$$trols.Component />
+                """,
+                additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo.Controls")],
+                newName: "DifferentName",
+                expected: "");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasFromGenericEndTag()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                <Alias.Component TValue="string"></Ali$$as.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), """
+                @namespace My.Foo
+                @typeparam TValue
+                """)],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component TValue="string"></DifferentAlias.Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), """
+                @namespace My.Foo
+                @typeparam TValue
+                """)]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasFromGenericArityTag()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                <Ali$$as.Widget TItem="string" />
+                """,
+            additionalFiles: [(FilePath("Widget.cs"), """
+                namespace My.Foo;
+
+                public class Widget<TItem> : Microsoft.AspNetCore.Components.ComponentBase { }
+                public class Widget<TItem, TOther> : Microsoft.AspNetCore.Components.ComponentBase { }
+                """)],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Widget TItem="string" />
+                """,
+            additionalExpectedFiles: [(FileUri("Widget.cs"), """
+                namespace My.Foo;
+
+                public class Widget<TItem> : Microsoft.AspNetCore.Components.ComponentBase { }
+                public class Widget<TItem, TOther> : Microsoft.AspNetCore.Components.ComponentBase { }
+                """)]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasOnSharedLine()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                @((Ali$$as.Component)null)<Alias.Component></Alias.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                @((DifferentAlias.Component)null)<DifferentAlias.Component></DifferentAlias.Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasFromUsing()
+        => VerifyRenamesAsync(
+            input: """
+                @using Ali$$as = My.Foo
+
+                <Alias.Component></Alias.Component>
+                @((Alias.Component)null)
+
+                @code {
+                    private Alias.Component? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component></DifferentAlias.Component>
+                @((DifferentAlias.Component)null)
+
+                @code {
+                    private DifferentAlias.Component? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasFromDeclaration()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo
+
+                <Alias.Component></Alias.Component>
+                @((Alias.Component)null)
+
+                @code {
+                    private Ali$$as.Component? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component></DifferentAlias.Component>
+                @((DifferentAlias.Component)null)
+
+                @code {
+                    private DifferentAlias.Component? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasWithNestedNamespace()
+        => VerifyRenamesAsync(
+            input: """
+                @using Ali$$as = My.Foo
+
+                <Alias.Controls.Component>
+                    <Alias.Controls.Component />
+                </Alias.Controls.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo.Controls")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Controls.Component>
+                    <DifferentAlias.Controls.Component />
+                </DifferentAlias.Controls.Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo.Controls")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasWithGenericComponent()
+        => VerifyRenamesAsync(
+            input: """
+                @using Ali$$as = My.Foo
+
+                <Alias.Component TValue="string"></Alias.Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), """
+                @namespace My.Foo
+                @typeparam TValue
+                """)],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component TValue="string"></DifferentAlias.Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), """
+                @namespace My.Foo
+                @typeparam TValue
+                """)]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingNamespaceAlias_RenameAliasPreservesUnrelatedTags()
+        => VerifyRenamesAsync(
+            input: """
+                @using My.Foo
+                @using Ali$$as = My.Foo
+
+                <Alias.Component></Alias.Component>
+                <Component />
+                <My.Foo.Component />
+                <Imported.Component />
+                <Alias.Missing></Alias.Missing>
+                <div title="Alias.Component">Alias.Component</div>
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [
+                (FilePath("Component.razor"), "@namespace My.Foo"),
+                (FilePath("Aliases/_Imports.razor"), "@using Imported = My.Foo"),
+                (FilePath("Other.razor"), """
+                    @using Alias = My.Foo
+                    <Alias.Component />
+                    """)
+            ],
+            newName: "DifferentAlias",
+            expected: """
+                @using My.Foo
+                @using DifferentAlias = My.Foo
+
+                <DifferentAlias.Component></DifferentAlias.Component>
+                <Component />
+                <My.Foo.Component />
+                <Imported.Component />
+                <Alias.Missing></Alias.Missing>
+                <div title="Alias.Component">Alias.Component</div>
+                """,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), "@namespace My.Foo"),
+                (FileUri("Aliases/_Imports.razor"), "@using Imported = My.Foo"),
+                (FileUri("Other.razor"), """
+                    @using Alias = My.Foo
+                    <Alias.Component />
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingTypeAlias_RenameAlias()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo.Component
+                <Alias$$></Alias>
+                @((Alias)null)
+
+                @code {
+                    private Alias? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo.Component
+                <DifferentAlias></DifferentAlias>
+                @((DifferentAlias)null)
+
+                @code {
+                    private DifferentAlias? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingTypeAlias_RenameAliasToComponentName_FromEndTag()
+        // The target file already exists, but an alias-only rename must not try to move it.
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo.Component
+                <Alias></Ali$$as>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "Component",
+            expected: """
+                @using Component = My.Foo.Component
+                <Component></Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingTypeAlias_RenameAliasToComponentName_FromStartTag()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = My.Foo.Component
+                <Ali$$as></Alias>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "Component",
+            expected: """
+                @using Component = My.Foo.Component
+                <Component></Component>
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingTypeAlias_SameNameAsComponent_RenameAliasFromStartTag()
+        => VerifyRenamesAsync(
+            input: """
+                @using Button = My.Foo.Button
+                <But$$ton></Button>
+                """,
+            additionalFiles: [(FilePath("Button.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo.Button
+                <DifferentAlias></DifferentAlias>
+                """,
+            additionalExpectedFiles: [(FileUri("Button.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingTypeAlias_SameNameAsComponent_RenameAliasToExistingComponentName()
+        // Existing.razor would block a component file rename, but this only renames the alias.
+        => VerifyRenamesAsync(
+            input: """
+                @using Button = My.Foo.Button
+                <But$$ton></Button>
+                """,
+            additionalFiles: [
+                (FilePath("Button.razor"), "@namespace My.Foo"),
+                (FilePath("Existing.razor"), "@namespace My.Foo")
+            ],
+            newName: "Existing",
+            expected: """
+                @using Existing = My.Foo.Button
+                <Existing></Existing>
+                """,
+            additionalExpectedFiles: [
+                (FileUri("Button.razor"), "@namespace My.Foo"),
+                (FileUri("Existing.razor"), "@namespace My.Foo")
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalNamespaceAlias_EndBoundary_Rename()
+        => VerifyRenamesAsync(
+            input: """
+                @using UI = My.Foo
+                <UI$$.Component />
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "Controls",
+            expected: """
+                @using Controls = My.Foo
+                <Controls.Component />
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalEscapedNamespaceAlias_RenameFromTag()
+        => VerifyRenamesAsync(
+            input: """
+                @using @class = My.Foo
+                <cl$$ass.Component />
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "UI",
+            expected: """
+                @using UI = My.Foo
+                <UI.Component />
+                """);
 
     [Theory]
     [InlineData("My.$$Foo.Component")]

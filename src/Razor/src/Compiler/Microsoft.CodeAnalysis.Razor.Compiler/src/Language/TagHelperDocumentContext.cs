@@ -59,11 +59,7 @@ internal sealed class TagHelperDocumentContext
     public bool IsAliasTagName(string tagName)
     {
         var tagNameSpan = tagName.AsSpan();
-        var prefixSpan = Prefix.AsSpan();
-        if (!prefixSpan.IsEmpty && tagNameSpan.StartsWith(prefixSpan, StringComparison.OrdinalIgnoreCase))
-        {
-            tagNameSpan = tagNameSpan[prefixSpan.Length..];
-        }
+        tagNameSpan = RemovePrefix(tagNameSpan);
 
         foreach (var alias in Aliases)
         {
@@ -76,8 +72,30 @@ internal sealed class TagHelperDocumentContext
         return false;
     }
 
+    public bool IsTypeAliasTagName(string tagName)
+    {
+        var tagNameSpan = RemovePrefix(tagName.AsSpan());
+        foreach (var alias in Aliases)
+        {
+            if (alias.IsTypeAlias && alias.MatchesTagName(tagNameSpan))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public TagHelperCandidateEnumerator GetCandidates()
         => new(TagHelpers, GetAliasCandidates());
+
+    private ReadOnlySpan<char> RemovePrefix(ReadOnlySpan<char> tagName)
+    {
+        var prefixSpan = Prefix.AsSpan();
+        return !prefixSpan.IsEmpty && tagName.StartsWith(prefixSpan, StringComparison.OrdinalIgnoreCase)
+            ? tagName[prefixSpan.Length..]
+            : tagName;
+    }
 
     // Cache the alias tag names because both binder construction and completion need them.
     private TagHelperBinder.TagHelperCandidate[] GetAliasCandidates()

@@ -59,6 +59,229 @@ public class CohostPrepareRenameEndpointTest(ITestOutputHelper testOutputHelper)
                 """);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_LocalTypeAlias_FromUsing()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using [|Ali$$as|] = System.String
+                @((Alias)null)
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_LocalEscapedAlias_FromUsing()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using [|@cl$$ass|] = System.String
+                @((@class)null)
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_LocalNamespaceAlias_FromInlineExpression()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using Alias = System.Text
+                @(([|Ali$$as|].StringBuilder)null)
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_LocalTypeAlias_FromDeclaration()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using Alias = System.String
+                @code {
+                    private [|Ali$$as|]? _value;
+                }
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalTypeAlias()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using Alias = My.Foo.Component
+                <[|Ali$$as|]></Alias>
+                """,
+            additionalFiles: GetComponentFiles("My.Foo"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalNamespaceAlias_StartTag()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using Alias = My.Foo
+                <[|Ali$$as|].Component></Alias.Component>
+                """,
+            additionalFiles: GetComponentFiles("My.Foo"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalNamespaceAlias_EndTag()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using Alias = My.Foo
+                <Alias.Component></[|Ali$$as|].Component>
+                """,
+            additionalFiles: GetComponentFiles("My.Foo"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalNamespaceAlias_NestedNamespace()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using /* alias */ Alias = My
+                <[|Ali$$as|].Foo.Component />
+                """,
+            additionalFiles: GetComponentFiles("My.Foo"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalNamespaceAlias_ComponentName()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using Alias = My.Foo
+                <Alias.[|Com$$ponent|] />
+                """,
+            additionalFiles: GetComponentFiles("My.Foo"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalNamespaceAlias_NestedNamespaceSegmentDoesNotFallbackToHtml()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using Alias = My.Foo
+                <Alias.[|Con$$trols|].Component />
+                """,
+            additionalFiles: GetComponentFiles("My.Foo.Controls"),
+            returnHtmlResponse: true,
+            expectNoResult: true);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalNamespaceAlias_EndBoundary()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using UI = My.Foo
+                <[|UI$$|].Component />
+                """,
+            additionalFiles: GetComponentFiles("My.Foo"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalEscapedNamespaceAlias()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using @class = My.Foo
+                <[|cl$$ass|].Component />
+                """,
+            additionalFiles: GetComponentFiles("My.Foo"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_LocalNamespaceAlias_Attribute()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @using Alias = My.Foo
+                <Alias.Component [|Tit$$le|]="Hello" />
+                """,
+            additionalFiles: GetComponentFiles("My.Foo"));
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_ImportedNamespaceAlias_StartTag_ReturnsNull()
+        => VerifyPrepareRenameAsync(
+            input: """
+                <Ali$$as.Component></Alias.Component>
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [
+                (FilePath("Aliases/_Imports.razor"), "@using Alias = My.Foo"),
+                .. GetComponentFiles("My.Foo")
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_ImportedNamespaceAlias_EndTag_ReturnsNull()
+        => VerifyPrepareRenameAsync(
+            input: """
+                <Alias.Component></Ali$$as.Component>
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [
+                (FilePath("Aliases/_Imports.razor"), "@using Alias = My.Foo"),
+                .. GetComponentFiles("My.Foo")
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_ImportedTypeAlias_ReturnsNull()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @((Ali$$as)null)
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [(FilePath("Aliases/_Imports.razor"), "@using Alias = System.String")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_ImportedNamespaceAlias_ReturnsNull()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @((Ali$$as.StringBuilder)null)
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [(FilePath("Aliases/_Imports.razor"), "@using Alias = System.Text")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_ImportedAlias_FromDeclaration_ReturnsNull()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @code {
+                    private Ali$$as? _value;
+                }
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [(FilePath("Aliases/_Imports.razor"), "@using Alias = System.String")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_ImportedTypeAlias_ReturnsNull()
+        => VerifyPrepareRenameAsync(
+            input: """
+                <Ali$$as></Alias>
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [
+                (FilePath("Aliases/_Imports.razor"), "@using Alias = My.Foo.Component"),
+                .. GetComponentFiles("My.Foo")
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task CSharp_GlobalAlias_ReturnsNull()
+        => VerifyPrepareRenameAsync(
+            input: """
+                @((Ali$$as)null)
+                """,
+            additionalFiles: [(FilePath("GlobalUsings.cs"), "global using Alias = System.String;")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_ImportedNamespaceAlias_ComponentName()
+        => VerifyPrepareRenameAsync(
+            input: """
+                <Alias.[|Com$$ponent|] />
+                """,
+            documentFilePath: FilePath("Aliases/File1.razor"),
+            additionalFiles: [
+                (FilePath("Aliases/_Imports.razor"), "@using Alias = My.Foo"),
+                .. GetComponentFiles("My.Foo")
+            ]);
+
+    [Fact]
     public Task Component_SelfClosingTag()
         => VerifyPrepareRenameAsync(
             input: """
@@ -325,19 +548,25 @@ public class CohostPrepareRenameEndpointTest(ITestOutputHelper testOutputHelper)
     private async Task VerifyPrepareRenameAsync(
         TestCode input,
         RazorFileKind? fileKind = null,
-        (string fileName, string contents)[]? additionalFiles = null)
+        (string fileName, string contents)[]? additionalFiles = null,
+        string? documentFilePath = null,
+        bool returnHtmlResponse = false,
+        bool expectNoResult = false)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, documentFilePath: documentFilePath, additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
-        var htmlResponse = input.TryGetNamedSpans("html", out var htmlSpans)
-            ? (object?)sourceText.GetRange(Assert.Single(htmlSpans))
-            : null;
+        var hasHtmlSpan = input.TryGetNamedSpans("html", out var htmlSpans);
+        var htmlResponse = returnHtmlResponse
+            ? sourceText.GetRange(input.Span)
+            : hasHtmlSpan
+                ? (object?)sourceText.GetRange(Assert.Single(htmlSpans))
+                : null;
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentPrepareRenameName, htmlResponse)]);
 
         var endpoint = new CohostPrepareRenameEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, sourceText.GetPosition(input.Position), DisposalToken);
 
-        if (!input.HasSpans && htmlResponse is null)
+        if (expectNoResult || (!input.HasSpans && htmlResponse is null))
         {
             Assert.Null(result);
             return;
