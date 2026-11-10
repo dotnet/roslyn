@@ -291,12 +291,15 @@ internal static partial class SyntaxGeneratorExtensions
             if (parameter.RefKind != RefKind.Out &&
                 TryGetValue(parameterToNewFieldMap, parameter.Name, out var fieldName))
             {
+                var modifiers = DeclarationModifiers.None.WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules());
+#if !OLDER_ROSLYN
+                modifiers = modifiers.WithIsSafe(usesMemorySafetyRulesVersion2 && requiresExplicitSafetyModifier);
+#endif
+
                 result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                     attributes: default,
                     accessibility: Accessibility.Private,
-                    modifiers: DeclarationModifiers.None
-                        .WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules())
-                        .WithIsSafe(usesMemorySafetyRulesVersion2 && requiresExplicitSafetyModifier),
+                    modifiers: modifiers,
                     type: parameter.Type,
                     name: fieldName,
                     usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2));
@@ -317,12 +320,15 @@ internal static partial class SyntaxGeneratorExtensions
             if (parameter.RefKind != RefKind.Out &&
                 TryGetValue(parameterToNewPropertyMap, parameter.Name, out var propertyName))
             {
+                var modifiers = DeclarationModifiers.None.WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules());
+#if !OLDER_ROSLYN
+                modifiers = modifiers.WithIsSafe(usesMemorySafetyRulesVersion2 && requiresExplicitSafetyModifier);
+#endif
+
                 result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: DeclarationModifiers.None
-                        .WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules())
-                        .WithIsSafe(usesMemorySafetyRulesVersion2 && requiresExplicitSafetyModifier),
+                    modifiers: modifiers,
                     type: parameter.Type,
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: [],
