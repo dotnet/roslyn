@@ -39,7 +39,10 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         => ifNode.Else == null;
 
     protected override bool CanInvert(IfStatementSyntax ifNode)
-        => ifNode?.Parent is (kind: SyntaxKind.Block or SyntaxKind.SwitchSection);
+        => ifNode.Parent is BlockSyntax or SwitchSectionSyntax or GlobalStatementSyntax { Parent: CompilationUnitSyntax };
+
+    protected override bool CanMoveStatements(IfStatementSyntax ifNode)
+        => ifNode.Parent is not GlobalStatementSyntax;
 
     protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
         => ifNode.Condition;

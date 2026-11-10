@@ -54,6 +54,43 @@ public sealed partial class InvertIfTests
             CompilerDiagnostics = CompilerDiagnostics.None,
         }.RunAsync();
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71424")]
+    public Task TestTopLevelWithElse()
+        => TestAsync(
+            """
+            bool b = System.Console.ReadLine() == null;
+            [||]if (b) { System.Console.WriteLine(1); } else { System.Console.WriteLine(2); }
+            """,
+            """
+            bool b = System.Console.ReadLine() == null;
+            if (!b) { System.Console.WriteLine(2); } else { System.Console.WriteLine(1); }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71424")]
+    public Task TestTopLevelWithoutElse()
+        => TestAsync(
+            """
+            bool b = System.Console.ReadLine() == null;
+            [||]if (b)
+            {
+                return 1;
+            }
+
+            return 0;
+            """,
+            """
+            bool b = System.Console.ReadLine() == null;
+            if (!b)
+            {
+            }
+            else
+            {
+                return 1;
+            }
+
+            return 0;
+            """);
+
     [Fact]
     public Task TestSingleLine_Identifier()
         => TestInsideMethodAsync(

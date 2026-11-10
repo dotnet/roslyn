@@ -65,6 +65,9 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     protected abstract bool CanInvert(TIfStatementSyntax ifNode);
     protected abstract bool IsElseless(TIfStatementSyntax ifNode);
 
+    protected virtual bool CanMoveStatements(TIfStatementSyntax ifNode)
+        => true;
+
     protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
 
     protected abstract SyntaxNode GetCondition(TIfStatementSyntax ifNode);
@@ -234,6 +237,11 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
             //  if (!condition) { }
             //
             return InvertIfStyle.IfWithoutElse_WithNegatedCondition;
+        }
+
+        if (!CanMoveStatements(ifNode))
+        {
+            return InvertIfStyle.IfWithoutElse_MoveIfBodyToElseClause;
         }
 
         var subsequentStatementRanges = GetSubsequentStatementRanges(ifNode);
