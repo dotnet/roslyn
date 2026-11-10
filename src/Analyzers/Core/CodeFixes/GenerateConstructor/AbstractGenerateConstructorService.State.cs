@@ -463,8 +463,9 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             Contract.ThrowIfNull(TypeToGenerateIn);
 
             var usesMemorySafetyRulesVersion2 = TypeToGenerateIn.UsesMemorySafetyRulesVersion2();
-            var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType, usesMemorySafetyRulesVersion2) :
-                          withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType, usesMemorySafetyRulesVersion2) :
+            var requiresExplicitSafetyModifier = TypeToGenerateIn.RequiresExplicitSafetyModifierForInstanceFields();
+            var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType, usesMemorySafetyRulesVersion2, requiresExplicitSafetyModifier) :
+                          withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType, usesMemorySafetyRulesVersion2, requiresExplicitSafetyModifier) :
                           [];
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

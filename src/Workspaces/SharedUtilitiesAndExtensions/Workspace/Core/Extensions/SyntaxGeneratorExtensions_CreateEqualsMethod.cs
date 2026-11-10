@@ -488,10 +488,12 @@ internal static partial class SyntaxGeneratorExtensions
         bool generateProperties,
         bool isContainedInUnsafeType)
     {
-        var usesMemorySafetyRulesVersion2 = semanticModel.Compilation.SourceModule.UsesMemorySafetyRulesVersion2();
+        var usesMemorySafetyRulesVersion2 = containingType?.UsesMemorySafetyRulesVersion2() ?? semanticModel.Compilation.SourceModule.UsesMemorySafetyRulesVersion2();
+        // Fresh field/property symbols have no containing type, so capture the destination layout requirement now.
+        var requiresExplicitSafetyModifier = containingType?.RequiresExplicitSafetyModifierForInstanceFields() == true;
         var newMembers = generateProperties
-            ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType, usesMemorySafetyRulesVersion2)
-            : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType, usesMemorySafetyRulesVersion2);
+            ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType, usesMemorySafetyRulesVersion2, requiresExplicitSafetyModifier)
+            : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType, usesMemorySafetyRulesVersion2, requiresExplicitSafetyModifier);
         var statements = factory.CreateAssignmentStatements(
             generatorInternal, semanticModel,
             parameters, parameterToExistingMemberMap, parameterToNewMemberMap,

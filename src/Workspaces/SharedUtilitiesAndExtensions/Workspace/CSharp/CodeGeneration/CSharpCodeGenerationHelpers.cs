@@ -36,7 +36,8 @@ internal static class CSharpCodeGenerationHelpers
         if (symbol.UsesMemorySafetyRulesVersion2())
         {
             var modifiers = symbol.InferSafetyModifiersFromSymbol(hasBackingField);
-            if (modifiers.IsUnsafe)
+            // Add 'unsafe' if the symbol is unsafe or if we're generating for a version that requires it under version 1 rules.
+            if (modifiers.IsUnsafe || (!info.LanguageVersion.IsCSharp16OrAbove() && symbol.RequiresUnsafeModifierUnderVersion1Rules()))
                 tokens.Add(UnsafeKeyword);
 
             // Symbols from newer assemblies may be generated into documents that do not support 'safe'.

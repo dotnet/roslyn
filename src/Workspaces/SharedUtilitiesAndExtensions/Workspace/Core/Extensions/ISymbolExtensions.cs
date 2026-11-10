@@ -90,6 +90,31 @@ internal static partial class ISymbolExtensions
 #endif
     }
 
+    public static bool RequiresExplicitSafetyModifierForInstanceFields(this INamedTypeSymbol containingType)
+    {
+#if !OLDER_ROSLYN
+        if (!containingType.UsesMemorySafetyRulesVersion2())
+            return false;
+
+        var layout = containingType.TypeLayout;
+        // Empty source structs get an implicit size of 1, which disappears when storage is added.
+        // Only an explicit source layout size (or a size read from metadata) requires an annotation.
+        // Match System.Runtime.InteropServices.StructLayoutAttribute, not a class with the same name
+        // nested inside another class. ContainingType refers to the attribute class here.
+        var hasExplicitSize = layout.Size != 0 &&
+            (containingType.DeclaringSyntaxReferences.IsEmpty ||
+             containingType.GetAttributes().Any(attribute =>
+                 attribute.AttributeClass is { MetadataName: nameof(StructLayoutAttribute), ContainingType: null } attributeType &&
+                 attributeType.ContainingNamespace.ToDisplayString() == "System.Runtime.InteropServices"));
+        // Extended layout is not named in all of the framework reference assemblies we target.
+        const LayoutKind extendedLayout = (LayoutKind)1;
+        return layout.Kind == LayoutKind.Explicit || layout.Kind == extendedLayout ||
+            layout.PackingSize != 0 || hasExplicitSize;
+#else
+        return false;
+#endif
+    }
+
 #if !OLDER_ROSLYN
     private static bool RequiresExplicitSafetyModifier(ISymbol symbol, bool? hasBackingField)
     {
@@ -131,20 +156,7 @@ internal static partial class ISymbolExtensions
         if (!generatesField || symbol.ContainingType is not { } containingType)
             return false;
 
-        var layout = containingType.TypeLayout;
-        // Empty source structs get an implicit size of 1, which disappears when storage is added.
-        // Only an explicit source layout size (or a size read from metadata) requires an annotation.
-        // Match System.Runtime.InteropServices.StructLayoutAttribute, not a class with the same name
-        // nested inside another class. ContainingType refers to the attribute class here.
-        var hasExplicitSize = layout.Size != 0 &&
-            (containingType.DeclaringSyntaxReferences.IsEmpty ||
-             containingType.GetAttributes().Any(attribute =>
-                 attribute.AttributeClass is { MetadataName: nameof(StructLayoutAttribute), ContainingType: null } attributeType &&
-                 attributeType.ContainingNamespace.ToDisplayString() == "System.Runtime.InteropServices"));
-        // Extended layout is not named in all of the framework reference assemblies we target.
-        const LayoutKind extendedLayout = (LayoutKind)1;
-        return layout.Kind == LayoutKind.Explicit || layout.Kind == extendedLayout ||
-            layout.PackingSize != 0 || hasExplicitSize;
+        return containingType.RequiresExplicitSafetyModifierForInstanceFields();
     }
 
     public static bool RequiresAccessorSafetyModifiers(this IPropertySymbol property)
