@@ -102,10 +102,5 @@ internal sealed class WorkspaceProjectContextAdapter(Legacy.IWorkspaceProjectCon
     }
 
     internal static Legacy.IWorkspaceProjectContext GetUnderlying(ProjectSystemApi.IWorkspaceProjectContext context)
-    {
-        if (context is WorkspaceProjectContextAdapter adapter)
-            return adapter.UnderlyingContext;
-
-        throw new ArgumentException("The project context was not created by this adapter.", nameof(context));
-    }
+        => ((WorkspaceProjectContextAdapter)context).UnderlyingContext;
 }
