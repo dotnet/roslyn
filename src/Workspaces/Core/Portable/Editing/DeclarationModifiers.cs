@@ -116,6 +116,7 @@ public readonly record struct DeclarationModifiers
 
     public bool IsUnsafe => (Modifiers & Modifiers.Unsafe) != 0;
 
+    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
     public bool IsSafe => (Modifiers & Modifiers.Safe) != 0;
 
     public bool IsReadOnly => (Modifiers & Modifiers.ReadOnly) != 0;
@@ -162,6 +163,7 @@ public readonly record struct DeclarationModifiers
     public DeclarationModifiers WithIsUnsafe(bool isUnsafe)
         => new(SetFlag(Modifiers, Modifiers.Unsafe, isUnsafe));
 
+    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
     public DeclarationModifiers WithIsSafe(bool isSafe)
         => new(SetFlag(Modifiers, Modifiers.Safe, isSafe));
 
@@ -220,6 +222,7 @@ public readonly record struct DeclarationModifiers
     public static DeclarationModifiers Abstract => new(Modifiers.Abstract);
     public static DeclarationModifiers New => new(Modifiers.New);
     public static DeclarationModifiers Unsafe => new(Modifiers.Unsafe);
+    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
     public static DeclarationModifiers Safe => new(Modifiers.Safe);
     public static DeclarationModifiers ReadOnly => new(Modifiers.ReadOnly);
     public static DeclarationModifiers Virtual => new(Modifiers.Virtual);
