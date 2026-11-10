@@ -310,6 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return new BoundSequence(
                     node.Syntax,
+                    isInUnsafeRegion: node.IsInUnsafeRegion,
                     ImmutableArray.Create<LocalSymbol>(tempLocal.LocalSymbol),
                     ImmutableArray.Create<BoundExpression>(tempAssignment),
                     rewrittenAssignment,

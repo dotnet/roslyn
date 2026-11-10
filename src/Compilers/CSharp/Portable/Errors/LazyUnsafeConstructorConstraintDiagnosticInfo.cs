@@ -12,13 +12,15 @@ internal sealed class LazyUnsafeConstructorConstraintDiagnosticInfo : LazyDiagno
     private readonly TypeParameterSymbol _typeParameter;
     private readonly NamedTypeSymbol _typeArgument;
     private readonly Symbol _targetSymbol;
+    private readonly bool _isInUnsafeRegion;
 
-    internal LazyUnsafeConstructorConstraintDiagnosticInfo(Binder binder, TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol)
+    internal LazyUnsafeConstructorConstraintDiagnosticInfo(Binder binder, TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol, bool isInUnsafeRegion)
     {
         _binder = binder;
         _typeParameter = typeParameter;
         _typeArgument = typeArgument;
         _targetSymbol = targetSymbol;
+        _isInUnsafeRegion = isInUnsafeRegion;
     }
 
     private LazyUnsafeConstructorConstraintDiagnosticInfo(LazyUnsafeConstructorConstraintDiagnosticInfo original, DiagnosticSeverity severity) : base(original, severity)
@@ -27,6 +29,7 @@ internal sealed class LazyUnsafeConstructorConstraintDiagnosticInfo : LazyDiagno
         _typeParameter = original._typeParameter;
         _typeArgument = original._typeArgument;
         _targetSymbol = original._targetSymbol;
+        _isInUnsafeRegion = original._isInUnsafeRegion;
     }
 
     protected override DiagnosticInfo GetInstanceWithSeverityCore(DiagnosticSeverity severity)
@@ -36,6 +39,6 @@ internal sealed class LazyUnsafeConstructorConstraintDiagnosticInfo : LazyDiagno
 
     protected override DiagnosticInfo? ResolveInfo()
     {
-        return _binder.GetUnsafeConstructorConstraintDiagnosticInfo(_typeParameter, _typeArgument, _targetSymbol);
+        return _binder.GetUnsafeConstructorConstraintDiagnosticInfo(_typeParameter, _typeArgument, _targetSymbol, _isInUnsafeRegion);
     }
 }

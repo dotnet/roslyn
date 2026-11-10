@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             return new BoundPseudoVariable(
                 syntax,
+                isInUnsafeRegion: false,
                 local,
                 new ObjectIdExpressions(compilation),
                 local.Type);
@@ -85,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var argument = new BoundLiteral(
                     syntax,
+                    isInUnsafeRegion: false,
                     Microsoft.CodeAnalysis.ConstantValue.Create(name),
                     method.Parameters[0].Type);
                 return BoundCall.Synthesized(

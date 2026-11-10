@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (this.Flags.Includes(BinderFlags.UnsafeRegion))
             {
                 return withoutUnsafe
-                    ? new Binder(this, this.Flags & ~(BinderFlags.UnsafeRegion | BinderFlags.UnsafeExpressionRegion))
+                    ? new Binder(this, this.Flags & ~BinderFlags.UnsafeRegion)
                     : this;
             }
 

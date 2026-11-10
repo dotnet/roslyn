@@ -41,8 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ArrayBuilder<LocalSymbol> _locals;
             private ArrayBuilder<BoundStatement> _statements;
 
-            public BoundSpillSequenceBuilder(SyntaxNode syntax, BoundExpression value = null)
-                : base(SpillSequenceBuilderKind, syntax, value?.Type)
+            public BoundSpillSequenceBuilder(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression value = null)
+                : base(SpillSequenceBuilderKind, syntax, isInUnsafeRegion, value?.Type)
             {
                 Debug.Assert(value?.Kind != SpillSequenceBuilderKind);
                 this.Value = value;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal BoundSpillSequenceBuilder Update(BoundExpression value)
             {
-                var result = new BoundSpillSequenceBuilder(this.Syntax, value);
+                var result = new BoundSpillSequenceBuilder(this.Syntax, IsInUnsafeRegion, value);
                 result._locals = _locals;
                 result._statements = _statements;
                 return result;
@@ -671,7 +671,7 @@ doesNotMatch:
 
             if (builder == null)
             {
-                builder = new BoundSpillSequenceBuilder(lastSpill < newList.Length ? (newList[lastSpill] as BoundSpillSequenceBuilder)?.Syntax : null);
+                builder = new BoundSpillSequenceBuilder(lastSpill < newList.Length ? (newList[lastSpill] as BoundSpillSequenceBuilder)?.Syntax : null, isInUnsafeRegion: false);
             }
 
             var result = ArrayBuilder<BoundExpression>.GetInstance(newList.Length);
@@ -807,7 +807,7 @@ doesNotMatch:
 
         public override BoundNode VisitSpillSequence(BoundSpillSequence node)
         {
-            var builder = new BoundSpillSequenceBuilder(node.Syntax);
+            var builder = new BoundSpillSequenceBuilder(node.Syntax, node.IsInUnsafeRegion);
 
             // Ensure later errors (e.g. in async rewriting) are associated with the correct node.
             _F.Syntax = node.Syntax;
@@ -852,7 +852,7 @@ doesNotMatch:
                 // spill the array if there were await expressions in the indices
                 if (builder == null)
                 {
-                    builder = new BoundSpillSequenceBuilder(indicesBuilder.Syntax);
+                    builder = new BoundSpillSequenceBuilder(indicesBuilder.Syntax, indicesBuilder.IsInUnsafeRegion);
                 }
 
                 expression = Spill(builder, expression);
@@ -880,7 +880,7 @@ doesNotMatch:
             else
             {
                 // spill bounds expressions if initializers contain await
-                var boundsBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+                var boundsBuilder = new BoundSpillSequenceBuilder(builder.Syntax, builder.IsInUnsafeRegion);
                 bounds = VisitExpressionList(ref boundsBuilder, node.Bounds, forceSpill: true);
                 boundsBuilder.Include(builder);
                 builder = boundsBuilder;
@@ -933,7 +933,7 @@ doesNotMatch:
             else
             {
                 // if the right-hand-side has await, spill the left
-                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax, builder.IsInUnsafeRegion);
 
                 switch (left.Kind)
                 {
@@ -1058,7 +1058,7 @@ doesNotMatch:
             }
             else
             {
-                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax, builder.IsInUnsafeRegion);
                 left = VisitExpression(ref leftBuilder, node.Left);
                 left = Spill(leftBuilder, left);
                 if (node.OperatorKind == BinaryOperatorKind.LogicalBoolOr || node.OperatorKind == BinaryOperatorKind.LogicalBoolAnd)
@@ -1096,7 +1096,7 @@ doesNotMatch:
             else if (node.Method.RequiresInstanceReceiver)
             {
                 // spill the receiver if there were await expressions in the arguments
-                var receiverBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+                var receiverBuilder = new BoundSpillSequenceBuilder(builder.Syntax, builder.IsInUnsafeRegion);
 
                 receiver = node.ReceiverOpt;
                 RefKind refKind = ReceiverSpillRefKind(receiver);
@@ -1175,7 +1175,7 @@ doesNotMatch:
             }
             else
             {
-                var invokedExpressionBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+                var invokedExpressionBuilder = new BoundSpillSequenceBuilder(builder.Syntax, builder.IsInUnsafeRegion);
 
                 invokedExpression = Spill(invokedExpressionBuilder, VisitExpression(ref invokedExpressionBuilder, node.InvokedExpression));
                 invokedExpressionBuilder.Include(builder);
@@ -1201,9 +1201,9 @@ doesNotMatch:
                 return UpdateExpression(conditionBuilder, node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type));
             }
 
-            if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder((consequenceBuilder ?? alternativeBuilder).Syntax);
-            if (consequenceBuilder == null) consequenceBuilder = new BoundSpillSequenceBuilder(alternativeBuilder.Syntax);
-            if (alternativeBuilder == null) alternativeBuilder = new BoundSpillSequenceBuilder(consequenceBuilder.Syntax);
+            if (conditionBuilder == null) conditionBuilder = new BoundSpillSequenceBuilder((consequenceBuilder ?? alternativeBuilder).Syntax, isInUnsafeRegion: false);
+            if (consequenceBuilder == null) consequenceBuilder = new BoundSpillSequenceBuilder(alternativeBuilder.Syntax, alternativeBuilder.IsInUnsafeRegion);
+            if (alternativeBuilder == null) alternativeBuilder = new BoundSpillSequenceBuilder(consequenceBuilder.Syntax, consequenceBuilder.IsInUnsafeRegion);
 
             if (node.Type.IsVoidType())
             {
@@ -1327,7 +1327,7 @@ doesNotMatch:
             }
             else
             {
-                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+                var leftBuilder = new BoundSpillSequenceBuilder(builder.Syntax, builder.IsInUnsafeRegion);
                 left = VisitExpression(ref leftBuilder, node.LeftOperand);
                 left = Spill(leftBuilder, left);
 
@@ -1362,9 +1362,9 @@ doesNotMatch:
                 return UpdateExpression(receiverBuilder, node.Update(receiver, node.HasValueMethodOpt, whenNotNull, whenNullOpt, node.Id, node.ForceCopyOfNullableValueType, node.Type));
             }
 
-            if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder((whenNotNullBuilder ?? whenNullBuilder).Syntax);
-            if (whenNotNullBuilder == null) whenNotNullBuilder = new BoundSpillSequenceBuilder(whenNullBuilder.Syntax);
-            if (whenNullBuilder == null) whenNullBuilder = new BoundSpillSequenceBuilder(whenNotNullBuilder.Syntax);
+            if (receiverBuilder == null) receiverBuilder = new BoundSpillSequenceBuilder((whenNotNullBuilder ?? whenNullBuilder).Syntax, isInUnsafeRegion: false);
+            if (whenNotNullBuilder == null) whenNotNullBuilder = new BoundSpillSequenceBuilder(whenNullBuilder.Syntax, whenNullBuilder.IsInUnsafeRegion);
+            if (whenNullBuilder == null) whenNullBuilder = new BoundSpillSequenceBuilder(whenNotNullBuilder.Syntax, whenNotNullBuilder.IsInUnsafeRegion);
 
             BoundExpression condition;
             if (receiver.Type.IsReferenceType || receiver.Type.IsValueType || receiverRefKind == RefKind.None)
@@ -1512,7 +1512,7 @@ doesNotMatch:
             }
             else
             {
-                var expressionBuilder = new BoundSpillSequenceBuilder(builder.Syntax);
+                var expressionBuilder = new BoundSpillSequenceBuilder(builder.Syntax, builder.IsInUnsafeRegion);
                 expression = VisitExpression(ref expressionBuilder, node.Expression);
                 expression = Spill(expressionBuilder, expression);
                 expressionBuilder.Include(builder);
@@ -1545,7 +1545,7 @@ doesNotMatch:
 
             if (builder == null)
             {
-                builder = new BoundSpillSequenceBuilder(valueBuilder.Syntax);
+                builder = new BoundSpillSequenceBuilder(valueBuilder.Syntax, valueBuilder.IsInUnsafeRegion);
             }
 
             PromoteAndAddLocals(builder, node.Locals);

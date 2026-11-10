@@ -92,12 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax = fieldInit.Syntax;
             syntax = (syntax as EqualsValueClauseSyntax)?.Value ?? syntax; //we want the attached sequence point to indicate the value node
             var boundReceiver = field.IsStatic ? null :
-                                        new BoundThisReference(syntax, field.ContainingType);
+                                        new BoundThisReference(syntax, isInUnsafeRegion: false, field.ContainingType);
 
             BoundStatement boundStatement =
                 new BoundExpressionStatement(syntax,
                     new BoundAssignmentOperator(syntax,
+                        isInUnsafeRegion: false,
                         new BoundFieldAccess(syntax,
+                            isInUnsafeRegion: false,
                             boundReceiver,
                             field,
                             constantValueOpt: null),

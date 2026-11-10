@@ -128,8 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = boundRHS.Type ?? voidType;
                 return new BoundDeconstructionAssignmentOperator(
                             node,
+                            isInUnsafeRegion: InUnsafeRegion,
                             DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: true),
-                            new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
+                            new BoundConversion(boundRHS.Syntax, isInUnsafeRegion: boundRHS.IsInUnsafeRegion, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
                                 conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt: null, type: type, hasErrors: true),
                             resultIsUsed,
                             voidType,
@@ -160,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundConversion = new BoundConversion(
                 boundRHS.Syntax,
+                isInUnsafeRegion: boundRHS.IsInUnsafeRegion,
                 boundRHS,
                 conversion,
                 @checked: false,
@@ -171,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
 
-            return new BoundDeconstructionAssignmentOperator(node, lhsTuple, boundConversion, resultIsUsed, returnType);
+            return new BoundDeconstructionAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, lhsTuple, boundConversion, resultIsUsed, returnType);
         }
 
         private static bool IsDeconstructionResultUsed(ExpressionSyntax left)
@@ -274,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, variableSymbol: null, isDiscardExpression: false, type);
+                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, variableSymbol: null, isDiscardExpression: false, type);
                 BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
                     inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _, variables);
 
@@ -307,8 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         variable.NestedVariables, out nestedConversion);
 
                     Debug.Assert(nestedConversion.Kind == ConversionKind.Deconstruction);
-                    var operandPlaceholder = new BoundValuePlaceholder(syntax, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated();
-                    nestedConversions.Add((operandPlaceholder, new BoundConversion(syntax, operandPlaceholder, nestedConversion,
+                    var operandPlaceholder = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, ErrorTypeSymbol.UnknownResultType).MakeCompilerGenerated();
+                    nestedConversions.Add((operandPlaceholder, new BoundConversion(syntax, isInUnsafeRegion: InUnsafeRegion, operandPlaceholder, nestedConversion,
                                                                                    @checked: false, explicitCastInCode: false,
                                                                                    conversionGroupOpt: null, InConversionGroupFlags.Unspecified,
                                                                                    constantValueOpt: null,
@@ -333,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var operandPlaceholder = new BoundValuePlaceholder(syntax, tupleOrDeconstructedTypes[i]).MakeCompilerGenerated();
+                        var operandPlaceholder = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, tupleOrDeconstructedTypes[i]).MakeCompilerGenerated();
                         nestedConversions.Add((operandPlaceholder, CreateConversion(syntax, operandPlaceholder,
                                                                                     nestedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, single.Type, diagnostics)));
                     }
@@ -590,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 errorPositions: disallowInferredNames ? inferredPositions : default,
                 syntax: syntax, diagnostics: ignoreDiagnosticsFromTuple ? null : diagnostics);
 
-            return (BoundTupleExpression)BindToNaturalType(new BoundTupleLiteral(syntax, arguments, tupleNames, inferredPositions, type), diagnostics);
+            return (BoundTupleExpression)BindToNaturalType(new BoundTupleLiteral(syntax, isInUnsafeRegion: InUnsafeRegion, arguments, tupleNames, inferredPositions, type), diagnostics);
         }
 
         /// <summary>Extract inferred name from a single deconstruction variable.</summary>
@@ -644,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithExplicitType or BoundLocalDeclarationKind.WithInferredType, LocalSymbol: var symbol } => symbol,
                         _ => null,
                     };
-                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, variableSymbol: variableSymbol, isDiscardExpression: variableOpt is BoundDiscardExpression);
+                    var variable = new OutDeconstructVarPendingInference(receiverSyntax, isInUnsafeRegion: InUnsafeRegion, variableSymbol: variableSymbol, isDiscardExpression: variableOpt is BoundDiscardExpression);
                     analyzedArguments.Arguments.Add(variable);
                     analyzedArguments.RefKinds.Add(RefKind.Out);
                     outVars.Add(variable);
@@ -856,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeWithAnnotations declTypeWithAnnotations)
         {
             var type = declTypeWithAnnotations.Type;
-            return new BoundDiscardExpression(syntax, declTypeWithAnnotations.NullableAnnotation, isInferred: type is null, type);
+            return new BoundDiscardExpression(syntax, isInUnsafeRegion: InUnsafeRegion, declTypeWithAnnotations.NullableAnnotation, isInferred: type is null, type);
         }
 
         /// <summary>
@@ -912,10 +914,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (declTypeWithAnnotations.HasType)
                 {
-                    return new BoundLocal(syntax, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declTypeWithAnnotations.Type, hasErrors: hasErrors);
+                    return new BoundLocal(syntax, isInUnsafeRegion: InUnsafeRegion, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declTypeWithAnnotations.Type, hasErrors: hasErrors);
                 }
 
-                return new DeconstructionVariablePendingInference(syntax, localSymbol, receiverOpt: null);
+                return new DeconstructionVariablePendingInference(syntax, isInUnsafeRegion: InUnsafeRegion, localSymbol, receiverOpt: null);
             }
             else
             {
@@ -952,6 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var fieldType = field.GetFieldType(this.FieldsBeingBound);
                     Debug.Assert(TypeSymbol.Equals(declTypeWithAnnotations.Type, fieldType.Type, TypeCompareKind.ConsiderEverything2));
                     return new BoundFieldAccess(syntax,
+                                                isInUnsafeRegion: InUnsafeRegion,
                                                 receiver,
                                                 field,
                                                 constantValueOpt: null,
@@ -960,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 type: fieldType.Type);
                 }
 
-                return new DeconstructionVariablePendingInference(syntax, field, receiver);
+                return new DeconstructionVariablePendingInference(syntax, isInUnsafeRegion: InUnsafeRegion, field, receiver);
             }
         }
     }

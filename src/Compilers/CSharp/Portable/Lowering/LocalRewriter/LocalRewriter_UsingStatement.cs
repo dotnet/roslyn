@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol localType = localSymbol.Type;
             Debug.Assert((object)localType != null); //otherwise, there wouldn't be a conversion to IDisposable
 
-            BoundLocal boundLocal = new BoundLocal(declarationSyntax, localSymbol, localDeclaration.InitializerOpt.ConstantValueOpt, localType);
+            BoundLocal boundLocal = new BoundLocal(declarationSyntax, isInUnsafeRegion: false, localSymbol, localDeclaration.InitializerOpt.ConstantValueOpt, localType);
 
             BoundStatement? rewrittenDeclaration = VisitStatement(localDeclaration);
             Debug.Assert(rewrittenDeclaration is { });
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression disposeCall;
             if (disposeMethod is null)
             {
-                disposeCall = new BoundBadExpression(resourceSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
+                disposeCall = new BoundBadExpression(resourceSyntax, isInUnsafeRegion: false, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(disposedExpression), ErrorTypeSymbol.UnknownResultType);
             }
             else
             {

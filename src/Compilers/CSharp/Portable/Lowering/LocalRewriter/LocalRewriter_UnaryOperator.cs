@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return BoundCall.Synthesized(
                         syntax,
-                        receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                        receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method,
                         loweredOperand);
@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         upconvertType) :
                     new BoundUnaryOperator(
                         syntax,
+                        isInUnsafeRegion: false,
                         newKind,
                         newOperand,
                         null,
@@ -173,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (oldNode != null) ?
                 oldNode.Update(kind, loweredOperand, oldNode.ConstantValueOpt, methodOpt: method, constrainedToTypeOpt: constrainedToTypeOpt, oldNode.ResultKind, type) :
-                new BoundUnaryOperator(syntax, kind, loweredOperand, null, methodOpt: method, constrainedToTypeOpt: constrainedToTypeOpt, LookupResultKind.Viable, type);
+                new BoundUnaryOperator(syntax, isInUnsafeRegion: false, kind, loweredOperand, null, methodOpt: method, constrainedToTypeOpt: constrainedToTypeOpt, LookupResultKind.Viable, type);
         }
 
         private BoundExpression LowerLiftedUnaryOperator(
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, constrainedToTypeOpt, type, call_GetValueOrDefault);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
 
             // temp.HasValue ? 
             //          new R?(OP(temp.GetValueOrDefault())) : 
@@ -234,6 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //          default(R?);
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 value: conditionalExpression,
@@ -250,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (NullableNeverHasValue(loweredOperand))
             {
-                return new BoundDefaultExpression(syntax, type);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
             }
 
             // Second, another simple optimization. If we know that the operand is never null
@@ -333,6 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return new BoundSequence(
                             syntax,
+                            isInUnsafeRegion: false,
                             seq.Locals,
                             seq.SideEffects,
                             RewriteConditionalOperator(
@@ -368,6 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // new R?(OP(temp.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(
                     syntax,
+                    isInUnsafeRegion: false,
                     ctor,
                     unliftedOp);
             return consequence;
@@ -435,6 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundTemp = _factory.StoreToTemp(VisitExpression(node.Operand), out tempAssignment);
                 return new BoundSequence(
                     syntax: syntax,
+                    isInUnsafeRegion: false,
                     locals: [boundTemp.LocalSymbol],
                     sideEffects:
                         [
@@ -504,6 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         isNotClass,
                         new BoundSequence(
                             syntax: syntax,
+                            isInUnsafeRegion: false,
                             locals: [],
                             sideEffects: [increment, assignBack],
                             value: boundTemp,
@@ -515,6 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: tempSymbols.ToImmutableAndFree(),
                 sideEffects: tempInitializers.ToImmutableAndFree(),
                 value: boundTemp,
@@ -594,6 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression boundTemp = new BoundLocal(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 localSymbol: tempSymbol,
                 constantValueOpt: null,
                 type: operandType);
@@ -682,6 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // postfix: Seq( operand initializers; temp = operand;          operand = (T)(temp + 1); result: temp)
                 return new BoundSequence(
                     syntax: syntax,
+                    isInUnsafeRegion: false,
                     locals: tempSymbols.ToImmutableAndFree(),
                     sideEffects: tempInitializers.ToImmutableAndFree(),
                     value: boundTemp,
@@ -707,6 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var operandValue = isPrefix ? boundTemp : newValue;
                 var tempAssignedAndOperandValue = new BoundSequence(
                         syntax,
+                        isInUnsafeRegion: false,
                         ImmutableArray<LocalSymbol>.Empty,
                         ImmutableArray.Create<BoundExpression>(tempAssignment),
                         operandValue,
@@ -721,6 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tempInitializers.Add(operandAssignment);
                 return new BoundSequence(
                     syntax: syntax,
+                    isInUnsafeRegion: false,
                     locals: tempSymbols.ToImmutableAndFree(),
                     sideEffects: tempInitializers.ToImmutableAndFree(),
                     value: boundTemp,
@@ -811,7 +822,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return BoundCall.Synthesized(
                     syntax,
-                    receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, node.ConstrainedToTypeOpt),
+                    receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, node.ConstrainedToTypeOpt),
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     node.MethodOpt,
                     rewrittenArgument);
@@ -841,16 +852,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // op_Increment(temp.GetValueOrDefault())
             BoundExpression userDefinedCall = BoundCall.Synthesized(
                 syntax,
-                receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, node.ConstrainedToTypeOpt),
+                receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, node.ConstrainedToTypeOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 node.MethodOpt,
                 call_GetValueOrDefault);
 
             // new S?(op_Increment(temp.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, userDefinedCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(syntax, isInUnsafeRegion: false, ctor, userDefinedCall);
 
             // default(S?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
 
             // temp.HasValue ? 
             //          new S?(op_Increment(temp.GetValueOrDefault())) : 
@@ -870,6 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //          default(S?);
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 value: conditionalExpression,
@@ -914,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 binaryOperandType = _compilation.GetOrCreateNullableType(binaryOperandType);
                 MethodSymbol ctor = UnsafeGetNullableMethod(node.Syntax, binaryOperandType, SpecialMember.System_Nullable_T__ctor);
-                boundOne = new BoundObjectCreationExpression(node.Syntax, ctor, boundOne);
+                boundOne = new BoundObjectCreationExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, ctor, boundOne);
             }
 
             // Now we construct the other operand to the binary addition. We start with just plain "x".
@@ -1005,9 +1017,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // op_Inc(x.GetValueOrDefault())
             BoundExpression methodCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, getValueCall);
             // new decimal?(op_Inc(x.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(syntax, ctor, methodCall);
+            BoundExpression consequence = new BoundObjectCreationExpression(syntax, isInUnsafeRegion: false, ctor, methodCall);
             // default(decimal?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, operand.Type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, isInUnsafeRegion: false, operand.Type);
 
             // x.HasValue ? new decimal?(op_Inc(x.GetValueOrDefault())) : default(decimal?)
             return RewriteConditionalOperator(syntax, condition, consequence, alternative, ConstantValue.NotAvailable, operand.Type, isRef: false);

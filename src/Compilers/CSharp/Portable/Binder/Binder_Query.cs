@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // there should have been a syntax error if we get here.
                         Debug.Assert(state.fromExpression.Type is { });
                         return new BoundBadExpression(
-                            state.selectOrGroup, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol?>.Empty,
+                            state.selectOrGroup, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol?>.Empty,
                             ImmutableArray.Create(state.fromExpression), state.fromExpression.Type);
                     }
             }
@@ -695,8 +695,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag d) =>
             {
-                var x1Expression = new BoundParameter(node, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
-                var x2Expression = new BoundParameter(node, lambdaSymbol.Parameters[1]) { WasCompilerGenerated = true };
+                var x1Expression = new BoundParameter(node, isInUnsafeRegion: InUnsafeRegion, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
+                var x2Expression = new BoundParameter(node, isInUnsafeRegion: InUnsafeRegion, lambdaSymbol.Parameters[1]) { WasCompilerGenerated = true };
                 var construction = MakePair(node, x1.Name, x1Expression, x2.Name, x2Expression, state, d);
                 return lambdaBodyBinder.CreateBlockFromExpression(node, ImmutableArray<LocalSymbol>.Empty, RefKind.None, construction, null, d);
             };
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to represent the transparent identifier in the result.
             LambdaBodyFactory bodyFactory = (LambdaSymbol lambdaSymbol, Binder lambdaBodyBinder, BindingDiagnosticBag d) =>
             {
-                var xExpression = new BoundParameter(let, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
+                var xExpression = new BoundParameter(let, isInUnsafeRegion: InUnsafeRegion, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
 
                 lambdaBodyBinder = lambdaBodyBinder.GetRequiredBinder(let.Expression);
 
@@ -738,13 +738,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!yExpression.HasAnyErrors && !yExpression.HasExpressionType())
                 {
                     Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Display);
-                    yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
+                    yExpression = new BoundBadExpression(yExpression.Syntax, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), CreateErrorType());
                 }
                 else if (!yExpression.HasAnyErrors && yExpression.Type!.IsVoidType())
                 {
                     Error(d, ErrorCode.ERR_QueryRangeVariableAssignedBadValue, errorLocation, yExpression.Type!);
                     Debug.Assert(yExpression.Type is { });
-                    yExpression = new BoundBadExpression(yExpression.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), yExpression.Type);
+                    yExpression = new BoundBadExpression(yExpression.Syntax, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(yExpression), yExpression.Type);
                 }
 
                 var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (unoptimizedForm != null && unoptimizedForm.HasAnyErrors && !expression.HasAnyErrors) unoptimizedForm = null;
             return new BoundQueryClause(
-                syntax: syntax, value: expression,
+                syntax: syntax, isInUnsafeRegion: InUnsafeRegion, value: expression,
                 definedSymbol: definedSymbol,
                 operation: queryInvocation,
                 binder: this,
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // we will generate a diagnostic elsewhere
                 field2Name = state.TransparentRangeVariableName();
-                field2Value = new BoundBadExpression(field2Value.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(field2Value), field2Value.Type, true);
+                field2Value = new BoundBadExpression(field2Value.Syntax, isInUnsafeRegion: field2Value.IsInUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(field2Value), field2Value.Type, true);
             }
 
             AnonymousTypeDescriptor typeDescriptor = new AnonymousTypeDescriptor(
@@ -871,7 +871,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node is ExpressionSyntax || LambdaUtilities.IsQueryPairLambda(node));
             // Function type is null because query expression syntax does not allow an explicit signature.
-            var lambda = new UnboundLambda(node, state, functionType: null, withDependencies, hasErrors: false) { WasCompilerGenerated = true };
+            var lambda = new UnboundLambda(node, isInUnsafeRegion: state.Binder.InUnsafeRegion, state, functionType: null, withDependencies, hasErrors: false) { WasCompilerGenerated = true };
             state.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, MessageID.IDS_AnonMethod.Localize(), methodName);
                 }
 
-                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
+                receiver = new BoundBadExpression(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, LookupResultKind.NotAValue, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
             else if (ultimateReceiver.Kind == BoundKind.TypeExpression)
             {
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, "void", methodName);
                 }
 
-                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.NotAValue, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
+                receiver = new BoundBadExpression(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, LookupResultKind.NotAValue, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create(receiver), CreateErrorType());
             }
             else
             {

@@ -131,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 boundInitializers.Add(new BoundFieldEqualsValue(parameterSyntax, fieldSymbol, ImmutableArray<LocalSymbol>.Empty,
                                                                                 new BoundParameter(parameterSyntax,
+                                                                                                   isInUnsafeRegion: false,
                                                                                                    ((SynthesizedRecordPropertySymbol)fieldSymbol.AssociatedSymbol).BackingParameter).MakeCompilerGenerated()));
                                 break;
 

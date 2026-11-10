@@ -51,7 +51,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             RoslynDebug.Assert(!flags.Includes(BinderFlags.UncheckedRegion | BinderFlags.CheckedRegion));
             // Implied.
             RoslynDebug.Assert(!flags.Includes(BinderFlags.InNestedFinallyBlock) || flags.Includes(BinderFlags.InFinallyBlock | BinderFlags.InCatchBlock));
-            RoslynDebug.Assert(!flags.Includes(BinderFlags.UnsafeExpressionRegion) || flags.Includes(BinderFlags.UnsafeRegion));
             Next = next;
             this.Flags = flags;
             this.Compilation = next.Compilation;
@@ -920,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
             return (locals.IsEmpty)
                 ? expression
-                : new BoundSequence(scopeDesignator, locals, ImmutableArray<BoundExpression>.Empty, expression, getType()) { WasCompilerGenerated = true };
+                : new BoundSequence(scopeDesignator, isInUnsafeRegion: InUnsafeRegion, locals, ImmutableArray<BoundExpression>.Empty, expression, getType()) { WasCompilerGenerated = true };
 
             TypeSymbol getType()
             {

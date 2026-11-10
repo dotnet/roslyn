@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return new BoundLiteral(syntax, constantValue, type, hasErrors: constantValue.IsBad);
+                return new BoundLiteral(syntax, isInUnsafeRegion: false, constantValue, type, hasErrors: constantValue.IsBad);
             }
         }
 
@@ -91,41 +91,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (useField is { HasUseSiteError: false, ContainingType: { HasUseSiteError: false } })
                     {
                         var fieldSymbol = (FieldSymbol)useField;
-                        return new BoundFieldAccess(syntax, null, fieldSymbol, constantValue);
+                        return new BoundFieldAccess(syntax, isInUnsafeRegion: false, null, fieldSymbol, constantValue);
                     }
                 }
 
                 //new decimal(int);
                 member = SpecialMember.System_Decimal__CtorInt32;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((int)value), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create((int)value), _compilation.GetSpecialType(SpecialType.System_Int32)));
             }
             else if (scale == 0 && uint.MinValue <= value && value <= uint.MaxValue)
             {
                 //new decimal(uint);
                 member = SpecialMember.System_Decimal__CtorUInt32;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((uint)value), _compilation.GetSpecialType(SpecialType.System_UInt32)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create((uint)value), _compilation.GetSpecialType(SpecialType.System_UInt32)));
             }
             else if (scale == 0 && long.MinValue <= value && value <= long.MaxValue)
             {
                 //new decimal(long);
                 member = SpecialMember.System_Decimal__CtorInt64;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((long)value), _compilation.GetSpecialType(SpecialType.System_Int64)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create((long)value), _compilation.GetSpecialType(SpecialType.System_Int64)));
             }
             else if (scale == 0 && ulong.MinValue <= value && value <= ulong.MaxValue)
             {
                 //new decimal(ulong);
                 member = SpecialMember.System_Decimal__CtorUInt64;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create((ulong)value), _compilation.GetSpecialType(SpecialType.System_UInt64)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create((ulong)value), _compilation.GetSpecialType(SpecialType.System_UInt64)));
             }
             else
             {
                 //new decimal(int low, int mid, int high, bool isNegative, byte scale);
                 member = SpecialMember.System_Decimal__CtorInt32Int32Int32BooleanByte;
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(low), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(mid), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(high), _compilation.GetSpecialType(SpecialType.System_Int32)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(isNegative), _compilation.GetSpecialType(SpecialType.System_Boolean)));
-                arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(scale), _compilation.GetSpecialType(SpecialType.System_Byte)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(low), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(mid), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(high), _compilation.GetSpecialType(SpecialType.System_Int32)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(isNegative), _compilation.GetSpecialType(SpecialType.System_Boolean)));
+                arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(scale), _compilation.GetSpecialType(SpecialType.System_Byte)));
             }
 
             var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(member);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ctor.ContainingType.SpecialType == SpecialType.System_Decimal);
 
             return new BoundObjectCreationExpression(
-                syntax, ctor, arguments.ToImmutableAndFree(),
+                syntax, isInUnsafeRegion: false, ctor, arguments.ToImmutableAndFree(),
                 argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
                 constantValueOpt: constantValue, initializerExpressionOpt: null, type: ctor.ContainingType);
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(constantValue.IsDateTime);
 
             var arguments = new ArrayBuilder<BoundExpression>();
-            arguments.Add(new BoundLiteral(syntax, ConstantValue.Create(constantValue.DateTimeValue.Ticks), _compilation.GetSpecialType(SpecialType.System_Int64)));
+            arguments.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(constantValue.DateTimeValue.Ticks), _compilation.GetSpecialType(SpecialType.System_Int64)));
 
             var ctor = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_DateTime__CtorInt64);
             Debug.Assert((object)ctor != null);
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // This is not a constant from C#'s perspective, so do not mark it as one.
             return new BoundObjectCreationExpression(
-                syntax, ctor, arguments.ToImmutableAndFree(),
+                syntax, isInUnsafeRegion: false, ctor, arguments.ToImmutableAndFree(),
                 argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: default(ImmutableArray<RefKind>), expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector),
                 constantValueOpt: ConstantValue.NotAvailable, initializerExpressionOpt: null, type: ctor.ContainingType);

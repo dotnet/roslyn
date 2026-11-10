@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundTemp = _factory.StoreToTemp(loweredLeft, out tempAssignment);
 
             // T.false(temp)
-            var falseOperatorCall = BoundCall.Synthesized(syntax, receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, node.ConstrainedToTypeOpt),
+            var falseOperatorCall = BoundCall.Synthesized(syntax, receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, node.ConstrainedToTypeOpt),
                                                           initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                           operatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator,
                                                           ApplyConversionIfNotIdentity(node.TrueFalseOperandConversion, node.TrueFalseOperandPlaceholder, boundTemp));
@@ -105,6 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // temp = x; T.false(temp) ? temp : T.&(temp, y)
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create(boundTemp.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 value: conditionalExpression,
@@ -539,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!operatorKind.IsDynamic());
             return (oldNode != null) ?
                 oldNode.Update(operatorKind, oldNode.ConstantValueOpt, oldNode.BinaryOperatorMethod, oldNode.ConstrainedToType, oldNode.ResultKind, loweredLeft, loweredRight, type) :
-                new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, loweredLeft, loweredRight, type);
+                new BoundBinaryOperator(syntax, isInUnsafeRegion: false, operatorKind, constantValueOpt: null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, loweredLeft, loweredRight, type);
         }
 
         private BoundExpression RewriteLiftedBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, MethodSymbol? method, TypeSymbol? constrainedToTypeOpt)
@@ -754,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var converted = MakeConversionNode(loweredLeft, boolean, @checked: false, markAsChecked: true); // The conversion was checked in binding
                 if (negative)
                 {
-                    return new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, converted, ConstantValue.NotAvailable, MethodSymbol.None, constrainedToTypeOpt: null, LookupResultKind.Viable, boolean)
+                    return new BoundUnaryOperator(syntax, isInUnsafeRegion: false, UnaryOperatorKind.BoolLogicalNegation, converted, ConstantValue.NotAvailable, MethodSymbol.None, constrainedToTypeOpt: null, LookupResultKind.Viable, boolean)
                     {
                         WasCompilerGenerated = true
                     };
@@ -777,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return BoundCall.Synthesized(
                 syntax,
-                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 leftTruthOperator,
                 loweredLeft);
@@ -804,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(TypeSymbol.Equals(method.ReturnType, type, TypeCompareKind.ConsiderEverything2));
             return BoundCall.Synthesized(
                 syntax,
-                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
                 loweredLeft,
@@ -868,6 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     result = new BoundSequence(
                                     syntax: syntax,
+                                    isInUnsafeRegion: false,
                                     locals: ImmutableArray<LocalSymbol>.Empty,
                                     sideEffects: ImmutableArray.Create<BoundExpression>(nonNull),
                                     value: result,
@@ -1114,6 +1116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //          (tempx.HasValue == tempy.HasValue);
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create<LocalSymbol>(boundTempX.LocalSymbol, boundTempY.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignmentX, tempAssignmentY),
                 value: binaryExpression,
@@ -1303,6 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create<LocalSymbol>(boundTempX.LocalSymbol, boundTempY.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignmentX, tempAssignmentY),
                 value: conditionalExpression,
@@ -1333,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftAlwaysNull && rightAlwaysNull)
             {
                 // default(R?)
-                return new BoundDefaultExpression(syntax, type);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
             }
 
             // Optimization #2: If both sides are non-null then we can again eliminate the lifting entirely.
@@ -1371,6 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // new R?(tempX.GetValueOrDefault() OP tempY.GetValueOrDefault)
             return new BoundObjectCreationExpression(
                 syntax,
+                isInUnsafeRegion: false,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
                 unliftedOp);
         }
@@ -1407,14 +1412,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (sideEffect.ConstantValueOpt != null)
             {
-                return new BoundDefaultExpression(syntax, type);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
             }
 
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray<LocalSymbol>.Empty,
                 sideEffects: ImmutableArray.Create<BoundExpression>(sideEffect),
-                value: new BoundDefaultExpression(syntax, type),
+                value: new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type),
                 type: type);
         }
 
@@ -1480,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = MakeLiftedBinaryOperatorConsequence(syntax, kind, callX_GetValueOrDefault, callY_GetValueOrDefault, type, method, constrainedToTypeOpt);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
 
             // tempX.HasValue & tempY.HasValue ? 
             //          new R?(tempX.GetValueOrDefault() OP tempY.GetValueOrDefault()) : 
@@ -1496,6 +1502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: locals.ToImmutableAndFree(),
                 sideEffects: sideeffects.ToImmutableAndFree(),
                 value: conditionalExpression,
@@ -1638,6 +1645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return new BoundSequence(
                             syntax,
+                            isInUnsafeRegion: false,
                             seq.Locals,
                             seq.SideEffects,
                             RewriteConditionalOperator(
@@ -1662,11 +1670,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol nullableBoolType = _compilation.GetOrCreateNullableType(boolType);
             if (value == null)
             {
-                return new BoundDefaultExpression(syntax, nullableBoolType);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, nullableBoolType);
             }
 
             return new BoundObjectCreationExpression(
                 syntax,
+                isInUnsafeRegion: false,
                 UnsafeGetNullableMethod(syntax, nullableBoolType, SpecialMember.System_Nullable_T__ctor),
                 MakeBooleanConstant(syntax, value.GetValueOrDefault()));
         }
@@ -1706,7 +1715,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression notAlwaysNull = leftAlwaysNull ? right : left;
             BoundExpression? neverNull = NullableAlwaysHasValue(notAlwaysNull);
             Debug.Assert(alwaysNull.Type is { });
-            BoundExpression nullBool = new BoundDefaultExpression(syntax, alwaysNull.Type);
+            BoundExpression nullBool = new BoundDefaultExpression(syntax, isInUnsafeRegion: false, alwaysNull.Type);
 
             if (neverNull != null)
             {
@@ -1750,6 +1759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conditionalExpression.Type is { });
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create<LocalSymbol>(boundTemp.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 value: conditionalExpression,
@@ -1811,6 +1821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isRef: false);
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create<LocalSymbol>(boundTempX.LocalSymbol, boundTempY.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignmentX, tempAssignmentY),
                 value: conditionalExpression,
@@ -1899,6 +1910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create<LocalSymbol>(boundTempX.LocalSymbol, boundTempY.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignmentX, tempAssignmentY),
                 value: conditionalExpression,
@@ -1980,6 +1992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundSequence(
                     syntax: syntax,
+                    isInUnsafeRegion: false,
                     locals: ImmutableArray<LocalSymbol>.Empty,
                     sideEffects: ImmutableArray.Create<BoundExpression>(nonNullValue),
                     value: MakeBooleanConstant(syntax, kind == BinaryOperatorKind.NullableNullNotEqual),
@@ -2006,7 +2019,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression call = MakeNullableHasValue(syntax, nullable);
             BoundExpression result = kind == BinaryOperatorKind.NullableNullNotEqual ?
                 call :
-                new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, null, constrainedToTypeOpt: null, LookupResultKind.Viable, returnType);
+                new BoundUnaryOperator(syntax, isInUnsafeRegion: false, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, null, constrainedToTypeOpt: null, LookupResultKind.Viable, returnType);
 
             return result;
         }
@@ -2036,7 +2049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // use reference equality in the absence of overloaded operators for System.Delegate.
                     operatorKind = (operatorKind & (~BinaryOperatorKind.Delegate)) | BinaryOperatorKind.Object;
-                    return new BoundBinaryOperator(syntax, operatorKind, constantValueOpt: null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Empty, loweredLeft, loweredRight, type);
+                    return new BoundBinaryOperator(syntax, isInUnsafeRegion: false, operatorKind, constantValueOpt: null, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Empty, loweredLeft, loweredRight, type);
                 }
             }
             else
@@ -2046,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)method != null);
             BoundExpression call = _inExpressionLambda
-                ? new BoundBinaryOperator(syntax, operatorKind, null, method, constrainedToTypeOpt: null, default(LookupResultKind), loweredLeft, loweredRight, method.ReturnType)
+                ? new BoundBinaryOperator(syntax, isInUnsafeRegion: false, operatorKind, null, method, constrainedToTypeOpt: null, default(LookupResultKind), loweredLeft, loweredRight, method.ReturnType)
                 : (BoundExpression)BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredLeft, loweredRight);
             BoundExpression result = method.ReturnType.SpecialType == SpecialType.System_Delegate ?
                 MakeConversionNode(syntax, call, Conversion.ExplicitReference, type, @checked: false) :
@@ -2172,6 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BinaryOperatorKind andOperatorKind = (operatorKind & ~BinaryOperatorKind.OpMask) | BinaryOperatorKind.And;
                 loweredRight = new BoundBinaryOperator(
                     rightSyntax,
+                    isInUnsafeRegion: false,
                     andOperatorKind,
                     null,
                     methodOpt: null,
@@ -2185,6 +2199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return oldNode == null
                 ? new BoundBinaryOperator(
                     syntax,
+                    isInUnsafeRegion: false,
                     operatorKind,
                     null,
                     methodOpt: null,
@@ -2297,6 +2312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBinaryOperator(
                             syntax,
+                            isInUnsafeRegion: false,
                             kind,
                             ConstantValue.NotAvailable,
                             methodOpt: null,

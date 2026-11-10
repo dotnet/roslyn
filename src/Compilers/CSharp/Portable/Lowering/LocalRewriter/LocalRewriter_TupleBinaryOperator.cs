@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var elementType = resultTypes[i].Type;
                             var newArgument = new BoundConversion(
                                 syntax: expr.Syntax,
+                                isInUnsafeRegion: expr.IsInUnsafeRegion,
                                 operand: element,
                                 conversion: elementConversion,
                                 @checked: conversion.Checked,
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         var newArguments = builder.ToImmutableAndFree();
                         tuple = new BoundConvertedTupleLiteral(
-                            tuple.Syntax, sourceTuple: null, wasTargetTyped: true, newArguments, ImmutableArray<string?>.Empty,
+                            tuple.Syntax, isInUnsafeRegion: tuple.IsInUnsafeRegion, sourceTuple: null, wasTargetTyped: true, newArguments, ImmutableArray<string?>.Empty,
                             ImmutableArray<bool>.Empty, conversion.Type, conversion.HasErrors);
                         return true;
                     }
@@ -119,14 +120,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var fieldAccess = MakeTupleFieldAccessAndReportUseSiteDiagnostics(savedTuple, syntax, srcElementFields[i]);
                     var convertedFieldAccess = new BoundConversion(
-                        syntax, fieldAccess, elementConversions[i], boundConversion.Checked, boundConversion.ExplicitCastInCode,
+                        syntax, isInUnsafeRegion: false, fieldAccess, elementConversions[i], boundConversion.Checked, boundConversion.ExplicitCastInCode,
                         conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
                         constantValueOpt: null, destElementTypes[i].Type, boundConversion.HasErrors);
                     fieldAccessorsBuilder.Add(convertedFieldAccess);
                 }
 
                 return new BoundConvertedTupleLiteral(
-                    syntax, sourceTuple: null, wasTargetTyped: true, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string?>.Empty,
+                    syntax, isInUnsafeRegion: false, sourceTuple: null, wasTargetTyped: true, fieldAccessorsBuilder.ToImmutableAndFree(), ImmutableArray<string?>.Empty,
                     ImmutableArray<bool>.Empty, expr.Type, expr.HasErrors);
             }
 
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var newArguments = builder.ToImmutableAndFree();
                     return new BoundConvertedTupleLiteral(
-                        tuple.Syntax, sourceTuple: null, wasTargetTyped: false, newArguments, ImmutableArray<string?>.Empty,
+                        tuple.Syntax, isInUnsafeRegion: false, sourceTuple: null, wasTargetTyped: false, newArguments, ImmutableArray<string?>.Empty,
                         ImmutableArray<bool>.Empty, tuple.Type, tuple.HasErrors);
                 }
             }
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return conv.UpdateOperand(deferredOperand);
                     }
                 case BoundObjectCreationExpression { Arguments: { Length: 0 }, Type: { } eType } _ when eType.IsNullableType():
-                    return new BoundLiteral(expr.Syntax, ConstantValue.Null, expr.Type);
+                    return new BoundLiteral(expr.Syntax, isInUnsafeRegion: expr.IsInUnsafeRegion, ConstantValue.Null, expr.Type);
                 case BoundObjectCreationExpression { Arguments: { Length: 1 }, Type: { } eType } creation when eType.IsNullableType():
                     {
                         var deferredOperand = DeferSideEffectingArgumentToTempForTupleEquality(
@@ -214,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var conversion = Conversion.MakeNullableConversion(ConversionKind.ImplicitNullable, Conversion.Identity);
                         conversion.MarkUnderlyingConversionsChecked();
                         return new BoundConversion(
-                            syntax: expr.Syntax, operand: deferredOperand,
+                            syntax: expr.Syntax, isInUnsafeRegion: expr.IsInUnsafeRegion, operand: deferredOperand,
                             conversion: conversion,
                             @checked: false, explicitCastInCode: true,
                             conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering,
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case TupleBinaryOperatorInfoKind.NullNull:
                     var nullnull = (TupleBinaryOperatorInfo.NullNull)@operator;
-                    return new BoundLiteral(left.Syntax, ConstantValue.Create(nullnull.Kind == BinaryOperatorKind.Equal), boolType);
+                    return new BoundLiteral(left.Syntax, isInUnsafeRegion: left.IsInUnsafeRegion, ConstantValue.Create(nullnull.Kind == BinaryOperatorKind.Equal), boolType);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(@operator.InfoKind);
@@ -374,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(expr.Type is { });
                 hasValue = MakeBooleanConstant(expr.Syntax, false);
                 // Since there is no value in this nullable expression, we don't need to construct a `.GetValueOrDefault()`, `default(T)` will suffice
-                value = new BoundDefaultExpression(expr.Syntax, expr.Type.StrippedType());
+                value = new BoundDefaultExpression(expr.Syntax, isInUnsafeRegion: expr.IsInUnsafeRegion, expr.Type.StrippedType());
                 return;
             }
 
@@ -460,6 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return new BoundConvertedTupleLiteral(
                             syntax: operand.Syntax,
+                            isInUnsafeRegion: false,
                             sourceTuple: null,
                             wasTargetTyped: false,
                             arguments: argumentBuilder.ToImmutableAndFree(),
@@ -479,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression MakeBoundConversion(BoundExpression expr, Conversion conversion, TypeWithAnnotations type, BoundConversion enclosing)
             {
                 return new BoundConversion(
-                    expr.Syntax, expr, conversion, enclosing.Checked, enclosing.ExplicitCastInCode,
+                    expr.Syntax, isInUnsafeRegion: expr.IsInUnsafeRegion, expr, conversion, enclosing.Checked, enclosing.ExplicitCastInCode,
                     conversionGroupOpt: null, InConversionGroupFlags.TupleBinaryOperatorPendingLowering, constantValueOpt: null, type: type.Type);
             }
 
@@ -573,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left.IsLiteralNull() && right.IsLiteralNull())
             {
                 // For `null == null` this is special-cased during initial binding
-                return new BoundLiteral(left.Syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType);
+                return new BoundLiteral(left.Syntax, isInUnsafeRegion: left.IsInUnsafeRegion, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType);
             }
 
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, left, right, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt, single.ConstrainedToTypeOpt);

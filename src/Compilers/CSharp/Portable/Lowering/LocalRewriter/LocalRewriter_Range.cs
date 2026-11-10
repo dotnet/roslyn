@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (NullableNeverHasValue(operand))
                 {
-                    operand = new BoundDefaultExpression(operand.Syntax, operand.Type.GetNullableUnderlyingType());
+                    operand = new BoundDefaultExpression(operand.Syntax, isInUnsafeRegion: operand.IsInUnsafeRegion, operand.Type.GetNullableUnderlyingType());
                 }
                 else
                 {
@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // new Nullable(makeRange(left.GetValueOrDefault(), right.GetValueOrDefault()))
-            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, nullableCtor, rangeExpr);
+            BoundExpression consequence = new BoundObjectCreationExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, nullableCtor, rangeExpr);
 
             // default
-            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, node.Type);
+            BoundExpression alternative = new BoundDefaultExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, node.Type);
 
             // left.HasValue && right.HasValue
             //     ? new Nullable(makeRange(left.GetValueOrDefault(), right.GetValueOrDefault()))
@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: node.Syntax,
+                isInUnsafeRegion: node.IsInUnsafeRegion,
                 locals: locals.ToImmutableAndFree(),
                 sideEffects: sideeffects.ToImmutableAndFree(),
                 value: conditionalExpression,

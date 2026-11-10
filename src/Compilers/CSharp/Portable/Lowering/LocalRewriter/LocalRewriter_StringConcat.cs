@@ -529,6 +529,7 @@ fallbackStrings:
 
                     var wrappedChar = new BoundObjectCreationExpression(
                         arg.Syntax,
+                        isInUnsafeRegion: arg.IsInUnsafeRegion,
                         readOnlySpanCtorRefParamChar,
                         [temp],
                         argumentNamesOpt: default,
@@ -542,6 +543,7 @@ fallbackStrings:
 
                     args[i] = new BoundSequence(
                         arg.Syntax,
+                        isInUnsafeRegion: arg.IsInUnsafeRegion,
                         [],
                         [tempAssignment],
                         wrappedChar,
@@ -607,7 +609,7 @@ fallbackStrings:
                 var method = UnsafeGetSpecialTypeMethod(current.Syntax, member);
                 Debug.Assert(method is not null);
 
-                currentResult = new BoundBinaryOperator(current.Syntax, current.OperatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), currentResult, right, current.Type);
+                currentResult = new BoundBinaryOperator(current.Syntax, isInUnsafeRegion: current.IsInUnsafeRegion, current.OperatorKind, constantValueOpt: null, method, constrainedToTypeOpt: null, default(LookupResultKind), currentResult, right, current.Type);
             }
 
             stack.Free();
@@ -713,7 +715,7 @@ fallbackStrings:
             {
                 if (!callWithoutCopy)
                 {
-                    expr = new BoundPassByCopy(syntax, expr, expr.Type);
+                    expr = new BoundPassByCopy(syntax, isInUnsafeRegion: false, expr, expr.Type);
                 }
                 return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
             }
@@ -741,11 +743,12 @@ fallbackStrings:
 
                 return new BoundLoweredConditionalAccess(
                     syntax,
+                    isInUnsafeRegion: false,
                     receiver,
                     hasValueMethodOpt: null,
                     whenNotNull: BoundCall.Synthesized(
                         syntax,
-                        new BoundConditionalReceiver(syntax, currentConditionalAccessID, expr.Type),
+                        new BoundConditionalReceiver(syntax, isInUnsafeRegion: false, currentConditionalAccessID, expr.Type),
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         objectToStringMethod),
                     whenNullOpt: null,

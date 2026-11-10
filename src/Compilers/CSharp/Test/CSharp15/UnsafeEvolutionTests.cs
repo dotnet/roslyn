@@ -5686,6 +5686,165 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeExpression_Context_DelayedAccessors()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                unsafe int P { get; set; }
+                unsafe int this[int i] { get => 0; set { } }
+                unsafe event Action E;
+                static void Handler() { }
+                void M(C c)
+                {
+                    _ = unsafe(c.P);
+                    unsafe(c.P) = 1;
+                    unsafe(c.P)++;
+                    _ = unsafe(c[0]);
+                    unsafe(c[0]) = 1;
+                    unsafe(c[0])++;
+                    _ = unsafe(c.E);
+                    unsafe
+                    {
+                        c.E += Handler;
+                        c.E -= Handler;
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_DoesNotEscape()
+    {
+        var source = """
+            class C
+            {
+                unsafe int P { get; set; }
+                unsafe int this[int i] { get => 0; set { } }
+                void M(C c)
+                {
+                    _ = unsafe(c).P;
+                    unsafe(c).P = 1;
+                    _ = unsafe(c)[0];
+                    c[unsafe(0)] = 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,13): error CS9362: 'C.P.get' must be used in an unsafe context because it is marked as 'unsafe'
+            //         _ = unsafe(c).P;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "unsafe(c).P").WithArguments("C.P.get").WithLocation(7, 13),
+            // (8,9): error CS9362: 'C.P.set' must be used in an unsafe context because it is marked as 'unsafe'
+            //         unsafe(c).P = 1;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "unsafe(c).P").WithArguments("C.P.set").WithLocation(8, 9),
+            // (9,13): error CS9362: 'C.this[int].get' must be used in an unsafe context because it is marked as 'unsafe'
+            //         _ = unsafe(c)[0];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "unsafe(c)[0]").WithArguments("C.this[int].get").WithLocation(9, 13),
+            // (10,9): error CS9362: 'C.this[int].set' must be used in an unsafe context because it is marked as 'unsafe'
+            //         c[unsafe(0)] = 1;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c[unsafe(0)]").WithArguments("C.this[int].set").WithLocation(10, 9));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_DeferredConversions()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                unsafe static void F() { }
+                unsafe public static implicit operator int(C c) => 0;
+                [System.Runtime.CompilerServices.SkipLocalsInit]
+                static void M(C c)
+                {
+                    Action action = unsafe((Action)F);
+                    action();
+                    int value = unsafe((int)c);
+                    _ = value;
+                    Span<int> span = unsafe(stackalloc int[1]);
+                    _ = span;
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_ExplicitConversion()
+    {
+        var source = """
+            class C
+            {
+                public unsafe static explicit operator long(C c) => 0;
+                static void M(C c)
+                {
+                    _ = unsafe((long)c);
+                    _ = (long)unsafe(c);
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,13): error CS9362: 'C.explicit operator long(C)' must be used in an unsafe context because it is marked as 'unsafe'
+            //         _ = (long)unsafe(c);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "(long)unsafe(c)").WithArguments("C.explicit operator long(C)").WithLocation(7, 13));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_DeferredCollection()
+    {
+        var source = """
+            using System.Collections;
+            class C : IEnumerable
+            {
+                public unsafe C() { }
+                public unsafe void Add(int value) { }
+                public IEnumerator GetEnumerator() => null;
+                static C M() => unsafe([1]);
+                static C N() => unsafe(new());
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_EventDoesNotEscape()
+    {
+        var source = """
+            class C
+            {
+                unsafe event System.Action E;
+                void M(C c, System.Action handler)
+                {
+                    _ = unsafe(c).E;
+                    unsafe(c).E += handler;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (6,23): error CS9362: 'C.E' must be used in an unsafe context because it is marked as 'unsafe'
+            //         _ = unsafe(c).E;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "E").WithArguments("C.E").WithLocation(6, 23),
+            // (7,21): error CS9362: 'C.E.add' must be used in an unsafe context because it is marked as 'unsafe'
+            //         unsafe(c).E += handler;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("C.E.add").WithLocation(7, 21));
+    }
+
+    [Fact]
     public void UnsafeExpression_AssignToPointer()
     {
         var source = """

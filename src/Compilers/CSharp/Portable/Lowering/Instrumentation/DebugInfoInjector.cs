@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var filterClause = ((CatchClauseSyntax)original.Syntax).Filter;
             Debug.Assert(filterClause is not null);
 
-            rewrittenFilter = AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
+            rewrittenFilter = AddConditionSequencePoint(new BoundSequencePointExpression(filterClause, isInUnsafeRegion: false, rewrittenFilter, rewrittenFilter.Type), filterClause, factory);
         }
 
         public override BoundExpression InstrumentSwitchStatementExpression(BoundStatement original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundExpression InstrumentSwitchExpressionArmExpression(BoundExpression original, BoundExpression rewrittenExpression, SyntheticBoundNodeFactory factory)
         {
-            return new BoundSequencePointExpression(original.Syntax, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
+            return new BoundSequencePointExpression(original.Syntax, isInUnsafeRegion: original.IsInUnsafeRegion, base.InstrumentSwitchExpressionArmExpression(original, rewrittenExpression, factory), rewrittenExpression.Type);
         }
 
         public override BoundStatement InstrumentSwitchBindCasePatternVariables(BoundStatement bindings)

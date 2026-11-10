@@ -527,6 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 node.Syntax,
+                isInUnsafeRegion: node.IsInUnsafeRegion,
                 ImmutableArray.Create(temp.LocalSymbol),
                 sideEffects.ToImmutableAndFree(),
                 temp,
@@ -602,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     };
 
                     // arrayOrList = new <>z__ReadOnlyList<ElementType>(fieldValue);
-                    arrayOrList = new BoundObjectCreationExpression(syntax, synthesizedType.Constructors.Single(), fieldValue) { WasCompilerGenerated = true };
+                    arrayOrList = new BoundObjectCreationExpression(syntax, isInUnsafeRegion: false, synthesizedType.Constructors.Single(), fieldValue) { WasCompilerGenerated = true };
                 }
             }
             else
@@ -739,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Create an inline array and assign to a local.
             // var tmp = new <>y__InlineArrayN<ElementType>();
             BoundAssignmentOperator assignmentToTemp;
-            BoundLocal inlineArrayLocal = _factory.StoreToTemp(new BoundDefaultExpression(syntax, inlineArrayType), out assignmentToTemp);
+            BoundLocal inlineArrayLocal = _factory.StoreToTemp(new BoundDefaultExpression(syntax, isInUnsafeRegion: false, inlineArrayType), out assignmentToTemp);
             var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
             sideEffects.Add(assignmentToTemp);
             _additionalLocals.Add(inlineArrayLocal.LocalSymbol);
@@ -752,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var element = VisitExpression((BoundExpression)elements[i]);
                 var call = _factory.Call(null, elementRef, inlineArrayLocal, _factory.Literal(i), useStrictArgumentRefKinds: true);
-                var assignment = new BoundAssignmentOperator(syntax, call, element, type: call.Type) { WasCompilerGenerated = true };
+                var assignment = new BoundAssignmentOperator(syntax, isInUnsafeRegion: false, call, element, type: call.Type) { WasCompilerGenerated = true };
                 sideEffects.Add(assignment);
             }
 
@@ -774,6 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(span.Type is { });
             return new BoundSequence(
                 syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray<LocalSymbol>.Empty,
                 sideEffects.ToImmutableAndFree(),
                 span,
@@ -913,13 +915,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var initialization = new BoundArrayInitialization(
                     syntax,
+                    isInUnsafeRegion: false,
                     isInferred: false,
                     elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this));
                 return new BoundArrayCreation(
                     syntax,
+                    isInUnsafeRegion: false,
                     ImmutableArray.Create<BoundExpression>(
                         new BoundLiteral(
                             syntax,
+                            isInUnsafeRegion: false,
                             ConstantValue.Create(knownLength),
                             _compilation.GetSpecialType(SpecialType.System_Int32))),
                     initialization,
@@ -950,6 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ElementType[] array = new ElementType[N + s1.Length + ...];
             BoundLocal arrayTemp = _factory.StoreToTemp(
                 new BoundArrayCreation(syntax,
+                    isInUnsafeRegion: false,
                     ImmutableArray.Create(GetKnownLengthExpression(elements, numberIncludingLastSpread, localsBuilder)),
                     initializerOpt: null,
                     arrayType),
@@ -977,6 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expressions.Add(
                             new BoundAssignmentOperator(
                                 expressionSyntax,
+                                isInUnsafeRegion: false,
                                 _factory.ArrayAccess(arrayTemp, _factory.Literal(currentElementIndex)),
                                 rewrittenValue,
                                 isRef: false,
@@ -989,6 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expressions.Add(
                             new BoundAssignmentOperator(
                                 expressionSyntax,
+                                isInUnsafeRegion: false,
                                 _factory.ArrayAccess(arrayTemp, indexTemp),
                                 rewrittenValue,
                                 isRef: false,
@@ -999,6 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expressions.Add(
                                 new BoundAssignmentOperator(
                                     expressionSyntax,
+                                    isInUnsafeRegion: false,
                                     indexTemp,
                                     _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
                                     isRef: false,
@@ -1028,6 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax,
+                isInUnsafeRegion: false,
                 locals,
                 sideEffects.ToImmutableAndFree(),
                 arrayTemp,
@@ -1208,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             sideEffects.Add(_factory.Call(spreadOperandAsSpan, copyToMethod.AsMember((NamedTypeSymbol)spreadOperandAsSpan.Type!), targetSlice));
 
             // indexTemp += e1Span.Length;
-            sideEffects.Add(new BoundAssignmentOperator(rewrittenSpreadOperand.Syntax, indexTemp, _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, spreadLength), isRef: false, indexTemp.Type));
+            sideEffects.Add(new BoundAssignmentOperator(rewrittenSpreadOperand.Syntax, isInUnsafeRegion: rewrittenSpreadOperand.IsInUnsafeRegion, indexTemp, _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, spreadLength), isRef: false, indexTemp.Type));
         }
 
         /// <summary>
@@ -1353,6 +1363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expressions.Add(
                                 new BoundAssignmentOperator(
                                     expressionSyntax,
+                                    isInUnsafeRegion: false,
                                     _factory.Call(spanTemp, spanGetItem, _factory.Literal(currentElementIndex)),
                                     rewrittenValue,
                                     isRef: false,
@@ -1365,6 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             expressions.Add(
                                 new BoundAssignmentOperator(
                                     expressionSyntax,
+                                    isInUnsafeRegion: false,
                                     _factory.Call(spanTemp, spanGetItem, indexTemp),
                                     rewrittenValue,
                                     isRef: false,
@@ -1375,6 +1387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 expressions.Add(
                                     new BoundAssignmentOperator(
                                         expressionSyntax,
+                                        isInUnsafeRegion: false,
                                         indexTemp,
                                         _factory.Binary(BinaryOperatorKind.Addition, indexTemp.Type, indexTemp, _factory.Literal(1)),
                                         isRef: false,
@@ -1432,6 +1445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 node.Syntax,
+                isInUnsafeRegion: node.IsInUnsafeRegion,
                 locals,
                 sideEffects.ToImmutableAndFree(),
                 listTemp,

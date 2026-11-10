@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundHoistedFieldAccess HoistedField(FieldSymbol field)
         {
-            return new BoundHoistedFieldAccess(Syntax, field, field.Type);
+            return new BoundHoistedFieldAccess(Syntax, isInUnsafeRegion: false, field, field.Type);
         }
 
         public StateMachineFieldSymbol StateMachineField(TypeWithAnnotations type, string name, bool isPublic = false, bool isThis = false)
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundThisReference This()
         {
             Debug.Assert(CurrentFunction is { IsStatic: false, ThisParameter: { } });
-            return new BoundThisReference(Syntax, CurrentFunction.ThisParameter.Type) { WasCompilerGenerated = true };
+            return new BoundThisReference(Syntax, isInUnsafeRegion: false, CurrentFunction.ThisParameter.Type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression This(LocalSymbol thisTempOpt)
@@ -238,22 +238,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBaseReference Base(NamedTypeSymbol baseType)
         {
             Debug.Assert(CurrentFunction is { IsStatic: false });
-            return new BoundBaseReference(Syntax, baseType) { WasCompilerGenerated = true };
+            return new BoundBaseReference(Syntax, isInUnsafeRegion: false, baseType) { WasCompilerGenerated = true };
         }
 
         public BoundBadExpression BadExpression(TypeSymbol type)
         {
-            return new BoundBadExpression(Syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, type, hasErrors: true);
+            return new BoundBadExpression(Syntax, isInUnsafeRegion: false, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, type, hasErrors: true);
         }
 
         public BoundParameter Parameter(ParameterSymbol p)
         {
-            return new BoundParameter(Syntax, p, p.Type) { WasCompilerGenerated = true };
+            return new BoundParameter(Syntax, isInUnsafeRegion: false, p, p.Type) { WasCompilerGenerated = true };
         }
 
         public BoundFieldAccess Field(BoundExpression? receiver, FieldSymbol f)
         {
-            return new BoundFieldAccess(Syntax, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type) { WasCompilerGenerated = true };
+            return new BoundFieldAccess(Syntax, isInUnsafeRegion: false, receiver, f, ConstantValue.NotAvailable, LookupResultKind.Viable, f.Type) { WasCompilerGenerated = true };
         }
 
         public BoundFieldAccess InstanceField(FieldSymbol f)
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                  StackOptimizerPass1.IsFixedBufferAssignmentToRefLocal(left, right, isRef) ||
                  right.Type.IsErrorType() || left.Type.IsErrorType()));
 
-            var assignment = new BoundAssignmentOperator(syntax, left, right, isRef, left.Type, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
+            var assignment = new BoundAssignmentOperator(syntax, isInUnsafeRegion: false, left, right, isRef, left.Type, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
 
             return (InstrumentationState?.IsSuppressed == false && left is BoundLocal { LocalSymbol.SynthesizedKind: SynthesizedLocalKind.UserDefined } or BoundParameter) ?
                 InstrumentationState.Instrumenter.InstrumentUserDefinedLocalAssignment(assignment) :
@@ -647,12 +647,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundBinaryOperator Binary(BinaryOperatorKind kind, TypeSymbol type, BoundExpression left, BoundExpression right)
         {
-            return new BoundBinaryOperator(this.Syntax, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
+            return new BoundBinaryOperator(this.Syntax, isInUnsafeRegion: false, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, left, right, type) { WasCompilerGenerated = true };
         }
 
         public BoundAsOperator As(BoundExpression operand, TypeSymbol type)
         {
-            return new BoundAsOperator(this.Syntax, operand, Type(type), operandPlaceholder: null, operandConversion: null, type) { WasCompilerGenerated = true };
+            return new BoundAsOperator(this.Syntax, isInUnsafeRegion: false, operand, Type(type), operandPlaceholder: null, operandConversion: null, type) { WasCompilerGenerated = true };
         }
 
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Because compiler-generated nodes are not lowered, this conversion is not used later in the compiler.
             // But it is a required part of the `BoundIsOperator` node, so we compute a conversion here.
             Conversion c = Compilation.Conversions.ClassifyBuiltInConversion(operand.Type, type, isChecked: false, ref discardedUseSiteInfo);
-            return new BoundIsOperator(this.Syntax, operand, Type(type), c.Kind, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
+            return new BoundIsOperator(this.Syntax, isInUnsafeRegion: false, operand, Type(type), c.Kind, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
         public BoundBinaryOperator LogicalAnd(BoundExpression left, BoundExpression right)
@@ -762,12 +762,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLiteral Literal(byte value)
         {
-            return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Byte)) { WasCompilerGenerated = true };
+            return new BoundLiteral(Syntax, isInUnsafeRegion: false, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Byte)) { WasCompilerGenerated = true };
         }
 
         public BoundLiteral Literal(int value)
         {
-            return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
+            return new BoundLiteral(Syntax, isInUnsafeRegion: false, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
         }
 
         public BoundLiteral Literal(StateMachineState value)
@@ -775,12 +775,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLiteral Literal(uint value)
         {
-            return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt32)) { WasCompilerGenerated = true };
+            return new BoundLiteral(Syntax, isInUnsafeRegion: false, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt32)) { WasCompilerGenerated = true };
         }
 
         public BoundLiteral Literal(ConstantValue value, TypeSymbol type)
         {
-            return new BoundLiteral(Syntax, value, type) { WasCompilerGenerated = true };
+            return new BoundLiteral(Syntax, isInUnsafeRegion: false, value, type) { WasCompilerGenerated = true };
         }
 
         public BoundObjectCreationExpression New(NamedTypeSymbol type, params BoundExpression[] args)
@@ -799,11 +799,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
-            => new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
+            => new BoundObjectCreationExpression(Syntax, isInUnsafeRegion: false, ctor, args) { WasCompilerGenerated = true };
 
         public BoundObjectCreationExpression New(MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKinds)
             => new BoundObjectCreationExpression(
                 Syntax,
+                isInUnsafeRegion: false,
                 constructor,
                 arguments,
                 argumentNamesOpt: default,
@@ -819,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectCreationExpression New(WellKnownMember wm, ImmutableArray<BoundExpression> args)
         {
             var ctor = WellKnownMethod(wm);
-            return new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
+            return new BoundObjectCreationExpression(Syntax, isInUnsafeRegion: false, ctor, args) { WasCompilerGenerated = true };
         }
 
         public BoundExpression MakeIsNotANumberTest(BoundExpression input)
@@ -841,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (method is null)
             {
-                return new BoundBadExpression(Syntax, default(LookupResultKind), ImmutableArray<Symbol?>.Empty, args.AsImmutable(), receiver);
+                return new BoundBadExpression(Syntax, isInUnsafeRegion: false, default(LookupResultKind), ImmutableArray<Symbol?>.Empty, args.AsImmutable(), receiver);
             }
 
             return Call(null, method, args);
@@ -904,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(method.ParameterCount == args.Length);
 
             return new BoundCall(
-                Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
+                Syntax, isInUnsafeRegion: false, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
                 argumentNamesOpt: default(ImmutableArray<string?>), argumentRefKindsOpt: ArgumentRefKindsFromParameterRefKinds(method, useStrictArgumentRefKinds), isDelegateCall: false, expanded: false,
                 invokedAsExtensionMethod: false, argsToParamsOpt: default(ImmutableArray<int>), defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable,
                 type: method.ReturnType, hasErrors: method.OriginalDefinition is ErrorMethodSymbol)
@@ -945,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(method.ParameterCount == args.Length);
             return new BoundCall(
-                Syntax, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
+                Syntax, isInUnsafeRegion: false, receiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, args,
                 argumentNamesOpt: default(ImmutableArray<String?>), argumentRefKindsOpt: refKinds, isDelegateCall: false, expanded: false, invokedAsExtensionMethod: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty, defaultArguments: default(BitVector), resultKind: LookupResultKind.Viable, type: method.ReturnType)
             { WasCompilerGenerated = true };
@@ -953,14 +954,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type, bool isRef = false)
         {
-            return new BoundConditionalOperator(Syntax, isRef, condition, consequence, alternative, constantValueOpt: null, type, wasTargetTyped: false, type) { WasCompilerGenerated = true };
+            return new BoundConditionalOperator(Syntax, isInUnsafeRegion: false, isRef, condition, consequence, alternative, constantValueOpt: null, type, wasTargetTyped: false, type) { WasCompilerGenerated = true };
         }
 
         public BoundComplexConditionalReceiver ComplexConditionalReceiver(BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver)
         {
             Debug.Assert(valueTypeReceiver.Type is { });
             Debug.Assert(TypeSymbol.Equals(valueTypeReceiver.Type, referenceTypeReceiver.Type, TypeCompareKind.ConsiderEverything2));
-            return new BoundComplexConditionalReceiver(Syntax, valueTypeReceiver, referenceTypeReceiver, valueTypeReceiver.Type) { WasCompilerGenerated = true };
+            return new BoundComplexConditionalReceiver(Syntax, isInUnsafeRegion: false, valueTypeReceiver, referenceTypeReceiver, valueTypeReceiver.Type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Coalesce(BoundExpression left, BoundExpression right)
@@ -968,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left.Type!.Equals(right.Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) || left.Type.IsErrorType());
             Debug.Assert(left.Type.IsReferenceType);
 
-            return new BoundNullCoalescingOperator(Syntax, left, right, leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.LeftType, @checked: false, left.Type) { WasCompilerGenerated = true };
+            return new BoundNullCoalescingOperator(Syntax, isInUnsafeRegion: false, left, right, leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.LeftType, @checked: false, left.Type) { WasCompilerGenerated = true };
         }
 
         public BoundStatement If(BoundExpression condition, BoundStatement thenClause, BoundStatement? elseClauseOpt = null)
@@ -1039,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLocal Local(LocalSymbol local)
         {
-            return new BoundLocal(Syntax, local, null, local.Type) { WasCompilerGenerated = true };
+            return new BoundLocal(Syntax, isInUnsafeRegion: false, local, null, local.Type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression MakeSequence(LocalSymbol temp, params BoundExpression[] parts)
@@ -1078,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(result.Type is { });
             var resultType = type ?? result.Type;
-            return new BoundSequence(Syntax, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, resultType) { WasCompilerGenerated = true };
+            return new BoundSequence(Syntax, isInUnsafeRegion: false, ImmutableArray<LocalSymbol>.Empty, sideEffects.AsImmutableOrNull(), result, resultType) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
@@ -1087,13 +1088,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 locals.IsDefaultOrEmpty && sideEffects.IsDefaultOrEmpty
                 ? result
-                : new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+                : new BoundSequence(Syntax, isInUnsafeRegion: false, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
         public BoundSpillSequence SpillSequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)
         {
             Debug.Assert(result.Type is { });
-            return new BoundSpillSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+            return new BoundSpillSequence(Syntax, isInUnsafeRegion: false, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }
 
         /// <summary>
@@ -1184,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundLiteral Literal(Boolean value)
         {
-            return new BoundLiteral(Syntax, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
+            return new BoundLiteral(Syntax, isInUnsafeRegion: false, ConstantValue.Create(value), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
         public BoundLiteral Literal(string? value)
@@ -1196,7 +1197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundLiteral StringLiteral(ConstantValue stringConst)
         {
             Debug.Assert(stringConst.IsString || stringConst.IsNull);
-            return new BoundLiteral(Syntax, stringConst, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String)) { WasCompilerGenerated = true };
+            return new BoundLiteral(Syntax, isInUnsafeRegion: false, stringConst, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String)) { WasCompilerGenerated = true };
         }
 
         public BoundLiteral StringLiteral(String stringValue)
@@ -1207,7 +1208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundLiteral CharLiteral(ConstantValue charConst)
         {
             Debug.Assert(charConst.IsChar || charConst.IsDefaultValue);
-            return new BoundLiteral(Syntax, charConst, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Char)) { WasCompilerGenerated = true };
+            return new BoundLiteral(Syntax, isInUnsafeRegion: false, charConst, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Char)) { WasCompilerGenerated = true };
         }
 
         public BoundLiteral CharLiteral(Char charValue)
@@ -1218,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundArrayLength ArrayLength(BoundExpression array)
         {
             Debug.Assert(array.Type is { TypeKind: TypeKind.Array });
-            return new BoundArrayLength(Syntax, array, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32));
+            return new BoundArrayLength(Syntax, isInUnsafeRegion: false, array, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32));
         }
 
         public BoundArrayAccess ArrayAccessFirstElement(BoundExpression array)
@@ -1237,7 +1238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundArrayAccess ArrayAccess(BoundExpression array, ImmutableArray<BoundExpression> indices)
         {
             Debug.Assert(array.Type is { TypeKind: TypeKind.Array });
-            return new BoundArrayAccess(Syntax, array, indices, ((ArrayTypeSymbol)array.Type).ElementType);
+            return new BoundArrayAccess(Syntax, isInUnsafeRegion: false, array, indices, ((ArrayTypeSymbol)array.Type).ElementType);
         }
 
         public BoundStatement BaseInitialization()
@@ -1271,7 +1272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
         {
-            return new BoundThrowExpression(thrown.Syntax, thrown, type) { WasCompilerGenerated = true };
+            return new BoundThrowExpression(thrown.Syntax, isInUnsafeRegion: thrown.IsInUnsafeRegion, thrown, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Null(TypeSymbol type)
@@ -1283,13 +1284,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression NullRef(TypeWithAnnotations type)
         {
             // *default(T*)
-            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), type.Type);
+            return new BoundPointerIndirectionOperator(Syntax, isInUnsafeRegion: false, Default(new PointerTypeSymbol(type)), type.Type);
         }
 
         public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)
         {
             Debug.Assert(type.CanBeAssignedNull());
-            BoundExpression nullLiteral = new BoundLiteral(syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
+            BoundExpression nullLiteral = new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Null, type) { WasCompilerGenerated = true };
             return type.IsPointerOrFunctionPointer()
                 ? BoundConversion.SynthesizedNonUserDefined(syntax, nullLiteral, Conversion.NullToPointer, type)
                 : nullLiteral;
@@ -1297,7 +1298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundTypeExpression Type(TypeSymbol type)
         {
-            return new BoundTypeExpression(Syntax, null, type) { WasCompilerGenerated = true };
+            return new BoundTypeExpression(Syntax, isInUnsafeRegion: false, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression Typeof(WellKnownType type, TypeSymbol systemType)
@@ -1325,6 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundTypeOfOperator(
                 Syntax,
+                isInUnsafeRegion: false,
                 Type(type),
                 getTypeFromHandle,
                 systemType)
@@ -1349,7 +1351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Sizeof(TypeSymbol type)
         {
-            return new BoundSizeOfOperator(Syntax, Type(type), Binder.GetConstantSizeOf(type), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
+            return new BoundSizeOfOperator(Syntax, isInUnsafeRegion: false, Type(type), Binder.GetConstantSizeOf(type), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
         }
 
         internal BoundExpression ConstructorInfo(MethodSymbol ctor)
@@ -1358,6 +1360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = new BoundMethodInfo(
                 Syntax,
+                isInUnsafeRegion: false,
                 ctor,
                 GetMethodFromHandleMethod(ctor.ContainingType, constructorInfo),
                 constructorInfo)
@@ -1374,6 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundMethodDefIndex(
                 Syntax,
+                isInUnsafeRegion: false,
                 method,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
@@ -1383,6 +1387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundLocalId(
                 Syntax,
+                isInUnsafeRegion: false,
                 symbol,
                 hoistedField: null,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
@@ -1393,6 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundParameterId(
                 Syntax,
+                isInUnsafeRegion: false,
                 symbol,
                 hoistedField: null,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
@@ -1403,6 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundStateMachineInstanceId(
                 Syntax,
+                isInUnsafeRegion: false,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_UInt64))
             { WasCompilerGenerated = true };
         }
@@ -1413,29 +1420,30 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public BoundExpression ModuleVersionId()
         {
-            return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
+            return new BoundModuleVersionId(Syntax, isInUnsafeRegion: false, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ModuleVersionIdString()
         {
-            return new BoundModuleVersionIdString(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String)) { WasCompilerGenerated = true };
+            return new BoundModuleVersionIdString(Syntax, isInUnsafeRegion: false, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String)) { WasCompilerGenerated = true };
         }
 
         public BoundExpression InstrumentationPayloadRoot(int analysisKind, TypeSymbol payloadType)
         {
-            return new BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
+            return new BoundInstrumentationPayloadRoot(Syntax, isInUnsafeRegion: false, analysisKind, payloadType) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ThrowIfModuleCancellationRequested()
-            => new BoundThrowIfModuleCancellationRequested(Syntax, SpecialType(CodeAnalysis.SpecialType.System_Void)) { WasCompilerGenerated = true };
+            => new BoundThrowIfModuleCancellationRequested(Syntax, isInUnsafeRegion: false, SpecialType(CodeAnalysis.SpecialType.System_Void)) { WasCompilerGenerated = true };
 
         public BoundExpression ModuleCancellationToken()
-            => new ModuleCancellationTokenExpression(Syntax, WellKnownType(CodeAnalysis.WellKnownType.System_Threading_CancellationToken)) { WasCompilerGenerated = true };
+            => new ModuleCancellationTokenExpression(Syntax, isInUnsafeRegion: false, WellKnownType(CodeAnalysis.WellKnownType.System_Threading_CancellationToken)) { WasCompilerGenerated = true };
 
         public BoundExpression MaximumMethodDefIndex()
         {
             return new BoundMaximumMethodDefIndex(
                 Syntax,
+                isInUnsafeRegion: false,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
         }
@@ -1447,6 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundSourceDocumentIndex(
                 Syntax,
+                isInUnsafeRegion: false,
                 document,
                 SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
@@ -1465,6 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = new BoundMethodInfo(
                 Syntax,
+                isInUnsafeRegion: false,
                 method,
                 GetMethodFromHandleMethod(method.ContainingType, systemReflectionMethodInfo),
                 systemReflectionMethodInfo)
@@ -1481,6 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundFieldInfo(
                 Syntax,
+                isInUnsafeRegion: false,
                 field,
                 GetFieldFromHandleMethod(field.ContainingType),
                 WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_FieldInfo))
@@ -1553,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(arg.Type is { });
-            return new BoundConversion(Syntax, arg, conversion, @checked: isChecked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
+            return new BoundConversion(Syntax, isInUnsafeRegion: false, arg, conversion, @checked: isChecked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, null, type) { WasCompilerGenerated = true };
         }
 
         public BoundExpression ArrayOrEmpty(TypeSymbol elementType, BoundExpression[] elements)
@@ -1587,8 +1598,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundArrayCreation(
                 Syntax,
+                isInUnsafeRegion: false,
                 ImmutableArray.Create<BoundExpression>(Literal(elements.Length)),
-                new BoundArrayInitialization(Syntax, isInferred: false, elements) { WasCompilerGenerated = true },
+                new BoundArrayInitialization(Syntax, isInUnsafeRegion: false, isInferred: false, elements) { WasCompilerGenerated = true },
                 Compilation.CreateArrayTypeSymbol(elementType));
         }
 
@@ -1596,6 +1608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundArrayCreation(
                Syntax,
+               isInUnsafeRegion: false,
                ImmutableArray.Create<BoundExpression>(length),
                null,
                Compilation.CreateArrayTypeSymbol(elementType))
@@ -1609,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundExpression Default(TypeSymbol type, SyntaxNode syntax)
         {
-            return new BoundDefaultExpression(syntax, type) { WasCompilerGenerated = true };
+            return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type) { WasCompilerGenerated = true };
         }
 
         internal BoundStatement Try(
@@ -1660,7 +1673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression Not(BoundExpression expression)
         {
             Debug.Assert(expression is { Type: { SpecialType: CodeAnalysis.SpecialType.System_Boolean } });
-            return new BoundUnaryOperator(expression.Syntax, UnaryOperatorKind.BoolLogicalNegation, expression, null, null, constrainedToTypeOpt: null, LookupResultKind.Viable, expression.Type);
+            return new BoundUnaryOperator(expression.Syntax, isInUnsafeRegion: expression.IsInUnsafeRegion, UnaryOperatorKind.BoolLogicalNegation, expression, null, null, constrainedToTypeOpt: null, LookupResultKind.Viable, expression.Type);
         }
 
         /// <summary>
@@ -1717,6 +1730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var local = new BoundLocal(
                 syntax,
+                isInUnsafeRegion: false,
                 new SynthesizedLocal(
                     containingMethod,
                     TypeWithAnnotations.Create(type),
@@ -1734,6 +1748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             store = new BoundAssignmentOperator(
                 syntax,
+                isInUnsafeRegion: false,
                 local,
                 argument,
                 type,
@@ -1760,7 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Type is { });
             temp = new SynthesizedLocal(this.CurrentFunction, TypeWithAnnotations.Create(node.Type), SynthesizedLocalKind.LoweringTemp);
 
-            return new BoundLocal(node.Syntax, temp, constantValueOpt: null, type: node.Type) { WasCompilerGenerated = true };
+            return new BoundLocal(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, temp, constantValueOpt: null, type: node.Type) { WasCompilerGenerated = true };
         }
 
         internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
@@ -1881,6 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundSequence(
                     syntax: syntax,
+                    isInUnsafeRegion: false,
                     locals: ImmutableArray<LocalSymbol>.Empty,
                     sideEffects: ImmutableArray.Create<BoundExpression>(nonNullValue),
                     value: Literal(kind == BinaryOperatorKind.NullableNullNotEqual),
@@ -1907,7 +1923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression call = MakeNullableHasValue(syntax, nullable);
             BoundExpression result = kind == BinaryOperatorKind.NullableNullNotEqual ?
                 call :
-                new BoundUnaryOperator(syntax, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, returnType);
+                new BoundUnaryOperator(syntax, isInUnsafeRegion: false, UnaryOperatorKind.BoolLogicalNegation, call, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Viable, returnType);
 
             return result;
         }

@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         NamedTypeSymbol firstContainer = node.ApplicableMethods.First().ContainingType;
                         Debug.Assert(node.ApplicableMethods.All(m => !m.RequiresInstanceReceiver && TypeSymbol.Equals(m.ContainingType, firstContainer, TypeCompareKind.ConsiderEverything2)));
 
-                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, firstContainer);
+                        loweredReceiver = new BoundTypeExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, null, firstContainer);
                     }
                     else if (hasImplicitReceiver && _factory.TopLevelMethod is { RequiresInstanceReceiver: false })
                     {
                         // Calling a static method defined on the current class via its simple name.
                         Debug.Assert(_factory.CurrentType is { });
                         Debug.Assert(!_factory.CurrentType.IsExtension); // When binding a simple name for a call, you cannot get a member inside an extension type
-                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, _factory.CurrentType);
+                        loweredReceiver = new BoundTypeExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, null, _factory.CurrentType);
                     }
                     else
                     {
@@ -479,6 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //           Identity is implemented on System.Object via the ReferenceEquals method.
                 rewrittenBoundCall = new BoundBinaryOperator(
                     syntax,
+                    isInUnsafeRegion: false,
                     BinaryOperatorKind.ObjectEqual,
                     null,
                     methodOpt: null,
@@ -492,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewrittenBoundCall = new BoundCall(
                     syntax,
+                    isInUnsafeRegion: false,
                     rewrittenReceiver,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method,
@@ -530,6 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundSequence(
                     syntax,
+                    isInUnsafeRegion: false,
                     locals: temps,
                     sideEffects: ImmutableArray<BoundExpression>.Empty,
                     value: rewrittenBoundCall,
@@ -1118,9 +1121,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignmentToTemp =
                     new BoundAssignmentOperator(
                         receiver.Syntax,
+                        isInUnsafeRegion: receiver.IsInUnsafeRegion,
                         receiverTemp,
 #pragma warning disable format
                         new BoundComplexConditionalReceiver(receiver.Syntax,
+                                                            isInUnsafeRegion: receiver.IsInUnsafeRegion,
                                                             receiver,
                                                             _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, receiver) }, cache),
                                                             receiverType) { WasCompilerGenerated = true },
@@ -1142,6 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 assignmentToTemp =
                     new BoundAssignmentOperator(
                         receiver.Syntax,
+                        isInUnsafeRegion: receiver.IsInUnsafeRegion,
                         receiverTemp,
                         assignmentToTemp.Right,
                         isRef: false,
@@ -1603,9 +1609,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // new T[0]
             return new BoundArrayCreation(
                 syntax,
+                isInUnsafeRegion: false,
                 ImmutableArray.Create<BoundExpression>(
                     new BoundLiteral(
                         syntax,
+                        isInUnsafeRegion: false,
                         ConstantValue.Create(0),
                         _compilation.GetSpecialType(SpecialType.System_Int32))),
                 initializerOpt: null,
@@ -1632,6 +1640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             arrayEmpty = arrayEmpty.Construct(ImmutableArray.Create(elementType));
             return new BoundCall(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: null,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 arrayEmpty,
@@ -1771,6 +1780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             argument = new BoundSequence(
                                         value.Syntax,
+                                        isInUnsafeRegion: false,
                                         // this sequence does not own locals. Note that temps that
                                         // we use for the rewrite are stored in one arg and loaded
                                         // in another so they must live in a scope above.
@@ -1838,6 +1848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 actualArguments[argIndex] = new BoundSequence(
                     argument.Syntax,
+                    isInUnsafeRegion: false,
                     locals: ImmutableArray<LocalSymbol>.Empty,
                     sideEffects: ImmutableArray.Create<BoundExpression>(boundAssignmentToTemp),
                     value: boundTemp,

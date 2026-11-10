@@ -437,11 +437,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLocal boundDisposableVar = MakeBoundLocal(forEachSyntax, disposableVar, idisposableTypeSymbol);
 
                 BoundTypeExpression boundIDisposableTypeExpr = new BoundTypeExpression(forEachSyntax,
+                    isInUnsafeRegion: false,
                     aliasOpt: null,
                     type: idisposableTypeSymbol);
 
                 // e as IDisposable
                 BoundExpression disposableVarInitValue = new BoundAsOperator(forEachSyntax,
+                    isInUnsafeRegion: false,
                     operand: boundEnumeratorVar,
                     targetType: boundIDisposableTypeExpr,
                     operandPlaceholder: null,
@@ -459,6 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement ifStmt = RewriteIfStatement(
                     syntax: forEachSyntax,
                     rewrittenCondition: new BoundBinaryOperator(forEachSyntax,
+                        isInUnsafeRegion: false,
                         operatorKind: BinaryOperatorKind.NotEqual, // reference equality
                         left: boundDisposableVar,
                         right: MakeLiteral(forEachSyntax, constantValue: ConstantValue.Null, type: null),
@@ -664,6 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // p < a.Length
             BoundExpression exitCondition = new BoundBinaryOperator(
                 syntax: forEachSyntax,
+                isInUnsafeRegion: false,
                 operatorKind: BinaryOperatorKind.IntLessThan,
                 left: boundPositionVar,
                 right: arrayLength,
@@ -939,6 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementPlaceholder,
                 new BoundArrayAccess(
                     syntax: forEachSyntax,
+                    isInUnsafeRegion: false,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create<BoundExpression>(boundPositionVar),
                     type: arrayType.ElementType));
@@ -954,12 +959,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // a.Length
             BoundExpression arrayLength = new BoundArrayLength(
                 syntax: forEachSyntax,
+                isInUnsafeRegion: false,
                 expression: boundArrayVar,
                 type: intType);
 
             // p < a.Length
             BoundExpression exitCondition = new BoundBinaryOperator(
                 syntax: forEachSyntax,
+                isInUnsafeRegion: false,
                 operatorKind: BinaryOperatorKind.IntLessThan,
                 left: boundPositionVar,
                 right: arrayLength,
@@ -1118,6 +1125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementConversion,
                 elementPlaceholder,
                 new BoundArrayAccess(forEachSyntax,
+                    isInUnsafeRegion: false,
                     expression: boundArrayVar,
                     indices: ImmutableArray.Create((BoundExpression[])boundPositionVar),
                     type: arrayType.ElementType));
@@ -1164,6 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // p_dimension <= q_dimension  //NB: OrEqual
                 BoundExpression exitCondition = new BoundBinaryOperator(
                     syntax: forEachSyntax,
+                    isInUnsafeRegion: false,
                     operatorKind: BinaryOperatorKind.IntLessThanOrEqual,
                     left: boundPositionVar[dimension],
                     right: boundUpperVar[dimension],
@@ -1231,6 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static BoundLocal MakeBoundLocal(CSharpSyntaxNode syntax, LocalSymbol local, TypeSymbol type)
         {
             return new BoundLocal(syntax,
+                isInUnsafeRegion: false,
                 localSymbol: local,
                 constantValueOpt: null,
                 type: type);
@@ -1256,8 +1266,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundSequencePoint.CreateHidden(
                 statementOpt: new BoundExpressionStatement(syntax,
                     expression: new BoundAssignmentOperator(syntax,
+                        isInUnsafeRegion: false,
                         left: boundPositionVar,
                         right: new BoundBinaryOperator(syntax,
+                            isInUnsafeRegion: false,
                             operatorKind: BinaryOperatorKind.IntAddition, // unchecked, never overflows since array/string index can't be >= Int32.MaxValue
                             left: boundPositionVar,
                             right: MakeLiteral(syntax,

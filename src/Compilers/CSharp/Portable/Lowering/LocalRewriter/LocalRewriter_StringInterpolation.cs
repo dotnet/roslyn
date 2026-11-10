@@ -193,8 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(result is not null);
                     Debug.Assert(result.Type is not null);
                     Debug.Assert(result.Type.SpecialType == SpecialType.System_String || result.Type.IsErrorType());
-                    var placeholder = new BoundValuePlaceholder(result.Syntax, result.Type);
-                    result = new BoundNullCoalescingOperator(result.Syntax, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, @checked: false, result.Type) { WasCompilerGenerated = true };
+                    var placeholder = new BoundValuePlaceholder(result.Syntax, isInUnsafeRegion: result.IsInUnsafeRegion, result.Type);
+                    result = new BoundNullCoalescingOperator(result.Syntax, isInUnsafeRegion: result.IsInUnsafeRegion, result, _factory.StringLiteral(""), leftPlaceholder: placeholder, leftConversion: placeholder, BoundNullCoalescingOperatorResultKind.LeftType, @checked: false, result.Type) { WasCompilerGenerated = true };
                 }
 
                 return VisitExpression(result);
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: syntax);
             BoundExpression toStringAndClearCall = toStringAndClear is not null
                 ? BoundCall.Synthesized(syntax, result.HandlerTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, toStringAndClear)
-                : new BoundBadExpression(syntax, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, type);
+                : new BoundBadExpression(syntax, isInUnsafeRegion: false, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, type);
 
             return result.WithFinalResult(toStringAndClearCall);
         }

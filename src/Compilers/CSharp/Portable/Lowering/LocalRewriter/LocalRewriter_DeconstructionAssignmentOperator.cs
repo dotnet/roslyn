@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilation: _compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default, syntax: (CSharpSyntaxNode)right.Syntax, diagnostics: _diagnostics);
 
                 return new BoundConvertedTupleLiteral(
-                    right.Syntax, sourceTuple: null, wasTargetTyped: false, arguments: builder!.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
+                    right.Syntax, isInUnsafeRegion: right.IsInUnsafeRegion, sourceTuple: null, wasTargetTyped: false, arguments: builder!.ToImmutableAndFree(), argumentNamesOpt: default, inferredNamesOpt: default, tupleType);
             }
             else
             {
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var localSymbol = new SynthesizedLocal(_factory.CurrentFunction, TypeWithAnnotations.Create(outputPlaceholder.Type), SynthesizedLocalKind.LoweringTemp);
 
-                var localBound = new BoundLocal(target.Syntax, localSymbol, constantValueOpt: null, type: outputPlaceholder.Type)
+                var localBound = new BoundLocal(target.Syntax, isInUnsafeRegion: target.IsInUnsafeRegion, localSymbol, constantValueOpt: null, type: outputPlaceholder.Type)
                 { WasCompilerGenerated = true };
 
                 temps.Add(localSymbol);

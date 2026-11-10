@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                exitCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
+                exitCallExpr = new BoundBadExpression(lockSyntax, isInUnsafeRegion: false, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
             }
 
             BoundStatement exitCall = new BoundExpressionStatement(lockSyntax, exitCallExpr);
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    enterCallExpr = new BoundBadExpression(lockSyntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
+                    enterCallExpr = new BoundBadExpression(lockSyntax, isInUnsafeRegion: false, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(boundLockTemp), ErrorTypeSymbol.UnknownResultType);
                 }
 
                 BoundStatement enterCall = new BoundExpressionStatement(

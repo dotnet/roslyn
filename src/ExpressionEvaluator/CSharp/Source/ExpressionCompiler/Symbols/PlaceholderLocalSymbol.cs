@@ -175,6 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
                     return new BoundBadExpression(
                         syntax,
+                        isInUnsafeRegion: false,
                         LookupResultKind.Empty,
                         ImmutableArray<Symbol>.Empty,
                         ImmutableArray.Create(expr),

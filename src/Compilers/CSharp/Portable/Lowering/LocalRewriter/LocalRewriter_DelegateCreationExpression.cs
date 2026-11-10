@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Creates a delegate whose instance is the delegate that is returned by the call-site and the method is Invoke.
                 var loweredReceiver = _dynamicFactory.MakeDynamicConversion(loweredArgument, isExplicit: false, isArrayIndex: false, isChecked: false, resultType: node.Type).ToExpression();
 
-                return new BoundDelegateCreationExpression(node.Syntax, loweredReceiver, methodOpt: null, isExtensionMethod: false, node.WasTargetTyped, type: node.Type);
+                return new BoundDelegateCreationExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, loweredReceiver, methodOpt: null, isExtensionMethod: false, node.WasTargetTyped, type: node.Type);
             }
 
             if (node.Argument.Kind == BoundKind.MethodGroup)

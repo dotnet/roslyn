@@ -422,6 +422,8 @@ namespace BoundTreeGenerator
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
                         IEnumerable<string> fields = isPublic ? ["SyntaxNode syntax"] : ["BoundKind kind", "SyntaxNode syntax"];
+                        if (IsDerivedType("BoundExpression", node.Name))
+                            fields = fields.Concat(["bool isInUnsafeRegion"]);
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                let mostSpecific = GetField(node, field.Name)
                                                select mostSpecific.Type + " " + ToCamelCase(field.Name));
@@ -440,6 +442,8 @@ namespace BoundTreeGenerator
                             // Base call has bound kind, syntax, all fields in base type, plus merged HasErrors.
                             Write(string.Format("BoundKind.{0}", StripBound(node.Name)));
                             Write(", syntax, ");
+                            if (IsDerivedType("BoundExpression", node.Name))
+                                Write("isInUnsafeRegion, ");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
                                 Write("{0}, ", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name));
                             Or((new[] { "hasErrors" })
@@ -450,6 +454,8 @@ namespace BoundTreeGenerator
                         {
                             // Base call has kind, syntax, and hasErrors. No merging of hasErrors because derived class already did the merge.
                             Write("kind, syntax, ");
+                            if (IsDerivedType("BoundExpression", node.Name))
+                                Write("isInUnsafeRegion, ");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
                                 Write("{0}, ", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name));
                             Write("hasErrors");
@@ -568,6 +574,8 @@ namespace BoundTreeGenerator
                         // A public constructor does not have an explicit kind parameter.
                         Write("{0} {1}", isPublic ? "public" : "protected", node.Name);
                         IEnumerable<string> fields = isPublic ? ["SyntaxNode syntax"] : ["BoundKind kind", "SyntaxNode syntax"];
+                        if (IsDerivedType("BoundExpression", node.Name))
+                            fields = fields.Concat(["bool isInUnsafeRegion"]);
                         fields = fields.Concat(from field in AllSpecifiableFields(node)
                                                let mostSpecific = GetField(node, field.Name)
                                                select mostSpecific.Type + " " + ToCamelCase(field.Name));
@@ -580,6 +588,8 @@ namespace BoundTreeGenerator
                             // Base call has bound kind, syntax, fields.
                             Write(string.Format("BoundKind.{0}", StripBound(node.Name)));
                             Write(", syntax");
+                            if (IsDerivedType("BoundExpression", node.Name))
+                                Write(", isInUnsafeRegion");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
                                 Write(", {0}", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name));
                         }
@@ -587,8 +597,12 @@ namespace BoundTreeGenerator
                         {
                             // Base call has kind, syntax, fields
                             Write("kind, syntax");
+                            if (IsDerivedType("BoundExpression", node.Name))
+                                Write(", isInUnsafeRegion");
                             foreach (Field baseField in AllSpecifiableFields(BaseType(node)))
                                 Write(", {0}", FieldNullHandling(node, baseField.Name) == NullHandling.Always ? "null" : ToCamelCase(baseField.Name));
+                            if (node.Name == "BoundExpression")
+                                Write(", hasErrors: false");
                         }
                         Write(")");
                         Blank();
@@ -972,7 +986,10 @@ namespace BoundTreeGenerator
                 Blank();
                 Brace();
                 Write("var result = new {0}", node.Name);
-                var fields = new[] { "this.Syntax" }.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "this.HasErrors" });
+                IEnumerable<string> fields = ["this.Syntax"];
+                if (IsDerivedType("BoundExpression", node.Name))
+                    fields = fields.Concat(["this.IsInUnsafeRegion"]);
+                fields = fields.Concat(AllSpecifiableFields(node).Select(f => ToCamelCase(f.Name))).Concat(new[] { "this.HasErrors" });
                 ParenList(fields);
                 WriteLine(";");
                 WriteLine("result.CopyAttributes(this);");

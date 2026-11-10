@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<LocalSymbol>.Empty,
                 // note that if the parameter type conflicts with the default value from attributes,
                 // we will just get a bad constant value above and return early.
-                new BoundLiteral(parameterSyntax, defaultValue, Type));
+                new BoundLiteral(parameterSyntax, isInUnsafeRegion: false, defaultValue, Type));
 
             var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             Debug.Assert(diagnostics.DiagnosticBag != null);

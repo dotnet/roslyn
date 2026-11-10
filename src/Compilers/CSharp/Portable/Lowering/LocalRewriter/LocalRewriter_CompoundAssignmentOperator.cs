@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundLocal targetOfCompoundOperation = _factory.StoreToTemp(VisitExpression(node.Left), out tempAssignment);
                 return new BoundSequence(
                     syntax: syntax,
+                    isInUnsafeRegion: false,
                     locals: [targetOfCompoundOperation.LocalSymbol],
                     sideEffects:
                         [
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Final conditional
                 var condition = _factory.Conditional(isEvent, invokeEventAccessor.ToExpression(), rewrittenAssignment, rewrittenAssignment.Type);
 
-                rewrittenAssignment = new BoundSequence(node.Syntax, eventTemps.ToImmutableAndFree(), sequence.ToImmutableAndFree(), condition, condition.Type!);
+                rewrittenAssignment = new BoundSequence(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, eventTemps.ToImmutableAndFree(), sequence.ToImmutableAndFree(), condition, condition.Type!);
             }
             else
             {
@@ -167,6 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenAssignment :
                 new BoundSequence(
                     node.Syntax,
+                    isInUnsafeRegion: node.IsInUnsafeRegion,
                     temps.ToImmutable(),
                     stores.ToImmutable(),
                     rewrittenAssignment,
@@ -234,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundLocal binaryResult = _factory.StoreToTemp(opFinal, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
                     BoundExpression assignment = MakeAssignmentOperator(syntax, transformedLHS, binaryResult, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
                     Debug.Assert(assignment.Type is { });
-                    return new BoundSequence(syntax, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
+                    return new BoundSequence(syntax, isInUnsafeRegion: false, [binaryResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
 
                 return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, AssignmentKind.CompoundAssignment, receiverIsKnownToBeCaptured: true);
@@ -400,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             stores.Add(assignmentToTemp);
             temps.Add(receiverTemp.LocalSymbol);
 
-            return new BoundDynamicMemberAccess(memberAccess.Syntax, receiverTemp, memberAccess.TypeArgumentsOpt, memberAccess.Name, memberAccess.Invoked, memberAccess.Indexed, memberAccess.Type);
+            return new BoundDynamicMemberAccess(memberAccess.Syntax, isInUnsafeRegion: memberAccess.IsInUnsafeRegion, receiverTemp, memberAccess.TypeArgumentsOpt, memberAccess.Name, memberAccess.Invoked, memberAccess.Indexed, memberAccess.Type);
         }
 
         private BoundIndexerAccess TransformIndexerAccess(BoundIndexerAccess indexerAccess, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
@@ -488,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This is a temporary object that will be rewritten away before the lowering completes.
             return new BoundIndexerAccess(
                 syntax,
+                isInUnsafeRegion: false,
                 transformedReceiver,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 indexer,
@@ -708,6 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicIndexerAccess(
                 indexerAccess.Syntax,
+                isInUnsafeRegion: indexerAccess.IsInUnsafeRegion,
                 loweredReceiver,
                 loweredArguments.AsImmutableOrNull(),
                 indexerAccess.ArgumentNamesOpt,

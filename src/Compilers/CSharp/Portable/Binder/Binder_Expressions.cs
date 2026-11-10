@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBadExpression BadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols)
         {
             return new BoundBadExpression(syntax,
+                isInUnsafeRegion: InUnsafeRegion,
                 resultKind,
                 symbols,
                 ImmutableArray<BoundExpression>.Empty,
@@ -171,6 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBadExpression BadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, BoundExpression childNode)
         {
             return new BoundBadExpression(syntax,
+                isInUnsafeRegion: InUnsafeRegion,
                 resultKind,
                 symbols,
                 ImmutableArray.Create(AdjustBadExpressionChild(BindToTypeForErrorRecovery(childNode))),
@@ -196,6 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundBadExpression BadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundExpression> childNodes, bool wasCompilerGenerated = false)
         {
             return new BoundBadExpression(syntax,
+                isInUnsafeRegion: InUnsafeRegion,
                 resultKind,
                 symbols,
                 childNodes.SelectAsArray((e, self) => self.AdjustBadExpressionChild(self.BindToTypeForErrorRecovery(e)), this),
@@ -239,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expr.GetExpressionSymbols(symbols, parent: null, binder: this);
                 return new BoundBadExpression(
                     expr.Syntax,
+                    isInUnsafeRegion: expr.IsInUnsafeRegion,
                     resultKind,
                     symbols.ToImmutableAndFree(),
                     ImmutableArray.Create(AdjustBadExpressionChild(BindToTypeForErrorRecovery(expr))),
@@ -373,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         result = new BoundConvertedTupleLiteral(
                             sourceTuple.Syntax,
+                            isInUnsafeRegion: InUnsafeRegion,
                             sourceTuple,
                             wasTargetTyped: false,
                             boundArgs.ToImmutableAndFree(),
@@ -392,6 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         result = new BoundDefaultExpression(
                             defaultExpr.Syntax,
+                            isInUnsafeRegion: InUnsafeRegion,
                             targetType: null,
                             defaultExpr.ConstantValueOpt,
                             CreateErrorType(),
@@ -440,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
-            return result?.WithUnsafeExpressionContext(expression.WasBoundInUnsafeExpression).WithWasConverted();
+            return result?.WithWasConverted();
         }
 
         private BoundExpression BindToInferredDelegateType(BoundExpression expr, BindingDiagnosticBag diagnostics)
@@ -622,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, LookupResultKind.NotAValue);
             }
 
-            return result.WithUnsafeExpressionContext(InUnsafeExpression);
+            return result;
 
             BoundExpression bindExpressionInternal(ExpressionSyntax node, BindingDiagnosticBag diagnostics, bool invoked, bool indexed)
             {
@@ -751,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.DefaultLiteralExpression:
                         MessageID.IDS_FeatureDefaultLiteral.CheckFeatureAvailability(diagnostics, node);
-                        return new BoundDefaultLiteral(node);
+                        return new BoundDefaultLiteral(node, isInUnsafeRegion: InUnsafeRegion);
 
                     case SyntaxKind.ParenthesizedExpression:
                         // Parenthesis tokens are ignored, and operand is bound in the context of parent
@@ -893,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var firstToken = node.GetFirstToken();
             diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
             return new BoundBadExpression(
-                node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(BindToTypeForErrorRecovery(BindValue(node.Expression, BindingDiagnosticBag.Discarded, BindValueKind.RefersToLocation))),
+                node, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(BindToTypeForErrorRecovery(BindValue(node.Expression, BindingDiagnosticBag.Discarded, BindValueKind.RefersToLocation))),
                 CreateErrorType("ref"));
         }
 
@@ -901,14 +907,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var firstToken = node.GetFirstToken();
             diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
-            return new BoundTypeExpression(node, null, CreateErrorType("ref"));
+            return new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, null, CreateErrorType("ref"));
         }
 
         private BoundExpression BindScopedType(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             var firstToken = node.GetFirstToken();
             diagnostics.Add(ErrorCode.ERR_UnexpectedToken, firstToken.GetLocation(), firstToken.ValueText);
-            return new BoundTypeExpression(node, null, CreateErrorType("scoped"));
+            return new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, null, CreateErrorType("scoped"));
         }
 
         private BoundExpression BindThrowExpression(ThrowExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -923,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var thrownExpression = BindThrownExpression(node.Expression, diagnostics, ref hasErrors);
-            return new BoundThrowExpression(node, thrownExpression, null, hasErrors);
+            return new BoundThrowExpression(node, isInUnsafeRegion: InUnsafeRegion, thrownExpression, null, hasErrors);
         }
 
         private static bool IsThrowExpressionInProperContext(ThrowExpressionSyntax node)
@@ -1027,7 +1033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             includeNullability: false,
                             errorPositions: disallowInferredNames ? inferredPositions : default);
 
-                        return new BoundConvertedTupleLiteral(syntax, sourceTuple: null, wasTargetTyped: true, subExpressions, tupleNames, inferredPositions, tupleType);
+                        return new BoundConvertedTupleLiteral(syntax, isInUnsafeRegion: InUnsafeRegion, sourceTuple: null, wasTargetTyped: true, subExpressions, tupleNames, inferredPositions, tupleType);
                     }
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -1080,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_VoidInTuple, argumentSyntax.Location);
                     boundArgument = new BoundBadExpression(
-                        argumentSyntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty,
+                        argumentSyntax, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty,
                         ImmutableArray.Create<BoundExpression>(boundArgument), CreateErrorType("void"));
                 }
 
@@ -1114,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
             // for "dropped names" on tuple literal when the name was inferred.
-            return new BoundTupleLiteral(node, boundArguments.ToImmutableAndFree(), elementNames, inferredPositions, tupleTypeOpt, hasErrors);
+            return new BoundTupleLiteral(node, isInUnsafeRegion: InUnsafeRegion, boundArguments.ToImmutableAndFree(), elementNames, inferredPositions, tupleTypeOpt, hasErrors);
         }
 
         private static (ImmutableArray<string> elementNamesArray, ImmutableArray<bool> inferredArray, bool hasErrors) ExtractTupleElementNames(
@@ -1273,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeWithAnnotations typeWithAnnotations = BindType(node.Type, diagnostics);
 
-            return new BoundRefValueOperator(node, typeWithAnnotations.NullableAnnotation, argument, typeWithAnnotations.Type, hasErrors);
+            return new BoundRefValueOperator(node, isInUnsafeRegion: InUnsafeRegion, typeWithAnnotations.NullableAnnotation, argument, typeWithAnnotations.Type, hasErrors);
         }
 
         private BoundExpression BindMakeRef(MakeRefExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -1297,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: * taking a ref to a "non-agile" field
             // UNDONE: We should do so here when we implement this feature for regular out/ref parameters.
 
-            return new BoundMakeRefOperator(node, argument, typedReferenceType, hasErrors);
+            return new BoundMakeRefOperator(node, isInUnsafeRegion: InUnsafeRegion, argument, typedReferenceType, hasErrors);
         }
 
         private BoundExpression BindRefType(RefTypeExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -1319,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             argument = CreateConversion(argument, conversion, typedReferenceType, diagnostics);
-            return new BoundRefTypeOperator(node, argument, null, typeType, hasErrors);
+            return new BoundRefTypeOperator(node, isInUnsafeRegion: InUnsafeRegion, argument, null, typeType, hasErrors);
         }
 
         private BoundExpression BindArgList(CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
@@ -1378,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundArgList(node, runtimeArgumentHandleType, hasError);
+            return new BoundArgList(node, isInUnsafeRegion: InUnsafeRegion, runtimeArgumentHandleType, hasError);
         }
 
         /// <summary>
@@ -1431,8 +1437,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = true;
             }
 
-            BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, type.IsErrorType());
-            return new BoundTypeOfOperator(node, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
+            BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, isInUnsafeRegion: InUnsafeRegion, alias, typeWithAnnotations, type.IsErrorType());
+            return new BoundTypeOfOperator(node, isInUnsafeRegion: InUnsafeRegion, boundType, null, this.GetWellKnownType(WellKnownType.System_Type, diagnostics, node), hasError);
         }
 
         /// <summary>Called when an "attribute-dependent" type such as 'dynamic', 'string?', etc. is not permitted.</summary>
@@ -1470,10 +1476,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool typeHasErrors = type.IsErrorType() || CheckManagedAddr(Compilation, type, node.Location, diagnostics);
 
-            BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, alias, typeWithAnnotations, typeHasErrors);
+            BoundTypeExpression boundType = new BoundTypeExpression(typeSyntax, isInUnsafeRegion: InUnsafeRegion, alias, typeWithAnnotations, typeHasErrors);
             ConstantValue constantValue = GetConstantSizeOf(type);
             bool hasErrors = constantValue is null && ReportUnsafeIfNotAllowed(node, diagnostics, sizeOfTypeOpt: type, disallowedUnder: MemorySafetyRulesVersion.Version1);
-            return new BoundSizeOfOperator(node, boundType, constantValue,
+            return new BoundSizeOfOperator(node, isInUnsafeRegion: InUnsafeRegion, boundType, constantValue,
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
 
@@ -1522,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var implicitReceiver = field.IsStatic ? null : ThisReference(node, field.ContainingType, wasCompilerGenerated: true);
-            return new BoundFieldAccess(node, implicitReceiver, field, constantValueOpt: null);
+            return new BoundFieldAccess(node, isInUnsafeRegion: InUnsafeRegion, implicitReceiver, field, constantValueOpt: null);
 
             bool hasOtherFieldSymbolInScope()
             {
@@ -1632,9 +1638,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MessageID.IDS_FeatureDefault.CheckFeatureAvailability(diagnostics, node.Keyword);
 
             TypeWithAnnotations typeWithAnnotations = this.BindType(node.Type, diagnostics, out AliasSymbol alias);
-            var typeExpression = new BoundTypeExpression(node.Type, aliasOpt: alias, typeWithAnnotations);
+            var typeExpression = new BoundTypeExpression(node.Type, isInUnsafeRegion: InUnsafeRegion, aliasOpt: alias, typeWithAnnotations);
             TypeSymbol type = typeWithAnnotations.Type;
-            return new BoundDefaultExpression(node, typeExpression, constantValueOpt: type.GetDefaultValue(), type);
+            return new BoundDefaultExpression(node, isInUnsafeRegion: InUnsafeRegion, typeExpression, constantValueOpt: type.GetDefaultValue(), type);
         }
 
         /// <summary>
@@ -1740,6 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(isError); // Should have been reported by GetSymbolOrMethodOrPropertyGroup.
                         expression = new BoundBadExpression(
                             syntax: node,
+                            isInUnsafeRegion: InUnsafeRegion,
                             resultKind: LookupResultKind.WrongArity,
                             symbols: ImmutableArray.Create(symbol),
                             childBoundNodes: ImmutableArray.Create(BindToTypeForErrorRecovery(expression)),
@@ -1763,11 +1770,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var type = BindNativeIntegerSymbolIfAny(identifier, diagnostics);
                     if (type is { })
                     {
-                        expression = new BoundTypeExpression(node, null, type);
+                        expression = new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, null, type);
                     }
                     else if (FallBackOnDiscard(identifier, diagnostics))
                     {
-                        expression = new BoundDiscardExpression(node, NullableAnnotation.Annotated, isInferred: true, type: null);
+                        expression = new BoundDiscardExpression(node, isInUnsafeRegion: InUnsafeRegion, NullableAnnotation.Annotated, isInferred: true, type: null);
                     }
                 }
 
@@ -2077,7 +2084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var constantValueOpt = localSymbol.IsConst && !IsInsideNameof && !type.IsErrorType()
                             ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
-                        return new BoundLocal(node, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt: constantValueOpt, isNullableUnknown: isNullableUnknown, type: type, hasErrors: isError);
+                        return new BoundLocal(node, isInUnsafeRegion: InUnsafeRegion, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt: constantValueOpt, isNullableUnknown: isNullableUnknown, type: type, hasErrors: isError);
                     }
 
                 case SymbolKind.Parameter:
@@ -2179,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // The Type calculation for the node that we return here should be kept in sync with logic in BindLeftIdentifierOfPotentialColorColorMemberAccess.
-                        return new BoundParameter(node, parameter, hasErrors: isError);
+                        return new BoundParameter(node, isInUnsafeRegion: InUnsafeRegion, parameter, hasErrors: isError);
                     }
 
                 case SymbolKind.NamedType:
@@ -2187,7 +2194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.TypeParameter:
                     // If I identifies a type, then the result is that type constructed with the
                     // given type arguments. UNDONE: Construct the child type if it is generic!
-                    return new BoundTypeExpression(node, null, (TypeSymbol)symbol, hasErrors: isError);
+                    return new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, null, (TypeSymbol)symbol, hasErrors: isError);
 
                 case SymbolKind.Property:
                     {
@@ -2208,15 +2215,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case SymbolKind.Namespace:
-                    return new BoundNamespaceExpression(node, (NamespaceSymbol)symbol, hasErrors: isError);
+                    return new BoundNamespaceExpression(node, isInUnsafeRegion: InUnsafeRegion, (NamespaceSymbol)symbol, hasErrors: isError);
 
                 case SymbolKind.Alias:
                     {
                         var alias = (AliasSymbol)symbol;
                         return alias.Target switch
                         {
-                            TypeSymbol typeSymbol => new BoundTypeExpression(node, alias, typeSymbol, hasErrors: isError),
-                            NamespaceSymbol namespaceSymbol => new BoundNamespaceExpression(node, namespaceSymbol, alias, hasErrors: isError),
+                            TypeSymbol typeSymbol => new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, alias, typeSymbol, hasErrors: isError),
+                            NamespaceSymbol namespaceSymbol => new BoundNamespaceExpression(node, isInUnsafeRegion: InUnsafeRegion, namespaceSymbol, alias, hasErrors: isError),
                             _ => throw ExceptionUtilities.UnexpectedValue(alias.Target.Kind),
                         };
                     }
@@ -2450,7 +2457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (memberDeclaringType.TypeKind == TypeKind.Submission)
                 {
-                    return new BoundPreviousSubmissionReference(syntax, memberDeclaringType) { WasCompilerGenerated = true };
+                    return new BoundPreviousSubmissionReference(syntax, isInUnsafeRegion: InUnsafeRegion, memberDeclaringType) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -2458,7 +2465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                     if ((object)hostObjectType != null && hostObjectType.IsEqualToOrDerivedFrom(memberDeclaringType, TypeCompareKind.ConsiderEverything, useSiteInfo: ref discardedUseSiteInfo))
                     {
-                        return new BoundHostObjectMemberReference(syntax, hostObjectType) { WasCompilerGenerated = true };
+                        return new BoundHostObjectMemberReference(syntax, isInUnsafeRegion: InUnsafeRegion, hostObjectType) { WasCompilerGenerated = true };
                     }
                 }
             }
@@ -2535,7 +2542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(result.IsSingleViable, "If this happens, we need to deal with multiple label definitions.");
             var symbol = (LabelSymbol)result.Symbols.First();
             result.Free();
-            return new BoundLabel(node, symbol, null);
+            return new BoundLabel(node, isInUnsafeRegion: InUnsafeRegion, symbol, null);
         }
 
         public BoundExpression BindNamespaceOrType(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -2550,7 +2557,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateBoundNamespaceOrTypeExpression(node, symbol);
         }
 
-        private static BoundExpression CreateBoundNamespaceOrTypeExpression(ExpressionSyntax node, Symbol symbol)
+        private BoundExpression CreateBoundNamespaceOrTypeExpression(ExpressionSyntax node, Symbol symbol)
         {
             var alias = symbol as AliasSymbol;
 
@@ -2562,13 +2569,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = symbol as TypeSymbol;
             if ((object)type != null)
             {
-                return new BoundTypeExpression(node, alias, type);
+                return new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, alias, type);
             }
 
             var namespaceSymbol = symbol as NamespaceSymbol;
             if ((object)namespaceSymbol != null)
             {
-                return new BoundNamespaceExpression(node, namespaceSymbol, alias);
+                return new BoundNamespaceExpression(node, isInUnsafeRegion: InUnsafeRegion, namespaceSymbol, alias);
             }
 
             throw ExceptionUtilities.UnexpectedValue(symbol);
@@ -2595,7 +2602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundThisReference ThisReference(SyntaxNode node, NamedTypeSymbol thisTypeOpt, bool hasErrors = false, bool wasCompilerGenerated = false)
         {
-            return new BoundThisReference(node, thisTypeOpt ?? CreateErrorType(), hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
+            return new BoundThisReference(node, isInUnsafeRegion: InUnsafeRegion, thisTypeOpt ?? CreateErrorType(), hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
         }
 
 #nullable enable
@@ -2655,7 +2662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundBaseReference(node, baseType, hasErrors);
+            return new BoundBaseReference(node, isInUnsafeRegion: InUnsafeRegion, baseType, hasErrors);
         }
 
         private BoundExpression BindCast(CastExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -2716,7 +2723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
             MethodSymbol symbolOpt = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
 
-            return new BoundFromEndIndexExpression(node, boundConversion, symbolOpt, indexType);
+            return new BoundFromEndIndexExpression(node, isInUnsafeRegion: InUnsafeRegion, boundConversion, symbolOpt, indexType);
         }
 
         private BoundExpression BindRangeExpression(RangeExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -2783,7 +2790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rangeType = nullableType.Construct(rangeType);
             }
 
-            return new BoundRangeExpression(node, left, right, symbolOpt, rangeType);
+            return new BoundRangeExpression(node, isInUnsafeRegion: InUnsafeRegion, left, right, symbolOpt, rangeType);
         }
 
         private BoundExpression BindRangeExpressionOperand(ExpressionSyntax operand, BindingDiagnosticBag diagnostics)
@@ -3256,7 +3263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(isVar != declType.HasType);
                         var type = declType.Type;
 
-                        return new BoundDiscardExpression(declarationExpression, declType.NullableAnnotation, isInferred: type is null, type);
+                        return new BoundDiscardExpression(declarationExpression, isInUnsafeRegion: InUnsafeRegion, declType.NullableAnnotation, isInferred: type is null, type);
                     }
                 case SyntaxKind.SingleVariableDesignation:
                     return BindOutVariableDeclarationArgument(declarationExpression, diagnostics);
@@ -3307,7 +3314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isVar)
                 {
-                    return new OutVariablePendingInference(declarationExpression, localSymbol, null);
+                    return new OutVariablePendingInference(declarationExpression, isInUnsafeRegion: InUnsafeRegion, localSymbol, null);
                 }
 
                 CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declType.Type, diagnostics, typeSyntax);
@@ -3317,7 +3324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
                 }
 
-                return new BoundLocal(declarationExpression, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
+                return new BoundLocal(declarationExpression, isInUnsafeRegion: InUnsafeRegion, localSymbol, BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
             }
             else
             {
@@ -3350,12 +3357,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (isVar)
                     {
-                        return new OutVariablePendingInference(declarationExpression, expressionVariableField, receiver);
+                        return new OutVariablePendingInference(declarationExpression, isInUnsafeRegion: InUnsafeRegion, expressionVariableField, receiver);
                     }
                 }
 
                 TypeSymbol fieldType = expressionVariableField.GetFieldType(this.FieldsBeingBound).Type;
                 return new BoundFieldAccess(declarationExpression,
+                                            isInUnsafeRegion: InUnsafeRegion,
                                             receiver,
                                             expressionVariableField,
                                             null,
@@ -3946,6 +3954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentPlaceholdersBuilder.Add(
                         (BoundInterpolatedStringArgumentPlaceholder)(new BoundInterpolatedStringArgumentPlaceholder(
                             placeholderSyntax,
+                            isInUnsafeRegion: InUnsafeRegion,
                             argumentIndex,
                             placeholderType,
                             hasErrors: argumentIndex == BoundInterpolatedStringArgumentPlaceholder.UnspecifiedParameter)
@@ -3965,6 +3974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     interpolatedString.Syntax,
+                    isInUnsafeRegion: InUnsafeRegion,
                     interpolatedString,
                     interpolatedStringConversion,
                     @checked: CheckOverflowAtRuntime,
@@ -4171,7 +4181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arraySizes = sizes.ToImmutableAndFree();
 
             return node.Initializer == null
-                ? new BoundArrayCreation(node, arraySizes, null, type, hasErrors)
+                ? new BoundArrayCreation(node, isInUnsafeRegion: InUnsafeRegion, arraySizes, null, type, hasErrors)
                 : BindArrayCreationWithInitializer(diagnostics, node, node.Initializer, type, arraySizes, hasErrors: hasErrors);
         }
 
@@ -4426,7 +4436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundArrayInitialization(node, isInferred, initializers.ToImmutableAndFree(), hasErrors: hasErrors);
+            return new BoundArrayInitialization(node, isInUnsafeRegion: InUnsafeRegion, isInferred, initializers.ToImmutableAndFree(), hasErrors: hasErrors);
         }
 
         private BoundArrayInitialization BindArrayInitializerList(
@@ -4468,7 +4478,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.HasAnyErrors)
             {
-                result = new BoundArrayInitialization(node, isInferred: false, result.Initializers, hasErrors: true);
+                result = new BoundArrayInitialization(node, isInUnsafeRegion: InUnsafeRegion, isInferred: false, result.Initializers, hasErrors: true);
             }
 
             Error(diagnostics, errorCode, errorNode ?? node);
@@ -4561,6 +4571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sizeArray[i] = new BoundLiteral(
                         nonNullSyntax,
+                        isInUnsafeRegion: InUnsafeRegion,
                         ConstantValue.Create(knownSizes[i] ?? 0),
                         GetSpecialType(SpecialType.System_Int32, diagnostics, nonNullSyntax))
                     { WasCompilerGenerated = true };
@@ -4573,7 +4584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            return new BoundArrayCreation(nonNullSyntax, sizes, initializer, type, hasErrors: hasErrors)
+            return new BoundArrayCreation(nonNullSyntax, isInUnsafeRegion: InUnsafeRegion, sizes, initializer, type, hasErrors: hasErrors)
             {
                 WasCompilerGenerated = !hasCreationSyntax &&
                     (initSyntax.Parent == null ||
@@ -4593,6 +4604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundBadExpression(
                     node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     LookupResultKind.NotCreatable, //in this context, anyway
                     ImmutableArray<Symbol>.Empty,
                     ImmutableArray<BoundExpression>.Empty,
@@ -4632,6 +4644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundBadExpression(
                     node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     LookupResultKind.Empty,
                     ImmutableArray<Symbol>.Empty,
                     builder.ToImmutableAndFree(),
@@ -4658,7 +4671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return node.Initializer is null
-                ? new BoundStackAllocArrayCreation(node, elementType.Type, count, initializerOpt: null, type, hasErrors: hasErrors)
+                ? new BoundStackAllocArrayCreation(node, isInUnsafeRegion: InUnsafeRegion, elementType.Type, count, initializerOpt: null, type, hasErrors: hasErrors)
                 : BindStackAllocWithInitializer(node, node.StackAllocKeyword, node.Initializer, type, elementType.Type, count, diagnostics, hasErrors);
         }
 
@@ -4703,7 +4716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
                 };
 
-                ReportUnsafeForUninitializedSpanStackAllocIfRequired(node, diagnostics, hasInitializer);
+                ReportUnsafeForUninitializedSpanStackAllocIfRequired(node, diagnostics, hasInitializer, InUnsafeRegion);
 
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
 
@@ -4798,13 +4811,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 sizeOpt = new BoundLiteral(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         ConstantValue.Create(boundInitExprOpt.Length),
                         GetSpecialType(SpecialType.System_Int32, diagnostics, node))
                 { WasCompilerGenerated = true };
             }
 
             bool isInferred = node.IsKind(SyntaxKind.ImplicitStackAllocArrayCreationExpression);
-            return new BoundStackAllocArrayCreation(node, elementType, sizeOpt, new BoundArrayInitialization(initSyntax, isInferred, boundInitExprOpt), type, hasErrors);
+            return new BoundStackAllocArrayCreation(node, isInUnsafeRegion: InUnsafeRegion, elementType, sizeOpt, new BoundArrayInitialization(initSyntax, isInUnsafeRegion: InUnsafeRegion, isInferred, boundInitExprOpt), type, hasErrors);
         }
 
         private static int? GetIntegerConstantForArraySize(BoundExpression expression)
@@ -4976,6 +4990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics.Add(ErrorCode.ERR_ObjectCallingBaseConstructor, constructor.GetFirstLocation(), containingType);
                             return new BoundBadExpression(
                                 syntax: initializerArgumentListOpt.Parent,
+                                isInUnsafeRegion: InUnsafeRegion,
                                 resultKind: LookupResultKind.Empty,
                                 symbols: ImmutableArray<Symbol>.Empty,
                                 childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
@@ -4987,6 +5002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_StructWithBaseConstructorCall, constructor.GetFirstLocation(), containingType);
                         return new BoundBadExpression(
                             syntax: initializerArgumentListOpt.Parent,
+                            isInUnsafeRegion: InUnsafeRegion,
                             resultKind: LookupResultKind.Empty,
                             symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
                             childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
@@ -5030,6 +5046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundBadExpression(
                             syntax: initializerArgumentListOpt.Parent,
+                            isInUnsafeRegion: InUnsafeRegion,
                             resultKind: LookupResultKind.Empty,
                             symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
                             childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
@@ -5177,6 +5194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundCall(
                     nonNullSyntax,
+                    isInUnsafeRegion: InUnsafeRegion,
                     receiver,
                     initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, resultMember),
                     resultMember,
@@ -5277,6 +5295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindArgumentsAndNames(node.ArgumentList, diagnostics, arguments, allowArglist: true);
             var result = new BoundUnconvertedObjectCreationExpression(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 arguments.Arguments.ToImmutable(),
                 arguments.Names.ToImmutableOrNull(),
                 arguments.RefKinds.ToImmutableOrNull(),
@@ -5353,7 +5372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // An expression is too long or complex to compile
                 diagnostics.Add(ErrorCode.ERR_InsufficientStack, syntax.Location);
-                return new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType());
+                return new BoundBadExpression(syntax, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, CreateErrorType());
             }
 
             MessageID.IDS_FeatureCollectionExpressions.CheckFeatureAvailability(diagnostics, syntax, syntax.OpenBracketToken.GetLocation());
@@ -5378,7 +5397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundUnconvertedCollectionExpression(syntax, firstWithElement, builder.ToImmutableAndFree());
+            return new BoundUnconvertedCollectionExpression(syntax, isInUnsafeRegion: InUnsafeRegion, firstWithElement, builder.ToImmutableAndFree());
 
             static BoundNode bindElement(CollectionElementSyntax syntax, BindingDiagnosticBag diagnostics, Binder @this, int nestingLevel)
             {
@@ -5421,7 +5440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(expression.Type is { });
 
-                var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, expression.Type);
+                var expressionPlaceholder = new BoundCollectionExpressionSpreadExpressionPlaceholder(syntax.Expression, isInUnsafeRegion: @this.InUnsafeRegion, expression.Type);
                 var enumeratorInfo = builder.Build(location: default);
                 var collectionType = enumeratorInfo.CollectionType;
                 var useSiteInfo = @this.GetNewCompoundUseSiteInfo(diagnostics);
@@ -5435,7 +5454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     _ = expression.Type.HasInlineArrayAttribute(out int length);
                     Debug.Assert(length > 0);
-                    lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), @this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
+                    lengthOrCount = new BoundLiteral(expression.Syntax, isInUnsafeRegion: @this.InUnsafeRegion, ConstantValue.Create(length), @this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
                 }
                 else if (!@this.TryBindNonExtensionLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, ref useSiteInfo, diagnostics))
                 {
@@ -5480,7 +5499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Collection arguments cannot be dynamic
                         diagnostics.Add(ErrorCode.ERR_CollectionArgumentsDynamicBinding, arg.Syntax);
                         arguments[i] = new BoundBadExpression(
-                            arg.Syntax, LookupResultKind.Empty, symbols: [],
+                            arg.Syntax, isInUnsafeRegion: @this.InUnsafeRegion, LookupResultKind.Empty, symbols: [],
                             childBoundNodes: [@this.BindToNaturalType(arg, diagnostics, reportNoTargetType: false)],
                             type: @this.Compilation.GetSpecialType(SpecialType.System_Object));
                     }
@@ -5606,7 +5625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Just stuff the bound lambda into the delegate creation expression. When we lower the lambda to
                 // its method form we will rewrite this expression to refer to the method.
 
-                return new BoundDelegateCreationExpression(node, boundLambda, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type, hasErrors: hasErrors);
+                return new BoundDelegateCreationExpression(node, isInUnsafeRegion: InUnsafeRegion, boundLambda, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type, hasErrors: hasErrors);
             }
 
             else if (analyzedArguments.HasErrors)
@@ -5621,7 +5640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundMethodGroup methodGroup = (BoundMethodGroup)argument;
                 hasErrors = MethodGroupConversionDoesNotExistOrHasErrors(methodGroup, type, node.Location, diagnostics, out conversion);
                 methodGroup = FixMethodGroupWithTypeOrValue(methodGroup, conversion, diagnostics);
-                return new BoundDelegateCreationExpression(node, methodGroup, conversion.Method, conversion.IsExtensionMethod, wasTargetTyped, type, hasErrors);
+                return new BoundDelegateCreationExpression(node, isInUnsafeRegion: InUnsafeRegion, methodGroup, conversion.Method, conversion.IsExtensionMethod, wasTargetTyped, type, hasErrors);
             }
 
             else if ((object)argument.Type == null)
@@ -5632,7 +5651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // 3. A value of the compile-time type dynamic (which is dynamically case 4), or
             else if (argument.HasDynamicType())
             {
-                return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type);
+                return new BoundDelegateCreationExpression(node, isInUnsafeRegion: InUnsafeRegion, argument, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type);
             }
 
             // 4. A delegate type.
@@ -5645,7 +5664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ReportDelegateInvokeUseSiteDiagnostic(diagnostics, argument.Type, node: node))
                     {
                         // We want failed "new" expression to use the constructors as their symbols.
-                        return new BoundBadExpression(node, LookupResultKind.NotInvocable, StaticCast<Symbol>.From(type.InstanceConstructors), ImmutableArray.Create(argument), type);
+                        return new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.NotInvocable, StaticCast<Symbol>.From(type.InstanceConstructors), ImmutableArray.Create(argument), type);
                     }
 
                     methodGroup.PopulateWithSingleMethod(argument, sourceDelegate.DelegateInvokeMethod);
@@ -5655,7 +5674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!conv.Exists)
                     {
                         var boundMethodGroup = new BoundMethodGroup(
-                            argument.Syntax, default, WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
+                            argument.Syntax, isInUnsafeRegion: argument.IsInUnsafeRegion, default, WellKnownMemberNames.DelegateInvokeName, ImmutableArray.Create(sourceDelegate.DelegateInvokeMethod),
                             sourceDelegate.DelegateInvokeMethod, null, BoundMethodGroupFlags.None, functionType: null, argument, LookupResultKind.Viable);
                         if (!Conversions.ReportDelegateOrFunctionPointerMethodGroupDiagnostics(this, boundMethodGroup, type, diagnostics))
                         {
@@ -5671,10 +5690,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!conv.IsExtensionMethod);
                         Debug.Assert(conv.IsValid); // i.e. if it exists, then it is valid.
 
-                        if (!this.MethodGroupConversionHasErrors(argument.Syntax, conv, argument, conv.IsExtensionMethod, isAddressOf: false, type, diagnostics))
+                        if (!this.MethodGroupConversionHasErrors(argument.Syntax, InUnsafeRegion, conv, argument, conv.IsExtensionMethod, isAddressOf: false, type, diagnostics))
                         {
                             // we do not place the "Invoke" method in the node, indicating that it did not appear in source.
-                            return new BoundDelegateCreationExpression(node, argument, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type);
+                            return new BoundDelegateCreationExpression(node, isInUnsafeRegion: InUnsafeRegion, argument, methodOpt: null, isExtensionMethod: false, wasTargetTyped, type: type);
                         }
                     }
                 }
@@ -5692,7 +5711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note that we want failed "new" expression to use the constructors as their symbols.
             var childNodes = BuildArgumentsForErrorRecovery(analyzedArguments);
-            return new BoundBadExpression(node, LookupResultKind.OverloadResolutionFailure, StaticCast<Symbol>.From(type.InstanceConstructors), childNodes, type);
+            return new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.OverloadResolutionFailure, StaticCast<Symbol>.From(type.InstanceConstructors), childNodes, type);
         }
 
         private BoundExpression BindClassCreationExpression(ObjectCreationExpressionSyntax node, NamedTypeSymbol type, string typeName, BindingDiagnosticBag diagnostics, TypeSymbol initializerType = null)
@@ -5789,7 +5808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 children.Add(boundInitializer);
             }
 
-            return new BoundBadExpression(node, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol?>(type), children.ToImmutableAndFree(), type) { WasCompilerGenerated = wasCompilerGenerated };
+            return new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.NotCreatable, ImmutableArray.Create<Symbol?>(type), children.ToImmutableAndFree(), type) { WasCompilerGenerated = wasCompilerGenerated };
         }
 
         private BoundObjectInitializerExpressionBase BindInitializerExpression(
@@ -5802,7 +5821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(syntax != null);
             Debug.Assert((object)type != null);
 
-            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(typeSyntax, isForNewInstance, type) { WasCompilerGenerated = true };
+            var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(typeSyntax, isInUnsafeRegion: InUnsafeRegion, isForNewInstance, type) { WasCompilerGenerated = true };
 
             switch (syntax.Kind())
             {
@@ -5881,6 +5900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundObjectInitializerExpression(
                 initializerSyntax,
+                isInUnsafeRegion: InUnsafeRegion,
                 implicitReceiver,
                 initializers.ToImmutableAndFree(),
                 initializerType);
@@ -5935,6 +5955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var badRight = new BoundBadExpression(
                             identifierName,
+                            isInUnsafeRegion: InUnsafeRegion,
                             LookupResultKind.Empty,
                             symbols: [],
                             childBoundNodes: [],
@@ -5944,7 +5965,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             WasCompilerGenerated = true,
                         };
                         boundNode = new BoundAssignmentOperator(
-                            identifierName, boundNode, badRight, isRef: false, ErrorTypeSymbol.UnknownResultType, hasErrors: true)
+                            identifierName, isInUnsafeRegion: InUnsafeRegion, boundNode, badRight, isRef: false, ErrorTypeSymbol.UnknownResultType, hasErrors: true)
                         {
                             WasCompilerGenerated = true,
                         };
@@ -6005,7 +6026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (initializerType.IsDynamic())
                 {
                     // D = { ..., <identifier> = <expr>, ... }, where D : dynamic
-                    boundMember = new BoundDynamicObjectInitializerMember(leftSyntax, memberName.Identifier.Text, implicitReceiver.Type, initializerType, hasErrors: false);
+                    boundMember = new BoundDynamicObjectInitializerMember(leftSyntax, isInUnsafeRegion: InUnsafeRegion, memberName.Identifier.Text, implicitReceiver.Type, initializerType, hasErrors: false);
                     return CheckValue(boundMember, valueKind, diagnostics);
                 }
                 else
@@ -6187,6 +6208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundObjectInitializerMember(
                 leftSyntax,
+                isInUnsafeRegion: InUnsafeRegion,
                 boundMember.ExpressionSymbol,
                 arguments,
                 argumentNamesOpt,
@@ -6448,7 +6470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initializerBuilder.Add(boundElementInitializer);
             }
 
-            return new BoundCollectionInitializerExpression(initializerSyntax, implicitReceiver, initializerBuilder.ToImmutableAndFree(), initializerType);
+            return new BoundCollectionInitializerExpression(initializerSyntax, isInUnsafeRegion: InUnsafeRegion, implicitReceiver, initializerBuilder.ToImmutableAndFree(), initializerType);
         }
 
         private bool CollectionInitializerTypeImplementsIEnumerable(TypeSymbol initializerType, CSharpSyntaxNode node, BindingDiagnosticBag diagnostics)
@@ -6641,6 +6663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundDynamicCollectionElementInitializer(
                         elementInitializer,
+                        isInUnsafeRegion: InUnsafeRegion,
                         applicableMethods: ImmutableArray<MethodSymbol>.Empty,
                         implicitReceiver,
                         arguments: boundElementInitializerExpressions.SelectAsArray(e => BindToNaturalType(e, diagnostics)),
@@ -6664,6 +6687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var dynamicInvocation = (BoundDynamicInvocation)addMethodInvocation;
                     return new BoundDynamicCollectionElementInitializer(
                         elementInitializer,
+                        isInUnsafeRegion: InUnsafeRegion,
                         dynamicInvocation.ApplicableMethods,
                         implicitReceiver,
                         dynamicInvocation.Arguments,
@@ -6685,6 +6709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundCollectionElementInitializer(
                         elementInitializer,
+                        isInUnsafeRegion: InUnsafeRegion,
                         boundCall.Method,
                         boundCall.Arguments,
                         boundCall.ReceiverOpt,
@@ -6746,7 +6771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
-            var addElementPlaceholder = new BoundValuePlaceholder(syntax, enumeratorInfo.ElementType);
+            var addElementPlaceholder = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, enumeratorInfo.ElementType);
             var addMethodInvocation = BindCollectionInitializerElementAddMethod(
                 syntax.Expression,
                 ImmutableArray.Create((BoundExpression)addElementPlaceholder),
@@ -6889,6 +6914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
                     result = new BoundDynamicObjectCreationExpression(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         typeName,
                         argArray,
                         analyzedArguments.GetNames(),
@@ -6996,6 +7022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundInitializerOpt = MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics);
             var creation = new BoundObjectCreationExpression(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 method,
                 candidateConstructors,
                 arguments,
@@ -7072,7 +7099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 childNodes.Add(MakeBoundInitializerOpt(typeNode, type, initializerSyntaxOpt, initializerTypeOpt, diagnostics));
             }
 
-            return new BoundBadExpression(node, resultKind, symbols.ToImmutableAndFree(), childNodes.ToImmutableAndFree(), type);
+            return new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, resultKind, symbols.ToImmutableAndFree(), childNodes.ToImmutableAndFree(), type);
         }
 
         private BoundObjectInitializerExpressionBase MakeBoundInitializerOpt(SyntaxNode typeNode, NamedTypeSymbol type, InitializerExpressionSyntax initializerSyntaxOpt, TypeSymbol initializerTypeOpt, BindingDiagnosticBag diagnostics)
@@ -7240,10 +7267,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     children = children.Add(boundInitializerOpt);
                 }
 
-                return new BoundBadExpression(node, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, children, interfaceType);
+                return new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, children, interfaceType);
             }
 
-            return new BoundNoPiaObjectCreationExpression(node, guidString, boundInitializerOpt, wasTargetTyped, interfaceType);
+            return new BoundNoPiaObjectCreationExpression(node, isInUnsafeRegion: InUnsafeRegion, guidString, boundInitializerOpt, wasTargetTyped, interfaceType);
         }
 
         private BoundExpression BindTypeParameterCreationExpression(ObjectCreationExpressionSyntax node, TypeParameterSymbol typeParameter, BindingDiagnosticBag diagnostics)
@@ -7287,7 +7314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             typeSyntax: typeSyntax,
                             isForNewInstance: true,
                             diagnostics: diagnostics);
-                    return new BoundNewT(node, boundInitializerOpt, wasTargetTyped, typeParameter);
+                    return new BoundNewT(node, isInUnsafeRegion: InUnsafeRegion, boundInitializerOpt, wasTargetTyped, typeParameter);
                 }
             }
 
@@ -7589,7 +7616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MessageID.IDS_FeatureRawStringLiterals.CheckFeatureAvailability(diagnostics, node);
             }
 
-            return new BoundLiteral(node, cv, type);
+            return new BoundLiteral(node, isInUnsafeRegion: InUnsafeRegion, cv, type);
         }
 
         private BoundUtf8String BindUtf8StringLiteral(LiteralExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -7607,7 +7634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var value = (string)node.Token.Value;
             var type = GetWellKnownType(WellKnownType.System_ReadOnlySpan_T, diagnostics, node).Construct(GetSpecialType(SpecialType.System_Byte, diagnostics, node));
 
-            return new BoundUtf8String(node, value, type);
+            return new BoundUtf8String(node, isInUnsafeRegion: InUnsafeRegion, value, type);
         }
 
         private BoundExpression BindCheckedExpression(CheckedExpressionSyntax node, BindingDiagnosticBag diagnostics)
@@ -7671,7 +7698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, boundLeft, pointedAtType, hasErrors)
+                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, isInUnsafeRegion: InUnsafeRegion, boundLeft, pointedAtType, hasErrors)
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
@@ -7780,7 +7807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!leftType.IsDynamic());
                     Debug.Assert(IsPotentialColorColorReceiver(left, leftType));
 
-                    return new BoundTypeOrValueExpression(left, this, leftSymbol, leftType);
+                    return new BoundTypeOrValueExpression(left, isInUnsafeRegion: InUnsafeRegion, this, leftSymbol, leftType);
                 }
             }
 
@@ -7873,6 +7900,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicMemberAccess(
                 syntax: node,
+                isInUnsafeRegion: InUnsafeRegion,
                 receiver: boundLeft,
                 typeArgumentsOpt: typeArgumentsWithAnnotations,
                 name: right.Identifier.ValueText,
@@ -8079,11 +8107,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Symbol sym = ResultSymbol(lookupResult, rightName, rightArity, node, diagnostics, false, out wasError, ns, options);
                     if (wasError)
                     {
-                        return new BoundBadExpression(node, LookupResultKind.Ambiguous, lookupResult.Symbols.AsImmutable(), ImmutableArray.Create(AdjustBadExpressionChild(boundLeft)), CreateErrorType(rightName), hasErrors: true);
+                        return new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Ambiguous, lookupResult.Symbols.AsImmutable(), ImmutableArray.Create(AdjustBadExpressionChild(boundLeft)), CreateErrorType(rightName), hasErrors: true);
                     }
                     else if (sym.Kind == SymbolKind.Namespace)
                     {
-                        return new BoundNamespaceExpression(node, (NamespaceSymbol)sym);
+                        return new BoundNamespaceExpression(node, isInUnsafeRegion: InUnsafeRegion, (NamespaceSymbol)sym);
                     }
                     else
                     {
@@ -8098,7 +8126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportDiagnosticsIfObsolete(diagnostics, type, node, hasBaseReceiver: false);
                         ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, type, node);
 
-                        return new BoundTypeExpression(node, null, type);
+                        return new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, null, type);
                     }
                 }
                 else if (lookupResult.Kind == LookupResultKind.WrongArity)
@@ -8108,7 +8136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     Error(diagnostics, lookupResult.Error, right);
 
-                    return new BoundTypeExpression(node, null,
+                    return new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, null,
                                 new ExtendedErrorTypeSymbol(GetContainingNamespaceOrNonExtensionType(symbols[0]), symbols.ToImmutable(), lookupResult.Kind, lookupResult.Error, rightArity));
                 }
                 else if (lookupResult.Kind == LookupResultKind.Empty)
@@ -8117,7 +8145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(lookupResult.Error == null);
                     NotFound(node, rightName, rightArity, rightName, diagnostics, aliasOpt: null, qualifierOpt: ns, options: options);
 
-                    return new BoundBadExpression(node, lookupResult.Kind, symbols.AsImmutable(), ImmutableArray.Create(AdjustBadExpressionChild(boundLeft)), CreateErrorType(rightName), hasErrors: true);
+                    return new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, lookupResult.Kind, symbols.AsImmutable(), ImmutableArray.Create(AdjustBadExpressionChild(boundLeft)), CreateErrorType(rightName), hasErrors: true);
                 }
 
                 return null;
@@ -8302,7 +8330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ExtendedErrorTypeSymbol errorTypeSymbol:
                     // Tracked by https://github.com/dotnet/roslyn/issues/78957 : public API, we should likely reduce (ie. do type inference and substitute) the candidates (like ToBadExpression)
-                    return new BoundBadExpression(syntax, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [AdjustBadExpressionChild(receiver)], CreateErrorType());
+                    return new BoundBadExpression(syntax, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Viable, errorTypeSymbol.CandidateSymbols!, [AdjustBadExpressionChild(receiver)], CreateErrorType());
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(extensionMember.Kind);
@@ -8391,6 +8419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundMethodGroup = new BoundMethodGroup(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 typeArgumentsWithAnnotations,
                 boundLeft,
                 rightName,
@@ -8552,6 +8581,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we've reported other errors.
                 return new BoundMethodGroup(
                     node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     default(ImmutableArray<TypeWithAnnotations>),
                     nameString,
                     methods,
@@ -8567,6 +8597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var symbolOpt = symbols.Length == 1 ? symbols[0] : null;
             return new BoundBadExpression(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 lookupKind,
                 (object)symbolOpt == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(symbolOpt),
                 boundLeft == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(AdjustBadExpressionChild(BindToTypeForErrorRecovery(boundLeft))),
@@ -8719,6 +8750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         result = new BoundTypeExpression(
                             syntax: node,
+                            isInUnsafeRegion: InUnsafeRegion,
                             aliasOpt: null,
                             boundContainingTypeOpt: left as BoundTypeExpression,
                             boundDimensionsOpt: ImmutableArray<BoundExpression>.Empty,
@@ -9329,7 +9361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(receiver.Type is not null);
 
-                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, receiver.IsEquivalentToThisReference, receiver, receiver.Type).MakeCompilerGenerated();
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, receiver.IsEquivalentToThisReference, receiver, receiver.Type).MakeCompilerGenerated();
 
                 var implicitIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                 BoundExpression? indexerOrSliceAccess = null;
@@ -9616,7 +9648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (analyzedArguments is null)
                 {
-                    var intPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, binder.GetSpecialType(SpecialType.System_Int32, diagnostics, syntax)) { WasCompilerGenerated = true };
+                    var intPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, isInUnsafeRegion: binder.InUnsafeRegion, binder.GetSpecialType(SpecialType.System_Int32, diagnostics, syntax)) { WasCompilerGenerated = true };
                     analyzedArguments = AnalyzedArguments.GetInstance();
                     analyzedArguments.Arguments.Add(intPlaceholder);
                     argumentPlaceholders = [intPlaceholder];
@@ -9629,7 +9661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    indexerAccess = binder.BindIndexerOrIndexedPropertyAccess(syntax, receiver, filteredCandidates, analyzedArguments, out bool foundApplicable, ref useSiteInfo, diagnostics).MakeCompilerGenerated();
+                    indexerAccess = binder.BindIndexerOrIndexedPropertyAccess(syntax, binder.InUnsafeRegion, receiver, filteredCandidates, analyzedArguments, out bool foundApplicable, ref useSiteInfo, diagnostics).MakeCompilerGenerated();
                     filteredCandidates.Free();
                     return foundApplicable;
                 }
@@ -9783,7 +9815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(resolutionResult.Result.ConversionForArg(0).Exists);
             resolutionResult = resolutionResult.WithResult(resolutionResult.Result.WithoutReceiverArgument());
 
-            extensionIndexerAccess = binder.BindResolvedIndexerOrIndexedPropertyAccess(syntax, receiver, analyzedArguments, diagnostics,
+            extensionIndexerAccess = binder.BindResolvedIndexerOrIndexedPropertyAccess(syntax, binder.InUnsafeRegion, receiver, analyzedArguments, diagnostics,
                 argumentNames, argumentRefKinds, resolutionResult);
 
             result.Free();
@@ -9904,7 +9936,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The type calculation here should be kept in sync with logic in BindLeftIdentifierOfPotentialColorColorMemberAccess.
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound).Type;
-            BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
+            BoundExpression expr = new BoundFieldAccess(node, isInUnsafeRegion: InUnsafeRegion, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
 
             // Spec 14.3: "Within an enum member initializer, values of other enum members are
             // always treated as having the type of their underlying type"
@@ -9914,6 +9946,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 expr = new BoundConversion(
                     node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     expr,
                     Conversion.ImplicitNumeric,
                     @checked: true,
@@ -10000,7 +10033,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The type calculation here should be kept in sync with logic in BindLeftIdentifierOfPotentialColorColorMemberAccess.
-            return new BoundPropertyAccess(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, propertySymbol), propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundPropertyAccess(node, isInUnsafeRegion: InUnsafeRegion, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, propertySymbol), propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
         }
 #nullable disable
 
@@ -10087,7 +10120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundEventAccess(node, isInUnsafeRegion: InUnsafeRegion, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type, hasErrors: (hasErrors || hasError));
         }
 
         // Say if the receive is an instance or a type, or could be either (returns null).
@@ -10314,7 +10347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var propertyGroup = (BoundPropertyGroup)receiver;
                     Debug.Assert(propertyGroup.ReceiverOpt is not null);
-                    return BindIndexedPropertyAccess(node, propertyGroup.ReceiverOpt, propertyGroup.Properties, analyzedArguments, diagnostics);
+                    return BindIndexedPropertyAccess(node, InUnsafeRegion, propertyGroup.ReceiverOpt, propertyGroup.Properties, analyzedArguments, diagnostics);
                 }
 
                 receiver = CheckValue(receiver, BindValueKind.RValue, diagnostics);
@@ -10534,7 +10567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = elementField.Type;
                 }
 
-                return new BoundInlineArrayAccess(node, expr, convertedIndex, isValue, getItemOrSliceHelper, resultType);
+                return new BoundInlineArrayAccess(node, isInUnsafeRegion: InUnsafeRegion, expr, convertedIndex, isValue, getItemOrSliceHelper, resultType);
             }
 
             static void checkInlineArrayBounds(SyntaxNode location, int index, int end, bool excludeEnd, BindingDiagnosticBag diagnostics)
@@ -10598,7 +10631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var childBoundNodes = BuildArgumentsForErrorRecovery(analyzedArguments).Add(expr);
-            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes, CreateErrorType(), hasErrors: true);
+            return new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes, CreateErrorType(), hasErrors: true);
         }
 
         private BoundExpression BindElementAccessCore(
@@ -10619,7 +10652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindArrayAccess(node, expr, arguments, diagnostics);
 
                 case TypeKind.Dynamic:
-                    return BindDynamicIndexer(node, expr, arguments, ImmutableArray<PropertySymbol>.Empty, diagnostics);
+                    return BindDynamicIndexer(node, InUnsafeRegion, expr, arguments, ImmutableArray<PropertySymbol>.Empty, diagnostics);
 
                 case TypeKind.Pointer:
                     return BindPointerElementAccess(node, expr, arguments, diagnostics);
@@ -10667,7 +10700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (arguments.Arguments.Count != rank)
             {
                 Error(diagnostics, ErrorCode.ERR_BadIndexCount, node, rank);
-                return new BoundArrayAccess(node, expr, BuildArgumentsForErrorRecovery(arguments), arrayType.ElementType, hasErrors: true);
+                return new BoundArrayAccess(node, isInUnsafeRegion: InUnsafeRegion, expr, BuildArgumentsForErrorRecovery(arguments), arrayType.ElementType, hasErrors: true);
             }
 
             // Convert all the arguments to the array index type.
@@ -10702,21 +10735,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(convertedArguments.Length == 1);
 
                 var int32 = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr, expr.Type) { WasCompilerGenerated = true };
-                var argumentPlaceholders = ImmutableArray.Create(new BoundImplicitIndexerValuePlaceholder(convertedArguments[0].Syntax, int32) { WasCompilerGenerated = true });
+                var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(expr.Syntax, isInUnsafeRegion: expr.IsInUnsafeRegion, isEquivalentToThisReference: expr.IsEquivalentToThisReference, expr, expr.Type) { WasCompilerGenerated = true };
+                var argumentPlaceholders = ImmutableArray.Create(new BoundImplicitIndexerValuePlaceholder(convertedArguments[0].Syntax, isInUnsafeRegion: InUnsafeRegion, int32) { WasCompilerGenerated = true });
 
                 return new BoundImplicitIndexerAccess(
                     node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     receiver: expr,
                     argument: convertedArguments[0],
-                    lengthOrCountAccess: new BoundArrayLength(node, receiverPlaceholder, int32) { WasCompilerGenerated = true },
+                    lengthOrCountAccess: new BoundArrayLength(node, isInUnsafeRegion: InUnsafeRegion, receiverPlaceholder, int32) { WasCompilerGenerated = true },
                     receiverPlaceholder,
-                    indexerOrSliceAccess: new BoundArrayAccess(node, receiverPlaceholder, ImmutableArray<BoundExpression>.CastUp(argumentPlaceholders), resultType) { WasCompilerGenerated = true },
+                    indexerOrSliceAccess: new BoundArrayAccess(node, isInUnsafeRegion: InUnsafeRegion, receiverPlaceholder, ImmutableArray<BoundExpression>.CastUp(argumentPlaceholders), resultType) { WasCompilerGenerated = true },
                     argumentPlaceholders,
                     resultType);
             }
 
-            return new BoundArrayAccess(node, expr, convertedArguments.AsImmutableOrNull(), resultType);
+            return new BoundArrayAccess(node, isInUnsafeRegion: InUnsafeRegion, expr, convertedArguments.AsImmutableOrNull(), resultType);
         }
 
         private BoundExpression ConvertToArrayIndex(BoundExpression index, BindingDiagnosticBag diagnostics, bool allowIndexAndRange, out WellKnownType indexOrRangeWellknownType)
@@ -10877,7 +10911,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
-                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(),
+                return new BoundPointerElementAccess(node, isInUnsafeRegion: InUnsafeRegion, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(),
                     CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 
@@ -10890,7 +10924,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression index = arguments[0];
 
             index = ConvertToArrayIndex(index, diagnostics, allowIndexAndRange: false, indexOrRangeWellknownType: out _);
-            return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
+            return new BoundPointerElementAccess(node, isInUnsafeRegion: InUnsafeRegion, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 
         private static bool ReportRefOrOutArgument(AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)
@@ -10936,7 +10970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 instanceRealIndexerDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
-                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, expr, indexerGroup, analyzedArguments, out foundApplicableRealInstanceIndexer, ref useSiteInfo, instanceRealIndexerDiagnostics);
+                indexerAccessExpression = BindIndexerOrIndexedPropertyAccess(node, InUnsafeRegion, expr, indexerGroup, analyzedArguments, out foundApplicableRealInstanceIndexer, ref useSiteInfo, instanceRealIndexerDiagnostics);
                 indexerGroup.Free();
             }
 
@@ -11031,6 +11065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     properties[0].ToDisplayString(s_propertyGroupFormat));
                 return BoundIndexerAccess.ErrorAccess(
                     syntax,
+                    propertyGroup.IsInUnsafeRegion,
                     receiver,
                     CreateErrorPropertySymbol(properties),
                     ImmutableArray<BoundExpression>.Empty,
@@ -11040,13 +11075,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var arguments = AnalyzedArguments.GetInstance();
-            var result = BindIndexedPropertyAccess(syntax, receiver, properties, arguments, diagnostics);
+            var result = BindIndexedPropertyAccess(syntax, propertyGroup.IsInUnsafeRegion, receiver, properties, arguments, diagnostics);
             arguments.Free();
             return result;
         }
 
 #nullable enable
-        private BoundExpression BindIndexedPropertyAccess(SyntaxNode syntax, BoundExpression receiver, ImmutableArray<PropertySymbol> propertyGroup, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
+        private BoundExpression BindIndexedPropertyAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, ImmutableArray<PropertySymbol> propertyGroup, AnalyzedArguments arguments, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(receiver is not null);
             // TODO: We're creating an extra copy of the properties array in BindIndexerOrIndexedProperty
@@ -11054,7 +11089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var properties = ArrayBuilder<PropertySymbol>.GetInstance();
             properties.AddRange(propertyGroup);
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-            var result = BindIndexerOrIndexedPropertyAccess(syntax, receiver, properties, arguments, foundApplicable: out _, ref useSiteInfo, diagnostics);
+            var result = BindIndexerOrIndexedPropertyAccess(syntax, isInUnsafeRegion, receiver, properties, arguments, foundApplicable: out _, ref useSiteInfo, diagnostics);
             diagnostics.Add(syntax, useSiteInfo);
             properties.Free();
             return result;
@@ -11063,6 +11098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDynamicIndexer(
              SyntaxNode syntax,
+             bool isInUnsafeRegion,
              BoundExpression receiver,
              AnalyzedArguments arguments,
              ImmutableArray<PropertySymbol> applicableProperties,
@@ -11096,6 +11132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicIndexerAccess(
                 syntax,
+                isInUnsafeRegion,
                 receiver,
                 argArray,
                 arguments.GetNames(),
@@ -11107,6 +11144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIndexerOrIndexedPropertyAccess(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BoundExpression receiver,
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
@@ -11137,15 +11175,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 overloadResolutionResult.Free();
                 foundApplicable = true;
-                return BindDynamicIndexer(syntax, receiver, analyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics);
+                return BindDynamicIndexer(syntax, isInUnsafeRegion, receiver, analyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics);
             }
 
             foundApplicable = overloadResolutionResult.HasAnyApplicableMember;
-            return BindIndexerOrIndexedPropertyAccessContinued(syntax, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, diagnostics);
+            return BindIndexerOrIndexedPropertyAccessContinued(syntax, isInUnsafeRegion, receiver, propertyGroup, analyzedArguments, overloadResolutionResult, diagnostics);
         }
 
         private BoundExpression BindIndexerOrIndexedPropertyAccessContinued(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BoundExpression receiver,
             ArrayBuilder<PropertySymbol> propertyGroup,
             AnalyzedArguments analyzedArguments,
@@ -11184,6 +11223,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 propertyAccess = BoundIndexerAccess.ErrorAccess(
                     syntax,
+                    isInUnsafeRegion,
                     receiver,
                     property,
                     arguments,
@@ -11194,7 +11234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
-                propertyAccess = BindResolvedIndexerOrIndexedPropertyAccess(syntax, receiver, analyzedArguments, diagnostics,
+                propertyAccess = BindResolvedIndexerOrIndexedPropertyAccess(syntax, isInUnsafeRegion, receiver, analyzedArguments, diagnostics,
                     argumentNames, argumentRefKinds, resolutionResult);
             }
 
@@ -11202,7 +11242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return propertyAccess;
         }
 
-        private BoundIndexerAccess BindResolvedIndexerOrIndexedPropertyAccess(SyntaxNode syntax, BoundExpression receiver, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, MemberResolutionResult<PropertySymbol> resolutionResult)
+        private BoundIndexerAccess BindResolvedIndexerOrIndexedPropertyAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, MemberResolutionResult<PropertySymbol> resolutionResult)
         {
             PropertySymbol property = resolutionResult.Member;
 
@@ -11234,6 +11274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the indexer is being used in a 'get', or 'set', or 'get+set' (compound assignment) context.
             return new BoundIndexerAccess(
                 syntax,
+                isInUnsafeRegion,
                 receiver,
                 initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, property),
                 property,
@@ -11271,7 +11312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver, receiver.Type) { WasCompilerGenerated = true };
+            var receiverPlaceholder = new BoundImplicitIndexerReceiverPlaceholder(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, isEquivalentToThisReference: receiver.IsEquivalentToThisReference, receiver, receiver.Type) { WasCompilerGenerated = true };
             ImmutableArray<BoundImplicitIndexerValuePlaceholder> intIndexerOrSliceArgumentPlaceholders = default;
             if (TryBindNonExtensionImplicitIndexerParts(syntax, receiverPlaceholder, argKind,
                 out BoundExpression? lengthOrCountAccess, out BoundExpression? indexerOrSliceAccess, ref intIndexerOrSliceArgumentPlaceholders, ref useSiteInfo, diagnostics))
@@ -11303,6 +11344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = new BoundImplicitIndexerAccess(
                 syntax,
+                isInUnsafeRegion: InUnsafeRegion,
                 receiver: receiver,
                 argument: BindToNaturalType(arguments.Arguments[0], diagnostics),
                 lengthOrCountAccess: lengthOrCountAccess,
@@ -11406,8 +11448,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments is null)
             {
                 analyzedArguments = AnalyzedArguments.GetInstance();
-                var startArgumentPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, GetSpecialType(SpecialType.System_Int32, diagnostics, syntax)) { WasCompilerGenerated = true };
-                var lengthArgumentPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, GetSpecialType(SpecialType.System_Int32, diagnostics, syntax)) { WasCompilerGenerated = true };
+                var startArgumentPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, GetSpecialType(SpecialType.System_Int32, diagnostics, syntax)) { WasCompilerGenerated = true };
+                var lengthArgumentPlaceholder = new BoundImplicitIndexerValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, GetSpecialType(SpecialType.System_Int32, diagnostics, syntax)) { WasCompilerGenerated = true };
                 analyzedArguments.Arguments.Add(startArgumentPlaceholder);
                 analyzedArguments.Arguments.Add(lengthArgumentPlaceholder);
 
@@ -11415,7 +11457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var boundMethodGroup = new BoundMethodGroup(
-                syntax, typeArgumentsOpt: default, methodName, methods.ToImmutable(),
+                syntax, isInUnsafeRegion: InUnsafeRegion, typeArgumentsOpt: default, methodName, methods.ToImmutable(),
                 lookupSymbolOpt: methods.Count == 1 ? methods[0] : null, lookupError: null, BoundMethodGroupFlags.None, functionType: null, receiver, LookupResultKind.Viable)
             { WasCompilerGenerated = true };
 
@@ -12349,7 +12391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (receiver.HasAnyErrors || access.HasAnyErrors)
             {
-                return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);
+                return new BoundConditionalAccess(node, isInUnsafeRegion: InUnsafeRegion, receiver, access, CreateErrorType(), hasErrors: true);
             }
 
             var receiverType = receiver.Type;
@@ -12399,7 +12441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 accessType = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, node).Construct(accessType);
             }
 
-            return new BoundConditionalAccess(node, receiver, access, accessType);
+            return new BoundConditionalAccess(node, isInUnsafeRegion: InUnsafeRegion, receiver, access, accessType);
         }
 
         private bool ResultIsUsed(ExpressionSyntax node)
@@ -12451,7 +12493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(new CSDiagnostic(diagnosticInfo, access.Syntax.Location));
             receiver = BadExpression(receiver.Syntax, receiver);
 
-            return new BoundConditionalAccess(node, receiver, access, CreateErrorType(), hasErrors: true);
+            return new BoundConditionalAccess(node, isInUnsafeRegion: InUnsafeRegion, receiver, access, CreateErrorType(), hasErrors: true);
         }
 
         private BoundExpression BindMemberBindingExpression(MemberBindingExpressionSyntax node, bool invoked, bool indexed, BindingDiagnosticBag diagnostics)
@@ -12506,7 +12548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverType = receiverType.GetNullableUnderlyingType();
             }
 
-            receiver = new BoundConditionalReceiver(receiver.Syntax, 0, receiverType ?? CreateErrorType(), hasErrors: receiver.HasErrors) { WasCompilerGenerated = true };
+            receiver = new BoundConditionalReceiver(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, 0, receiverType ?? CreateErrorType(), hasErrors: receiver.HasErrors) { WasCompilerGenerated = true };
             return receiver;
         }
 

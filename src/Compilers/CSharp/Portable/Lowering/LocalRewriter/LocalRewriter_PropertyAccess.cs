@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ReferenceEquals(propertySymbol, _compilation.GetSpecialTypeMember(SpecialMember.System_Array__Length)) ||
                         !_inExpressionLambda && ReferenceEquals(propertySymbol, _compilation.GetSpecialTypeMember(SpecialMember.System_Array__LongLength)))
                     {
-                        return new BoundArrayLength(syntax, rewrittenReceiverOpt, type);
+                        return new BoundArrayLength(syntax, isInUnsafeRegion: false, rewrittenReceiverOpt, type);
                     }
                 }
             }
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, type) :
-                    new BoundPropertyAccess(syntax, rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, type);
+                    new BoundPropertyAccess(syntax, isInUnsafeRegion: false, rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, type);
             }
             else
             {
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty);
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, property.Type) :
-                    new BoundPropertyAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, property.Type);
+                    new BoundPropertyAccess(syntax, isInUnsafeRegion: false, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, property.Type);
             }
             else
             {

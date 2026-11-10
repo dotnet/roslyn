@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetObjectAtAddressMethodName);
             var argument = new BoundLiteral(
                 syntax,
+                isInUnsafeRegion: false,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_address),
                 method.Parameters[0].Type);
             var call = BoundCall.Synthesized(

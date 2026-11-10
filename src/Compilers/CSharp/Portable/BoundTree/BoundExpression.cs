@@ -13,6 +13,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
+        /// <summary>
+        /// The unsafe context of the original expression, preserved through deferred binding and rewriting.
+        /// Unlike HasErrors, this does not incorporate the context of child expressions.
+        /// </summary>
+        /// <remarks>
+        /// Initial binding records the binding binder's InUnsafeRegion. Replacements retain the
+        /// original expression's context. Post-binding synthesis with no originating expression uses false.
+        /// </remarks>
+        public new bool IsInUnsafeRegion => base.IsInUnsafeRegion;
+
         public SimpleNameSyntax? InterceptableNameSyntax
         {
             get
@@ -48,19 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = (BoundExpression)MemberwiseClone();
             result.IsSuppressed = suppress;
-            return result;
-        }
-
-        internal BoundExpression WithUnsafeExpressionContext(bool inUnsafeExpression)
-        {
-            // Transparent syntax must not clear the context already recorded on its operand.
-            if (!inUnsafeExpression || WasBoundInUnsafeExpression)
-            {
-                return this;
-            }
-
-            var result = (BoundExpression)MemberwiseClone();
-            result.WasBoundInUnsafeExpression = true;
             return result;
         }
 
@@ -151,12 +148,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-        }
-
-        public new bool WasBoundInUnsafeExpression
-        {
-            get => base.WasBoundInUnsafeExpression;
-            protected set => base.WasBoundInUnsafeExpression = value;
         }
 
         public new NullabilityInfo TopLevelNullability
@@ -329,8 +320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.LocalSymbol; }
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
+        public BoundLocal(SyntaxNode syntax, bool isInUnsafeRegion, LocalSymbol localSymbol, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
         {
         }
 

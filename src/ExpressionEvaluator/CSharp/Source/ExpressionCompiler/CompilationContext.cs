@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                     (EEMethodSymbol method, DiagnosticBag diags, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
                                     {
                                         declaredLocals = ImmutableArray<LocalSymbol>.Empty;
-                                        var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
+                                        var expression = new BoundLocal(syntax, isInUnsafeRegion: false, local, constantValueOpt: null, type: local.Type);
                                         properties = default;
                                         return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
                                     });
@@ -637,7 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var bindingDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
                 RoslynDebug.AssertNotNull(bindingDiagnostics.DiagnosticBag);
 
-                var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, bindingDiagnostics), type: local.Type);
+                var expression = new BoundLocal(syntax, isInUnsafeRegion: false, local, constantValueOpt: local.GetConstantValue(null, null, bindingDiagnostics), type: local.Type);
 
                 diagnostics.AddRange(bindingDiagnostics.DiagnosticBag);
                 bindingDiagnostics.Free();
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var parameter = method.Parameters[parameterIndex];
-                var expression = new BoundParameter(syntax, parameter);
+                var expression = new BoundParameter(syntax, isInUnsafeRegion: false, parameter);
                 properties = default;
                 return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
             });
@@ -666,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return CreateMethod(container, methodName, syntax, (EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals, out ResultProperties properties) =>
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
-                var expression = new BoundThisReference(syntax, GetNonDisplayClassContainer(container.SubstitutedSourceType));
+                var expression = new BoundThisReference(syntax, isInUnsafeRegion: false, GetNonDisplayClassContainer(container.SubstitutedSourceType));
                 properties = default;
                 return new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
             });
@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
-                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
+                var expression = new BoundObjectCreationExpression(syntax, isInUnsafeRegion: false, type.InstanceConstructors[0]);
                 var statement = new BoundReturnStatement(syntax, RefKind.None, expression, @checked: false) { WasCompilerGenerated = true };
                 properties = default;
                 return statement;

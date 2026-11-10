@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var frame = makeFrame(this.HoistedField.ContainingType, arg);
             var field = this.HoistedField.AsMember((NamedTypeSymbol)frame.Type);
-            return new BoundFieldAccess(node, frame, field, constantValueOpt: null);
+            return new BoundFieldAccess(node, isInUnsafeRegion: false, frame, field, constantValueOpt: null);
         }
     }
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var frame = makeFrame(this.HoistedField.ContainingType, arg);
             var field = this.HoistedField.AsMember((NamedTypeSymbol)frame.Type);
-            return new BoundFieldAccess(node, frame, field, constantValueOpt: null);
+            return new BoundFieldAccess(node, isInUnsafeRegion: false, frame, field, constantValueOpt: null);
         }
     }
 

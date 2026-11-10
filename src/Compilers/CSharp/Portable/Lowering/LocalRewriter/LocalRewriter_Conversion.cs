@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                result = new BoundObjectCreationExpression(node.Syntax, ctor.AsMember((NamedTypeSymbol)node.Type), utf8Bytes, _factory.Literal(0), _factory.Literal(length));
+                result = new BoundObjectCreationExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, ctor.AsMember((NamedTypeSymbol)node.Type), utf8Bytes, _factory.Literal(0), _factory.Literal(length));
             }
 
             _factory.Syntax = save_Syntax;
@@ -155,8 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var utf8Bytes = new BoundArrayCreation(
                                     syntax,
+                                    isInUnsafeRegion: false,
                                     ImmutableArray.Create<BoundExpression>(_factory.Literal(builder.Count)),
-                                    new BoundArrayInitialization(syntax, isInferred: false, builder.ToImmutableAndFree()),
+                                    new BoundArrayInitialization(syntax, isInUnsafeRegion: false, isInferred: false, builder.ToImmutableAndFree()),
                                     byteArray);
             return utf8Bytes;
         }
@@ -279,6 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 result = new BoundConversion(
                     syntax,
+                    isInUnsafeRegion: false,
                     result,
                     Conversion.Identity,
                     isBaseConversion: false,
@@ -389,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (NullableNeverHasValue(rewrittenOperand))
                         {
-                            return new BoundDefaultExpression(syntax, rewrittenType);
+                            return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, rewrittenType);
                         }
 
                         BoundExpression? nullableValue = NullableAlwaysHasValue(rewrittenOperand);
@@ -405,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.DefaultLiteral:
                     if (!_inExpressionLambda || !explicitCastInCode)
                     {
-                        return new BoundDefaultExpression(syntax, rewrittenType);
+                        return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, rewrittenType);
                     }
 
                     break;
@@ -414,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitReference:
                     if (rewrittenOperand.IsDefaultValue() && (!_inExpressionLambda || !explicitCastInCode))
                     {
-                        return new BoundDefaultExpression(syntax, rewrittenType);
+                        return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, rewrittenType);
                     }
 
                     break;
@@ -433,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(rewrittenOperand.Type is { });
                     if (rewrittenOperand.IsDefaultValue() && (!_inExpressionLambda || !explicitCastInCode))
                     {
-                        return new BoundDefaultExpression(syntax, rewrittenType);
+                        return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, rewrittenType);
                     }
 
                     if (rewrittenType.SpecialType == SpecialType.System_Decimal || rewrittenOperand.Type.SpecialType == SpecialType.System_Decimal)
@@ -496,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenOperand.IsDefaultValue() &&
                         (!_inExpressionLambda || !explicitCastInCode))
                     {
-                        return new BoundDefaultExpression(syntax, rewrittenType);
+                        return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, rewrittenType);
                     }
 
                     if (rewrittenType.SpecialType == SpecialType.System_Decimal)
@@ -523,6 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // which will be eliminated during emitting (see EmitEnumConversion): e.g., E e = (E)(int) d;
                         return new BoundConversion(
                             syntax,
+                            isInUnsafeRegion: false,
                             rewrittenNode,
                             conversion,
                             isBaseConversion: false,
@@ -558,7 +561,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var mg = (BoundMethodGroup)rewrittenOperand;
                         MethodSymbol? symbolOpt = oldNodeOpt.SymbolOpt;
                         Debug.Assert(symbolOpt is { });
-                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, symbolOpt,
+                        return new BoundFunctionPointerLoad(oldNodeOpt.Syntax, isInUnsafeRegion: oldNodeOpt.IsInUnsafeRegion, symbolOpt,
                                                             constrainedToTypeOpt: symbolOpt.IsStatic &&
                                                                                   (symbolOpt.IsAbstract || symbolOpt.IsVirtual) ? mg.ReceiverOpt?.Type : null,
                                                             type: funcPtrType, hasErrors: false);
@@ -577,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(receiver is { });
                         _factory.Syntax = oldSyntax;
 
-                        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, argument: receiver, methodOpt: method,
+                        var boundDelegateCreation = new BoundDelegateCreationExpression(syntax, isInUnsafeRegion: false, argument: receiver, methodOpt: method,
                                                                                         isExtensionMethod: oldNodeOpt.IsExtensionMethod, wasTargetTyped: false, type: rewrittenType);
 
                         EnsureParamCollectionAttributeExists(rewrittenOperand.Syntax, rewrittenType);
@@ -648,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (!_inExpressionLambda && _compilation.IsReadOnlySpanType(destinationType))
                             {
-                                return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, method, destinationType) { WasCompilerGenerated = true };
+                                return new BoundReadOnlySpanFromArray(syntax, isInUnsafeRegion: false, rewrittenOperand, method, destinationType) { WasCompilerGenerated = true };
                             }
 
                             return _factory.Call(null, method, rewrittenOperand);
@@ -741,6 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: rewrittenType) :
                 new BoundConversion(
                     syntax,
+                    isInUnsafeRegion: false,
                     rewrittenOperand,
                     conversion,
                     isBaseConversion: false,
@@ -1084,6 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion.Conversion.AssertUnderlyingConversionsChecked();
                     return new BoundConversion(
                         syntax: expression.Syntax,
+                        isInUnsafeRegion: expression.IsInUnsafeRegion,
                         operand: convertedArgument,
                         conversion: underlying[0],
                         @checked: conversion.Checked,
@@ -1132,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion.AssertUnderlyingConversionsChecked();
                 BoundExpression rewrittenConversion = MakeConversionNode(syntax, rewrittenOperand, conversion.UnderlyingConversions[0], rewrittenType.GetNullableUnderlyingType(), @checked);
                 MethodSymbol ctor = UnsafeGetNullableMethod(syntax, rewrittenType, SpecialMember.System_Nullable_T__ctor);
-                return new BoundObjectCreationExpression(syntax, ctor, rewrittenConversion);
+                return new BoundObjectCreationExpression(syntax, isInUnsafeRegion: false, ctor, rewrittenConversion);
             }
             else
             {
@@ -1199,13 +1204,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversionKind = conversion.Kind.IsImplicitConversion() ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
                 var userDefinedConversion = new Conversion(conversionKind, method, false);
                 var result = new BoundConversion(
-                    syntax, rewrittenOperand, userDefinedConversion, @checked, explicitCastInCode: explicitCastInCode,
+                    syntax, isInUnsafeRegion: false, rewrittenOperand, userDefinedConversion, @checked, explicitCastInCode: explicitCastInCode,
                     conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree, constantValueOpt: null, rewrittenType);
                 return result;
             }
             else
             {
-                return new BoundConversion(syntax, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt: null, rewrittenType);
+                return new BoundConversion(syntax, isInUnsafeRegion: false, rewrittenOperand, conversion, @checked, explicitCastInCode: explicitCastInCode, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt: null, rewrittenType);
             }
         }
 
@@ -1246,6 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             conversion.AssertUnderlyingConversionsChecked();
             BoundExpression consequence = new BoundObjectCreationExpression(
                 syntax,
+                isInUnsafeRegion: false,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
                 MakeConversionNode(
                     syntax,
@@ -1253,7 +1259,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     conversion.UnderlyingConversions[0],
                     type.GetNullableUnderlyingType(),
                     @checked));
-            BoundExpression alternative = new BoundDefaultExpression(syntax, type);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
             BoundExpression conditionalExpression = RewriteConditionalOperator(
                 syntax: syntax,
                 rewrittenCondition: condition,
@@ -1265,6 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create(boundTemp.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 value: conditionalExpression,
@@ -1282,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (NullableNeverHasValue(operand))
             {
-                return new BoundDefaultExpression(syntax, type);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
             }
 
             // If the converted expression is known to never be null then we can return
@@ -1294,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
                 return MakeLiftedUserDefinedConversionConsequence(BoundCall.Synthesized(
                     syntax,
-                    receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                    receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     conversion.Method,
                     nonNullValue), type);
@@ -1318,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (NullableNeverHasValue(operand))
             {
-                return new BoundDefaultExpression(syntax, type);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type);
             }
 
             // Second, a trickier optimization. If the conversion is "(T?)(new S?(x))" then
@@ -1330,6 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion.AssertUnderlyingConversionsChecked();
                 return new BoundObjectCreationExpression(
                     syntax,
+                    isInUnsafeRegion: false,
                     UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
                     MakeConversionNode(
                         syntax,
@@ -1387,6 +1395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return new BoundSequence(
                             seq.Syntax,
+                            isInUnsafeRegion: seq.IsInUnsafeRegion,
                             seq.Locals,
                             seq.SideEffects,
                             RewriteConditionalOperator(
@@ -1435,13 +1444,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((rewrittenOperand.Type.IsArray()) && _compilation.IsReadOnlySpanType(rewrittenType))
             {
-                return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, conversion.Method, rewrittenType) { WasCompilerGenerated = true };
+                return new BoundReadOnlySpanFromArray(syntax, isInUnsafeRegion: false, rewrittenOperand, conversion.Method, rewrittenType) { WasCompilerGenerated = true };
             }
 
             var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
             BoundExpression result = BoundCall.Synthesized(
                 syntax,
-                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 conversion.Method,
                 rewrittenOperand);
@@ -1455,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(resultType.IsNullableType() && TypeSymbol.Equals(resultType.GetNullableUnderlyingType(), call.Method.ReturnType, TypeCompareKind.ConsiderEverything2));
                 MethodSymbol ctor = UnsafeGetNullableMethod(call.Syntax, resultType, SpecialMember.System_Nullable_T__ctor);
-                return new BoundObjectCreationExpression(call.Syntax, ctor, call);
+                return new BoundObjectCreationExpression(call.Syntax, isInUnsafeRegion: call.IsInUnsafeRegion, ctor, call);
             }
 
             return call;
@@ -1520,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
             BoundCall userDefinedCall = BoundCall.Synthesized(
                 syntax,
-                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, aliasOpt: null, constrainedToTypeOpt),
+                receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 conversion.Method,
                 callGetValueOrDefault);
@@ -1529,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = MakeLiftedUserDefinedConversionConsequence(userDefinedCall, rewrittenType);
 
             // default(R?)
-            BoundExpression alternative = new BoundDefaultExpression(syntax, rewrittenType);
+            BoundExpression alternative = new BoundDefaultExpression(syntax, isInUnsafeRegion: false, rewrittenType);
 
             // temp.HasValue ? new R?(op_Whatever(temp.GetValueOrDefault())) : default(R?)
             BoundExpression conditionalExpression = RewriteConditionalOperator(
@@ -1545,6 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // temp.HasValue ? new R?(op_Whatever(temp.GetValueOrDefault())) : default(R?)
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray.Create(boundTemp.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 value: conditionalExpression,
@@ -1568,6 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundObjectCreationExpression(
                     syntax,
+                    isInUnsafeRegion: false,
                     constructor,
                     [rewrittenOperand],
                     argumentNamesOpt: default,
@@ -1583,7 +1594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return BoundCall.Synthesized(
                     syntax,
-                    receiverOpt: new BoundTypeExpression(syntax, aliasOpt: null, conversion.Method.ReturnType),
+                    receiverOpt: new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, conversion.Method.ReturnType),
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     conversion.Method,
                     rewrittenOperand);
@@ -1852,7 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = new Conversion(conversionKind, method, isExtensionMethod: false);
 
                 return new BoundConversion(
-                    syntax, operand, conversion, @checked: false, explicitCastInCode: false,
+                    syntax, isInUnsafeRegion: false, operand, conversion, @checked: false, explicitCastInCode: false,
                     conversionGroupOpt: null, InConversionGroupFlags.LoweredFormOfUserDefinedConversionForExpressionTree,
                     constantValueOpt: constantValueOpt, type: toType);
             }

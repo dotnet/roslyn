@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (index < 0)
                     {
-                        return new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-index),
+                        return new BoundFromEndIndexExpression(_factory.Syntax, isInUnsafeRegion: false, _factory.Literal(-index),
                             methodOpt: ctor, _factory.WellKnownType(WellKnownType.System_Index));
                     }
 
@@ -350,11 +350,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // LocalRewriter.VisitRangeImplicitIndexerAccess understands this format
                     var indexCtor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Index__ctor);
-                    var end = new BoundFromEndIndexExpression(_factory.Syntax, _factory.Literal(-e.EndIndex),
+                    var end = new BoundFromEndIndexExpression(_factory.Syntax, isInUnsafeRegion: false, _factory.Literal(-e.EndIndex),
                         methodOpt: indexCtor, _factory.WellKnownType(WellKnownType.System_Index));
 
                     var rangeCtor = (MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_Range__ctor);
-                    return new BoundRangeExpression(e.Syntax, makeUnloweredIndexArgument(e.StartIndex), end,
+                    return new BoundRangeExpression(e.Syntax, isInUnsafeRegion: false, makeUnloweredIndexArgument(e.StartIndex), end,
                         methodOpt: rangeCtor, _factory.WellKnownType(WellKnownType.System_Range));
                 }
             }
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         syntax,
                         operatorKind,
                         _factory.Convert(operandType, rewrittenExpr, Conversion.PointerToVoid),
-                        _factory.Convert(operandType, new BoundLiteral(syntax, ConstantValue.Null, objectType), Conversion.NullToPointer),
+                        _factory.Convert(operandType, new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Null, objectType), Conversion.NullToPointer),
                         _factory.SpecialType(SpecialType.System_Boolean),
                         method: null, constrainedToTypeOpt: null);
                 }

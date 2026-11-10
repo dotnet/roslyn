@@ -5794,8 +5794,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // https://github.com/dotnet/roslyn/issues/78828: https://github.com/dotnet/roslyn/pull/79103#discussion_r2162657025
                     //            In analysis of invocations (`VisitCall`/`VisitArguments`), we use `GetArgumentsForMethodTypeInference` to get inputs to `MethodTypeInferrer.Infer`.
                     //            Do we need the same thing here (it has extra cases to deal with lambda, collection expressions and typeless expressions)?
-                    [new BoundExpressionWithNullability(leftOperand.Syntax, leftOperand, leftUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, leftUnderlyingType.Type),
-                     new BoundExpressionWithNullability(rightOperand.Syntax, rightOperand, rightUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, rightUnderlyingType.Type)],
+                    [new BoundExpressionWithNullability(leftOperand.Syntax, isInUnsafeRegion: leftOperand.IsInUnsafeRegion, leftOperand, leftUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, leftUnderlyingType.Type),
+                     new BoundExpressionWithNullability(rightOperand.Syntax, isInUnsafeRegion: rightOperand.IsInUnsafeRegion, rightOperand, rightUnderlyingType.ToTypeWithAnnotations(compilation).NullableAnnotation, rightUnderlyingType.Type)],
                     ref discardedUseSiteInfo,
                     new MethodInferenceExtensions(this),
                     ordinals: null);
@@ -6826,7 +6826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return !type.HasType ?
                 expr :
-                new BoundExpressionWithNullability(expr.Syntax, expr, type.NullableAnnotation, type.Type);
+                new BoundExpressionWithNullability(expr.Syntax, isInUnsafeRegion: expr.IsInUnsafeRegion, expr, type.NullableAnnotation, type.Type);
         }
 
         public override BoundNode? VisitConditionalReceiver(BoundConditionalReceiver node)
@@ -8463,7 +8463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             parameterWithState = TypeWithState.Create(parameterType.Type, adjustedState);
                         }
 
-                        var parameterValue = new BoundParameter(argument.Syntax, parameter);
+                        var parameterValue = new BoundParameter(argument.Syntax, isInUnsafeRegion: argument.IsInUnsafeRegion, parameter);
                         var lValueType = result.LValueType;
                         trackNullableStateForAssignment(receiverType, parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations, refKind, parameter);
 
@@ -8503,7 +8503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // track state by assigning from a fictional value from the parameter to the argument.
-                        var parameterValue = new BoundParameter(argument.Syntax, parameter);
+                        var parameterValue = new BoundParameter(argument.Syntax, isInUnsafeRegion: argument.IsInUnsafeRegion, parameter);
 
                         // If the argument type has annotations, we perform an additional check for nullable value types
                         CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax);
@@ -9004,7 +9004,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // So in this case, just pass 'null' for this as they do not contribute to inference and it's 
                     // the same as if the user did not provide any.
                     return new BoundUnconvertedCollectionExpression(
-                        collection.Syntax, withElement: null, elements: elementsBuilder.ToImmutableAndFree())
+                        collection.Syntax, isInUnsafeRegion: collection.IsInUnsafeRegion, withElement: null, elements: elementsBuilder.ToImmutableAndFree())
                     {
                         WasCompilerGenerated = true
                     };
@@ -9021,10 +9021,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (argument is BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithInferredType } || IsTargetTypedExpression(argument))
                 {
                     // target-typed contexts don't contribute to nullability
-                    return new BoundExpressionWithNullability(argument.Syntax, argument, NullableAnnotation.Oblivious, type: null);
+                    return new BoundExpressionWithNullability(argument.Syntax, isInUnsafeRegion: argument.IsInUnsafeRegion, argument, NullableAnnotation.Oblivious, type: null);
                 }
 
-                return new BoundExpressionWithNullability(argument.Syntax, argument, argumentType.NullableAnnotation, argumentType.Type);
+                return new BoundExpressionWithNullability(argument.Syntax, isInUnsafeRegion: argument.IsInUnsafeRegion, argument, argumentType.NullableAnnotation, argumentType.Type);
             }
 
             static UnboundLambda getUnboundLambda(BoundLambda expr, VariableState variableState, GetterNullResilienceData? getterNullResilienceData)
@@ -9703,7 +9703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
 
-                            var conversionOperand = new BoundValueForNullableAnalysis(convertedNode.Syntax, originalExpression: null, valueFieldType.Type);
+                            var conversionOperand = new BoundValueForNullableAnalysis(convertedNode.Syntax, isInUnsafeRegion: convertedNode.IsInUnsafeRegion, originalExpression: null, valueFieldType.Type);
                             int conversionOperandSlot = -1;
 
                             if (targetFieldSlot > 0 || valueFieldSlot > 0)
@@ -10780,7 +10780,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // toType -> target type
-            var unionInstance = new BoundValueForNullableAnalysis((unionConstructionConversion ?? conversionOperand).Syntax, unionConstructionConversion, toType);
+            var unionInstance = new BoundValueForNullableAnalysis((unionConstructionConversion ?? conversionOperand).Syntax, isInUnsafeRegion: false, unionConstructionConversion, toType);
             TypeWithState unionTypeWithState;
 
             if (factory.ReturnsVoid)
@@ -11197,7 +11197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var parameter in parameters)
                     {
                         var parameterType = parameter.TypeWithAnnotations;
-                        arguments.Add(new BoundExpressionWithNullability(syntax, new BoundParameter(syntax, parameter), parameterType.NullableAnnotation, parameterType.Type));
+                        arguments.Add(new BoundExpressionWithNullability(syntax, isInUnsafeRegion: false, new BoundParameter(syntax, isInUnsafeRegion: false, parameter), parameterType.NullableAnnotation, parameterType.Type));
                     }
 
                     Debug.Assert(_binder is object);
@@ -11578,7 +11578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     placeholderArgs.Add(CreatePlaceholderIfNecessary(right, rightResult.ToTypeWithAnnotations(compilation)));
                     for (int i = 0; i < n; i++)
                     {
-                        placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
+                        placeholderArgs.Add(new BoundExpressionWithNullability(variables[i].Expression.Syntax, isInUnsafeRegion: false, variables[i].Expression, NullableAnnotation.Oblivious, conversion.DeconstructionInfo.OutputPlaceholders[i].Type));
                     }
 
                     var argumentRefKinds = AdjustArgumentRefKindsIfNeeded(invocation.ArgumentRefKindsOpt, isExtensionBlockMethod, deconstructMethod, argumentCount: n);
@@ -11806,7 +11806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For instance, Boxing conversions (see Deconstruction_ImplicitBoxingConversion_02) and
                 // ImplicitNullable conversions (see Deconstruction_ImplicitNullableConversion_02).
                 var fields = tupleType.TupleElements;
-                return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, e, f, constantValueOpt: null), expr);
+                return fields.SelectAsArray((f, e) => (BoundExpression)new BoundFieldAccess(e.Syntax, isInUnsafeRegion: false, e, f, constantValueOpt: null), expr);
             }
 
             throw ExceptionUtilities.Unreachable();
@@ -12984,7 +12984,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     extension,
                     method.OriginalDefinition.ParameterTypesWithAnnotations,
                     method.OriginalDefinition.ParameterRefKinds,
-                    [new BoundExpressionWithNullability(operand.Syntax, operand, operandType.ToTypeWithAnnotations(compilation).NullableAnnotation, operandType.Type)],
+                    [new BoundExpressionWithNullability(operand.Syntax, isInUnsafeRegion: operand.IsInUnsafeRegion, operand, operandType.ToTypeWithAnnotations(compilation).NullableAnnotation, operandType.Type)],
                     ref discardedUseSiteInfo,
                     new MethodInferenceExtensions(this),
                     ordinals: null);

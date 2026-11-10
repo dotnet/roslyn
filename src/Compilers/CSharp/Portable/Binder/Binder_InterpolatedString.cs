@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         hasErrors = true;
                                     }
 
-                                    format = new BoundLiteral(interpolation.FormatClause, ConstantValue.Create(text), stringType, hasErrors);
+                                    format = new BoundLiteral(interpolation.FormatClause, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(text), stringType, hasErrors);
                                 }
 
-                                builder.Add(new BoundStringInsert(interpolation, value, alignment, format, isInterpolatedStringHandlerAppendCall: false));
+                                builder.Add(new BoundStringInsert(interpolation, isInUnsafeRegion: InUnsafeRegion, value, alignment, format, isInterpolatedStringHandlerAppendCall: false));
                                 if (!isResultConstant ||
                                     value.ConstantValueOpt == null ||
                                     !(interpolation is { FormatClause: null, AlignmentClause: null }) ||
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
 
                                 var constantValue = ConstantValue.Create(text, SpecialType.System_String);
-                                builder.Add(new BoundLiteral(content, constantValue, stringType));
+                                builder.Add(new BoundLiteral(content, isInUnsafeRegion: InUnsafeRegion, constantValue, stringType));
                                 if (isResultConstant)
                                 {
                                     resultConstant = resultConstant is null
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(isResultConstant == (resultConstant != null));
-            return new BoundUnconvertedInterpolatedString(node, builder.ToImmutableAndFree(), resultConstant, stringType);
+            return new BoundUnconvertedInterpolatedString(node, isInUnsafeRegion: InUnsafeRegion, builder.ToImmutableAndFree(), resultConstant, stringType);
 
             static string unescapeInterpolatedStringLiteral(string value)
             {
@@ -266,6 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundInterpolatedString constructWithoutData(ImmutableArray<BoundExpression> parts)
                 => new BoundInterpolatedString(
                     unconvertedInterpolatedString.Syntax,
+                    isInUnsafeRegion: unconvertedInterpolatedString.IsInUnsafeRegion,
                     interpolationData: null,
                     parts,
                     unconvertedInterpolatedString.ConstantValueOpt,
@@ -341,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression construction = MakeInvocationExpression( // Tracked by https://github.com/dotnet/roslyn/issues/78965 : interpolated string, test this scenario with a delegate-returning property (should be blocked by virtue of allowFieldsAndProperties: false)
                 syntax,
-                new BoundTypeExpression(syntax, null, factoryType) { WasCompilerGenerated = true },
+                new BoundTypeExpression(syntax, isInUnsafeRegion: InUnsafeRegion, null, factoryType) { WasCompilerGenerated = true },
                 factoryMethod,
                 expressions,
                 diagnostics,
@@ -361,6 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundInterpolatedString(
                 syntax,
+                isInUnsafeRegion: InUnsafeRegion,
                 interpolationData: new InterpolatedStringHandlerData(construction),
                 parts,
                 unconvertedSource.ConstantValueOpt,
@@ -411,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                expressions[0] = new BoundLiteral(syntax, ConstantValue.Create(formatString.ToStringAndFree()), GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_String, diagnostics, syntax)) { WasCompilerGenerated = true };
+                expressions[0] = new BoundLiteral(syntax, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(formatString.ToStringAndFree()), GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_String, diagnostics, syntax)) { WasCompilerGenerated = true };
                 return expressions.ToImmutableAndFree();
             }
 
@@ -530,6 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(arg.AppendCalls.Length > i);
                 return new BoundInterpolatedString(
                     expression.Syntax,
+                    isInUnsafeRegion: expression.IsInUnsafeRegion,
                     interpolationData: null,
                     arg.AppendCalls[i],
                     expression.ConstantValueOpt,
@@ -540,6 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             static BoundBinaryOperator createBinaryOperator(BoundBinaryOperator original, BoundExpression left, BoundExpression right, (ImmutableArray<ImmutableArray<BoundExpression>> _, TypeSymbol @string) arg)
                 => new BoundBinaryOperator(
                     original.Syntax,
+                    isInUnsafeRegion: original.IsInUnsafeRegion,
                     BinaryOperatorKind.StringConcatenation,
                     left,
                     right,
@@ -591,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundInterpolatedString(
                 unconvertedInterpolatedString.Syntax,
+                isInUnsafeRegion: unconvertedInterpolatedString.IsInUnsafeRegion,
                 interpolationData,
                 appendCalls[0],
                 unconvertedInterpolatedString.ConstantValueOpt,
@@ -648,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We satisfy the conditions for using an interpolated string builder. Bind all the builder calls unconditionally, so that if
             // there are errors we get better diagnostics than "could not convert to object."
-            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(syntax, interpolatedStringHandlerType) { WasCompilerGenerated = true };
+            var implicitBuilderReceiver = new BoundInterpolatedStringHandlerPlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, interpolatedStringHandlerType) { WasCompilerGenerated = true };
             var (appendCallsArray, usesBoolReturn, positionInfo, baseStringLength, numFormatHoles) = BindInterpolatedStringAppendCalls(partsArray, implicitBuilderReceiver, diagnostics);
 
             // Prior to C# 10, all types in an interpolated string expression needed to be convertible to `object`. After 10, some types
@@ -721,11 +726,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because we want to track that we're using the type no matter what.
             var boolType = GetSpecialType(SpecialType.System_Boolean, diagnostics, syntax);
             var trailingConstructorValidityPlaceholder =
-                new BoundInterpolatedStringArgumentPlaceholder(syntax, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType)
+                new BoundInterpolatedStringArgumentPlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter, boolType)
                 { WasCompilerGenerated = true };
             var outConstructorAdditionalArguments = additionalConstructorArguments.Add(trailingConstructorValidityPlaceholder);
             refKindsBuilder.Add(RefKind.Out);
-            populateArguments(syntax, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+            populateArguments(syntax, InUnsafeRegion, outConstructorAdditionalArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
 
             BoundExpression constructorCall;
             var outConstructorDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
@@ -737,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentsBuilder.Clear();
 
                 // Try again without an out parameter.
-                populateArguments(syntax, additionalConstructorArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
+                populateArguments(syntax, InUnsafeRegion, additionalConstructorArguments, baseStringLength, numFormatHoles, intType, argumentsBuilder);
                 refKindsBuilder.RemoveLast();
 
                 var nonOutConstructorDiagnostics = BindingDiagnosticBag.GetInstance(template: outConstructorDiagnostics);
@@ -814,12 +819,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return (appendCallsArray, interpolationData);
 
-            static void populateArguments(SyntaxNode syntax, ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments, int baseStringLength, int numFormatHoles, NamedTypeSymbol intType, ArrayBuilder<BoundExpression> argumentsBuilder)
+            static void populateArguments(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundInterpolatedStringArgumentPlaceholder> additionalConstructorArguments, int baseStringLength, int numFormatHoles, NamedTypeSymbol intType, ArrayBuilder<BoundExpression> argumentsBuilder)
             {
                 // literalLength
-                argumentsBuilder.Add(new BoundLiteral(syntax, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true });
+                argumentsBuilder.Add(new BoundLiteral(syntax, isInUnsafeRegion, ConstantValue.Create(baseStringLength), intType) { WasCompilerGenerated = true });
                 // formattedCount
-                argumentsBuilder.Add(new BoundLiteral(syntax, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
+                argumentsBuilder.Add(new BoundLiteral(syntax, isInUnsafeRegion, ConstantValue.Create(numFormatHoles), intType) { WasCompilerGenerated = true });
                 // Any other arguments from the call site
                 argumentsBuilder.AddRange(additionalConstructorArguments);
             }

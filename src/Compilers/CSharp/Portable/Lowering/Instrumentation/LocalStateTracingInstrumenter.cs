@@ -460,8 +460,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(!parameter.Type.IsManagedTypeNoUseSiteDiagnostics);
 
                 var addressOf = value is BoundLocal or BoundParameter ?
-                    (BoundExpression)new BoundAddressOfOperator(_factory.Syntax, value, isManaged: false, parameter.Type) :
-                    _factory.Sequence(new[] { value }, new BoundAddressOfOperator(_factory.Syntax, VariableRead(targetSymbol), isManaged: false, parameter.Type));
+                    (BoundExpression)new BoundAddressOfOperator(_factory.Syntax, isInUnsafeRegion: false, value, isManaged: false, parameter.Type) :
+                    _factory.Sequence(new[] { value }, new BoundAddressOfOperator(_factory.Syntax, isInUnsafeRegion: false, VariableRead(targetSymbol), isManaged: false, parameter.Type));
 
                 return ImmutableArray.Create(addressOf, _factory.Sizeof(targetType), index);
             }

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// A specific location for binding.
     /// </summary>
     [Flags]
-    internal enum BinderFlags : ulong
+    internal enum BinderFlags : uint
     {
         None, // No specific location
         SuppressConstraintChecks = 1 << 0,
@@ -117,12 +117,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// to verify applicable methods are available.
         /// </summary>
         CollectionExpressionConversionValidation = 1u << 31,
-
-        /// <summary>
-        /// Indicates that the current context is within an unsafe expression.
-        /// If this is set, <see cref="UnsafeRegion"/> must be also set.
-        /// </summary>
-        UnsafeExpressionRegion = 1UL << 32,
 
         // Groups
 

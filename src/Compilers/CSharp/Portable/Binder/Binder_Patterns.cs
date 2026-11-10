@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // decisionDag, whenTrueLabel, and whenFalseLabel represent the decision DAG for the inner pattern,
             // after removing any outer 'not's, so consumers will need to compensate for negated patterns.
             return new BoundIsPatternExpression(
-                node, expression, pattern, hasUnionMatching, negated, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
+                node, isInUnsafeRegion: InUnsafeRegion, expression, pattern, hasUnionMatching, negated, decisionDag, whenTrueLabel: whenTrueLabel, whenFalseLabel: whenFalseLabel, boolType, hasErrors);
 
             static bool? getConstantResult(BoundDecisionDag decisionDag, bool negated, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel)
             {
@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We don't require the type to be sliceable if there's no subpattern.
             if (node.Pattern is not null)
             {
-                receiverPlaceholder = new BoundSlicePatternReceiverPlaceholder(node, inputType) { WasCompilerGenerated = true };
+                receiverPlaceholder = new BoundSlicePatternReceiverPlaceholder(node, isInUnsafeRegion: InUnsafeRegion, inputType) { WasCompilerGenerated = true };
                 var systemRangeType = GetWellKnownType(WellKnownType.System_Range, diagnostics, node);
-                argumentPlaceholder = new BoundSlicePatternRangePlaceholder(node, systemRangeType) { WasCompilerGenerated = true };
+                argumentPlaceholder = new BoundSlicePatternRangePlaceholder(node, isInUnsafeRegion: InUnsafeRegion, systemRangeType) { WasCompilerGenerated = true };
 
                 TypeSymbol sliceType;
                 if (inputType.IsErrorType())
@@ -431,14 +431,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!inputType.IsDynamic());
 
             bool hasErrors = false;
-            receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, inputType) { WasCompilerGenerated = true };
+            receiverPlaceholder = new BoundListPatternReceiverPlaceholder(node, isInUnsafeRegion: InUnsafeRegion, inputType) { WasCompilerGenerated = true };
             var useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             hasErrors = !TryBindLengthOrCountInAnyScope(node, receiverPlaceholder, ref useSiteInfo, diagnostics, out lengthAccess);
             if (lengthAccess is null)
             {
                 hasErrors = true;
                 Error(diagnostics, ErrorCode.ERR_ListPatternRequiresLength, node, inputType);
-                lengthAccess = new BoundBadExpression(node, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true };
+                lengthAccess = new BoundBadExpression(node, isInUnsafeRegion: InUnsafeRegion, LookupResultKind.Empty, symbols: [], childBoundNodes: [], CreateErrorType(), hasErrors: true) { WasCompilerGenerated = true };
             }
 
             diagnostics.Add(node, useSiteInfo);
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
                 var systemIndexType = GetWellKnownType(WellKnownType.System_Index, diagnostics, node);
-                argumentPlaceholder = new BoundListPatternIndexPlaceholder(node, systemIndexType) { WasCompilerGenerated = true };
+                argumentPlaceholder = new BoundListPatternIndexPlaceholder(node, isInUnsafeRegion: InUnsafeRegion, systemIndexType) { WasCompilerGenerated = true };
                 analyzedArguments.Arguments.Add(argumentPlaceholder);
 
                 indexerAccess = BindElementAccessCore(node, receiverPlaceholder, analyzedArguments, diagnostics).MakeCompilerGenerated();
@@ -1050,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeWithAnnotations declType = BindType(typeSyntax, diagnostics, out AliasSymbol aliasOpt);
             Debug.Assert(declType.HasType);
-            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, aliasOpt, typeWithAnnotations: declType);
+            BoundTypeExpression boundDeclType = new BoundTypeExpression(typeSyntax, isInUnsafeRegion: InUnsafeRegion, aliasOpt, typeWithAnnotations: declType);
 
             CheckCompatibilityOfInputWithPatternType(
                 node,
@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         variableSymbol = localSymbol;
                         variableAccess = new BoundLocal(
-                            syntax: designation, localSymbol: localSymbol, localSymbol.IsVar ? BoundLocalDeclarationKind.WithInferredType : BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
+                            syntax: designation, isInUnsafeRegion: InUnsafeRegion, localSymbol: localSymbol, localSymbol.IsVar ? BoundLocalDeclarationKind.WithInferredType : BoundLocalDeclarationKind.WithExplicitType, constantValueOpt: null, isNullableUnknown: false, type: declType.Type);
                         return;
                     }
                     else
@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         variableSymbol = expressionVariableField;
                         variableAccess = new BoundFieldAccess(
-                            syntax: designation, receiver: receiver, fieldSymbol: expressionVariableField, constantValueOpt: null, hasErrors: hasErrors);
+                            syntax: designation, isInUnsafeRegion: InUnsafeRegion, receiver: receiver, fieldSymbol: expressionVariableField, constantValueOpt: null, hasErrors: hasErrors);
                         return;
                     }
                 case DiscardDesignationSyntax _:
@@ -1200,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // It is not a tuple type. Seek an appropriate Deconstruct method.
-                    var inputPlaceholder = new BoundImplicitReceiver(positionalClause, declType); // A fake receiver expression to permit us to reuse binding logic
+                    var inputPlaceholder = new BoundImplicitReceiver(positionalClause, isInUnsafeRegion: InUnsafeRegion, declType); // A fake receiver expression to permit us to reuse binding logic
                     var deconstructDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                         positionalClause.Subpatterns.Count, inputPlaceholder, positionalClause,
@@ -1582,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             designation: node, declType: declType, permitDesignations: permitDesignations,
                             typeSyntax: null, diagnostics: diagnostics, hasErrors: ref hasErrors,
                             variableSymbol: out Symbol? variableSymbol, variableAccess: out BoundExpression? variableAccess);
-                        var boundOperandType = new BoundTypeExpression(syntax: node, aliasOpt: null, typeWithAnnotations: declType); // fake a type expression for the variable's type
+                        var boundOperandType = new BoundTypeExpression(syntax: node, isInUnsafeRegion: InUnsafeRegion, aliasOpt: null, typeWithAnnotations: declType); // fake a type expression for the variable's type
                         // We continue to use a BoundDeclarationPattern for the var pattern, as they have more in common.
                         Debug.Assert(node.Parent is { });
 
@@ -1625,7 +1625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // It is not a tuple type. Seek an appropriate Deconstruct method.
-                    var inputPlaceholder = new BoundImplicitReceiver(node, strippedInputType); // A fake receiver expression to permit us to reuse binding logic
+                    var inputPlaceholder = new BoundImplicitReceiver(node, isInUnsafeRegion: InUnsafeRegion, strippedInputType); // A fake receiver expression to permit us to reuse binding logic
                     var deconstructDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     BoundExpression deconstruct = MakeDeconstructInvocationExpression(
                         tupleDesignation.Variables.Count, inputPlaceholder, node, deconstructDiagnostics,
@@ -1829,7 +1829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics)
         {
             // TODO: consider refactoring out common code with BindObjectInitializerMember
-            BoundImplicitReceiver implicitReceiver = new BoundImplicitReceiver(memberName, inputType);
+            BoundImplicitReceiver implicitReceiver = new BoundImplicitReceiver(memberName, isInUnsafeRegion: InUnsafeRegion, inputType);
             string name = memberName.Identifier.ValueText;
 
             BoundExpression boundMember = BindInstanceMemberAccess(
@@ -1903,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeWithAnnotations declType = BindType(node.Type, diagnostics, out AliasSymbol aliasOpt);
             Debug.Assert(declType.HasType);
-            BoundTypeExpression patternType = new BoundTypeExpression(node.Type, aliasOpt, typeWithAnnotations: declType);
+            BoundTypeExpression patternType = new BoundTypeExpression(node.Type, isInUnsafeRegion: InUnsafeRegion, aliasOpt, typeWithAnnotations: declType);
             return BindTypePattern(node, node.Type, ref unionType, inputType, patternType, hasErrors, diagnostics, out hasUnionMatching);
         }
 

@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 property = e.Property.IsExtensionBlockMember()
-                               ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType)).Member
+                               ? ReInferAndVisitExtensionPropertyAccess(e, e.Property, new BoundExpressionWithNullability(e.Syntax, isInUnsafeRegion: false, expression, NullableAnnotation.NotAnnotated, inputType)).Member
                                : (PropertySymbol)AsMemberOfType(inputType, e.Property);
 
                 reinferredPropertyMap.Add(e, property);
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var reinferrenceResult = ReInferAndVisitExtensionPropertyAccess(
                                 e,
-                                receiver: new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType),
+                                receiver: new BoundExpressionWithNullability(e.Syntax, isInUnsafeRegion: e.IsInUnsafeRegion, expression, NullableAnnotation.NotAnnotated, inputType),
                                 indexer,
                                 indexer.Parameters,
                                 indexerAccess.Arguments,
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var reinferenceResult = ReInferMethodAndVisitArguments(
                                 e,
-                                receiverOpt: new BoundExpressionWithNullability(e.Syntax, expression, NullableAnnotation.NotAnnotated, inputType),
+                                receiverOpt: new BoundExpressionWithNullability(e.Syntax, isInUnsafeRegion: e.IsInUnsafeRegion, expression, NullableAnnotation.NotAnnotated, inputType),
                                 receiverType: TypeWithState.Create(inputType, NullableFlowState.NotNull),
                                 call.Method,
                                 call.Arguments,
