@@ -20,15 +20,31 @@ internal static class TagHelperMatchingConventions
         ReadOnlySpan<char> tagNameWithoutPrefix,
         ReadOnlySpan<char> parentTagNameWithoutPrefix,
         ImmutableArray<KeyValuePair<string, string>> tagAttributes)
+        => SatisfiesRule(rule, tagNameWithoutPrefix, parentTagNameWithoutPrefix, tagAttributes, tagNameOverride: null, parentTagOverride: null);
+
+    internal static bool SatisfiesRule(
+        TagMatchingRuleDescriptor rule,
+        ReadOnlySpan<char> tagNameWithoutPrefix,
+        ReadOnlySpan<char> parentTagNameWithoutPrefix,
+        ImmutableArray<KeyValuePair<string, string>> tagAttributes,
+        string? tagNameOverride,
+        string? parentTagOverride)
     {
-        return SatisfiesTagName(rule, tagNameWithoutPrefix) &&
-               SatisfiesParentTag(rule, parentTagNameWithoutPrefix) &&
+        return SatisfiesTagName(rule, tagNameWithoutPrefix, tagNameOverride) &&
+               SatisfiesParentTag(rule, parentTagNameWithoutPrefix, parentTagOverride) &&
                SatisfiesAttributes(rule, tagAttributes);
     }
 
     public static bool SatisfiesTagName(
         TagMatchingRuleDescriptor rule,
         ReadOnlySpan<char> tagNameWithoutPrefix,
+        StringComparison? comparisonOverride = null)
+        => SatisfiesTagName(rule, tagNameWithoutPrefix, expectedTagName: null, comparisonOverride);
+
+    internal static bool SatisfiesTagName(
+        TagMatchingRuleDescriptor rule,
+        ReadOnlySpan<char> tagNameWithoutPrefix,
+        string? expectedTagName,
         StringComparison? comparisonOverride = null)
     {
         if (tagNameWithoutPrefix.IsEmpty)
@@ -42,8 +58,9 @@ internal static class TagHelperMatchingConventions
             return false;
         }
 
-        if (rule.TagName is not (null or ElementCatchAllName) &&
-            !tagNameWithoutPrefix.Equals(rule.TagName.AsSpan(), comparisonOverride ?? rule.GetComparison()))
+        var ruleTagName = expectedTagName ?? rule.TagName;
+        if (ruleTagName is not (null or ElementCatchAllName) &&
+            !tagNameWithoutPrefix.Equals(ruleTagName.AsSpan(), comparisonOverride ?? rule.GetComparison()))
         {
             return false;
         }
@@ -54,9 +71,16 @@ internal static class TagHelperMatchingConventions
     public static bool SatisfiesParentTag(
         TagMatchingRuleDescriptor rule,
         ReadOnlySpan<char> parentTagNameWithoutPrefix)
+        => SatisfiesParentTag(rule, parentTagNameWithoutPrefix, expectedParentTag: null);
+
+    internal static bool SatisfiesParentTag(
+        TagMatchingRuleDescriptor rule,
+        ReadOnlySpan<char> parentTagNameWithoutPrefix,
+        string? expectedParentTag)
     {
-        if (rule.ParentTag != null &&
-            !parentTagNameWithoutPrefix.Equals(rule.ParentTag.AsSpan(), rule.GetComparison()))
+        var ruleParentTag = expectedParentTag ?? rule.ParentTag;
+        if (ruleParentTag != null &&
+            !parentTagNameWithoutPrefix.Equals(ruleParentTag.AsSpan(), rule.GetComparison()))
         {
             return false;
         }
