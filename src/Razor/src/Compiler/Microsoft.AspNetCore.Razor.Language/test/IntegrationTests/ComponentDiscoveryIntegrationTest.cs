@@ -194,6 +194,105 @@ namespace Test.AnotherNamespace
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor11_DoesNotSelectAmbiguousNamespaceScopedComponent()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget : ComponentBase
+                {
+                }
+
+                public class Widget<TItem> : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Components.Library
+
+            <Widget />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_11_0 });
+
+        // Before Razor 12, an ambiguous match without an explicit import was not lowered as a component.
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.DoesNotContain("OpenComponent<global::Components.Library.Widget>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_ResolvesAmbiguousNamespaceScopedComponent()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget : ComponentBase
+                {
+                }
+
+                public class Widget<TItem> : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Components.Library
+
+            <Widget />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("OpenComponent<global::Components.Library.Widget>", result.Code);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDiscovery_Razor12_ReportsAmbiguousNamespaceScopedComponents()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget : ComponentBase
+                {
+                }
+            }
+
+            namespace Components.Library.Nested
+            {
+                public class Widget : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp(
+            """
+            @namespace Components.Library.Nested
+
+            <Widget />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_12_0 });
+
+        var diagnostic = Assert.Single(result.RazorDiagnostics);
+        Assert.Equal(ComponentDiagnosticFactory.MultipleComponents.Id, diagnostic.Id);
+        Assert.DoesNotContain("OpenComponent<global::Components.Library.Nested.Widget>", result.Code);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
     public void ComponentDiscovery_Razor12_TypeAliasUsesFullyQualifiedNameWhenCurrentNamespaceHasSameType()
     {
         AdditionalSyntaxTrees.Add(Parse("""
