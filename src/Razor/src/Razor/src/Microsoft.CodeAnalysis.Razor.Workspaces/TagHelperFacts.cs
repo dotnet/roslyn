@@ -32,7 +32,7 @@ internal static class TagHelperFacts
             return null;
         }
 
-        if (documentContext.TagHelpers.Count == 0)
+        if (documentContext.TagHelpers.IsEmpty && !documentContext.HasAliases)
         {
             return null;
         }
@@ -78,7 +78,7 @@ internal static class TagHelperFacts
         ArgHelper.ThrowIfNull(documentContext);
         ArgHelper.ThrowIfNull(tagName);
 
-        if (documentContext.TagHelpers.IsEmpty)
+        if (documentContext.TagHelpers.IsEmpty && !documentContext.HasAliases)
         {
             return [];
         }
@@ -96,42 +96,46 @@ internal static class TagHelperFacts
             tagNameWithoutPrefix = tagNameWithoutPrefix[prefix.Length..];
         }
 
-        return documentContext.TagHelpers.Where(state: (tagNameWithoutPrefix, parentTag), static (tagHelper, state) =>
+        using var matches = new PooledArrayBuilder<TagHelperDescriptor>();
+        foreach (var candidate in documentContext.GetCandidates())
         {
-            foreach (var rule in tagHelper.TagMatchingRules)
+            foreach (var rule in candidate.Descriptor.TagMatchingRules)
             {
-                if (TagHelperMatchingConventions.SatisfiesTagName(rule, state.tagNameWithoutPrefix.Span) &&
-                    TagHelperMatchingConventions.SatisfiesParentTag(rule, state.parentTag.AsSpan()))
+                if (TagHelperMatchingConventions.SatisfiesTagName(rule, tagNameWithoutPrefix.Span, candidate.TagNameOverride) &&
+                    TagHelperMatchingConventions.SatisfiesParentTag(rule, parentTag.AsSpan(), candidate.ParentTagOverride))
                 {
-                    return true;
+                    matches.Add(candidate.Descriptor);
+                    break;
                 }
             }
+        }
 
-            return false;
-        });
+        return TagHelperCollection.Create(matches.ToImmutableAndClear());
     }
 
     public static TagHelperCollection GetTagHelpersGivenParent(TagHelperDocumentContext documentContext, string? parentTag)
     {
         ArgHelper.ThrowIfNull(documentContext);
 
-        if (documentContext.TagHelpers.IsEmpty)
+        if (documentContext.TagHelpers.IsEmpty && !documentContext.HasAliases)
         {
             return [];
         }
 
-        return documentContext.TagHelpers.Where(parentTag, static (tagHelper, parentTag) =>
+        using var matches = new PooledArrayBuilder<TagHelperDescriptor>();
+        foreach (var candidate in documentContext.GetCandidates())
         {
-            foreach (var rule in tagHelper.TagMatchingRules)
+            foreach (var rule in candidate.Descriptor.TagMatchingRules)
             {
-                if (TagHelperMatchingConventions.SatisfiesParentTag(rule, parentTag.AsSpan()))
+                if (TagHelperMatchingConventions.SatisfiesParentTag(rule, parentTag.AsSpan(), candidate.ParentTagOverride))
                 {
-                    return true;
+                    matches.Add(candidate.Descriptor);
+                    break;
                 }
             }
+        }
 
-            return false;
-        });
+        return TagHelperCollection.Create(matches.ToImmutableAndClear());
     }
 
     public static ImmutableArray<KeyValuePair<string, string>> StringifyAttributes(SyntaxList<RazorSyntaxNode> attributes)

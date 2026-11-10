@@ -43,7 +43,9 @@ internal sealed class TagHelperCompletionService : ITagHelperCompletionService
             StringComparer.OrdinalIgnoreCase);
 
         var documentContext = completionContext.DocumentContext;
-        var tagHelpersForTag = TagHelperFacts.GetTagHelpersGivenTag(documentContext, completionContext.CurrentTagName, completionContext.CurrentParentTagName);
+        // Filter descriptors here rather than rebuilding the context, which would discard alias candidates.
+        var tagHelpersForTag = TagHelperFacts.GetTagHelpersGivenTag(documentContext, completionContext.CurrentTagName, completionContext.CurrentParentTagName)
+            .Where(static tagHelper => !tagHelper.BoundAttributes.Any(static attribute => attribute.IsDirectiveAttribute));
         if (tagHelpersForTag.IsEmpty)
         {
             // If the current tag has no possible descriptors then we can't have any additional attributes.
@@ -64,7 +66,13 @@ internal sealed class TagHelperCompletionService : ITagHelperCompletionService
 
         if (applicableTagHelperBinding is { TagHelpers: var tagHelpers })
         {
-            applicableDescriptors.UnionWith(tagHelpers);
+            foreach (var tagHelper in tagHelpers)
+            {
+                if (tagHelpersForTag.Contains(tagHelper))
+                {
+                    applicableDescriptors.Add(tagHelper);
+                }
+            }
         }
 
         var unprefixedTagName = completionContext.CurrentTagName[prefix.Length..];
@@ -173,14 +181,9 @@ internal sealed class TagHelperCompletionService : ITagHelperCompletionService
         var catchAllTagHelpers = new HashSet<TagHelperDescriptor>();
         var prefix = completionContext.DocumentContext.Prefix ?? string.Empty;
 
-        var possibleChildTagHelpers = TagHelperFacts.GetTagHelpersGivenParent(
-            completionContext.DocumentContext,
-            completionContext.ContainingParentTagName);
-
-        possibleChildTagHelpers = FilterFullyQualifiedTagHelpers(possibleChildTagHelpers);
-
-        foreach (var possibleDescriptor in possibleChildTagHelpers)
+        foreach (var candidate in FilterFullyQualifiedTagHelpers(completionContext.DocumentContext, completionContext.ContainingParentTagName))
         {
+            var possibleDescriptor = candidate.Descriptor;
             if (possibleDescriptor.BoundAttributes.Any(static boundAttribute => boundAttribute.IsDirectiveAttribute))
             {
                 // Directive attribute tag helpers (e.g., @bind, @ref, @key) don't contribute element names
@@ -194,21 +197,22 @@ internal sealed class TagHelperCompletionService : ITagHelperCompletionService
 
             foreach (var rule in possibleDescriptor.TagMatchingRules)
             {
-                if (!TagHelperMatchingConventions.SatisfiesParentTag(rule, completionContext.ContainingParentTagName.AsSpan()))
+                if (!TagHelperMatchingConventions.SatisfiesParentTag(rule, completionContext.ContainingParentTagName.AsSpan(), candidate.ParentTagOverride))
                 {
                     continue;
                 }
 
-                if (rule.TagName == TagHelperMatchingConventions.ElementCatchAllName)
+                var tagName = candidate.TagNameOverride ?? rule.TagName;
+                if (tagName == TagHelperMatchingConventions.ElementCatchAllName)
                 {
                     catchAllTagHelpers.Add(possibleDescriptor);
                 }
-                else if (elementCompletions.ContainsKey(rule.TagName))
+                else if (elementCompletions.ContainsKey(tagName))
                 {
                     // If we've previously added a completion item for this rules tag, then we want to add this item
                     addRuleCompletions = true;
                 }
-                else if (completionContext.ExistingCompletions.Contains(rule.TagName))
+                else if (completionContext.ExistingCompletions.Contains(tagName))
                 {
                     // If Html wants to show a completion item for rules tag, then we want to add this item
                     addRuleCompletions = true;
@@ -221,7 +225,7 @@ internal sealed class TagHelperCompletionService : ITagHelperCompletionService
                     // We'd expect to only get "my-table" as a completion because the "body" tag doesn't allow "tr" tags.
                     addRuleCompletions = completionContext.ExistingCompletions.Contains(outputHint);
                 }
-                else if (!completionContext.InHTMLSchema(rule.TagName) || rule.TagName.Any(c => char.IsUpper(c)))
+                else if (!completionContext.InHTMLSchema(tagName) || tagName.Any(c => char.IsUpper(c)))
                 {
                     // If there is an unknown HTML schema tag that doesn't exist in the current completion we should add it. This happens for
                     // TagHelpers that target non-schema oriented tags.
@@ -238,7 +242,7 @@ internal sealed class TagHelperCompletionService : ITagHelperCompletionService
                 // If we think this completion should be added based on tag name, thats great, but lets also make sure the attributes are correct
                 if (addRuleCompletions && (!checkAttributeRules || TagHelperMatchingConventions.SatisfiesAttributes(rule, tagAttributes)))
                 {
-                    UpdateCompletions(prefix + rule.TagName, possibleDescriptor, elementCompletions);
+                    UpdateCompletions(prefix + tagName, possibleDescriptor, elementCompletions);
                 }
             }
         }
@@ -335,28 +339,40 @@ internal sealed class TagHelperCompletionService : ITagHelperCompletionService
         }
     }
 
-    private static TagHelperCollection FilterFullyQualifiedTagHelpers(TagHelperCollection tagHelpers)
+    private static IEnumerable<TagHelperBinder.TagHelperCandidate> FilterFullyQualifiedTagHelpers(TagHelperDocumentContext documentContext, string? parentTag)
     {
-        // We want to filter 'tagHelpers' and remove any tag helpers that require a fully-qualified name match
-        // but have a short name match present.
+        // Hide fully qualified candidates when their ordinary short name is available under this parent.
 
         // First, collect all "short name" tag helpers, i.e. those that do not require a fully qualified name match.
         using var _ = s_shortNameSetPool.GetPooledObject(out var shortNameSet);
 
-        foreach (var tagHelper in tagHelpers)
+        foreach (var tagHelper in documentContext.TagHelpers)
         {
             if (!tagHelper.IsFullyQualifiedNameMatch)
             {
-                shortNameSet.Add(tagHelper);
+                foreach (var rule in tagHelper.TagMatchingRules)
+                {
+                    if (TagHelperMatchingConventions.SatisfiesParentTag(rule, parentTag.AsSpan()))
+                    {
+                        shortNameSet.Add(tagHelper);
+                        break;
+                    }
+                }
             }
         }
 
-        return tagHelpers.Where(shortNameSet, static (tagHelper, shortNameSet) =>
+        foreach (var candidate in documentContext.GetCandidates())
         {
             // We want to keep tag helpers that either:
             // 1. Do not require a fully qualified name match (i.e., short name tag helpers).
             // 2. Are fully qualified tag helpers that do not have a corresponding short name tag helper.
-            return !tagHelper.IsFullyQualifiedNameMatch || !shortNameSet.Contains(tagHelper);
-        });
+            // An alias doesn't make the ordinary short name available, so keep its fully qualified completion too.
+            if (candidate.AliasTagName is not null ||
+                !candidate.Descriptor.IsFullyQualifiedNameMatch ||
+                !shortNameSet.Contains(candidate.Descriptor))
+            {
+                yield return candidate;
+            }
+        }
     }
 }

@@ -123,12 +123,9 @@ internal sealed class TagHelperCompletionProvider(ITagHelperCompletionService ta
         // "parent", which breaks tag helpers that use ParentTag (e.g., [HtmlTargetElement("header", ParentTag = "container")]).
         var containingElement = containingAttribute.Parent?.Parent;
         var ancestors = containingElement?.Ancestors() ?? [];
-        var nonDirectiveAttributeTagHelpers = tagHelperDocumentContext.TagHelpers.Where(
-            static tagHelper => !tagHelper.BoundAttributes.Any(static attribute => attribute.IsDirectiveAttribute));
-        var filteredContext = TagHelperDocumentContext.GetOrCreate(tagHelperDocumentContext.Prefix, nonDirectiveAttributeTagHelpers);
         var (ancestorTagName, ancestorIsTagHelper) = TagHelperFacts.GetNearestAncestorTagInfo(ancestors);
         var attributeCompletionContext = new AttributeCompletionContext(
-            filteredContext,
+            tagHelperDocumentContext,
             existingCompletions: [],
             containingTagName,
             selectedAttributeName,
@@ -259,7 +256,11 @@ internal sealed class TagHelperCompletionProvider(ITagHelperCompletionService ta
                 descriptionInfo,
                 commitChars);
 
-            AddCompletionItemWithUsingDirective(ref completionItems.AsRef(), context, commitChars, displayText, descriptionInfo);
+            // Alias-qualified names are already in scope, and their prefix is not an importable namespace.
+            if (tagHelpers.Any(static tagHelper => tagHelper.IsFullyQualifiedNameMatch))
+            {
+                AddCompletionItemWithUsingDirective(ref completionItems.AsRef(), context, commitChars, displayText, descriptionInfo);
+            }
         }
 
         return completionItems.ToImmutableAndClear();

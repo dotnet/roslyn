@@ -129,6 +129,23 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
         await VerifySemanticTokensAsync(input, colorBackground, miscellaneousFile);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task RazorComponentAliases()
+        => VerifySemanticTokensAsync(
+            """
+            @using TextInput = Microsoft.AspNetCore.Components.Forms.InputText
+            @using UI = Microsoft.AspNetCore.Components.Forms
+
+            <InputText Value="someValue" />
+            <TextInput Value="someValue" />
+            <TextInput Value="someValue"></TextInput>
+            <UI.InputText Value="someValue" />
+            <UI.InputText Value="someValue"></UI.InputText>
+            """,
+            colorBackground: false,
+            miscellaneousFile: false);
+
     [Theory]
     [CombinatorialData]
     public async Task Razor(bool colorBackground, bool miscellaneousFile)

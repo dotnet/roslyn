@@ -1522,6 +1522,201 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_NamespaceAlias()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using UI = Microsoft.AspNetCore.Components.Sections
+
+                <$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["UI.SectionOutlet"],
+            unexpectedItemLabels: ["SectionOutlet - @using UI"],
+            itemToResolve: "UI.SectionOutlet",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expected: """
+                @using UI = Microsoft.AspNetCore.Components.Sections
+
+                <UI.SectionOutlet
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_TypeAlias()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using Outlet = Microsoft.AspNetCore.Components.Sections.SectionOutlet
+
+                <$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["Outlet"],
+            itemToResolve: "Outlet",
+            expectedResolvedItemDescription: "Microsoft.AspNetCore.Components.Sections.SectionOutlet",
+            expected: """
+                @using Outlet = Microsoft.AspNetCore.Components.Sections.SectionOutlet
+
+                <Outlet
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_NamespaceAlias_Parameters()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using UI = Microsoft.AspNetCore.Components.Sections
+
+                <UI.SectionOutlet $$ />
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["SectionName", "SectionId"],
+            unexpectedItemLabels: ["@bind-..."]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_TypeAlias_Parameters()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using Outlet = Microsoft.AspNetCore.Components.Sections.SectionOutlet
+
+                <Outlet $$ />
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["SectionName", "SectionId"],
+            unexpectedItemLabels: ["@bind-..."]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_TypeAlias_ShadowsOrdinaryComponent()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Sections
+                @using SectionOutlet = System.Guid
+
+                <$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["EditForm"],
+            unexpectedItemLabels: ["SectionOutlet"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_TypeAlias_ChildContent()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using Form = Microsoft.AspNetCore.Components.Forms.EditForm
+
+                <Form>
+                    <$$
+                </Form>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["ChildContent"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_NamespaceAlias_ChildContent()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using UI = Microsoft.AspNetCore.Components.Forms
+
+                <UI.EditForm>
+                    <$$
+                </UI.EditForm>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["ChildContent"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_TypeAlias_ChildContentOutsideComponent()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using Form = Microsoft.AspNetCore.Components.Forms.EditForm
+
+                <$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["Form"],
+            unexpectedItemLabels: ["ChildContent"]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_TypeAlias_ChildContentParameters()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @using Form = Microsoft.AspNetCore.Components.Forms.EditForm
+
+                <Form>
+                    <ChildContent $$>
+                    </ChildContent>
+                </Form>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["Context"]);
+    }
+
+    [Fact]
     public async Task Completion_WithUsing()
     {
         await VerifyCompletionListAsync(

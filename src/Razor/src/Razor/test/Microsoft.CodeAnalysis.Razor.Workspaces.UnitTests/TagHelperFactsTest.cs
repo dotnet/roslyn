@@ -36,6 +36,60 @@ public class TagHelperFactsTest(ITestOutputHelper testOutput) : ToolingTestBase(
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void GetTagHelperBinding_WithOnlyAliasCandidates()
+    {
+        var component = TagHelperDescriptorBuilder.Create(TagHelperKind.Component, "Library.Widget", "TestAssembly")
+            .TagMatchingRule(tagName: "Widget")
+            .Build();
+        var documentContext = TagHelperDocumentContext.GetOrCreate(
+            prefix: null,
+            tagHelpers: [],
+            aliases: [new(component, "Alias", NamespaceSuffixLength: 0, IsTypeAlias: true)]);
+
+        var binding = TagHelperFacts.GetTagHelperBinding(documentContext, "Alias", attributes: [], parentTag: null, parentIsTagHelper: false);
+
+        Assert.NotNull(binding);
+        Assert.Equal(component, Assert.Single(binding.TagHelpers));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void GetTagHelpersGivenTag_WithOnlyAliasCandidates()
+    {
+        var component = TagHelperDescriptorBuilder.Create(TagHelperKind.Component, "Library.Widget", "TestAssembly")
+            .TagMatchingRule(tagName: "Widget")
+            .Build();
+        var documentContext = TagHelperDocumentContext.GetOrCreate(
+            prefix: null,
+            tagHelpers: [],
+            aliases: [new(component, "Alias", NamespaceSuffixLength: 0, IsTypeAlias: true)]);
+
+        var result = TagHelperFacts.GetTagHelpersGivenTag(documentContext, "Alias", parentTag: null);
+
+        Assert.Equal(component, Assert.Single(result));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void GetTagHelpersGivenParent_WithOnlyAliasedChildContent()
+    {
+        var childContent = TagHelperDescriptorBuilder.Create(TagHelperKind.ChildContent, "Library.Widget.ChildContent", "TestAssembly")
+            .TagMatchingRule(tagName: "ChildContent", parentTagName: "Widget")
+            .Build();
+        var documentContext = TagHelperDocumentContext.GetOrCreate(
+            prefix: null,
+            tagHelpers: [],
+            aliases: [new(childContent, "Alias", NamespaceSuffixLength: 0, IsTypeAlias: true)]);
+
+        var result = TagHelperFacts.GetTagHelpersGivenParent(documentContext, parentTag: "Alias");
+
+        Assert.Equal(childContent, Assert.Single(result));
+        Assert.Empty(TagHelperFacts.GetTagHelpersGivenParent(documentContext, parentTag: "Widget"));
+        Assert.Empty(TagHelperFacts.GetTagHelpersGivenParent(documentContext, parentTag: null));
+    }
+
+    [Fact]
     public void GetTagHelperBinding_WorksAsExpected()
     {
         TagHelperCollection tagHelpers =
