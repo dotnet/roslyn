@@ -2816,11 +2816,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitFunctionTypeConversion(FunctionTypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (IsParameterDefaultValueBinding)
-            {
-                return false;
-            }
-
             if (destination is FunctionTypeSymbol destinationFunctionType)
             {
                 return HasImplicitFunctionTypeToFunctionTypeConversion(source, destinationFunctionType, ref useSiteInfo);

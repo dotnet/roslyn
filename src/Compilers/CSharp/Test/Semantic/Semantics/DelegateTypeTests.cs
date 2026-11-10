@@ -16851,7 +16851,7 @@ class Program
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
-        public void MethodGroupAsParameterDefaultValue()
+        public void MethodGroupAsParameterDefaultValue_01()
         {
             var source = """
 class C
@@ -16863,6 +16863,23 @@ class C
                 // (3,23): error CS1736: Default parameter value for 'a' must be a compile-time constant
                 //     void M(object a = M) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M").WithArguments("a").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
+        public void MethodGroupAsParameterDefaultValue_02()
+        {
+            var source = """
+class C
+{
+    void M(object a = new[] { M }) { }
+}
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,23): error CS0826: No best type found for implicitly-typed array
+                //     void M(object a = new[] { M }) { }
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[] { M }").WithLocation(3, 23)
                 );
         }
 
