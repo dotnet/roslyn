@@ -20,7 +20,6 @@ internal sealed class MockPreviewDialogService : IPreviewDialogService, IWorkspa
     public string Title;
     public string HelpString;
     public string Description;
-    public string TopLevelName;
     public Glyph TopLevelGlyph;
     public bool ShowCheckBoxes;
 
@@ -30,13 +29,12 @@ internal sealed class MockPreviewDialogService : IPreviewDialogService, IWorkspa
     {
     }
 
-    public Solution PreviewChanges(string title, string helpString, string description, string topLevelName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, bool showCheckBoxes = true)
+    public Solution PreviewChanges(string title, string helpString, string description, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, bool showCheckBoxes = true)
     {
         Called = true;
         Title = title;
         HelpString = helpString;
         Description = description;
-        TopLevelName = topLevelName;
         TopLevelGlyph = topLevelGlyph;
         ShowCheckBoxes = showCheckBoxes;
 

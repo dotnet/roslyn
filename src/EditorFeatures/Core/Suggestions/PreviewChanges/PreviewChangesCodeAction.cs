@@ -42,7 +42,6 @@ internal sealed partial class EditorSuggestedActionWithNestedFlavors
                 EditorFeaturesResources.Preview_Changes,
                 "vs.codefix.previewchanges",
                 _originalCodeAction.Title,
-                EditorFeaturesResources.Changes,
                 CodeAnalysis.Glyph.OpenFolder,
                 changeSummary.NewSolution,
                 changeSummary.OldSolution,

@@ -13,8 +13,8 @@ internal abstract partial class ReferenceChange : AbstractChange
     {
         private readonly AnalyzerReference _reference;
 
-        public AnalyzerReferenceChange(AnalyzerReference reference, ProjectId projectId, string projectName, bool isAdded, PreviewEngine engine)
-            : base(projectId, projectName, isAdded, engine)
+        public AnalyzerReferenceChange(AnalyzerReference reference, ProjectId projectId, string projectName, bool isAdded, AbstractChange parent, PreviewEngine engine)
+            : base(projectId, projectName, isAdded, parent, engine)
         {
             _reference = reference;
         }

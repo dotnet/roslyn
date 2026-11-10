@@ -19,25 +19,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
 internal sealed class TopLevelChange : AbstractChange
 {
-    private readonly string _name;
     private readonly Solution _newSolution;
     private readonly Glyph _glyph;
 
     public TopLevelChange(
-        string name,
         Glyph glyph,
         Solution newSolution,
         PreviewEngine engine)
         : base(engine)
     {
-        _name = name;
         _glyph = glyph;
         _newSolution = newSolution;
     }
 
     public override int GetText(out VSTREETEXTOPTIONS tto, out string pbstrText)
     {
-        pbstrText = _name;
+        pbstrText = EditorFeaturesResources.Changes;
         tto = VSTREETEXTOPTIONS.TTO_DEFAULT;
         return VSConstants.S_OK;
     }
@@ -47,14 +44,14 @@ internal sealed class TopLevelChange : AbstractChange
 
     public override int OnRequestSource(object pIUnknownTextView)
     {
-        var firstChild = Children.Changes.OfType<FileChange>().First();
-        return firstChild.OnRequestSource(pIUnknownTextView);
+        var firstChild = Children.Changes.OfType<FileChange>().FirstOrDefault();
+        return firstChild?.OnRequestSource(pIUnknownTextView) ?? VSConstants.S_OK;
     }
 
     public override void UpdatePreview()
     {
-        var firstChild = Children.Changes.OfType<FileChange>().First();
-        firstChild.UpdatePreview();
+        var firstChild = Children.Changes.OfType<FileChange>().FirstOrDefault();
+        firstChild?.UpdatePreview();
     }
 
     public Solution GetUpdatedSolution(bool applyingChanges)

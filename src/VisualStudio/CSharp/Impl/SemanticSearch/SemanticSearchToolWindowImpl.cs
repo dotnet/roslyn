@@ -449,7 +449,6 @@ internal sealed partial class SemanticSearchToolWindowImpl(
                             EditorFeaturesResources.Preview_Changes,
                             "vs.codefix.previewchanges",
                             "Updates",
-                            EditorFeaturesResources.Changes,
                             Glyph.OpenFolder,
                             changeSummary.NewSolution,
                             changeSummary.OldSolution,

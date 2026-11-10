@@ -15,15 +15,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
 internal abstract partial class ReferenceChange : AbstractChange
 {
-    protected ReferenceChange(ProjectId projectId, string projectName, bool isAddedReference, PreviewEngine engine)
+    protected ReferenceChange(ProjectId projectId, string projectName, bool isAddedReference, AbstractChange parent, PreviewEngine engine)
         : base(engine)
     {
         ProjectId = projectId;
         ProjectName = projectName;
         IsAddedReference = isAddedReference;
+        this.parent = parent;
+        this.Children = ChangeList.Empty;
     }
 
-    public static void AppendReferenceChanges(IEnumerable<ProjectChanges> projectChangesList, PreviewEngine engine, ArrayBuilder<AbstractChange> builder)
+    public static void AppendReferenceChanges(IEnumerable<ProjectChanges> projectChangesList, AbstractChange parent, PreviewEngine engine, ArrayBuilder<AbstractChange> builder)
     {
         foreach (var projectChanges in projectChangesList)
         {
@@ -35,34 +37,34 @@ internal abstract partial class ReferenceChange : AbstractChange
             // Metadata references
             var addedMetadataReferenceChanges = projectChanges
                 .GetAddedMetadataReferences()
-                .Select(r => new MetadataReferenceChange(r, projectId, projectName, isAdded: true, engine: engine));
+                .Select(r => new MetadataReferenceChange(r, projectId, projectName, isAdded: true, parent: parent, engine: engine));
             builder.AddRange(addedMetadataReferenceChanges);
 
             var removedMetadataReferenceChanges = projectChanges
                 .GetRemovedMetadataReferences()
-                .Select(r => new MetadataReferenceChange(r, projectId, projectName, isAdded: false, engine: engine));
+                .Select(r => new MetadataReferenceChange(r, projectId, projectName, isAdded: false, parent: parent, engine: engine));
             builder.AddRange(removedMetadataReferenceChanges);
 
             // Project references
             var addedProjectReferenceChanges = projectChanges
                 .GetAddedProjectReferences()
-                .Select(r => new ProjectReferenceChange(r, newSolution.GetProject(r.ProjectId).Name, projectId, projectName, isAdded: true, engine: engine));
+                .Select(r => new ProjectReferenceChange(r, newSolution.GetProject(r.ProjectId).Name, projectId, projectName, isAdded: true, parent: parent, engine: engine));
             builder.AddRange(addedProjectReferenceChanges);
 
             var removedProjectReferenceChanges = projectChanges
                 .GetRemovedProjectReferences()
-                .Select(r => new ProjectReferenceChange(r, oldSolution.GetProject(r.ProjectId).Name, projectId, projectName, isAdded: false, engine: engine));
+                .Select(r => new ProjectReferenceChange(r, oldSolution.GetProject(r.ProjectId).Name, projectId, projectName, isAdded: false, parent: parent, engine: engine));
             builder.AddRange(removedProjectReferenceChanges);
 
             // Analyzer references
             var addedAnalyzerReferenceChanges = projectChanges
                 .GetAddedAnalyzerReferences()
-                .Select(r => new AnalyzerReferenceChange(r, projectId, projectName, isAdded: true, engine: engine));
+                .Select(r => new AnalyzerReferenceChange(r, projectId, projectName, isAdded: true, parent: parent, engine: engine));
             builder.AddRange(addedAnalyzerReferenceChanges);
 
             var removedAnalyzerReferenceChanges = projectChanges
                 .GetRemovedAnalyzerReferences()
-                .Select(r => new AnalyzerReferenceChange(r, projectId, projectName, isAdded: false, engine: engine));
+                .Select(r => new AnalyzerReferenceChange(r, projectId, projectName, isAdded: false, parent: parent, engine: engine));
             builder.AddRange(removedAnalyzerReferenceChanges);
         }
     }
@@ -74,6 +76,9 @@ internal abstract partial class ReferenceChange : AbstractChange
     protected abstract string GetDisplayText();
     internal abstract Solution AddToSolution(Solution solution);
     internal abstract Solution RemoveFromSolution(Solution solution);
+
+    public override int CanRecurse => 0;
+    public override int IsExpandable => 0;
 
     public override int GetText(out VSTREETEXTOPTIONS tto, out string pbstrText)
     {
@@ -100,8 +105,7 @@ internal abstract partial class ReferenceChange : AbstractChange
 
     public sealed override int OnRequestSource(object pIUnknownTextView)
     {
-        // When adding a project reference `Children` can be null, so check before looking at `Changes`
-        if (pIUnknownTextView != null && Children?.Changes != null && Children.Changes.Length > 0)
+        if (pIUnknownTextView != null && Children.Changes.Length > 0)
         {
             engine.SetTextView(pIUnknownTextView);
             UpdatePreview();
