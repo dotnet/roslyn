@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -975,7 +976,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(@"<Counter />", "C:\\SomeFolder\\SomeProject\\Counter.cshtml");
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace, supportsComponentAliases: true);
 
         // Act
         visitor.Visit(tree);
@@ -1007,7 +1008,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace, supportsComponentAliases: true);
 
         // Act
         visitor.Visit(tree);
@@ -1041,7 +1042,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace, supportsComponentAliases: true);
 
         // Act
         visitor.Visit(tree);
@@ -1079,7 +1080,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace, supportsComponentAliases: true);
 
         // Act
         visitor.Visit(tree);
@@ -1114,7 +1115,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace, supportsComponentAliases: true);
 
         // Act
         visitor.Visit(tree);
@@ -1150,7 +1151,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace, supportsComponentAliases: true);
 
         // Act
         visitor.Visit(tree);
@@ -1180,7 +1181,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace, supportsComponentAliases: true);
 
         // Act
         visitor.Visit(tree);
@@ -1192,7 +1193,8 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
     }
 
     [Fact]
-    public void ComponentDirectiveVisitor_DoesNotMatchForUsingAliasAndStaticUsings()
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_DoesNotMatchForStaticUsings()
     {
         // Arrange
         var currentNamespace = "SomeProject";
@@ -1211,13 +1213,12 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         ];
         var filePath = "C:\\SomeFolder\\SomeProject\\Counter.cshtml";
         var content = @"
-@using Bar = SomeProject.SomeOtherFolder
 @using static SomeProject.SomeOtherFolder.Foo
 ";
         var sourceDocument = CreateComponentTestSourceDocument(content, filePath);
         var tree = RazorSyntaxTree.Parse(sourceDocument);
         var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
-        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace);
+        visitor.Initialize(tagHelpers, sourceDocument.FilePath, currentNamespace, supportsComponentAliases: true);
 
         // Act
         visitor.Visit(tree);
@@ -1227,6 +1228,128 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         var result = Assert.Single(results);
         Assert.Same(componentDescriptor, result);
     }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingTypeAlias()
+        => VerifyAlias("Alias = Library.Widget", "Library.Widget", "Library", "Alias");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingGlobalTypeAlias()
+        => VerifyAlias("Alias = global::Library.Widget", "Library.Widget", "Library", "Alias");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingNamespaceAlias()
+        => VerifyAlias("Alias = Library", "Library.Widget", "Library", "Alias.Widget");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingNamespaceAlias_IncludesNestedNamespace()
+        => VerifyAlias("Alias = Library", "Library.Nested.Widget", "Library.Nested", "Alias.Nested.Widget");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingTypeAlias_WithoutNamespace()
+        => VerifyAlias("Alias = Widget", "Widget", "", "Alias");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotMatchUnrelatedNamespace()
+        => VerifyAliasDoesNotMatch("Alias = OtherLibrary", "Library.Widget", "Library");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotMatchPartialNamespace()
+        => VerifyAliasDoesNotMatch("Alias = Library", "LibraryOther.Widget", "LibraryOther");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotMatchDifferentType()
+        => VerifyAliasDoesNotMatch("Alias = Library.OtherWidget", "Library.Widget", "Library");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotMatchConstructedGenericType()
+        => VerifyAliasDoesNotMatch("Alias = Library.Widget<string>", "Library.Widget<T>", "Library");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotMatchTrailingDot()
+        => VerifyAliasDoesNotMatch("Alias = Library.", "Library.Widget", "Library");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotMatchEmptyTarget()
+        => VerifyAliasDoesNotMatch("Alias = ", "Widget", "");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotMatchEmptyGlobalTarget()
+        => VerifyAliasDoesNotMatch("Alias = global::", "Widget", "");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotMatchEmptyEscapedIdentifier()
+        => VerifyAliasDoesNotMatch("@ = Library", "Library.Widget", "Library");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_DoesNotFallBackPastNearerNamespace()
+    {
+        var global = CreateComponentDescriptor("Widget", "Library.Widget", AssemblyA, "Library", "Widget");
+        var nearer = CreateComponentDescriptor("Other", "Root.Pages.Library.Other", AssemblyA, "Root.Pages.Library", "Other");
+        var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
+        visitor.Initialize([global, nearer], "Test.razor", currentNamespace: "Root.Pages", supportsComponentAliases: true);
+        visitor.Visit(RazorSyntaxTree.Parse(CreateComponentTestSourceDocument("@using UI = Library.Widget", "Test.razor")));
+
+        Assert.Empty(visitor.GetResults());
+        Assert.Null(visitor.GetAliases());
+        visitor.Reset();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingAlias_ResolvesRelativeImportsPerDocument()
+    {
+        var component = CreateComponentDescriptor("Widget", "Root.Library.Library.Widget", AssemblyA, "Root.Library.Library", "Widget");
+        var tree = RazorSyntaxTree.Parse(CreateComponentTestSourceDocument("@using UI = Library", "_Imports.razor"));
+        var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
+        visitor.Initialize([component], "First.razor", currentNamespace: "Root", supportsComponentAliases: true);
+        visitor.Visit(tree);
+        var first = Assert.Single(visitor.GetAliases());
+        Assert.Equal("UI.Library.Widget", first.GetTagName());
+        Assert.Same(component, first.Descriptor);
+        visitor.Reset();
+
+        visitor.Initialize([component], "Second.razor", currentNamespace: "Root.Library", supportsComponentAliases: true);
+        visitor.Visit(tree);
+        var second = Assert.Single(visitor.GetAliases());
+        Assert.Equal("UI.Widget", second.GetTagName());
+        Assert.Same(component, second.Descriptor);
+        visitor.Reset();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingNamespaceAlias_ResolvesNearestNamespace()
+        => VerifyAliasResolution("UI = Library", "Root.Pages.Library", "UI.Widget");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingTypeAlias_ResolvesNearestNamespace()
+        => VerifyAliasResolution("UI = Library.Widget", "Root.Pages.Library", "UI");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingGlobalNamespaceAlias_BypassesNearerNamespace()
+        => VerifyAliasResolution("UI = global::Library", "Library", "UI.Widget");
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void ComponentDirectiveVisitor_UsingGlobalTypeAlias_BypassesNearerNamespace()
+        => VerifyAliasResolution("UI = global::Library.Widget", "Library", "UI");
 
     [Theory]
     [InlineData("", "", true)]
@@ -1264,6 +1387,66 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
 
         // Assert
         Assert.True(result);
+    }
+
+    private static void VerifyAlias(string alias, string typeName, string typeNamespace, string expectedTagName)
+    {
+        var component = CreateComponentDescriptor("Widget", typeName, AssemblyA, typeNamespace, "Widget",
+            attributes: [attribute =>
+            {
+                attribute.Name = "Value";
+                attribute.TypeName = "System.String";
+                attribute.PropertyName = "Value";
+            }]);
+        var source = CreateComponentTestSourceDocument($"@using {alias}", "Test.razor");
+        var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
+        visitor.Initialize([component], source.FilePath, currentNamespace: null, supportsComponentAliases: true);
+
+        visitor.Visit(RazorSyntaxTree.Parse(source));
+        var aliasBinding = Assert.Single(visitor.GetAliases());
+        var binder = new TagHelperBinder(tagNamePrefix: null, visitor.GetResults(), [aliasBinding]);
+        var binding = binder.GetBinding(expectedTagName, [], parentTagName: null, parentIsTagHelper: false);
+
+        Assert.NotNull(binding);
+        Assert.Same(component, Assert.Single(binding.TagHelpers));
+        Assert.Same(component, aliasBinding.Descriptor);
+        Assert.Same(component, Assert.Single(component.TagMatchingRules).Parent);
+        Assert.Same(component, Assert.Single(component.BoundAttributes).Parent);
+        visitor.Reset();
+    }
+
+    private static void VerifyAliasDoesNotMatch(string alias, string typeName, string typeNamespace)
+    {
+        var component = CreateComponentDescriptor("Widget", typeName, AssemblyA, typeNamespace, "Widget");
+        var source = CreateComponentTestSourceDocument($"@using {alias}", "Test.razor");
+        var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
+        visitor.Initialize([component], source.FilePath, currentNamespace: null, supportsComponentAliases: true);
+
+        visitor.Visit(RazorSyntaxTree.Parse(source));
+
+        Assert.Empty(visitor.GetResults());
+        Assert.Null(visitor.GetAliases());
+        visitor.Reset();
+    }
+
+    private static void VerifyAliasResolution(string alias, string expectedNamespace, string expectedTagName)
+    {
+        var global = CreateComponentDescriptor("Widget", "Library.Widget", AssemblyA, "Library", "Widget");
+        var parent = CreateComponentDescriptor("Widget", "Root.Library.Widget", AssemblyA, "Root.Library", "Widget");
+        var nearest = CreateComponentDescriptor("Widget", "Root.Pages.Library.Widget", AssemblyA, "Root.Pages.Library", "Widget");
+        var visitor = new DefaultRazorTagHelperContextDiscoveryPhase.ComponentDirectiveVisitor();
+        visitor.Initialize([global, parent, nearest], "Test.razor", currentNamespace: "Root.Pages", supportsComponentAliases: true);
+        visitor.Visit(RazorSyntaxTree.Parse(CreateComponentTestSourceDocument($"@using {alias}", "Test.razor")));
+
+        var aliasBinding = Assert.Single(visitor.GetAliases());
+        var binder = new TagHelperBinder(tagNamePrefix: null, visitor.GetResults(), [aliasBinding]);
+        var binding = binder.GetBinding(expectedTagName, [], parentTagName: null, parentIsTagHelper: false);
+
+        Assert.NotNull(binding);
+        var result = Assert.Single(binding.TagHelpers);
+        Assert.Equal(expectedNamespace, result.TypeNamespace);
+        Assert.Same(aliasBinding.Descriptor, result);
+        visitor.Reset();
     }
 
     private static RazorSourceDocument CreateComponentTestSourceDocument(string content, string filePath = null)
