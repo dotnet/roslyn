@@ -1356,6 +1356,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OverrideWithNullableTypeParameterInGenericReturnType(bool useUpdatedMemorySafetyRules)
+    {
+        var source = """
+            #nullable enable
+            using System.Threading.Tasks;
+
+            abstract class Base
+            {
+                public abstract Task<T?> M<T>();
+            }
+
+            sealed class Derived : Base
+            {
+                public override Task<T?> M<T>() where T : default => null!;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.NetCoreApp,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(useUpdatedMemorySafetyRules))
+            .VerifyEmitDiagnostics();
+    }
+
     [Theory, CombinatorialData]
     public void Pointer_Variable_SafeContext(bool allowUnsafe)
     {

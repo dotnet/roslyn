@@ -560,6 +560,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<CustomModifier> refCustomModifiers2;
             member2.GetTypeOrReturnType(out refKind2, out unsubstitutedReturnType2, out refCustomModifiers2);
 
+            // Return types may not have been bound yet during reentrant method checks.
+            if (unsubstitutedReturnType1.IsDefault || unsubstitutedReturnType2.IsDefault)
+            {
+                return false;
+            }
+
             // short-circuit type map building in the easiest cases
             if (refKind1 != refKind2)
             {
