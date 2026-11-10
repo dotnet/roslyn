@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,9 +33,6 @@ public abstract class AbstractIntegrationTest : AbstractIdeIntegrationTest
 
     static AbstractIntegrationTest()
     {
-        // Make sure to run the module initializer for Roslyn.Test.Utilities before installing TestTraceListener, or
-        // it will replace it with ThrowingTraceListener later.
-        RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
         TestTraceListener.Install();
 
         DataCollectionService.RegisterCustomLogger(

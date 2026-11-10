@@ -838,7 +838,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act/Assert
 #if DEBUG
-        Assert.Throws<InvalidOperationException>(() =>
+        Assert.Throws<Xunit.Sdk.TraceAssertException>(() =>
         {
             _ = TestRazorCSharpDocument.Create(
                 codeDocument,

@@ -19,7 +19,6 @@
 
   <PropertyGroup>
     <Nullable>disable</Nullable>
-    <SkipRoslynTestTraceListener>true</SkipRoslynTestTraceListener>
     <UsingToolXliff>false</UsingToolXliff>
     <EnableXlfLocalization>false</EnableXlfLocalization>
   </PropertyGroup>
