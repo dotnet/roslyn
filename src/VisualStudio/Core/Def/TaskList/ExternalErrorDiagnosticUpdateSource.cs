@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -191,6 +192,12 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     {
         var diagnosticManagerService = await GetOrCreateDiagnosticManagerAsync(cancellationToken).ConfigureAwait(false);
 
+        var project = state.Solution.GetProject(projectId);
+        var generatorDiagnostics = project is { SupportsCompilation: true, AnalyzerReferences.Count: > 0, FilePath: { } projectFilePath } &&
+            diagnostics.Any(d => IsProjectDiagnosticCandidate(d, projectFilePath))
+            ? await state.GetGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false)
+            : [];
+
         using var _ = ArrayBuilder<DiagnosticCollection>.GetInstance(out var collections);
         // The client API asks us to pass in diagnostics grouped by the file they are in.
         // Note - linked file diagnostics will be 'duplicated' for each project - the document collection
@@ -201,7 +208,8 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
             var path = group.Key;
             var pathAsUri = ProtocolConversions.CreateAbsoluteUri(path);
 
-            var convertedDiagnostics = group.SelectAsArray(d => CreateDiagnostic(projectId, projectHierarchyGuid, d, state.Solution));
+            var convertedDiagnostics = group.SelectAsArray(d => CreateDiagnostic(
+                project, projectHierarchyGuid, d, FindGeneratorDiagnostic(d, project?.FilePath, generatorDiagnostics)));
             if (convertedDiagnostics.Any())
             {
                 var collection = new DiagnosticCollection(pathAsUri, documentVersionNumber: -1, diagnostics: convertedDiagnostics);
@@ -216,27 +224,57 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         }
     }
 
-    private static Microsoft.VisualStudio.RpcContracts.DiagnosticManagement.Diagnostic? CreateDiagnostic(ProjectId projectId, Guid projectHierarchyGuid, DiagnosticData diagnostic, Solution solution)
-    {
-        var project = GetProjectIdentifier(solution.GetProject(projectId), projectHierarchyGuid);
-        ImmutableArray<ProjectIdentifier> projects = project is not null ? [project.Value] : [];
+    private static bool IsProjectDiagnosticCandidate(DiagnosticData diagnostic, string projectFilePath)
+        => diagnostic.DocumentId is null &&
+           diagnostic.DataLocation.UnmappedFileSpan.Span == default &&
+           string.Equals(diagnostic.DataLocation.UnmappedFileSpan.Path, projectFilePath, StringComparison.OrdinalIgnoreCase) &&
+           !diagnostic.CustomTags.Contains(WellKnownDiagnosticTags.Compiler);
 
-        var range = GetRange(diagnostic);
-        var description = string.IsNullOrEmpty(diagnostic.Description) ? null : diagnostic.Description;
+    private static CodeAnalysis.Diagnostic? FindGeneratorDiagnostic(
+        DiagnosticData diagnostic, string? projectFilePath, ImmutableArray<CodeAnalysis.Diagnostic> generatorDiagnostics)
+    {
+        if (generatorDiagnostics.IsEmpty || projectFilePath is null || !IsProjectDiagnosticCandidate(diagnostic, projectFilePath))
+            return null;
+
+        foreach (var candidate in generatorDiagnostics)
+        {
+            if (candidate.Id != diagnostic.Id || candidate.Location != Location.None)
+                continue;
+
+            var message = candidate.GetMessage();
+            var helpLink = candidate.Descriptor.HelpLinkUri;
+            if (message == diagnostic.Message || (!string.IsNullOrEmpty(helpLink) && $"{message} ({helpLink})" == diagnostic.Message))
+                return candidate;
+        }
+
+        return null;
+    }
+
+    private static Microsoft.VisualStudio.RpcContracts.DiagnosticManagement.Diagnostic CreateDiagnostic(
+        Project? project, Guid projectHierarchyGuid, DiagnosticData diagnostic, CodeAnalysis.Diagnostic? generatorDiagnostic)
+    {
+        var projectIdentifier = GetProjectIdentifier(project, projectHierarchyGuid);
+        ImmutableArray<ProjectIdentifier> projects = projectIdentifier is not null ? [projectIdentifier.Value] : [];
+        var message = generatorDiagnostic?.GetMessage() ?? diagnostic.Message ?? string.Empty;
+        var description = generatorDiagnostic?.Descriptor.Description.ToString() ?? diagnostic.Description;
+        var category = generatorDiagnostic?.Descriptor.Category ?? diagnostic.Category;
+        var span = generatorDiagnostic is not null && project?.FilePath is { } projectFilePath
+            ? new FileLinePositionSpan(projectFilePath, span: default)
+            : diagnostic.DataLocation.UnmappedFileSpan;
         return new Microsoft.VisualStudio.RpcContracts.DiagnosticManagement.Diagnostic(
-            message: diagnostic.Message ?? string.Empty,
+            message: message,
             code: diagnostic.Id,
             severity: GetSeverity(diagnostic.Severity),
             range: GetRange(diagnostic),
             tags: RpcContracts.DiagnosticManagement.DiagnosticTags.BuildError,
             relatedInformation: null,
-            expandedMessage: description,
+            expandedMessage: string.IsNullOrEmpty(description) ? null : description,
             // Intentionally the same as diagnosticType, matches what we used to report.
-            source: diagnostic.Category,
-            helpLink: diagnostic.HelpLink,
-            diagnosticType: diagnostic.Category,
+            source: category,
+            helpLink: generatorDiagnostic?.Descriptor.HelpLinkUri ?? diagnostic.HelpLink,
+            diagnosticType: category,
             projects: projects,
-            identifier: (diagnostic.Id, diagnostic.DataLocation.UnmappedFileSpan.Path, range, diagnostic.Message).GetHashCode().ToString(),
+            identifier: ProtocolConversions.GetDiagnosticIdentifier(diagnostic.Id, span, message),
             outputId: null);
     }
 
@@ -327,7 +365,20 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
 
     private sealed class InProgressState(Solution solution, VisualStudioDiagnosticIdCache diagnosticIdCache)
     {
+        private readonly Dictionary<ProjectId, ImmutableArray<CodeAnalysis.Diagnostic>> _generatorDiagnostics = [];
+
         public Solution Solution { get; } = solution;
+
+        public async Task<ImmutableArray<CodeAnalysis.Diagnostic>> GetGeneratorDiagnosticsAsync(Project project, CancellationToken cancellationToken)
+        {
+            if (!_generatorDiagnostics.TryGetValue(project.Id, out var diagnostics))
+            {
+                diagnostics = await CodeAnalysis.Diagnostics.Extensions.GetSourceGeneratorDiagnosticsAsync(project, cancellationToken).ConfigureAwait(false);
+                _generatorDiagnostics.Add(project.Id, diagnostics);
+            }
+
+            return diagnostics;
+        }
 
         public bool IsUnsupportedDiagnosticId(ProjectId projectId, string id)
         {

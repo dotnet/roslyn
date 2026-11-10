@@ -137,12 +137,14 @@ internal static partial class ProtocolConversions
             // to be merged from separate projects if they have the same code, filepath, range, and message.
             //
             // Note: LSP pull diagnostics only operates on unmapped locations.
-            diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
-                .GetHashCode().ToString();
+            diagnostic.Identifier = GetDiagnosticIdentifier(diagnosticData.Id, diagnosticData.DataLocation.UnmappedFileSpan, diagnosticData.Message);
         }
 
         return diagnostic;
     }
+
+    public static string GetDiagnosticIdentifier(string id, FileLinePositionSpan span, string? message)
+        => (id, span.Path, span.StartLinePosition, span.EndLinePosition, message).GetHashCode().ToString();
 
     private static LSP.Range GetRange(DiagnosticDataLocation dataLocation)
     {

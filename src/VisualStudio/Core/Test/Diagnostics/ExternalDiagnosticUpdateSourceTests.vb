@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.LanguageServer
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -127,6 +128,78 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 End Using
             End Using
         End Function
+
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69826")>
+        <InlineData(False)>
+        <InlineData(True)>
+        Public Async Function TestSourceGeneratorBuildDiagnosticMetadata(includeLinkInBuildMessage As Boolean) As Task
+            Dim workspaceXml =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" FilePath="C:\Project.csproj">
+                        <Document/>
+                    </Project>
+                </Workspace>
+
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
+                Dim projectId = workspace.CurrentSolution.Projects.Single().Id
+                Dim solution = workspace.CurrentSolution.AddAnalyzerReference(projectId, New TestGeneratorReference(New WarningGenerator()))
+                Assert.True(workspace.TryApplyChanges(solution))
+                Dim project = workspace.CurrentSolution.Projects.Single()
+
+                Dim diagnosticManagerService = New DiagnosticManagerService()
+                workspace.GetService(Of MockServiceBroker)().RegisterService(Of IDiagnosticManagerService)(diagnosticManagerService)
+                Dim waiter = workspace.GetService(Of AsynchronousOperationListenerProvider)().GetWaiter(FeatureAttribute.ErrorList)
+                workspace.ExportProvider.GetExportedValue(Of MockVisualStudioWorkspace)().SetWorkspace(workspace)
+
+                Using source = workspace.ExportProvider.GetExportedValue(Of ExternalErrorDiagnosticUpdateSource)()
+                    source.OnSolutionBuildStarted()
+                    Dim message = "Generator warning"
+                    If includeLinkInBuildMessage Then
+                        message &= " (https://example.com/warning)"
+                    End If
+
+                    Dim createBuildDiagnostic As Func(Of String, DiagnosticData) = Function(text As String) New DiagnosticData(
+                        "GEN001", category:=WellKnownDiagnosticTags.Build, message:=text,
+                        severity:=Microsoft.CodeAnalysis.DiagnosticSeverity.Warning, defaultSeverity:=Microsoft.CodeAnalysis.DiagnosticSeverity.Warning,
+                        isEnabledByDefault:=True, warningLevel:=1, projectId:=projectId,
+                        location:=New DiagnosticDataLocation(New FileLinePositionSpan(project.FilePath, Nothing)),
+                        customTags:=ImmutableArray(Of String).Empty, properties:=DiagnosticData.PropertiesForBuildDiagnostic,
+                        language:=project.Language)
+                    source.AddNewErrors(projectId, s_projectGuid, ImmutableArray.Create(
+                        createBuildDiagnostic(message), createBuildDiagnostic("Other warning")))
+                    source.OnSolutionBuildCompleted()
+                    Await waiter.ExpeditedWaitAsync()
+
+                    Assert.Equal(2, diagnosticManagerService.AllDiagnostics.Count)
+                    Dim diagnostic = diagnosticManagerService.AllDiagnostics(0)
+                    Assert.Equal("Generator warning", diagnostic.Message)
+                    Assert.Equal("Full description", diagnostic.ExpandedMessage)
+                    Assert.Equal("https://example.com/warning", diagnostic.HelpLink)
+                    Dim liveDiagnostic = DiagnosticData.Create(Microsoft.CodeAnalysis.Diagnostic.Create(WarningGenerator.Descriptor, Location.None), project)
+                    Assert.Equal(ProtocolConversions.GetDiagnosticIdentifier(liveDiagnostic.Id, liveDiagnostic.DataLocation.UnmappedFileSpan, liveDiagnostic.Message), diagnostic.Identifier)
+
+                    Dim unmatchedDiagnostic = diagnosticManagerService.AllDiagnostics(1)
+                    Assert.Equal("Other warning", unmatchedDiagnostic.Message)
+                    Assert.Null(unmatchedDiagnostic.ExpandedMessage)
+                    Assert.Null(unmatchedDiagnostic.HelpLink)
+                End Using
+            End Using
+        End Function
+
+        Private NotInheritable Class WarningGenerator
+            Implements IIncrementalGenerator
+
+            Public Shared ReadOnly Descriptor As New DiagnosticDescriptor(
+                "GEN001", "Title", "Generator warning", "Generator", Microsoft.CodeAnalysis.DiagnosticSeverity.Warning,
+                isEnabledByDefault:=True, description:="Full description", helpLinkUri:="https://example.com/warning")
+
+            Public Sub Initialize(context As IncrementalGeneratorInitializationContext) Implements IIncrementalGenerator.Initialize
+                context.RegisterSourceOutput(context.AnalyzerConfigOptionsProvider,
+                    Sub(productionContext, options)
+                        productionContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(Descriptor, Location.None))
+                    End Sub)
+            End Sub
+        End Class
 
         <WpfFact>
         Public Async Function TestOnlySupportsBuildErrors() As Task
