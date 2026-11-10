@@ -7,4 +7,4 @@ TChild
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<TChild>. MyEvent ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<TChild>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<TChild>(this, (TChild x) => {} )))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< TChild >. MyEvent ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<TChild>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<TChild>(this, (TChild x) => {} )))

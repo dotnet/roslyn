@@ -8,6 +8,7 @@ using System.Composition.Hosting.Core;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.Mef;
@@ -48,7 +49,7 @@ internal static class ExportProviderExtensions
             }
 
             export = method.Invoke(_exportProvider, [contract.ContractName]);
-            Assumes.NotNull(export);
+            Contract.ThrowIfNull(export);
 
             return true;
 

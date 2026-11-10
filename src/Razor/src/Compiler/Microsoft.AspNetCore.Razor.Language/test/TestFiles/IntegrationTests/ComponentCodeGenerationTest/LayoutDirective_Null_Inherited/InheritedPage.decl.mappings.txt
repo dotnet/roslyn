@@ -1,0 +1,5 @@
+﻿Source Location: (24:1,10 [14] x:\dir\subdir\Test\InheritedPage.cshtml)
+|BaseWithLayout|
+Generated Location: (562:17,0 [14] )
+|BaseWithLayout|
+

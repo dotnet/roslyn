@@ -115,6 +115,31 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
     }
 
     [Fact]
+    public async Task GenericComponentTypeArgument()
+    {
+        // Each component parameter generates another C# reference to the same type argument.
+        TestCode input = """
+            @typeparam [|TItem|]
+
+            <GenericComponent TItem="[|$$TItem|]" Value="default" Title="First" />
+            <GenericComponent TItem="[|TItem|]" Value="default" Title="Second" />
+            """;
+
+        TestCode component = """
+            @typeparam TItem
+
+            @code
+            {
+                [Parameter] public TItem Value { get; set; }
+                [Parameter] public string Title { get; set; }
+            }
+            """;
+
+        await VerifyFindAllReferencesAsync(input,
+            (FilePath("GenericComponent.razor"), component));
+    }
+
+    [Fact]
     public async Task OtherCSharpFile()
     {
         TestCode input = """
@@ -396,7 +421,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
 
         var results = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, DisposalToken);
 
-        Assumes.NotNull(results);
+        Contract.ThrowIfNull(results);
         return results;
     }
 

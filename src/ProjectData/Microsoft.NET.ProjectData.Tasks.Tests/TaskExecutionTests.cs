@@ -115,6 +115,89 @@ public class TaskExecutionTests
 	}
 
 	[Fact]
+	public void WriteTask_LogsOutputPathAndException_OnRuntimeIOFailure()
+	{
+		string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+		string outputPath = Path.Combine(root, "test.lscache");
+		Directory.CreateDirectory(outputPath);
+		try
+		{
+			var engine = new BuildEngineStub();
+			var task = new WriteProjectDataSliceTask
+			{
+				BuildEngine = engine,
+				ProjectFilePath = Path.Combine(root, "App.csproj"),
+				OutputPath = outputPath,
+				CommandLineArguments = ["/noconfig"],
+			};
+
+			Assert.True(task.Execute());
+			Assert.False(task.Succeeded);
+			string message = Assert.Single(engine.Warnings).Message!;
+			Assert.Contains(outputPath, message);
+			Assert.Contains(task.ProjectFilePath, message);
+			Assert.Contains(
+				OperatingSystem.IsWindows() ? nameof(UnauthorizedAccessException) : nameof(IOException),
+				message);
+			Assert.Contains(nameof(ProjectDataWriter), message);
+		}
+		finally
+		{
+			Directory.Delete(root, recursive: true);
+		}
+	}
+
+	[Fact]
+	public void MergeTask_LogsOutputPathAndException_OnRuntimeIOFailure()
+	{
+		string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+		string outputPath = Path.Combine(root, "test.lscache");
+		string slicePath = Path.Combine(root, "obj", "Debug", "net8.0", "App.csproj.slice");
+		Directory.CreateDirectory(outputPath);
+		Directory.CreateDirectory(Path.GetDirectoryName(slicePath)!);
+		File.WriteAllText(
+			slicePath,
+			"""
+			[project]
+			project=App.csproj
+			language=C#
+
+			[sliceDimensions]
+			TargetFramework=net8.0
+
+			[commandLineArguments]
+			/noconfig
+			""");
+		try
+		{
+			var engine = new BuildEngineStub();
+			var task = new MergeProjectDataSlicesTask
+			{
+				BuildEngine = engine,
+				ProjectFilePath = Path.Combine(root, "App.csproj"),
+				OutputPath = outputPath,
+				SliceGlob = Path.Combine(root, "obj", "**", "App.csproj.slice"),
+				TargetFrameworks = "net8.0",
+			};
+
+			Assert.True(task.Execute());
+			Assert.False(task.Succeeded);
+			Assert.True(task.FoundSlices);
+			string message = Assert.Single(engine.Warnings).Message!;
+			Assert.Contains(outputPath, message);
+			Assert.Contains(task.ProjectFilePath, message);
+			Assert.Contains(
+				OperatingSystem.IsWindows() ? nameof(UnauthorizedAccessException) : nameof(IOException),
+				message);
+			Assert.Contains(nameof(ProjectDataWriter), message);
+		}
+		finally
+		{
+			Directory.Delete(root, recursive: true);
+		}
+	}
+
+	[Fact]
 	public void UnsupportedMarkerTask_TreatsCacheRootResolutionFailureAsRecoverable()
 	{
 		MethodInfo? method = typeof(WriteUnsupportedProjectDataMarkerTask).GetMethod(

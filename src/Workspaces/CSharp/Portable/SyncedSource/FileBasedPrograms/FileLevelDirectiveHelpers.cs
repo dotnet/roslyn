@@ -610,7 +610,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
     /// <item>If the text contains a double quote, it is parsed strictly via <see cref="Tokenize"/>.</item>
     /// <item>Otherwise, if there is at most one whitespace-separated token, it is returned as-is.</item>
     /// <item>Otherwise, the trailing tokens are treated as metadata
-    /// only when <paramref name="allowMetadata"/> is set and every trailing token is a valid <c>Name=Value</c> pair;
+    /// only when the directive supports metadata and every trailing token is a valid <c>Name=Value</c> pair;
     /// then the split tokens are returned.
     /// This is unlikely to be a breaking change as it requires a construct like
     /// <c>#:package X@1 A=B</c> (which would previously fail because space is disallowed in version)
@@ -624,11 +624,11 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
     private static ImmutableArray<DirectiveToken>? TokenizeWithLegacyFallback(
         in ParseContext context,
         char? nameSeparator,
-        bool allowMetadata,
         out bool isLegacy)
     {
         isLegacy = false;
         var text = context.DirectiveText;
+        var allowMetadata = AllowsMetadata(context.DirectiveKind);
 
         // Quoting is the "new" form; parse strictly with full validation once a quote is present.
         if (text.Contains('"'))
@@ -771,14 +771,17 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
     }
 
     /// <summary>
-    /// Parses a directive that expects exactly one token (its value) and no metadata.
+    /// Parses a directive that expects a value, optionally followed by metadata.
     /// Reports an error and returns <see langword="null"/> on empty or extra tokens.
     /// Unquoted whitespace is accepted as part of the value for backward compatibility
     /// (see <see cref="TokenizeWithLegacyFallback"/>).
     /// </summary>
-    private static string? ParseSingleValue(in ParseContext context)
+    private static string? ParseSingleValue(
+        in ParseContext context,
+        out ImmutableArray<(string Name, string Value)> metadata)
     {
-        if (TokenizeWithLegacyFallback(context, nameSeparator: null, allowMetadata: false, out _) is not { } tokens)
+        metadata = default;
+        if (TokenizeWithLegacyFallback(context, nameSeparator: null, out _) is not { } tokens)
         {
             return null;
         }
@@ -789,9 +792,15 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
             return null;
         }
 
-        if (tokens.Length > 1)
+        if (!AllowsMetadata(context.DirectiveKind) && tokens.Length > 1)
         {
             context.ReportError(string.Format(FileBasedProgramsResources.UnexpectedDirectiveText, context.DirectiveKind));
+            return null;
+        }
+
+        metadata = ParseMetadata(context, tokens, start: 1);
+        if (metadata.IsDefault)
+        {
             return null;
         }
 
@@ -837,7 +846,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Sdk? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: '@', allowMetadata: false, out var isLegacy) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, nameSeparator: '@', out var isLegacy) is not { } tokens)
             {
                 return null;
             }
@@ -872,7 +881,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Property? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: '=', allowMetadata: false, out var isLegacy) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, nameSeparator: '=', out var isLegacy) is not { } tokens)
             {
                 return null;
             }
@@ -931,7 +940,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Package? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: '@', allowMetadata: true, out var isLegacy) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, nameSeparator: '@', out var isLegacy) is not { } tokens)
             {
                 return null;
             }
@@ -1006,7 +1015,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Project? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: null, allowMetadata: true, out _) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, nameSeparator: null, out _) is not { } tokens)
             {
                 return null;
             }
@@ -1138,7 +1147,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Ref? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: null, allowMetadata: true, out _) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, nameSeparator: null, out _) is not { } tokens)
             {
                 return null;
             }
@@ -1149,7 +1158,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                 return null;
             }
 
-            if (ParseMetadata(context, tokens, start: 1) is not { IsDefault: false } metadata)
+            if (ParseMetadata(context, tokens, start: 1, conflictingName: VirtualProjectBuilder.FromRefDirectiveMetadataName) is not { IsDefault: false } metadata)
             {
                 return null;
             }
@@ -1261,18 +1270,32 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public string? ItemType { get; init; }
 
+        public ImmutableArray<(string Name, string Value)> Metadata { get; init; }
+
         public static new IncludeOrExclude? Parse(in ParseContext context)
         {
-            if (ParseSingleValue(context) is not { } value)
+            var kind = KindFromString(context.DirectiveKind);
+            if (ParseSingleValue(context, out var metadata) is not { } value)
             {
                 return null;
+            }
+
+            foreach (var (name, _) in metadata)
+            {
+                if (MetadataNameComparer.Equals(name, VirtualProjectBuilder.FromIncludeDirectiveMetadataName) ||
+                    MetadataNameComparer.Equals(name, VirtualProjectBuilder.IncludeDirectiveMetadataNames))
+                {
+                    context.ReportError(string.Format(FileBasedProgramsResources.ConflictingDirectiveMetadata, name));
+                    return null;
+                }
             }
 
             return new IncludeOrExclude(context.Info)
             {
                 OriginalName = value,
                 Name = value,
-                Kind = KindFromString(context.DirectiveKind),
+                Kind = kind,
+                Metadata = metadata,
             };
         }
 
@@ -1308,6 +1331,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                 Name = Name,
                 Kind = Kind,
                 ItemType = itemType,
+                Metadata = Metadata,
             };
         }
 
@@ -1324,6 +1348,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                 Name = name,
                 Kind = Kind,
                 ItemType = ItemType,
+                Metadata = Metadata,
             };
         }
 
@@ -1357,7 +1382,13 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
             };
         }
 
-        public override string ToString() => $"#:{KindToString()} {QuoteIfNeeded(Name)}";
+        public override string ToString()
+        {
+            var builder = new StringBuilder($"#:{KindToString()} ");
+            builder.Append(QuoteIfNeeded(Name));
+            AppendMetadata(builder, Metadata);
+            return builder.ToString();
+        }
 
         /// <summary>
         /// Parses a <paramref name="value"/> in the format <c>.protobuf=Protobuf;.cshtml=Content</c>.
@@ -1391,9 +1422,16 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                     continue;
                 }
 
-                if (itemType.IsWhiteSpace())
+                string? errorMessage = null;
+                if (itemType.Length == 0 || !IsValidMSBuildName(itemType, out errorMessage))
                 {
-                    ReportError(string.Format(FileBasedProgramsResources.InvalidIncludeExcludeMappingItemType, itemType, pair));
+                    var message = string.Format(FileBasedProgramsResources.InvalidIncludeExcludeMappingItemType, itemType, pair);
+                    if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        message = $"{message} {errorMessage}";
+                    }
+
+                    ReportError(message);
                     continue;
                 }
 

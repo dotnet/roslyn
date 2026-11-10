@@ -1370,5 +1370,291 @@ Get1 Get2 get_Item 12 Get3 set_Item 123
 
             verifier.VerifyIL("Program.Test2", expectedIL);
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86184")]
+        public void ReadOnlyTarget_01()
+        {
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int this[int i] 
+    {
+        get
+        {
+            System.Console.Write($""get:{F1} "");
+            Program.F.F1++;
+            return 0;
+        }
+        set
+        {
+            System.Console.Write($""set:{F1} "");
+            Program.F.F1++;
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(in F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static void Test3(in S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    public static int GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return 1; }
+    public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
+}
+";
+            var comp1 = CreateCompilation(text1, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 get:4 GetValue:5 set:6 final:7
+GetIndex:3 get:4 GetValue:5 set:6 final:7
+GetIndex:3 get:4 GetValue:5 set:6 final:7
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  4
+  .locals init (S1& V_0,
+            int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.GetIndex()""
+  IL_0008:  stloc.1
+  IL_0009:  ldloc.0
+  IL_000a:  ldloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  call       ""readonly int S1.this[int].get""
+  IL_0012:  call       ""int Program.GetValue()""
+  IL_0017:  add
+  IL_0018:  call       ""readonly void S1.this[int].set""
+  IL_001d:  nop
+  IL_001e:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86184")]
+        public void ReadOnlyTarget_02()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int this[int i] 
+    {
+        get
+        {
+            System.Console.Write($""get:{F1} {F2} "");
+            Program.F.F1++;
+            Helper.Assign(in F2, 5);
+            return 0;
+        }
+        set
+        {
+            System.Console.Write($""set:{F1} {F2} "");
+            Program.F.F1++;
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        GetTarget()[GetIndex()] += GetValue();
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static int GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return 1; }
+    public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
+}
+";
+            var comp1 = CreateCompilation(text1, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 get:3 0 GetValue:5 set:3 5 final:7").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  .locals init (S1 V_0,
+            int V_1)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.GetIndex()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldloc.1
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldloc.1
+  IL_0013:  call       ""readonly int S1.this[int].get""
+  IL_0018:  call       ""int Program.GetValue()""
+  IL_001d:  add
+  IL_001e:  call       ""readonly void S1.this[int].set""
+  IL_0023:  nop
+  IL_0024:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ReadOnlyTarget_03()
+        {
+            var text1 = @"
+interface I1
+{
+    int this[int i] { get; set; }
+}
+
+public class C0 : I1
+{
+    public int this[int i] 
+    {
+        get
+        {
+            System.Console.Write(""get "");
+            return 0;
+        }
+        set
+        {
+            System.Console.Write(""set "");
+        }
+    }
+}
+
+public class C1 : C0;
+
+class Program
+{
+    static void Main()
+    {
+        Test2<C0>(new C1[] {new C1()});
+    }
+
+    static void Test2<T>(T[] array) where T : I1
+    {
+        array[GetIndex1()][GetIndex2()] += GetValue();
+    }
+
+    public static int GetIndex1() { System.Console.Write($""GetIndex1 ""); return 0; }
+    public static int GetIndex2() { System.Console.Write($""GetIndex2 ""); return 1; }
+    public static int GetValue() { System.Console.Write($""GetValue ""); return 1; }
+}
+";
+            var comp1 = CreateCompilation(text1, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex1 GetIndex2 get GetValue set").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2<T>", @"
+{
+  // Code size       89 (0x59)
+  .maxstack  4
+  .locals init (T[] V_0,
+            int V_1,
+            T& V_2,
+            T V_3,
+            int V_4,
+            T V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""int Program.GetIndex1()""
+  IL_0008:  stloc.1
+  IL_0009:  ldloca.s   V_5
+  IL_000b:  initobj    ""T""
+  IL_0011:  ldloc.s    V_5
+  IL_0013:  box        ""T""
+  IL_0018:  brtrue.s   IL_0026
+  IL_001a:  ldloc.0
+  IL_001b:  ldloc.1
+  IL_001c:  ldelem     ""T""
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  br.s       IL_002d
+  IL_0026:  ldloc.0
+  IL_0027:  ldloc.1
+  IL_0028:  ldelema    ""T""
+  IL_002d:  stloc.2
+  IL_002e:  call       ""int Program.GetIndex2()""
+  IL_0033:  stloc.s    V_4
+  IL_0035:  ldloc.2
+  IL_0036:  ldloc.s    V_4
+  IL_0038:  ldloc.2
+  IL_0039:  ldloc.s    V_4
+  IL_003b:  constrained. ""T""
+  IL_0041:  callvirt   ""int I1.this[int].get""
+  IL_0046:  call       ""int Program.GetValue()""
+  IL_004b:  add
+  IL_004c:  constrained. ""T""
+  IL_0052:  callvirt   ""void I1.this[int].set""
+  IL_0057:  nop
+  IL_0058:  ret
+}
+");
+        }
     }
 }

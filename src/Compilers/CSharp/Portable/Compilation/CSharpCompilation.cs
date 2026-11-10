@@ -3110,6 +3110,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureUnsafeEvolution.RequiredVersion())), Location.None));
                 }
 
+                if (HasFeature(CodeAnalysis.Feature.UpdatedMemorySafetyRules))
+                {
+                    builder.Add(ErrorCode.WRN_DeprecatedFeatureFlag, Location.None,
+                        CodeAnalysis.Feature.UpdatedMemorySafetyRules,
+                        $"MemorySafetyRulesVersion={(int)MemorySafetyRulesVersion.Version2}",
+                        $"/memorysafetyrulesversion:{(int)MemorySafetyRulesVersion.Version2}");
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // the set of diagnostics related to establishing references.

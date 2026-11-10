@@ -74,6 +74,7 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
                 globalOptions,
                 clientCapabilities.SupportsVisualStudioExtensions(),
                 clientCapabilities.SupportsMarkdown(),
+                HoverHandler.SupportsCSharpDeclarationMarkers(clientCapabilities),
                 cancellationToken).ConfigureAwait(false);
 
             // Roslyn couldn't provide a hover, so we're done.

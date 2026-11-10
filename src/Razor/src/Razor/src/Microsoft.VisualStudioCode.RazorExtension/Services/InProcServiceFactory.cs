@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
@@ -36,7 +37,7 @@ internal static class InProcServiceFactory
             if (!type.IsAbstract &&
                 typeof(IInProcServiceFactory).IsAssignableFrom(type))
             {
-                Assumes.True(typeof(RazorBrokeredServiceBase.FactoryBase<>) == type.BaseType!.GetGenericTypeDefinition());
+                Contract.ThrowIfFalse(typeof(RazorBrokeredServiceBase.FactoryBase<>) == type.BaseType!.GetGenericTypeDefinition());
 
                 var genericType = type.BaseType.GetGenericArguments().Single();
 
@@ -53,7 +54,7 @@ internal static class InProcServiceFactory
         VSCodeBrokeredServiceInterceptor brokeredServiceInterceptor, IWorkspaceProvider workspaceProvider, ILoggerFactory loggerFactory)
         where TService : class
     {
-        Assumes.True(s_factoryMap.TryGetValue(typeof(TService), out var factory));
+        Contract.ThrowIfFalse(s_factoryMap.TryGetValue(typeof(TService), out var factory));
 
         var brokeredServiceData = new RazorBrokeredServiceData(ExportProvider: _exportProvider, loggerFactory, brokeredServiceInterceptor, workspaceProvider);
         var hostProvidedServices = new HostProvidedServices(brokeredServiceData);

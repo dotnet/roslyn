@@ -1802,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             BoundExpression visitedOperand = this.VisitExpression(node.Operand, ExprContext.Address);
-            return node.Update(visitedOperand, node.IsManaged, node.Type);
+            return node.Update(visitedOperand, node.IsManaged, node.RequiresAssignedOperand, node.Type);
         }
 
         public override BoundNode VisitRefAccess(BoundRefAccess node)
@@ -1813,7 +1813,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
-            BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
+            BoundExpression expressionOpt = node.RefKind == RefKind.None
+                ? (BoundExpression)this.Visit(node.ExpressionOpt)
+                : VisitExpression(node.ExpressionOpt, ExprContext.Address);
 
             // must not have locals on stack when returning
             EnsureOnlyEvalStack();

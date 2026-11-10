@@ -3579,19 +3579,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
+                _variables = _variables.Container!;
+                this.State = oldState;
+#if DEBUG
+                _completingTargetTypedExpression = oldCompletingTargetTypedExpression;
+#endif
+                _returnTypesOpt = oldReturnTypes;
+                _useDelegateInvokeReturnType = oldUseDelegateInvokeReturnType;
+                _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
+                _delegateInvokeMethod = oldDelegateInvokeMethod;
+                this.CurrentSymbol = oldCurrentSymbol;
+                this._symbol = oldSymbol;
             }
 
-            _variables = _variables.Container!;
-            this.State = oldState;
-#if DEBUG
-            _completingTargetTypedExpression = oldCompletingTargetTypedExpression;
-#endif
-            _returnTypesOpt = oldReturnTypes;
-            _useDelegateInvokeReturnType = oldUseDelegateInvokeReturnType;
-            _useDelegateInvokeParameterTypes = oldUseDelegateInvokeParameterTypes;
-            _delegateInvokeMethod = oldDelegateInvokeMethod;
-            this.CurrentSymbol = oldCurrentSymbol;
-            this._symbol = oldSymbol;
             return;
 
             void enforceMemberNotNull(SyntaxNode? syntax, LocalState state)
@@ -10760,7 +10760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings,
                 AssignmentKind.Argument,
                 parameterOpt: parameter,
-                reportTopLevelWarnings,
+                reportTopLevelWarnings: reportRemainingWarnings,
                 reportRemainingWarnings,
                 trackMembers: false,
                 diagnosticLocation: diagnosticLocation);
