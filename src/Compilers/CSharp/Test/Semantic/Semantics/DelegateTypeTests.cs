@@ -16850,6 +16850,49 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
+        public void MethodGroupAsParameterDefaultValue()
+        {
+            var source = """
+class C
+{
+    void M(object a = M) { }
+}
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,23): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     void M(object a = M) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M").WithArguments("a").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
+        public void MethodGroupAsAttributeArgument()
+        {
+            var source = """
+class C
+{
+    [Attr(M)]
+    static void M() { }
+}
+
+class Attr(object a) : System.Attribute { }
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,11): warning CS8974: Converting method group 'M' to non-delegate type 'object'. Did you intend to invoke the method?
+                //     [Attr(M)]
+                Diagnostic(ErrorCode.WRN_MethGrpToNonDel, "M").WithArguments("M", "object").WithLocation(3, 11),
+                // (3,11): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [Attr(M)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "M").WithLocation(3, 11),
+                // (7,19): warning CS9113: Parameter 'a' is unread.
+                // class Attr(object a) : System.Attribute { }
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "a").WithArguments("a").WithLocation(7, 19)
+                );
+        }
+
+        [Fact]
         public void MethodGroupTargetConversion_ParameterOptionalInMethodGroupOnly()
         {
             var source = """
