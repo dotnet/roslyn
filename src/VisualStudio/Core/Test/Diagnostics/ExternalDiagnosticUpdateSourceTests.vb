@@ -168,7 +168,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                         language:=LanguageNames.VisualBasic)
                     Assert.False(diagnostic.IsBuildDiagnostic())
 #If DEBUG Then
-                    Assert.Throws(Of InvalidOperationException)(Sub() source.AddNewErrors(project.Id, s_projectGuid, {diagnostic}.ToImmutableArray()))
+                    Assert.Throws(Of Xunit.Sdk.TraceAssertException)(Sub() source.AddNewErrors(project.Id, s_projectGuid, {diagnostic}.ToImmutableArray()))
 #End If
                 End Using
             End Using

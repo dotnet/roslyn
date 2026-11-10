@@ -57,14 +57,6 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
 
     private MefHostServices? _hostServices;
 
-    static UseExportProviderAttribute()
-    {
-        // Make sure we run the module initializer for Roslyn.Test.Utilities. C# projects do this via a
-        // build-injected module initializer, but VB projects can ensure initialization occurs by applying the
-        // UseExportProviderAttribute to test classes that rely on it.
-        RuntimeHelpers.RunModuleConstructor(typeof(TestBase).Module.ModuleHandle);
-    }
-
     public override void Before(MethodInfo? methodUnderTest, IXunitTest test)
     {
         // Need to clear cached MefHostServices between test runs.
