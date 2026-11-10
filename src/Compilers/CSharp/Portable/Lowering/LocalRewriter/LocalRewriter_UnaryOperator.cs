@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return BoundCall.Synthesized(
                         syntax,
+                        isInUnsafeRegion: false,
                         receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method,
@@ -168,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method = (MethodSymbol)_compilation.Assembly.GetSpecialTypeMember(SpecialMember.System_Decimal__op_UnaryNegation);
                 if (!_inExpressionLambda)
                 {
-                    return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredOperand);
+                    return BoundCall.Synthesized(syntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, loweredOperand);
                 }
             }
 
@@ -209,7 +210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = _factory.MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
-            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, isInUnsafeRegion: false, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
 
             // new R?(temp.GetValueOrDefault())
             BoundExpression consequence = GetLiftedUnaryOperatorConsequence(kind, syntax, method, constrainedToTypeOpt, type, call_GetValueOrDefault);
@@ -417,6 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(node.Type.IsVoidType());
                 return BoundCall.Synthesized(syntax,
+                                             isInUnsafeRegion: false,
                                              ApplyConversionIfNotIdentity(node.OperandConversion, node.OperandPlaceholder, VisitExpression(node.Operand)),
                                              initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                                              node.MethodOpt);
@@ -445,6 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         [
                             tempAssignment,
                             BoundCall.Synthesized(syntax,
+                                                  isInUnsafeRegion: false,
                                                   ApplyConversionIfNotIdentity(node.OperandConversion, node.OperandPlaceholder, boundTemp),
                                                   initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                                                   node.MethodOpt)
@@ -529,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundCall makeIncrementCall(SyntaxNode syntax, BoundLocal boundTemp, BoundExpression? rightOpt, MethodSymbol operatorMethod)
             {
-                return BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, operatorMethod, rightOpt is null ? [] : [rightOpt]);
+                return BoundCall.Synthesized(syntax, isInUnsafeRegion: false, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.False, operatorMethod, rightOpt is null ? [] : [rightOpt]);
             }
 
             BoundExpression makeAssignmentBack(SyntaxNode syntax, BoundExpression transformedLHS, BoundLocal boundTemp, bool isChecked, AssignmentKind assignmentKind)
@@ -822,6 +825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, node.ConstrainedToTypeOpt),
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     node.MethodOpt,
@@ -847,11 +851,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = _factory.MakeNullableHasValue(node.Syntax, boundTemp);
 
             // temp.GetValueOrDefault()
-            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+            BoundExpression call_GetValueOrDefault = BoundCall.Synthesized(syntax, isInUnsafeRegion: false, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
 
             // op_Increment(temp.GetValueOrDefault())
             BoundExpression userDefinedCall = BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: node.ConstrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, node.ConstrainedToTypeOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 node.MethodOpt,
@@ -998,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operand.Type is { SpecialType: SpecialType.System_Decimal });
             MethodSymbol method = GetDecimalIncDecOperator(oper);
-            return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, operand);
+            return BoundCall.Synthesized(syntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, operand);
         }
 
         private BoundExpression MakeLiftedDecimalIncDecOperator(SyntaxNode syntax, BinaryOperatorKind oper, BoundExpression operand)
@@ -1013,9 +1018,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // x.HasValue
             BoundExpression condition = _factory.MakeNullableHasValue(syntax, operand);
             // x.GetValueOrDefault()
-            BoundExpression getValueCall = BoundCall.Synthesized(syntax, operand, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+            BoundExpression getValueCall = BoundCall.Synthesized(syntax, isInUnsafeRegion: false, operand, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
             // op_Inc(x.GetValueOrDefault())
-            BoundExpression methodCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, getValueCall);
+            BoundExpression methodCall = BoundCall.Synthesized(syntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, getValueCall);
             // new decimal?(op_Inc(x.GetValueOrDefault()))
             BoundExpression consequence = new BoundObjectCreationExpression(syntax, isInUnsafeRegion: false, ctor, methodCall);
             // default(decimal?)

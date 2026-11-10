@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var customTypeInfoPayloadId = GetCustomTypeInfoPayloadId(syntax, guidConstructor, hasCustomTypeInfoPayload);
             var call = BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: method,

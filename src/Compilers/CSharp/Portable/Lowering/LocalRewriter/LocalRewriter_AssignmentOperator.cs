@@ -430,6 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression setterCall = BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     rewrittenReceiver,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,
@@ -447,6 +448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundCall setterCall = BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     rewrittenReceiver,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     setMethod,

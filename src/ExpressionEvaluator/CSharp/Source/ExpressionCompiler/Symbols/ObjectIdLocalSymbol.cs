@@ -91,6 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     method.Parameters[0].Type);
                 return BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     receiverOpt: null,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method: method,

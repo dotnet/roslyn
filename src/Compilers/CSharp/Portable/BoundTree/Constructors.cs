@@ -177,22 +177,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method)
+        public static BoundCall Synthesized(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method)
         {
-            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray<BoundExpression>.Empty);
+            return Synthesized(syntax, isInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray<BoundExpression>.Empty);
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0)
+        public static BoundCall Synthesized(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0)
         {
-            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0));
+            return Synthesized(syntax, isInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0));
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
+        public static BoundCall Synthesized(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
         {
-            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0, arg1));
+            return Synthesized(syntax, isInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0, arg1));
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt = default)
+        public static BoundCall Synthesized(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt = default)
         {
             argumentRefKindsOpt = argumentRefKindsOpt.IsDefault ? getArgumentRefKinds(method) : argumentRefKindsOpt;
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
             return new BoundCall(syntax,
-                    isInUnsafeRegion: false,
+                    isInUnsafeRegion,
                     receiverOpt,
                     initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning,
                     method: method,

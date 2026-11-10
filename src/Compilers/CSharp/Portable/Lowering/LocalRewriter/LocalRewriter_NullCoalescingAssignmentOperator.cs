@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // tmp = lhsRead.GetValueOrDefault();
-                var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault),
+                var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, isInUnsafeRegion: false, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault),
                                                out var getValueOrDefaultStore);
 
                 stores.Add(getValueOrDefaultStore);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverIsKnownToBeCaptured: true);
 
                 // lhsRead.HasValue
-                var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, hasValue);
+                var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, isInUnsafeRegion: false, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, hasValue);
 
                 // { tmp = b; transformedLhs = tmp; tmp }
                 var alternative = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(tmpAssignment, transformedLhsAssignment), tmp);

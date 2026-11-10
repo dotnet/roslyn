@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!used)
             {
                 return BoundCall.Synthesized(syntax,
+                                             isInUnsafeRegion: false,
                                              ApplyConversionIfNotIdentity(node.LeftConversion, node.LeftPlaceholder, VisitExpression(node.Left)),
                                              initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                                              node.Operator.Method,
@@ -66,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         [
                             tempAssignment,
                             BoundCall.Synthesized(syntax,
+                                                  isInUnsafeRegion: false,
                                                   ApplyConversionIfNotIdentity(node.LeftConversion, node.LeftPlaceholder, targetOfCompoundOperation),
                                                   initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                                                   node.Operator.Method,

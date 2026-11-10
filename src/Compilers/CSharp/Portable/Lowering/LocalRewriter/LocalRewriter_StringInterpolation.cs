@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // resultTemp = builderTemp.ToStringAndClear();
             var toStringAndClear = (MethodSymbol)Binder.GetWellKnownTypeMember(_compilation, WellKnownMember.System_Runtime_CompilerServices_DefaultInterpolatedStringHandler__ToStringAndClear, _diagnostics, syntax: syntax);
             BoundExpression toStringAndClearCall = toStringAndClear is not null
-                ? BoundCall.Synthesized(syntax, result.HandlerTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, toStringAndClear)
+                ? BoundCall.Synthesized(syntax, isInUnsafeRegion: false, result.HandlerTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, toStringAndClear)
                 : new BoundBadExpression(syntax, isInUnsafeRegion: false, LookupResultKind.Empty, symbols: ImmutableArray<Symbol?>.Empty, childBoundNodes: ImmutableArray<BoundExpression>.Empty, type);
 
             return result.WithFinalResult(toStringAndClearCall);

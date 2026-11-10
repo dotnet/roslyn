@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     var temp = ConvertToLocalTypeHelper(compilation, expr, intPtrType, bindingDiagnostics);
                     expr = BoundCall.Synthesized(
                         syntax,
+                        isInUnsafeRegion: false,
                         receiverOpt: null,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: conversionMethod,

@@ -296,6 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EventRegistrationTokenTable<Event>.GetOrCreateEventRegistrationTokenTable(ref _tokenTable)
             BoundCall getOrCreateCall = BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: getOrCreateMethod,
@@ -310,6 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // EventRegistrationTokenTable<Event>.GetOrCreateEventRegistrationTokenTable(ref _tokenTable).AddHandler(value) // or RemoveHandler
             BoundCall processHandlerCall = BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: getOrCreateCall,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: processHandlerMethod,
@@ -410,6 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // (DelegateType)Delegate.Combine(_event, value)
                 delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
                     operand: BoundCall.Synthesized(syntax,
+                        isInUnsafeRegion: false,
                         receiverOpt: null,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: updateMethod,
@@ -478,6 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (DelegateType)Delegate.Combine(tmp1, value)
             delegateUpdate = BoundConversion.SynthesizedNonUserDefined(syntax,
                 operand: BoundCall.Synthesized(syntax,
+                    isInUnsafeRegion: false,
                     receiverOpt: null,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method: updateMethod,
@@ -497,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Interlocked.CompareExchange<DelegateType>(ref _event, tmp2, tmp1)
             BoundExpression compareExchange = BoundCall.Synthesized(syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: compareExchangeMethod,
@@ -563,6 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     BoundCall.Synthesized(
                         syntax,
+                        isInUnsafeRegion: false,
                         new BoundBaseReference(
                             syntax,
                             isInUnsafeRegion: false,

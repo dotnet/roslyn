@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enumeratorInfo.CurrentPlaceholder,
                     BoundCall.Synthesized(
                         syntax: forEachSyntax,
+                        isInUnsafeRegion: false,
                         receiverOpt: boundEnumeratorVar,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         method: enumeratorInfo.CurrentPropertyGetter)));
@@ -454,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundStatement disposableVarDecl = MakeLocalDeclaration(forEachSyntax, disposableVar, disposableVarInitValue);
 
                 // d.Dispose()
-                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, receiverOpt: boundDisposableVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method: disposeMethod);
+                BoundExpression disposeCall = BoundCall.Synthesized(syntax: forEachSyntax, isInUnsafeRegion: false, receiverOpt: boundDisposableVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method: disposeMethod);
                 BoundStatement disposeCallStatement = new BoundExpressionStatement(forEachSyntax, expression: disposeCall);
 
                 // if (d != null) d.Dispose();
@@ -719,6 +720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 {
                                                     return BoundCall.Synthesized(
                                                                syntax: syntax,
+                                                               isInUnsafeRegion: false,
                                                                receiverOpt: boundArrayVar,
                                                                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                                arg.indexerGet,
@@ -728,6 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 {
                                                     return BoundCall.Synthesized(
                                                                syntax: syntax,
+                                                               isInUnsafeRegion: false,
                                                                receiverOpt: boundArrayVar,
                                                                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                                arg.lengthGet);
@@ -1105,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetUpperBound(dimension)
-                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getUpperBoundMethod, dimensionArgument);
+                BoundExpression currentDimensionUpperBound = BoundCall.Synthesized(forEachSyntax, isInUnsafeRegion: false, boundArrayVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getUpperBoundMethod, dimensionArgument);
 
                 // int q_dimension = a.GetUpperBound(dimension);
                 upperVarDecl[dimension] = MakeLocalDeclaration(forEachSyntax, upperVar[dimension], currentDimensionUpperBound);
@@ -1160,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type: intType));
 
                 // a.GetLowerBound(dimension)
-                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, boundArrayVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getLowerBoundMethod, dimensionArgument);
+                BoundExpression currentDimensionLowerBound = BoundCall.Synthesized(forEachSyntax, isInUnsafeRegion: false, boundArrayVar, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getLowerBoundMethod, dimensionArgument);
 
                 // int p_dimension = a.GetLowerBound(dimension);
                 BoundStatement positionVarDecl = MakeLocalDeclaration(forEachSyntax, positionVar[dimension], currentDimensionLowerBound);

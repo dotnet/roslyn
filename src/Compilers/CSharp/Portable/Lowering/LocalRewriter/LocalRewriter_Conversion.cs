@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // (If the source is known to be possibly null then we need to keep the call to get Value
                     // in place so that it throws at runtime.)
                     MethodSymbol get_Value = UnsafeGetNullableMethod(syntax, rewrittenOperandType, SpecialMember.System_Nullable_T_get_Value);
-                    value = BoundCall.Synthesized(syntax, rewrittenOperand, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, get_Value);
+                    value = BoundCall.Synthesized(syntax, isInUnsafeRegion: false, rewrittenOperand, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, get_Value);
                 }
 
                 conversion.AssertUnderlyingConversionsChecked();
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
                 MakeConversionNode(
                     syntax,
-                    BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault),
+                    BoundCall.Synthesized(syntax, isInUnsafeRegion: false, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault),
                     conversion.UnderlyingConversions[0],
                     type.GetNullableUnderlyingType(),
                     @checked));
@@ -1301,6 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
                 return MakeLiftedUserDefinedConversionConsequence(BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     conversion.Method,
@@ -1450,6 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
             BoundExpression result = BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 conversion.Method,
@@ -1522,13 +1524,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression condition = _factory.MakeNullableHasValue(syntax, boundTemp);
 
             // temp.GetValueOrDefault()
-            BoundCall callGetValueOrDefault = BoundCall.Synthesized(syntax, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
+            BoundCall callGetValueOrDefault = BoundCall.Synthesized(syntax, isInUnsafeRegion: false, boundTemp, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault);
 
             // op_Whatever(temp.GetValueOrDefault())
             Debug.Assert(conversion.Method is { });
             var constrainedToTypeOpt = conversion.ConstrainedToTypeOpt;
             BoundCall userDefinedCall = BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: constrainedToTypeOpt is null ? null : new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, constrainedToTypeOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 conversion.Method,
@@ -1594,6 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     receiverOpt: new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, conversion.Method.ReturnType),
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     conversion.Method,
@@ -1870,7 +1874,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(TypeSymbol.Equals(method.ReturnType, toType, TypeCompareKind.ConsiderEverything2));
-                return BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, operand);
+                return BoundCall.Synthesized(syntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, operand);
             }
         }
 

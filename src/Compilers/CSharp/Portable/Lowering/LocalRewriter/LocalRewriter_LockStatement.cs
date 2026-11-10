@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var enterScopeCall = BoundCall.Synthesized(
                     rewrittenArgument.Syntax,
+                    isInUnsafeRegion: false,
                     rewrittenArgument,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     lockTypeInfo.EnterScopeMethod);
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 exitCallExpr = BoundCall.Synthesized(
                     lockSyntax,
+                    isInUnsafeRegion: false,
                     receiverOpt: null,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     exitMethod,
@@ -153,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     lockSyntax,
                     BoundCall.Synthesized(
                         lockSyntax,
+                        isInUnsafeRegion: false,
                         receiverOpt: null,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         enterMethod,
@@ -202,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     enterCallExpr = BoundCall.Synthesized(
                         lockSyntax,
+                        isInUnsafeRegion: false,
                         receiverOpt: null,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         enterMethod,

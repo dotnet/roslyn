@@ -742,6 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Synthesized call, because we don't want to modify the type in the SemanticModel.
                     return BoundCall.Synthesized(
                         syntax: exprSyntax,
+                        isInUnsafeRegion: InUnsafeRegion,
                         receiverOpt: collectionExpr,
                         initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(collectionExpr, nullableValueGetter),
                         method: nullableValueGetter);

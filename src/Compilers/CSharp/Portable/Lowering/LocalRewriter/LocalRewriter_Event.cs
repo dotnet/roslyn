@@ -258,6 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // EventRegistrationTokenTable<Event>.GetOrCreateEventRegistrationTokenTable(ref _tokenTable)
                 getOrCreateCall = BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     receiverOpt: null,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     method: getOrCreateMethod,

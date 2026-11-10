@@ -193,7 +193,7 @@ fallbackStrings:
 
                     var method = UnsafeGetSpecialTypeMethod(originalSyntax, concatMember);
                     Debug.Assert(method is not null);
-                    return BoundCall.Synthesized(originalSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, finalArguments);
+                    return BoundCall.Synthesized(originalSyntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, method, finalArguments);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(concatKind);
@@ -553,11 +553,11 @@ fallbackStrings:
                 {
                     Debug.Assert(arg.HasAnyErrors || arg.Type.SpecialType == SpecialType.System_String);
                     Debug.Assert(stringImplicitConversionToReadOnlySpan is not null);
-                    args[i] = BoundCall.Synthesized(arg.Syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, arg);
+                    args[i] = BoundCall.Synthesized(arg.Syntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, stringImplicitConversionToReadOnlySpan, arg);
                 }
             }
 
-            var concatCall = BoundCall.Synthesized(syntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, spanConcat, args.ToImmutableAndFree());
+            var concatCall = BoundCall.Synthesized(syntax, isInUnsafeRegion: false, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, spanConcat, args.ToImmutableAndFree());
 
             var oldSyntax = factory.Syntax;
             factory.Syntax = syntax;
@@ -692,7 +692,7 @@ fallbackStrings:
                 expr.Type.SpecialType.CanOptimizeBehavior() &&
                 !isFieldOfMarshalByRef(expr, _compilation))
             {
-                return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
+                return BoundCall.Synthesized(syntax, isInUnsafeRegion: false, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, structToStringMethod);
             }
 
             // - It's a reference type (excluding unconstrained generics): no copy
@@ -717,7 +717,7 @@ fallbackStrings:
                 {
                     expr = new BoundPassByCopy(syntax, isInUnsafeRegion: false, expr, expr.Type);
                 }
-                return BoundCall.Synthesized(syntax, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
+                return BoundCall.Synthesized(syntax, isInUnsafeRegion: false, expr, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, objectToStringMethod);
             }
 
             if (callWithoutCopy)
@@ -748,6 +748,7 @@ fallbackStrings:
                     hasValueMethodOpt: null,
                     whenNotNull: BoundCall.Synthesized(
                         syntax,
+                        isInUnsafeRegion: false,
                         new BoundConditionalReceiver(syntax, isInUnsafeRegion: false, currentConditionalAccessID, expr.Type),
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         objectToStringMethod),

@@ -1850,6 +1850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // https://github.com/dotnet/roslyn/issues/58335: consider restoring the 'private' accessibility of 'static LocalRewriter.UnsafeGetNullableMethod()'
             return BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 expression,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 LocalRewriter.UnsafeGetNullableMethod(syntax, expression.Type, CodeAnalysis.SpecialMember.System_Nullable_T_get_HasValue, Compilation, Diagnostics));

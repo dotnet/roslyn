@@ -96,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return BoundCall.Synthesized(
                     syntax,
+                    isInUnsafeRegion: false,
                     rewrittenReceiver,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                     getMethod,
