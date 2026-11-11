@@ -16885,6 +16885,91 @@ class C
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
+        public void MethodGroupAsParameterDefaultValue_03()
+        {
+            var source = """
+class C
+{
+    void M(object a = true ? M : M) { }
+}
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,23): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     void M(object a = true ? M : M) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "true ? M : M").WithArguments("a").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
+        public void MethodGroupAsParameterDefaultValue_04()
+        {
+            var source = """
+class C
+{
+    void M(object a = (M, M)) { }
+}
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,23): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     void M(object a = (M, M)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(M, M)").WithArguments("a").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
+        public void MethodGroupAsParameterDefaultValue_05()
+        {
+            var source = """
+class C
+{
+    void M(object a = new object[] { M }) { }
+}
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,38): error CS8917: The delegate type could not be inferred.
+                //     void M(object a = new object[] { M }) { }
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "M").WithLocation(3, 38)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
+        public void MethodGroupAsParameterDefaultValue_06()
+        {
+            var source = """
+class C
+{
+    void M(object a = (System.Action<object>)M) { }
+}
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,23): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     void M(object a = (System.Action<object>)M) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(System.Action<object>)M").WithArguments("a").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
+        public void MethodGroupAsParameterDefaultValue_07()
+        {
+            var source = """
+class C
+{
+    void M(object a = 0 switch { 0 => M, _ => M }) { }
+}
+""";
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,23): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     void M(object a = 0 switch { 0 => M, _ => M }) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "0 switch { 0 => M, _ => M }").WithArguments("a").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86348")]
         public void MethodGroupAsAttributeArgument()
         {
             var source = """
