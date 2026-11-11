@@ -7,5 +7,5 @@ DateTime
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.Grid<DateTime>. Items ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.IEnumerable<DateTime>>( Array.Empty<DateTime>() ))
+[0001] AddComponentParameter(nameof(global::Test.Grid< DateTime >. Items ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.IEnumerable<DateTime>>( Array.Empty<DateTime>() ))
 [0002] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, 3, default(DateTime)!); global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_1(__builder2, 4, default(DateTime)!); } ))

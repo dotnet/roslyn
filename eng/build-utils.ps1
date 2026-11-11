@@ -274,6 +274,10 @@ function Unsubst-TempDir() {
 }
 
 function EnablePreviewSdks() {
+  if ($msbuildEngine -eq "dotnet") {
+    return
+  }
+
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     # Preview SDKs are allowed when no Visual Studio instance is installed

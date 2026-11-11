@@ -10,11 +10,13 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Razor.DotNetFormat;
 
-public partial class RazorFormatterTest
+public class RazorFormatterInfrastructureTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     private const string UnformattedCodeBlock = """
         @code {
@@ -179,7 +181,7 @@ public partial class RazorFormatterTest
         private static ISourceGenerator CreateGenerator()
         {
             const string typeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
-            var type = typeof(RazorFormatterTest).Assembly.GetType(typeName, throwOnError: true)!;
+            var type = typeof(RazorFormatterInfrastructureTest).Assembly.GetType(typeName, throwOnError: true)!;
             return (ISourceGenerator)Activator.CreateInstance(type)!;
         }
     }

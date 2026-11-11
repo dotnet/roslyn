@@ -6415,12 +6415,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CSharpCompilation createCompilation(CSharpCompilationOptions options)
-            => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(TargetFramework.Standard), options: options
-#if DEBUG
-                // https://github.com/dotnet/roslyn/issues/83549
-                , skipExtraValidation: true
-#endif
-                );
+            => CreateCompilation(source, options: options);
 
         // Without updated rules: M1 is in unsafe context, so it's a warning.
         createCompilation(TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
@@ -6479,7 +6474,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CSharpCompilation createCompilation(CSharpCompilationOptions options)
-            => CreateEmptyCompilation(source, TargetFrameworkUtil.GetReferences(TargetFramework.Standard), options: options, skipExtraValidation: true);
+            => CreateCompilation(source, options: options);
 
         // Without updated rules: Local1 is in unsafe context, so it's a warning.
         createCompilation(TestOptions.UnsafeReleaseDll).VerifyDiagnostics(

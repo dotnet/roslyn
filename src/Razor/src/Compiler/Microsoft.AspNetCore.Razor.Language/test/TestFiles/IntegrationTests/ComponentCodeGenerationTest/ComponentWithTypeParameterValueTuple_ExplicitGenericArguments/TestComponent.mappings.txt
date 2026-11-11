@@ -33,13 +33,23 @@ Source Location: (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1565:60,0 [7] )
 |decimal|
 
+Source Location: (122:3,36 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|decimal|
+Generated Location: (1809:69,0 [7] )
+|decimal|
+
+Source Location: (139:3,53 [7] x:\dir\subdir\Test\TestComponent.cshtml)
+|decimal|
+Generated Location: (1966:77,0 [7] )
+|decimal|
+
 Source Location: (101:3,15 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Data|
-Generated Location: (1827:69,0 [4] )
+Generated Location: (2123:85,0 [4] )
 |Data|
 
 Source Location: (107:3,21 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |null|
-Generated Location: (2138:77,0 [4] )
+Generated Location: (2434:93,0 [4] )
 |null|
 

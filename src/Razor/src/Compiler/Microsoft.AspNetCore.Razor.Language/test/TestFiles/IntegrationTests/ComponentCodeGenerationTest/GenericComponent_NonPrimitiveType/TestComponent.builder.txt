@@ -7,4 +7,4 @@ CustomType
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<CustomType>. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<CustomType>( new CustomType() ))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< CustomType >. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<CustomType>( new CustomType() ))

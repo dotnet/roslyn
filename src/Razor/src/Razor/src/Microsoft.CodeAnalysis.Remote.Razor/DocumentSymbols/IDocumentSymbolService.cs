@@ -12,8 +12,10 @@ internal interface IDocumentSymbolService
         RazorFileKind fileKind,
         DocumentUri razorDocumentUri,
         RazorCSharpDocument implementationDocument,
+        SyntaxNode implementationSyntaxRoot,
         SumType<DocumentSymbol[], SymbolInformation[]> implementationSymbols,
         RazorCSharpDocument? declarationDocument,
+        SyntaxNode? declarationSyntaxRoot,
         SumType<DocumentSymbol[], SymbolInformation[]>? declarationSymbols,
         CancellationToken cancellationToken);
 }

@@ -50,8 +50,7 @@ namespace Roslyn.Test.Utilities
         internal static BuildPaths StandardBuildPaths => new BuildPaths(
             clientDir: Path.Combine(RootDirectory, "compiler"),
             workingDir: Path.Combine(RootDirectory, "source"),
-            sdkDir: Path.Combine(RootDirectory, "sdk"),
-            tempDir: null);
+            sdkDir: Path.Combine(RootDirectory, "sdk"));
 
         internal CommonCompiler Compiler { get; }
         internal TestableFileSystem FileSystem { get; }

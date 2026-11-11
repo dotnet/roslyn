@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal Func<string, byte[]> ReadAllBytesFunc { get; set; }
         internal Func<string, FileMode, FileAccess, FileShare, FileStream> CreateFileStreamFunc { get; set; }
 
-        internal TestStrongNameFileSystem(string? signingTempPath)
-            : base(signingTempPath)
+        internal TestStrongNameFileSystem(string? signingPath)
+            : base(signingPath)
         {
             ReadAllBytesFunc = base.ReadAllBytes;
             CreateFileStreamFunc = base.CreateFileStream;
