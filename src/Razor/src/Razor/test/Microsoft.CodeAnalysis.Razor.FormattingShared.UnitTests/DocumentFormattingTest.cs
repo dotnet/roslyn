@@ -14371,6 +14371,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <div @onclick="() => Show(1,
                                           2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
                          class="x">y</div>
                 </div>
                 """,
@@ -14378,7 +14387,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <div @onclick="() => Show(1,
                                               2)"
-                         class="x">y</div>
+                         class="x">
+                        y
+                    </div>
                 </div>
                 """,
             fileKind: RazorFileKind.Component);
@@ -14400,14 +14411,25 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <div @onclick="() => Show(1,
                                           2)"
-                         class="x">y</div>
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                        class="x">y</div>
                 </div>
                 """,
             expected: """
                 <div>
                     <div @onclick="() => Show(1,
                                               2)"
-                        class="x">y</div>
+                        class="x">
+                        y
+                    </div>
                 </div>
                 """,
             fileKind: RazorFileKind.Component,
@@ -14430,14 +14452,25 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <div @onclick="() => Show(1,
                                           2)"
-                         class="x">y</div>
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                            class="x">y</div>
                 </div>
                 """,
             expected: """
                 <div>
                     <div @onclick="() => Show(1,
                                               2)"
-                            class="x">y</div>
+                            class="x">
+                        y
+                    </div>
                 </div>
                 """,
             fileKind: RazorFileKind.Component,
@@ -14460,6 +14493,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button @onclick="() => Show(1, @* c *@
                                   2)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() => Show(1, @* c *@
+                                      2)"
                             class="x">y</button>
                 </div>
                 """,
@@ -14467,7 +14509,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button @onclick="() => Show(1, @* c *@
                                       2)"
-                            class="x">y</button>
+                            class="x">
+                        y
+                    </button>
                 </div>
                 """,
             fileKind: RazorFileKind.Component);
@@ -14491,6 +14535,16 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <button @onclick="() => Show(1,
                                   @* c *@
                                   2)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      @* c *@
+                                      2)"
                             class="x">y</button>
                 </div>
                 """,
@@ -14499,7 +14553,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <button @onclick="() => Show(1,
                                       @* c *@
                                       2)"
-                            class="x">y</button>
+                            class="x">
+                        y
+                    </button>
                 </div>
                 """,
             fileKind: RazorFileKind.Component);
@@ -14521,6 +14577,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button @onclick="() => Show(1,
                                   2) @* c *@"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2) @* c *@"
                             class="x">y</button>
                 </div>
                 """,
@@ -14528,7 +14593,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button @onclick="() => Show(1,
                                       2) @* c *@"
-                            class="x">y</button>
+                            class="x">
+                        y
+                    </button>
                 </div>
                 """,
             fileKind: RazorFileKind.Component);
@@ -14550,6 +14617,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button name="@(
                               x)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button name="@(
+                            x)"
                             class="x">y</button>
                 </div>
                 """,
@@ -14557,7 +14633,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button name="@(
                             x)"
-                            class="x">y</button>
+                            class="x">
+                        y
+                    </button>
                 </div>
                 """,
             fileKind: RazorFileKind.Component);
@@ -14579,6 +14657,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button @onclick="@(
                                   x)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="@(
+                            x)"
                             class="x">y</button>
                 </div>
                 """,
@@ -14586,7 +14673,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <button @onclick="@(
                             x)"
-                            class="x">y</button>
+                            class="x">
+                        y
+                    </button>
                 </div>
                 """,
             fileKind: RazorFileKind.Component);
@@ -14737,16 +14826,29 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                   {
                                       Show(1);
                                   }"
-                            class="x">y</button>
+                            class="x">
+                        y
+                    </button>
                 </div>
                 """,
-            expected: """
+            dotNetFormatExpected: """
                 <div>
                     <button @onclick="() =>
                                       {
                                           Show(1);
                                       }"
                             class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() =>
+                                          {
+                                              Show(1);
+                                          }"
+                            class="x">
+                        y
+                    </button>
                 </div>
                 """,
             fileKind: RazorFileKind.Component);
