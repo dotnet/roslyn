@@ -435,4 +435,53 @@ public sealed partial class ChangeSignatureTests : AbstractChangeSignatureTests
             m(@new: false);
             """);
     }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/62824")]
+    public async Task RemoveParameters_NamedArgumentInPositionKeepsOtherArgumentsPositional()
+    {
+        var updatedSignature = new[] { 0, 1, 2, 4, 5 };
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, """
+            public abstract class Analyzer
+            {
+                protected $$Analyzer(string diagnosticId, int enforceOnBuild, object option, string language, string title, string messageFormat = null)
+                {
+                }
+            }
+
+            public class Derived : Analyzer
+            {
+                public Derived()
+                    : base(
+                        diagnosticId: "ID0001",
+                        0,
+                        null,
+                        language: null!,
+                        title: "Title",
+                        messageFormat: "Message")
+                {
+                }
+            }
+            """, updatedSignature: updatedSignature, expectedUpdatedInvocationDocumentCode: """
+            public abstract class Analyzer
+            {
+                protected Analyzer(string diagnosticId, int enforceOnBuild, object option, string title, string messageFormat = null)
+                {
+                }
+            }
+
+            public class Derived : Analyzer
+            {
+                public Derived()
+                    : base(
+                        diagnosticId: "ID0001",
+                        0,
+                        null,
+                        title: "Title",
+                        messageFormat: "Message")
+                {
+                }
+            }
+            """);
+    }
 }
