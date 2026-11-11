@@ -14554,6 +14554,148 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_ClosingQuoteOnOwnLine()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                <p title="first
+                second
+                            third
+                  "
+                   id="q">z</p>
+                </section>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        <p title="first
+                second
+                            third
+                  "
+                           id="q">z</p>
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <p title="first
+                second
+                            third
+                  "
+                           id="q">z</p>
+                    </section>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Component()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <InputText Value="a
+                   b c"
+                   id="q" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <InputText Value="a
+                   b c"
+                               id="q" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <InputText Value="a
+                   b c"
+                               id="q" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Component_Expressions()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <InputText Value="a
+                   @(1+2)"
+                   title="b
+                   @DateTime.Now"
+                   id="q" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <InputText Value="a
+                   @(1+2)"
+                               title="b
+                   @DateTime.Now"
+                               id="q" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <InputText Value="a
+                   @(1 + 2)"
+                               title="b
+                   @DateTime.Now"
+                               id="q" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_DirectiveAttribute()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <InputDate @bind-Value="d"
+                   @bind-Value:format="yyyy
+                   @("MM")"
+                   id="q" />
+                </div>
+                @code {
+                    private System.DateTime d;
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <InputDate @bind-Value="d"
+                               @bind-Value:format="yyyy
+                   @("MM")"
+                               id="q" />
+                </div>
+                @code {
+                    private System.DateTime d;
+                }
+                """,
+            expected: """
+                <div>
+                    <InputDate @bind-Value="d"
+                               @bind-Value:format="yyyy
+                   @("MM")"
+                               id="q" />
+                </div>
+                @code {
+                    private System.DateTime d;
+                }
+                """);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13064")]
     public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression_IndentByOne()
     {
