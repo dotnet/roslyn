@@ -101,12 +101,13 @@ internal sealed class CohostOnTypeFormattingEndpoint(
         }
 
         var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var options = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken);
 
         ImmutableArray<TextChange> htmlChanges = [];
         if (triggerKind == IRemoteFormattingService.TriggerKind.ValidHtml)
         {
             _logger.LogDebug($"Getting Html formatting changes for {razorDocument.FilePath}");
-            var htmlResult = await TryGetHtmlFormattingEditsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
+            var htmlResult = await TryGetHtmlFormattingEditsAsync(request, options, razorDocument, cancellationToken).ConfigureAwait(false);
 
             if (htmlResult is not { } htmlEdits)
             {
@@ -117,8 +118,6 @@ internal sealed class CohostOnTypeFormattingEndpoint(
 
             htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
         }
-
-        var options = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken);
 
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");
         var remoteResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteFormattingService, ImmutableArray<TextChange>>(
@@ -136,8 +135,19 @@ internal sealed class CohostOnTypeFormattingEndpoint(
         return remoteResult.SelectAsPlainArray(sourceText.GetTextEdit);
     }
 
-    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentOnTypeFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentOnTypeFormattingParams request, RazorFormattingOptions options, TextDocument razorDocument, CancellationToken cancellationToken)
     {
+        if (options.IndentSize != request.Options.TabSize)
+        {
+            request = new DocumentOnTypeFormattingParams
+            {
+                TextDocument = request.TextDocument,
+                Position = request.Position,
+                Character = request.Character,
+                Options = options.GetHtmlFormattingOptions(request.Options),
+            };
+        }
+
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
             razorDocument,
             Methods.TextDocumentOnTypeFormattingName,

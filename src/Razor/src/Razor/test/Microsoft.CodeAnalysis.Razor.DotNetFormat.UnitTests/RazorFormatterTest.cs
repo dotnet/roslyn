@@ -303,6 +303,44 @@ public partial class RazorFormatterTest
             ]);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task TryFormatAsync_ZeroIndentSizeUsesTabWidth()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                <span class="a"
+                id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            expected: """
+                <div>
+                    <span class="a"
+                          id="b">Content</span>
+                </div>
+                @code {
+                    void M()
+                    {
+                    }
+                }
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    indent_style = space
+                    indent_size = 0
+                    tab_width = 4
+                    """)
+            ]);
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
     public Task TryFormatAsync_UsesRazorEditorConfig_Razor_BraceOnNextLine()
         => VerifyFormattingAsync(

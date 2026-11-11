@@ -24,6 +24,7 @@ internal static class CSharpFormattingOptionsExtensions
         this CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
         bool insertSpaces,
         int tabSize,
+        int indentSize,
         string newLine)
     {
         return csharpSyntaxFormattingOptions with
@@ -32,9 +33,16 @@ internal static class CSharpFormattingOptionsExtensions
             {
                 UseTabs = !insertSpaces,
                 TabSize = tabSize,
-                IndentationSize = tabSize,
+                IndentationSize = indentSize,
                 NewLine = newLine
             }
         };
     }
+
+    /// <summary>
+    /// Returns the number of columns Razor indents by per level. With tabs a level is one tab, so it is the tab size.
+    /// A non-positive indent size, which Roslyn accepts from .editorconfig, also falls back to the tab size.
+    /// </summary>
+    internal static int GetIndentSize(bool insertSpaces, int tabSize, int indentSize)
+        => insertSpaces && indentSize > 0 ? indentSize : tabSize;
 }

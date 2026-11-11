@@ -91,14 +91,14 @@ public static class RazorFormatter
         var csharpOptions = document.GetCSharpSyntaxFormattingOptions(cancellationToken);
         var razorOptions = RazorFormattingOptionsStorage.GetOptions(document, cancellationToken);
 
-        // The engine indents by TabSize columns per level, as an LSP client's tabSize. With spaces that is
-        // indent_size; with tabs a level is one tab, so it stays tab_width.
         var lineFormatting = csharpOptions.LineFormatting;
 
         return new()
         {
             InsertSpaces = !lineFormatting.UseTabs,
-            TabSize = lineFormatting.UseTabs ? lineFormatting.TabSize : lineFormatting.IndentationSize,
+            TabSize = lineFormatting.TabSize,
+            IndentSize = CSharpFormattingOptionsExtensions.GetIndentSize(
+                !lineFormatting.UseTabs, lineFormatting.TabSize, lineFormatting.IndentationSize),
             NewLine = GetNewLine(sourceText),
             CSharpSyntaxFormattingOptions = csharpOptions,
             CodeBlockBraceOnNextLine = razorOptions.GetOption(RazorFormattingOptionsStorage.CodeBlockBraceOnNextLine),
