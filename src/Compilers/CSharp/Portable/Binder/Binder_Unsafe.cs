@@ -13,11 +13,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class Binder
     {
         /// <summary>
-        /// True if we are currently in an unsafe region (type, member, or block).
+        /// True if this binder is in an unsafe context.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Does not imply that this compilation allows unsafe regions (could be in an error recovery scenario).
         /// To determine that, check this.Compilation.Options.AllowUnsafe.
+        /// </para>
+        /// <para>
+        /// This describes the current binding context, not necessarily the context of an already-bound operation.
+        /// See <see cref="BoundExpression.IsInUnsafeRegion"/> for context-preservation rules.
+        /// </para>
         /// </remarks>
         internal bool InUnsafeRegion
         {

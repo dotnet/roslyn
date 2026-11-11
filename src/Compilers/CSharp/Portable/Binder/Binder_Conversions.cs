@@ -51,6 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(syntax, source, conversion, isCast: isCast, conversionGroupOpt, inConversionGroupFlags, source.WasCompilerGenerated, destination, diagnostics);
         }
 
+        /// <remarks>
+        /// See <see cref="BoundExpression.IsInUnsafeRegion"/> for the general unsafe-context rules.
+        /// <para>
+        /// A new conversion has its own context, whether implicit or explicit.
+        /// The conversions in <c>int x = unsafe(value);</c> and <c>(int)unsafe(value)</c> are outside the unsafe expression,
+        /// while the conversion in <c>unsafe((int)value)</c> is inside it.
+        /// An elided identity conversion returns the operand without changing its context.
+        /// </para>
+        /// </remarks>
         protected BoundExpression CreateConversion(
             SyntaxNode syntax,
             BoundExpression source,
