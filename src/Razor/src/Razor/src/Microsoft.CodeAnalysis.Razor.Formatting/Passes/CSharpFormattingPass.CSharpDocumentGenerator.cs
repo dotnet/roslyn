@@ -870,9 +870,42 @@ internal partial class CSharpFormattingPass
                 return EmitCurrentLineAsComment();
             }
 
-            private bool IsQuotedAttributeValueContinuation(MarkupTextLiteralSyntax node)
+            private bool IsQuotedAttributeValueContinuation(RazorSyntaxNode node)
             {
-                var valuePrefix = node.Ancestors().FirstOrDefault(static n => n.IsAnyAttributeSyntax()) switch
+                // The node at the start of the line is a known, short distance from the attribute whose value contains it:
+                //
+                // Html attribute:   MarkupAttributeBlock > GenericBlock > MarkupLiteralAttributeValue > MarkupTextLiteral
+                //                   MarkupAttributeBlock > GenericBlock > MarkupBlock > MarkupTextLiteral (for an "@@" escape)
+                //                   MarkupAttributeBlock > GenericBlock > MarkupDynamicAttributeValue > GenericBlock > CSharpCodeBlock > expression
+                // Tag helper and    Attribute > MarkupTagHelperAttributeValue > MarkupTextLiteral
+                // directive         Attribute > MarkupTagHelperAttributeValue > MarkupLiteralAttributeValue > MarkupTextLiteral
+                // attribute:        Attribute > MarkupTagHelperAttributeValue > MarkupBlock > MarkupTextLiteral (for an "@@" escape)
+                //                   Attribute > MarkupTagHelperAttributeValue > MarkupBlock > CSharpCodeBlock > expression
+                //                   Attribute > MarkupTagHelperAttributeValue > MarkupDynamicAttributeValue > GenericBlock > CSharpCodeBlock > expression
+                //
+                // A closing quote on its own line is the attribute's ValueSuffix, so its parent is the attribute itself.
+                var parent = node.Parent;
+                if (node is CSharpExplicitExpressionSyntax or CSharpImplicitExpressionSyntax)
+                {
+                    parent = parent switch
+                    {
+                        CSharpCodeBlockSyntax { Parent: GenericBlockSyntax { Parent: MarkupDynamicAttributeValueSyntax value } } => value,
+                        CSharpCodeBlockSyntax { Parent: MarkupBlockSyntax block } => block,
+                        _ => null
+                    };
+                }
+
+                if (parent is MarkupLiteralAttributeValueSyntax or MarkupDynamicAttributeValueSyntax or MarkupBlockSyntax)
+                {
+                    parent = parent.Parent;
+                }
+
+                if (parent is GenericBlockSyntax or MarkupTagHelperAttributeValueSyntax)
+                {
+                    parent = parent.Parent;
+                }
+
+                var valuePrefix = parent switch
                 {
                     MarkupAttributeBlockSyntax attribute => attribute.ValuePrefix,
                     MarkupTagHelperAttributeSyntax attribute => attribute.ValuePrefix,
@@ -1109,6 +1142,23 @@ internal partial class CSharpFormattingPass
                     return VisitCSharpCodeBlock(node, csharpCode);
                 }
 
+                return EmitSingleLineExpressionLine(node);
+            }
+
+            private LineInfo EmitSingleLineExpressionLine(RazorSyntaxNode node)
+            {
+                if (IsQuotedAttributeValueContinuation(node))
+                {
+                    // This line continues a quoted attribute value that started on a previous line, eg the second line of:
+                    //
+                    // <p title="first
+                    //    @(1 + 2)"
+                    //
+                    // The leading whitespace is part of the attribute value. The expression itself is still formatted, along
+                    // with any others on this line, by the additional lines we emit in Generate.
+                    return EmitCurrentLineWithNoFormatting();
+                }
+
                 return EmitCurrentLineAsComment();
             }
 
@@ -1121,7 +1171,7 @@ internal partial class CSharpFormattingPass
                 var csharpCode = body.CSharpCode;
                 if (GetLineNumber(closeParen) == GetLineNumber(node))
                 {
-                    return EmitCurrentLineAsComment();
+                    return EmitSingleLineExpressionLine(node);
                 }
 
                 return VisitCSharpCodeBlock(node, csharpCode);

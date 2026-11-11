@@ -620,6 +620,125 @@ public partial class RazorFormatterTest
                 </div>
                 """);
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineAttributeValueContents_ExplicitExpression()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                <p title="first
+                   @(1+2) tail"
+                   id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @(1 + 2) tail"
+                       id="q">z</p>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineAttributeValueContents_ImplicitExpression()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                <p title="first
+                   @x"
+                   id="q">z</p>
+                </div>
+                @code {
+                    private string x = "";
+                }
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @x"
+                       id="q">z</p>
+                </div>
+                @code {
+                    private string x = "";
+                }
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineAttributeValueContents_EscapedTransition()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                <p title="first
+                       @@ second">
+                a
+                </p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                       @@ second">
+                        a
+                    </p>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineComponentAttributeValueContents_Expressions()
+        => VerifyFormattingAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                <InputText Value="a
+                   @(1+2)"
+                   title="b
+                   @DateTime.Now"
+                   id="q" />
+                </div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                    <InputText Value="a
+                   @(1 + 2)"
+                               title="b
+                   @DateTime.Now"
+                               id="q" />
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineDirectiveAttributeValueContents_Expression()
+        => VerifyFormattingAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                <InputDate @bind-Value="d"
+                   @bind-Value:format="yyyy
+                   @("MM")"
+                   id="q" />
+                </div>
+                @code {
+                    private System.DateTime d;
+                }
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                    <InputDate @bind-Value="d"
+                               @bind-Value:format="yyyy
+                   @("MM")"
+                               id="q" />
+                </div>
+                @code {
+                    private System.DateTime d;
+                }
+                """);
+
     private static async Task VerifyFormattingAsync(
         string input,
         string expected,

@@ -14310,6 +14310,118 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_ExplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                   @(1+2)"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                   @(1+2)"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @(1 + 2)"
+                       id="q">z</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_ImplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                   @DateTime.Now"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                   @DateTime.Now"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @DateTime.Now"
+                       id="q">z</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_EscapedTransition()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <p title="first
+                       @@ second">
+                a
+                </p>
+                """,
+            htmlFormatted: """
+                <p title="first
+                       @@ second">
+                    a
+                </p>
+                """,
+            expected: """
+                <p title="first
+                       @@ second">
+                    a
+                </p>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_EscapedTransition_Nested()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                       @@ second">
+                a
+                </p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                       @@ second">
+                        a
+                    </p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                       @@ second">
+                        a
+                    </p>
+                </div>
+                """);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13064")]
     public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression_IndentByOne()
     {
