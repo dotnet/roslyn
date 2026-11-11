@@ -17326,10 +17326,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             htmlFormatted: """
                 @if (true)
                 {
-                    <div>
-                        text
-                    </div>
-                    <p>x</p>
+                <div>
+                    text
+                </div>
+                <p>x</p>
                 }
                 <section>
                     <p>x</p>
