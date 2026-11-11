@@ -97,9 +97,10 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         => context.RegisterCompilationStartAction(context =>
         {
             // Nested types can use the private fields of their containing types, but their code blocks are not part of
-            // the containing type's symbol analysis.  This maps a type that has nested types to its state, so that its
-            // nested types can record how they use its fields.  The containing type's symbol end action only runs once
-            // its nested types have been analyzed.
+            // the containing type's symbol analysis.  This maps a type to its state, so that its nested types can
+            // record how they use its fields.  The containing type's symbol end action only runs once its nested types
+            // have been analyzed, and it removes and disposes the state.  A type that is not analyzed keeps a null
+            // entry.
             var namedTypeToState = new ConcurrentDictionary<INamedTypeSymbol, NamedTypeState?>();
             context.RegisterSymbolStartAction(context => AnalyzeNamedType(context, namedTypeToState), SymbolKind.NamedType);
         });
@@ -112,14 +113,12 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         // Record how this type uses the fields of the types that contain it.
         for (var containingType = namedType.ContainingType; containingType != null; containingType = containingType.ContainingType)
         {
-            var containingTypeState = namedTypeToState.GetOrAdd(containingType, containingType => TryCreateState(context, containingType));
+            var containingTypeState = GetOrCreateState(containingType);
             if (containingTypeState is { FieldNames.Count: > 0 })
                 context.RegisterCodeBlockStartAction<TSyntaxKind>(context => RecordFieldUsages(containingTypeState, context));
         }
 
-        var state = namedType.GetTypeMembers().IsEmpty
-            ? TryCreateState(context, namedType)
-            : namedTypeToState.GetOrAdd(namedType, namedType => TryCreateState(context, namedType));
+        var state = GetOrCreateState(namedType);
         if (state is null)
             return;
 
@@ -135,21 +134,25 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         context.RegisterSymbolEndAction(context =>
         {
             namedTypeToState.TryRemove(namedType, out _);
-            try
+            using (state)
             {
                 Process(state.AnalysisResults, state.IneligibleFieldUsageIfOutsideProperty, state.FieldReads, state.FieldWrites, context);
             }
-            finally
-            {
-                // Cleanup after doing all our work.
-                _fieldNamesPool.ClearAndFree(state.FieldNames);
-                s_analysisResultPool.ClearAndFree(state.AnalysisResults);
-
-                ClearAndFree(state.IneligibleFieldUsageIfOutsideProperty);
-                ClearAndFree(state.FieldReads);
-                ClearAndFree(state.FieldWrites);
-            }
         });
+
+        NamedTypeState? GetOrCreateState(INamedTypeSymbol type)
+        {
+            if (namedTypeToState.TryGetValue(type, out var existingState))
+                return existingState;
+
+            var newState = TryCreateState(context, type);
+            if (namedTypeToState.TryAdd(type, newState))
+                return newState;
+
+            // Another thread created the state for this type first.  Use that one.
+            newState?.Dispose();
+            return namedTypeToState[type];
+        }
     }
 
     private void RecordFieldUsages(NamedTypeState state, CodeBlockStartAnalysisContext<TSyntaxKind> context)
@@ -165,7 +168,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
         // Record the names of all the private fields in this type.  We can use this to greatly reduce the amount of
         // binding we need to perform when looking for restrictions in the type.
-        var fieldNames = _fieldNamesPool.Allocate();
+        var state = new NamedTypeState(_fieldNamesPool);
         foreach (var member in namedType.GetMembers())
         {
             if (member is IFieldSymbol
@@ -186,11 +189,11 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                     DeclaringSyntaxReferences.Length: 1,
                 } field)
             {
-                fieldNames.Add(field.Name);
+                state.FieldNames.Add(field.Name);
             }
         }
 
-        return new NamedTypeState(fieldNames);
+        return state;
     }
 
     private bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
@@ -235,39 +238,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// What we learn about the fields of a type while analyzing it and its nested types.
-    /// </summary>
-    private sealed class NamedTypeState(HashSet<string> fieldNames)
-    {
-        /// <summary>
-        /// The names of the private fields of the type that could be converted.
-        /// </summary>
-        public readonly HashSet<string> FieldNames = fieldNames;
-
-        /// <summary>
-        /// Results of our analysis pass that we will use to determine which fields and properties to offer to fixup.
-        /// </summary>
-        public readonly ConcurrentStack<AnalysisResult> AnalysisResults = s_analysisResultPool.Allocate();
-
-        /// <summary>
-        /// Fields whose usage may disqualify them from being removed (depending on the usage location). For example,
-        /// a field taken by ref normally can't be converted (as a property can't be taken by ref).  However, this
-        /// doesn't apply within the property itself (as it can refer to `field` after the rewrite).
-        /// </summary>
-        public readonly ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> IneligibleFieldUsageIfOutsideProperty = s_fieldToUsageLocationPool.Allocate();
-
-        /// <summary>
-        /// Locations where this field is read or written.  If it is read or written outside of hte property being
-        /// changed, and the property getter/setter is non-trivial, then we cannot use 'field' for it, as that would
-        /// change the semantics in those locations.
-        /// </summary>
-        public readonly ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> FieldReads = s_fieldToUsageLocationPool.Allocate();
-
-        /// <inheritdoc cref="FieldReads"/>
-        public readonly ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> FieldWrites = s_fieldToUsageLocationPool.Allocate();
     }
 
     private void RecordAllFieldReferences(
