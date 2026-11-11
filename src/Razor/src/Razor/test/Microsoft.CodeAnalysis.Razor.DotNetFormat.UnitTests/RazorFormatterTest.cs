@@ -504,17 +504,17 @@ public partial class RazorFormatterTest
             input: """
                 @using Microsoft.AspNetCore.Components.Web
                 <div>
-                <button @onclick="() => Show(1,
-                                  2)"
-                   class="x">y</button>
+                <div @onclick="() => Show(1,
+                                          2)"
+                   class="x">y</div>
                 </div>
                 """,
             expected: """
                 @using Microsoft.AspNetCore.Components.Web
                 <div>
-                    <button @onclick="() => Show(1,
-                                      2)"
-                            class="x">y</button>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                         class="x">y</div>
                 </div>
                 """);
 
@@ -525,17 +525,17 @@ public partial class RazorFormatterTest
             input: """
                 @using Microsoft.AspNetCore.Components.Web
                 <div>
-                <button @onclick="() => Show(1,
-                                  2)"
-                   class="x">y</button>
+                <div @onclick="() => Show(1,
+                                          2)"
+                   class="x">y</div>
                 </div>
                 """,
             expected: """
                 @using Microsoft.AspNetCore.Components.Web
                 <div>
-                    <button @onclick="() => Show(1,
-                                      2)"
-                        class="x">y</button>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                        class="x">y</div>
                 </div>
                 """,
             analyzerConfigs:
@@ -555,17 +555,17 @@ public partial class RazorFormatterTest
             input: """
                 @using Microsoft.AspNetCore.Components.Web
                 <div>
-                <button @onclick="() => Show(1,
-                                  2)"
-                   class="x">y</button>
+                <div @onclick="() => Show(1,
+                                          2)"
+                   class="x">y</div>
                 </div>
                 """,
             expected: """
                 @using Microsoft.AspNetCore.Components.Web
                 <div>
-                    <button @onclick="() => Show(1,
-                                      2)"
-                            class="x">y</button>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                            class="x">y</div>
                 </div>
                 """,
             analyzerConfigs:
