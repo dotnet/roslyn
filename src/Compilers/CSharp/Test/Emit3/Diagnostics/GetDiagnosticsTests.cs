@@ -680,11 +680,15 @@ class D
             var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
 
-            foreach (var tree in compilation.SyntaxTrees)
-            {
-                var model = compilation.GetSemanticModel(tree);
-                _ = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
-            }
+            var trees = compilation.SyntaxTrees.ToArray();
+            var diagnostics1 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(trees[0]), filterSpan: null, CancellationToken.None);
+            var diagnostics2 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(trees[1]), filterSpan: null, CancellationToken.None);
+
+            diagnostics1.Verify(
+                // (6,13): warning CS0168: The variable 'x' is declared but never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13));
+            diagnostics2.Verify();
 
             Assert.Equal(0, compilationWithAnalyzers.Compilation.EventQueue!.Count);
         }
