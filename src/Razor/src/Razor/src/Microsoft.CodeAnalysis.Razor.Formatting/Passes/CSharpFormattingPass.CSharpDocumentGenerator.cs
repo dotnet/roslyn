@@ -88,10 +88,10 @@ internal partial class CSharpFormattingPass
         {
             using var _1 = StringBuilderPool.GetPooledObject(out var builder);
             using var _2 = ArrayBuilderPool<LineInfo>.GetPooledObject(out var lineInfoBuilder);
-            using var _3 = HashSetPool<int>.GetPooledObject(out var indentingStartTagPositions);
+            using var _3 = DictionaryPool<int, int>.GetPooledObject(out var closeBraceCountsByLine);
             lineInfoBuilder.SetCapacityIfLarger(codeDocument.Source.Text.Lines.Count);
 
-            var generator = new Generator(codeDocument, csharpSyntaxRoot, declSyntaxRoot, options, builder, lineInfoBuilder, indentingStartTagPositions);
+            var generator = new Generator(codeDocument, csharpSyntaxRoot, declSyntaxRoot, options, builder, lineInfoBuilder, closeBraceCountsByLine);
 
             generator.Generate();
 
@@ -153,7 +153,7 @@ internal partial class CSharpFormattingPass
             FormattingEngineOptions options,
             StringBuilder builder,
             ImmutableArray<LineInfo>.Builder lineInfoBuilder,
-            HashSet<int> indentingStartTagPositions) : SyntaxVisitor<LineInfo>
+            Dictionary<int, int> closeBraceCountsByLine) : SyntaxVisitor<LineInfo>
         {
             private const string SyntheticLambdaBodyStart = "() => {";
             private const int SyntheticLambdaSignatureLength = 5;
@@ -199,10 +199,10 @@ internal partial class CSharpFormattingPass
             /// </remarks>
             private int? _ignoreUntilLine;
             /// <summary>
-            /// The positions of start tags that we emitted an open brace for, so their end tags can emit the matching close brace
-            /// even when they aren't the first thing on a line.
+            /// The number of close braces to emit after each line, for end tags of elements that we emitted an open brace for, but
+            /// that won't be visited because they aren't the first thing on their line.
             /// </summary>
-            private readonly HashSet<int> _indentingStartTagPositions = indentingStartTagPositions;
+            private readonly Dictionary<int, int> _closeBraceCountsByLine = closeBraceCountsByLine;
 
             public void Generate()
             {
@@ -251,7 +251,7 @@ internal partial class CSharpFormattingPass
                         }
 
                         var lineInfo = Visit(_currentToken.Parent);
-                        _lineInfoBuilder.Add(EmitCloseBracesForEndTagsLaterInLine(lineInfo));
+                        _lineInfoBuilder.Add(EmitCloseBracesForEndTagsLaterInLine(lineInfo, line.LineNumber));
                         Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
                     }
                     else if (DocumentMappingHelper.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
@@ -680,7 +680,7 @@ internal partial class CSharpFormattingPass
                 {
                     // When an element causes indentation, we emit an open brace to tell the C# formatter to indent.
                     lineInfo = EmitOpenBraceLine();
-                    _indentingStartTagPositions.Add(node.Position);
+                    RecordEndTagNotStartingALine(node);
                 }
                 else if (ContainsMultilineCollectionExpressionStartingOnCurrentLine(node))
                 {
@@ -771,44 +771,51 @@ internal partial class CSharpFormattingPass
                 return CreateLineInfo();
             }
 
-            private LineInfo EmitCloseBracesForEndTagsLaterInLine(LineInfo lineInfo)
+            private void RecordEndTagNotStartingALine(BaseMarkupStartTagSyntax startTag)
             {
                 // The Visit methods only ever see the first node on a line, so an end tag that comes later in the line, eg:
                 //
                 // <div>
                 //     @* comment *@ </div>
                 //
-                // wouldn't emit the close brace that matches the open brace its start tag emitted, and everything after it would
-                // be indented one level too deep. We emit those close braces on the line after this one, which leaves this line
-                // indented as content of the element, and skip that line when mapping the formatted document back.
-                if (lineInfo.SkipNextLines > 0 || lineInfo.SkipNextLineIfBrace)
+                // won't be visited, and won't emit the close brace that matches the open brace we just emitted. Without it,
+                // everything after the element would be indented one level too deep, so we remember which line the end tag is on.
+                // If the end tag continues onto another line, then that line starts inside the end tag, and VisitEndTag will
+                // emit the close brace for it.
+                if (startTag.GetEndTag() is not { } endTag)
+                {
+                    return;
+                }
+
+                var endTagLine = _sourceText.Lines.GetLineFromPosition(endTag.Position);
+                if (endTagLine.GetFirstNonWhitespacePosition() == endTag.Position ||
+                    endTag.EndPosition > endTagLine.End)
+                {
+                    return;
+                }
+
+                _closeBraceCountsByLine.TryGetValue(endTagLine.LineNumber, out var count);
+                _closeBraceCountsByLine[endTagLine.LineNumber] = count + 1;
+            }
+
+            private LineInfo EmitCloseBracesForEndTagsLaterInLine(LineInfo lineInfo, int lineNumber)
+            {
+                // Lines that might be followed by an open brace, depending on how Roslyn formats them, can't also be followed by
+                // close braces that we skip, so we leave those alone.
+                if (lineInfo.SkipNextLineIfBrace ||
+                    !_closeBraceCountsByLine.TryGetValue(lineNumber, out var closeBraceCount))
                 {
                     return lineInfo;
                 }
 
-                var closeBraceCount = 0;
-                for (var token = _currentToken.GetNextToken(); token.Kind != SyntaxKind.None && token.Position < _currentLine.End; token = token.GetNextToken())
-                {
-                    if (token.Parent is BaseMarkupEndTagSyntax endTag &&
-                        endTag.Position == token.Position &&
-                        endTag.GetStartTag() is { } startTag &&
-                        _indentingStartTagPositions.Contains(startTag.Position))
-                    {
-                        closeBraceCount++;
-                    }
-                }
-
-                if (closeBraceCount == 0)
-                {
-                    return lineInfo;
-                }
-
+                // We emit the close braces on lines after this one, which leaves this line indented as content of the element,
+                // and skip those lines when mapping the formatted document back.
                 for (var i = 0; i < closeBraceCount; i++)
                 {
                     _builder.AppendLine("}");
                 }
 
-                return lineInfo with { SkipNextLines = closeBraceCount };
+                return lineInfo with { SkipNextLines = lineInfo.SkipNextLines + closeBraceCount };
             }
 
             private bool ElementCausesIndentation(BaseMarkupStartTagSyntax node)

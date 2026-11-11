@@ -537,6 +537,211 @@ public partial class RazorFormatterTest
                 </section>
                 """);
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_EndTagAfterTextOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    text</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    text</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_EndTagAfterElementOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    <span>a</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>a</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_EndTagAfterExpressionOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    @DateTime.Now</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    @DateTime.Now</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_EndTagAfterHtmlCommentOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    <!-- c --></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <!-- c --></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_NestedEndTagsAfterTextOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    <span>
+                        text</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        text</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_NestedEndTagsAfterContentOnDifferentLines()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    <section>
+                        text</section>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        text</section>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_EndTagSplitAcrossLinesAfterTextInIf()
+        => VerifyFormattingAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_EndTagSplitAcrossLinesAfterText()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_EndTagAfterRazorCommentAndNestedEndTagOnItsOwnLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
     private static async Task VerifyFormattingAsync(
         string input,
         string expected,
