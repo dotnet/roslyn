@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -40,7 +41,7 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         => ifNode.Else == null;
 
     protected override bool CanInvert(IfStatementSyntax ifNode)
-        => ifNode.Parent is BlockSyntax or SwitchSectionSyntax or GlobalStatementSyntax;
+        => ifNode.Parent.IsStatementContainerNode();
 
     protected override SyntaxNode GetCondition(IfStatementSyntax ifNode)
         => ifNode.Condition;
