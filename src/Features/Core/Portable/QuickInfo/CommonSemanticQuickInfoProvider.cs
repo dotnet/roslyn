@@ -180,6 +180,14 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
 
     protected virtual ImmutableArray<TaggedText> GetInterceptorDisplayParts(SemanticModel semanticModel, SyntaxToken token, CancellationToken cancellationToken) => default;
 
+    /// <summary>
+    /// Removes members from the member group that cannot be bound at the given location (for example instance
+    /// methods when accessed through a type), so they are not counted as overloads.
+    /// </summary>
+    protected virtual ImmutableArray<ISymbol> FilterMemberGroup(
+        SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, SemanticModel semanticModel, CancellationToken cancellationToken)
+        => memberGroup;
+
     protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => null;
 
     private string? GetNullabilityAnalysis(
@@ -310,7 +318,14 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var filteredSymbols);
 
         AddSymbols(GetSymbolsFromToken(token, services, semanticModel, cancellationToken), checkAccessibility: true);
-        AddSymbols(bindableParent != null ? semanticModel.GetMemberGroup(bindableParent, cancellationToken) : [], checkAccessibility: false);
+        if (bindableParent != null)
+        {
+            var memberGroup = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
+            var filtered = FilterMemberGroup(bindableParent, memberGroup, semanticModel, cancellationToken);
+
+            // If nothing remains (e.g. invalid code like calling an instance method through a type), still show something.
+            AddSymbols(filtered.IsEmpty ? memberGroup : filtered, checkAccessibility: false);
+        }
 
         return filteredSymbols.ToImmutableAndClear();
 

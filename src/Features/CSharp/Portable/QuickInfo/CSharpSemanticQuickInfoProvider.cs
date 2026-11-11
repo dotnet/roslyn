@@ -6,10 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
@@ -84,6 +86,18 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
+
+    protected override ImmutableArray<ISymbol> FilterMemberGroup(
+        SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var expression = bindableParent is InvocationExpressionSyntax invocation ? invocation.Expression : bindableParent;
+        if (expression.Parent is MemberAccessExpressionSyntax parentAccess && parentAccess.Name == expression)
+            expression = parentAccess;
+
+        return expression is ExpressionSyntax invokedExpression
+            ? [.. MemberGroupStaticnessFilter.Filter(invokedExpression, memberGroup, semanticModel, cancellationToken)]
+            : memberGroup;
+    }
 
     protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(
         SemanticModel semanticModel,
