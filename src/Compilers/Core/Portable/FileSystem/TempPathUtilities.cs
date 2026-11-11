@@ -51,7 +51,9 @@ namespace Roslyn.Utilities
             {
                 // https://specifications.freedesktop.org/basedir/0.8/#variables
                 // > $XDG_CACHE_HOME defines the base directory relative to which user-specific non-essential data files should be stored.
+#pragma warning disable RS0030 // Do not use banned APIs
                 return CreateUserTempDirectoryLinuxCore(Environment.GetEnvironmentVariable("XDG_CACHE_HOME"));
+#pragma warning restore RS0030 // Do not use banned APIs
             }
 
             throw new InvalidOperationException("GetTempPath is not supported on the current platform.");
@@ -63,7 +65,9 @@ namespace Roslyn.Utilities
 #endif
         internal static string CreateUserTempDirectoryLinuxCore(string? xdgCacheHome)
         {
+#pragma warning disable RS0030 // Do not use banned APIs
             var pathInfo = new DirectoryInfo(getLinuxCachePath(xdgCacheHome));
+#pragma warning restore RS0030 // Do not use banned APIs
 
             // https://specifications.freedesktop.org/basedir/0.8/#referencing states:
             // > If, when attempting to write a file, the destination directory is
@@ -87,7 +91,9 @@ namespace Roslyn.Utilities
             {
                 var errno = Marshal.GetLastWin32Error();
                 // Don't throw on mkdir failure if it was due to a directory already existing at 'pathInfo.FullName'.
+#pragma warning disable RS0030 // Do not use banned APIs
                 if (errno != eexist || !Directory.Exists(pathInfo.FullName))
+#pragma warning restore RS0030 // Do not use banned APIs
                 {
                     var innerException = new Win32Exception(errno);
                     throw new IOException(
@@ -110,7 +116,9 @@ namespace Roslyn.Utilities
                 }
 
                 // > If $XDG_CACHE_HOME is either not set or empty, a default equal to $HOME/.cache should be used.
+#pragma warning disable RS0030 // Do not use banned APIs
                 var home = Environment.GetEnvironmentVariable("HOME");
+#pragma warning restore RS0030 // Do not use banned APIs
                 if (!string.IsNullOrEmpty(home))
                 {
                     return Path.Combine(home, ".cache");
