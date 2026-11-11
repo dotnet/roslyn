@@ -54,13 +54,13 @@ public sealed class SemanticSnippetCompletionProviderTests : AbstractCSharpCompl
             snippet.DisplayText, Mock.Of<IAsyncCompletionSource>(), new ImageElement(default, "if"), [], "", "if", "if", "if", "if", []);
         CompletionItemData.AddData(item, snippet, new SnapshotPoint(snapshot, position));
 
-        var session = new Mock<IAsyncCompletionSession>();
+        var session = new Mock<IAsyncCompletionSession>(MockBehavior.Strict);
         session.SetupGet(s => s.TextView).Returns(view);
         session.SetupGet(s => s.Properties).Returns(new PropertyCollection());
         session.SetupGet(s => s.ApplicableToSpan).Returns(snapshot.CreateTrackingSpan(list.Span.Start, list.Span.Length, SpanTrackingMode.EdgeInclusive));
         CompletionSessionData.GetOrCreateSessionData(session.Object).CompletionListSpan = list.Span;
 
-        var expander = new Mock<ILanguageServerSnippetExpander>();
+        var expander = new Mock<ILanguageServerSnippetExpander>(MockBehavior.Strict);
         expander.Setup(e => e.TryExpand(It.IsAny<string>(), It.IsAny<SnapshotSpan>(), view)).Returns(true);
         var manager = new CommitManager(view, workspace.GetService<RecentItemsManager>(), workspace.GlobalOptions,
             workspace.GetService<IThreadingContext>(), expander.Object);
