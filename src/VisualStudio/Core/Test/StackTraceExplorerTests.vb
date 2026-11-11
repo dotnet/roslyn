@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.VisualStudio
 Imports Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
 Imports Microsoft.VisualStudio.Shell.Interop
 Imports Moq
@@ -12,7 +13,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
     Public Class StackTraceExplorerTests
         <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/76758")>
         Public Sub CreatingToolWindowDoesNotCloseItsFrame()
-            Dim frame = New Mock(Of IVsWindowFrame)
+            Dim frame = New Mock(Of IVsWindowFrame)(MockBehavior.Strict)
+            frame.Setup(Function(f) f.SetProperty(CInt(__VSFPROPID.VSFPROPID_Caption), It.IsAny(Of Object)())).Returns(VSConstants.S_OK)
             Using window = New StackTraceExplorerToolWindow With {.Frame = frame.Object}
                 window.OnToolWindowCreated()
 
