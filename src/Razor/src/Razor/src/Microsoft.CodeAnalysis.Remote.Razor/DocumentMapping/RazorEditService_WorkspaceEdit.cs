@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 
 internal partial class RazorEditService
 {
-    public async Task MapWorkspaceEditAsync(Solution solution, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+    public async Task MapWorkspaceEditAsync(Solution solution, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken, bool includeSameNamedAliasTargetEdits = true)
     {
         // Collect all edits and combine duplicates for each generated document before mapping to Razor.
         using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
@@ -99,6 +99,8 @@ internal partial class RazorEditService
                 changes,
                 codeDocument,
                 includeCSharpLanguageFeatureEdits: true,
+                includeComponentAliasEdits: true,
+                includeSameNamedAliasTargetEdits,
                 directlyMappedEditFilter: null,
                 cancellationToken).ConfigureAwait(false);
             entry.Edits = mappedChanges.SelectAsPlainArray(c => new SumType<TextEdit, AnnotatedTextEdit>(codeDocument.Source.Text.GetTextEdit(c)));
@@ -199,7 +201,7 @@ internal partial class RazorEditService
         return changes;
     }
 
-    private static void DeduplicateTextDocumentEdit(TextDocumentEdit entry)
+    internal static void DeduplicateTextDocumentEdit(TextDocumentEdit entry)
     {
         var edits = entry.Edits;
 

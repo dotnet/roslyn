@@ -89,6 +89,46 @@ public class CohostWillRenameEndpointTest(ITestOutputHelper testOutputHelper) : 
              ]);
 
     [Fact]
+    public Task Component_WithSameNamedAlias()
+        => VerifyRenamesAsync(
+            oldName: FileUri("Component.razor"),
+            newName: FileUri("DifferentName.razor"),
+            files: [
+                (FilePath("Component.razor"), "@namespace My.Foo"),
+                (FilePath("OtherComponent.razor"), """
+                    @using Component = My.Foo.Component
+                    <Component></Component>
+                    """)
+            ],
+            expectedFiles: [
+                (FileUri("OtherComponent.razor"), """
+                    @using DifferentName = My.Foo.DifferentName
+                    <DifferentName></DifferentName>
+                    """)
+            ]);
+
+    [Fact]
+    public Task Component_WithSameNamedAliasAndStaticUsing()
+        => VerifyRenamesAsync(
+            oldName: FileUri("Component.razor"),
+            newName: FileUri("DifferentName.razor"),
+            files: [
+                (FilePath("Component.razor"), "@namespace My.Foo"),
+                (FilePath("OtherComponent.razor"), """
+                    @using static My.Foo.Component
+                    @using Component = My.Foo.Component
+                    <Component />
+                    """)
+            ],
+            expectedFiles: [
+                (FileUri("OtherComponent.razor"), """
+                    @using static My.Foo.DifferentName
+                    @using DifferentName = My.Foo.DifferentName
+                    <DifferentName />
+                    """)
+            ]);
+
+    [Fact]
     public Task Component_WithCss()
         => VerifyRenamesAsync(
             oldName: FileUri("Component.razor"),

@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -1050,6 +1051,239 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 <UI.DifferentName></UI.DifferentName>
                 """,
             additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task Component_UsingAliases_RenameTargetToNameWithSharedPrefix()
+    {
+        var input = """
+            @using Component = My.Foo.Component
+            <My.Foo.Compo$$nent />
+            <Component></Component>
+            """;
+        var (document, _, result) = await GetRenameEditAsync(
+            input,
+            newName: "Component2",
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")]);
+
+        Assert.NotNull(result);
+
+        // Inspect the alias repair directly; applying this result also hits the separate overlapping-edits issue.
+        var razorEdits = result.EnumerateTextDocumentEdits()
+            .Where(edit => edit.TextDocument.DocumentUri == document.GetURI())
+            .SelectMany(edit => edit.Edits)
+            .Select(edit => (TextEdit)edit);
+
+        Assert.Contains(razorEdits, edit =>
+            edit.NewText.Contains("@using Component2 = My.Foo.Component2", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithSameNamedAliasAndStaticUsing()
+        => VerifyRenamesAsync(
+            input: """
+                @using Component = My.Foo.Component
+                @using static My.Foo.Component
+                <My.Foo.Compo$$nent />
+                <Component></Component>
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using static My.Foo.DifferentName
+                @using DifferentName = My.Foo.DifferentName
+                <My.Foo.DifferentName />
+                <DifferentName></DifferentName>
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithEscapedSameNamedAliasAndStaticUsing()
+        => VerifyRenamesAsync(
+            input: """
+                @using static My.Foo.Component
+                @using @Component = My.Foo.Component
+                <My.Foo.Compo$$nent />
+                <Component />
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using static My.Foo.DifferentName
+                @using @DifferentName = My.Foo.DifferentName
+                <My.Foo.DifferentName />
+                <DifferentName />
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithSameNamedAliasAndStaticUsingAndCSharpReference()
+        => VerifyRenamesAsync(
+            input: """
+                @using static My.Foo.Component
+                @using Component = My.Foo.Component
+                <My.Foo.Compo$$nent />
+                <Component />
+                @((Component)null)
+
+                @code {
+                    private Component? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using static My.Foo.DifferentName
+                @using DifferentName = My.Foo.DifferentName
+                <My.Foo.DifferentName />
+                <DifferentName />
+                @((DifferentName)null)
+
+                @code {
+                    private DifferentName? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithSameNamedAliasAndCSharpReferences()
+        => VerifyRenamesAsync(
+            input: """
+                @using Component = My.Foo.Component
+                <My.Foo.Compo$$nent />
+                <Component></Component>
+                @((Component)null)
+
+                @code {
+                    private Component? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using DifferentName = My.Foo.DifferentName
+                <My.Foo.DifferentName />
+                <DifferentName></DifferentName>
+                @((DifferentName)null)
+
+                @code {
+                    private DifferentName? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithSameNamedAliasAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                <My.Foo.Compo$$nent />
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), "@namespace My.Foo"),
+                (FilePath("Other.razor"), """
+                    @using Component = My.Foo.Component
+                    <Component></Component>
+                    """),
+                (FilePath("UnrelatedComponent.razor"), "@namespace My.Foo"),
+                (FilePath("Unrelated.razor"), """
+                    @using Component = My.Foo.UnrelatedComponent
+                    <Component />
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                <My.Foo.DifferentName />
+                """,
+            additionalExpectedFiles: [
+                (FileUri("DifferentName.razor"), "@namespace My.Foo"),
+                (FileUri("Other.razor"), """
+                    @using DifferentName = My.Foo.DifferentName
+                    <DifferentName></DifferentName>
+                    """),
+                (FileUri("UnrelatedComponent.razor"), "@namespace My.Foo"),
+                (FileUri("Unrelated.razor"), """
+                    @using Component = My.Foo.UnrelatedComponent
+                    <Component />
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithUnusedSameNamedAlias()
+        // Roslyn leaves the alias name alone when it has no references.
+        => VerifyRenamesAsync(
+            input: """
+                @using Component = My.Foo.Component
+                <My.Foo.Compo$$nent />
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using Component = My.Foo.DifferentName
+                <My.Foo.DifferentName />
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithEscapedSameNamedAlias()
+        => VerifyRenamesAsync(
+            input: """
+                @using @Component = My.Foo.Component
+                <My.Foo.Compo$$nent />
+                <Component />
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using @DifferentName = My.Foo.DifferentName
+                <My.Foo.DifferentName />
+                <DifferentName />
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public Task Component_UsingAliases_RenameTargetWithUnrelatedSameNamedAlias()
+        => VerifyRenamesAsync(
+            input: """
+                @using Component = Other.Component
+                <My.Foo.Compo$$nent />
+                <Component />
+                """,
+            additionalFiles: [
+                (FilePath("Component.razor"), "@namespace My.Foo"),
+                (FilePath("Other.cs"), """
+                    namespace Other
+                    {
+                        public class Component : Microsoft.AspNetCore.Components.ComponentBase
+                        {
+                        }
+                    }
+                    """)
+            ],
+            newName: "DifferentName",
+            expected: """
+                @using Component = Other.Component
+                <My.Foo.DifferentName />
+                <Component />
+                """,
+            additionalExpectedFiles: [
+                (FileUri("DifferentName.razor"), "@namespace My.Foo"),
+                (FileUri("Other.cs"), """
+                    namespace Other
+                    {
+                        public class Component : Microsoft.AspNetCore.Components.ComponentBase
+                        {
+                        }
+                    }
+                    """)
+            ]);
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
@@ -2656,6 +2890,29 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
         (string fileName, string contents)[]? additionalFiles = null,
         (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null)
     {
+        var (document, inputText, result) = await GetRenameEditAsync(
+            input, newName, fileKind, documentFilePath, additionalFiles);
+
+        if (expected.Length == 0)
+        {
+            Assert.Null(result);
+            return;
+        }
+
+        Assert.NotNull(result);
+
+        var documentUri = newFileUri is null ? document.GetURI() : newFileUri;
+        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(documentUri, expected)]);
+        await result.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
+    }
+
+    private async Task<(TextDocument Document, SourceText InputText, WorkspaceEdit? Result)> GetRenameEditAsync(
+        string input,
+        string newName,
+        RazorFileKind? fileKind = null,
+        string? documentFilePath = null,
+        (string fileName, string contents)[]? additionalFiles = null)
+    {
         TestFileMarkupParser.GetPosition(input, out var source, out var cursorPosition);
         var document = CreateProjectAndRazorDocument(source, fileKind, documentFilePath: documentFilePath, additionalFiles: additionalFiles);
         var inputText = await document.GetTextAsync(DisposalToken);
@@ -2677,16 +2934,6 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(renameParams, document, DisposalToken);
 
-        if (expected.Length == 0)
-        {
-            Assert.Null(result);
-            return;
-        }
-
-        Assert.NotNull(result);
-
-        var documentUri = newFileUri is null ? document.GetURI() : newFileUri;
-        var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(documentUri, expected)]);
-        await result.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
+        return (document, inputText, result);
     }
 }

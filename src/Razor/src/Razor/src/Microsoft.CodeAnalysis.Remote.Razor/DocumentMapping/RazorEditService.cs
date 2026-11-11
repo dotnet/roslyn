@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Remote.Razor.Rename;
 using Microsoft.CodeAnalysis.Text;
 using RoslynSyntaxNode = Microsoft.CodeAnalysis.SyntaxNode;
 
@@ -56,6 +57,8 @@ internal sealed partial class RazorEditService(
             [new(textChanges, originalCSharpSyntaxTree, declarationDocument)],
             codeDocument,
             includeCSharpLanguageFeatureEdits,
+            includeComponentAliasEdits: false,
+            includeSameNamedAliasTargetEdits: false,
             directlyMappedEditFilter,
             cancellationToken).ConfigureAwait(false);
     }
@@ -65,6 +68,8 @@ internal sealed partial class RazorEditService(
         ImmutableArray<GeneratedDocumentChanges> documentChanges,
         RazorCodeDocument codeDocument,
         bool includeCSharpLanguageFeatureEdits,
+        bool includeComponentAliasEdits,
+        bool includeSameNamedAliasTargetEdits,
         Func<RazorTextChange, bool>? directlyMappedEditFilter,
         CancellationToken cancellationToken)
     {
@@ -113,7 +118,17 @@ internal sealed partial class RazorEditService(
             cancellationToken);
 
         // Normalize again to account for the using-block replacements added above.
-        return NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
+        var normalizedEdits = NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
+        if (includeComponentAliasEdits)
+        {
+            normalizedEdits = ComponentAliasRenameHelper.AddSameNamedAliasEdits(
+                codeDocument,
+                normalizedEdits,
+                includeSameNamedAliasTargetEdits,
+                cancellationToken);
+        }
+
+        return NormalizeEdits(normalizedEdits, cancellationToken);
     }
 
     private static void AddCSharpLanguageFeatureChanges(
@@ -432,6 +447,8 @@ internal sealed partial class RazorEditService(
                 [new(textChanges, originalCSharpSyntaxTree, declarationDocument)],
                 codeDocument,
                 includeCSharpLanguageFeatureEdits,
+                includeComponentAliasEdits: false,
+                includeSameNamedAliasTargetEdits: false,
                 directlyMappedEditFilter,
                 cancellationToken);
         }

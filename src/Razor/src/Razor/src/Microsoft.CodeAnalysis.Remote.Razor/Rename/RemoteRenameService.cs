@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -77,7 +76,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             positionInfo = declarationPositionInfo;
         }
 
-        if (TryGetTypeAliasFromComponentTag(codeDocument, originalHostDocumentIndex, out var typeAliasComponent, out var typeAliasSpan))
+        if (ComponentAliasRenameHelper.TryGetTypeAliasFromComponentTag(codeDocument, originalHostDocumentIndex, out var typeAliasComponent, out var typeAliasSpan))
         {
             if (!TryGetComponentAliasPositionInfo(codeDocument, typeAliasComponent, typeAliasSpan, out var aliasPositionInfo))
             {
@@ -135,7 +134,8 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         // do a second rename for the corresponding alias in the other document, so their edits can be
         // combined before mapping.
         TextDocumentEdit? aliasTagEdit = null;
-        var alias = await GetAliasSymbolAsync(generatedDocument, positionInfo.Position, cancellationToken).ConfigureAwait(false);
+        var renameSymbol = await GetRenameSymbolAsync(generatedDocument, positionInfo.Position, cancellationToken).ConfigureAwait(false);
+        var alias = renameSymbol as IAliasSymbol;
         if (alias is not null)
         {
             // Repeat the local-declaration check for clients that don't support prepareRename.
@@ -162,10 +162,11 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             }
         }
 
-        await _razorEditService.MapWorkspaceEditAsync(snapshot.TextDocument.Project.Solution, csharpEdit, cancellationToken).ConfigureAwait(false);
+        await _razorEditService.MapWorkspaceEditAsync(snapshot.TextDocument.Project.Solution, csharpEdit, cancellationToken, includeSameNamedAliasTargetEdits: false).ConfigureAwait(false);
 
         // A rename initiated on a component alias changes the alias symbol, not the component type or file.
         var result = alias is null ? csharpEdit.Concat(razorEdit.Edit) : csharpEdit;
+
         if (aliasTagEdit is not null)
         {
             // Both sets of edits use the original Razor text. Keep them in one document edit so
@@ -181,14 +182,54 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             }
         }
 
+        await AddSameNamedAliasEditsAsync(snapshot.TextDocument.Project.Solution, result, cancellationToken).ConfigureAwait(false);
+
         return Results(result);
     }
 
-    private static async Task<IAliasSymbol?> GetAliasSymbolAsync(Document generatedDocument, Position position, CancellationToken cancellationToken)
+    private async Task AddSameNamedAliasEditsAsync(Solution solution, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
+    {
+        var solutionSnapshot = SnapshotManager.GetSnapshot(solution);
+        using var processedUris = HashSetPool<DocumentUri>.GetPooledObject(out var processedUriSet);
+
+        foreach (var documentEdit in workspaceEdit.EnumerateTextDocumentEdits())
+        {
+            var uri = documentEdit.TextDocument.DocumentUri;
+            if (!processedUriSet.Add(uri))
+            {
+                continue;
+            }
+
+            var filePath = uri.GetRequiredSystemUri().GetDocumentFilePathFromUri();
+            if (!filePath.IsRazorFilePath())
+            {
+                continue;
+            }
+
+            foreach (var projectSnapshot in solutionSnapshot.GetProjectsContainingDocument(filePath))
+            {
+                if (!projectSnapshot.TryGetDocument(filePath, out var documentSnapshot))
+                {
+                    continue;
+                }
+
+                var codeDocument = await projectSnapshot.GetRequiredCodeDocumentAsync(documentSnapshot, cancellationToken).ConfigureAwait(false);
+                ComponentAliasRenameHelper.AddSameNamedAliasEdits(
+                    codeDocument,
+                    uri,
+                    workspaceEdit,
+                    includeSameNamedAliasTargetEdits: true,
+                    cancellationToken);
+                break;
+            }
+        }
+    }
+
+    private static async Task<ISymbol?> GetRenameSymbolAsync(Document generatedDocument, Position position, CancellationToken cancellationToken)
     {
         var generatedText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var renameInfo = await SymbolicRenameInfo.GetRenameInfoAsync(generatedDocument, generatedText.GetRequiredAbsoluteIndex(position), cancellationToken).ConfigureAwait(false);
-        return renameInfo.Symbol as IAliasSymbol;
+        return renameInfo.Symbol;
     }
 
     /// <summary>
@@ -205,71 +246,26 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
     {
         positionInfo = default;
 
-        var root = codeDocument.GetRequiredSyntaxRoot();
         var aliasName = codeDocument.Source.Text.ToString(aliasSpan);
-        foreach (var contribution in codeDocument.GetDirectiveTagHelperContributions())
+        if (!ComponentAliasRenameHelper.TryGetAliasDeclarationToken(codeDocument, component, aliasName, out var token))
         {
-            if (!contribution.ContributedTagHelpers.Contains(component) ||
-                root.FindInnermostNode(contribution.DirectiveSpanStart)?.FirstAncestorOrSelf<RazorUsingDirectiveSyntax>() is not { } directive)
-            {
-                continue;
-            }
-
-            foreach (var child in directive.DescendantNodes())
-            {
-                if (!TryGetImportAliasTokens(child, out var import, out var tokens))
-                {
-                    continue;
-                }
-
-                var equalsIndex = import.ParsedNamespace.IndexOf('=');
-                if (equalsIndex <= 0)
-                {
-                    continue;
-                }
-
-                var directiveAlias = import.ParsedNamespace.AsSpan(0, equalsIndex).Trim();
-                if (directiveAlias[0] == '@')
-                {
-                    directiveAlias = directiveAlias[1..];
-                }
-
-                if (!directiveAlias.Equals(aliasName.AsSpan(), StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                // Component aliases are emitted as their target types, so route tag rename through
-                // the local @using declaration where Roslyn can resolve the alias symbol.
-                foreach (var token in tokens)
-                {
-                    if (token.Kind is not (SyntaxKind.Identifier or SyntaxKind.Keyword))
-                    {
-                        continue;
-                    }
-
-                    var tokenContent = token.Content.AsSpan();
-                    var tokenStart = token.SpanStart;
-                    var alternateTokenStart = tokenStart;
-                    if (tokenContent.Length > 0 && tokenContent[0] == '@')
-                    {
-                        tokenContent = tokenContent[1..];
-                        alternateTokenStart++;
-                    }
-
-                    if (tokenContent.Equals(aliasName.AsSpan(), StringComparison.Ordinal) &&
-                        TryMapAliasPosition(codeDocument, tokenStart, alternateTokenStart, out var csharpPosition, out var inDeclDocument))
-                    {
-                        positionInfo = new DocumentPositionInfo(RazorLanguageKind.CSharp, csharpPosition.ToPosition(), tokenStart, inDeclDocument);
-                        return true;
-                    }
-                }
-            }
+            return false;
         }
 
-        // Imported aliases have no local directive contribution, so neither rename nor
-        // prepare-rename should offer to change just this document's copy of the alias.
-        return false;
+        var tokenStart = token.SpanStart;
+        var alternateTokenStart = tokenStart;
+        if (token.Content[0] == '@')
+        {
+            alternateTokenStart++;
+        }
+
+        if (!TryMapAliasPosition(codeDocument, tokenStart, alternateTokenStart, out var csharpPosition, out var inDeclDocument))
+        {
+            return false;
+        }
+
+        positionInfo = new DocumentPositionInfo(RazorLanguageKind.CSharp, csharpPosition.ToPosition(), tokenStart, inDeclDocument);
+        return true;
     }
 
     private bool TryGetAliasPositionInfoFromUsingDirective(
@@ -287,7 +283,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
 
         foreach (var node in directive.DescendantNodes())
         {
-            if (!TryGetImportAliasTokens(node, out var import, out var tokens))
+            if (!ComponentAliasRenameHelper.TryGetImportAliasTokens(node, out var import, out var tokens))
             {
                 continue;
             }
@@ -332,30 +328,6 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         }
 
         return false;
-    }
-
-    private static bool TryGetImportAliasTokens(
-        Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode node,
-        [NotNullWhen(true)] out AddImportChunkGenerator? import,
-        out Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxTokenList tokens)
-    {
-        switch (node)
-        {
-            case CSharpStatementLiteralSyntax { ChunkGenerator: AddImportChunkGenerator statementImport } statement:
-                import = statementImport;
-                tokens = statement.LiteralTokens;
-                return true;
-
-            case RazorMetaCodeSyntax { ChunkGenerator: AddImportChunkGenerator metaCodeImport } metaCode:
-                import = metaCodeImport;
-                tokens = metaCode.MetaCode;
-                return true;
-
-            default:
-                import = null;
-                tokens = default;
-                return false;
-        }
     }
 
     private bool TryMapAliasPosition(
@@ -436,61 +408,6 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
         component = candidate;
         aliasSpan = new TextSpan(name.SpanStart, firstDot);
         return true;
-    }
-
-    private static bool TryGetTypeAliasFromComponentTag(
-        RazorCodeDocument codeDocument,
-        int hostDocumentIndex,
-        [NotNullWhen(true)] out TagHelperDescriptor? component,
-        out TextSpan aliasSpan)
-    {
-        component = null;
-        aliasSpan = default;
-
-        var element = codeDocument.GetRequiredSyntaxRoot().FindInnermostNode(hostDocumentIndex)?.FirstAncestorOrSelf<MarkupTagHelperElementSyntax>();
-        if (element is null)
-        {
-            return false;
-        }
-
-        RazorSyntaxToken name;
-        if (element.StartTag is { } startTag && startTag.Name.Span.IntersectsWith(hostDocumentIndex))
-        {
-            name = startTag.Name;
-        }
-        else if (element.EndTag is { } endTag && endTag.Name.Span.IntersectsWith(hostDocumentIndex))
-        {
-            name = endTag.Name;
-        }
-        else
-        {
-            return false;
-        }
-
-        var tagHelperContext = codeDocument.GetTagHelperContext();
-        if (name.Content.Contains('.') ||
-            tagHelperContext?.IsTypeAliasTagName(name.Content) != true)
-        {
-            return false;
-        }
-
-        aliasSpan = name.Span;
-        var prefix = tagHelperContext.Prefix;
-        if (prefix is { Length: > 0 } && name.Content.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-        {
-            aliasSpan = new TextSpan(name.SpanStart + prefix.Length, name.Span.Length - prefix.Length);
-        }
-
-        foreach (var boundRule in element.TagHelperInfo.BindingResult.AllBoundRules)
-        {
-            if (boundRule.Descriptor.Kind == TagHelperKind.Component)
-            {
-                component = boundRule.Descriptor;
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static TextDocumentEdit? GetTypeAliasTagEdits(
@@ -792,7 +709,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
 
         // Alias-bound tags are emitted as their target types. Use the local @using declaration
         // for Roslyn's rename checks, but keep the tag span for prepare-rename's result.
-        if (TryGetTypeAliasFromComponentTag(codeDocument, originalHostDocumentIndex, out var typeAliasComponent, out var typeAliasSpan))
+        if (ComponentAliasRenameHelper.TryGetTypeAliasFromComponentTag(codeDocument, originalHostDocumentIndex, out var typeAliasComponent, out var typeAliasSpan))
         {
             if (!TryGetComponentAliasPositionInfo(codeDocument, typeAliasComponent, typeAliasSpan, out var aliasPositionInfo))
             {
@@ -834,7 +751,7 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
 
         // Renaming an imported alias would only change one generated copy, not the declaration
         // and references in every consuming document. Only offer alias rename for local directives.
-        var alias = await GetAliasSymbolAsync(generatedDocument, positionInfo.Position, cancellationToken).ConfigureAwait(false);
+        var alias = await GetRenameSymbolAsync(generatedDocument, positionInfo.Position, cancellationToken).ConfigureAwait(false) as IAliasSymbol;
         if (alias is not null &&
             await TryGetLocalAliasDeclarationSpanAsync(alias, generatedDocument, codeDocument, positionInfo.InDeclDocument, cancellationToken).ConfigureAwait(false) is null)
         {
@@ -966,10 +883,11 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return null;
         }
 
-        await _razorEditService.MapWorkspaceEditAsync(snapshot.TextDocument.Project.Solution, csharpEdit, cancellationToken).ConfigureAwait(false);
-
+        await _razorEditService.MapWorkspaceEditAsync(snapshot.TextDocument.Project.Solution, csharpEdit, cancellationToken, includeSameNamedAliasTargetEdits: false).ConfigureAwait(false);
         _renameService.TryGetRazorFileRenameEdit(snapshot, newFileName, out var razorEdit);
 
-        return csharpEdit.Concat(razorEdit);
+        var result = csharpEdit.Concat(razorEdit);
+        await AddSameNamedAliasEditsAsync(snapshot.TextDocument.Project.Solution, result, cancellationToken).ConfigureAwait(false);
+        return result;
     }
 }

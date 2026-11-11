@@ -76,6 +76,60 @@ public class RoslynRenameTest(ITestOutputHelper testOutputHelper) : CohostEndpoi
                 The end.
                 """);
 
+    [Fact]
+    public async Task RenameComponentFromCSharp_UpdatesSameNamedAlias()
+    {
+        TestCode csharpFile = """
+            namespace My.Foo;
+
+            public class Compo$$nent : Microsoft.AspNetCore.Components.ComponentBase
+            {
+            }
+            """;
+        var razorDocument = CreateProjectAndRazorDocument(
+            """
+            @using Component = My.Foo.Component
+
+            <Component></Component>
+
+            @((Component)null)
+
+            @code {
+                private Component? _component;
+            }
+            """,
+            additionalFiles: [(Path.Combine(TestProjectData.SomeProjectPath, "File.cs"), csharpFile.Text)]);
+        var csharpDocument = razorDocument.Project.Documents.First();
+        var csharpSourceText = await csharpDocument.GetTextAsync(DisposalToken);
+        var csharpPosition = csharpSourceText.GetLinePosition(csharpFile.Position);
+        var workspaceEdit = await RenameHandler.GetRenameEditAsync(
+            csharpDocument,
+            csharpPosition,
+            newName: "DifferentName",
+            allowRenamesInRazorSourceGeneratedDocuments: true,
+            DisposalToken);
+
+        Assert.NotNull(workspaceEdit);
+
+        var razorSourceText = await razorDocument.GetTextAsync(DisposalToken);
+        var source = razorSourceText.ToString();
+        var aliasStart = source.IndexOf("Component =");
+        var tagStart = source.IndexOf("<Component>") + 1;
+        var razorEdits = workspaceEdit.EnumerateTextDocumentEdits()
+            .Where(edit => edit.TextDocument.DocumentUri == razorDocument.GetURI())
+            .SelectMany(edit => edit.Edits)
+            .Select(edit => (TextEdit)edit)
+            .ToArray();
+
+        // Inspect mapped edits directly because overlapping edits are a separate issue.
+        Assert.Contains(razorEdits, edit =>
+            razorSourceText.GetTextSpan(edit.Range) == new TextSpan(aliasStart, "Component".Length) &&
+            edit.NewText == "DifferentName");
+        Assert.Contains(razorEdits, edit =>
+            razorSourceText.GetTextSpan(edit.Range) == new TextSpan(tagStart, "Component".Length) &&
+            edit.NewText == "DifferentName");
+    }
+
     private async Task VerifyRenameAsync(
         TestCode csharpFile,
         TestCode razorFile,
