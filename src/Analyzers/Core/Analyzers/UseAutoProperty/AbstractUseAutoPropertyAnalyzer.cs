@@ -94,128 +94,181 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFieldUsageIfOutsideProperty, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
     protected sealed override void InitializeWorker(AnalysisContext context)
-        => context.RegisterSymbolStartAction(context =>
+        => context.RegisterCompilationStartAction(context =>
         {
-            var namedType = (INamedTypeSymbol)context.Symbol;
-            if (!ShouldAnalyze(context, namedType))
-                return;
+            // Nested types can use the private fields of their containing types, but their code blocks are not part of
+            // the containing type's symbol analysis.  This maps a type that has nested types to its state, so that its
+            // nested types can record how they use its fields.  The containing type's symbol end action only runs once
+            // its nested types have been analyzed.
+            var namedTypeToState = new ConcurrentDictionary<INamedTypeSymbol, NamedTypeState?>();
+            context.RegisterSymbolStartAction(context => AnalyzeNamedType(context, namedTypeToState), SymbolKind.NamedType);
+        });
 
-            // Results of our analysis pass that we will use to determine which fields and properties to offer to fixup.
-            var analysisResults = s_analysisResultPool.Allocate();
+    private void AnalyzeNamedType(
+        SymbolStartAnalysisContext context, ConcurrentDictionary<INamedTypeSymbol, NamedTypeState?> namedTypeToState)
+    {
+        var namedType = (INamedTypeSymbol)context.Symbol;
 
-            // Fields whose usage may disqualify them from being removed (depending on the usage location). For example,
-            // a field taken by ref normally can't be converted (as a property can't be taken by ref).  However, this
-            // doesn't apply within the property itself (as it can refer to `field` after the rewrite).
-            var ineligibleFieldUsageIfOutsideProperty = s_fieldToUsageLocationPool.Allocate();
+        // Record how this type uses the fields of the types that contain it.
+        for (var containingType = namedType.ContainingType; containingType != null; containingType = containingType.ContainingType)
+        {
+            var containingTypeState = namedTypeToState.GetOrAdd(containingType, containingType => TryCreateState(context, containingType));
+            if (containingTypeState is { FieldNames.Count: > 0 })
+                context.RegisterCodeBlockStartAction<TSyntaxKind>(context => RecordFieldUsages(containingTypeState, context));
+        }
 
-            // Locations where this field is read or written.  If it is read or written outside of hte property being
-            // changed, and the property getter/setter is non-trivial, then we cannot use 'field' for it, as that would 
-            // change the semantics in those locations.
-            var fieldReads = s_fieldToUsageLocationPool.Allocate();
-            var fieldWrites = s_fieldToUsageLocationPool.Allocate();
+        var state = namedType.GetTypeMembers().IsEmpty
+            ? TryCreateState(context, namedType)
+            : namedTypeToState.GetOrAdd(namedType, namedType => TryCreateState(context, namedType));
+        if (state is null)
+            return;
 
-            // Record the names of all the private fields in this type.  We can use this to greatly reduce the amount of
-            // binding we need to perform when looking for restrictions in the type.
-            var fieldNames = _fieldNamesPool.Allocate();
-            foreach (var member in namedType.GetMembers())
+        // Examine each property-declaration we find within this named type to see if it looks like it can be converted.
+        context.RegisterSyntaxNodeAction(
+            context => AnalyzePropertyDeclaration(context, namedType, state.FieldNames, state.AnalysisResults),
+            PropertyDeclarationKind);
+
+        // Concurrently, examine the usages of the fields of this type within itself to see how those may impact if
+        // a field/prop pair can actually be converted.
+        context.RegisterCodeBlockStartAction<TSyntaxKind>(context => RecordFieldUsages(state, context));
+
+        context.RegisterSymbolEndAction(context =>
+        {
+            namedTypeToState.TryRemove(namedType, out _);
+            try
             {
-                if (member is IFieldSymbol
-                    {
-                        // Can only convert fields that are private, as otherwise we don't know how they may be used
-                        // outside of this type.
-                        DeclaredAccessibility: Accessibility.Private,
-                        // Only care about actual user-defined fields, not compiler generated ones.
-                        CanBeReferencedByName: true,
-                        // Will never convert a constant into an auto-prop
-                        IsConst: false,
-                        // Can't preserve volatile semantics on a property.
-                        IsVolatile: false,
-                        // Can't have an autoprop that returns by-ref. 
-                        RefKind: RefKind.None,
-                        // To make processing later on easier, limit to well-behaved fields (versus having multiple
-                        // fields merged together in error recoery scenarios).
-                        DeclaringSyntaxReferences.Length: 1,
-                    } field)
+                Process(state.AnalysisResults, state.IneligibleFieldUsageIfOutsideProperty, state.FieldReads, state.FieldWrites, context);
+            }
+            finally
+            {
+                // Cleanup after doing all our work.
+                _fieldNamesPool.ClearAndFree(state.FieldNames);
+                s_analysisResultPool.ClearAndFree(state.AnalysisResults);
+
+                ClearAndFree(state.IneligibleFieldUsageIfOutsideProperty);
+                ClearAndFree(state.FieldReads);
+                ClearAndFree(state.FieldWrites);
+            }
+        });
+    }
+
+    private void RecordFieldUsages(NamedTypeState state, CodeBlockStartAnalysisContext<TSyntaxKind> context)
+    {
+        RecordIneligibleFieldLocations(state.FieldNames, state.IneligibleFieldUsageIfOutsideProperty, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+        RecordAllFieldReferences(state.FieldNames, state.FieldReads, state.FieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+    }
+
+    private NamedTypeState? TryCreateState(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
+    {
+        if (!ShouldAnalyze(context, namedType))
+            return null;
+
+        // Record the names of all the private fields in this type.  We can use this to greatly reduce the amount of
+        // binding we need to perform when looking for restrictions in the type.
+        var fieldNames = _fieldNamesPool.Allocate();
+        foreach (var member in namedType.GetMembers())
+        {
+            if (member is IFieldSymbol
                 {
-                    fieldNames.Add(field.Name);
+                    // Can only convert fields that are private, as otherwise we don't know how they may be used
+                    // outside of this type.
+                    DeclaredAccessibility: Accessibility.Private,
+                    // Only care about actual user-defined fields, not compiler generated ones.
+                    CanBeReferencedByName: true,
+                    // Will never convert a constant into an auto-prop
+                    IsConst: false,
+                    // Can't preserve volatile semantics on a property.
+                    IsVolatile: false,
+                    // Can't have an autoprop that returns by-ref.
+                    RefKind: RefKind.None,
+                    // To make processing later on easier, limit to well-behaved fields (versus having multiple
+                    // fields merged together in error recoery scenarios).
+                    DeclaringSyntaxReferences.Length: 1,
+                } field)
+            {
+                fieldNames.Add(field.Name);
+            }
+        }
+
+        return new NamedTypeState(fieldNames);
+    }
+
+    private bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
+    {
+        if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
+            return false;
+
+        // Serializable types can depend on fields (and their order).  Don't report these
+        // properties in that case.
+        if (namedType.IsSerializable)
+            return false;
+
+        // Don't bother running on this type unless at least one of its parts has the 'prefer auto props' option
+        // on, and the diagnostic is not suppressed.
+        if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
+        {
+            var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
+            return preferAutoProps.Value && !ShouldSkipAnalysis(tree, context.Options, context.Compilation.Options, preferAutoProps.Notification, context.CancellationToken);
+        }))
+        {
+            return false;
+        }
+
+        // If we are analyzing a sub-span (lightbulb case), then check if the filter span
+        // has a field/property declaration where a diagnostic could be reported.
+        if (context.FilterSpan.HasValue)
+        {
+            Contract.ThrowIfNull(context.FilterTree);
+            var shouldAnalyze = false;
+            var analysisRoot = context.GetAnalysisRoot(findInTrivia: false);
+            foreach (var node in analysisRoot.DescendantNodes())
+            {
+                if (node is TPropertyDeclaration or TFieldDeclaration && context.ShouldAnalyzeSpan(node.Span, node.SyntaxTree))
+                {
+                    shouldAnalyze = true;
+                    break;
                 }
             }
 
-            // Examine each property-declaration we find within this named type to see if it looks like it can be converted.
-            context.RegisterSyntaxNodeAction(
-                context => AnalyzePropertyDeclaration(context, namedType, fieldNames, analysisResults),
-                PropertyDeclarationKind);
+            if (!shouldAnalyze && analysisRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is TPropertyDeclaration or TFieldDeclaration) == null)
+                return false;
+        }
 
-            // Concurrently, examine the usages of the fields of this type within itself to see how those may impact if
-            // a field/prop pair can actually be converted.
-            context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
-            {
-                RecordIneligibleFieldLocations(fieldNames, ineligibleFieldUsageIfOutsideProperty, context.SemanticModel, context.CodeBlock, context.CancellationToken);
-                RecordAllFieldReferences(fieldNames, fieldReads, fieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
-            });
+        return true;
+    }
 
-            context.RegisterSymbolEndAction(context =>
-            {
-                try
-                {
-                    Process(analysisResults, ineligibleFieldUsageIfOutsideProperty, fieldReads, fieldWrites, context);
-                }
-                finally
-                {
-                    // Cleanup after doing all our work.
-                    _fieldNamesPool.ClearAndFree(fieldNames);
-                    s_analysisResultPool.ClearAndFree(analysisResults);
+    /// <summary>
+    /// What we learn about the fields of a type while analyzing it and its nested types.
+    /// </summary>
+    private sealed class NamedTypeState(HashSet<string> fieldNames)
+    {
+        /// <summary>
+        /// The names of the private fields of the type that could be converted.
+        /// </summary>
+        public readonly HashSet<string> FieldNames = fieldNames;
 
-                    ClearAndFree(ineligibleFieldUsageIfOutsideProperty);
-                    ClearAndFree(fieldReads);
-                    ClearAndFree(fieldWrites);
-                }
-            });
+        /// <summary>
+        /// Results of our analysis pass that we will use to determine which fields and properties to offer to fixup.
+        /// </summary>
+        public readonly ConcurrentStack<AnalysisResult> AnalysisResults = s_analysisResultPool.Allocate();
 
-            bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
-            {
-                if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
-                    return false;
+        /// <summary>
+        /// Fields whose usage may disqualify them from being removed (depending on the usage location). For example,
+        /// a field taken by ref normally can't be converted (as a property can't be taken by ref).  However, this
+        /// doesn't apply within the property itself (as it can refer to `field` after the rewrite).
+        /// </summary>
+        public readonly ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> IneligibleFieldUsageIfOutsideProperty = s_fieldToUsageLocationPool.Allocate();
 
-                // Serializable types can depend on fields (and their order).  Don't report these
-                // properties in that case.
-                if (namedType.IsSerializable)
-                    return false;
+        /// <summary>
+        /// Locations where this field is read or written.  If it is read or written outside of hte property being
+        /// changed, and the property getter/setter is non-trivial, then we cannot use 'field' for it, as that would
+        /// change the semantics in those locations.
+        /// </summary>
+        public readonly ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> FieldReads = s_fieldToUsageLocationPool.Allocate();
 
-                // Don't bother running on this type unless at least one of its parts has the 'prefer auto props' option
-                // on, and the diagnostic is not suppressed.
-                if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
-                {
-                    var preferAutoProps = context.Options.GetAnalyzerOptions(tree).PreferAutoProperties;
-                    return preferAutoProps.Value && !ShouldSkipAnalysis(tree, context.Options, context.Compilation.Options, preferAutoProps.Notification, context.CancellationToken);
-                }))
-                {
-                    return false;
-                }
-
-                // If we are analyzing a sub-span (lightbulb case), then check if the filter span
-                // has a field/property declaration where a diagnostic could be reported.
-                if (context.FilterSpan.HasValue)
-                {
-                    Contract.ThrowIfNull(context.FilterTree);
-                    var shouldAnalyze = false;
-                    var analysisRoot = context.GetAnalysisRoot(findInTrivia: false);
-                    foreach (var node in analysisRoot.DescendantNodes())
-                    {
-                        if (node is TPropertyDeclaration or TFieldDeclaration && context.ShouldAnalyzeSpan(node.Span, node.SyntaxTree))
-                        {
-                            shouldAnalyze = true;
-                            break;
-                        }
-                    }
-
-                    if (!shouldAnalyze && analysisRoot.FirstAncestorOrSelf<SyntaxNode>(node => node is TPropertyDeclaration or TFieldDeclaration) == null)
-                        return false;
-                }
-
-                return true;
-            }
-        }, SymbolKind.NamedType);
+        /// <inheritdoc cref="FieldReads"/>
+        public readonly ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> FieldWrites = s_fieldToUsageLocationPool.Allocate();
+    }
 
     private void RecordAllFieldReferences(
         HashSet<string> fieldNames,
