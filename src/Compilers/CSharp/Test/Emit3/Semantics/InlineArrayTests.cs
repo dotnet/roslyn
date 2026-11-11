@@ -19124,6 +19124,99 @@ struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedSlice_Readonly()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void M(S s)
+                    {
+                        void F()
+                        {
+                            _ = &s.B[..];
+                        }
+                        F();
+                    }
+                }
+
+                public struct S
+                {
+                    public readonly Buffer10<int> B;
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0211: Cannot take the address of the given expression
+                //             _ = &s.B[..];
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "s.B[..]").WithLocation(7, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedSliceElement()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void M(S s)
+                    {
+                        Buffer10<int> b = default;
+                        void F()
+                        {
+                            _ = &b[..][0];
+                            _ = &s.B[..][0];
+                        }
+                        F();
+                    }
+                }
+
+                public struct S
+                {
+                    public readonly Buffer10<int> B;
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (8,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //             _ = &b[..][0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&b[..][0]").WithLocation(8, 17),
+                // (9,17): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
+                //             _ = &s.B[..][0];
+                Diagnostic(ErrorCode.ERR_FixedNeeded, "&s.B[..][0]").WithLocation(9, 17));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void ElementPointer_CapturedSliceElement_Fixed()
+        {
+            var src = """
+                unsafe class Program
+                {
+                    static void Main()
+                    {
+                        Buffer10<int> b = default;
+                        S s = default;
+                        System.Action f = () =>
+                        {
+                            fixed (int* p = &b[..][0]) { *p = 1; }
+                            fixed (int* p = &s.B[..][0]) { *p = 2; }
+                        };
+                        f();
+                        System.Console.Write($"{b[0]}{s.B[0]}");
+                    }
+                }
+
+                public struct S
+                {
+                    public readonly Buffer10<int> B;
+                }
+                """ + Buffer10Definition;
+
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseExe);
+            CompileAndVerify(comp, expectedOutput: "12", verify: Verification.Fails).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
         public void ElementPointer_CaptureOrder()
         {
             var src = """

@@ -1463,6 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 expression = elementAccess.Expression;
                                 continue;
                             }
+                            Debug.Assert(elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__Slice_Int_Int or WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int);
                             goto default;
                         }
                     case BoundKind.Local:
