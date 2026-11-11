@@ -39,8 +39,10 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         => ifNode.Else == null;
 
     protected override bool CanInvert(IfStatementSyntax ifNode)
-        => ifNode.Parent is BlockSyntax or SwitchSectionSyntax or GlobalStatementSyntax { Parent: CompilationUnitSyntax };
+        => ifNode.Parent is BlockSyntax or SwitchSectionSyntax or GlobalStatementSyntax;
 
+    // The statements after a top-level 'if' are separate global statements. Moving them into the 'if'
+    // would change the scope of the locals they declare, so only the 'if' body itself can be moved.
     protected override bool CanMoveStatements(IfStatementSyntax ifNode)
         => ifNode.Parent is not GlobalStatementSyntax;
 

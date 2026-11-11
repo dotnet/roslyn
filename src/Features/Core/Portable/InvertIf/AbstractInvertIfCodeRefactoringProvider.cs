@@ -65,8 +65,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     protected abstract bool CanInvert(TIfStatementSyntax ifNode);
     protected abstract bool IsElseless(TIfStatementSyntax ifNode);
 
-    protected virtual bool CanMoveStatements(TIfStatementSyntax ifNode)
-        => true;
+    protected abstract bool CanMoveStatements(TIfStatementSyntax ifNode);
 
     protected abstract StatementRange GetIfBodyStatementRange(TIfStatementSyntax ifNode);
 
