@@ -213,6 +213,15 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                   </script>
                 </div>
                 """,
+            dotNetFormatExpected: """
+                <div>
+                  <script>
+                function f() {
+                return 1;
+                }
+                  </script>
+                </div>
+                """,
             expected: """
                 <div>
                   <script>
