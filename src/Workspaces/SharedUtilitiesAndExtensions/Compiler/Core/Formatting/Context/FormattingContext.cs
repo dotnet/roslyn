@@ -487,19 +487,7 @@ internal sealed partial class FormattingContext
             return 0;
         }
 
-        // Earlier operations can put a line break between the token that started the anchor's original line and
-        // the anchor token. For example, when `Action A => () =>` becomes a block body, the lambda ends up after a
-        // new `return` on its own line. The anchored code then has to follow the line the anchor token is on now,
-        // so measure from the first token of that line. When the anchor token itself starts its line, keep
-        // measuring from the original token, as before.
-        var anchorToken = anchorData.AnchorToken;
-        var firstTokenOnCurrentLine = TokenStream.FirstTokenOfBaseTokenLine(anchorData.StartToken);
-        if (firstTokenOnCurrentLine != anchorToken && firstTokenOnCurrentLine != anchorData.StartToken)
-        {
-            anchorToken = firstTokenOnCurrentLine;
-        }
-
-        var currentColumn = TokenStream.GetCurrentColumn(anchorToken);
+        var currentColumn = TokenStream.GetCurrentColumn(anchorData.AnchorToken);
         return currentColumn - anchorData.OriginalColumn;
     }
 

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.UseExpressionBody;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -301,10 +302,11 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
             """,
             parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71637")]
-    public Task TestLambdaBodyIsReindented()
-        => TestInRegularAndScriptAsync(
-            """
+    [Theory, InlineData(false), InlineData(true)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71637")]
+    public Task TestLambdaBodyIsReindented(bool useTabs)
+    {
+        var input = """
             using System;
 
             class C
@@ -314,8 +316,9 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
                     Console.WriteLine();
                 };
             }
-            """,
-            """
+            """;
+
+        var expected = """
             using System;
 
             class C
@@ -331,8 +334,18 @@ public sealed class UseExpressionBodyForPropertiesRefactoringTests : AbstractCSh
                     }
                 }
             }
-            """,
-            parameters: new TestParameters(options: UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic));
+            """;
+
+        var options = UseExpressionBodyForAccessors_BlockBodyForProperties_DisabledDiagnostic;
+        options.Add(FormattingOptions2.UseTabs, useTabs);
+        if (useTabs)
+        {
+            input = input.Replace("    ", "\t");
+            expected = expected.Replace("    ", "\t");
+        }
+
+        return TestInRegularAndScriptAsync(input, expected, parameters: new TestParameters(options: options));
+    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71637")]
     public Task TestEmptyLambdaBodyIsReindented()
