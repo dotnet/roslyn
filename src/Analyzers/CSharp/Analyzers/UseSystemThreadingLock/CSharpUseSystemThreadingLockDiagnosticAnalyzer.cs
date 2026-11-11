@@ -69,8 +69,8 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 return;
 
             // Private fields of a type can be referenced from its nested types, which are analyzed separately.  This
-            // maps a type that has nested types to the fields it could convert, so that its nested types can report
-            // how they use those fields.
+            // maps a type to the fields it could convert, so that its nested types can report how they use those
+            // fields.  A type with fields to convert is removed at its symbol end; a type with none keeps a null entry.
             var namedTypeToPotentialLockFields = new ConcurrentDictionary<INamedTypeSymbol, PotentialLockFields?>();
             context.RegisterSymbolStartAction(
                 context => AnalyzeNamedType(context, namedTypeToPotentialLockFields), SymbolKind.NamedType);
@@ -93,9 +93,7 @@ internal sealed class CSharpUseSystemThreadingLockDiagnosticAnalyzer()
                 context.RegisterOperationAction(context => AnalyzeFieldReference(context, containingTypeLockFields), OperationKind.FieldReference);
         }
 
-        var potentialLockFields = namedType.GetTypeMembers().IsEmpty
-            ? GetPotentialLockFields(context, namedType)
-            : namedTypeToPotentialLockFields.GetOrAdd(namedType, namedType => GetPotentialLockFields(context, namedType));
+        var potentialLockFields = namedTypeToPotentialLockFields.GetOrAdd(namedType, namedType => GetPotentialLockFields(context, namedType));
         if (potentialLockFields is null)
             return;
 
