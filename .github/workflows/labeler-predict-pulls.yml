@@ -41,6 +41,8 @@ on:
         default: "ACTIVE"
 
 env:
+  CACHE_KEY: ${{ inputs.cache_key || 'ACTIVE' }}
+
   # Do not allow failure for jobs triggered automatically (this can block PR merge)
   ALLOW_FAILURE: ${{ github.event_name == 'workflow_dispatch' }}
 
@@ -115,6 +117,7 @@ jobs:
         uses: dotnet/issue-labeler/restore@46125e85e6a568dc712f358c39f35317366f5eed # v2.0.0
         with:
           type: pulls
+          cache_key: ${{ env.CACHE_KEY }}
           fail-on-cache-miss: ${{ env.ALLOW_FAILURE }}
           quiet: true
 
