@@ -275,10 +275,10 @@ internal sealed class HelixTestRunner
             </Project>
             """);
 
-        return builder.ToString();
-
         // Copied into each x86 work item payload so we don't depend on tools installed on the Helix machine.
         const string CorFlagsExeFileName = "CorFlags.exe";
+
+        return builder.ToString();
 
         static string FindCorFlagsExe()
         {
