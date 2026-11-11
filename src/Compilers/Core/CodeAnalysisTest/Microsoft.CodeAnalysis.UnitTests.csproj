@@ -30,6 +30,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx" GenerateSource="true" />
+    <EmbeddedResource Include="..\Portable\FileSystem\TempPathUtilities.cs" LogicalName="TempPathUtilities.cs" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources/default.win32manifest" />

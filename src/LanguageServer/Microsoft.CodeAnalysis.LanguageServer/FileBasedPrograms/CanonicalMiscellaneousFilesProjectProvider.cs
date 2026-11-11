@@ -60,7 +60,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
             </Project>
             """;
 
-        _tempDirectory = Path.Combine(Path.GetTempPath(), "roslyn-canonical-misc", Guid.NewGuid().ToString());
+        _tempDirectory = Path.Combine(TempPathUtilities.GetTempPath(), "roslyn-canonical-misc", Guid.NewGuid().ToString());
 
         Directory.CreateDirectory(_tempDirectory);
         var virtualProjectPath = Path.Combine(_tempDirectory, "Canonical.csproj");
