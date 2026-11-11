@@ -90,13 +90,20 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
     protected override ImmutableArray<ISymbol> FilterMemberGroup(
         SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        var expression = bindableParent is InvocationExpressionSyntax invocation ? invocation.Expression : bindableParent;
-        if (expression.Parent is MemberAccessExpressionSyntax parentAccess && parentAccess.Name == expression)
-            expression = parentAccess;
+        var invokedExpression = bindableParent as ExpressionSyntax;
+        if (invokedExpression?.Parent is MemberAccessExpressionSyntax parentAccess && parentAccess.Name == invokedExpression)
+            invokedExpression = parentAccess;
 
-        return expression is ExpressionSyntax invokedExpression
-            ? [.. MemberGroupStaticnessFilter.Filter(invokedExpression, memberGroup, semanticModel, cancellationToken)]
-            : memberGroup;
+        var invocation = bindableParent as InvocationExpressionSyntax;
+        if (invocation == null && invokedExpression?.Parent is InvocationExpressionSyntax parentInvocation && parentInvocation.Expression == invokedExpression)
+            invocation = parentInvocation;
+
+        // Invocation filtering only applies to method groups.
+        if (invocation == null || memberGroup.IsEmpty || !memberGroup.All(static s => s is IMethodSymbol))
+            return memberGroup;
+
+        return [.. InvocationMethodGroupFilter.FilterByStaticness(
+            invocation, semanticModel, memberGroup.Cast<IMethodSymbol>(), out _, cancellationToken)];
     }
 
     protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(

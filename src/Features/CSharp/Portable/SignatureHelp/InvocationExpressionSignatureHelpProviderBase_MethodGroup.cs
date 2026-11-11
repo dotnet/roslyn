@@ -40,22 +40,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         IEnumerable<IMethodSymbol> methodGroup,
         CancellationToken cancellationToken)
     {
-        ITypeSymbol? throughType = null;
-        if (invocationExpression.Expression is MemberAccessExpressionSyntax memberAccess)
-        {
-            var throughExpression = memberAccess.Expression;
-
-            // if it is via a base expression "base.", we know the "throughType" is the base class but
-            // we need to be able to tell between "base.M()" and "new Base().M()".
-            // currently, Access check methods do not differentiate between them.
-            // so handle "base." primary-expression here by nulling out "throughType"
-            if (throughExpression is not BaseExpressionSyntax)
-            {
-                throughType = semanticModel.GetTypeInfo(throughExpression, cancellationToken).Type;
-            }
-        }
-
-        methodGroup = MemberGroupStaticnessFilter.Filter(invocationExpression.Expression, methodGroup, semanticModel, cancellationToken);
+        methodGroup = InvocationMethodGroupFilter.FilterByStaticness(invocationExpression, semanticModel, methodGroup, out var throughType, cancellationToken);
         var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughType: throughType)).ToImmutableArrayOrEmpty();
         if (accessibleMethods.Length == 0)
         {
