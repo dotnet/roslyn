@@ -8,23 +8,38 @@ Source Location: (21:0,21 [3] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (799:22,0 [3] )
 |int|
 
+Source Location: (21:0,21 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|int|
+Generated Location: (1037:31,0 [3] )
+|int|
+
 Source Location: (32:0,32 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (1042:31,0 [5] )
+Generated Location: (1190:39,0 [5] )
 |Value|
 
 Source Location: (43:0,43 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |ParentValue|
-Generated Location: (1285:39,0 [11] )
+Generated Location: (1433:47,0 [11] )
 |ParentValue|
+
+Source Location: (21:0,21 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|int|
+Generated Location: (1676:56,0 [3] )
+|int|
 
 Source Location: (75:0,75 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |Update|
-Generated Location: (1712:48,0 [6] )
+Generated Location: (2008:64,0 [6] )
 |Update|
+
+Source Location: (21:0,21 [3] x:\dir\subdir\Test\TestComponent.cshtml)
+|int|
+Generated Location: (2230:73,0 [3] )
+|int|
 
 Source Location: (62:0,62 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (1939:57,0 [5] )
+Generated Location: (2383:81,0 [5] )
 |Value|
 

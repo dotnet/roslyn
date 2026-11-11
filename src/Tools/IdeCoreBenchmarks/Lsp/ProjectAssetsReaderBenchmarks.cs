@@ -49,7 +49,7 @@ namespace IdeCoreBenchmarks.Lsp
         [GlobalSetup]
         public void GlobalSetup()
         {
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            var roslynRoot = Program.RoslynRootPath;
             _projectAssetsPath = Path.Combine(
                 roslynRoot,
                 "src",

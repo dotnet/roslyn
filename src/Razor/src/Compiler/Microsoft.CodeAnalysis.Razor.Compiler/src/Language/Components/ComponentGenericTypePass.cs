@@ -340,6 +340,7 @@ internal sealed class ComponentGenericTypePass : ComponentIntermediateNodePassBa
             foreach (var attribute in node.Attributes)
             {
                 attribute.ConcreteContainingType = node.TypeName;
+                attribute.ContainingTypeArguments = node.OrderedTypeArguments;
 
                 var globallyQualifiedTypeName = attribute.BoundAttribute?.GetGloballyQualifiedTypeName();
 

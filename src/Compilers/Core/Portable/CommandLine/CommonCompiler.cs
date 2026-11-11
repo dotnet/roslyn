@@ -45,18 +45,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal string? SdkDirectory { get; }
 
-        /// <summary>
-        /// The temporary directory a compilation should use instead of Path.GetTempPath.  The latter
-        /// relies on global state individual compilations should ignore.
-        /// </summary>
-        internal string? TempDirectory { get; }
-
-        internal BuildPaths(string clientDir, string workingDir, string? sdkDir, string? tempDir)
+        internal BuildPaths(string clientDir, string workingDir, string? sdkDir)
         {
             ClientDirectory = clientDir;
             WorkingDirectory = workingDir;
             SdkDirectory = sdkDir;
-            TempDirectory = tempDir;
         }
     }
 

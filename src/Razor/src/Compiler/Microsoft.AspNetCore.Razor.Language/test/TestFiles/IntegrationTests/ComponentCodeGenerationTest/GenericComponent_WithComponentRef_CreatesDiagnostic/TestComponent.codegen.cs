@@ -26,7 +26,15 @@ int
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<int>.
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,20)-(1,23) "x:\dir\subdir\Test\TestComponent.cshtml"
+int
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (1,24)-(1,28) "x:\dir\subdir\Test\TestComponent.cshtml"
 Item

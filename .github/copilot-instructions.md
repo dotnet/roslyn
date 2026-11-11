@@ -112,32 +112,9 @@ For the documentation-assessment checklist and routing rules, see the
 
 Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, `snap`, and `update-agent-docs`.
 
-## Working Loop (plan first)
+## Working Loop
 
-For any **non-trivial** change, start with a short plan **before** writing the implementing diff — and surface it so it can be reviewed before a large diff appears. "Non-trivial" means anything that is cross-file or cross-area, touches a public API / diagnostic ID / analyzer, changes behavior (not just a typo/comment/formatting fix), or where the approach isn't obvious. When in doubt, write the plan — it's cheap.
-
-Write the plan to `plan.md` in your session folder (see the session context) and keep it updated at milestones. A plan is a working artifact, not a deliverable: keep it lean.
-
-**Plan template** (drop unneeded fields):
-
-```markdown
-## Plan: <short title>
-
-- **Scope:** what this change will do.
-- **Non-goals:** what this change explicitly will NOT do.
-- **Affected areas:** projects/files/layers touched (e.g. `src/Compilers/CSharp`, matching `.instructions.md`).
-- **Approach:** the intended implementation, and any alternatives considered/rejected.
-- **Acceptance:** observable done-state — the behavior/tests that prove it works.
-- **Validation:** exact build + targeted test commands you'll run (see Build & Test).
-```
-
-**Post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed now, not after a large diff already exists.
-
-If a pull request already exists when work pauses for plan approval, update its description or add a comment that clearly states the implementation is **not complete**, summarizes what remains, and links to the Copilot session containing the plan and approval request so the user can provide further instructions.
-
-Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Definition of Done below passes) is the work "done."
-
-Trivial changes don't need a written plan — go straight to the Definition of Done.
+Implement directly; keep the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. Ask the user only when a decision is genuinely ambiguous and materially affects the approach.
 
 ### Keep changes reviewable
 
@@ -145,7 +122,7 @@ Trivial changes don't need a written plan — go straight to the Definition of D
 - Split work when parts can be reviewed, validated, merged, or reverted independently; when they affect unrelated areas or owners; or when a preparatory refactoring can land before the behavior change.
 - Checkpoint after each independently valid slice rather than accumulating one large unreviewed diff. Each checkpoint must build on the previous one and leave the branch in a coherent state.
 - Do not optimize for an arbitrary line-count limit: generated files and mechanical updates can be large. Optimize for reviewer cognitive load, clear intent, and independent validation.
-- If a change cannot be split without making it less correct or harder to validate, explain that constraint in the plan and keep the commits logically separated.
+- If a change cannot be split without making it less correct or harder to validate, explain that constraint and keep the commits logically separated.
 
 ## Pull Request Descriptions
 
@@ -167,6 +144,6 @@ Work is done only when every applicable step below is complete:
 4. **Targeted tests:** Run the affected test project or focused test filter. Add or update tests when behavior changes; explain when no relevant automated test exists.
    **Regression-test efficacy:** For bug fixes, verify that the regression test fails against the unfixed implementation for the intended reason, then passes with the fix. If the fix was implemented first, use an isolated worktree or safely remove only the fix while retaining the test; preserve unrelated changes and restore the fix afterward. Rebuild the affected code for each run so stale binaries cannot invalidate the comparison. Report the test command and both results. Build failures, unrelated failures, and skipped tests do not establish reproduction. If the test passes without the fix, revise it to reproduce the issue before claiming regression coverage. If this check cannot be performed, explicitly state that regression-test efficacy remains unverified.
 5. **Generated/resource/API updates:** Regenerate Syntax/BoundNodes outputs when their XML changes, run `/t:UpdateXlf` after `.resx` edits, and update `PublicAPI.Unshipped.txt` for public API changes.
-6. **Diff review:** Review the final diff and confirm it matches the approved plan, contains no unrelated edits, and follows nearby patterns.
+6. **Diff review:** Review the final diff and confirm it matches the task, contains no unrelated edits, and follows nearby patterns.
 7. **Docs:** Run the `update-agent-docs` skill and apply the Doc Update Obligation above.
 8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed in the session. Follow **Pull Request Descriptions** above when writing the PR body. Do not claim completion while required validation is failing or was silently skipped.

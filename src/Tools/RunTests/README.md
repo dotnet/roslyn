@@ -78,6 +78,7 @@ Key options:
 | `--testSet` | `compiler` adds compiler test assembly patterns to any `--include` patterns |
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
+| `--testResultsFormat` | `xunit` or `trx` (default: xunit) |
 | `--timeout` | Minutes before killing tests (default: 90) |
 | `--html` / `--html-` | Enable/disable HTML reports and opening failed results (default: on locally, off with `--ci` or `--helix`) |
 | `--ci` | Apply CI behavior, including disabling HTML reports by default |

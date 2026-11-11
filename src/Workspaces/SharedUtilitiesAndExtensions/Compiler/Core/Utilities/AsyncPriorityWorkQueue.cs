@@ -130,6 +130,30 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
     }
 
     /// <summary>
+    /// Lowers the priority of the specified work item if it is currently scheduled at a higher priority.
+    /// </summary>
+    public void LowerWorkPriorityIfScheduled(TItem item, int newPriority)
+    {
+        if (newPriority < 0 || newPriority >= _itemsByPriority.Length)
+            throw new ArgumentOutOfRangeException(paramName: nameof(newPriority), message: $"Priority must be between 0 and {_itemsByPriority.Length - 1}");
+
+        lock (_gate)
+        {
+            if (_entireQueueCancellationTokenSource.IsCancellationRequested)
+                return;
+
+            for (var priorityToCheck = _itemsByPriority.Length - 1; priorityToCheck > newPriority; priorityToCheck--)
+            {
+                if (_itemsByPriority[priorityToCheck].Remove(item))
+                {
+                    Contract.ThrowIfFalse(_itemsByPriority[newPriority].Add(item));
+                    return;
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Raises the priority of the specified work item. Optionally adds it if it is not already scheduled.
     /// </summary>
     /// <returns>True if the item was added or its priority was successfully raised.</returns>

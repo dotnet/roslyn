@@ -40,7 +40,15 @@ TChild
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<TChild>.
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<
+#nullable restore
+#line (3,21)-(3,27) "x:\dir\subdir\Test\TestComponent.cshtml"
+TChild
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (3,29)-(3,36) "x:\dir\subdir\Test\TestComponent.cshtml"
 MyEvent

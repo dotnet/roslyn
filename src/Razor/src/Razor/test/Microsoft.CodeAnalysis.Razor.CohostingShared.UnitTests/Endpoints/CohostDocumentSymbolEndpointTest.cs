@@ -231,6 +231,329 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["BuildRenderTree()"])), buildRenderTree.SelectionRange);
     }
 
+    // Flat-symbol clients still use the obsolete SymbolInformation API.
+#pragma warning disable CS0618 // Type or member is obsolete
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_DoesNotExposeGeneratedLayout()
+    {
+        var symbols = await VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@namespace Custom.Components
+                @layout null
+                <p>Hello</p>
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var renderMethod = Assert.Single(symbols, symbol => symbol.Name == "BuildRenderTree()");
+        Assert.Equal("Custom.Components.File1", renderMethod.ContainerName);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_WithUserMember()
+    {
+        var symbols = await VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@namespace Custom.Components
+                @layout null
+                <p>Hello</p>
+                @code {
+                    private void {|UserMethod():UserMethod|}() { }
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var renderMethod = Assert.Single(symbols, symbol => symbol.Name == "BuildRenderTree()");
+        Assert.Equal("Custom.Components.File1", renderMethod.ContainerName);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Generic()
+    {
+        var symbols = await VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@namespace Custom.Components
+                @layout null
+                @typeparam TItem
+                <p>Hello</p>
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var renderMethod = Assert.Single(symbols, symbol => symbol.Name == "BuildRenderTree()");
+        Assert.Equal("Custom.Components.File1<TItem>", renderMethod.ContainerName);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Generic_WithUserMember()
+    {
+        var symbols = await VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@namespace Custom.Components
+                @layout null
+                @typeparam TItem
+                <p>Hello</p>
+                @code {
+                    private void {|UserMethod():UserMethod|}() { }
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var renderMethod = Assert.Single(symbols, symbol => symbol.Name == "BuildRenderTree()");
+        Assert.Equal("Custom.Components.File1<TItem>", renderMethod.ContainerName);
+    }
+
+    // A preprocessor directive forces unsplit output, so the helper shares the component's generated file.
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Unsplit()
+    {
+        var symbols = await VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@namespace Custom.Components
+                @layout null
+                <p>Hello</p>
+                @code {
+                    #if DEBUG
+                    #endif
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var renderMethod = Assert.Single(symbols, symbol => symbol.Name == "BuildRenderTree()");
+        Assert.Equal("Custom.Components.File1", renderMethod.ContainerName);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Unsplit_WithUserMember()
+    {
+        var symbols = await VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@namespace Custom.Components
+                @layout null
+                <p>Hello</p>
+                @code {
+                    private void {|UserMethod():UserMethod|}() { }
+                    #if DEBUG
+                    #endif
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var renderMethod = Assert.Single(symbols, symbol => symbol.Name == "BuildRenderTree()");
+        Assert.Equal("Custom.Components.File1", renderMethod.ContainerName);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Generic_Unsplit()
+    {
+        var symbols = await VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@namespace Custom.Components
+                @layout null
+                @typeparam TItem
+                <p>Hello</p>
+                @code {
+                    #if DEBUG
+                    #endif
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var renderMethod = Assert.Single(symbols, symbol => symbol.Name == "BuildRenderTree()");
+        Assert.Equal("Custom.Components.File1<TItem>", renderMethod.ContainerName);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Generic_Unsplit_WithUserMember()
+    {
+        var symbols = await VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@namespace Custom.Components
+                @layout null
+                @typeparam TItem
+                <p>Hello</p>
+                @code {
+                    private void {|UserMethod():UserMethod|}() { }
+                    #if DEBUG
+                    #endif
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var renderMethod = Assert.Single(symbols, symbol => symbol.Name == "BuildRenderTree()");
+        Assert.Equal("Custom.Components.File1<TItem>", renderMethod.ContainerName);
+    }
+#pragma warning restore CS0618 // Type or member is obsolete
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_DoesNotExposeGeneratedLayout_Hierarchical()
+    {
+        var symbols = await GetDocumentSymbolsAsync(
+            input: """
+                @namespace Custom.Components
+                @layout null
+                <p>Hello</p>
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var symbol = Assert.Single(symbols);
+        Assert.Equal("BuildRenderTree()", symbol.Name);
+        Assert.True(symbol.Children is null or []);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_WithUserMember_Hierarchical()
+    {
+        var symbols = await GetDocumentSymbolsAsync(
+            input: """
+                @namespace Custom.Components
+                @layout null
+                <p>Hello</p>
+                @code {
+                    private void UserMethod() { }
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var symbol = Assert.Single(symbols);
+        Assert.Equal("UserMethod() : void", symbol.Name);
+        Assert.True(symbol.Children is null or []);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Generic_Hierarchical()
+    {
+        var symbols = await GetDocumentSymbolsAsync(
+            input: """
+                @namespace Custom.Components
+                @layout null
+                @typeparam TItem
+                <p>Hello</p>
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var symbol = Assert.Single(symbols);
+        Assert.Equal("BuildRenderTree()", symbol.Name);
+        Assert.True(symbol.Children is null or []);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Generic_WithUserMember_Hierarchical()
+    {
+        var symbols = await GetDocumentSymbolsAsync(
+            input: """
+                @namespace Custom.Components
+                @layout null
+                @typeparam TItem
+                <p>Hello</p>
+                @code {
+                    private void UserMethod() { }
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var symbol = Assert.Single(symbols);
+        Assert.Equal("UserMethod() : void", symbol.Name);
+        Assert.True(symbol.Children is null or []);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Unsplit_Hierarchical()
+    {
+        var symbols = await GetDocumentSymbolsAsync(
+            input: """
+                @namespace Custom.Components
+                @layout null
+                <p>Hello</p>
+                @code {
+                    #if DEBUG
+                    #endif
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var symbol = Assert.Single(symbols);
+        Assert.Equal("BuildRenderTree()", symbol.Name);
+        Assert.True(symbol.Children is null or []);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Unsplit_WithUserMember_Hierarchical()
+    {
+        var symbols = await GetDocumentSymbolsAsync(
+            input: """
+                @namespace Custom.Components
+                @layout null
+                <p>Hello</p>
+                @code {
+                    private void UserMethod() { }
+                    #if DEBUG
+                    #endif
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var symbol = Assert.Single(symbols);
+        Assert.Equal("UserMethod() : void", symbol.Name);
+        Assert.True(symbol.Children is null or []);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Generic_Unsplit_Hierarchical()
+    {
+        var symbols = await GetDocumentSymbolsAsync(
+            input: """
+                @namespace Custom.Components
+                @layout null
+                @typeparam TItem
+                <p>Hello</p>
+                @code {
+                    #if DEBUG
+                    #endif
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var symbol = Assert.Single(symbols);
+        Assert.Equal("BuildRenderTree()", symbol.Name);
+        Assert.True(symbol.Children is null or []);
+    }
+
+    [Fact]
+    public async Task DocumentSymbols_LayoutNull_Generic_Unsplit_WithUserMember_Hierarchical()
+    {
+        var symbols = await GetDocumentSymbolsAsync(
+            input: """
+                @namespace Custom.Components
+                @layout null
+                @typeparam TItem
+                <p>Hello</p>
+                @code {
+                    private void UserMethod() { }
+                    #if DEBUG
+                    #endif
+                }
+                """);
+
+        Assert.DoesNotContain("__EmptyLayout", JsonSerializer.Serialize(symbols, JsonHelpers.JsonSerializerOptions));
+        var symbol = Assert.Single(symbols);
+        Assert.Equal("UserMethod() : void", symbol.Name);
+        Assert.True(symbol.Children is null or []);
+    }
+
+    [Fact]
+    public Task DocumentSymbols_UserRenderMethod()
+        => VerifySymbolInformationsAsync(
+            input: """
+                {|BuildRenderTree():|}@using Microsoft.AspNetCore.Components.Rendering
+                @code {
+                    class {|SomeProject.File1.C:C|}
+                    {
+                        private void {|BuildRenderTree(RenderTreeBuilder __builder):BuildRenderTree|}(RenderTreeBuilder __builder)
+                        {
+                        }
+                    }
+                }
+                """);
+
     [Fact]
     public Task DocumentSymbols_EmptyCodeBlock()
         => VerifySymbolInformationsAsync(
@@ -629,7 +952,9 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         Assert.Equal(sourceText.GetRange(Assert.Single(input.NamedSpans["ObjToString"])), objToString.SelectionRange);
     }
 
-    private async Task VerifySymbolInformationsAsync(string input, bool miscellaneousFile = false, RazorFileKind? fileKind = null)
+    // SymbolInformation is obsolete, but things still return it so we have to handle it.
+#pragma warning disable CS0618 // Type or member is obsolete
+    private async Task<SymbolInformation[]> VerifySymbolInformationsAsync(string input, bool miscellaneousFile = false, RazorFileKind? fileKind = null)
     {
         fileKind ??= RazorFileKind.Component;
 
@@ -645,20 +970,20 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
 
         var sourceText = SourceText.From(input);
 
-        Assumes.NotNull(result);
+        Microsoft.CodeAnalysis.Contract.ThrowIfNull(result);
         var symbolsInformations = result.Value.Second;
         Assert.Equal(spansDict.Values.Count(), symbolsInformations.Length);
 
-#pragma warning disable CS0618 // Type or member is obsolete
-        // SymbolInformation is obsolete, but things still return it so we have to handle it
         foreach (var symbolInformation in symbolsInformations)
         {
             Assert.True(spansDict.TryGetValue(symbolInformation.Name, out var spans), $"Expected {symbolInformation.Name} to be in test provided markers");
             var expectedRange = sourceText.GetRange(Assert.Single(spans));
             Assert.Equal(expectedRange, symbolInformation.Location.Range);
         }
-#pragma warning restore CS0618 // Type or member is obsolete
+
+        return symbolsInformations;
     }
+#pragma warning restore CS0618 // Type or member is obsolete
 
     private async Task<DocumentSymbol[]> GetDocumentSymbolsAsync(TestCode input, bool miscellaneousFile = false, RazorFileKind? fileKind = null)
     {
@@ -673,7 +998,7 @@ public class CohostDocumentSymbolEndpointTest(ITestOutputHelper testOutput) : Co
         // Roslyn's DocumentSymbol type has an annoying property that makes it hard to serialize
         Assert.NotNull(JsonSerializer.SerializeToDocument(result, JsonHelpers.JsonSerializerOptions));
 
-        Assumes.NotNull(result);
+        Microsoft.CodeAnalysis.Contract.ThrowIfNull(result);
         Assert.True(result.Value.TryGetFirst(out var documentSymbols));
         return documentSymbols;
     }
