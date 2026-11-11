@@ -19,6 +19,7 @@ using NuGet.Packaging.Signing;
 using NuGet.Protocol;
 using NuGet.Protocol.Core.Types;
 using NuGet.Resolver;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Testing
     {
         private const string ReferenceAssembliesPackageVersion = "1.0.2";
 
-        private static readonly FileSystemSemaphore Semaphore = new(Path.Combine(Path.GetTempPath(), "test-packages", ".lock"));
+        private static readonly FileSystemSemaphore Semaphore = new(Path.Combine(TempPathUtilities.GetTempPath(), "test-packages", ".lock"));
 
         private static ImmutableDictionary<NuGet.Packaging.Core.PackageIdentity, string> s_packageToInstalledLocation
             = ImmutableDictionary.Create<NuGet.Packaging.Core.PackageIdentity, string>(PackageIdentityComparer.Default);
@@ -282,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             using (var cacheContext = new SourceCacheContext())
             {
-                var temporaryPackagesFolder = Path.Combine(Path.GetTempPath(), "test-packages");
+                var temporaryPackagesFolder = Path.Combine(TempPathUtilities.GetTempPath(), "test-packages");
                 Directory.CreateDirectory(temporaryPackagesFolder);
 
                 var repositories = sourceRepositoryProvider.GetRepositories().ToImmutableArray();
