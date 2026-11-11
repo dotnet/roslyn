@@ -208,7 +208,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                   <script>
                     function f() {
-                      return 1;
+                    return 1;
                     }
                   </script>
                 </div>
@@ -226,7 +226,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                   <script>
                     function f() {
-                      return 1;
+                    return 1;
                     }
                   </script>
                 </div>
