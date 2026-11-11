@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="6cc575dae350c485ec032cf7550721e07dd82fbb" BarId="340363" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="e6585fa9219c97535346ed6d7401f8995f7a5f19" BarId="340817" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="5.13.0-1.26516.4">
@@ -121,9 +121,9 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="NuGet.Versioning" Version="8.2.0-rc.5713">
+    <Dependency Name="NuGet.Versioning" Version="8.2.0-rc.6111">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>6cc575dae350c485ec032cf7550721e07dd82fbb</Sha>
+      <Sha>e6585fa9219c97535346ed6d7401f8995f7a5f19</Sha>
     </Dependency>
     <Dependency Name="System.Security.Cryptography.Pkcs" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
@@ -135,13 +135,13 @@
     </Dependency>
   </ProductDependencies>
   <ToolsetDependencies>
-    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26553.7">
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="11.0.0-beta.26560.10">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
+      <Sha>ecf7e60640cec6ca5133f321e2b0a6f0108603cc</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.26553.7">
+    <Dependency Name="Microsoft.DotNet.XliffTasks" Version="11.0.0-beta.26560.10">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
+      <Sha>ecf7e60640cec6ca5133f321e2b0a6f0108603cc</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DiaSymReader" Version="2.2.10">
       <Uri>https://github.com/dotnet/symreader</Uri>
@@ -151,9 +151,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>3645b6aa36ad41775a73e57a620787a3d38327a0</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26553.7">
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="11.0.0-beta.26560.10">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
+      <Sha>ecf7e60640cec6ca5133f321e2b0a6f0108603cc</Sha>
     </Dependency>
     <!-- Entries below are necessary for source-build. This allows the packages to be retrieved from previously-source-built
          artifacts and flow in as dependencies of the packages produced by roslyn. -->
@@ -173,9 +173,9 @@
       <Uri>https://github.com/dotnet/roslyn</Uri>
       <Sha>3645b6aa36ad41775a73e57a620787a3d38327a0</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.Helix.JobMonitor" Version="11.0.0-beta.26553.7">
+    <Dependency Name="Microsoft.DotNet.Helix.JobMonitor" Version="11.0.0-beta.26560.10">
       <Uri>https://github.com/dotnet/arcade</Uri>
-      <Sha>42933ea2511f3d11b247c28fa08ad8c6c7749c4a</Sha>
+      <Sha>ecf7e60640cec6ca5133f321e2b0a6f0108603cc</Sha>
     </Dependency>
   </ToolsetDependencies>
 </Dependencies>
