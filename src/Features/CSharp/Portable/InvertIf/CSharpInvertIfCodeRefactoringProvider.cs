@@ -4,13 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -53,14 +53,12 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
         => new(ifNode.Statement, ifNode.Statement);
 
     protected override bool IsStatementContainer(SyntaxNode node)
-        => node.Kind() is SyntaxKind.Block or SyntaxKind.SwitchSection or SyntaxKind.CompilationUnit;
+        => CSharpBlockFacts.Instance.IsExecutableBlock(node);
 
-    // Top-level statements are each wrapped in their own global statement, so the compilation unit is their
-    // container.
+    // An embedded statement (like the body of an 'if') is not in a statement list.  Return its parent, for which
+    // IsStatementContainer is false.
     protected override SyntaxNode GetStatementContainer(StatementSyntax statement)
-        => statement.Parent is GlobalStatementSyntax globalStatement
-            ? globalStatement.GetRequiredParent()
-            : statement.GetRequiredParent();
+        => CSharpBlockFacts.Instance.GetImmediateParentExecutableBlockForStatement(statement) ?? statement.GetRequiredParent();
 
     protected override bool IsNoOpSyntaxNode(SyntaxNode node)
         => node.Kind() is SyntaxKind.Block or SyntaxKind.EmptyStatement;
@@ -105,13 +103,7 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
     }
 
     protected override IReadOnlyList<StatementSyntax> GetStatements(SyntaxNode node)
-        => node switch
-        {
-            BlockSyntax n => n.Statements,
-            SwitchSectionSyntax n => n.Statements,
-            CompilationUnitSyntax n => n.Members.OfType<GlobalStatementSyntax>().Select(g => g.Statement).ToImmutableArray(),
-            _ => throw ExceptionUtilities.UnexpectedValue(node),
-        };
+        => CSharpBlockFacts.Instance.GetExecutableBlockStatements(node);
 
     protected override SyntaxKind? GetJumpStatementKind(SyntaxNode node)
         => node switch
@@ -254,13 +246,15 @@ internal sealed class CSharpInvertIfCodeRefactoringProvider() : AbstractInvertIf
 
     private static CompilationUnitSyntax WithGlobalStatements(CompilationUnitSyntax compilationUnit, IEnumerable<StatementSyntax> statements)
     {
-        // Replace the global statements with the new statements, keeping the other members after them.
+        // The new statements replace all the existing global statements.  Put them where the first global statement
+        // was, and keep every other member (types, namespaces) in its original order around them.
         var members = compilationUnit.Members;
         var firstGlobalStatementIndex = members.IndexOf(static m => m is GlobalStatementSyntax);
+        var otherMembers = members.Where(static m => m is not GlobalStatementSyntax);
         return compilationUnit.WithMembers([
-            .. members.Take(firstGlobalStatementIndex),
+            .. otherMembers.Take(firstGlobalStatementIndex),
             .. statements.Select(GlobalStatement),
-            .. members.Skip(firstGlobalStatementIndex).Where(static m => m is not GlobalStatementSyntax)]);
+            .. otherMembers.Skip(firstGlobalStatementIndex)]);
     }
 
     protected override IEnumerable<StatementSyntax> UnwrapBlock(StatementSyntax ifBody)
