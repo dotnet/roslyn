@@ -118,8 +118,8 @@
       "Shipping",
       "NonShipping"
     ],
-    "vsBranch": "rel/stable",
+    "vsBranch": "rel/d18.11-ltsc",
     "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[Stable 18.11]"
+    "insertionTitlePrefix": "[18.11 LTSC]"
   }
 }
