@@ -126,6 +126,12 @@ accept both where appropriate. The common target adds `xunit.v3.mtp-off`; Roslyn
 rather than Microsoft.Testing.Platform for these tests. All projects importing
 this target use the centrally pinned xUnit v3 4.0.0 packages.
 
+Test executables are AnyCPU, and VSTest's `/Platform:x86` does not change the
+bitness of the xUnit v3 `.exe`. For x86 Windows Helix runs, `HelixTestRunner`
+copies `CorFlags.exe` from the build agent's Windows SDK into the payload, and the
+work item runs `CorFlags /32BIT+ /Force` on each restored `net472` `.exe`. There
+is no x86 .NET Core unit-test leg.
+
 The runner-only package references in `XUnit.targets` use `PrivateAssets="all"`.
 Keep them private so xUnit's `buildTransitive` entry-point targets do not flow
 through project references into non-test consumers such as benchmark projects.
