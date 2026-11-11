@@ -19,12 +19,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
             Return VBFeaturesResources.Invert_If
         End Function
 
-        ' VB has no top-level statements, so an If statement is always inside a block whose
-        ' statements can be moved.
-        Protected NotOverridable Overrides Function CanMoveStatements(ifNode As TIfStatementSyntax) As Boolean
-            Return True
-        End Function
-
         Protected NotOverridable Overrides Function GetIfBodyStatementRange(ifNode As TIfStatementSyntax) As StatementRange
             Dim statements = ifNode.GetStatements()
             Return If(statements.Count = 0, Nothing, New StatementRange(statements.First(), statements.Last()))
@@ -68,8 +62,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
             Return node.IsStatementContainerNode()
         End Function
 
-        Protected NotOverridable Overrides Function GetStatements(node As SyntaxNode) As SyntaxList(Of StatementSyntax)
+        Protected NotOverridable Overrides Function GetStatements(node As SyntaxNode) As IReadOnlyList(Of StatementSyntax)
             Return node.GetStatements()
+        End Function
+
+        ' VB has no top-level statements, so a statement's container is always its parent.
+        Protected NotOverridable Overrides Function GetStatementContainer(statement As StatementSyntax) As SyntaxNode
+            Return statement.Parent
         End Function
 
         Protected NotOverridable Overrides Function GetNextStatement(node As StatementSyntax) As StatementSyntax
