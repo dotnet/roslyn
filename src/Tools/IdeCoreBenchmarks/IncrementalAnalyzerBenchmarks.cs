@@ -32,7 +32,7 @@ namespace IdeCoreBenchmarks
 
         public IncrementalAnalyzerBenchmarks()
         {
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            var roslynRoot = Program.RoslynRootPath;
             _solutionPath = Path.Combine(roslynRoot, @"src\Tools\IdeCoreBenchmarks\Assets\Microsoft.CodeAnalysis.sln");
 
             if (!File.Exists(_solutionPath))

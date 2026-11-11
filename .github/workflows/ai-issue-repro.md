@@ -85,7 +85,7 @@ lets a maintainer reproduce the reported behavior before assigning a fix.
   `.github/copilot-instructions.md` and `.github/memory/INDEX.md`, then the
   relevant area instructions and testing guidance. Follow their code and test
   conventions. This workflow authorizes temporary local reproduction/test
-  edits without a separate plan approval; it does not authorize a product fix.
+  edits; it does not authorize a product fix.
 - Trace the reported behavior through the actual implementation and nearby
   tests. Distinguish facts from assumptions; a stack trace alone does not prove
   which input caused the failure. Do not manufacture missing details.

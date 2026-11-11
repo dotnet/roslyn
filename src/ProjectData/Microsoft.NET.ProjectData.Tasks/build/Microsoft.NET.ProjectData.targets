@@ -540,7 +540,6 @@
     <Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask
       ProjectFilePath="$(MSBuildProjectFullPath)"
       OutputPath="$(_ProjectDataSlicePath)"
-      IntermediateOutputPath="$(IntermediateOutputPath)"
       WriteHeader="false"
       IsPrimary="false"
       LastDtbSucceeded="true"
@@ -618,7 +617,6 @@
     <Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask
       ProjectFilePath="$(MSBuildProjectFullPath)"
       OutputPath=""
-      IntermediateOutputPath="$(IntermediateOutputPath)"
       WriteHeader="true"
       IsPrimary="true"
       LastDtbSucceeded="true"
@@ -700,7 +698,6 @@
     <Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask
       OutputPath=""
       ProjectFilePath="$(MSBuildProjectFullPath)"
-      IntermediateOutputPath="$(IntermediateOutputPath)"
       SliceGlob="$(_ProjectDataFallbackSliceGlob)"
       TargetFrameworks="$(TargetFrameworks)"
       PreserveExistingSlices="$(_ProjectDataPreserveExistingProjectFolderOutput)"

@@ -3,6 +3,7 @@
 
 using System.ComponentModel.Composition;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Razor.LiveShare.Guest;
@@ -24,7 +25,7 @@ internal class ProxyAccessor(
     private TProxy CreateServiceProxy<TProxy>() where TProxy : class
     {
         var session = _liveShareSessionAccessor.Session;
-        Assumes.NotNull(session);
+        Contract.ThrowIfNull(session);
 
         var proxy = _jtf.Run(
             () => session.GetRemoteServiceAsync<TProxy>(typeof(TProxy).Name, CancellationToken.None));

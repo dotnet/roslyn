@@ -182,7 +182,7 @@ internal sealed partial class OnDemandProjectLoader(
             {
                 _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
                 var project = await projectLoader.BeginLoadingProjectAsync(
-                    projectPath, LanguageServerProjectLoader.ProjectReloadPriority.High).WaitAsync(cancellationToken);
+                    projectPath, LanguageServerProjectLoader.ProjectReloadPriority.UserRequestedLoad).WaitAsync(cancellationToken);
 
                 return await project.WaitForLoadAsync(cancellationToken) ? project : null;
             }

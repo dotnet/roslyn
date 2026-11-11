@@ -20,8 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
                 Dim buildPaths = New BuildPaths(
                     clientDir:=vbiDirectory,
                     workingDir:=Directory.GetCurrentDirectory(),
-                    sdkDir:=RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
-                    tempDir:=Path.GetTempPath())
+                    sdkDir:=RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory())
 
                 Dim compiler = New VisualBasicInteractiveCompiler(
                     responseFile:=Path.Combine(vbiDirectory, InteractiveResponseFileName),
@@ -44,4 +43,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
     End Class
 
 End Namespace
-

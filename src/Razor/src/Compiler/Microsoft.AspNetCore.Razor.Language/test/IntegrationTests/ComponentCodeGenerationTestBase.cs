@@ -2425,6 +2425,38 @@ namespace Test
     }
 
     [Fact]
+    public void AddComponentParameter_WithNameof_GenericComponent_NullableTypeArgument()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(@"
+using System;
+using Microsoft.AspNetCore.Components;
+
+namespace Test
+{
+    public class MyComponent<T> : ComponentBase
+    {
+        [Parameter]
+        public int Param { get; set; }
+    }
+}"));
+
+        // Act
+        // The reported scenario is a nullable-enabled project: the type argument annotation
+        // is legal in the user's source, so a warning that the annotation is used outside
+        // a '#nullable' annotations context (CS8669) from the generated code is spurious.
+        var generated = CompileToCSharp(@"
+<MyComponent T=""string?"" Param=""1"" />
+",
+            nullableEnable: true);
+
+        // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact]
     public void AddComponentParameter_EscapedComponentName()
     {
         // Arrange
@@ -2540,6 +2572,57 @@ namespace Test
             """);
 
         // Assert
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85443")]
+    public void LayoutDirective_Null()
+    {
+        var generated = CompileToCSharp("""
+            @layout null
+            <p>Hello</p>
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85443")]
+    public void LayoutDirective_Null_Generic()
+    {
+        var generated = CompileToCSharp("""
+            @layout null
+            @typeparam TItem
+            <p>@typeof(TItem).Name</p>
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85443")]
+    public void LayoutDirective_Null_Inherited()
+    {
+        ComponentName = "InheritedPage";
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            [Microsoft.AspNetCore.Components.Layout(typeof(NonEmptyLayout))]
+            public class BaseWithLayout : Microsoft.AspNetCore.Components.ComponentBase { }
+
+            public class NonEmptyLayout : Microsoft.AspNetCore.Components.LayoutComponentBase { }
+            """));
+
+        var generated = CompileToCSharp("""
+            @layout null
+            @inherits BaseWithLayout
+            <p>Hello</p>
+            """);
+
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
@@ -6131,7 +6214,7 @@ namespace AnotherTest
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
-              // __o = _field.ToString();
+                                     // __o = _field.ToString();
               Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 3));
     }
 
@@ -13183,7 +13266,7 @@ Time: @DateTime.Now
         var generated = CompileToCSharp("""
             @section One { <p>Content</p> }
             """);
-                                        
+
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);

@@ -33,8 +33,7 @@ public class CSharpScriptTestBase : ScriptTestBase
         var buildPaths = new BuildPaths(
             clientDir: clientDir,
             workingDir: workingDirectory ?? clientDir,
-            sdkDir: null,
-            tempDir: Path.GetTempPath());
+            sdkDir: null);
 
         var compiler = new CSharpInteractiveCompiler(
             responseFile,
