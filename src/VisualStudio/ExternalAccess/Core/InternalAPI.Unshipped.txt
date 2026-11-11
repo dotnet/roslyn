@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 abstract Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Completion.FSharpCompletionProviderBase.ShouldTriggerCompletionImpl(Microsoft.CodeAnalysis.Text.SourceText! text, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger) -> bool
 abstract Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Completion.FSharpCompletionServiceWithProviders.GetRulesImpl() -> Microsoft.CodeAnalysis.Completion.CompletionRules!
 abstract Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Editor.FSharpInlineRenameInfo.CanRename.get -> bool
@@ -1052,6 +1052,67 @@ staticMicrosoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavi
 staticMicrosoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigationOptions2.operator ==(Microsoft.VisualStudio.ExternalAccess.FSharp.Navigation.FSharpNavigationOptions2? left,Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Navigation.FSharpNavigationOptions2? right) -> bool
 staticMicrosoft.CodeAnalysis.ExternalAccess.Unified.FSharp.TaskList.FSharpTaskListItem.operator !=(Microsoft.VisualStudio.ExternalAccess.FSharp.TaskList.FSharpTaskListItem left,Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.TaskList.FSharpTaskListItem right) -> bool
 staticMicrosoft.CodeAnalysis.ExternalAccess.Unified.FSharp.TaskList.FSharpTaskListItem.operator ==(Microsoft.VisualStudio.ExternalAccess.FSharp.TaskList.FSharpTaskListItem left,Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.TaskList.FSharpTaskListItem right) -> bool
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.EvaluationData
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.EvaluationData.EvaluationData() -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.EvaluationData.GetItemValues(string name) -> System.Collections.Immutable.ImmutableArray<string>
+abstract Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.EvaluationData.GetPropertyValue(string name) -> string!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ICodeModelFactory
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ICodeModelFactory.GetCodeModel(Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext! context, EnvDTE.Project! project) -> EnvDTE.CodeModel!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ICodeModelFactory.GetFileCodeModel(Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext! context, EnvDTE.ProjectItem! item) -> EnvDTE.FileCodeModel!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IEntryPointFinderService
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IEntryPointFinderService.FindEntryPoints(Microsoft.CodeAnalysis.Compilation! compilation, bool findFormsOnly) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.INamedTypeSymbol!>!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IProjectSystemReferenceCleanupService
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IProjectSystemReferenceCleanupService.GetProjectReferencesAsync(string! projectPath, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceInfo>>!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IProjectSystemReferenceCleanupService.GetUpdateReferenceOperationAsync(string! projectPath, Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceUpdate! referenceUpdate, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IProjectSystemUpdateReferenceOperation!>!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IProjectSystemUpdateReferenceOperation
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IProjectSystemUpdateReferenceOperation.ApplyAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IProjectSystemUpdateReferenceOperation.RevertAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ITempPECompiler
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ITempPECompiler.CompileAsync(Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext! context, string! outputFileName, System.Collections.Generic.ISet<string!>! filesToInclude, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<bool>!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.AddAdditionalFile(string! filePath, bool isInCurrentContext = true) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.AddAnalyzerConfigFile(string! filePath) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.AddAnalyzerReference(string! referencePath) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.AddMetadataReference(string! referencePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.AddSourceFile(string! filePath, bool isInCurrentContext = true, System.Collections.Generic.IEnumerable<string!>? folderNames = null, Microsoft.CodeAnalysis.SourceCodeKind sourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.BinOutputPath.get -> string?
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.BinOutputPath.set -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.CreateBatchScopeAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<System.IAsyncDisposable!>
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.DisplayName.set -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.Id.get -> Microsoft.CodeAnalysis.ProjectId!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.IsPrimary.set -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.LastDesignTimeBuildSucceeded.get -> bool
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.LastDesignTimeBuildSucceeded.set -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.ProjectFilePath.get -> string?
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.ProjectFilePath.set -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.RemoveAdditionalFile(string! filePath) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.RemoveAnalyzerConfigFile(string! filePath) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.RemoveAnalyzerReference(string! referencePath) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.RemoveMetadataReference(string! referencePath) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.RemoveSourceFile(string! filePath) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.SetOptions(System.Collections.Immutable.ImmutableArray<string!> arguments) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext.SetProperty(string! name, string! value) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContextFactory
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContextFactory.CreateProjectContextAsync(System.Guid id, string! uniqueName, string! languageName, Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.EvaluationData! data, object? hostObject, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.IWorkspaceProjectContext!>!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceInfo
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceInfo.ItemSpecification.get -> string!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceInfo.ProjectSystemReferenceInfo(Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType referenceType, string! itemSpecification, bool treatAsUsed) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceInfo.ReferenceType.get -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceInfo.TreatAsUsed.get -> bool
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType.Assembly = 1 -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType.Package = 2 -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType.Project = 3 -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType.SDK = 4 -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType.Unknown = 0 -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceType
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceUpdate
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceUpdate.Action.get -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceUpdate.ProjectSystemReferenceUpdate(Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction action, Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceInfo! referenceInfo) -> void
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceUpdate.ReferenceInfo.get -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemReferenceInfo!
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction.Remove = 2 -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction.SetTreatAsUsed = 0 -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction
+Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction.UnsetTreatAsUsed = 1 -> Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.ProjectSystemUpdateAction
 ~abstract Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Completion.FSharpCommonCompletionProviderBase.GetTextChangeAsync(System.Func<Microsoft.CodeAnalysis.Completion.CompletionItem, char?, System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Text.TextChange?>> baseGetTextChangeAsync, Microsoft.CodeAnalysis.Completion.CompletionItem selectedItem, char? ch, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Text.TextChange?>
 ~abstract Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Completion.FSharpCommonCompletionProviderBase.IsInsertionTrigger(Microsoft.CodeAnalysis.Text.SourceText text, int insertedCharacterPosition) -> bool
 ~abstract Microsoft.CodeAnalysis.ExternalAccess.Unified.FSharp.Completion.FSharpCommonCompletionProviderBase.ProvideCompletionsAsync(Microsoft.CodeAnalysis.Completion.CompletionContext context) -> System.Threading.Tasks.Task

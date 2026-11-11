@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Editor;
@@ -116,8 +117,8 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
                 var bufferOptions = _editorOptionsFactory.GetOptions(_textBuffer);
                 var viewOptions = _editorOptionsFactory.GetOptions(textView);
 
-                Assumes.Present(bufferOptions);
-                Assumes.Present(viewOptions);
+                Contract.ThrowIfNull(bufferOptions);
+                Contract.ThrowIfNull(viewOptions);
 
                 // All TextViews share the same options, so we only need to listen to changes for one.
                 // We need to keep track of and update both the TextView and TextBuffer options. Updating
@@ -129,7 +130,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
 
                 // Initialize TextView options. We only need to do this once per TextView, as the options should
                 // automatically update and they aren't options we care about keeping track of.
-                Assumes.Present(TextManager);
+                Contract.ThrowIfNull(TextManager);
                 InitializeRazorTextViewOptions(TextManager, optionsTracker);
 
                 // A change in Tools->Options settings only kicks off an options changed event in the view
@@ -153,7 +154,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
         // However, we do need to detach from listening for option changes to avoid leaking.
         // We should switch to listening to a different TextView if the one we're listening
         // to is disconnected.
-        Assumes.NotNull(_textBuffer);
+        Contract.ThrowIfNull(_textBuffer);
 
         lock (_lock)
         {
@@ -173,7 +174,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
                 {
                     var newTrackedView = _activeTextViews[0];
                     var newViewOptions = _editorOptionsFactory.GetOptions(newTrackedView);
-                    Assumes.Present(newViewOptions);
+                    Contract.ThrowIfNull(newViewOptions);
 
                     // We assume the TextViews all have the same TextBuffer, so we can reuse the
                     // buffer options from the old TextView.
@@ -189,7 +190,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
 
     private void RazorOptions_OptionChanged(object? sender, EditorOptionChangedEventArgs? e)
     {
-        Assumes.NotNull(_textBuffer);
+        Contract.ThrowIfNull(_textBuffer);
 
         if (!_textBuffer.Properties.TryGetProperty(typeof(RazorEditorOptionsTracker), out RazorEditorOptionsTracker optionsTracker))
         {

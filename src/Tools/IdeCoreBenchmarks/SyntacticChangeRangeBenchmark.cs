@@ -29,7 +29,7 @@ namespace IdeCoreBenchmarks
         [GlobalSetup]
         public void GlobalSetup()
         {
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            var roslynRoot = Program.RoslynRootPath;
             var csFilePath = Path.Combine(roslynRoot, @"src\Compilers\CSharp\Portable\Generated\BoundNodes.xml.Generated.cs");
 
             if (!File.Exists(csFilePath))

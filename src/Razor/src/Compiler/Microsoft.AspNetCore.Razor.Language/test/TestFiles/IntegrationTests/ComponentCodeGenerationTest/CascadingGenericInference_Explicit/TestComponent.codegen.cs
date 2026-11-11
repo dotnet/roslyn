@@ -26,7 +26,15 @@ DateTime
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.Grid<DateTime>.
+            __builder.AddComponentParameter(1, nameof(global::Test.Grid<
+#nullable restore
+#line (1,14)-(1,22) "x:\dir\subdir\Test\TestComponent.cshtml"
+DateTime
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (1,24)-(1,29) "x:\dir\subdir\Test\TestComponent.cshtml"
 Items

@@ -32,9 +32,9 @@ namespace IdeCoreBenchmarks
             }
         }
 
-        public const string RoslynRootPathEnvVariableName = "ROSLYN_SOURCE_ROOT_PATH";
+        public static string RoslynRootPath { get; } = GetRoslynRootLocation();
 
-        public static string GetRoslynRootLocation([CallerFilePath] string sourceFilePath = "")
+        private static string GetRoslynRootLocation([CallerFilePath] string sourceFilePath = "")
         {
             //This file is located at [Roslyn]\src\Tools\IdeCoreBenchmarks\Program.cs
             return Path.Combine(Path.GetDirectoryName(sourceFilePath), @"..\..\..");
@@ -42,7 +42,6 @@ namespace IdeCoreBenchmarks
 
         private static int Main(string[] args)
         {
-            Environment.SetEnvironmentVariable(RoslynRootPathEnvVariableName, GetRoslynRootLocation());
             // BenchmarkDotNet gives its generated runner a single output directory through global
             // MSBuild properties. If those properties flow into Roslyn's multi-targeted project graph,
             // different projects and target frameworks share output and intermediate paths, causing

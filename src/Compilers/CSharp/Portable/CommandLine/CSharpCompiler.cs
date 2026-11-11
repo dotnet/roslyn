@@ -23,13 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal const string ResponseFileName = "csc.rsp";
 
         private readonly CommandLineDiagnosticFormatter _diagnosticFormatter;
-        private readonly string? _tempDirectory;
 
         protected CSharpCompiler(CSharpCommandLineParser parser, string? responseFile, string[] args, BuildPaths buildPaths, string? additionalReferenceDirectories, IAnalyzerAssemblyLoader assemblyLoader, GeneratorDriverCache? driverCache = null, ICommonCompilerFileSystem? fileSystem = null)
             : base(parser, responseFile, args, buildPaths, additionalReferenceDirectories, assemblyLoader, driverCache, fileSystem)
         {
             _diagnosticFormatter = new CommandLineDiagnosticFormatter(buildPaths.WorkingDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
-            _tempDirectory = buildPaths.TempDirectory;
         }
 
         public override DiagnosticFormatter DiagnosticFormatter { get { return _diagnosticFormatter; } }
@@ -154,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, _tempDirectory);
+            var loggingFileSystem = new LoggingStrongNameFileSystem(touchedFilesLogger, Arguments.OutputDirectory);
             var optionsProvider = new CompilerSyntaxTreeOptionsProvider(trees, analyzerConfigOptions, globalConfigOptions);
 
             return CSharpCompilation.Create(

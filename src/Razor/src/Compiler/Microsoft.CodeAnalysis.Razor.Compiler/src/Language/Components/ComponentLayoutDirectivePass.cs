@@ -33,10 +33,29 @@ internal sealed class ComponentLayoutDirectivePass : IntermediateNodePassBase, I
             return;
         }
 
+        // Earlier Razor versions keep treating the directive token as a layout type.
+        var isEmptyLayout = token.Content == "null" &&
+            codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_12_0;
+        if (isEmptyLayout)
+        {
+            // Report the requirement on the directive instead of emitting an unsupported file-local type.
+            if (codeDocument.ParserOptions.CSharpParseOptions.LanguageVersion < CodeAnalysis.CSharp.LanguageVersion.CSharp11)
+            {
+                documentNode.AddDiagnostic(ComponentDiagnosticFactory.CreateLayoutNull_UnsupportedCSharpVersion(token.Source));
+                return;
+            }
+
+            // Omitting the attribute would leave router defaults and inherited layouts in effect.
+            // The file-local helper must stay with its attribute in the declaration file.
+            @namespace.Children.Add(new EmptyLayoutIntermediateNode());
+        }
+
         var attributeNode = new CSharpCodeIntermediateNode();
         attributeNode.Children.AddRange([
             IntermediateNodeFactory.CSharpToken($"[global::{ComponentsApi.LayoutAttribute.FullTypeName}(typeof("),
-            IntermediateNodeFactory.CSharpToken(token.Content, token.Source),
+            isEmptyLayout
+                ? IntermediateNodeFactory.CSharpToken(EmptyLayoutIntermediateNode.TypeName)
+                : IntermediateNodeFactory.CSharpToken(token.Content, token.Source),
             IntermediateNodeFactory.CSharpToken("))]")
         ]);
 
