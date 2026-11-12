@@ -4351,7 +4351,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <head>
                     <title>Hello</title></head>
                 <body><div>
-                </div>
+                    </div>
                 </body>
                 </html>
                 """,
@@ -8593,9 +8593,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         @foreach (var item in Model.Images)
                         {
                             <div><div>
-                                }
-                            </div>
-                        </section>
+                                    }
+                                </div>
+                            </section>
                 """,
             expected: """
                 @page
@@ -17598,10 +17598,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                                 <th>Group A</th>
                             </tr>
                  *@         <tr>
-                            <th>ID</th>
-                        </tr>
-                    </thead>
-                </table>
+                                <th>ID</th>
+                            </tr>
+                        </thead>
+                    </table>
                 </div>
                 """,
             expected: """
@@ -18100,6 +18100,437 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAfterTextOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            expected: """
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAfterTextOnSameLine_Legacy()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            expected: """
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAfterStartTagOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div><span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            dotNetFormatExpected: """
+                <div><span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task NestedStartTagsAfterTextOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <ul><li>
+                            a
+                        </li>
+                    </ul>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <ul>
+                        <li>
+                            a
+                        </li>
+                    </ul>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            expected: """
+                <div>
+                    text <ul>
+                        <li>
+                            a
+                        </li>
+                    </ul>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    text <ul><li>
+                            a
+                        </li>
+                    </ul>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAfterElementOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <b>x</b> <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <b>x</b> <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            expected: """
+                <div>
+                    <b>x</b> <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAfterEndTagOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <p>
+                        a
+                    </p> <span>
+                        b
+                    </span>
+                    <p>c</p>
+                </div>
+                <section>d</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p>
+                        a
+                    </p> <span>
+                        b
+                    </span>
+                    <p>c</p>
+                </div>
+                <section>d</section>
+                """,
+            expected: """
+                <div>
+                    <p>
+                        a
+                    </p> <span>
+                        b
+                    </span>
+                    <p>c</p>
+                </div>
+                <section>d</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAfterExpressionOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    @DateTime.Now <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    @DateTime.Now <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            expected: """
+                <div>
+                    @DateTime.Now <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAndEndTagAfterTextOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <span>
+                        a</span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            expected: """
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    text <span>
+                        a</span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAfterTextOnSameLineInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        text <span>
+                            a
+                        </span>
+                        <p>b</p>
+                    </div>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    text <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        text <span>
+                            a
+                        </span>
+                        <p>b</p>
+                    </div>
+                }
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task StartTagAfterTextOnSameLineInForeach()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                    <div>
+                        @item <span>
+                            a
+                        </span>
+                        <p>b</p>
+                    </div>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                <div>
+                    @item <span>
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                    <div>
+                        @item <span>
+                            a
+                        </span>
+                        <p>b</p>
+                    </div>
+                }
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86398")]
+    public Task MultilineStartTagAfterTextOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <span class="a"
+                               title="b">
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <span class="a"
+                               title="b">
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
+                """,
+            expected: """
+                <div>
+                    text <span class="a"
+                               title="b">
+                        a
+                    </span>
+                    <p>b</p>
+                </div>
+                <section>c</section>
                 """);
     }
 
