@@ -72,7 +72,7 @@ public class RazorLSPTextViewConnectionListenerTest(ITestOutputHelper testOutput
         editorOptionsFactory.Setup(f => f.GetOptions(textBuffer))
             .Returns(bufferOptions.Object);
 
-        var spaceSettings = new ClientSpaceSettings(IndentWithTabs: true, 8);
+        var spaceSettings = new ClientSpaceSettings(IndentWithTabs: true, TabSize: 8, IndentSize: 2);
         var completionSettings = new ClientCompletionSettings(true, true);
         var editorSettingsManager = new StrictMock<IClientSettingsManager>();
         editorSettingsManager.Setup(m => m.Update(spaceSettings));
@@ -84,6 +84,7 @@ public class RazorLSPTextViewConnectionListenerTest(ITestOutputHelper testOutput
             {
                 languagePreferences[0].fInsertTabs = 1;
                 languagePreferences[0].uTabSize = 8;
+                languagePreferences[0].uIndentSize = 2;
                 languagePreferences[0].fAutoListMembers = 1;
                 languagePreferences[0].fAutoListParams = 1;
             })

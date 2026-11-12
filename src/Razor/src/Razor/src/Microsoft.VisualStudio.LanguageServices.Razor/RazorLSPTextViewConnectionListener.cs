@@ -258,12 +258,13 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
         var langPrefs3 = new LANGPREFERENCES3[] { new LANGPREFERENCES3() { guidLang = RazorConstants.RazorLanguageServiceGuid } };
         if (VSConstants.S_OK != textManager.GetUserPreferences4(null, langPrefs3, null))
         {
-            return (new ClientSpaceSettings(IndentWithTabs: !insertSpaces, tabSize), ClientCompletionSettings.Default);
+            return (new ClientSpaceSettings(IndentWithTabs: !insertSpaces, TabSize: tabSize), ClientCompletionSettings.Default);
         }
 
         // Tabs options
         insertSpaces = !Convert.ToBoolean(langPrefs3[0].fInsertTabs);
         tabSize = (int)langPrefs3[0].uTabSize;
+        var indentSize = (int)langPrefs3[0].uIndentSize;
 
         // Completion options
         var autoShowCompletion = Convert.ToBoolean(langPrefs3[0].fAutoListMembers);
@@ -278,7 +279,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
         optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.ConvertTabsToSpacesOptionId, insertSpaces);
         optionsTracker.BufferOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize);
 
-        return (new ClientSpaceSettings(IndentWithTabs: !insertSpaces, tabSize), new ClientCompletionSettings(autoShowCompletion, autoListParams));
+        return (new ClientSpaceSettings(IndentWithTabs: !insertSpaces, TabSize: tabSize, IndentSize: indentSize), new ClientCompletionSettings(autoShowCompletion, autoListParams));
     }
 
     private record RazorEditorOptionsTracker(ITextView TrackedView, IEditorOptions ViewOptions, IEditorOptions BufferOptions);
