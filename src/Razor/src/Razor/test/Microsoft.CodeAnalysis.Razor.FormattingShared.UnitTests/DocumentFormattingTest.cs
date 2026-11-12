@@ -308,7 +308,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                           </Footer>
                           </FCBS5Modal>
                           """)</PageTitle>
-                    </PageTitle>
+                </PageTitle>
                 """",
             expected: """"
                 <PageTitle>
@@ -4158,8 +4158,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <html>
                 <head>
                     <title>Hello</title></head>
-                    <body><div>
-                    </div>
+                <body><div>
+                </div>
                 </body>
                 </html>
                 """,
@@ -4241,19 +4241,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <h3>Development Mode</h3>
                 <p>
                     Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</p>
-                    <p>
-                        <strong>The Development environment shouldn't be enabled for deployed applications.
-                        </strong>
+                <p>
+                    <strong>The Development environment shouldn't be enabled for deployed applications.
+                    </strong>
+                    <div>
                         <div>
                             <div>
                                 <div>
-                                    <div>
-                                        This is heavily nested
-                                    </div>
+                                    This is heavily nested
                                 </div>
                             </div>
                         </div>
-                    </p>
+                    </div>
+                </p>
                 """,
             expected: """
                 @page "/error"
@@ -16929,6 +16929,556 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </table>
                 </div>
                 """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterRazorCommentOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterTextOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    text</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    text
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    text
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    text</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterElementOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>a</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>a</span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>a</span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <span>a</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterExpressionOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    @DateTime.Now</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    @DateTime.Now
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    @DateTime.Now
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    @DateTime.Now</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterHtmlCommentOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <!-- c --></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <!-- c -->
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <!-- c -->
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <!-- c --></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task NestedEndTagsAfterRazorCommentOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>
+                        @* note *@ </span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        @* note *@
+                    </span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        @* note *@
+                    </span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <span>
+                        @* note *@ </span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task NestedEndTagsAfterTextOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>
+                        text</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <span>
+                        text</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task NestedEndTagsAfterContentOnDifferentLines()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <section>
+                        text</section>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        text
+                    </section>
+                    <p>x</p>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        text
+                    </section>
+                    <p>x</p>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <section>
+                        text</section>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterRazorCommentAndNestedEndTagOnItsOwnLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagSplitAcrossLinesAfterTextInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    text
+                </div>
+                <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        text
+                    </div>
+                    <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                @if (true)
+                {
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagSplitAcrossLinesAfterText()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div>
+                        text
+                    </div>
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <div>
+                        text
+                    </div>
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task ComplexScriptEndTagSharesBodyLineDoesNotAffectFollowingContent()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (condition)
+                    {
+                        value++;
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (condition)
+                    {
+                        value++;
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            expected: """
+                <script>
+                    @if (condition)
+                    {
+                        value++;
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task ComplexScriptEndTagAfterRazorCommentDoesNotAffectFollowingContentWhenOptionDisabled()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            expected: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
     }
 
     [Fact]
