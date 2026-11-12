@@ -4178,6 +4178,33 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
 
     [Fact]
+    public Task FormatsTagsAfterCSharpExpression()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <span>
+                @(1+2)</span>
+                <p>next</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        @(1+2)
+                    </span>
+                    <p>next</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        @(1 + 2)
+                    </span>
+                    <p>next</p>
+                </div>
+                """);
+
+    [Fact]
     public Task KeepsSingleLineInlineElementsTogether()
         => RunFormattingTestAsync(
             input: "<div><span>Hello <b>there</b></span></div>",
@@ -4209,6 +4236,297 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
 
     [Fact]
+    public Task FormatsTagsStartingOnDifferentLinesAndEndingOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                <p>
+                text</p></section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        <p>
+                            text
+                        </p>
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <p>
+                            text
+                        </p>
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsStartingOnSameLineAndEndingOnNextLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section>text
+                more</section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        text
+                        more
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        text
+                        more
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsStartingAndEndingOnSameLinesWithContentOnOwnLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section><p>
+                text
+                </p></section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        <p>
+                            text
+                        </p>
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <p>
+                            text
+                        </p>
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsCloseTagFollowedBySiblingOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                text</section><p>next</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        text
+                    </section><p>next</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        text
+                    </section><p>next</p>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsMultilineSiblingsSharingLines()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section>
+                one</section><section>
+                two</section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        one
+                    </section><section>
+                        two
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        one
+                    </section><section>
+                    two
+                </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsListItemsWithSharedLines()
+        => RunFormattingTestAsync(
+            input: """
+                <ul><li>one</li>
+                <li>two</li></ul>
+                """,
+            htmlFormatted: """
+                <ul>
+                    <li>one</li>
+                    <li>two</li>
+                </ul>
+                """,
+            expected: """
+                <ul>
+                    <li>one</li>
+                    <li>two</li>
+                </ul>
+                """);
+
+    [Fact]
+    public Task FormatsContentOnStartTagLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>text
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    text
+                </div>
+                """,
+            expected: """
+                <div>
+                    text
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsWhitespaceOnlyMultilineContent()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section>
+
+                </section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                    </section>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <section>
+
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsInlineElementSpanningLines()
+        => RunFormattingTestAsync(
+            input: """
+                <div><span>one
+                two</span></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        one
+                        two
+                    </span>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        one
+                        two
+                    </span>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsVoidElementsInMultilineContent()
+        => RunFormattingTestAsync(
+            input: """
+                <div><br />
+                <input type="text"><img src="a.png" /></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <br />
+                    <input type="text"><img src="a.png" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <br />
+                    <input type="text"><img src="a.png" />
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsUnclosedTagInMultilineContent()
+        => RunFormattingTestAsync(
+            input: """
+                <div><p>
+                text</div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p>
+                        text
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p>
+                        text
+                    </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsOnSameLineInsideCodeBlock()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                <div><section>
+                text</section></div>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <section>
+                        text
+                    </section>
+                </div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <section>
+                            text
+                        </section>
+                    </div>
+                }
+                """);
+
+    [Fact]
     public Task FormatsTagsOnSameLineAroundCSharpBlock()
         => RunFormattingTestAsync(
             input: """
@@ -4234,6 +4552,40 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         {
                             <p>text</p>
                         }
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsWithMultilineAttributesEndingOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="a"
+                    id="b"><section
+                    class="c">text</section></div>
+                """,
+            htmlFormatted: """
+                <div class="a"
+                     id="b">
+                    <section class="c">
+                        text
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div class="a"
+                     id="b">
+                    <section class="c">
+                        text
+                    </section>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div class="a"
+                     id="b">
+                    <section
+                        class="c">
+                        text
                     </section>
                 </div>
                 """);
