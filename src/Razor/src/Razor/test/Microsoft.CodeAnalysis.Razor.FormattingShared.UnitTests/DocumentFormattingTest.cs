@@ -4360,10 +4360,83 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <section>
                         one
                     </section><section>
-                    two
-                </section>
+                        two
+                    </section>
                 </div>
                 """);
+
+    [Fact]
+    public Task FormatsMultilineSiblingAfterInlineSibling()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <section>
+                        one
+                    </section><span>inline</span><section>
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        one
+                    </section><span>inline</span><section>
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        one
+                    </section><span>inline</span><section>
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task FormatsMultilineSiblingWithMultilineAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <section>
+                        one
+                    </section><section
+                        class="next">
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        one
+                    </section><section
+                        class="next">
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        one
+                    </section><section
+                        class="next">
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
 
     [Fact]
     public Task FormatsListItemsWithSharedLines()

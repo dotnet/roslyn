@@ -768,7 +768,44 @@ internal partial class CSharpFormattingPass
                 }
 
                 _builder.AppendLine();
-                return CreateLineInfo();
+                return TryVisitSiblingStartTagOnSameLine(node) ?? CreateLineInfo();
+            }
+
+            private LineInfo? TryVisitSiblingStartTagOnSameLine(BaseMarkupEndTagSyntax endTag)
+            {
+                // The Html formatter can leave sibling elements on the same line as this end tag. Skip any single-line
+                // siblings, then visit the first multiline start tag so its contents get the right indentation.
+                var nextToken = endTag.CloseAngle.GetNextToken();
+                while (nextToken != default && nextToken.SpanStart < _currentLine.End)
+                {
+                    if (nextToken.Kind == SyntaxKind.Whitespace)
+                    {
+                        nextToken = nextToken.GetNextToken();
+                        continue;
+                    }
+
+                    if (nextToken.Parent is not BaseMarkupStartTagSyntax startTag || nextToken != startTag.OpenAngle)
+                    {
+                        break;
+                    }
+
+                    if (ElementCausesIndentation(startTag))
+                    {
+                        if (!HtmlFormattingFacts.HasSignificantWhitespace(startTag))
+                        {
+                            // Capture the end tag's indentation before visiting the sibling, which can change formatting state.
+                            var lineInfo = CreateLineInfo(skipNextLines: 1);
+                            VisitStartTag(startTag);
+                            return lineInfo;
+                        }
+
+                        break;
+                    }
+
+                    nextToken = startTag.ParentElement.GetLastToken().GetNextToken();
+                }
+
+                return null;
             }
 
             private void RecordEndTagNotStartingALine(BaseMarkupStartTagSyntax startTag)
