@@ -105,6 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, Symbol targetSymbol)
         {
+            Debug.Assert(typeArgument.IsResolved);
+
             if (typeArgument.Type is not NamedTypeSymbol namedTypeArgument ||
                 (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType))
             {
