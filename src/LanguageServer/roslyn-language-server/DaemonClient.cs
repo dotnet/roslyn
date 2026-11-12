@@ -64,6 +64,7 @@ internal static class DaemonClient
             {
                 var connectTimeout = launchedDaemon ? s_newDaemonConnectTimeout : s_existingDaemonConnectTimeout;
                 pipeClient.Connect(connectTimeout);
+                DaemonHandshake.Write(pipeClient, Environment.GetEnvironmentVariable(DaemonHandshake.CopilotSessionIdEnvironmentVariable));
                 return Task.FromResult(DaemonConnectResult.Connected(pipeClient));
             }
             catch

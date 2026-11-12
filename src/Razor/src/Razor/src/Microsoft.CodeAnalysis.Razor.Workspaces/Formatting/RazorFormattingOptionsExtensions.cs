@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using LspFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
@@ -28,6 +29,14 @@ internal static class RazorFormattingOptionsExtensions
 
         var insertSpaces = formattingOptions?.InsertSpaces ?? !spaceSettings.IndentWithTabs;
         var tabSize = formattingOptions?.TabSize ?? spaceSettings.IndentSize;
+
+        // LSP formatting options have no indent size, so take indent_size from the Razor file's editorconfig. Without one,
+        // indent by the client's tab size, which VS Code fills from its own indent size.
+        var indentSize = CSharpFormattingOptionsExtensions.GetIndentSize(
+            insertSpaces,
+            tabSize,
+            options.GetOption(FormattingOptions2.IndentationSize, LanguageNames.CSharp, tabSize));
+
         var csharpSyntaxFormattingOptions = razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken);
 
         // Use client preferences when Razor editorconfig values are missing or invalid.
@@ -45,6 +54,7 @@ internal static class RazorFormattingOptionsExtensions
         {
             InsertSpaces = insertSpaces,
             TabSize = tabSize,
+            IndentSize = indentSize,
             CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
             CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
             AttributeIndentStyle = attributeIndentStyle,

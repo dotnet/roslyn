@@ -39,7 +39,7 @@ internal static class SnippetFormatter
 
             // Get the indentation of the line in the C# document based on what options the C# document was generated with.
             var csharpLineIndentationSize = line.GetIndentationSize(formattingContext.Options.TabSize);
-            var csharpIndentationLevel = csharpLineIndentationSize / formattingContext.Options.TabSize;
+            var csharpIndentationLevel = csharpLineIndentationSize / formattingContext.Options.IndentSize;
 
             // Get the new indentation level based on the context in the razor document.
             var newIndentationLevel = csharpIndentationLevel + amountToAddToCSharpIndentation;

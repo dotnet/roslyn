@@ -31,6 +31,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
     internal const string ServerPackageVersionPropertyName = CommonPropertyPrefix + "serverPackageVersion";
     internal const string ServerPlatformPropertyName = CommonPropertyPrefix + "serverPlatform";
     internal const string ClientNamePropertyName = CommonPropertyPrefix + "clientName";
+    internal const string CopilotSessionIdPropertyName = CommonPropertyPrefix + "copilotSessionId";
 
     /// <summary>
     /// Collector key used by C# Dev Kit to send language server telemetry to the VS Code cluster.
@@ -65,6 +66,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         RoslynTelemetry telemetry,
         string? sessionId,
         bool isDefaultSession,
+        string? copilotSessionId,
         string? daemonSessionId = null)
     {
         if (serverConfiguration.TelemetryLevel is not { } telemetryLevel ||
@@ -77,7 +79,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         try
         {
             telemetryService.InitializeSession(
-                telemetryLevel, sessionId, isDefaultSession, daemonSessionId);
+                telemetryLevel, sessionId, isDefaultSession, copilotSessionId, daemonSessionId);
             return telemetryService;
         }
         catch
@@ -87,7 +89,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         }
     }
 
-    public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession, string? daemonSessionId = null)
+    public void InitializeSession(string telemetryLevel, string? sessionId, bool isDefaultSession, string? copilotSessionId, string? daemonSessionId = null)
     {
         Debug.Assert(_telemetrySession is null);
 
@@ -115,6 +117,9 @@ internal sealed class LanguageServerTelemetry : IDisposable
             Contract.ThrowIfFalse(session.TryAddCommonProperty(DaemonSessionIdPropertyName, daemonSessionId));
         else
             Contract.ThrowIfFalse(session.TryAddCommonProperty(HostModePropertyName, _serverConfiguration.IsDaemon ? "Daemon" : "Standalone"));
+
+        if (!string.IsNullOrWhiteSpace(copilotSessionId))
+            Contract.ThrowIfFalse(session.TryAddCommonProperty(CopilotSessionIdPropertyName, copilotSessionId));
 
         if (isDefaultSession)
             VisualStudio.Telemetry.TelemetryService.SetDefaultSession(session);

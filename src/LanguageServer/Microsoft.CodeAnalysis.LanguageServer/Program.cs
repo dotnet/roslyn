@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
@@ -139,7 +140,10 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         loggerFactory,
         RoslynLog.RoslynTelemetry.Current,
         serverConfiguration.SessionId,
-        isDefaultSession: true);
+        isDefaultSession: true,
+        copilotSessionId: serverConfiguration.IsDaemon
+            ? null
+            : Environment.GetEnvironmentVariable(DaemonHandshake.CopilotSessionIdEnvironmentVariable));
 
     // Memory is sampled on the process-level session: in daemon mode every server shares this process's memory.
     using var memoryTelemetry = telemetryService is null

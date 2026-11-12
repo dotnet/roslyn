@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="e6585fa9219c97535346ed6d7401f8995f7a5f19" BarId="340817" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="2895318f736b292a8442d705d5e93074054ecb95" BarId="340929" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="5.13.0-1.26516.4">
@@ -121,9 +121,9 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="NuGet.Versioning" Version="8.2.0-rc.6111">
+    <Dependency Name="NuGet.Versioning" Version="8.2.0-rc.6126">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>e6585fa9219c97535346ed6d7401f8995f7a5f19</Sha>
+      <Sha>2895318f736b292a8442d705d5e93074054ecb95</Sha>
     </Dependency>
     <Dependency Name="System.Security.Cryptography.Pkcs" Version="10.0.10">
       <Uri>https://github.com/dotnet/dotnet</Uri>
