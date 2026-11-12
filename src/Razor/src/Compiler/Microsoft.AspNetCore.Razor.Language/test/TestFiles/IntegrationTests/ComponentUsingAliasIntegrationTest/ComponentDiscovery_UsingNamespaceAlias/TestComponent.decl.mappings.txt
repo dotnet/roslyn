@@ -1,0 +1,14 @@
+﻿Source Location: (1:0,1 [29] x:\dir\subdir\Test\TestComponent.cshtml)
+|using UI = Components.Library|
+Generated Location: (372:12,0 [29] )
+|using UI = Components.Library|
+
+Source Location: (145:4,7 [39] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private string title = "Hello";
+|
+Generated Location: (697:24,0 [39] )
+|
+    private string title = "Hello";
+|
+
