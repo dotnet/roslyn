@@ -69,7 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageServer;
     "CS7101", // ErrorCode.ERR_EncReferenceToAddedMember
     "CS9346", // ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
     "CS9391", // ErrorCode.ERR_AbstractBaseRecordImplementation
-    "CS8940"  // ErrorCode.ERR_WrongArityAsyncReturn
+    "CS8940", // ErrorCode.ERR_WrongArityAsyncReturn
+    "CS8204"  // ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty
     )]
 [Shared]
 [method: ImportingConstructor]

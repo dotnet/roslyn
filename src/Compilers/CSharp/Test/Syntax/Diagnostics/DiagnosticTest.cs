@@ -3019,6 +3019,7 @@ class Program
                     case ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime:
                     case ErrorCode.ERR_AbstractBaseRecordImplementation:
                     case ErrorCode.ERR_WrongArityAsyncReturn:
+                    case ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 
