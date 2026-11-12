@@ -375,6 +375,22 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
             """);
 
     [Fact]
+    public Task MultipleDiagnosticsAtSameRangeInDeclarationDocument()
+        => VerifyDiagnosticsAsync("""
+            @code
+            {
+                public class Test<T> where T : System.Enum, System.IDisposable
+                {
+                }
+
+                public void M()
+                {
+                    _ = new Test<{|CS0315:{|CS0315:int|}|}>();
+                }
+            }
+            """);
+
+    [Fact]
     public Task LegacyUnusedAddTagHelperDirective()
         => VerifyDiagnosticsAsync(
             input: """

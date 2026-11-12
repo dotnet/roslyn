@@ -182,7 +182,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         foreach (var diagnostic in declDiagnostics)
         {
             if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen } &&
-                seenDiagnosticKeys.Add(GetDiagnosticKey(diagnostic)))
+                !seenDiagnosticKeys.Contains(GetDiagnosticKey(diagnostic)))
             {
                 filteredDiagnostics.Add(diagnostic);
             }
