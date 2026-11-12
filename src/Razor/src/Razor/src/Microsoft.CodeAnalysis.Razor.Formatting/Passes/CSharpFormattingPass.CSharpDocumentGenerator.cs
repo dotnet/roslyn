@@ -760,6 +760,26 @@ internal partial class CSharpFormattingPass
 
             private LineInfo VisitEndTag(BaseMarkupEndTagSyntax node)
             {
+                if (node.Position < _currentLine.Start &&
+                    !EndTagContinuationClosesElement(node))
+                {
+                    // This line starts inside an end tag that started on an earlier line, eg the ">" line of:
+                    //
+                    // <div>
+                    // </div
+                    // >
+                    //
+                    // We already emitted the close brace for the element on the line the end tag started, or it didn't need one.
+                    // If the end tag closes a multiline template though, the line is a continuation of the C# expression that
+                    // the template is in, which Roslyn won't indent, so we leave it where it is.
+                    if (TryGetMultilineTemplateClosure(node, out _))
+                    {
+                        return EmitCurrentLineWithNoFormatting();
+                    }
+
+                    return EmitCurrentLineAsComment();
+                }
+
                 // End tags are emited as close braces, to remove the indent their start tag caused. We don't need to worry
                 // about single-line elements here, because these Visit methods only ever see the first node on a line.
                 _builder.Append('}');
@@ -772,6 +792,31 @@ internal partial class CSharpFormattingPass
 
                 _builder.AppendLine();
                 return CreateLineInfo();
+            }
+
+            private bool EndTagContinuationClosesElement(BaseMarkupEndTagSyntax endTag)
+            {
+                // An end tag that doesn't start its line won't be visited on that line, so if it continues onto later lines,
+                // the first of them emits the close brace for it, to match RecordEndTagNotStartingALine. That's only needed if
+                // the element emitted an open brace in the first place.
+                var endTagLine = _sourceText.Lines.GetLineFromPosition(endTag.Position);
+                if (endTagLine.GetFirstNonWhitespacePosition() == endTag.Position ||
+                    endTag.GetStartTag() is not { } startTag ||
+                    !ElementCausesIndentation(startTag))
+                {
+                    return false;
+                }
+
+                // Blank lines aren't visited, so the first line the end tag continues onto might not be the next one.
+                for (var i = endTagLine.LineNumber + 1; i < _currentLine.LineNumber; i++)
+                {
+                    if (_sourceText.Lines[i].GetFirstNonWhitespacePosition() is not null)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
             private void RecordEndTagNotStartingALine(BaseMarkupStartTagSyntax startTag)
