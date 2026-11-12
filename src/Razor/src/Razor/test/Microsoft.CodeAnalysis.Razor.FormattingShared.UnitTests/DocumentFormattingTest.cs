@@ -14888,6 +14888,205 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   data-label="d
+                   e f"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p class="a
+                   b c"
+                       data-label="d
+                   e f"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                       data-label="d
+                   e f"
+                       id="q">z</p>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy_ExplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                   @(1+2)"
+                   data-label="second
+                   @(3+4)"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                   @(1+2)"
+                       data-label="second
+                   @(3+4)"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @(1 + 2)"
+                       data-label="second
+                   @(3 + 4)"
+                       id="q">z</p>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy_ImplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                   @DateTime.Now"
+                   data-label="second
+                   @DateTime.Today"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                   @DateTime.Now"
+                       data-label="second
+                   @DateTime.Today"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @DateTime.Now"
+                       data-label="second
+                   @DateTime.Today"
+                       id="q">z</p>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy_EscapedTransition()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                       @@ second"
+                   data-label="third
+                       @@ fourth">
+                a
+                </p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                       @@ second"
+                       data-label="third
+                       @@ fourth">
+                        a
+                    </p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                       @@ second"
+                       data-label="third
+                       @@ fourth">
+                        a
+                    </p>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy_TagHelper()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <a asp-action="Index"
+                   asp-route-x="a
+                   b c"
+                   asp-route-y="d
+                   @DateTime.Now"
+                   title="e
+                   @@ f"
+                   data-label="g
+                   @(1+2)"
+                   data-x="h
+                   @@ i"
+                   id="q">z</a>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <a asp-action="Index"
+                       asp-route-x="a
+                   b c"
+                       asp-route-y="d
+                   @DateTime.Now"
+                       title="e
+                   @@ f"
+                       data-label="g
+                   @(1+2)"
+                       data-x="h
+                   @@ i"
+                       id="q">z</a>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <a asp-action="Index"
+                       asp-route-x="a
+                   b c"
+                       asp-route-y="d
+                   @DateTime.Now"
+                       title="e
+                   @@ f"
+                       data-label="g
+                   @(1 + 2)"
+                       data-x="h
+                   @@ i"
+                       id="q">z</a>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
     public async Task MultilineLambdaInDirectiveAttribute_MovesWithTag()
     {

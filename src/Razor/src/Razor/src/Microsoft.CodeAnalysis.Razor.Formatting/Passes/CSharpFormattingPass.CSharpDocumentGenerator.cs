@@ -900,6 +900,12 @@ internal partial class CSharpFormattingPass
             public override LineInfo VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
             {
                 // A MarkupEphemeralTextLiteral is an escaped @ sign, eg in CSS "@@font-face". We just treat it like markup text
+                if (IsQuotedAttributeValueContinuation(node))
+                {
+                    // The leading whitespace is part of an attribute value, see VisitMarkupTextLiteral.
+                    return EmitCurrentLineWithNoFormatting();
+                }
+
                 return EmitCurrentLineAsComment();
             }
 
@@ -942,6 +948,14 @@ internal partial class CSharpFormattingPass
                 //                   Attribute > MarkupTagHelperAttributeValue > MarkupBlock > CSharpCodeBlock > expression
                 //                   Attribute > MarkupTagHelperAttributeValue > MarkupDynamicAttributeValue > GenericBlock > CSharpCodeBlock > expression
                 //
+                // In legacy (.cshtml) files, "data-*" attributes aren't conditional, so their values are flatter, and the first "@"
+                // of an "@@" escape is a MarkupEphemeralTextLiteral:
+                //
+                // Html attribute:   MarkupAttributeBlock > GenericBlock > MarkupTextLiteral or MarkupEphemeralTextLiteral
+                //                   MarkupAttributeBlock > GenericBlock > CSharpCodeBlock > expression
+                // Tag helper        Attribute > MarkupTagHelperAttributeValue > MarkupTextLiteral or MarkupEphemeralTextLiteral
+                // attribute:        Attribute > MarkupTagHelperAttributeValue > CSharpCodeBlock > expression
+                //
                 // A closing quote on its own line is the attribute's ValueSuffix, so its parent is the attribute itself.
                 var parent = node.Parent;
                 if (node is CSharpExplicitExpressionSyntax or CSharpImplicitExpressionSyntax)
@@ -949,7 +963,7 @@ internal partial class CSharpFormattingPass
                     parent = parent switch
                     {
                         CSharpCodeBlockSyntax { Parent: GenericBlockSyntax { Parent: MarkupDynamicAttributeValueSyntax value } } => value,
-                        CSharpCodeBlockSyntax { Parent: MarkupBlockSyntax block } => block,
+                        CSharpCodeBlockSyntax { Parent: MarkupBlockSyntax or GenericBlockSyntax or MarkupTagHelperAttributeValueSyntax } codeBlock => codeBlock.Parent,
                         _ => null
                     };
                 }
