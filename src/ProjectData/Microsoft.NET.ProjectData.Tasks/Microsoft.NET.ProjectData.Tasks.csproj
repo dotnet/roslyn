@@ -6,6 +6,7 @@
     <!-- The SDK extracts this package and arranges its deployment layout; it is not intended for PackageReference consumption. -->
     <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- These members are used by source files that are intentionally not linked into this
          task assembly, so Roslyn's partial view reports them as unused. -->
     <NoWarn>$(NoWarn);IDE0051;IDE0060</NoWarn>

@@ -9,6 +9,7 @@ using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Moq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.NET.ProjectData.Tasks.Tests;
@@ -213,6 +214,60 @@ public class TaskExecutionTests
 		finally
 		{
 			Directory.SetCurrentDirectory(originalDirectory);
+		}
+	}
+
+	[ConditionalTheory(typeof(UnixLikeOnly))]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void WriteTask_UsesOsProfileWhenTaskHomeIsUnset(bool isolatedEnvironment)
+	{
+		using var tempRoot = new TempRoot();
+		string projectDirectory = tempRoot.CreateDirectory().Path;
+		string decoyHome = tempRoot.CreateDirectory().Path;
+		string projectFilePath = Path.Combine(projectDirectory, "App.csproj");
+		string? originalHome = Environment.GetEnvironmentVariable("HOME");
+		string? originalCache = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		string? originalXdgCache = Environment.GetEnvironmentVariable("XDG_CACHE_HOME");
+		string? expectedOutputPath = null;
+		try
+		{
+			Environment.SetEnvironmentVariable("HOME", null);
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", null);
+			Environment.SetEnvironmentVariable("XDG_CACHE_HOME", null);
+			expectedOutputPath = UserFolderCachePath.Compute(projectFilePath);
+			if (isolatedEnvironment)
+			{
+				Environment.SetEnvironmentVariable("HOME", decoyHome);
+			}
+
+			var engine = new BuildEngineStub();
+			var task = new WriteProjectDataSliceTask
+			{
+				BuildEngine = engine,
+				TaskEnvironment = isolatedEnvironment
+					? TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory, new Dictionary<string, string>())
+					: TaskEnvironment.Fallback,
+				ProjectFilePath = projectFilePath,
+				CommandLineArguments = ["/noconfig"],
+			};
+
+			Assert.True(task.Execute());
+			Assert.True(task.Succeeded, string.Join(Environment.NewLine, engine.Warnings.Select(warning => warning.Message)));
+			Assert.Equal(expectedOutputPath, task.ResolvedOutputPath);
+			Assert.True(File.Exists(expectedOutputPath));
+			Assert.Empty(engine.Warnings);
+			Assert.Empty(Directory.EnumerateFileSystemEntries(decoyHome));
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("HOME", originalHome);
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCache);
+			Environment.SetEnvironmentVariable("XDG_CACHE_HOME", originalXdgCache);
+			if (expectedOutputPath is not null && File.Exists(expectedOutputPath))
+			{
+				File.Delete(expectedOutputPath);
+			}
 		}
 	}
 

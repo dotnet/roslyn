@@ -221,14 +221,22 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task, 
 		=> Path.GetFullPath(this.TaskEnvironment.GetAbsolutePath(path).Value);
 
 	private string GetFolderPath(Environment.SpecialFolder folder)
-		=> this.TaskEnvironment.GetEnvironmentVariable(folder switch
+	{
+		string? path = this.TaskEnvironment.GetEnvironmentVariable(folder switch
 		{
 			Environment.SpecialFolder.UserProfile => OperatingSystem.IsWindows() ? "USERPROFILE" : "HOME",
 			Environment.SpecialFolder.LocalApplicationData => "LOCALAPPDATA",
 			Environment.SpecialFolder.ProgramFiles => "ProgramFiles",
 			Environment.SpecialFolder.ProgramFilesX86 => "ProgramFiles(x86)",
 			_ => throw new ArgumentOutOfRangeException(nameof(folder)),
-		}) ?? string.Empty;
+		});
+		if (string.IsNullOrEmpty(path) && folder == Environment.SpecialFolder.UserProfile && !OperatingSystem.IsWindows())
+		{
+			return UnixUserProfile.GetHomeDirectory();
+		}
+
+		return path ?? string.Empty;
+	}
 
 	private void RecordDonorIndexEntryIfFinalCache(string projectFilePath, AbsolutePath outputPath, ProjectDataEnvironment environment)
 	{

@@ -80,8 +80,8 @@ public sealed class TargetsFileSmokeTests : IDisposable
 				  <Target Name="Build">
 				    <Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask
 				      ProjectFilePath="$(MSBuildProjectFullPath)"
-				      OutputPath="obj\cache.lscache"
-				      IntermediateOutputPath="obj\staging"
+				      OutputPath="obj/cache.lscache"
+				      IntermediateOutputPath="obj/staging"
 				      CommandLineArguments="/noconfig"
 				      SourceFiles="@(Source)"
 				      WriteHeader="true">
