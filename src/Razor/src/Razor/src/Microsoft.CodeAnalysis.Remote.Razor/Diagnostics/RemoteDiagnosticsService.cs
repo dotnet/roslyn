@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteDiagnosticsService
 {
     private const string UnusedDirectiveDiagnosticId = "RZ0005";
+    private const string DuplicateUsingAliasDiagnosticId = "CS1537";
     private static readonly DiagnosticTag[] s_unnecessaryDiagnosticTags = [VSDiagnosticTags.HiddenInEditor, DiagnosticTag.Unnecessary];
 
     internal sealed class Factory : FactoryBase<IRemoteDiagnosticsService>
@@ -68,6 +69,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         var sourceText = codeDocument.Source.Text;
         var tree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
         using var unusedDirectiveSpans = new PooledArrayBuilder<TextSpan>();
+        var hasDuplicateUsingAlias = false;
 
         // In VS, we use Warning so we get an error list entry, and the tags mean we won't get squiggles in the editor.
         // In VS Code we can't do that, so just report as Hint to avoid squiggles. This matches Roslyn's behaviour with
@@ -99,9 +101,17 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
                     diagnostic.Range.Start.Character = 0;
                 }
             }
+            else if (diagnostic.Code is { Value: DuplicateUsingAliasDiagnosticId })
+            {
+                hasDuplicateUsingAlias = true;
+            }
         }
 
-        UnusedDirectiveCache.Set(codeDocument, unusedDirectiveSpans.ToArrayAndClear());
+        // If there are two usings with the same alias name, C# can't tell which one the code actually uses, so it's
+        // anyone's guess which one gets reported as unused. Rather than have cleanup remove the one the user wanted, we
+        // pretend nothing is unused until they fix the error. Duplicate namespace usings (CS0105) are fine though, since
+        // either copy can go.
+        UnusedDirectiveCache.Set(codeDocument, hasDuplicateUsingAlias ? [] : unusedDirectiveSpans.ToArrayAndClear());
 
         return allDiagnostics;
     }
