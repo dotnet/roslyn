@@ -15333,16 +15333,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <cache enabled="flag
                                 ? on
                                 : off"
-                           priority="CacheItemPriority.High">
-                        y
-                    </cache>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <cache enabled="flag
-                                    ? on
-                                    : off"
                            priority="CacheItemPriority.High">y</cache>
                 </div>
                 """,
@@ -15351,9 +15341,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <cache enabled="flag
                                     ? on
                                     : off"
-                           priority="CacheItemPriority.High">
-                        y
-                    </cache>
+                           priority="CacheItemPriority.High">y</cache>
                 </div>
                 """,
             fileKind: RazorFileKind.Legacy);
