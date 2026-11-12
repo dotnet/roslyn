@@ -424,7 +424,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
             try
             {
-                propertyName = XmlConvert.VerifyName(propertyName);
+                propertyName = XmlConvert.VerifyNCName(propertyName);
             }
             catch (XmlException ex)
             {
