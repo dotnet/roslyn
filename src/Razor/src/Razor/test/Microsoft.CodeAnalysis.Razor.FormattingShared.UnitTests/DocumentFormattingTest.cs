@@ -145,6 +145,198 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             ]);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task DocumentFormatting_IndentsBySpacesUsingEditorConfigIndentSize()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <span class="a"
+                id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                  <span class="a"
+                        id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            expected: """
+                <div>
+                  <span class="a"
+                        id="b">Content</span>
+                </div>
+                @code {
+                  void M()
+                  {
+                  }
+                }
+                """,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 2
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task DocumentFormatting_IndentsScriptBySpacesUsingEditorConfigIndentSize()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <script>
+                function f() {
+                return 1;
+                }
+                </script>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                  <script>
+                    function f() {
+                    return 1;
+                    }
+                  </script>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                  <script>
+                function f() {
+                return 1;
+                }
+                  </script>
+                </div>
+                """,
+            expected: """
+                <div>
+                  <script>
+                    function f() {
+                    return 1;
+                    }
+                  </script>
+                </div>
+                """,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 2
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task DocumentFormatting_IndentsByTabsUsingOneTabPerLevel()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <span class="a"
+                id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                	<span class="a"
+                		  id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            expected: """
+                <div>
+                	<span class="a"
+                		  id="b">Content</span>
+                </div>
+                @code {
+                	void M()
+                	{
+                	}
+                }
+                """,
+            insertSpaces: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 2
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task DocumentFormatting_ZeroEditorConfigIndentSizeUsesTabSize()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <span class="a"
+                id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <span class="a"
+                          id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            expected: """
+                <div>
+                    <span class="a"
+                          id="b">Content</span>
+                </div>
+                @code {
+                    void M()
+                    {
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 0
+                    """)
+            ]);
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public Task DocumentFormatting_UsesNestedEditorConfigs_Razor()
         => RunFormattingTestAsync(

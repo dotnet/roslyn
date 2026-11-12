@@ -164,6 +164,7 @@ internal partial class CSharpFormattingPass
             private readonly SyntaxNode? _declSyntaxRoot = declSyntaxRoot;
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
+            private readonly int _indentSize = options.IndentSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
             private readonly bool _ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor;
             private readonly CSharpSyntaxFormattingOptions _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
@@ -437,7 +438,7 @@ internal partial class CSharpFormattingPass
                         if (ElementCausesIndentation(attributeStartTag))
                         {
                             // The start tag is emitted as an open brace, so Roslyn contributes one more structural indent.
-                            startTagIndentationWidth += _tabSize;
+                            startTagIndentationWidth += _indentSize;
                         }
                     }
                 }
@@ -445,7 +446,7 @@ internal partial class CSharpFormattingPass
                 // First, emit the whitespace, so user spacing is honoured if possible. We do this while taking into account
                 // any indentation we want to add to line up attribute content, otherwise we'd end up pushing that content to
                 // the right repeatedly.
-                var attributeIndentationWidth = startTagIndentationWidth + (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
+                var attributeIndentationWidth = startTagIndentationWidth + (htmlIndentLevel * _indentSize) + additionalIndentation.GetValueOrDefault();
 
                 // For lambda attributes like `OnClick=@(() => ...)`, Roslyn already contributes the
                 // lambda-body indentation on wrapped lines. If we keep applying the full attribute
@@ -1018,7 +1019,7 @@ internal partial class CSharpFormattingPass
                     // so it's really relative to the first non-whitespace character on the line. We use the line that the attribute
                     // is on, just in case it's not on the same line as the start tag.
                     var lineStart = _sourceText.Lines[GetLineNumber(firstAttributeNameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(firstAttributeNameSpan.Start - lineStart, _tabSize, out additionalIndentation);
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(firstAttributeNameSpan.Start - lineStart, _indentSize, out additionalIndentation);
 
                     if (startTagAddsIndentation &&
                         GetLineNumber(firstAttributeNameSpan) == GetLineNumber(startTag.Name))
@@ -1577,7 +1578,7 @@ internal partial class CSharpFormattingPass
                     _honourHtmlFormattingUntilLine is { } endLine &&
                     endLine >= _currentLine.LineNumber)
                 {
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var calculatedAdditionalIndentation) - _htmlIndentationLevelInGeneratedDocument;
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _indentSize, out var calculatedAdditionalIndentation) - _htmlIndentationLevelInGeneratedDocument;
                     additionalIndentation = calculatedAdditionalIndentation;
                 }
 

@@ -43,7 +43,7 @@ public class FormattingUtilitiesTest
         var input = new string('\t', level) + new string(' ', additional);
         var text = SourceText.From(input);
 
-        var actual = FormattingUtilities.GetIndentationLevel(text.Lines[0], text.Length, insertSpaces: false, tabSize: 4, out var additionalIndentation);
+        var actual = FormattingUtilities.GetIndentationLevel(text.Lines[0], text.Length, insertSpaces: false, indentSize: 4, out var additionalIndentation);
 
         Assert.Equal(level, actual);
         Assert.Equal(additional, additionalIndentation);

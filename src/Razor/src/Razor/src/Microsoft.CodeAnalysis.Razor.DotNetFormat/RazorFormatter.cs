@@ -91,10 +91,14 @@ public static class RazorFormatter
         var csharpOptions = document.GetCSharpSyntaxFormattingOptions(cancellationToken);
         var razorOptions = RazorFormattingOptionsStorage.GetOptions(document, cancellationToken);
 
+        var lineFormatting = csharpOptions.LineFormatting;
+
         return new()
         {
-            InsertSpaces = !csharpOptions.LineFormatting.UseTabs,
-            TabSize = csharpOptions.LineFormatting.TabSize,
+            InsertSpaces = !lineFormatting.UseTabs,
+            TabSize = lineFormatting.TabSize,
+            IndentSize = CSharpFormattingOptionsExtensions.GetIndentSize(
+                !lineFormatting.UseTabs, lineFormatting.TabSize, lineFormatting.IndentationSize),
             NewLine = GetNewLine(sourceText),
             CSharpSyntaxFormattingOptions = csharpOptions,
             CodeBlockBraceOnNextLine = razorOptions.GetOption(RazorFormattingOptionsStorage.CodeBlockBraceOnNextLine),

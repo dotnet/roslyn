@@ -34,18 +34,18 @@ internal static class FormattingUtilities
         return count;
     }
 
-    public static int GetIndentationLevel(TextLine line, int firstNonWhitespaceCharacterPosition, bool insertSpaces, int tabSize, out int additionalIndentation)
+    public static int GetIndentationLevel(TextLine line, int firstNonWhitespaceCharacterPosition, bool insertSpaces, int indentSize, out int additionalIndentation)
     {
         if (firstNonWhitespaceCharacterPosition > line.End)
         {
             throw new ArgumentOutOfRangeException(nameof(firstNonWhitespaceCharacterPosition), "The first non-whitespace character position must be within the line.");
         }
 
-        // For spaces, the actual indentation needs to be divided by the tab size to get the level, and additional is the remainder
+        // For spaces, the actual indentation needs to be divided by the indent size to get the level, and additional is the remainder
         var currentIndentationWidth = firstNonWhitespaceCharacterPosition - line.Start;
         if (insertSpaces)
         {
-            return GetIndentationLevel(currentIndentationWidth, tabSize, out additionalIndentation);
+            return GetIndentationLevel(currentIndentationWidth, indentSize, out additionalIndentation);
         }
 
         // For tabs, we just count the tabs, and additional is any spaces at the end.
@@ -69,10 +69,10 @@ internal static class FormattingUtilities
         return tabCount;
     }
 
-    public static int GetIndentationLevel(int length, int tabSize, out int additionalIndentation)
+    public static int GetIndentationLevel(int length, int indentSize, out int additionalIndentation)
     {
-        var indentationLevel = length / tabSize;
-        additionalIndentation = length % tabSize;
+        var indentationLevel = length / indentSize;
+        additionalIndentation = length % indentSize;
         return indentationLevel;
     }
 
@@ -81,7 +81,7 @@ internal static class FormattingUtilities
     /// </summary>
     /// <param name="indentation">An amount of characters to represent the indentation.</param>
     /// <param name="insertSpaces">Whether spaces are used for indentation.</param>
-    /// <param name="tabSize">The size of a tab and indentation.</param>
+    /// <param name="tabSize">The size of a tab.</param>
     /// <returns>A whitespace string representation indentation.</returns>
     public static string GetIndentationString(int indentation, bool insertSpaces, int tabSize)
         => IndentCache.GetIndentString(indentation, insertSpaces, tabSize);
