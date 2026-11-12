@@ -15047,6 +15047,686 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86400")]
+    public async Task MultilineLambdaWithTransitionInDirectiveAttribute_Unchanged()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                    <button @onclick="() => Show(@x,
+                                                 2)"
+                            class="x">y</button>
+                </div>
+                @code {
+                    int x;
+                    void Show(int a, int b) { }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() => Show(@x,
+                                                 2)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                @code {
+                    int x;
+                    void Show(int a, int b) { }
+                }
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() => Show(@x,
+                                                 2)"
+                            class="x">y</button>
+                </div>
+                @code {
+                    int x;
+                    void Show(int a, int b) { }
+                }
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() => Show(@x,
+                                                 2)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                @code {
+                    int x;
+                    void Show(int a, int b) { }
+                }
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86401")]
+    public async Task MultilineLambdaWithTransitionOnMiddleLineInDirectiveAttribute_Unchanged()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                                 @x,
+                                                 3)"
+                            class="x">y</button>
+                </div>
+                @code {
+                    int x;
+                    void Show(int a, int b, int c) { }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                                 @x,
+                                                 3)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                @code {
+                    int x;
+                    void Show(int a, int b, int c) { }
+                }
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                                 @x,
+                                                 3)"
+                            class="x">y</button>
+                </div>
+                @code {
+                    int x;
+                    void Show(int a, int b, int c) { }
+                }
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                                 @x,
+                                                 3)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                @code {
+                    int x;
+                    void Show(int a, int b, int c) { }
+                }
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86400")]
+    public async Task MultilineLambdaWithTransitionInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(@x,
+                                          2)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                          2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                              2)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                              2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86400")]
+    public async Task MultilineLambdaWithTransitionInDirectiveAttribute_MovesWithTag_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(@x,
+                                          2)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                          2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                              2)"
+                        class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                              2)"
+                        class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86400")]
+    public async Task MultilineLambdaWithTransitionInDirectiveAttribute_MovesWithTag_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(@x,
+                                          2)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                          2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                              2)"
+                            class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(@x,
+                                              2)"
+                            class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86400")]
+    public async Task MultilineLambdaWithExplicitExpressionInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(@(x + 1),
+                                          2)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(@(x + 1),
+                                          2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(@(x + 1),
+                                              2)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(@(x + 1),
+                                              2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86400")]
+    public async Task MultilineLambdaWithTransitionInComponentAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton OnClick="() => Show(@x,
+                                                    2)"
+                   ImgSize=24 />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton OnClick="() => Show(@x,
+                                                    2)"
+                                    ImgSize=24 />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton OnClick="() => Show(@x,
+                                                        2)"
+                                    ImgSize=24 />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86400")]
+    public async Task MultilineLambdaWithTransitionInBindAfterAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                <InputText @bind-Value="currentCount"
+                           @bind-Value:after="() => Show(@x,
+                                                         2)"
+                   class="x" />
+                </div>
+                """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                    <InputText @bind-Value="currentCount"
+                               @bind-Value:after="() => Show(@x,
+                                                         2)"
+                               class="x" />
+                </div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                    <InputText @bind-Value="currentCount"
+                               @bind-Value:after="() => Show(@x,
+                                                             2)"
+                               class="x" />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86400")]
+    public async Task MultilineMethodCallWithTransitionInBoundAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <cache enabled="Check(@x,
+                                      2)"
+                   priority="CacheItemPriority.High">y</cache>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <cache enabled="Check(@x,
+                                      2)"
+                           priority="CacheItemPriority.High">
+                        y
+                    </cache>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <cache enabled="Check(@x,
+                                          2)"
+                           priority="CacheItemPriority.High">y</cache>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <cache enabled="Check(@x,
+                                          2)"
+                           priority="CacheItemPriority.High">
+                        y
+                    </cache>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86401")]
+    public async Task MultilineLambdaWithTransitionOnMiddleLineInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(1,
+                                          @x,
+                                          3)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                          @x,
+                                          3)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              @x,
+                                              3)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              @x,
+                                              3)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86401")]
+    public async Task MultilineLambdaWithExplicitExpressionOnMiddleLineInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(1,
+                                          @(x + 1),
+                                          3)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                          @(x + 1),
+                                          3)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              @(x + 1),
+                                              3)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              @(x + 1),
+                                              3)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86401")]
+    public async Task MultilineLambdaWithTransitionOnLastLineInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(1,
+                                          @x)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                          @x)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              @x)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              @x)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86401")]
+    public async Task MultilineLambdaWithTransitionOnMiddleLineInComponentAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton OnClick="() => Show(1,
+                                                    @x,
+                                                    3)"
+                   ImgSize=24 />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton OnClick="() => Show(1,
+                                                    @x,
+                                                    3)"
+                                    ImgSize=24 />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton OnClick="() => Show(1,
+                                                        @x,
+                                                        3)"
+                                    ImgSize=24 />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86401")]
+    public async Task MultilineMethodCallWithTransitionOnMiddleLineInBoundAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <cache enabled="Check(1,
+                                      @x,
+                                      3)"
+                   priority="CacheItemPriority.High">y</cache>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <cache enabled="Check(1,
+                                      @x,
+                                      3)"
+                           priority="CacheItemPriority.High">
+                        y
+                    </cache>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <cache enabled="Check(1,
+                                          @x,
+                                          3)"
+                           priority="CacheItemPriority.High">y</cache>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <cache enabled="Check(1,
+                                          @x,
+                                          3)"
+                           priority="CacheItemPriority.High">
+                        y
+                    </cache>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86401")]
+    public async Task MultilineBlockBodiedLambdaWithTransitionInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() =>
+                                  {
+                                      Show(@x);
+                                  }"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() =>
+                                  {
+                                      Show(@x);
+                                  }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(@x);
+                                      }"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() =>
+                                          {
+                                              Show(@x);
+                                          }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86401")]
+    public async Task MultilineLambdaWithTransitionAndRazorCommentInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(1, @* c *@
+                                          @x,
+                                          3)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(1, @* c *@
+                                          @x,
+                                          3)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1, @* c *@
+                                              @x,
+                                              3)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(1, @* c *@
+                                              @x,
+                                              3)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13064")]
     public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression_IndentByOne()
     {

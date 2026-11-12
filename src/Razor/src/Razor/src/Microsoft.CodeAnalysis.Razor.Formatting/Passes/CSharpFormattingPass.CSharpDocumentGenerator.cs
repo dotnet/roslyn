@@ -355,6 +355,15 @@ internal partial class CSharpFormattingPass
                     return VisitRazorDocumentationDirective(documentation);
                 }
 
+                // A C# attribute value that contains a Razor transition, eg `@onclick="() => Show(@x,` ... `2)"`, is split into
+                // several nodes. Lines after the first are visited as the whole value, as they would be if it were one node.
+                if (node?.FirstAncestorOrSelf<MarkupTagHelperAttributeValueSyntax>() is { } attributeValue &&
+                    IsCSharpAttributeValueWithSeveralNodes(attributeValue) &&
+                    GetLineNumber(attributeValue) < _currentLine.LineNumber)
+                {
+                    return VisitMultilineCSharpExpressionLiteral(attributeValue);
+                }
+
                 return base.Visit(node);
             }
 
@@ -374,7 +383,17 @@ internal partial class CSharpFormattingPass
                 return VisitCSharpLiteral(node, node.LiteralTokens[^1]);
             }
 
-            private LineInfo VisitMultilineCSharpExpressionLiteral(CSharpExpressionLiteralSyntax node)
+            /// <summary>
+            /// A C# attribute value starts with a C# literal, whereas a string-typed one starts with markup.
+            /// </summary>
+            private static bool IsCSharpAttributeValueWithSeveralNodes(MarkupTagHelperAttributeValueSyntax attributeValue)
+                => attributeValue.Children is [CSharpExpressionLiteralSyntax, _, ..];
+
+            /// <param name="node">
+            /// A <see cref="CSharpExpressionLiteralSyntax"/>, or a <see cref="MarkupTagHelperAttributeValueSyntax"/> made of several
+            /// C# nodes, which is treated as one expression.
+            /// </param>
+            private LineInfo VisitMultilineCSharpExpressionLiteral(RazorSyntaxNode node)
             {
                 // Literals that span multiple lines are interesting. eg, given:
                 //
@@ -495,7 +514,7 @@ internal partial class CSharpFormattingPass
                         end = node.EndPosition;
                         // Semi-colons are vitally important for block bodied lambdas, and for expressions that are the entire value
                         // of a component or directive attribute (eg `@onclick="() => Show(1,` ... `2)"`), to not affect subsequent lines
-                        emitSemiColon = (expressionStartsBlockLambda || node.Parent is MarkupTagHelperAttributeValueSyntax) &&
+                        emitSemiColon = (expressionStartsBlockLambda || node is MarkupTagHelperAttributeValueSyntax || node.Parent is MarkupTagHelperAttributeValueSyntax) &&
                             end != _currentLine.End;
                     }
                 }
