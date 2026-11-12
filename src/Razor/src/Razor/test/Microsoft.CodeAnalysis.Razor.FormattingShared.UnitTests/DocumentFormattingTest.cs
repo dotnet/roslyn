@@ -16207,7 +16207,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             htmlFormatted: """
                 @if (true)
                 {
-                    <span>a</span> <pre>
+                <span>a</span> <pre>
                   a
                       @if (true)
                    {
