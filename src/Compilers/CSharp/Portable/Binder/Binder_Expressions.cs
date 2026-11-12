@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result =
                 !expression.NeedsToBeConverted() ? expression :
                 type is null ? BindToNaturalType(expression, diagnostics, reportNoTargetType: false) :
-                GenerateConversionForAssignment(type, expression, diagnostics);
+                GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, type, expression, diagnostics);
             return result;
         }
 
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             commonType = CreateErrorType();
                             hasErrors = true;
                         }
-                        result = ConvertSwitchExpression(expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                        result = ConvertSwitchExpression(expr.IsInUnsafeRegion, expr, commonType, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     }
                     break;
                 case BoundUnconvertedConditionalOperator op:
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        result = ConvertConditionalExpression(op, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                        result = ConvertConditionalExpression(op.IsInUnsafeRegion, op, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     }
                     break;
                 case BoundTupleLiteral sourceTuple:
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         result = new BoundConvertedTupleLiteral(
                             sourceTuple.Syntax,
-                            isInUnsafeRegion: InUnsafeRegion,
+                            isInUnsafeRegion: sourceTuple.IsInUnsafeRegion,
                             sourceTuple,
                             wasTargetTyped: false,
                             boundArgs.ToImmutableAndFree(),
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         result = new BoundDefaultExpression(
                             defaultExpr.Syntax,
-                            isInUnsafeRegion: InUnsafeRegion,
+                            isInUnsafeRegion: defaultExpr.IsInUnsafeRegion,
                             targetType: null,
                             defaultExpr.ConstantValueOpt,
                             CreateErrorType(),
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // This is a context in which the stackalloc could be either a pointer
                         // or a span.  For backward compatibility we treat it as a pointer.
                         var type = new PointerTypeSymbol(TypeWithAnnotations.Create(boundStackAlloc.ElementType));
-                        result = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics);
+                        result = GenerateConversionForAssignment(isInUnsafeRegion: boundStackAlloc.IsInUnsafeRegion, type, boundStackAlloc, diagnostics);
                     }
                     break;
                 case BoundUnconvertedObjectCreationExpression expr:
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 delegateType = CreateErrorType();
             }
 
-            return GenerateConversionForAssignment(delegateType, expr, diagnostics);
+            return GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, delegateType, expr, diagnostics);
         }
 
         internal BoundExpression BindValueAllowArgList(ExpressionSyntax node, BindingDiagnosticBag diagnostics, BindValueKind valueKind)
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ExpressionSyntax value;
             IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind, out value);
             BoundExpression initializer = BindPossibleArrayInitializer(value, varType, valueKind, diagnostics);
-            initializer = GenerateConversionForAssignment(varType, initializer, diagnostics);
+            initializer = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, varType, initializer, diagnostics);
             return initializer;
         }
 
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
             var result = new BoundParameterEqualsValue(defaultValueSyntax, parameter, defaultValueBinder.GetDeclaredLocalsForScope(defaultValueSyntax),
-                              defaultValueBinder.GenerateConversionForAssignment(parameter.Type, valueBeforeConversion, diagnostics, ConversionForAssignmentFlags.DefaultParameter));
+                              defaultValueBinder.GenerateConversionForAssignment(isInUnsafeRegion: defaultValueBinder.InUnsafeRegion, parameter.Type, valueBeforeConversion, diagnostics, ConversionForAssignmentFlags.DefaultParameter));
 
             return result;
         }
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializerBinder != null);
 
             var initializer = initializerBinder.BindValue(equalsValueSyntax.Value, diagnostics, BindValueKind.RValue);
-            initializer = initializerBinder.GenerateConversionForAssignment(symbol.ContainingType.EnumUnderlyingType, initializer, diagnostics);
+            initializer = initializerBinder.GenerateConversionForAssignment(isInUnsafeRegion: initializerBinder.InUnsafeRegion, symbol.ContainingType.EnumUnderlyingType, initializer, diagnostics);
             return new BoundFieldEqualsValue(equalsValueSyntax, symbol, initializerBinder.GetDeclaredLocalsForScope(equalsValueSyntax), initializer);
         }
 
@@ -1275,7 +1275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, conversion, argument, typedReferenceType);
             }
 
-            argument = CreateConversion(argument, conversion, typedReferenceType, diagnostics);
+            argument = CreateConversion(isInUnsafeRegion: InUnsafeRegion, argument, conversion, typedReferenceType, diagnostics);
 
             TypeWithAnnotations typeWithAnnotations = BindType(node.Type, diagnostics);
 
@@ -1324,7 +1324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, conversion, argument, typedReferenceType);
             }
 
-            argument = CreateConversion(argument, conversion, typedReferenceType, diagnostics);
+            argument = CreateConversion(isInUnsafeRegion: InUnsafeRegion, argument, conversion, typedReferenceType, diagnostics);
             return new BoundRefTypeOperator(node, isInUnsafeRegion: InUnsafeRegion, argument, null, typeType, hasErrors);
         }
 
@@ -2720,7 +2720,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, conversion, boundOperand, intType);
             }
 
-            BoundExpression boundConversion = CreateConversion(boundOperand, conversion, intType, diagnostics);
+            BoundExpression boundConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, boundOperand, conversion, intType, diagnostics);
             MethodSymbol symbolOpt = GetWellKnownTypeMember(WellKnownMember.System_Index__ctor, diagnostics, syntax: node) as MethodSymbol;
 
             return new BoundFromEndIndexExpression(node, isInUnsafeRegion: InUnsafeRegion, boundConversion, symbolOpt, indexType);
@@ -2826,7 +2826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, operand, conversion, boundOperand, indexType);
             }
 
-            return CreateConversion(boundOperand, conversion, indexType, diagnostics);
+            return CreateConversion(isInUnsafeRegion: InUnsafeRegion, boundOperand, conversion, indexType, diagnostics);
         }
 
         private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeWithAnnotations targetTypeWithAnnotations, bool wasCompilerGenerated, BindingDiagnosticBag diagnostics)
@@ -2844,7 +2844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, InConversionGroupFlags.Unspecified, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
+            return CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, operand, conversion, isCast: true, conversionGroupOpt: conversionGroup, InConversionGroupFlags.Unspecified, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, hasErrors: hasErrors | suppressErrors);
         }
 
         private void GenerateExplicitConversionErrors(
@@ -3591,7 +3591,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     reportUnsafeIfNeeded(methodResult, diagnostics, argument, parameterTypeWithAnnotations);
 
-                    coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
+                    coercedArgument = CreateConversion(isInUnsafeRegion: InUnsafeRegion, argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
                 }
                 else if (argument.Kind == BoundKind.OutVariablePendingInference)
                 {
@@ -3612,7 +3612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (argument is BoundTupleLiteral)
                     {
                         // CreateConversion reports tuple literal name mismatches, and constructs the expected pattern of bound nodes.
-                        coercedArgument = CreateConversion(argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
+                        coercedArgument = CreateConversion(isInUnsafeRegion: InUnsafeRegion, argument.Syntax, argument, kind, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterTypeWithAnnotations.Type, diagnostics);
                     }
                     else
                     {
@@ -3772,6 +3772,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // No arguments, fall back to the standard conversion steps.
                     return CreateConversion(
+                        isInUnsafeRegion: InUnsafeRegion,
                         unconvertedString.Syntax,
                         unconvertedString,
                         interpolatedStringConversion,
@@ -3789,6 +3790,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // The InterpolatedStringHandlerArgumentAttribute applied to parameter '{0}' is malformed and cannot be interpreted. Construct an instance of '{1}' manually.
                     diagnostics.Add(ErrorCode.ERR_InterpolatedStringHandlerArgumentAttributeMalformed, unconvertedString.Syntax.Location, correspondingParameter, handlerType);
                     return CreateConversion(
+                        isInUnsafeRegion: InUnsafeRegion,
                         unconvertedString.Syntax,
                         unconvertedString,
                         interpolatedStringConversion,
@@ -3805,6 +3807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // No arguments, fall back to the standard conversion steps.
                     return CreateConversion(
+                        isInUnsafeRegion: InUnsafeRegion,
                         unconvertedString.Syntax,
                         unconvertedString,
                         interpolatedStringConversion,
@@ -4384,7 +4387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression boundExpression = boundInitExpr[boundInitExprIndex];
                     boundInitExprIndex++;
 
-                    BoundExpression convertedExpression = GenerateConversionForAssignment(elemType, boundExpression, diagnostics);
+                    BoundExpression convertedExpression = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, elemType, boundExpression, diagnostics);
                     initializers.Add(convertedExpression);
                 }
             }
@@ -4656,7 +4659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (countSyntax.Kind() != SyntaxKind.OmittedArraySizeExpression)
             {
                 count = BindValue(countSyntax, diagnostics, BindValueKind.RValue);
-                count = GenerateConversionForAssignment(GetSpecialType(SpecialType.System_Int32, diagnostics, node), count, diagnostics);
+                count = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, GetSpecialType(SpecialType.System_Int32, diagnostics, node), count, diagnostics);
                 if (IsNegativeConstantForArraySize(count))
                 {
                     Error(diagnostics, ErrorCode.ERR_NegativeStackAllocSize, countSyntax);
@@ -4788,7 +4791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundInitExprOpt = BindArrayInitializerExpressions(initSyntax, diagnostics, dimension: 1, rank: 1);
             }
 
-            boundInitExprOpt = boundInitExprOpt.SelectAsArray((expr, t) => GenerateConversionForAssignment(t.elementType, expr, t.diagnostics), (elementType, diagnostics));
+            boundInitExprOpt = boundInitExprOpt.SelectAsArray((expr, t) => GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, t.elementType, expr, t.diagnostics), (elementType, diagnostics));
 
             if (sizeOpt != null)
             {
@@ -7208,7 +7211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Bind the conversion, but drop the conversion node.
-                CreateConversion(classCreation, conversion, interfaceType, diagnostics);
+                CreateConversion(isInUnsafeRegion: InUnsafeRegion, classCreation, conversion, interfaceType, diagnostics);
 
                 // Override result type to be the interface type.
                 switch (classCreation.Kind)
@@ -10814,7 +10817,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GenerateImplicitConversionError(diagnostics, node, failedConversion, index, int32);
 
                 // Suppress any additional diagnostics
-                return CreateConversion(node, index, failedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
+                return CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, index, failedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: int32, diagnostics: BindingDiagnosticBag.Discarded);
             }
 
             return result;
@@ -10876,7 +10879,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversion = conversion.SetArrayIndexConversionForDynamic();
             }
 
-            BoundExpression result = CreateConversion(expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: targetType, diagnostics); // UNDONE: was cast?
+            BoundExpression result = CreateConversion(isInUnsafeRegion: InUnsafeRegion, expr.Syntax, expr, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, destination: targetType, diagnostics); // UNDONE: was cast?
             Debug.Assert(result != null); // If this ever fails (it shouldn't), then put a null-check around the diagnostics update.
 
             return result;

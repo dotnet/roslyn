@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             node,
                             isInUnsafeRegion: InUnsafeRegion,
                             DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: true),
-                            new BoundConversion(boundRHS.Syntax, isInUnsafeRegion: boundRHS.IsInUnsafeRegion, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
+                            new BoundConversion(boundRHS.Syntax, isInUnsafeRegion: InUnsafeRegion, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
                                 conversionGroupOpt: null, InConversionGroupFlags.Unspecified, constantValueOpt: null, type: type, hasErrors: true),
                             resultIsUsed,
                             voidType,
@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // value escape analysis for the Deconstruct() method group.
             bool hasErrors = !MakeDeconstructionConversion(
                                     boundRHS.Type,
+                                    boundRHS.IsInUnsafeRegion,
                                     node,
                                     boundRHS.Syntax,
                                     diagnostics,
@@ -161,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundConversion = new BoundConversion(
                 boundRHS.Syntax,
-                isInUnsafeRegion: boundRHS.IsInUnsafeRegion,
+                isInUnsafeRegion: InUnsafeRegion,
                 boundRHS,
                 conversion,
                 @checked: false,
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? mergedTupleType = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, syntax, hadErrors ? null : diagnostics);
                 if ((object?)mergedTupleType != null)
                 {
-                    boundRHS = GenerateConversionForAssignment(mergedTupleType, boundRHS, diagnostics);
+                    boundRHS = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, mergedTupleType, boundRHS, diagnostics);
                 }
             }
             else if ((object?)boundRHS.Type == null)
@@ -244,6 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private bool MakeDeconstructionConversion(
                         TypeSymbol type,
+                        bool isInputInUnsafeRegion,
                         SyntaxNode syntax,
                         SyntaxNode rightSyntax,
                         BindingDiagnosticBag diagnostics,
@@ -276,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return false;
                 }
 
-                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, variableSymbol: null, isDiscardExpression: false, type);
+                var inputPlaceholder = new BoundDeconstructValuePlaceholder(syntax, isInUnsafeRegion: isInputInUnsafeRegion, variableSymbol: null, isDiscardExpression: false, type);
                 BoundExpression deconstructInvocation = MakeDeconstructInvocationExpression(variables.Count,
                     inputPlaceholder, rightSyntax, diagnostics, outPlaceholders: out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, out _, variables);
 
@@ -305,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var elementSyntax = syntax.Kind() == SyntaxKind.TupleExpression ? ((TupleExpressionSyntax)syntax).Arguments[i] : syntax;
 
-                    hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], elementSyntax, rightSyntax, diagnostics,
+                    hasErrors |= !MakeDeconstructionConversion(tupleOrDeconstructedTypes[i], InUnsafeRegion, elementSyntax, rightSyntax, diagnostics,
                         variable.NestedVariables, out nestedConversion);
 
                     Debug.Assert(nestedConversion.Kind == ConversionKind.Deconstruction);
@@ -336,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var operandPlaceholder = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, tupleOrDeconstructedTypes[i]).MakeCompilerGenerated();
-                        nestedConversions.Add((operandPlaceholder, CreateConversion(syntax, operandPlaceholder,
+                        nestedConversions.Add((operandPlaceholder, CreateConversion(isInUnsafeRegion: InUnsafeRegion, syntax, operandPlaceholder,
                                                                                     nestedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, single.Type, diagnostics)));
                     }
                 }

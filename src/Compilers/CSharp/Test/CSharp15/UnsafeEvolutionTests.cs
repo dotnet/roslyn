@@ -6656,6 +6656,110 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeExpression_Context_ConditionalConversions()
+    {
+        var source = """
+            class A { public static unsafe implicit operator int(A value) => 0; }
+            class B { public static unsafe implicit operator int(B value) => 0; }
+            class C
+            {
+                static void M(bool condition, A a, B b)
+                {
+                    var natural = unsafe(condition ? a : 0);
+                    int targetTyped = unsafe(condition ? a : b);
+                    _ = natural;
+                    _ = targetTyped;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (8,46): error CS9362: 'A.implicit operator int(A)' must be used in an unsafe context because it is marked as 'unsafe'
+            //         int targetTyped = unsafe(condition ? a : b);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "a").WithArguments("A.implicit operator int(A)").WithLocation(8, 46),
+            // (8,50): error CS9362: 'B.implicit operator int(B)' must be used in an unsafe context because it is marked as 'unsafe'
+            //         int targetTyped = unsafe(condition ? a : b);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "b").WithArguments("B.implicit operator int(B)").WithLocation(8, 50));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_SwitchConversions()
+    {
+        var source = """
+            class A { public static unsafe implicit operator int(A value) => 0; }
+            class B { public static unsafe implicit operator int(B value) => 0; }
+            class C
+            {
+                static void M(bool condition, A a, B b)
+                {
+                    var natural = unsafe(condition switch { true => a, false => 0 });
+                    int targetTyped = unsafe(condition switch { true => a, false => b });
+                    _ = natural;
+                    _ = targetTyped;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (8,61): error CS9362: 'A.implicit operator int(A)' must be used in an unsafe context because it is marked as 'unsafe'
+            //         int targetTyped = unsafe(condition switch { true => a, false => b });
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "a").WithArguments("A.implicit operator int(A)").WithLocation(8, 61),
+            // (8,73): error CS9362: 'B.implicit operator int(B)' must be used in an unsafe context because it is marked as 'unsafe'
+            //         int targetTyped = unsafe(condition switch { true => a, false => b });
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "b").WithArguments("B.implicit operator int(B)").WithLocation(8, 73));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_CollectionBuilder()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            [CollectionBuilder(typeof(Builder), "Create")]
+            class C
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                static C M() => unsafe([1]);
+                static C N() => [unsafe(1)];
+            }
+
+            static class Builder
+            {
+                public static unsafe C Create(ReadOnlySpan<int> values) => new C();
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (10,21): error CS9362: 'Builder.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static C N() => [unsafe(1)];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[unsafe(1)]").WithArguments("Builder.Create(System.ReadOnlySpan<int>)").WithLocation(10, 21));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_CollectionElementConversion()
+    {
+        var source = """
+            class C
+            {
+                public static unsafe implicit operator int(C value) => 0;
+                static int[] M(C value) => unsafe([value]);
+                static int[] N(C value) => [unsafe(value)];
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (5,40): error CS9362: 'C.implicit operator int(C)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int[] N(C value) => [unsafe(value)];
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "value").WithArguments("C.implicit operator int(C)").WithLocation(5, 40));
+    }
+
+    [Fact]
     public void UnsafeExpression_Context_EventDoesNotEscape()
     {
         var source = """

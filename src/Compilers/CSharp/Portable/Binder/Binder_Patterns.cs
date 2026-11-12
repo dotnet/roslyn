@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This will allow user-defined conversions, even though they're not permitted here.  This is acceptable
                 // because the result of a user-defined conversion does not have a ConstantValue. A constant pattern
                 // requires a constant value so we'll report a diagnostic to that effect later.
-                convertedExpression = GenerateConversionForAssignment(inputType, expression, diagnostics, out patternExpressionConversion);
+                convertedExpression = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, inputType, expression, diagnostics, out patternExpressionConversion);
 
                 if (convertedExpression.Kind == BoundKind.Conversion)
                 {
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
                         // We are not interested in the diagnostic that get created here
-                        convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), BindingDiagnosticBag.Discarded);
+                        convertedExpression = CreateConversion(isInUnsafeRegion: InUnsafeRegion, operand, inputType.GetNullableUnderlyingType(), BindingDiagnosticBag.Discarded);
                     }
                     else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
                         && operand.ConstantValueOpt != null && convertedExpression.ConstantValueOpt == null)

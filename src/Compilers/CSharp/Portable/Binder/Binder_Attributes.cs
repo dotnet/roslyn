@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // BindRValue just binds the expression without doing any validation (if its a valid expression for attribute argument).
             // Validation is done later by AttributeExpressionVisitor
             BoundExpression namedArgumentValue = this.BindValue(namedArgument.Expression, diagnostics, BindValueKind.RValue);
-            namedArgumentValue = GenerateConversionForAssignment(namedArgumentType, namedArgumentValue, diagnostics);
+            namedArgumentValue = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, namedArgumentType, namedArgumentValue, diagnostics);
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;

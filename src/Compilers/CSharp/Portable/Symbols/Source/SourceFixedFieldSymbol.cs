@@ -89,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             TypeSymbol intType = binder.GetSpecialType(SpecialType.System_Int32, diagnostics, sizeExpression);
                             BoundExpression boundSizeExpression = binder.GenerateConversionForAssignment(
+                                isInUnsafeRegion: binder.InUnsafeRegion,
                                 intType,
                                 binder.BindValue(sizeExpression, diagnostics, Binder.BindValueKind.RValue),
                                 diagnostics);

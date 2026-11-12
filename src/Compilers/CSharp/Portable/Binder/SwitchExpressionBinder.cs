@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (switchGoverningExpression.Type == (object?)null || switchGoverningExpression.Type.IsVoidType())
             {
                 diagnostics.Add(ErrorCode.ERR_BadPatternExpression, SwitchExpressionSyntax.GoverningExpression.Location, switchGoverningExpression.Display);
-                switchGoverningExpression = this.GenerateConversionForAssignment(CreateErrorType(), switchGoverningExpression, diagnostics);
+                switchGoverningExpression = this.GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, CreateErrorType(), switchGoverningExpression, diagnostics);
             }
 
             return switchGoverningExpression;

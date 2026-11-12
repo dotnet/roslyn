@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ((object?)expression.Type == null || !expression.Type.IsVoidType()))
                     {
                         var submissionResultType = scriptInitializer.ResultType;
-                        expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
+                        expression = binder.GenerateConversionForAssignment(isInUnsafeRegion: binder.InUnsafeRegion, submissionResultType, expression, diagnostics);
                         statement = new BoundExpressionStatement(statement.Syntax, expression, expression.HasErrors);
                     }
                 }

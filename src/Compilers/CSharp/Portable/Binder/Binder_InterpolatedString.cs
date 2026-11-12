@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 BoundLiteral? format = null;
                                 if (interpolation.AlignmentClause != null)
                                 {
-                                    alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
+                                    alignment = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
                                     var alignmentConstant = alignment.ConstantValueOpt;
                                     if (alignmentConstant != null && !alignmentConstant.IsBad)
                                     {
@@ -355,6 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This is technically a spec violation because there is no guarantee what
             // conversion we might accept here. Could be even a user-defined conversion.
             construction = GenerateConversionForAssignment(
+                isInUnsafeRegion: InUnsafeRegion,
                 destination,
                 construction,
                 construction.HasErrors ? BindingDiagnosticBag.Discarded : diagnostics,
@@ -399,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (value.Type?.TypeKind == TypeKind.Dynamic)
                         {
                             // Object type is checked by BindInterpolatedStringParts
-                            value = GenerateConversionForAssignment(Compilation.ObjectType, value, diagnostics);
+                            value = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, Compilation.ObjectType, value, diagnostics);
                         }
 
                         expressions.Add(value); // NOTE: must still be lowered
@@ -698,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (!reported)
                             {
-                                _ = GenerateConversionForAssignment(objectType, value, conversionDiagnostics);
+                                _ = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, objectType, value, conversionDiagnostics);
                                 if (conversionDiagnostics.HasAnyErrors())
                                 {
                                     CheckFeatureAvailability(value.Syntax, MessageID.IDS_FeatureImprovedInterpolatedStrings, diagnostics);
@@ -864,12 +865,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundExpression newValue;
                     if (insert.Value.Type is null)
                     {
-                        newValue = GenerateConversionForAssignment(objectType, insert.Value, diagnostics);
+                        newValue = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, objectType, insert.Value, diagnostics);
                     }
                     else
                     {
                         newValue = BindToNaturalType(insert.Value, diagnostics);
-                        _ = GenerateConversionForAssignment(objectType, insert.Value, diagnostics);
+                        _ = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, objectType, insert.Value, diagnostics);
                     }
 
                     if (insert.Value != newValue)

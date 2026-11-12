@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 createConversionDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
             }
 
-            BoundExpression elementConversion = CreateConversion(_syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, iterationVariableType.Type, createConversionDiagnostics);
+            BoundExpression elementConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, _syntax, elementPlaceholder, elementConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, iterationVariableType.Type, createConversionDiagnostics);
 
             if (createConversionDiagnostics.AccumulatesDiagnostics && !createConversionDiagnostics.DiagnosticBag.IsEmptyWithoutResolution)
             {
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (currentConversionClassification.IsValid)
             {
                 builder.CurrentPlaceholder = new BoundValuePlaceholder(_syntax, isInUnsafeRegion: originalBinder.InUnsafeRegion, builder.CurrentPropertyGetter.ReturnType).MakeCompilerGenerated();
-                builder.CurrentConversion = CreateConversion(_syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, builder.ElementType, diagnostics);
+                builder.CurrentConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, _syntax, builder.CurrentPlaceholder, currentConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, builder.ElementType, diagnostics);
             }
 
             if (IsAsync)
@@ -649,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!collectionConversionClassification.IsUnion);
 
             BoundExpression convertedCollectionExpression = CreateConversion(
+                isInUnsafeRegion: InUnsafeRegion,
                 collectionExpr.Syntax,
                 collectionExpr,
                 collectionConversionClassification,

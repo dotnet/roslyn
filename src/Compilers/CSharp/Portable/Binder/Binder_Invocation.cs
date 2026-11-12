@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Note that the native compiler converts null literals to object, and for everything
                     // else it either crashes, or produces nonsense code. Roslyn improves upon this considerably.
 
-                    analyzedArguments.Arguments[i] = GenerateConversionForAssignment(objType, argument, diagnostics);
+                    analyzedArguments.Arguments[i] = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, objType, argument, diagnostics);
                 }
                 else if (argument.Type.IsVoidType())
                 {
@@ -1406,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = CheckValue(receiver, BindValueKind.RefOrOut, diagnostics);
             }
 
-            receiver = CreateConversion(receiver, extensionParameter.Type, diagnostics);
+            receiver = CreateConversion(isInUnsafeRegion: InUnsafeRegion, receiver, extensionParameter.Type, diagnostics);
             return receiver;
         }
 
@@ -1801,6 +1801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     var isCast = conversion.IsExplicit;
                     defaultValue = CreateConversion(
+                        isInUnsafeRegion: InUnsafeRegion,
                         defaultValue.Syntax,
                         defaultValue,
                         conversion,

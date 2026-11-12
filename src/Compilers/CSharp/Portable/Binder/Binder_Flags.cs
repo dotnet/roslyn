@@ -68,6 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new Binder(this, flags);
         }
 
+        internal Binder WithUnsafeRegion(bool isInUnsafeRegion)
+            => WithFlags(isInUnsafeRegion ? Flags | BinderFlags.UnsafeRegion : Flags & ~BinderFlags.UnsafeRegion);
+
         internal Binder WithAdditionalFlags(BinderFlags flags)
         {
             return this.Flags.Includes(flags)

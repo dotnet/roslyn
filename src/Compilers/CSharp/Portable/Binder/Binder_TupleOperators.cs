@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // We were able to determine a converted type (for this tuple literal or element), we can just convert to it
-            return GenerateConversionForAssignment(convertedType, expr, diagnostics);
+            return GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, convertedType, expr, diagnostics);
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsImplicit)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, isInUnsafeRegion: InUnsafeRegion, type).MakeCompilerGenerated();
-                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, boolean, diagnostics);
+                conversionForBool = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, conversionForBoolPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, boolean, diagnostics);
                 boolOperator = default;
                 return;
             }
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (best.HasValue)
             {
                 conversionForBoolPlaceholder = new BoundValuePlaceholder(node, isInUnsafeRegion: InUnsafeRegion, type).MakeCompilerGenerated();
-                conversionForBool = CreateConversion(node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
+                conversionForBool = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, conversionForBoolPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
                 boolOperator = best.Signature;
                 return;
             }

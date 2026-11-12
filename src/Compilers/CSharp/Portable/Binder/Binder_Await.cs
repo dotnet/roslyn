@@ -377,9 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, isInUnsafeRegion: expression.IsInUnsafeRegion, expression.Type);
+                    placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, isInUnsafeRegion: InUnsafeRegion, expression.Type);
 
-                    BoundExpression argument = CreateConversion(placeholder, argumentConversion, destination: method.Parameters[0].Type, diagnostics);
+                    BoundExpression argument = CreateConversion(isInUnsafeRegion: InUnsafeRegion, placeholder, argumentConversion, destination: method.Parameters[0].Type, diagnostics);
 
                     if (argument is BoundConversion)
                     {
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     runtimeAwaitCall = new BoundCall(
                         expression.Syntax,
-                        isInUnsafeRegion: expression.IsInUnsafeRegion,
+                        isInUnsafeRegion: InUnsafeRegion,
                         receiverOpt: null,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                         method,
