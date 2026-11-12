@@ -11803,6 +11803,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node)
         {
+            if (InParameterDefaultValue)
+            {
+                return null;
+            }
+
             var method = GetUniqueSignatureFromMethodGroup(node, out bool useParams);
             if (method is null)
             {
