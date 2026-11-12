@@ -32,6 +32,8 @@ using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 [method: ImportingConstructor]
 internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
 {
+    private readonly record struct DiagnosticKey(object? Code, int? StartLine, int? StartCharacter, int? EndLine, int? EndCharacter);
+
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsService>();
 
@@ -161,6 +163,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     private static LspDiagnostic[] FilterUnusedUsingDirectiveDiagnostics(LspDiagnostic[] implDiagnostics, LspDiagnostic[] declDiagnostics)
     {
         using var filteredDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
+        using var seenDiagnosticKeys = new PooledHashSet<DiagnosticKey>();
 
         foreach (var diagnostic in implDiagnostics)
         {
@@ -168,14 +171,18 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
                 ContainsMatchingGeneratedRemoveUnnecessaryImportsDiagnostic(declDiagnostics, diagnostic))
             {
                 filteredDiagnostics.Add(diagnostic);
+                seenDiagnosticKeys.Add(GetDiagnosticKey(diagnostic));
             }
         }
 
         // By definition any diagnostics in decl that we want to keep will be kept because they will have a matching diagnostic in impl,
         // so we just need to filter decl diagnostics to ignore all unused using directives.
+        // Using directives are emitted into both documents at the same spot, so things like CS0105 and CS1537 come back from
+        // both. We skip anything impl already reported, otherwise the user sees the same error twice.
         foreach (var diagnostic in declDiagnostics)
         {
-            if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen })
+            if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen } &&
+                seenDiagnosticKeys.Add(GetDiagnosticKey(diagnostic)))
             {
                 filteredDiagnostics.Add(diagnostic);
             }
@@ -198,6 +205,9 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
 
             return false;
         }
+
+        static DiagnosticKey GetDiagnosticKey(LspDiagnostic diagnostic)
+            => new(diagnostic.Code, diagnostic.Range?.Start.Line, diagnostic.Range?.Start.Character, diagnostic.Range?.End.Line, diagnostic.Range?.End.Character);
 
         static bool IsSameDiagnosticSpan(LspDiagnostic diagnostic, LspDiagnostic otherDiagnostic)
             => diagnostic.Range?.Start.Line == otherDiagnostic.Range?.Start.Line &&
