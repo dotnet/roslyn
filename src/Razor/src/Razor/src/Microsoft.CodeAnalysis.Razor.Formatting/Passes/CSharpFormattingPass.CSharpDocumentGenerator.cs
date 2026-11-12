@@ -167,6 +167,7 @@ internal partial class CSharpFormattingPass
             private readonly int _indentSize = options.IndentSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
             private readonly bool _ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor;
+            private readonly bool _htmlFormatterRan = options.HtmlFormatterRan;
             private readonly CSharpSyntaxFormattingOptions _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
@@ -717,12 +718,23 @@ internal partial class CSharpFormattingPass
                             _honourHtmlFormattingUntilLine = honouredEndLine;
 
                             // Walk the ancestors once per multiline script/style block so each content line can reuse the result.
-                            _htmlIndentationLevelInGeneratedDocument = GetHtmlIndentationLevel(node);
+                            _htmlIndentationLevelInGeneratedDocument = _htmlFormatterRan
+                                ? GetHtmlIndentationLevel(node)
+                                : GetSourceIndentationLevelOfContent();
                         }
                     }
                 }
 
                 return lineInfo;
+            }
+
+            private int GetSourceIndentationLevelOfContent()
+            {
+                // Without an Html formatter, content lines still have their source indentation, which includes enclosing C#
+                // blocks as well as Html elements. The generated document represents both as braces, so counting only Html
+                // ancestors would add the C# levels again on every run. Measuring against the start tag's own indentation
+                // instead keeps the body where it is relative to the tag.
+                return FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _indentSize, out _) + 1;
             }
 
             private int GetHtmlIndentationLevel(BaseMarkupStartTagSyntax startTag)

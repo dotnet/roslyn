@@ -105,6 +105,7 @@ public static class RazorFormatter
             AttributeIndentStyle = razorOptions.GetOption(RazorFormattingOptionsStorage.AttributeIndentStyle),
             IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = razorOptions.GetOption(
                 RazorFormattingOptionsStorage.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor),
+            HtmlFormatterRan = false,
         };
     }
 

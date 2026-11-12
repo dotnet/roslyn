@@ -19,6 +19,11 @@ internal readonly record struct FormattingEngineOptions
     public bool CodeBlockBraceOnNextLine { get; init; }
     public AttributeIndentStyle AttributeIndentStyle { get; init; } = AttributeIndentStyle.AlignWithFirst;
     public bool IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor { get; init; } = true;
+    /// <summary>
+    /// Whether the Html formatter ran before the C# formatting pass. dotnet format doesn't run one, so script and style
+    /// bodies still have their source indentation, which also includes any enclosing C# blocks.
+    /// </summary>
+    public bool HtmlFormatterRan { get; init; } = true;
     public CSharpSyntaxFormattingOptions CSharpSyntaxFormattingOptions { get; init; } = CSharpSyntaxFormattingOptions.Default;
 
     public FormattingEngineOptions()
