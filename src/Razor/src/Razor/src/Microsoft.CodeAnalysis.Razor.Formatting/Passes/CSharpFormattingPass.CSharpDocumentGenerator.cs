@@ -493,8 +493,10 @@ internal partial class CSharpFormattingPass
                     else
                     {
                         end = node.EndPosition;
-                        // Semi-colons are vitally important for block bodied lambdas to not affect subsequent lines
-                        emitSemiColon = expressionStartsBlockLambda && end != _currentLine.End;
+                        // Semi-colons are vitally important for block bodied lambdas, and for expressions that are the entire value
+                        // of a component or directive attribute (eg `@onclick="() => Show(1,` ... `2)"`), to not affect subsequent lines
+                        emitSemiColon = (expressionStartsBlockLambda || node.Parent is MarkupTagHelperAttributeValueSyntax) &&
+                            end != _currentLine.End;
                     }
                 }
 
