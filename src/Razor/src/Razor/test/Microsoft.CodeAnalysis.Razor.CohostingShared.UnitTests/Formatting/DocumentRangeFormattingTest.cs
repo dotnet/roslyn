@@ -208,6 +208,36 @@ public class DocumentRangeFormattingTest(ITestOutputHelper testOutput) : Documen
     }
 
     [Fact]
+    public Task RangeFormatting_AddsMissingHtmlLineBreak()
+        => RunFormattingTestAsync(
+            input: """
+                <html>
+                <head>
+                [|<title>Hello</title></head>|]
+                <body>
+                </body>
+                </html>
+                """,
+            htmlFormatted: """
+                <html>
+                <head>
+                <title>Hello</title></head>
+                <body>
+                </body>
+                </html>
+                """,
+            expected: """
+                <html>
+                <head>
+                    <title>Hello</title>
+                </head>
+                <body>
+                </body>
+                </html>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/29645")]
     public async Task FormatHtmlInIf_Range()
     {

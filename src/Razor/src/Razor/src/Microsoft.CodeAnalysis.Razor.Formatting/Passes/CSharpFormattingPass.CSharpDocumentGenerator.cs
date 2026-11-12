@@ -664,7 +664,7 @@ internal partial class CSharpFormattingPass
             private LineInfo VisitStartTag(BaseMarkupStartTagSyntax node)
             {
                 var closeAngle = node.GetEndTag()?.CloseAngle ?? node.CloseAngle;
-                if (ElementHasSignificantWhitespace(node))
+                if (HtmlFormattingFacts.HasSignificantWhitespace(node))
                 {
                     // The contents of some html tags is significant, so we never want any formatting to happen in their contents
                     if (GetLineNumber(node) == GetLineNumber(node.CloseAngle))
@@ -848,12 +848,6 @@ internal partial class CSharpFormattingPass
                 return true;
             }
 
-            private static bool ElementHasSignificantWhitespace(BaseMarkupStartTagSyntax node)
-            {
-                return node.Name.Content.Equals("textarea", StringComparison.OrdinalIgnoreCase)
-                    || node.Name.Content.Equals("pre", StringComparison.OrdinalIgnoreCase);
-            }
-
             public override LineInfo VisitRazorMetaCode(RazorMetaCodeSyntax node)
             {
                 // This could be a directive attribute, like @bind-Value="asdf"
@@ -947,7 +941,7 @@ internal partial class CSharpFormattingPass
                         return EmitSyntheticLambdaBodyCloseLine(startTag, htmlIndentLevel, additionalIndentation);
                     }
 
-                    if (ElementHasSignificantWhitespace(startTag) &&
+                    if (HtmlFormattingFacts.HasSignificantWhitespace(startTag) &&
                         GetLineNumber(node) == GetLineNumber(startTag.CloseAngle))
                     {
                         // If this is the last line of a tag that shouldn't be indented, honour that
@@ -997,7 +991,7 @@ internal partial class CSharpFormattingPass
             private void GetAttributeIndentation(BaseMarkupStartTagSyntax startTag, out int htmlIndentLevel, out int additionalIndentation)
             {
                 additionalIndentation = 0;
-                var startTagAddsIndentation = ElementCausesIndentation(startTag) && !ElementHasSignificantWhitespace(startTag);
+                var startTagAddsIndentation = ElementCausesIndentation(startTag) && !HtmlFormattingFacts.HasSignificantWhitespace(startTag);
                 var firstAttribute = startTag.Attributes[0];
                 var firstAttributeNameSpan = RazorSyntaxFacts.GetFullAttributeNameSpan(firstAttribute);
 

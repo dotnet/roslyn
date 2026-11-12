@@ -290,26 +290,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </PageTitle>
                 </PageTitle>
                 """",
-            dotNetFormatExpected: """"
-                <PageTitle>
-                    <PageTitle>
-                        @("""
-                          <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
-                
-                          <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
-                          <Title>Aanmaak scherm</Title>
-                          <Body>
-                                <label>Vul hier een tekst in</label>
-                                <input @bind=_createItem />
-                          </Body>
-                          <Footer>
-                                <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
-                                <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
-                          </Footer>
-                          </FCBS5Modal>
-                          """)</PageTitle>
-                </PageTitle>
-                """",
             expected: """"
                 <PageTitle>
                     <PageTitle>
@@ -4154,15 +4134,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </body>
                 </html>
                 """,
-            dotNetFormatExpected: """
-                <html>
-                <head>
-                    <title>Hello</title></head>
-                <body><div>
-                </div>
-                </body>
-                </html>
-                """,
             expected: """
                 <html>
                 <head>
@@ -4175,6 +4146,132 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </html>
                 """);
     }
+
+    [Fact]
+    public Task FormatsNestedTagsOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section><div>
+                Text <b>here</b></div></section>
+                <p>next</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        <div>
+                            Text <b>here</b>
+                        </div>
+                    </section>
+                    <p>next</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <div>
+                            Text <b>here</b>
+                        </div>
+                    </section>
+                    <p>next</p>
+                </div>
+                """);
+
+    [Fact]
+    public Task KeepsSingleLineInlineElementsTogether()
+        => RunFormattingTestAsync(
+            input: "<div><span>Hello <b>there</b></span></div>",
+            htmlFormatted: "<div><span>Hello <b>there</b></span></div>",
+            expected: "<div><span>Hello <b>there</b></span></div>");
+
+    [Fact]
+    public Task SplitsSingleLineContentWithMultilineAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <div
+                    class="a">text</div>
+                """,
+            htmlFormatted: """
+                <div class="a">
+                    text
+                </div>
+                """,
+            expected: """
+                <div class="a">
+                    text
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div
+                    class="a">
+                    text
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsOnSameLineAroundCSharpBlock()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section>@if (true)
+                {
+                <p>text</p>
+                }</section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        @if (true)
+                        {
+                        <p>text</p>
+                        }
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        @if (true)
+                        {
+                            <p>text</p>
+                        }
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task PreservesTagsInsidePreformattedContent()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <pre>
+                <div><div>
+                  text
+                </div></div>
+                </pre>
+                <p>next</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                <pre>
+                <div><div>
+                  text
+                </div></div>
+                </pre>
+                <p>next</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <pre>
+                <div><div>
+                  text
+                </div></div>
+                </pre>
+                    <p>next</p>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
 
     [Fact]
     public async Task FormatsRazorHtmlBlock()
@@ -4235,14 +4332,18 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @page "/error"
                 
                 <h1 class=
-                "text-danger">Error.</h1>
+                    "text-danger">
+                    Error.
+                </h1>
                 <h2 class="text-danger">An error occurred while processing your request.</h2>
                 
                 <h3>Development Mode</h3>
                 <p>
-                    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</p>
+                    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+                </p>
                 <p>
-                    <strong>The Development environment shouldn't be enabled for deployed applications.
+                    <strong>
+                        The Development environment shouldn't be enabled for deployed applications.
                     </strong>
                     <div>
                         <div>
@@ -4545,8 +4646,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @page "/test"
                 
                 <div
-                attr='val'
-                class=@className>Some Text</div>
+                    attr='val'
+                    class=@className>
+                    Some Text
+                </div>
                 
                 @{
                     @: Hi!
@@ -16958,13 +17061,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    @* note *@ </div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -16992,13 +17088,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     text
                 </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    text</div>
                 <section>
                     <p>x</p>
                 </section>
@@ -17032,13 +17121,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <span>a</span></div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -17069,13 +17151,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    @DateTime.Now</div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -17103,13 +17178,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <!-- c -->
                 </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <!-- c --></div>
                 <section>
                     <p>x</p>
                 </section>
@@ -17148,14 +17216,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <span>
-                        @* note *@ </span></div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -17188,14 +17248,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         text
                     </span>
                 </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <span>
-                        text</span></div>
                 <section>
                     <p>x</p>
                 </section>
@@ -17240,16 +17292,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <section>
-                        text</section>
-                    <p>x</p>
-                    @* note *@ </div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -17289,17 +17331,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <p>x</p>
                     @* note *@
                 </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <span>
-                        text
-                    </span>
-                    <p>x</p>
-                    @* note *@ </div>
                 <section>
                     <p>x</p>
                 </section>
@@ -17351,7 +17382,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @if (true)
                 {
                     <div>
-                        text </div
+                        text
+                    </div
                     >
                     <p>x</p>
                 }
