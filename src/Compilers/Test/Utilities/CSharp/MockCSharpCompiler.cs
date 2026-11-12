@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,6 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         internal AnalyzerOptions AnalyzerOptions;
         internal ImmutableArray<(DiagnosticDescriptor Descriptor, DiagnosticDescriptorErrorLoggerInfo Info)> DescriptorsWithInfo;
         internal double TotalAnalyzerExecutionTime;
+        internal readonly StringWriter SymbolCompletionWaitReport = new StringWriter(CultureInfo.InvariantCulture);
+
+        protected override void ReportCompilationStatistics(Compilation compilation, TextWriter consoleOutput)
+            => base.ReportCompilationStatistics(compilation, SymbolCompletionWaitReport);
 
         public MockCSharpCompiler(string responseFile, string workingDirectory, string[] args, ImmutableArray<DiagnosticAnalyzer> analyzers = default, ImmutableArray<ISourceGenerator> generators = default, AnalyzerAssemblyLoader loader = null, ImmutableArray<MetadataReference> additionalReferences = default)
             : this(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, loader, additionalReferences: additionalReferences)

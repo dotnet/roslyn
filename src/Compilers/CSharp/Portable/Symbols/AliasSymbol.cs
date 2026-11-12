@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     newDiagnostics.Free();
                     // Wait for diagnostics to have been reported if another thread resolves the alias
-                    _state.SpinWaitComplete(CompletionPart.AliasTarget, default(CancellationToken));
+                    _state.SpinWaitComplete(CompletionPart.AliasTarget, this, default(CancellationToken));
                 }
             }
 

@@ -967,14 +967,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                state.SpinWaitComplete(incompletePart, cancellationToken);
+                state.SpinWaitComplete(incompletePart, this, cancellationToken);
             }
 
 done:
 // Don't return until we've seen all of the CompletionParts. This ensures all
 // diagnostics have been reported (not necessarily on this thread).
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
-            state.SpinWaitComplete(allParts, cancellationToken);
+            state.SpinWaitComplete(allParts, this, cancellationToken);
         }
 #nullable disable
 

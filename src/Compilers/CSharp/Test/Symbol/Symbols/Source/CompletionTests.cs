@@ -5,6 +5,8 @@
 #nullable disable
 
 using System;
+using System.Globalization;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -21,32 +23,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void SpinWaitCompleteAlreadyComplete()
         {
+            var compilation = CreateCompilation("");
+            string initialReport = GetWaitReport(compilation);
             var state = new SymbolCompletionState();
             var parts = CompletionPart.FinishBaseType | CompletionPart.FinishInterfaces;
             Assert.True(state.NotePartComplete(parts));
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
 
-            state.SpinWaitComplete(parts, cancellation.Token);
+            state.SpinWaitComplete(parts, compilation, cancellation.Token);
             Assert.True(state.HasComplete(parts));
+            Assert.Equal(initialReport, GetWaitReport(compilation));
         }
 
         [Fact]
         public void SpinWaitCompleteCanceled()
         {
+            var compilation = CreateCompilation("");
             var state = new SymbolCompletionState();
             using var cancellation = new CancellationTokenSource();
             cancellation.Cancel();
 
             var exception = Assert.Throws<OperationCanceledException>(() =>
-                state.SpinWaitComplete(CompletionPart.FinishBaseType, cancellation.Token));
+                state.SpinWaitComplete(CompletionPart.FinishBaseType, compilation, cancellation.Token));
             Assert.Equal(cancellation.Token, exception.CancellationToken);
             Assert.False(state.HasComplete(CompletionPart.FinishBaseType));
+            Assert.Contains("completed=0 canceled=1 timedOut=0 interrupted=0", GetWaitReport(compilation));
         }
 
         [Fact]
         public void SpinWaitCompleteTimesOut()
         {
+            var compilation = CreateCompilation("");
             var state = new SymbolCompletionState();
             Assert.True(state.NotePartComplete(CompletionPart.StartBaseType));
             using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(30));
@@ -54,11 +62,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             const uint timeoutMilliseconds = 1000;
             var exception = Assert.Throws<InvalidOperationException>(() =>
-                state.SpinWaitCompleteCore(CompletionPart.FinishBaseType, timeoutMilliseconds, cancellation.Token));
+                state.SpinWaitCompleteCore(CompletionPart.FinishBaseType, timeoutMilliseconds, compilation, cancellation.Token));
 
             Assert.Equal("Symbol completion timed out.", exception.Message);
             Assert.True(unchecked((uint)Environment.TickCount - startTicks) >= timeoutMilliseconds);
             Assert.False(state.HasComplete(CompletionPart.FinishBaseType));
+            Assert.Contains("completed=0 canceled=0 timedOut=1 interrupted=0", GetWaitReport(compilation));
+        }
+
+        [Fact]
+        public void SymbolCompletionWaitHistogramConcurrentAndIsolated()
+        {
+            var compilation = CreateCompilation("", assemblyName: "WaitMeasurements");
+            uint[] durations = [0, 1, 9, 10, 99, 100, 999, 1000, 4999, 5000, 9999, 10000, 29999, 30000, 59999, 60000, uint.MaxValue];
+
+            Parallel.For(0, durations.Length, i =>
+                compilation.RecordSymbolCompletionWait(durations[i], CSharpCompilation.SymbolCompletionWaitOutcome.Completed));
+
+            Assert.Equal(
+                "SymbolCompletionWaits: assembly=\"WaitMeasurements\" completed=17 canceled=0 timedOut=0 interrupted=0 totalWaitMs=4295179509 maxWaitMs=4294967295 ms[0]=1 ms[1,10)=2 ms[10,100)=2 ms[100,1000)=2 ms[1000,5000)=2 ms[5000,10000)=2 ms[10000,30000)=2 ms[30000,60000)=2 ms[60000,inf)=2" + Environment.NewLine,
+                GetWaitReport(compilation));
+            Assert.Equal(
+                "SymbolCompletionWaits: assembly=\"WaitMeasurements\" completed=0 canceled=0 timedOut=0 interrupted=0 totalWaitMs=0 maxWaitMs=0 ms[0]=0 ms[1,10)=0 ms[10,100)=0 ms[100,1000)=0 ms[1000,5000)=0 ms[5000,10000)=0 ms[10000,30000)=0 ms[30000,60000)=0 ms[60000,inf)=0" + Environment.NewLine,
+                GetWaitReport(compilation.Clone()));
+        }
+
+        private static string GetWaitReport(CSharpCompilation compilation)
+        {
+            using var writer = new StringWriter(CultureInfo.InvariantCulture);
+            compilation.ReportSymbolCompletionWaits(writer);
+            return writer.ToString();
         }
 
         [Fact]

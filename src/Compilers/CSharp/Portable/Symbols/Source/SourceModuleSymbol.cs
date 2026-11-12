@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // some other thread has started validating references (otherwise we would be in the case above) so
                         // we just wait for it to both finish and report the diagnostics.
                         Debug.Assert(_state.HasComplete(CompletionPart.StartValidatingReferencedAssemblies));
-                        _state.SpinWaitComplete(CompletionPart.FinishValidatingReferencedAssemblies, cancellationToken);
+                        _state.SpinWaitComplete(CompletionPart.FinishValidatingReferencedAssemblies, this, cancellationToken);
                         break;
 
                     case CompletionPart.MembersCompleted:
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                _state.SpinWaitComplete(incompletePart, cancellationToken);
+                _state.SpinWaitComplete(incompletePart, this, cancellationToken);
             }
         }
 

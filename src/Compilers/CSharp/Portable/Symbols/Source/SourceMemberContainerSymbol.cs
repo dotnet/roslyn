@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // We did not complete all members so we won't have enough information for
                                 // the PointedAtManagedTypeChecks, so just kick out now.
                                 var allParts = CompletionPart.NamedTypeSymbolWithLocationAll;
-                                state.SpinWaitComplete(allParts, cancellationToken);
+                                state.SpinWaitComplete(allParts, this, cancellationToken);
                                 return;
                             }
 
@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                state.SpinWaitComplete(incompletePart, cancellationToken);
+                state.SpinWaitComplete(incompletePart, this, cancellationToken);
             }
 
             throw ExceptionUtilities.Unreachable();
@@ -1928,7 +1928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            state.SpinWaitComplete(CompletionPart.Members, default(CancellationToken));
+            state.SpinWaitComplete(CompletionPart.Members, this, default(CancellationToken));
             return _lazyMembersDictionary;
         }
 

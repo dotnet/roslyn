@@ -7027,6 +7027,8 @@ class C
             Assert.Equal(@"",
                 outWriter.ToString().Trim());
 
+            Assert.StartsWith("SymbolCompletionWaits: assembly=\"a\" completed=", csc.SymbolCompletionWaitReport.ToString());
+
             CleanupAllGeneratedFiles(file.Path);
         }
 
