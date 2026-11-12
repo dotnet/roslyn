@@ -12,14 +12,18 @@ namespace Microsoft.NET.ProjectData.Tasks;
 /// inputs as properties, calls the writer, and swallows any exception so a writer
 /// fault never fails the build.
 /// </summary>
-public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
+[MSBuildMultiThreadableTask]
+public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task, IMultiThreadableTask
 {
+	public TaskEnvironment TaskEnvironment { get; set; } = TaskEnvironment.Fallback;
+
 	[Required]
 	public string ProjectFilePath { get; set; } = string.Empty;
 
 	/// <summary>
-	/// Absolute path of the cache file. When empty, the user-folder cache path is
-	/// computed from <see cref="ProjectFilePath"/> via <see cref="UserFolderCachePath"/>.
+	/// Path of the cache file. Relative paths are resolved against the invoking project's
+	/// directory. When empty, the user-folder cache path is computed from
+	/// <see cref="ProjectFilePath"/> via <see cref="UserFolderCachePath"/>.
 	/// </summary>
 	public string OutputPath { get; set; } = string.Empty;
 
@@ -81,6 +85,10 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 	[Output]
 	public bool Succeeded { get; set; }
 
+	/// <summary>
+	/// Selected output path, retaining the supplied <see cref="OutputPath"/> spelling.
+	/// File I/O resolves this path against <see cref="TaskEnvironment"/>.
+	/// </summary>
 	[Output]
 	public string ResolvedOutputPath { get; set; } = string.Empty;
 
@@ -89,23 +97,30 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 		try
 		{
 			this.Succeeded = false;
-			this.ResolvedOutputPath = this.ResolveOutputPath();
+			ProjectDataEnvironment environment = new(
+				this.TaskEnvironment.GetEnvironmentVariable,
+				this.GetFolderPath,
+				this.GetFullPath);
+			string projectFilePath = environment.GetFullPath(this.ProjectFilePath);
+			this.ResolvedOutputPath = this.ResolveOutputPath(projectFilePath, environment);
+			AbsolutePath outputPath = this.TaskEnvironment.GetAbsolutePath(this.ResolvedOutputPath);
 
 			if (!ProjectDataWriter.TryValidateNetFrameworkReferences(
-				this.ProjectFilePath,
+				projectFilePath,
 				this.SliceDimensions,
 				this.Properties,
 				this.MetadataReferences,
-				out string unsupportedReason))
+				out string unsupportedReason,
+				environment))
 			{
-				if (this.ShouldDeleteOutputOnValidationFailure())
+				if (this.ShouldDeleteOutputOnValidationFailure(projectFilePath, environment))
 				{
-					this.DeleteFileIfExists(this.ResolvedOutputPath);
+					this.DeleteFileIfExists(outputPath);
 				}
 
 				if (this.IsPrimary)
 				{
-					UnsupportedProjectDataMarker.Write(this.ProjectFilePath, unsupportedReason);
+					UnsupportedProjectDataMarker.Write(projectFilePath, unsupportedReason, environment);
 				}
 
 				this.Log.LogMessage(MessageImportance.Low,
@@ -130,14 +145,14 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 					return true;
 				}
 
-				if (this.ShouldDeleteOutputOnValidationFailure())
+				if (this.ShouldDeleteOutputOnValidationFailure(projectFilePath, environment))
 				{
-					this.DeleteFileIfExists(this.ResolvedOutputPath);
+					this.DeleteFileIfExists(outputPath);
 				}
 
 				if (this.IsPrimary)
 				{
-					UnsupportedProjectDataMarker.Write(this.ProjectFilePath, "CompilerCommandLineArgumentsEmpty");
+					UnsupportedProjectDataMarker.Write(projectFilePath, "CompilerCommandLineArgumentsEmpty", environment);
 				}
 
 				this.Log.LogMessage(MessageImportance.Low,
@@ -147,10 +162,10 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 			}
 
 			ProjectDataWriter.AtomicWriteStreamed(
-				this.ResolvedOutputPath,
+				outputPath,
 				writer => ProjectDataWriter.WriteContent(
 					writer,
-					this.ProjectFilePath,
+					projectFilePath,
 					this.WriteHeader,
 					this.IsPrimary,
 					this.LastDtbSucceeded,
@@ -167,11 +182,13 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 					this.Capabilities,
 					this.SdkKnownAnalyzerPacks,
 					this.SdkAnalyzerConfigPolicy,
-					this.ReportDuplicateItem),
-				this.IntermediateOutputPath);
+					this.ReportDuplicateItem,
+					environment),
+				this.IntermediateOutputPath,
+				environment);
 			this.Succeeded = true;
-			UnsupportedProjectDataMarker.Delete(this.ProjectFilePath);
-			this.RecordDonorIndexEntryIfFinalCache();
+			UnsupportedProjectDataMarker.Delete(projectFilePath, environment);
+			this.RecordDonorIndexEntryIfFinalCache(projectFilePath, outputPath, environment);
 
 			this.Log.LogMessage(MessageImportance.Low,
 				"ProjectData: wrote {0}.", this.ResolvedOutputPath);
@@ -195,30 +212,43 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 		return true;
 	}
 
-	private string ResolveOutputPath()
+	private string ResolveOutputPath(string projectFilePath, ProjectDataEnvironment environment)
 		=> string.IsNullOrEmpty(this.OutputPath)
-			? UserFolderCachePath.Compute(this.ProjectFilePath)
+			? UserFolderCachePath.Compute(projectFilePath, environment)
 			: this.OutputPath;
 
-	private void RecordDonorIndexEntryIfFinalCache()
+	private string GetFullPath(string path)
+		=> Path.GetFullPath(this.TaskEnvironment.GetAbsolutePath(path).Value);
+
+	private string GetFolderPath(Environment.SpecialFolder folder)
+		=> this.TaskEnvironment.GetEnvironmentVariable(folder switch
+		{
+			Environment.SpecialFolder.UserProfile => OperatingSystem.IsWindows() ? "USERPROFILE" : "HOME",
+			Environment.SpecialFolder.LocalApplicationData => "LOCALAPPDATA",
+			Environment.SpecialFolder.ProgramFiles => "ProgramFiles",
+			Environment.SpecialFolder.ProgramFilesX86 => "ProgramFiles(x86)",
+			_ => throw new ArgumentOutOfRangeException(nameof(folder)),
+		}) ?? string.Empty;
+
+	private void RecordDonorIndexEntryIfFinalCache(string projectFilePath, AbsolutePath outputPath, ProjectDataEnvironment environment)
 	{
 		if (!this.WriteHeader || !this.IsPrimary)
 		{
 			return;
 		}
 
-		this.RecordDonorIndexEntry();
+		this.RecordDonorIndexEntry(projectFilePath, outputPath, environment);
 	}
 
-	private void RecordDonorIndexEntry()
+	private void RecordDonorIndexEntry(string projectFilePath, AbsolutePath outputPath, ProjectDataEnvironment environment)
 	{
-		ProjectDataDonorWriteOptions options = new()
+		ProjectDataDonorWriteOptions options = new(environment)
 		{
 			IndexPath = string.IsNullOrEmpty(this.DonorCacheIndexPath) ? null : this.DonorCacheIndexPath,
 			WorkspaceRoot = string.IsNullOrEmpty(this.DonorCacheWorkspaceRoot) ? null : this.DonorCacheWorkspaceRoot,
 		};
 
-		bool recorded = ProjectDataDonorIndex.TryRecordWrite(this.ProjectFilePath, this.ResolvedOutputPath, options, out string? message);
+		bool recorded = ProjectDataDonorIndex.TryRecordWrite(projectFilePath, outputPath, options, out string? message, environment);
 		if (recorded && !string.IsNullOrEmpty(message))
 		{
 			this.Log.LogMessage(MessageImportance.Low, "ProjectData: {0}", message);
@@ -239,42 +269,34 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 			MessageImportance.Low,
 			"ProjectData: duplicate {0} item in {1}: {2}. The duplicate entry was omitted from {3}.",
 			diagnostic.Section,
-			diagnostic.ProjectFilePath,
+			this.ProjectFilePath,
 			diagnostic.ItemSpec,
 			this.ResolvedOutputPath);
 	}
 
-	private bool ShouldDeleteOutputOnValidationFailure()
+	private bool ShouldDeleteOutputOnValidationFailure(string projectFilePath, ProjectDataEnvironment environment)
 	{
 		if (!this.IsPrimary)
 		{
 			return true;
 		}
 
-		string projectFolderOutputPath = Path.GetFullPath(this.ProjectFilePath) + ".lscache";
-		return !PathsEqual(this.ResolvedOutputPath, projectFolderOutputPath);
+		string projectFolderOutputPath = projectFilePath + ".lscache";
+		return !string.Equals(
+			environment.GetFullPath(this.ResolvedOutputPath),
+			projectFolderOutputPath,
+			StringComparisons.Paths);
 	}
 
-	private static bool PathsEqual(string left, string right)
-		=> string.Equals(
-			Path.GetFullPath(left),
-			Path.GetFullPath(right),
-			StringComparisons.Paths);
-
-	private void DeleteFileIfExists(string path)
+	private void DeleteFileIfExists(AbsolutePath path)
 	{
-		if (string.IsNullOrEmpty(path))
-		{
-			return;
-		}
-
 		try
 		{
 			File.Delete(path);
 		}
 		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 		{
-			this.Log.LogWarning("ProjectData: failed to delete stale output {0}: {1}", path, ex.Message);
+			this.Log.LogWarning("ProjectData: failed to delete stale output {0}: {1}", path.OriginalValue, ex.Message);
 		}
 	}
 }

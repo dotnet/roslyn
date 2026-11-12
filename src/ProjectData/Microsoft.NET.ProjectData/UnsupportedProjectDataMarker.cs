@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -27,6 +28,9 @@ public static class UnsupportedProjectDataMarker
 	];
 
 	public static string GetMarkerFilePath(string projectFilePath) => UserFolderCachePath.Compute(projectFilePath) + MarkerExtension;
+
+	private static string GetMarkerFilePath(string projectFilePath, ProjectDataEnvironment environment)
+		=> UserFolderCachePath.Compute(projectFilePath, environment) + MarkerExtension;
 
 	public static bool TryReadValid(
 		string projectFilePath,
@@ -97,14 +101,19 @@ public static class UnsupportedProjectDataMarker
 	}
 
 	public static string Write(string projectFilePath, string reason)
+		=> Write(projectFilePath, reason, ProjectDataEnvironment.Default);
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The marker path is resolved through the supplied ProjectDataEnvironment before file I/O.")]
+	internal static string Write(string projectFilePath, string reason, ProjectDataEnvironment environment)
 	{
 		if (string.IsNullOrWhiteSpace(reason))
 		{
 			reason = "Unsupported";
 		}
 
-		string markerPath = GetMarkerFilePath(projectFilePath);
-		string? directory = Path.GetDirectoryName(markerPath);
+		string markerPath = GetMarkerFilePath(projectFilePath, environment);
+		string absoluteMarkerPath = environment.GetFullPath(markerPath);
+		string? directory = Path.GetDirectoryName(absoluteMarkerPath);
 		if (!string.IsNullOrEmpty(directory))
 		{
 			Directory.CreateDirectory(directory);
@@ -113,20 +122,24 @@ public static class UnsupportedProjectDataMarker
 		string content =
 			$"version={SchemaVersion}\n" +
 			$"rulesVersion={RulesVersion}\n" +
-			$"project={Path.GetFullPath(projectFilePath)}\n" +
-			$"projectFingerprint={ComputeProjectFingerprint(projectFilePath, CancellationToken.None)}\n" +
-			$"inputsFingerprint={ComputeAncestorInputsFingerprintCore(projectFilePath, CancellationToken.None)}\n" +
+			$"project={environment.GetFullPath(projectFilePath)}\n" +
+			$"projectFingerprint={ComputeFileFingerprint(environment.GetFullPath(projectFilePath), CancellationToken.None)}\n" +
+			$"inputsFingerprint={ComputeAncestorInputsFingerprintCore(projectFilePath, environment, CancellationToken.None)}\n" +
 			$"reason={reason}\n";
 
-		WriteAllTextAtomically(markerPath, content);
+		WriteAllTextAtomically(absoluteMarkerPath, content);
 		return markerPath;
 	}
 
 	public static void Delete(string projectFilePath)
+		=> Delete(projectFilePath, ProjectDataEnvironment.Default);
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The marker path is resolved through the supplied ProjectDataEnvironment before file I/O.")]
+	internal static void Delete(string projectFilePath, ProjectDataEnvironment environment)
 	{
 		try
 		{
-			string markerPath = GetMarkerFilePath(projectFilePath);
+			string markerPath = environment.GetFullPath(GetMarkerFilePath(projectFilePath, environment));
 			File.Delete(markerPath);
 		}
 		catch (Exception ex) when (IsRecoverableMarkerException(ex))
@@ -145,8 +158,12 @@ public static class UnsupportedProjectDataMarker
 		=> ComputeAncestorInputsFingerprintCore(projectFilePath, cancellationToken);
 
 	private static string ComputeAncestorInputsFingerprintCore(string projectFilePath, CancellationToken cancellationToken)
+		=> ComputeAncestorInputsFingerprintCore(projectFilePath, ProjectDataEnvironment.Default, cancellationToken);
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Input paths derive from absolute ancestors of the project path resolved through the supplied environment.")]
+	private static string ComputeAncestorInputsFingerprintCore(string projectFilePath, ProjectDataEnvironment environment, CancellationToken cancellationToken)
 	{
-		string? directory = Path.GetDirectoryName(Path.GetFullPath(projectFilePath));
+		string? directory = Path.GetDirectoryName(environment.GetFullPath(projectFilePath));
 		List<string> inputs = [];
 		while (!string.IsNullOrEmpty(directory))
 		{
@@ -156,7 +173,7 @@ public static class UnsupportedProjectDataMarker
 				string candidate = Path.Combine(directory, fileName);
 				if (File.Exists(candidate))
 				{
-					inputs.Add(Path.GetFullPath(candidate));
+					inputs.Add(environment.GetFullPath(candidate));
 				}
 			}
 
@@ -206,6 +223,7 @@ public static class UnsupportedProjectDataMarker
 		return values.TryGetValue(key, out string? text) && int.TryParse(text, out value);
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Callers resolve project and ancestor input paths through the supplied ProjectDataEnvironment.")]
 	private static string ComputeFileFingerprint(string path, CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
@@ -223,6 +241,7 @@ public static class UnsupportedProjectDataMarker
 		return HexEncoder.ToLowerHex(hash);
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Write resolves the marker path; temporary paths derive from that absolute path.")]
 	private static void WriteAllTextAtomically(string path, string content)
 	{
 		string tempPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
@@ -256,6 +275,7 @@ public static class UnsupportedProjectDataMarker
 	private static bool IsRecoverableMarkerException(Exception ex)
 		=> ex is IOException or UnauthorizedAccessException or FormatException or ArgumentException or NotSupportedException or InvalidOperationException or CryptographicException;
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Ancestor input paths have already been resolved; GetFullPath only canonicalizes them.")]
 	private static string NormalizePathForFingerprint(string path)
 	{
 		string normalized = Path.GetFullPath(path);

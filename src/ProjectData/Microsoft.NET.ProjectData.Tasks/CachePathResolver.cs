@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.NET.ProjectData;
 
 namespace Microsoft.NET.ProjectData.Tasks;
@@ -20,9 +21,16 @@ internal sealed class CachePathResolver
 	private readonly string? netFxRefRoot;
 	private readonly string projectDir;
 	private readonly StringComparison pathsComparison;
+	private readonly ProjectDataEnvironment environment;
 
 	public CachePathResolver(string projectFilePath)
+		: this(projectFilePath, ProjectDataEnvironment.Default)
 	{
+	}
+
+	internal CachePathResolver(string projectFilePath, ProjectDataEnvironment environment)
+	{
+		this.environment = environment;
 		this.projectDir = Path.GetDirectoryName(projectFilePath) ?? string.Empty;
 		bool caseInsensitive = Path.DirectorySeparatorChar == '\\';
 		this.pathsComparison = caseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
@@ -34,6 +42,7 @@ internal sealed class CachePathResolver
 	// For testing — allows injecting roots directly.
 	internal CachePathResolver(string projectDir, string[] nugetFolders, string[] dotnetRoots, string? netFxRefRoot)
 	{
+		this.environment = ProjectDataEnvironment.Default;
 		this.projectDir = projectDir;
 		bool caseInsensitive = Path.DirectorySeparatorChar == '\\';
 		this.pathsComparison = caseInsensitive ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
@@ -76,9 +85,7 @@ internal sealed class CachePathResolver
 	internal string ToAbsolutePath(string inputPath)
 	{
 		if (string.IsNullOrEmpty(inputPath)) return inputPath;
-		return Path.IsPathRooted(inputPath)
-			? Path.GetFullPath(inputPath)
-			: Path.GetFullPath(Path.Combine(this.projectDir, inputPath));
+		return this.environment.GetFullPath(Path.Combine(this.projectDir, inputPath));
 	}
 
 	/// <summary>
@@ -286,37 +293,48 @@ internal sealed class CachePathResolver
 		return rel.Length == 0 ? "." : rel.ToString();
 	}
 
-	private static string[] ResolveNuGetFolders()
+	private string[] ResolveNuGetFolders()
 	{
-		string? envVal = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+		string? envVal = this.environment.GetEnvironmentVariable("NUGET_PACKAGES");
 		if (!string.IsNullOrWhiteSpace(envVal))
-			return [NormalizeFolderPath(envVal)];
+			return [NormalizeFolderPath(envVal, this.environment)];
 
-		string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+		string userProfile = this.environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 		if (!string.IsNullOrEmpty(userProfile))
-			return [NormalizeFolderPath(Path.Combine(userProfile, ".nuget", "packages"))];
+			return [NormalizeFolderPath(Path.Combine(userProfile, ".nuget", "packages"), this.environment)];
 
 		return [];
 	}
 
-	private static string[] ResolveDotNetRoots()
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Candidates are resolved through the supplied ProjectDataEnvironment before probing the file system.")]
+	private string[] ResolveDotNetRoots()
 	{
 		var list = new List<string>();
 		void Add(string? candidate)
 		{
-			if (string.IsNullOrEmpty(candidate) || !Directory.Exists(candidate)) return;
-			string norm = NormalizeFolderPath(candidate!);
+			if (string.IsNullOrEmpty(candidate)) return;
+			string norm;
+			try
+			{
+				norm = NormalizeFolderPath(candidate, this.environment);
+			}
+			catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+			{
+				// Directory.Exists ignored invalid candidates before paths were resolved explicitly.
+				return;
+			}
+			if (!Directory.Exists(norm)) return;
 			foreach (var existing in list)
 				if (string.Equals(existing, norm, StringComparison.OrdinalIgnoreCase)) return;
 			list.Add(norm);
 		}
 
-		Add(Environment.GetEnvironmentVariable("DOTNET_ROOT"));
-		Add(TryGetDotNetRootFromHostPath(Environment.GetEnvironmentVariable("DOTNET_HOST_PATH")));
-		Add(TryGetDotNetRootFromSdkPath(AppContext.BaseDirectory));
+		Add(this.environment.GetEnvironmentVariable("DOTNET_ROOT"));
+		Add(TryGetDotNetRootFromHostPath(this.environment.GetEnvironmentVariable("DOTNET_HOST_PATH"), this.environment));
+		Add(TryGetDotNetRootFromSdkPath(AppContext.BaseDirectory, this.environment));
 		if (Path.DirectorySeparatorChar == '\\')
 		{
-			string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+			string programFiles = this.environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
 			if (!string.IsNullOrEmpty(programFiles)) Add(Path.Combine(programFiles, "dotnet"));
 		}
 		else
@@ -324,40 +342,52 @@ internal sealed class CachePathResolver
 			Add("/usr/share/dotnet");
 			Add("/usr/local/share/dotnet");
 		}
-		string userHome = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-		if (string.IsNullOrEmpty(userHome)) userHome = Environment.GetEnvironmentVariable("HOME") ?? string.Empty;
+		string userHome = this.environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+		if (string.IsNullOrEmpty(userHome)) userHome = this.environment.GetEnvironmentVariable("HOME") ?? string.Empty;
 		if (!string.IsNullOrEmpty(userHome)) Add(Path.Combine(userHome, ".dotnet"));
 		return list.ToArray();
 	}
 
 	internal static string? TryGetDotNetRootFromHostPath(string? hostPath)
+		=> TryGetDotNetRootFromHostPath(hostPath, ProjectDataEnvironment.Default);
+
+	private static string? TryGetDotNetRootFromHostPath(string? hostPath, ProjectDataEnvironment environment)
 	{
 		if (string.IsNullOrWhiteSpace(hostPath) || !Path.IsPathRooted(hostPath)) return null;
-		return Path.GetDirectoryName(Path.GetFullPath(hostPath));
+		return Path.GetDirectoryName(environment.GetFullPath(hostPath));
 	}
 
 	internal static string? TryGetDotNetRootFromSdkPath(string? sdkPath)
+		=> TryGetDotNetRootFromSdkPath(sdkPath, ProjectDataEnvironment.Default);
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The SDK path is resolved through the supplied ProjectDataEnvironment before constructing DirectoryInfo.")]
+	private static string? TryGetDotNetRootFromSdkPath(string? sdkPath, ProjectDataEnvironment environment)
 	{
 		if (string.IsNullOrWhiteSpace(sdkPath)) return null;
 
-		DirectoryInfo sdkVersionDirectory = new DirectoryInfo(Path.GetFullPath(sdkPath));
+		DirectoryInfo sdkVersionDirectory = new DirectoryInfo(environment.GetFullPath(sdkPath));
 		DirectoryInfo? sdkDirectory = sdkVersionDirectory.Parent;
 		if (sdkDirectory is null || !string.Equals(sdkDirectory.Name, "sdk", StringComparison.OrdinalIgnoreCase)) return null;
 		return sdkDirectory.Parent?.FullName;
 	}
 
-	private static string? ResolveNetFxRefRoot()
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The candidate is resolved through the supplied ProjectDataEnvironment before probing the file system.")]
+	private string? ResolveNetFxRefRoot()
 	{
 		if (Path.DirectorySeparatorChar != '\\') return null;
-		string pfx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+		string pfx86 = this.environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
 		if (string.IsNullOrEmpty(pfx86)) return null;
 		string candidate = Path.Combine(pfx86, "Reference Assemblies", "Microsoft", "Framework", ".NETFramework");
-		return Directory.Exists(candidate) ? NormalizeFolderPath(candidate) : null;
+		candidate = this.environment.GetFullPath(candidate);
+		return Directory.Exists(candidate) ? NormalizeFolderPath(candidate, this.environment) : null;
 	}
 
 	internal static string NormalizeFolderPath(string path)
+		=> NormalizeFolderPath(path, ProjectDataEnvironment.Default);
+
+	private static string NormalizeFolderPath(string path, ProjectDataEnvironment environment)
 	{
-		string full = Path.GetFullPath(path);
+		string full = environment.GetFullPath(path);
 		if (full.Length == 0 || full[full.Length - 1] != Path.DirectorySeparatorChar)
 			full += Path.DirectorySeparatorChar;
 		return full;
