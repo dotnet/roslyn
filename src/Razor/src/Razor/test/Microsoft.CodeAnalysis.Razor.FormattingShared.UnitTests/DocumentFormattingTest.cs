@@ -15405,15 +15405,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <cache enabled="Check(@x,
                                       2)"
-                           priority="CacheItemPriority.High">
-                        y
-                    </cache>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <cache enabled="Check(@x,
-                                          2)"
                            priority="CacheItemPriority.High">y</cache>
                 </div>
                 """,
@@ -15421,9 +15412,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <cache enabled="Check(@x,
                                           2)"
-                           priority="CacheItemPriority.High">
-                        y
-                    </cache>
+                           priority="CacheItemPriority.High">y</cache>
                 </div>
                 """,
             fileKind: RazorFileKind.Legacy);
@@ -15608,16 +15597,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <cache enabled="Check(1,
                                       @x,
                                       3)"
-                           priority="CacheItemPriority.High">
-                        y
-                    </cache>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <cache enabled="Check(1,
-                                          @x,
-                                          3)"
                            priority="CacheItemPriority.High">y</cache>
                 </div>
                 """,
@@ -15626,9 +15605,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <cache enabled="Check(1,
                                           @x,
                                           3)"
-                           priority="CacheItemPriority.High">
-                        y
-                    </cache>
+                           priority="CacheItemPriority.High">y</cache>
                 </div>
                 """,
             fileKind: RazorFileKind.Legacy);
