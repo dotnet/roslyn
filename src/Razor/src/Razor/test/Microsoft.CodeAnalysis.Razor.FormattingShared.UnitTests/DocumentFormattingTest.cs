@@ -18172,6 +18172,206 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
     }
 
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86397")]
+    public Task ScriptEndTagSharesBodyLineDoesNotAffectFollowingContent(bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    var x = @Value;
+                    function f() {
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            htmlFormatted: """
+                <script>
+                    var x = @Value;
+                    function f() {
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            expected: """
+                <script>
+                    var x = @Value;
+                    function f() {
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86397")]
+    public Task StyleEndTagSharesBodyLineDoesNotAffectFollowingContent(bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <style>
+                    .a {
+                        color: @Color;
+                    }</style>
+                <div>
+                    <p>x</p>
+                </div>
+                @code {
+                    string Color = "red";
+                }
+                """,
+            htmlFormatted: """
+                <style>
+                    .a {
+                        color: @Color;
+                    }</style>
+                <div>
+                    <p>x</p>
+                </div>
+                @code {
+                    string Color = "red";
+                }
+                """,
+            expected: """
+                <style>
+                    .a {
+                        color: @Color;
+                    }</style>
+                <div>
+                    <p>x</p>
+                </div>
+                @code {
+                    string Color = "red";
+                }
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86397")]
+    public Task ScriptEndTagSharesBodyLineDoesNotAffectFollowingContent_Legacy(bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    var x = @Value;
+                    function f() {
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                @functions {
+                    int Value = 1;
+                }
+                """,
+            htmlFormatted: """
+                <script>
+                    var x = @Value;
+                    function f() {
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                @functions {
+                    int Value = 1;
+                }
+                """,
+            expected: """
+                <script>
+                    var x = @Value;
+                    function f() {
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                @functions {
+                    int Value = 1;
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86397")]
+    public Task ComplexScriptEndTagSharesBodyLineInIfDoesNotAffectFollowingContent()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <script>
+                        var x = @Value;
+                        @* note *@
+                        function f() {
+                        }</script>
+                    <div>
+                        <p>x</p>
+                    </div>
+                }
+                <div>
+                    <p>y</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <script>
+                    var x = @Value;
+                    @* note *@
+                    function f() {
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                }
+                <div>
+                    <p>y</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <script>
+                        var x = @Value;
+                        @* note *@
+                        function f() {
+                        }</script>
+                    <div>
+                        <p>x</p>
+                    </div>
+                }
+                <div>
+                    <p>y</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """);
+    }
+
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/84601")]
     public Task RazorCommentWithInternalBlankLine()
