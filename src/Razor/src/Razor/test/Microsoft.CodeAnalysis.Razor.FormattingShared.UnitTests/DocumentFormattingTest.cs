@@ -15128,7 +15128,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div @onclick="flag
                                ? A
                                : B"
-                        class="x">
+                         class="x">
                         y
                     </div>
                 </div>
@@ -15173,7 +15173,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div @onclick="flag
                                ? A
                                : B"
-                            class="x">
+                         class="x">
                         y
                     </div>
                 </div>
