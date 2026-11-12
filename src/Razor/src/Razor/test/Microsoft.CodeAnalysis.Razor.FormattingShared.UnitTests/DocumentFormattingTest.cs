@@ -14849,6 +14849,92 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_ExpressionBeforeLineBreak()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div title="Show(@x,
+                             2)"
+                   class="x">y</div>
+                </div>
+                @code {
+                    int x;
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <div title="Show(@x,
+                             2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                @code {
+                    int x;
+                }
+                """,
+            expected: """
+                <div>
+                    <div title="Show(@x,
+                             2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                @code {
+                    int x;
+                }
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div title="Show(@x,
+                             2)"
+                         class="x">y</div>
+                </div>
+                @code {
+                    int x;
+                }
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Component_ExpressionBeforeLineBreak()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton ImageContentSource="a @x
+                                                    b" />
+                </div>
+                @code {
+                    string x;
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton ImageContentSource="a @x
+                                                    b" />
+                </div>
+                @code {
+                    string x;
+                }
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton ImageContentSource="a @x
+                                                    b" />
+                </div>
+                @code {
+                    string x;
+                }
+                """,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
     public async Task MultilineAttributeValue_PreservesContents_DirectiveAttribute()
     {
         await RunFormattingTestAsync(
