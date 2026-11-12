@@ -855,7 +855,7 @@ Iterator Function(&lt;parameterList&gt;) As IEnumerable(Of &lt;T&gt;)</target>
       </trans-unit>
       <trans-unit id="Separates_the_beginning_and_ending_values_of_a_loop_counter_or_array_bounds_or_that_of_a_value_match_range">
         <source>Separates the beginning and ending values of a loop counter or array bounds or that of a value match range.</source>
-        <target state="translated">Separa os valores de início e de fim de um contador de loops ou associações de matriz ou de um intervalo de valores correspondentes.</target>
+        <target state="translated">Separa os valores de início e de fim de um contador de loops ou limites de matriz ou de um intervalo de valores correspondentes.</target>
         <note />
       </trans-unit>
       <trans-unit id="Determines_the_run_time_type_of_an_object_reference_variable_and_compares_it_to_a_data_type_Returns_True_or_False_depending_on_whether_the_two_types_are_compatible_result_TypeOf_objectExpression_Is_typeName">
