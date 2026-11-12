@@ -1701,8 +1701,8 @@ class Program
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
         }
@@ -1763,8 +1763,8 @@ class Program
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("s", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("s", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("s", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside));
         }
@@ -1791,8 +1791,8 @@ class Program
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
         }
@@ -1819,8 +1819,8 @@ class Program
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
         }
@@ -1847,8 +1847,8 @@ class Program
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
         }
@@ -1878,8 +1878,8 @@ class Program
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
         }
