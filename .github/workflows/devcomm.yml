@@ -1,0 +1,36 @@
+name: Add Developer Community label
+on:
+  issues:
+    types: [opened]
+jobs:
+  add_labels:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'dotnet/roslyn' && github.event.issue.user.login == 'vsfeedback' }}
+    steps:
+    - name: Get label data
+      env:
+        ORGANIZATION: dotnet
+        REPOSITORY: roslyn
+        LABEL_NAME: Developer Community
+      run: |
+        gh api graphql -f query='
+          query($org: String!, $repo:String!, $label:String!) {
+            repository(name: $repo, owner: $org) {
+              label(name:$label) {
+                id
+              }
+            }
+          }' -f org=$ORGANIZATION -f repo=$REPOSITORY -f label="$LABEL_NAME" > label_data.json
+
+        echo 'LABEL_ID='$(jq '.data.repository.label.id' label_data.json) >> $GITHUB_ENV
+
+    - name: Add Developer Community label
+      env:
+        ISSUE_ID: ${{ github.event.issue.node_id }}
+      run: |
+        gh api graphql -f query='
+          mutation($issue:ID!, $label:[ID!]!) {
+            addLabelsToLabelable(input: {labelIds:$label, labelableId:$issue}) {
+              clientMutationId
+            }
+          }' -f issue=$ISSUE_ID -f label=LABEL_ID
