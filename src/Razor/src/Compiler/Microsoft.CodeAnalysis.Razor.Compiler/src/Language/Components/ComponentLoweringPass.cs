@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -30,6 +31,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
 
         var @namespace = documentNode.FindPrimaryNamespace();
         var @class = documentNode.FindPrimaryClass();
+        var supportsComponentAliases = codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_12_0;
         if (@namespace == null || @class == null)
         {
             // Nothing to do, bail. We can't function without the standard structure.
@@ -67,7 +69,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             }
             else if (count > 1)
             {
-                var tagHelper = GetTagHelperOrAddDiagnostic(node, usings);
+                var tagHelper = GetTagHelperOrAddDiagnostic(node, usings, supportsComponentAliases);
                 if (tagHelper == null)
                 {
                     // An ambiguous tag must not prevent unrelated components from being lowered.
@@ -85,12 +87,16 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
         // We have several tag helpers that are candidates for the same tag node. We need to disambiguate which tag helper applies to this tag
         // since we now fully qualify the tag helper when we emit the code, and we can't rely on the compiler to error out when there are ambiguous
         // tag helpers.
-        // We look based on the set of usings if there is only a single component for that can be applied to that tag or if we detect more than one
-        // we add a diagnostic and return null
-        static TagHelperDescriptor GetTagHelperOrAddDiagnostic(TagHelperIntermediateNode node, IReadOnlyList<UsingDirectiveIntermediateNode> usings)
+        // Preserve Razor's preference for explicit namespace imports over the document's namespace.
+        // If no ordinary import selects candidates, keep the bound matches so aliases and fully
+        // qualified component tags do not require an additional namespace import.
+        static TagHelperDescriptor GetTagHelperOrAddDiagnostic(
+            TagHelperIntermediateNode node,
+            ImmutableArray<UsingDirectiveIntermediateNode> usings,
+            bool supportsComponentAliases)
         {
-            TagHelperDescriptor candidate = null;
-            List<TagHelperDescriptor> matched = null;
+            using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var matched);
+            var hasImportedCandidate = false;
             foreach (var tagHelper in node.TagHelpers)
             {
                 if (tagHelper.Kind != TagHelperKind.Component)
@@ -98,29 +104,43 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                     continue;
                 }
 
-                for (var j = 0; j < usings.Count; j++)
+                var isImported = false;
+                for (var i = 0; i < usings.Length; i++)
                 {
-                    var usingNamespace = usings[j].Content;
-                    if (string.Equals(tagHelper.TypeNamespace, usingNamespace, StringComparison.Ordinal))
+                    var usingNode = usings[i];
+                    if (usingNode.Alias.IsEmpty &&
+                        string.Equals(tagHelper.TypeNamespace, usingNode.Content, StringComparison.Ordinal))
                     {
-                        if (candidate == null)
-                        {
-                            candidate = tagHelper;
-                        }
-                        else
-                        {
-                            matched ??= new();
-                            matched.Add(tagHelper);
-                        }
+                        isImported = true;
+                        break;
                     }
                 }
+
+                if (isImported)
+                {
+                    if (!hasImportedCandidate)
+                    {
+                        // Drop namespace-scope matches, but retain ambiguity between explicit imports.
+                        matched.Clear();
+                        hasImportedCandidate = true;
+                    }
+                }
+                else if (hasImportedCandidate)
+                {
+                    continue;
+                }
+
+                matched.Add(tagHelper);
             }
 
-            if (matched != null)
+            // Before Razor 12, only an explicit namespace import could select an ambiguous component.
+            if (!supportsComponentAliases && !hasImportedCandidate)
             {
-                // Insert candidate at the beginning to maintain the original order
-                matched.Insert(0, candidate);
+                return null;
+            }
 
+            if (matched.Count > 1)
+            {
                 // Before reporting an ambiguity error, try to disambiguate based on whether
                 // type parameters are provided. This handles the case where both a generic
                 // and non-generic version of a component exist with the same name.
@@ -145,7 +165,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                 return null;
             }
 
-            return candidate;
+            return matched.Count == 1 ? matched[0] : null;
         }
 
         // Try to disambiguate between multiple components with the same name by checking if

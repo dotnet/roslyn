@@ -604,9 +604,11 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
             nonGenericTypeName = nonGenericTypeName.Slice(lastColon);
         }
 
-        // If the start tag is shorter than the type name, then it must not be a fully qualified tag, so write out
-        // the namespace parts and trim. Razor components don't support nested types, so this logic doesn't either.
-        if (node.StartTagSpan.Length < nonGenericTypeName.Length)
+        var sourceSpan = node.StartTagSpan;
+        var sourceIdentifier = node.TagName.AsSpan();
+        // Namespace aliases can be shorter or longer than their targets. Only the final type
+        // identifier has an equal-length mapping; the alias prefix must not be renamed with it.
+        if (!node.Component.IsFullyQualifiedNameMatch)
         {
             var lastDot = nonGenericTypeName.Span.LastIndexOf('.');
             if (lastDot > -1)
@@ -615,12 +617,21 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
                 context.CodeWriter.Write(nonGenericTypeName[0..lastDot]);
                 nonGenericTypeName = nonGenericTypeName.Slice(lastDot);
             }
+
+            var tagNameStart = node.TagName.LastIndexOf('.') + 1;
+            sourceSpan = sourceSpan.Slice(tagNameStart, node.TagName.Length - tagNameStart);
+            sourceIdentifier = sourceIdentifier[tagNameStart..];
         }
 
-        var offset = nonGenericTypeName.Span.StartsWith('@')
-            ? 1
-            : 0;
-        context.AddSourceMappingFor(node.StartTagSpan, offset);
+        var identifierOffset = nonGenericTypeName.Span.StartsWith('@') ? 1 : 0;
+        var generatedIdentifier = nonGenericTypeName.Span[identifierOffset..];
+        if (sourceIdentifier.Equals(generatedIdentifier, StringComparison.Ordinal))
+        {
+            // Source mappings must cover identical text. A type alias with a different name has
+            // no corresponding identifier in the generated type name to map to.
+            context.AddSourceMappingFor(sourceSpan, identifierOffset);
+        }
+
         context.CodeWriter.Write(nonGenericTypeName);
     }
 
@@ -1058,6 +1069,7 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
             context.CodeWriter.Write("<");
 
             var nonGenericTypeName = TypeNameHelper.GetNonGenericTypeName(node.TypeName, out _);
+            // Qualify component types so a C# alias cannot change which component the generated code binds to.
             TypeNameHelper.WriteGlobalPrefixIfNeeded(context.CodeWriter, nonGenericTypeName);
             WriteComponentTypeName(context, node, nonGenericTypeName);
 
