@@ -1558,6 +1558,60 @@ internal partial class CSharpFormattingPass
                 return CreateLineInfo(processIndentation: false);
             }
 
+            private void GetHonouredIndentationLine(out TextLine line, out int firstNonWhitespacePosition)
+            {
+                line = _currentLine;
+                firstNonWhitespacePosition = _currentFirstNonWhitespacePosition;
+
+                // A line inside a C# block in a script or style body, eg the second line of:
+                //
+                // @if (true)
+                // {
+                //     @:value
+                // }
+                //
+                // already has the block's level in its indentation, and the generated document has a brace for the block too.
+                // Honouring the line's own indentation would count the block twice, and add another level on every run, so use
+                // the indentation of the line that starts the outermost block instead, and let the braces indent the rest.
+                CSharpCodeBlockSyntax? outermostBlock = null;
+                for (var node = _currentToken.Parent; node is not null; node = node.Parent)
+                {
+                    if (node is BaseMarkupElementSyntax element && RazorSyntaxFacts.IsScriptOrStyleBlock(element))
+                    {
+                        break;
+                    }
+
+                    if (node is CSharpCodeBlockSyntax block &&
+                        block.ChildNodes().Any(static child => child is CSharpStatementLiteralSyntax))
+                    {
+                        outermostBlock = block;
+                    }
+                }
+
+                if (outermostBlock is null)
+                {
+                    return;
+                }
+
+                foreach (var token in outermostBlock.DescendantTokens())
+                {
+                    if (token.Kind is SyntaxKind.Whitespace or SyntaxKind.NewLine)
+                    {
+                        continue;
+                    }
+
+                    var blockStartLine = _sourceText.Lines.GetLineFromPosition(token.Position);
+                    if (blockStartLine.LineNumber < _currentLine.LineNumber &&
+                        blockStartLine.GetFirstNonWhitespacePosition() is int blockStartFirstNonWhitespacePosition)
+                    {
+                        line = blockStartLine;
+                        firstNonWhitespacePosition = blockStartFirstNonWhitespacePosition;
+                    }
+
+                    return;
+                }
+            }
+
             private LineInfo CreateLineInfo(
                 bool processIndentation = true,
                 bool processFormatting = false,
@@ -1580,7 +1634,8 @@ internal partial class CSharpFormattingPass
                     _honourHtmlFormattingUntilLine is { } endLine &&
                     endLine >= _currentLine.LineNumber)
                 {
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _indentSize, out var calculatedAdditionalIndentation) - _htmlIndentationLevelInGeneratedDocument;
+                    GetHonouredIndentationLine(out var honouredLine, out var honouredFirstNonWhitespacePosition);
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(honouredLine, honouredFirstNonWhitespacePosition, _insertSpaces, _indentSize, out var calculatedAdditionalIndentation) - _htmlIndentationLevelInGeneratedDocument;
                     additionalIndentation = calculatedAdditionalIndentation;
                 }
 
