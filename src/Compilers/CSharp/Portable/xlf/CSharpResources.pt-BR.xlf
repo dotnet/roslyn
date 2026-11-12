@@ -789,7 +789,7 @@
       </trans-unit>
       <trans-unit id="ERR_DynamicDispatchToParamsCollection">
         <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
-        <target state="translated">"{0}" é aplicável somente com a forma expandida de coleção de parâmetros não de matriz, que não tem suporte durante a expedição dinâmica.</target>
+        <target state="translated">"{0}" é aplicável somente com a forma expandida de coleção de parâmetros não de matriz, que não tem suporte durante o despacho dinâmico.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -1294,7 +1294,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
         <source>Index is outside the bounds of the inline array</source>
-        <target state="translated">O índice está fora dos limites do texto.</target>
+        <target state="translated">O índice está fora dos limites da matriz embutida.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
@@ -3634,12 +3634,12 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">O operador de conversão de matriz em linha não será usado para a conversão da expressão do tipo declarativo.</target>
+        <target state="translated">O operador de conversão de matriz em linha não será usado para a conversão da expressão do tipo declarante.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">O operador de conversão de matriz em linha não será usado para a conversão da expressão do tipo declarativo.</target>
+        <target state="translated">O operador de conversão de matriz em linha não será usado para a conversão da expressão do tipo declarante.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
@@ -5002,7 +5002,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitArray">
         <source>implicitly typed array</source>
-        <target state="translated">matriz digitada implicitamente</target>
+        <target state="translated">matriz tipada implicitamente</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitLocal">
@@ -9071,7 +9071,7 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedArrayNoBestType">
         <source>No best type found for implicitly-typed array</source>
-        <target state="translated">Não foi encontrado nenhum tipo melhor para a matriz do tipo implícita</target>
+        <target state="translated">Não foi encontrado nenhum tipo melhor para a matriz tipada implicitamente</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonymousTypePropertyAssignedBadValue">
