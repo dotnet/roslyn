@@ -54,6 +54,7 @@ internal sealed class Descriptors
         // Registered so the XAML diagnostics component in the C# extension for VS Code can call them.
         { new("Microsoft.VisualStudio.HotReload.ProcessTrackingService", new Version(3, 0)), s_serviceRegistration },
         { new("Microsoft.VisualStudio.HotReload.ProjectHotReloadSession", new Version(3, 0)), s_serviceRegistration },
+        { new("Microsoft.VisualStudio.HotReload.HotReloadProjectEventSubscriber", new Version(3, 0)), s_serviceRegistration },
         { new("Microsoft.VisualStudio.Debugger.HotReloadOptionService", new(0, 1)), s_serviceRegistration },
         { new("Microsoft.VisualStudio.Maui.MauiLaunchCustomizerService", new(0, 1)), s_serviceRegistration },
         { new("Microsoft.VisualStudio.WebTools.CssVisualDiagnosticsService", new(0, 1)), s_serviceRegistration },
