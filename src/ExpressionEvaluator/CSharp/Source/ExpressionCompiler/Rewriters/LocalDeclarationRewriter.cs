@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 var type = local.Type;
                 var assignment = new BoundAssignmentOperator(
                     syntax,
-                    new BoundLocal(syntax, local, constantValueOpt: null, type: type),
+                    isInUnsafeRegion: false,
+                    new BoundLocal(syntax, isInUnsafeRegion: false, local, constantValueOpt: null, type: type),
                     initializer,
                     false,
                     type);
@@ -106,13 +107,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var typeType = compilation.GetWellKnownType(WellKnownType.System_Type);
             var stringType = compilation.GetSpecialType(SpecialType.System_String);
             var guidConstructor = (MethodSymbol)compilation.GetWellKnownTypeMember(WellKnownMember.System_Guid__ctor);
-            var type = new BoundTypeOfOperator(syntax, new BoundTypeExpression(syntax, aliasOpt: null, type: local.Type), null, typeType);
-            var name = new BoundLiteral(syntax, ConstantValue.Create(local.Name), stringType);
+            var type = new BoundTypeOfOperator(syntax, isInUnsafeRegion: false, new BoundTypeExpression(syntax, isInUnsafeRegion: false, aliasOpt: null, type: local.Type), null, typeType);
+            var name = new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(local.Name), stringType);
             bool hasCustomTypeInfoPayload;
             var customTypeInfoPayload = GetCustomTypeInfoPayload(local, syntax, compilation, out hasCustomTypeInfoPayload);
             var customTypeInfoPayloadId = GetCustomTypeInfoPayloadId(syntax, guidConstructor, hasCustomTypeInfoPayload);
             var call = BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: method,
@@ -124,14 +126,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             if (!hasCustomTypeInfoPayload)
             {
-                return new BoundDefaultExpression(syntax, targetType: null, constantValueOpt: null, guidConstructor.ContainingType);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, targetType: null, constantValueOpt: null, guidConstructor.ContainingType);
             }
 
             var value = ConstantValue.Create(CustomTypeInfo.PayloadTypeId.ToString());
             return new BoundObjectCreationExpression(
                 syntax,
+                isInUnsafeRegion: false,
                 guidConstructor,
-                new BoundLiteral(syntax, value, guidConstructor.ContainingType));
+                new BoundLiteral(syntax, isInUnsafeRegion: false, value, guidConstructor.ContainingType));
         }
 
         private static BoundExpression GetCustomTypeInfoPayload(LocalSymbol local, SyntaxNode syntax, CSharpCompilation compilation, out bool hasCustomTypeInfoPayload)
@@ -144,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             hasCustomTypeInfoPayload = bytes != null;
             if (!hasCustomTypeInfoPayload)
             {
-                return new BoundLiteral(syntax, ConstantValue.Null, byteArrayType);
+                return new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Null, byteArrayType);
             }
 
             var byteType = byteArrayType.ElementType;
@@ -154,14 +157,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var initializerExprs = ArrayBuilder<BoundExpression>.GetInstance(numBytes);
             foreach (var b in bytes)
             {
-                initializerExprs.Add(new BoundLiteral(syntax, ConstantValue.Create(b), byteType));
+                initializerExprs.Add(new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(b), byteType));
             }
 
-            var lengthExpr = new BoundLiteral(syntax, ConstantValue.Create(numBytes), intType);
+            var lengthExpr = new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Create(numBytes), intType);
             return new BoundArrayCreation(
                 syntax,
+                isInUnsafeRegion: false,
                 ImmutableArray.Create<BoundExpression>(lengthExpr),
-                new BoundArrayInitialization(syntax, isInferred: false, initializerExprs.ToImmutableAndFree()),
+                new BoundArrayInitialization(syntax, isInUnsafeRegion: false, isInferred: false, initializerExprs.ToImmutableAndFree()),
                 byteArrayType);
         }
     }

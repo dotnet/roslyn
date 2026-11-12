@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (symbol.Kind == SymbolKind.Property)
                             {
-                                declarators.Add(new BoundAnonymousPropertyDeclaration(fieldSyntaxNodes[i], (PropertySymbol)symbol, field.Type));
+                                declarators.Add(new BoundAnonymousPropertyDeclaration(fieldSyntaxNodes[i], isInUnsafeRegion: InUnsafeRegion, (PropertySymbol)symbol, field.Type));
                                 break;
                             }
                         }
@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //  Finally create a bound node
             return new BoundAnonymousObjectCreationExpression(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 anonymousType.InstanceConstructors[0],
                 boundExpressions.AsImmutableOrNull(),
                 declarators.ToImmutableAndFree(),

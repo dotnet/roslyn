@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression RewriteAwaitExpression(SyntaxNode syntax, BoundExpression rewrittenExpression, BoundAwaitableInfo awaitableInfo, TypeSymbol type, BoundAwaitExpressionDebugInfo debugInfo, bool used)
         {
-            return RewriteAwaitExpression(new BoundAwaitExpression(syntax, rewrittenExpression, awaitableInfo, debugInfo, type) { WasCompilerGenerated = true }, used);
+            return RewriteAwaitExpression(new BoundAwaitExpression(syntax, isInUnsafeRegion: false, rewrittenExpression, awaitableInfo, debugInfo, type) { WasCompilerGenerated = true }, used);
         }
 
         /// <summary>
@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 kind: SynthesizedLocalKind.Spill);
             return new BoundSpillSequence(
                 syntax: rewrittenAwait.Syntax,
+                isInUnsafeRegion: rewrittenAwait.IsInUnsafeRegion,
                 locals: ImmutableArray.Create<LocalSymbol>(tempAccess.LocalSymbol),
                 sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
                 value: tempAccess,

@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var property = (SourcePropertySymbol)this.MemberSymbol;
                         BoundFieldEqualsValue result = binder.BindFieldInitializer(property.BackingField, equalsValue, diagnostics);
-                        return new BoundPropertyEqualsValue(result.Syntax, property, result.Locals, result.Value);
+                        return new BoundPropertyEqualsValue(result.Syntax, isInUnsafeRegion: result.IsInUnsafeRegion, property, result.Locals, result.Value);
                     }
 
                 case SymbolKind.Parameter:

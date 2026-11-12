@@ -13,31 +13,37 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class Binder
     {
         /// <summary>
-        /// True if we are currently in an unsafe region (type, member, or block).
+        /// True if this binder is in an unsafe context.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Does not imply that this compilation allows unsafe regions (could be in an error recovery scenario).
         /// To determine that, check this.Compilation.Options.AllowUnsafe.
+        /// </para>
+        /// <para>
+        /// This describes the current binding context, not necessarily the context of an already-bound operation.
+        /// See <see cref="BoundExpression.IsInUnsafeRegion"/> for context-preservation rules.
+        /// </para>
         /// </remarks>
         internal bool InUnsafeRegion
         {
             get { return this.Flags.Includes(BinderFlags.UnsafeRegion); }
         }
 
-        internal void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node)
+        internal void ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag diagnostics, Symbol symbol, SyntaxNodeOrToken node, bool isInUnsafeRegion)
         {
             if (diagnostics.DiagnosticBag is { } bag)
             {
-                ReportDiagnosticsIfUnsafeMemberAccess(bag, symbol, node, static node => node.GetLocation());
+                ReportDiagnosticsIfUnsafeMemberAccess(bag, symbol, node, static node => node.GetLocation(), isInUnsafeRegion);
             }
         }
 
-        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location)
+        internal void ReportDiagnosticsIfUnsafeMemberAccess(DiagnosticBag diagnostics, Symbol symbol, Location? location, bool isInUnsafeRegion)
         {
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, location, static l => l, isInUnsafeRegion);
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location)
+        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, T arg, Func<T, Location?> location, bool isInUnsafeRegion)
         {
             if (IsInsideNameof)
             {
@@ -51,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, requiresUnsafeMode, arg, location);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, requiresUnsafeMode, arg, location, isInUnsafeRegion);
 
             if (useUpdatedMemorySafetyRules)
             {
@@ -68,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     : methodSymbol.TypeArgumentsWithAnnotations;
                                 for (int i = 0; i < arity; i++)
                                 {
-                                    checkTypeArgumentWithConstructorConstraint(this, typeParameters[i], typeArguments[i].Type, symbol, arg, location, diagnostics);
+                                    checkTypeArgumentWithConstructorConstraint(this, typeParameters[i], typeArguments[i].Type, symbol, arg, location, diagnostics, isInUnsafeRegion);
                                 }
                             }
                         }
@@ -79,21 +85,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var arity = typeSymbol.TypeParameters.Length;
                             for (int i = 0; i < arity; i++)
                             {
-                                checkTypeArgumentWithConstructorConstraint(this, typeSymbol.TypeParameters[i], typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type, symbol, arg, location, diagnostics);
+                                checkTypeArgumentWithConstructorConstraint(this, typeSymbol.TypeParameters[i], typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type, symbol, arg, location, diagnostics, isInUnsafeRegion);
                             }
                         }
                         break;
                 }
             }
 
-            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
+            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics, bool isInUnsafeRegion)
             {
                 if (typeArgument is NamedTypeSymbol namedTypeArgument)
                 {
                     // Resolving constraints or constructors while binding declarations can reenter binding or member synthesis.
                     DiagnosticInfo? diagnosticInfo = @this.ShouldCheckConstraints
-                        ? @this.GetUnsafeConstructorConstraintDiagnosticInfo(typeParameter, namedTypeArgument, targetSymbol)
-                        : new LazyUnsafeConstructorConstraintDiagnosticInfo(@this, typeParameter, namedTypeArgument, targetSymbol);
+                        ? @this.GetUnsafeConstructorConstraintDiagnosticInfo(typeParameter, namedTypeArgument, targetSymbol, isInUnsafeRegion)
+                        : new LazyUnsafeConstructorConstraintDiagnosticInfo(@this, typeParameter, namedTypeArgument, targetSymbol, isInUnsafeRegion);
 
                     if (diagnosticInfo is not null)
                     {
@@ -103,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol)
+        internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol, bool isInUnsafeRegion)
         {
             if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
             {
@@ -116,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return constructor.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit
                         ? GetUnsafeDiagnosticInfo(
+                            isInUnsafeRegion,
                             disallowedUnder: MemorySafetyRulesVersion.Version2,
                             ignoreUnsafeDiagnosticsSuppression: true,
                             sizeOfTypeOpt: null,
@@ -128,13 +135,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, RequiresUnsafeMode requiresUnsafeMode, T arg, Func<T, Location?> location)
+        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, RequiresUnsafeMode requiresUnsafeMode, T arg, Func<T, Location?> location, bool isInUnsafeRegion)
         {
             Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || requiresUnsafeMode == RequiresUnsafeMode.Implicit);
 
             if (requiresUnsafeMode != RequiresUnsafeMode.None)
             {
-                ReportUnsafeIfNotAllowed(arg, location, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version2,
+                ReportUnsafeIfNotAllowed(arg, location, diagnostics, isInUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version2,
                     customErrorCode: requiresUnsafeMode switch
                     {
                         RequiresUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
@@ -146,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If this fails, call <see cref="ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag, Symbol, SyntaxNodeOrToken)"/> for the <paramref name="symbol"/> instead and add corresponding tests.
+        /// If this fails, call <see cref="ReportDiagnosticsIfUnsafeMemberAccess(BindingDiagnosticBag, Symbol, SyntaxNodeOrToken, bool)"/> for the <paramref name="symbol"/> instead and add corresponding tests.
         /// </summary>
         [Conditional("DEBUG")]
         internal void AssertNotUnsafeMemberAccess(Symbol symbol)
@@ -182,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Reports CS9361 if an uninitialized span stackalloc requires an unsafe context under updated memory safety rules.
         /// </summary>
-        internal void ReportUnsafeForUninitializedSpanStackAllocIfRequired(SyntaxNodeOrToken node, BindingDiagnosticBag diagnostics, bool hasInitializer)
+        internal void ReportUnsafeForUninitializedSpanStackAllocIfRequired(SyntaxNodeOrToken node, BindingDiagnosticBag diagnostics, bool hasInitializer, bool isInUnsafeRegion)
         {
             // Under the updated memory safety rules, a stackalloc_expression is unsafe if being converted to Span/ROS,
             // does not have an initializer, and is used within a member with SkipLocalsInitAttribute.
@@ -191,25 +198,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Compilation.SourceModule.UseUpdatedMemorySafetyRules &&
                 ContainingMemberOrLambda is MethodSymbol { AreLocalsZeroed: false })
             {
-                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version2, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
+                ReportUnsafeIfNotAllowed(node, diagnostics, isInUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version2, customErrorCode: ErrorCode.ERR_UnsafeUninitializedStackAlloc);
             }
         }
 
         internal bool ReportUnsafeIfNotAllowed(
             SyntaxNodeOrToken node,
             BindingDiagnosticBag diagnostics,
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             TypeSymbol? sizeOfTypeOpt = null,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
             return diagnostics.DiagnosticBag is { } bag &&
-                ReportUnsafeIfNotAllowed(node, bag, disallowedUnder, sizeOfTypeOpt, customErrorCode, customArgs);
+                ReportUnsafeIfNotAllowed(node, bag, isInUnsafeRegion, disallowedUnder, sizeOfTypeOpt, customErrorCode, customArgs);
         }
 
         internal bool ReportUnsafeIfNotAllowed(
             SyntaxNodeOrToken node,
             DiagnosticBag diagnostics,
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             TypeSymbol? sizeOfTypeOpt = null,
             ErrorCode? customErrorCode = null,
@@ -220,6 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node,
                 static node => node.GetLocation(),
                 diagnostics,
+                isInUnsafeRegion,
                 disallowedUnder,
                 sizeOfTypeOpt,
                 customErrorCode,
@@ -229,17 +239,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal bool ReportUnsafeIfNotAllowed(
             Location? location,
             BindingDiagnosticBag diagnostics,
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
             return diagnostics.DiagnosticBag is { } bag &&
-                ReportUnsafeIfNotAllowed(location, bag, disallowedUnder, customErrorCode, customArgs);
+                ReportUnsafeIfNotAllowed(location, bag, isInUnsafeRegion, disallowedUnder, customErrorCode, customArgs);
         }
 
         internal bool ReportUnsafeIfNotAllowed(
             Location? location,
             DiagnosticBag diagnostics,
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
@@ -248,6 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 location,
                 static l => l,
                 diagnostics,
+                isInUnsafeRegion,
                 disallowedUnder,
                 sizeOfTypeOpt: null,
                 customErrorCode,
@@ -262,12 +275,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             T arg,
             Func<T, Location?> location,
             DiagnosticBag diagnostics,
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             TypeSymbol? sizeOfTypeOpt = null,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, ignoreUnsafeDiagnosticsSuppression: false, sizeOfTypeOpt, customErrorCode, customArgs);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(isInUnsafeRegion, disallowedUnder, ignoreUnsafeDiagnosticsSuppression: false, sizeOfTypeOpt, customErrorCode, customArgs);
             if (diagnosticInfo == null)
             {
                 return false;
@@ -278,6 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private CSDiagnosticInfo? GetUnsafeDiagnosticInfo(
+            bool isInUnsafeRegion,
             MemorySafetyRulesVersion disallowedUnder,
             bool ignoreUnsafeDiagnosticsSuppression,
             TypeSymbol? sizeOfTypeOpt,
@@ -290,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return null;
             }
-            else if (!this.InUnsafeRegion)
+            else if (!isInUnsafeRegion)
             {
                 var featureDiag = MessageID.IDS_FeatureUnsafeEvolution.GetFeatureAvailabilityDiagnosticInfo(this.Compilation);
 

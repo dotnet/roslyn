@@ -1510,7 +1510,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             in CallingConventionInfo callingConventionInfo)
         {
             var analyzedArguments = AnalyzedArguments.GetInstance();
-            Conversions.GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
+            Conversions.GetDelegateOrFunctionPointerArguments(source.Syntax, source.IsInUnsafeRegion, analyzedArguments, delegateParameters, binder.Compilation);
 
             var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
                 options: OverloadResolution.Options.IsMethodGroupConversion |
@@ -3531,4 +3531,3 @@ OuterBreak:
         }
     }
 }
-

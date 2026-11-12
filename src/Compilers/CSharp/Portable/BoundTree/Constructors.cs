@@ -9,32 +9,43 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    internal partial class BoundInitializer
+    {
+        /// <summary>
+        /// The initializer's binding context, preserved when rewriting it as an assignment.
+        /// </summary>
+        public new bool IsInUnsafeRegion => base.IsInUnsafeRegion;
+    }
+
     internal sealed partial class BoundFieldAccess
     {
         public BoundFieldAccess(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BoundExpression? receiver,
             FieldSymbol fieldSymbol,
             ConstantValue? constantValueOpt,
             bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, LookupResultKind.Viable, fieldSymbol.Type, hasErrors)
+            : this(syntax, isInUnsafeRegion, receiver, fieldSymbol, constantValueOpt, LookupResultKind.Viable, fieldSymbol.Type, hasErrors)
         {
         }
 
         public BoundFieldAccess(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BoundExpression? receiver,
             FieldSymbol fieldSymbol,
             ConstantValue? constantValueOpt,
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: false, type: type, hasErrors: hasErrors)
+            : this(syntax, isInUnsafeRegion, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: false, type: type, hasErrors: hasErrors)
         {
         }
 
         public BoundFieldAccess(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BoundExpression? receiver,
             FieldSymbol fieldSymbol,
             ConstantValue? constantValueOpt,
@@ -42,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDeclaration,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: isDeclaration, type: type, hasErrors: hasErrors)
+            : this(syntax, isInUnsafeRegion, receiver, fieldSymbol, constantValueOpt, resultKind, NeedsByValueFieldAccess(receiver, fieldSymbol), isDeclaration: isDeclaration, type: type, hasErrors: hasErrors)
         {
         }
 
@@ -85,6 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundCall(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BoundExpression? receiverOpt,
             ThreeState initialBindingReceiverIsSubjectToCloning,
             MethodSymbol method,
@@ -99,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, originalMethodsOpt: default, type: type, hasErrors: hasErrors)
+            this(syntax, isInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, originalMethodsOpt: default, type: type, hasErrors: hasErrors)
         {
         }
 
@@ -145,6 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundCall(
                 syntax: node,
+                isInUnsafeRegion: binder.InUnsafeRegion,
                 receiverOpt: binder.AdjustBadExpressionChild(binder.BindToTypeForErrorRecovery(receiverOpt)),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: method,
@@ -172,22 +185,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, DefaultArguments, ResultKind, OriginalMethodsOpt, Type);
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method)
+        public static BoundCall Synthesized(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method)
         {
-            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray<BoundExpression>.Empty);
+            return Synthesized(syntax, isInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray<BoundExpression>.Empty);
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0)
+        public static BoundCall Synthesized(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0)
         {
-            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0));
+            return Synthesized(syntax, isInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0));
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
+        public static BoundCall Synthesized(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, BoundExpression arg0, BoundExpression arg1)
         {
-            return Synthesized(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0, arg1));
+            return Synthesized(syntax, isInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning, method, ImmutableArray.Create(arg0, arg1));
         }
 
-        public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt = default)
+        public static BoundCall Synthesized(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt = default)
         {
             argumentRefKindsOpt = argumentRefKindsOpt.IsDefault ? getArgumentRefKinds(method) : argumentRefKindsOpt;
 
@@ -216,6 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
 
             return new BoundCall(syntax,
+                    isInUnsafeRegion,
                     receiverOpt,
                     initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning,
                     method: method,
@@ -257,12 +271,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectCreationExpression
     {
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, params BoundExpression[] arguments)
-            : this(syntax, constructor, ImmutableArray.Create<BoundExpression>(arguments), default(ImmutableArray<string?>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), default(BitVector), null, null, constructor.ContainingType)
+        public BoundObjectCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol constructor, params BoundExpression[] arguments)
+            : this(syntax, isInUnsafeRegion, constructor, ImmutableArray.Create<BoundExpression>(arguments), default(ImmutableArray<string?>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), default(BitVector), null, null, constructor.ContainingType)
         {
         }
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments)
-            : this(syntax, constructor, arguments, default(ImmutableArray<string?>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), default(BitVector), null, null, constructor.ContainingType)
+        public BoundObjectCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments)
+            : this(syntax, isInUnsafeRegion, constructor, arguments, default(ImmutableArray<string?>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), default(BitVector), null, null, constructor.ContainingType)
         {
         }
     }
@@ -271,6 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public static BoundIndexerAccess ErrorAccess(
             SyntaxNode node,
+            bool isInUnsafeRegion,
             BoundExpression receiverOpt,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> arguments,
@@ -280,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundIndexerAccess(
                 node,
+                isInUnsafeRegion,
                 receiverOpt,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 indexer,
@@ -296,6 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public BoundIndexerAccess(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BoundExpression? receiverOpt,
             ThreeState initialBindingReceiverIsSubjectToCloning,
             PropertySymbol indexer,
@@ -308,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BitVector defaultArguments,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
+            this(syntax, isInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
         { }
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt,
@@ -336,6 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundConversion(
                 syntax,
+                isInUnsafeRegion: operand.IsInUnsafeRegion,
                 operand,
                 conversion,
                 isBaseConversion: false,
@@ -367,6 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BoundConversion(
                 syntax,
+                isInUnsafeRegion: operand.IsInUnsafeRegion,
                 operand,
                 conversion,
                 @checked,
@@ -383,6 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundConversion(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BoundExpression operand,
             Conversion conversion,
             bool @checked,
@@ -394,6 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false)
             : this(
                 syntax,
+                isInUnsafeRegion,
                 operand,
                 conversion,
                 isBaseConversion: false,
@@ -411,6 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundBinaryOperator(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BinaryOperatorKind operatorKind,
             BoundExpression left,
             BoundExpression right,
@@ -423,6 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors = false)
             : this(
                 syntax,
+                isInUnsafeRegion,
                 operatorKind,
                 UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, originalUserDefinedOperatorsOpt),
                 resultKind,
@@ -434,6 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public BoundBinaryOperator(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BinaryOperatorKind operatorKind,
             ConstantValue? constantValueOpt,
             MethodSymbol? methodOpt,
@@ -443,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression right,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, operatorKind, UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, originalUserDefinedOperatorsOpt: default), resultKind, left, right, type, hasErrors)
+            this(syntax, isInUnsafeRegion, operatorKind, UncommonData.CreateIfNeeded(constantValueOpt, methodOpt, constrainedToTypeOpt, originalUserDefinedOperatorsOpt: default), resultKind, left, right, type, hasErrors)
         {
         }
 
@@ -468,55 +492,55 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundParameter
     {
-        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, bool hasErrors = false)
-            : this(syntax, parameterSymbol, parameterSymbol.Type, hasErrors)
+        public BoundParameter(SyntaxNode syntax, bool isInUnsafeRegion, ParameterSymbol parameterSymbol, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, parameterSymbol, parameterSymbol.Type, hasErrors)
         {
         }
 
-        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol)
-            : this(syntax, parameterSymbol, parameterSymbol.Type)
+        public BoundParameter(SyntaxNode syntax, bool isInUnsafeRegion, ParameterSymbol parameterSymbol)
+            : this(syntax, isInUnsafeRegion, parameterSymbol, parameterSymbol.Type)
         {
         }
     }
 
     internal sealed partial class BoundTypeExpression
     {
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
-            : this(syntax, aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, typeWithAnnotations, typeWithAnnotations.Type, hasErrors)
+        public BoundTypeExpression(SyntaxNode syntax, bool isInUnsafeRegion, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, typeWithAnnotations, typeWithAnnotations.Type, hasErrors)
         {
             Debug.Assert((object)typeWithAnnotations.Type != null, "Field 'type' cannot be null");
         }
 
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
-            : this(syntax, aliasOpt, boundContainingTypeOpt, ImmutableArray<BoundExpression>.Empty, typeWithAnnotations, hasErrors)
+        public BoundTypeExpression(SyntaxNode syntax, bool isInUnsafeRegion, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, aliasOpt, boundContainingTypeOpt, ImmutableArray<BoundExpression>.Empty, typeWithAnnotations, hasErrors)
         {
         }
 
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
-            : this(syntax, aliasOpt, null, typeWithAnnotations, hasErrors)
+        public BoundTypeExpression(SyntaxNode syntax, bool isInUnsafeRegion, AliasSymbol? aliasOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, aliasOpt, null, typeWithAnnotations, hasErrors)
         {
         }
 
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, aliasOpt, null, TypeWithAnnotations.Create(type), hasErrors)
+        public BoundTypeExpression(SyntaxNode syntax, bool isInUnsafeRegion, AliasSymbol? aliasOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, aliasOpt, null, TypeWithAnnotations.Create(type), hasErrors)
         {
         }
 
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, ImmutableArray<BoundExpression> dimensionsOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
-            : this(syntax, aliasOpt, null, dimensionsOpt, typeWithAnnotations, hasErrors)
+        public BoundTypeExpression(SyntaxNode syntax, bool isInUnsafeRegion, AliasSymbol? aliasOpt, ImmutableArray<BoundExpression> dimensionsOpt, TypeWithAnnotations typeWithAnnotations, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, aliasOpt, null, dimensionsOpt, typeWithAnnotations, hasErrors)
         {
         }
     }
 
     internal sealed partial class BoundNamespaceExpression
     {
-        public BoundNamespaceExpression(SyntaxNode syntax, NamespaceSymbol namespaceSymbol, bool hasErrors = false)
-            : this(syntax, namespaceSymbol, null, hasErrors)
+        public BoundNamespaceExpression(SyntaxNode syntax, bool isInUnsafeRegion, NamespaceSymbol namespaceSymbol, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, namespaceSymbol, null, hasErrors)
         {
         }
 
-        public BoundNamespaceExpression(SyntaxNode syntax, NamespaceSymbol namespaceSymbol)
-            : this(syntax, namespaceSymbol, null)
+        public BoundNamespaceExpression(SyntaxNode syntax, bool isInUnsafeRegion, NamespaceSymbol namespaceSymbol)
+            : this(syntax, isInUnsafeRegion, namespaceSymbol, null)
         {
         }
 
@@ -528,17 +552,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAssignmentOperator
     {
-        public BoundAssignmentOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right,
+        public BoundAssignmentOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression left, BoundExpression right,
             TypeSymbol type, bool isRef = false, bool hasErrors = false)
-            : this(syntax, left, right, isRef, type, hasErrors)
+            : this(syntax, isInUnsafeRegion, left, right, isRef, type, hasErrors)
         {
         }
     }
 
     internal sealed partial class BoundBadExpression
     {
-        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol type)
-            : this(syntax, resultKind, symbols, childBoundNodes, type, true)
+        public BoundBadExpression(SyntaxNode syntax, bool isInUnsafeRegion, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol type)
+            : this(syntax, isInUnsafeRegion, resultKind, symbols, childBoundNodes, type, true)
         {
             Debug.Assert((object)type != null);
         }
@@ -617,8 +641,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDefaultExpression
     {
-        public BoundDefaultExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, targetType: null, type.GetDefaultValue(), type, hasErrors)
+        public BoundDefaultExpression(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, targetType: null, type.GetDefaultValue(), type, hasErrors)
         {
         }
     }
@@ -633,13 +657,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAddressOfOperator
     {
-        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false, bool requiresAssignedOperand = false)
-             : this(syntax, operand, isManaged: false, requiresAssignedOperand, type, hasErrors)
+        public BoundAddressOfOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, TypeSymbol type, bool hasErrors = false, bool requiresAssignedOperand = false)
+             : this(syntax, isInUnsafeRegion, operand, isManaged: false, requiresAssignedOperand, type, hasErrors)
         {
         }
 
-        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, bool isManaged, TypeSymbol type, bool hasErrors = false)
-             : this(syntax, operand, isManaged, requiresAssignedOperand: false, type, hasErrors)
+        public BoundAddressOfOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, bool isManaged, TypeSymbol type, bool hasErrors = false)
+             : this(syntax, isInUnsafeRegion, operand, isManaged, requiresAssignedOperand: false, type, hasErrors)
         {
         }
     }
@@ -657,6 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundCompoundAssignmentOperator
     {
         public BoundCompoundAssignmentOperator(SyntaxNode syntax,
+            bool isInUnsafeRegion,
             BinaryOperatorSignature @operator,
             BoundExpression left,
             BoundExpression right,
@@ -667,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false)
-            : this(syntax, @operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
+            : this(syntax, isInUnsafeRegion, @operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
         {
         }
 
@@ -687,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundUnaryOperator(
             SyntaxNode syntax,
+            bool isInUnsafeRegion,
             UnaryOperatorKind operatorKind,
             BoundExpression operand,
             ConstantValue? constantValueOpt,
@@ -695,7 +721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, operatorKind, operand, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
+            this(syntax, isInUnsafeRegion, operatorKind, operand, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
         {
         }
 
@@ -713,6 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public BoundIncrementOperator(
             CSharpSyntaxNode syntax,
+            bool isInUnsafeRegion,
             UnaryOperatorKind operatorKind,
             BoundExpression operand,
             MethodSymbol? methodOpt,
@@ -724,7 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupResultKind resultKind,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, operatorKind, operand, methodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
+            this(syntax, isInUnsafeRegion, operatorKind, operand, methodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, resultKind, originalUserDefinedOperatorsOpt: default, type, hasErrors)
         {
         }
 

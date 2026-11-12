@@ -155,17 +155,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             public readonly void ReportDiagnosticsIfUnsafeMemberAccess(Binder binder, SyntaxNodeOrToken node, SyntaxNode syntax, BindingDiagnosticBag diagnostics)
             {
                 var getEnumeratorMethod = this.GetEnumeratorInfo?.Method;
-                if (getEnumeratorMethod is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getEnumeratorMethod, node);
+                if (getEnumeratorMethod is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, getEnumeratorMethod, node, binder.InUnsafeRegion);
                 var moveNextMethod = this.MoveNextInfo?.Method;
-                if (moveNextMethod is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, moveNextMethod, node);
+                if (moveNextMethod is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, moveNextMethod, node, binder.InUnsafeRegion);
                 var currentPropertyGetter = this.CurrentPropertyGetter;
-                if (currentPropertyGetter is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, currentPropertyGetter, node);
+                if (currentPropertyGetter is not null) binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, currentPropertyGetter, node, binder.InUnsafeRegion);
 
                 // Diagnostics for pattern-based Dispose method are reported elsewhere.
                 if (this.NeedsDisposal && this.PatternDisposeInfo?.Method is null &&
                     LocalRewriter.TryGetDisposeMethod(binder.Compilation, syntax, this.IsAsync, BindingDiagnosticBag.Discarded, out var disposeMethod))
                 {
-                    binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, node);
+                    binder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, node, binder.InUnsafeRegion);
                 }
             }
         }

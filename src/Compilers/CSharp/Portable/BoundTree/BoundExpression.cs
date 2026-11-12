@@ -13,6 +13,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundExpression
     {
+        /// <summary>
+        /// The unsafe context of the original expression, preserved through deferred binding and rewriting.
+        /// Unlike HasErrors, this does not incorporate the context of child expressions.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Binding helpers use <see cref="Binder.InUnsafeRegion"/> when their binder represents the operation's context, and record it on the new expression.
+        /// Helpers that check an already-bound operation should receive its recorded context explicitly,
+        /// because their binder may represent an enclosing operation instead.
+        /// </para>
+        /// <para>
+        /// Rewriting an existing operation preserves its context.
+        /// Completing deferred binding restores the source operation's original context, or passes it consistently through the binding helpers.
+        /// </para>
+        /// <para>
+        /// Synthesis after unsafe-context checks, with no originating expression, uses false.
+        /// </para>
+        /// </remarks>
+        public new bool IsInUnsafeRegion => base.IsInUnsafeRegion;
+
         public SimpleNameSyntax? InterceptableNameSyntax
         {
             get
@@ -310,8 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.LocalSymbol; }
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
+        public BoundLocal(SyntaxNode syntax, bool isInUnsafeRegion, LocalSymbol localSymbol, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : this(syntax, isInUnsafeRegion, localSymbol, BoundLocalDeclarationKind.None, constantValueOpt, false, type, hasErrors)
         {
         }
 

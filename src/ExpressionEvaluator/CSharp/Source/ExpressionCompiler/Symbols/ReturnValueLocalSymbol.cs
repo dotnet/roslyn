@@ -30,10 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             var method = GetIntrinsicMethod(compilation, ExpressionCompilerConstants.GetReturnValueMethodName);
             var argument = new BoundLiteral(
                 syntax,
+                isInUnsafeRegion: false,
                 Microsoft.CodeAnalysis.ConstantValue.Create(_index),
                 method.Parameters[0].Type);
             var call = BoundCall.Synthesized(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method: method,

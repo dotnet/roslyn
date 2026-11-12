@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.IsPointerType())
             {
                 var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
-                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, type);
+                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, isInUnsafeRegion: stackAllocNode.IsInUnsafeRegion, elementType, stackSize, initializerOpt, type);
             }
             else if (TypeSymbol.Equals(type.OriginalDefinition, _compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.ConsiderEverything2))
             {
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals, SynthesizedLocalKind.Spill);
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
                 stackAllocNode = new BoundConvertedStackAllocExpression(
-                    stackAllocNode.Syntax, elementType, stackSize, initializerOpt, _compilation.CreatePointerTypeSymbol(elementType));
+                    stackAllocNode.Syntax, isInUnsafeRegion: stackAllocNode.IsInUnsafeRegion, elementType, stackSize, initializerOpt, _compilation.CreatePointerTypeSymbol(elementType));
 
                 BoundExpression constructorCall;
                 if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor_Pointer, out MethodSymbol? spanConstructor))
@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     constructorCall = new BoundBadExpression(
                         syntax: stackAllocNode.Syntax,
+                        isInUnsafeRegion: stackAllocNode.IsInUnsafeRegion,
                         resultKind: LookupResultKind.NotInvocable,
                         symbols: ImmutableArray<Symbol?>.Empty,
                         childBoundNodes: ImmutableArray<BoundExpression>.Empty,
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 locals.Add(tempAccess.LocalSymbol);
                 return new BoundSpillSequence(
                     syntax: stackAllocNode.Syntax,
+                    isInUnsafeRegion: stackAllocNode.IsInUnsafeRegion,
                     locals: locals.ToImmutableAndFree(),
                     sideEffects: sideEffects.ToImmutableAndFree(),
                     value: tempAccess,

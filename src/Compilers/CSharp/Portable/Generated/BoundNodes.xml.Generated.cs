@@ -261,13 +261,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundInitializer : BoundNode
     {
-        protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool hasErrors)
-            : base(kind, syntax, hasErrors)
+        protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, bool hasErrors)
+            : base(kind, syntax, isInUnsafeRegion, hasErrors)
         {
         }
 
-        protected BoundInitializer(BoundKind kind, SyntaxNode syntax)
-            : base(kind, syntax)
+        protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion)
+            : base(kind, syntax, isInUnsafeRegion, hasErrors: false)
         {
         }
 
@@ -275,8 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundEqualsValue : BoundInitializer
     {
-        protected BoundEqualsValue(BoundKind kind, SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
-            : base(kind, syntax, hasErrors)
+        protected BoundEqualsValue(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, hasErrors)
         {
 
             RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -292,8 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFieldEqualsValue : BoundEqualsValue
     {
-        public BoundFieldEqualsValue(SyntaxNode syntax, FieldSymbol field, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
-            : base(BoundKind.FieldEqualsValue, syntax, locals, value, hasErrors || value.HasErrors())
+        public BoundFieldEqualsValue(SyntaxNode syntax, bool isInUnsafeRegion, FieldSymbol field, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
+            : base(BoundKind.FieldEqualsValue, syntax, isInUnsafeRegion, locals, value, hasErrors || value.HasErrors())
         {
 
             RoslynDebug.Assert(field is object, "Field 'field' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || locals != this.Locals || value != this.Value)
             {
-                var result = new BoundFieldEqualsValue(this.Syntax, field, locals, value, this.HasErrors);
+                var result = new BoundFieldEqualsValue(this.Syntax, this.IsInUnsafeRegion, field, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -322,8 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPropertyEqualsValue : BoundEqualsValue
     {
-        public BoundPropertyEqualsValue(SyntaxNode syntax, PropertySymbol property, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
-            : base(BoundKind.PropertyEqualsValue, syntax, locals, value, hasErrors || value.HasErrors())
+        public BoundPropertyEqualsValue(SyntaxNode syntax, bool isInUnsafeRegion, PropertySymbol property, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
+            : base(BoundKind.PropertyEqualsValue, syntax, isInUnsafeRegion, locals, value, hasErrors || value.HasErrors())
         {
 
             RoslynDebug.Assert(property is object, "Field 'property' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || locals != this.Locals || value != this.Value)
             {
-                var result = new BoundPropertyEqualsValue(this.Syntax, property, locals, value, this.HasErrors);
+                var result = new BoundPropertyEqualsValue(this.Syntax, this.IsInUnsafeRegion, property, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundParameterEqualsValue : BoundEqualsValue
     {
-        public BoundParameterEqualsValue(SyntaxNode syntax, ParameterSymbol parameter, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
-            : base(BoundKind.ParameterEqualsValue, syntax, locals, value, hasErrors || value.HasErrors())
+        public BoundParameterEqualsValue(SyntaxNode syntax, bool isInUnsafeRegion, ParameterSymbol parameter, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
+            : base(BoundKind.ParameterEqualsValue, syntax, isInUnsafeRegion, locals, value, hasErrors || value.HasErrors())
         {
 
             RoslynDebug.Assert(parameter is object, "Field 'parameter' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(parameter, this.Parameter) || locals != this.Locals || value != this.Value)
             {
-                var result = new BoundParameterEqualsValue(this.Syntax, parameter, locals, value, this.HasErrors);
+                var result = new BoundParameterEqualsValue(this.Syntax, this.IsInUnsafeRegion, parameter, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -382,8 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundGlobalStatementInitializer : BoundInitializer
     {
-        public BoundGlobalStatementInitializer(SyntaxNode syntax, BoundStatement statement, bool hasErrors = false)
-            : base(BoundKind.GlobalStatementInitializer, syntax, hasErrors || statement.HasErrors())
+        public BoundGlobalStatementInitializer(SyntaxNode syntax, bool isInUnsafeRegion, BoundStatement statement, bool hasErrors = false)
+            : base(BoundKind.GlobalStatementInitializer, syntax, isInUnsafeRegion, hasErrors || statement.HasErrors())
         {
 
             RoslynDebug.Assert(statement is object, "Field 'statement' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statement != this.Statement)
             {
-                var result = new BoundGlobalStatementInitializer(this.Syntax, statement, this.HasErrors);
+                var result = new BoundGlobalStatementInitializer(this.Syntax, this.IsInUnsafeRegion, statement, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -410,14 +410,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundExpression : BoundNode
     {
-        protected BoundExpression(BoundKind kind, SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(kind, syntax, hasErrors)
+        protected BoundExpression(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(kind, syntax, isInUnsafeRegion, hasErrors)
         {
             this.Type = type;
         }
 
-        protected BoundExpression(BoundKind kind, SyntaxNode syntax, TypeSymbol? type)
-            : base(kind, syntax)
+        protected BoundExpression(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(kind, syntax, isInUnsafeRegion, hasErrors: false)
         {
             this.Type = type;
         }
@@ -427,13 +427,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundValuePlaceholderBase : BoundExpression
     {
-        protected BoundValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
         }
 
-        protected BoundValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol? type)
-            : base(kind, syntax, type)
+        protected BoundValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(kind, syntax, isInUnsafeRegion, type)
         {
         }
 
@@ -441,13 +441,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundEarlyValuePlaceholderBase : BoundValuePlaceholderBase
     {
-        protected BoundEarlyValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundEarlyValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
         }
 
-        protected BoundEarlyValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, TypeSymbol? type)
-            : base(kind, syntax, type)
+        protected BoundEarlyValuePlaceholderBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(kind, syntax, isInUnsafeRegion, type)
         {
         }
 
@@ -455,13 +455,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundValuePlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.ValuePlaceholder, syntax, type, hasErrors)
+        public BoundValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.ValuePlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
         }
 
-        public BoundValuePlaceholder(SyntaxNode syntax, TypeSymbol? type)
-            : base(BoundKind.ValuePlaceholder, syntax, type)
+        public BoundValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(BoundKind.ValuePlaceholder, syntax, isInUnsafeRegion, type)
         {
         }
 
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundValuePlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -483,8 +483,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCapturedReceiverPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundCapturedReceiverPlaceholder(SyntaxNode syntax, BoundExpression receiver, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.CapturedReceiverPlaceholder, syntax, type, hasErrors || receiver.HasErrors())
+        public BoundCapturedReceiverPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.CapturedReceiverPlaceholder, syntax, isInUnsafeRegion, type, hasErrors || receiver.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver != this.Receiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCapturedReceiverPlaceholder(this.Syntax, receiver, type, this.HasErrors);
+                var result = new BoundCapturedReceiverPlaceholder(this.Syntax, this.IsInUnsafeRegion, receiver, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -511,8 +511,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeconstructValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, Symbol? variableSymbol, bool isDiscardExpression, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.DeconstructValuePlaceholder, syntax, type, hasErrors)
+        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, Symbol? variableSymbol, bool isDiscardExpression, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.DeconstructValuePlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -521,8 +521,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IsDiscardExpression = isDiscardExpression;
         }
 
-        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, Symbol? variableSymbol, bool isDiscardExpression, TypeSymbol type)
-            : base(BoundKind.DeconstructValuePlaceholder, syntax, type)
+        public BoundDeconstructValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, Symbol? variableSymbol, bool isDiscardExpression, TypeSymbol type)
+            : base(BoundKind.DeconstructValuePlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || isDiscardExpression != this.IsDiscardExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDeconstructValuePlaceholder(this.Syntax, variableSymbol, isDiscardExpression, type, this.HasErrors);
+                var result = new BoundDeconstructValuePlaceholder(this.Syntax, this.IsInUnsafeRegion, variableSymbol, isDiscardExpression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -552,16 +552,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTupleOperandPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundTupleOperandPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.TupleOperandPlaceholder, syntax, type, hasErrors)
+        public BoundTupleOperandPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.TupleOperandPlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundTupleOperandPlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.TupleOperandPlaceholder, syntax, type)
+        public BoundTupleOperandPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.TupleOperandPlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTupleOperandPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundTupleOperandPlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -587,13 +587,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAwaitableValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.AwaitableValuePlaceholder, syntax, type, hasErrors)
+        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.AwaitableValuePlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
         }
 
-        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, TypeSymbol? type)
-            : base(BoundKind.AwaitableValuePlaceholder, syntax, type)
+        public BoundAwaitableValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(BoundKind.AwaitableValuePlaceholder, syntax, isInUnsafeRegion, type)
         {
         }
 
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAwaitableValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundAwaitableValuePlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -616,16 +616,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDisposableValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundDisposableValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.DisposableValuePlaceholder, syntax, type, hasErrors)
+        public BoundDisposableValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.DisposableValuePlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundDisposableValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.DisposableValuePlaceholder, syntax, type)
+        public BoundDisposableValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.DisposableValuePlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -641,7 +641,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDisposableValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundDisposableValuePlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -651,8 +651,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectOrCollectionValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, bool isNewInstance, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ObjectOrCollectionValuePlaceholder, syntax, type, hasErrors)
+        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, bool isNewInstance, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ObjectOrCollectionValuePlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -660,8 +660,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IsNewInstance = isNewInstance;
         }
 
-        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, bool isNewInstance, TypeSymbol type)
-            : base(BoundKind.ObjectOrCollectionValuePlaceholder, syntax, type)
+        public BoundObjectOrCollectionValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, bool isNewInstance, TypeSymbol type)
+            : base(BoundKind.ObjectOrCollectionValuePlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -679,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isNewInstance != this.IsNewInstance || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundObjectOrCollectionValuePlaceholder(this.Syntax, isNewInstance, type, this.HasErrors);
+                var result = new BoundObjectOrCollectionValuePlaceholder(this.Syntax, this.IsInUnsafeRegion, isNewInstance, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -689,16 +689,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundImplicitIndexerValuePlaceholder : BoundValuePlaceholderBase
     {
-        public BoundImplicitIndexerValuePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ImplicitIndexerValuePlaceholder, syntax, type, hasErrors)
+        public BoundImplicitIndexerValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ImplicitIndexerValuePlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundImplicitIndexerValuePlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ImplicitIndexerValuePlaceholder, syntax, type)
+        public BoundImplicitIndexerValuePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ImplicitIndexerValuePlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundImplicitIndexerValuePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundImplicitIndexerValuePlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -724,8 +724,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundImplicitIndexerReceiverPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundImplicitIndexerReceiverPlaceholder(SyntaxNode syntax, bool isEquivalentToThisReference, BoundExpression receiver, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ImplicitIndexerReceiverPlaceholder, syntax, type, hasErrors || receiver.HasErrors())
+        public BoundImplicitIndexerReceiverPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, bool isEquivalentToThisReference, BoundExpression receiver, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ImplicitIndexerReceiverPlaceholder, syntax, isInUnsafeRegion, type, hasErrors || receiver.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isEquivalentToThisReference != this.IsEquivalentToThisReference || receiver != this.Receiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundImplicitIndexerReceiverPlaceholder(this.Syntax, isEquivalentToThisReference, receiver, type, this.HasErrors);
+                var result = new BoundImplicitIndexerReceiverPlaceholder(this.Syntax, this.IsInUnsafeRegion, isEquivalentToThisReference, receiver, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -756,16 +756,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundListPatternReceiverPlaceholder : BoundEarlyValuePlaceholderBase
     {
-        public BoundListPatternReceiverPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ListPatternReceiverPlaceholder, syntax, type, hasErrors)
+        public BoundListPatternReceiverPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ListPatternReceiverPlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundListPatternReceiverPlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ListPatternReceiverPlaceholder, syntax, type)
+        public BoundListPatternReceiverPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ListPatternReceiverPlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundListPatternReceiverPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundListPatternReceiverPlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -791,16 +791,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundListPatternIndexPlaceholder : BoundEarlyValuePlaceholderBase
     {
-        public BoundListPatternIndexPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ListPatternIndexPlaceholder, syntax, type, hasErrors)
+        public BoundListPatternIndexPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ListPatternIndexPlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundListPatternIndexPlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ListPatternIndexPlaceholder, syntax, type)
+        public BoundListPatternIndexPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ListPatternIndexPlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundListPatternIndexPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundListPatternIndexPlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -826,16 +826,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSlicePatternReceiverPlaceholder : BoundEarlyValuePlaceholderBase
     {
-        public BoundSlicePatternReceiverPlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.SlicePatternReceiverPlaceholder, syntax, type, hasErrors)
+        public BoundSlicePatternReceiverPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.SlicePatternReceiverPlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundSlicePatternReceiverPlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.SlicePatternReceiverPlaceholder, syntax, type)
+        public BoundSlicePatternReceiverPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.SlicePatternReceiverPlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSlicePatternReceiverPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundSlicePatternReceiverPlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -861,16 +861,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSlicePatternRangePlaceholder : BoundEarlyValuePlaceholderBase
     {
-        public BoundSlicePatternRangePlaceholder(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.SlicePatternRangePlaceholder, syntax, type, hasErrors)
+        public BoundSlicePatternRangePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.SlicePatternRangePlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundSlicePatternRangePlaceholder(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.SlicePatternRangePlaceholder, syntax, type)
+        public BoundSlicePatternRangePlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.SlicePatternRangePlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSlicePatternRangePlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundSlicePatternRangePlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -896,13 +896,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionBuilderElementsPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundCollectionBuilderElementsPlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.CollectionBuilderElementsPlaceholder, syntax, type, hasErrors)
+        public BoundCollectionBuilderElementsPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.CollectionBuilderElementsPlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
         }
 
-        public BoundCollectionBuilderElementsPlaceholder(SyntaxNode syntax, TypeSymbol? type)
-            : base(BoundKind.CollectionBuilderElementsPlaceholder, syntax, type)
+        public BoundCollectionBuilderElementsPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(BoundKind.CollectionBuilderElementsPlaceholder, syntax, isInUnsafeRegion, type)
         {
         }
 
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionBuilderElementsPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundCollectionBuilderElementsPlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -924,15 +924,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDup : BoundExpression
     {
-        public BoundDup(SyntaxNode syntax, RefKind refKind, bool isAlive, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.Dup, syntax, type, hasErrors)
+        public BoundDup(SyntaxNode syntax, bool isInUnsafeRegion, RefKind refKind, bool isAlive, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.Dup, syntax, isInUnsafeRegion, type, hasErrors)
         {
             this.RefKind = refKind;
             this.IsAlive = isAlive;
         }
 
-        public BoundDup(SyntaxNode syntax, RefKind refKind, bool isAlive, TypeSymbol? type)
-            : base(BoundKind.Dup, syntax, type)
+        public BoundDup(SyntaxNode syntax, bool isInUnsafeRegion, RefKind refKind, bool isAlive, TypeSymbol? type)
+            : base(BoundKind.Dup, syntax, isInUnsafeRegion, type)
         {
             this.RefKind = refKind;
             this.IsAlive = isAlive;
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (refKind != this.RefKind || isAlive != this.IsAlive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDup(this.Syntax, refKind, isAlive, type, this.HasErrors);
+                var result = new BoundDup(this.Syntax, this.IsInUnsafeRegion, refKind, isAlive, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -958,8 +958,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPassByCopy : BoundExpression
     {
-        public BoundPassByCopy(SyntaxNode syntax, BoundExpression expression, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.PassByCopy, syntax, type, hasErrors || expression.HasErrors())
+        public BoundPassByCopy(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.PassByCopy, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPassByCopy(this.Syntax, expression, type, this.HasErrors);
+                var result = new BoundPassByCopy(this.Syntax, this.IsInUnsafeRegion, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -986,8 +986,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBadExpression : BoundExpression
     {
-        public BoundBadExpression(SyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.BadExpression, syntax, type, hasErrors || childBoundNodes.HasErrors())
+        public BoundBadExpression(SyntaxNode syntax, bool isInUnsafeRegion, LookupResultKind resultKind, ImmutableArray<Symbol?> symbols, ImmutableArray<BoundExpression> childBoundNodes, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.BadExpression, syntax, isInUnsafeRegion, type, hasErrors || childBoundNodes.HasErrors())
         {
 
             RoslynDebug.Assert(!symbols.IsDefault, "Field 'symbols' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -1013,7 +1013,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (resultKind != this.ResultKind || symbols != this.Symbols || childBoundNodes != this.ChildBoundNodes || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBadExpression(this.Syntax, resultKind, symbols, childBoundNodes, type, this.HasErrors);
+                var result = new BoundBadExpression(this.Syntax, this.IsInUnsafeRegion, resultKind, symbols, childBoundNodes, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1079,8 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeExpression : BoundExpression
     {
-        public BoundTypeExpression(SyntaxNode syntax, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.TypeExpression, syntax, type, hasErrors || boundContainingTypeOpt.HasErrors() || boundDimensionsOpt.HasErrors())
+        public BoundTypeExpression(SyntaxNode syntax, bool isInUnsafeRegion, AliasSymbol? aliasOpt, BoundTypeExpression? boundContainingTypeOpt, ImmutableArray<BoundExpression> boundDimensionsOpt, TypeWithAnnotations typeWithAnnotations, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TypeExpression, syntax, isInUnsafeRegion, type, hasErrors || boundContainingTypeOpt.HasErrors() || boundDimensionsOpt.HasErrors())
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(aliasOpt, this.AliasOpt) || boundContainingTypeOpt != this.BoundContainingTypeOpt || boundDimensionsOpt != this.BoundDimensionsOpt || typeWithAnnotations != this.TypeWithAnnotations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTypeExpression(this.Syntax, aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, typeWithAnnotations, type, this.HasErrors);
+                var result = new BoundTypeExpression(this.Syntax, this.IsInUnsafeRegion, aliasOpt, boundContainingTypeOpt, boundDimensionsOpt, typeWithAnnotations, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1114,8 +1114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeOrValueExpression : BoundExpression
     {
-        public BoundTypeOrValueExpression(SyntaxNode syntax, Binder binder, Symbol valueSymbol, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.TypeOrValueExpression, syntax, type, hasErrors)
+        public BoundTypeOrValueExpression(SyntaxNode syntax, bool isInUnsafeRegion, Binder binder, Symbol valueSymbol, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.TypeOrValueExpression, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1130,8 +1130,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         private partial void Validate();
 
-        public BoundTypeOrValueExpression(SyntaxNode syntax, Binder binder, Symbol valueSymbol, TypeSymbol type)
-            : base(BoundKind.TypeOrValueExpression, syntax, type)
+        public BoundTypeOrValueExpression(SyntaxNode syntax, bool isInUnsafeRegion, Binder binder, Symbol valueSymbol, TypeSymbol type)
+            : base(BoundKind.TypeOrValueExpression, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(binder is object, "Field 'binder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (binder != this.Binder || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(valueSymbol, this.ValueSymbol) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTypeOrValueExpression(this.Syntax, binder, valueSymbol, type, this.HasErrors);
+                var result = new BoundTypeOrValueExpression(this.Syntax, this.IsInUnsafeRegion, binder, valueSymbol, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1163,8 +1163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNamespaceExpression : BoundExpression
     {
-        public BoundNamespaceExpression(SyntaxNode syntax, NamespaceSymbol namespaceSymbol, AliasSymbol? aliasOpt, bool hasErrors)
-            : base(BoundKind.NamespaceExpression, syntax, null, hasErrors)
+        public BoundNamespaceExpression(SyntaxNode syntax, bool isInUnsafeRegion, NamespaceSymbol namespaceSymbol, AliasSymbol? aliasOpt, bool hasErrors)
+            : base(BoundKind.NamespaceExpression, syntax, isInUnsafeRegion, null, hasErrors)
         {
 
             RoslynDebug.Assert(namespaceSymbol is object, "Field 'namespaceSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1173,8 +1173,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AliasOpt = aliasOpt;
         }
 
-        public BoundNamespaceExpression(SyntaxNode syntax, NamespaceSymbol namespaceSymbol, AliasSymbol? aliasOpt)
-            : base(BoundKind.NamespaceExpression, syntax, null)
+        public BoundNamespaceExpression(SyntaxNode syntax, bool isInUnsafeRegion, NamespaceSymbol namespaceSymbol, AliasSymbol? aliasOpt)
+            : base(BoundKind.NamespaceExpression, syntax, isInUnsafeRegion, null)
         {
 
             RoslynDebug.Assert(namespaceSymbol is object, "Field 'namespaceSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(namespaceSymbol, this.NamespaceSymbol) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(aliasOpt, this.AliasOpt))
             {
-                var result = new BoundNamespaceExpression(this.Syntax, namespaceSymbol, aliasOpt, this.HasErrors);
+                var result = new BoundNamespaceExpression(this.Syntax, this.IsInUnsafeRegion, namespaceSymbol, aliasOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1204,8 +1204,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnaryOperator : BoundExpression
     {
-        public BoundUnaryOperator(SyntaxNode syntax, UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.UnaryOperator, syntax, type, hasErrors || operand.HasErrors())
+        public BoundUnaryOperator(SyntaxNode syntax, bool isInUnsafeRegion, UnaryOperatorKind operatorKind, BoundExpression operand, ConstantValue? constantValueOpt, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.UnaryOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorKind != this.OperatorKind || operand != this.Operand || constantValueOpt != this.ConstantValueOpt || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(constrainedToTypeOpt, this.ConstrainedToTypeOpt, TypeCompareKind.ConsiderEverything) || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUnaryOperator(this.Syntax, operatorKind, operand, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
+                var result = new BoundUnaryOperator(this.Syntax, this.IsInUnsafeRegion, operatorKind, operand, constantValueOpt, methodOpt, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1246,8 +1246,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIncrementOperator : BoundExpression
     {
-        public BoundIncrementOperator(SyntaxNode syntax, UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, BoundValuePlaceholder? operandPlaceholder, BoundExpression? operandConversion, BoundValuePlaceholder? resultPlaceholder, BoundExpression? resultConversion, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.IncrementOperator, syntax, type, hasErrors || operand.HasErrors() || operandPlaceholder.HasErrors() || operandConversion.HasErrors() || resultPlaceholder.HasErrors() || resultConversion.HasErrors())
+        public BoundIncrementOperator(SyntaxNode syntax, bool isInUnsafeRegion, UnaryOperatorKind operatorKind, BoundExpression operand, MethodSymbol? methodOpt, TypeSymbol? constrainedToTypeOpt, BoundValuePlaceholder? operandPlaceholder, BoundExpression? operandConversion, BoundValuePlaceholder? resultPlaceholder, BoundExpression? resultConversion, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.IncrementOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors() || operandPlaceholder.HasErrors() || operandConversion.HasErrors() || resultPlaceholder.HasErrors() || resultConversion.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorKind != this.OperatorKind || operand != this.Operand || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(constrainedToTypeOpt, this.ConstrainedToTypeOpt, TypeCompareKind.ConsiderEverything) || operandPlaceholder != this.OperandPlaceholder || operandConversion != this.OperandConversion || resultPlaceholder != this.ResultPlaceholder || resultConversion != this.ResultConversion || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIncrementOperator(this.Syntax, operatorKind, operand, methodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
+                var result = new BoundIncrementOperator(this.Syntax, this.IsInUnsafeRegion, operatorKind, operand, methodOpt, constrainedToTypeOpt, operandPlaceholder, operandConversion, resultPlaceholder, resultConversion, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1294,8 +1294,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAddressOfOperator : BoundExpression
     {
-        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, bool isManaged, bool requiresAssignedOperand, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.AddressOfOperator, syntax, type, hasErrors || operand.HasErrors())
+        public BoundAddressOfOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, bool isManaged, bool requiresAssignedOperand, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.AddressOfOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1318,7 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || isManaged != this.IsManaged || requiresAssignedOperand != this.RequiresAssignedOperand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAddressOfOperator(this.Syntax, operand, isManaged, requiresAssignedOperand, type, this.HasErrors);
+                var result = new BoundAddressOfOperator(this.Syntax, this.IsInUnsafeRegion, operand, isManaged, requiresAssignedOperand, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1328,8 +1328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedAddressOfOperator : BoundExpression
     {
-        public BoundUnconvertedAddressOfOperator(SyntaxNode syntax, BoundMethodGroup operand, bool hasErrors = false)
-            : base(BoundKind.UnconvertedAddressOfOperator, syntax, null, hasErrors || operand.HasErrors())
+        public BoundUnconvertedAddressOfOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundMethodGroup operand, bool hasErrors = false)
+            : base(BoundKind.UnconvertedAddressOfOperator, syntax, isInUnsafeRegion, null, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand)
             {
-                var result = new BoundUnconvertedAddressOfOperator(this.Syntax, operand, this.HasErrors);
+                var result = new BoundUnconvertedAddressOfOperator(this.Syntax, this.IsInUnsafeRegion, operand, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1357,8 +1357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFunctionPointerLoad : BoundExpression
     {
-        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol? constrainedToTypeOpt, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.FunctionPointerLoad, syntax, type, hasErrors)
+        public BoundFunctionPointerLoad(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol targetMethod, TypeSymbol? constrainedToTypeOpt, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.FunctionPointerLoad, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(targetMethod is object, "Field 'targetMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1368,8 +1368,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstrainedToTypeOpt = constrainedToTypeOpt;
         }
 
-        public BoundFunctionPointerLoad(SyntaxNode syntax, MethodSymbol targetMethod, TypeSymbol? constrainedToTypeOpt, TypeSymbol type)
-            : base(BoundKind.FunctionPointerLoad, syntax, type)
+        public BoundFunctionPointerLoad(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol targetMethod, TypeSymbol? constrainedToTypeOpt, TypeSymbol type)
+            : base(BoundKind.FunctionPointerLoad, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(targetMethod is object, "Field 'targetMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1390,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(targetMethod, this.TargetMethod) || !TypeSymbol.Equals(constrainedToTypeOpt, this.ConstrainedToTypeOpt, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundFunctionPointerLoad(this.Syntax, targetMethod, constrainedToTypeOpt, type, this.HasErrors);
+                var result = new BoundFunctionPointerLoad(this.Syntax, this.IsInUnsafeRegion, targetMethod, constrainedToTypeOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1400,8 +1400,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPointerIndirectionOperator : BoundExpression
     {
-        public BoundPointerIndirectionOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.PointerIndirectionOperator, syntax, type, hasErrors || operand.HasErrors())
+        public BoundPointerIndirectionOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.PointerIndirectionOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1420,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPointerIndirectionOperator(this.Syntax, operand, type, this.HasErrors);
+                var result = new BoundPointerIndirectionOperator(this.Syntax, this.IsInUnsafeRegion, operand, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1430,8 +1430,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPointerElementAccess : BoundExpression
     {
-        public BoundPointerElementAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.PointerElementAccess, syntax, type, hasErrors || expression.HasErrors() || index.HasErrors())
+        public BoundPointerElementAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, BoundExpression index, bool @checked, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.PointerElementAccess, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors() || index.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1455,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || index != this.Index || @checked != this.Checked || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPointerElementAccess(this.Syntax, expression, index, @checked, type, this.HasErrors);
+                var result = new BoundPointerElementAccess(this.Syntax, this.IsInUnsafeRegion, expression, index, @checked, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1465,8 +1465,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFunctionPointerInvocation : BoundExpression
     {
-        public BoundFunctionPointerInvocation(SyntaxNode syntax, BoundExpression invokedExpression, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.FunctionPointerInvocation, syntax, type, hasErrors || invokedExpression.HasErrors() || arguments.HasErrors())
+        public BoundFunctionPointerInvocation(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression invokedExpression, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.FunctionPointerInvocation, syntax, isInUnsafeRegion, type, hasErrors || invokedExpression.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(invokedExpression is object, "Field 'invokedExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1492,7 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (invokedExpression != this.InvokedExpression || arguments != this.Arguments || argumentRefKindsOpt != this.ArgumentRefKindsOpt || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundFunctionPointerInvocation(this.Syntax, invokedExpression, arguments, argumentRefKindsOpt, resultKind, type, this.HasErrors);
+                var result = new BoundFunctionPointerInvocation(this.Syntax, this.IsInUnsafeRegion, invokedExpression, arguments, argumentRefKindsOpt, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1502,8 +1502,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRefTypeOperator : BoundExpression
     {
-        public BoundRefTypeOperator(SyntaxNode syntax, BoundExpression operand, MethodSymbol? getTypeFromHandle, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.RefTypeOperator, syntax, type, hasErrors || operand.HasErrors())
+        public BoundRefTypeOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, MethodSymbol? getTypeFromHandle, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.RefTypeOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1524,7 +1524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(getTypeFromHandle, this.GetTypeFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundRefTypeOperator(this.Syntax, operand, getTypeFromHandle, type, this.HasErrors);
+                var result = new BoundRefTypeOperator(this.Syntax, this.IsInUnsafeRegion, operand, getTypeFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1534,8 +1534,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMakeRefOperator : BoundExpression
     {
-        public BoundMakeRefOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.MakeRefOperator, syntax, type, hasErrors || operand.HasErrors())
+        public BoundMakeRefOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.MakeRefOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1554,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundMakeRefOperator(this.Syntax, operand, type, this.HasErrors);
+                var result = new BoundMakeRefOperator(this.Syntax, this.IsInUnsafeRegion, operand, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1564,8 +1564,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRefValueOperator : BoundExpression
     {
-        public BoundRefValueOperator(SyntaxNode syntax, NullableAnnotation nullableAnnotation, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.RefValueOperator, syntax, type, hasErrors || operand.HasErrors())
+        public BoundRefValueOperator(SyntaxNode syntax, bool isInUnsafeRegion, NullableAnnotation nullableAnnotation, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.RefValueOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1586,7 +1586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (nullableAnnotation != this.NullableAnnotation || operand != this.Operand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundRefValueOperator(this.Syntax, nullableAnnotation, operand, type, this.HasErrors);
+                var result = new BoundRefValueOperator(this.Syntax, this.IsInUnsafeRegion, nullableAnnotation, operand, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1596,8 +1596,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFromEndIndexExpression : BoundExpression
     {
-        public BoundFromEndIndexExpression(SyntaxNode syntax, BoundExpression operand, MethodSymbol? methodOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.FromEndIndexExpression, syntax, type, hasErrors || operand.HasErrors())
+        public BoundFromEndIndexExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, MethodSymbol? methodOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.FromEndIndexExpression, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1618,7 +1618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundFromEndIndexExpression(this.Syntax, operand, methodOpt, type, this.HasErrors);
+                var result = new BoundFromEndIndexExpression(this.Syntax, this.IsInUnsafeRegion, operand, methodOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1628,8 +1628,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRangeExpression : BoundExpression
     {
-        public BoundRangeExpression(SyntaxNode syntax, BoundExpression? leftOperandOpt, BoundExpression? rightOperandOpt, MethodSymbol? methodOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.RangeExpression, syntax, type, hasErrors || leftOperandOpt.HasErrors() || rightOperandOpt.HasErrors())
+        public BoundRangeExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? leftOperandOpt, BoundExpression? rightOperandOpt, MethodSymbol? methodOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.RangeExpression, syntax, isInUnsafeRegion, type, hasErrors || leftOperandOpt.HasErrors() || rightOperandOpt.HasErrors())
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1651,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (leftOperandOpt != this.LeftOperandOpt || rightOperandOpt != this.RightOperandOpt || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundRangeExpression(this.Syntax, leftOperandOpt, rightOperandOpt, methodOpt, type, this.HasErrors);
+                var result = new BoundRangeExpression(this.Syntax, this.IsInUnsafeRegion, leftOperandOpt, rightOperandOpt, methodOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1661,8 +1661,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundBinaryOperatorBase : BoundExpression
     {
-        protected BoundBinaryOperatorBase(BoundKind kind, SyntaxNode syntax, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundBinaryOperatorBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1680,8 +1680,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBinaryOperator : BoundBinaryOperatorBase
     {
-        public BoundBinaryOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, BoundBinaryOperator.UncommonData? data, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.BinaryOperator, syntax, left, right, type, hasErrors || left.HasErrors() || right.HasErrors())
+        public BoundBinaryOperator(SyntaxNode syntax, bool isInUnsafeRegion, BinaryOperatorKind operatorKind, BoundBinaryOperator.UncommonData? data, LookupResultKind resultKind, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.BinaryOperator, syntax, isInUnsafeRegion, left, right, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
             RoslynDebug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1708,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorKind != this.OperatorKind || data != this.Data || resultKind != this.ResultKind || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBinaryOperator(this.Syntax, operatorKind, data, resultKind, left, right, type, this.HasErrors);
+                var result = new BoundBinaryOperator(this.Syntax, this.IsInUnsafeRegion, operatorKind, data, resultKind, left, right, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1718,8 +1718,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTupleBinaryOperator : BoundExpression
     {
-        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
+        public BoundTupleBinaryOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TupleBinaryOperator, syntax, isInUnsafeRegion, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
             RoslynDebug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1746,7 +1746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (left != this.Left || right != this.Right || operatorKind != this.OperatorKind || operators != this.Operators || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTupleBinaryOperator(this.Syntax, left, right, operatorKind, operators, type, this.HasErrors);
+                var result = new BoundTupleBinaryOperator(this.Syntax, this.IsInUnsafeRegion, left, right, operatorKind, operators, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1756,8 +1756,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUserDefinedConditionalLogicalOperator : BoundBinaryOperatorBase
     {
-        public BoundUserDefinedConditionalLogicalOperator(SyntaxNode syntax, BinaryOperatorKind operatorKind, MethodSymbol logicalOperator, MethodSymbol trueOperator, MethodSymbol falseOperator, BoundValuePlaceholder? trueFalseOperandPlaceholder, BoundExpression? trueFalseOperandConversion, TypeSymbol? constrainedToTypeOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.UserDefinedConditionalLogicalOperator, syntax, left, right, type, hasErrors || trueFalseOperandPlaceholder.HasErrors() || trueFalseOperandConversion.HasErrors() || left.HasErrors() || right.HasErrors())
+        public BoundUserDefinedConditionalLogicalOperator(SyntaxNode syntax, bool isInUnsafeRegion, BinaryOperatorKind operatorKind, MethodSymbol logicalOperator, MethodSymbol trueOperator, MethodSymbol falseOperator, BoundValuePlaceholder? trueFalseOperandPlaceholder, BoundExpression? trueFalseOperandConversion, TypeSymbol? constrainedToTypeOpt, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, BoundExpression left, BoundExpression right, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.UserDefinedConditionalLogicalOperator, syntax, isInUnsafeRegion, left, right, type, hasErrors || trueFalseOperandPlaceholder.HasErrors() || trueFalseOperandConversion.HasErrors() || left.HasErrors() || right.HasErrors())
         {
 
             RoslynDebug.Assert(logicalOperator is object, "Field 'logicalOperator' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1799,7 +1799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operatorKind != this.OperatorKind || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(logicalOperator, this.LogicalOperator) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(trueOperator, this.TrueOperator) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(falseOperator, this.FalseOperator) || trueFalseOperandPlaceholder != this.TrueFalseOperandPlaceholder || trueFalseOperandConversion != this.TrueFalseOperandConversion || !TypeSymbol.Equals(constrainedToTypeOpt, this.ConstrainedToTypeOpt, TypeCompareKind.ConsiderEverything) || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || left != this.Left || right != this.Right || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, operatorKind, logicalOperator, trueOperator, falseOperator, trueFalseOperandPlaceholder, trueFalseOperandConversion, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt, left, right, type, this.HasErrors);
+                var result = new BoundUserDefinedConditionalLogicalOperator(this.Syntax, this.IsInUnsafeRegion, operatorKind, logicalOperator, trueOperator, falseOperator, trueFalseOperandPlaceholder, trueFalseOperandConversion, constrainedToTypeOpt, resultKind, originalUserDefinedOperatorsOpt, left, right, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1809,8 +1809,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCompoundAssignmentOperator : BoundExpression
     {
-        public BoundCompoundAssignmentOperator(SyntaxNode syntax, BinaryOperatorSignature @operator, BoundExpression left, BoundExpression right, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundValuePlaceholder? finalPlaceholder, BoundExpression? finalConversion, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CompoundAssignmentOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors() || leftPlaceholder.HasErrors() || leftConversion.HasErrors() || finalPlaceholder.HasErrors() || finalConversion.HasErrors())
+        public BoundCompoundAssignmentOperator(SyntaxNode syntax, bool isInUnsafeRegion, BinaryOperatorSignature @operator, BoundExpression left, BoundExpression right, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundValuePlaceholder? finalPlaceholder, BoundExpression? finalConversion, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalUserDefinedOperatorsOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CompoundAssignmentOperator, syntax, isInUnsafeRegion, type, hasErrors || left.HasErrors() || right.HasErrors() || leftPlaceholder.HasErrors() || leftConversion.HasErrors() || finalPlaceholder.HasErrors() || finalConversion.HasErrors())
         {
 
             RoslynDebug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1846,7 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (@operator != this.Operator || left != this.Left || right != this.Right || leftPlaceholder != this.LeftPlaceholder || leftConversion != this.LeftConversion || finalPlaceholder != this.FinalPlaceholder || finalConversion != this.FinalConversion || resultKind != this.ResultKind || originalUserDefinedOperatorsOpt != this.OriginalUserDefinedOperatorsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCompoundAssignmentOperator(this.Syntax, @operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
+                var result = new BoundCompoundAssignmentOperator(this.Syntax, this.IsInUnsafeRegion, @operator, left, right, leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperatorsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1856,8 +1856,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAssignmentOperator : BoundExpression
     {
-        public BoundAssignmentOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, bool isRef, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.AssignmentOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
+        public BoundAssignmentOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression left, BoundExpression right, bool isRef, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.AssignmentOperator, syntax, isInUnsafeRegion, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
             RoslynDebug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1880,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (left != this.Left || right != this.Right || isRef != this.IsRef || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAssignmentOperator(this.Syntax, left, right, isRef, type, this.HasErrors);
+                var result = new BoundAssignmentOperator(this.Syntax, this.IsInUnsafeRegion, left, right, isRef, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1890,8 +1890,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeconstructionAssignmentOperator : BoundExpression
     {
-        public BoundDeconstructionAssignmentOperator(SyntaxNode syntax, BoundTupleExpression left, BoundConversion right, bool isUsed, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DeconstructionAssignmentOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
+        public BoundDeconstructionAssignmentOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundTupleExpression left, BoundConversion right, bool isUsed, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DeconstructionAssignmentOperator, syntax, isInUnsafeRegion, type, hasErrors || left.HasErrors() || right.HasErrors())
         {
 
             RoslynDebug.Assert(left is object, "Field 'left' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1915,7 +1915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (left != this.Left || right != this.Right || isUsed != this.IsUsed || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDeconstructionAssignmentOperator(this.Syntax, left, right, isUsed, type, this.HasErrors);
+                var result = new BoundDeconstructionAssignmentOperator(this.Syntax, this.IsInUnsafeRegion, left, right, isUsed, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1925,8 +1925,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNullCoalescingOperator : BoundExpression
     {
-        public BoundNullCoalescingOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, bool @checked, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.NullCoalescingOperator, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors() || leftPlaceholder.HasErrors() || leftConversion.HasErrors())
+        public BoundNullCoalescingOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression leftOperand, BoundExpression rightOperand, BoundValuePlaceholder? leftPlaceholder, BoundExpression? leftConversion, BoundNullCoalescingOperatorResultKind operatorResultKind, bool @checked, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.NullCoalescingOperator, syntax, isInUnsafeRegion, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors() || leftPlaceholder.HasErrors() || leftConversion.HasErrors())
         {
 
             RoslynDebug.Assert(leftOperand is object, "Field 'leftOperand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1956,7 +1956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || leftPlaceholder != this.LeftPlaceholder || leftConversion != this.LeftConversion || operatorResultKind != this.OperatorResultKind || @checked != this.Checked || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundNullCoalescingOperator(this.Syntax, leftOperand, rightOperand, leftPlaceholder, leftConversion, operatorResultKind, @checked, type, this.HasErrors);
+                var result = new BoundNullCoalescingOperator(this.Syntax, this.IsInUnsafeRegion, leftOperand, rightOperand, leftPlaceholder, leftConversion, operatorResultKind, @checked, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1966,8 +1966,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNullCoalescingAssignmentOperator : BoundExpression
     {
-        public BoundNullCoalescingAssignmentOperator(SyntaxNode syntax, BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.NullCoalescingAssignmentOperator, syntax, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors())
+        public BoundNullCoalescingAssignmentOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression leftOperand, BoundExpression rightOperand, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.NullCoalescingAssignmentOperator, syntax, isInUnsafeRegion, type, hasErrors || leftOperand.HasErrors() || rightOperand.HasErrors())
         {
 
             RoslynDebug.Assert(leftOperand is object, "Field 'leftOperand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -1987,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (leftOperand != this.LeftOperand || rightOperand != this.RightOperand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, leftOperand, rightOperand, type, this.HasErrors);
+                var result = new BoundNullCoalescingAssignmentOperator(this.Syntax, this.IsInUnsafeRegion, leftOperand, rightOperand, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -1997,8 +1997,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedConditionalOperator : BoundExpression
     {
-        public BoundUnconvertedConditionalOperator(SyntaxNode syntax, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, ErrorCode noCommonTypeError, bool hasErrors = false)
-            : base(BoundKind.UnconvertedConditionalOperator, syntax, null, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
+        public BoundUnconvertedConditionalOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, ErrorCode noCommonTypeError, bool hasErrors = false)
+            : base(BoundKind.UnconvertedConditionalOperator, syntax, isInUnsafeRegion, null, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
         {
 
             RoslynDebug.Assert(condition is object, "Field 'condition' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2026,7 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || noCommonTypeError != this.NoCommonTypeError)
             {
-                var result = new BoundUnconvertedConditionalOperator(this.Syntax, condition, consequence, alternative, constantValueOpt, noCommonTypeError, this.HasErrors);
+                var result = new BoundUnconvertedConditionalOperator(this.Syntax, this.IsInUnsafeRegion, condition, consequence, alternative, constantValueOpt, noCommonTypeError, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2036,8 +2036,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConditionalOperator : BoundExpression
     {
-        public BoundConditionalOperator(SyntaxNode syntax, bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConditionalOperator, syntax, type, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
+        public BoundConditionalOperator(SyntaxNode syntax, bool isInUnsafeRegion, bool isRef, BoundExpression condition, BoundExpression consequence, BoundExpression alternative, ConstantValue? constantValueOpt, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConditionalOperator, syntax, isInUnsafeRegion, type, hasErrors || condition.HasErrors() || consequence.HasErrors() || alternative.HasErrors())
         {
 
             RoslynDebug.Assert(condition is object, "Field 'condition' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2070,7 +2070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isRef != this.IsRef || condition != this.Condition || consequence != this.Consequence || alternative != this.Alternative || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConditionalOperator(this.Syntax, isRef, condition, consequence, alternative, constantValueOpt, naturalTypeOpt, wasTargetTyped, type, this.HasErrors);
+                var result = new BoundConditionalOperator(this.Syntax, this.IsInUnsafeRegion, isRef, condition, consequence, alternative, constantValueOpt, naturalTypeOpt, wasTargetTyped, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2080,8 +2080,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundArrayAccess : BoundExpression
     {
-        public BoundArrayAccess(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundExpression> indices, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ArrayAccess, syntax, type, hasErrors || expression.HasErrors() || indices.HasErrors())
+        public BoundArrayAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, ImmutableArray<BoundExpression> indices, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ArrayAccess, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors() || indices.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2103,7 +2103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || indices != this.Indices || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundArrayAccess(this.Syntax, expression, indices, type, this.HasErrors);
+                var result = new BoundArrayAccess(this.Syntax, this.IsInUnsafeRegion, expression, indices, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2113,8 +2113,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRefAccess : BoundExpression
     {
-        public BoundRefAccess(SyntaxNode syntax, RefKind refKind, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.RefAccess, syntax, type, hasErrors || expression.HasErrors())
+        public BoundRefAccess(SyntaxNode syntax, bool isInUnsafeRegion, RefKind refKind, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.RefAccess, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2135,7 +2135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (refKind != this.RefKind || expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundRefAccess(this.Syntax, refKind, expression, type, this.HasErrors);
+                var result = new BoundRefAccess(this.Syntax, this.IsInUnsafeRegion, refKind, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2145,8 +2145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundArrayLength : BoundExpression
     {
-        public BoundArrayLength(SyntaxNode syntax, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ArrayLength, syntax, type, hasErrors || expression.HasErrors())
+        public BoundArrayLength(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ArrayLength, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2165,7 +2165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundArrayLength(this.Syntax, expression, type, this.HasErrors);
+                var result = new BoundArrayLength(this.Syntax, this.IsInUnsafeRegion, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2216,8 +2216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAwaitExpression : BoundExpression
     {
-        public BoundAwaitExpression(SyntaxNode syntax, BoundExpression expression, BoundAwaitableInfo awaitableInfo, BoundAwaitExpressionDebugInfo debugInfo, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.AwaitExpression, syntax, type, hasErrors || expression.HasErrors() || awaitableInfo.HasErrors())
+        public BoundAwaitExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, BoundAwaitableInfo awaitableInfo, BoundAwaitExpressionDebugInfo debugInfo, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.AwaitExpression, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors() || awaitableInfo.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2241,7 +2241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || awaitableInfo != this.AwaitableInfo || debugInfo != this.DebugInfo || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAwaitExpression(this.Syntax, expression, awaitableInfo, debugInfo, type, this.HasErrors);
+                var result = new BoundAwaitExpression(this.Syntax, this.IsInUnsafeRegion, expression, awaitableInfo, debugInfo, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2251,8 +2251,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundTypeOf : BoundExpression
     {
-        protected BoundTypeOf(BoundKind kind, SyntaxNode syntax, MethodSymbol? getTypeFromHandle, TypeSymbol type, bool hasErrors)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundTypeOf(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol? getTypeFromHandle, TypeSymbol type, bool hasErrors)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2260,8 +2260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetTypeFromHandle = getTypeFromHandle;
         }
 
-        protected BoundTypeOf(BoundKind kind, SyntaxNode syntax, MethodSymbol? getTypeFromHandle, TypeSymbol type)
-            : base(kind, syntax, type)
+        protected BoundTypeOf(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol? getTypeFromHandle, TypeSymbol type)
+            : base(kind, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2275,8 +2275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTypeOfOperator : BoundTypeOf
     {
-        public BoundTypeOfOperator(SyntaxNode syntax, BoundTypeExpression sourceType, MethodSymbol? getTypeFromHandle, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.TypeOfOperator, syntax, getTypeFromHandle, type, hasErrors || sourceType.HasErrors())
+        public BoundTypeOfOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundTypeExpression sourceType, MethodSymbol? getTypeFromHandle, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TypeOfOperator, syntax, isInUnsafeRegion, getTypeFromHandle, type, hasErrors || sourceType.HasErrors())
         {
 
             RoslynDebug.Assert(sourceType is object, "Field 'sourceType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2294,7 +2294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (sourceType != this.SourceType || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(getTypeFromHandle, this.GetTypeFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTypeOfOperator(this.Syntax, sourceType, getTypeFromHandle, type, this.HasErrors);
+                var result = new BoundTypeOfOperator(this.Syntax, this.IsInUnsafeRegion, sourceType, getTypeFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2336,8 +2336,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMethodDefIndex : BoundExpression
     {
-        public BoundMethodDefIndex(SyntaxNode syntax, MethodSymbol method, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.MethodDefIndex, syntax, type, hasErrors)
+        public BoundMethodDefIndex(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol method, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.MethodDefIndex, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(method is object, "Field 'method' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2350,8 +2350,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         private partial void Validate();
 
-        public BoundMethodDefIndex(SyntaxNode syntax, MethodSymbol method, TypeSymbol type)
-            : base(BoundKind.MethodDefIndex, syntax, type)
+        public BoundMethodDefIndex(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol method, TypeSymbol type)
+            : base(BoundKind.MethodDefIndex, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(method is object, "Field 'method' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2370,7 +2370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundMethodDefIndex(this.Syntax, method, type, this.HasErrors);
+                var result = new BoundMethodDefIndex(this.Syntax, this.IsInUnsafeRegion, method, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2380,8 +2380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocalId : BoundExpression
     {
-        public BoundLocalId(SyntaxNode syntax, LocalSymbol local, FieldSymbol? hoistedField, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.LocalId, syntax, type, hasErrors)
+        public BoundLocalId(SyntaxNode syntax, bool isInUnsafeRegion, LocalSymbol local, FieldSymbol? hoistedField, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.LocalId, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(local is object, "Field 'local' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2391,8 +2391,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.HoistedField = hoistedField;
         }
 
-        public BoundLocalId(SyntaxNode syntax, LocalSymbol local, FieldSymbol? hoistedField, TypeSymbol type)
-            : base(BoundKind.LocalId, syntax, type)
+        public BoundLocalId(SyntaxNode syntax, bool isInUnsafeRegion, LocalSymbol local, FieldSymbol? hoistedField, TypeSymbol type)
+            : base(BoundKind.LocalId, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(local is object, "Field 'local' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2413,7 +2413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(local, this.Local) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(hoistedField, this.HoistedField) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundLocalId(this.Syntax, local, hoistedField, type, this.HasErrors);
+                var result = new BoundLocalId(this.Syntax, this.IsInUnsafeRegion, local, hoistedField, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2423,8 +2423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundParameterId : BoundExpression
     {
-        public BoundParameterId(SyntaxNode syntax, ParameterSymbol parameter, FieldSymbol? hoistedField, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ParameterId, syntax, type, hasErrors)
+        public BoundParameterId(SyntaxNode syntax, bool isInUnsafeRegion, ParameterSymbol parameter, FieldSymbol? hoistedField, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ParameterId, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(parameter is object, "Field 'parameter' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2434,8 +2434,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.HoistedField = hoistedField;
         }
 
-        public BoundParameterId(SyntaxNode syntax, ParameterSymbol parameter, FieldSymbol? hoistedField, TypeSymbol type)
-            : base(BoundKind.ParameterId, syntax, type)
+        public BoundParameterId(SyntaxNode syntax, bool isInUnsafeRegion, ParameterSymbol parameter, FieldSymbol? hoistedField, TypeSymbol type)
+            : base(BoundKind.ParameterId, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(parameter is object, "Field 'parameter' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2456,7 +2456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(parameter, this.Parameter) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(hoistedField, this.HoistedField) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundParameterId(this.Syntax, parameter, hoistedField, type, this.HasErrors);
+                var result = new BoundParameterId(this.Syntax, this.IsInUnsafeRegion, parameter, hoistedField, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2466,16 +2466,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStateMachineInstanceId : BoundExpression
     {
-        public BoundStateMachineInstanceId(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.StateMachineInstanceId, syntax, type, hasErrors)
+        public BoundStateMachineInstanceId(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.StateMachineInstanceId, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundStateMachineInstanceId(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.StateMachineInstanceId, syntax, type)
+        public BoundStateMachineInstanceId(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.StateMachineInstanceId, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2491,7 +2491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundStateMachineInstanceId(this.Syntax, type, this.HasErrors);
+                var result = new BoundStateMachineInstanceId(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2501,16 +2501,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMaximumMethodDefIndex : BoundExpression
     {
-        public BoundMaximumMethodDefIndex(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.MaximumMethodDefIndex, syntax, type, hasErrors)
+        public BoundMaximumMethodDefIndex(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.MaximumMethodDefIndex, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundMaximumMethodDefIndex(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.MaximumMethodDefIndex, syntax, type)
+        public BoundMaximumMethodDefIndex(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.MaximumMethodDefIndex, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2526,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundMaximumMethodDefIndex(this.Syntax, type, this.HasErrors);
+                var result = new BoundMaximumMethodDefIndex(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2536,8 +2536,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundInstrumentationPayloadRoot : BoundExpression
     {
-        public BoundInstrumentationPayloadRoot(SyntaxNode syntax, int analysisKind, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.InstrumentationPayloadRoot, syntax, type, hasErrors)
+        public BoundInstrumentationPayloadRoot(SyntaxNode syntax, bool isInUnsafeRegion, int analysisKind, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.InstrumentationPayloadRoot, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2545,8 +2545,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.AnalysisKind = analysisKind;
         }
 
-        public BoundInstrumentationPayloadRoot(SyntaxNode syntax, int analysisKind, TypeSymbol type)
-            : base(BoundKind.InstrumentationPayloadRoot, syntax, type)
+        public BoundInstrumentationPayloadRoot(SyntaxNode syntax, bool isInUnsafeRegion, int analysisKind, TypeSymbol type)
+            : base(BoundKind.InstrumentationPayloadRoot, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2564,7 +2564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (analysisKind != this.AnalysisKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInstrumentationPayloadRoot(this.Syntax, analysisKind, type, this.HasErrors);
+                var result = new BoundInstrumentationPayloadRoot(this.Syntax, this.IsInUnsafeRegion, analysisKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2574,16 +2574,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundThrowIfModuleCancellationRequested : BoundExpression
     {
-        public BoundThrowIfModuleCancellationRequested(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ThrowIfModuleCancellationRequested, syntax, type, hasErrors)
+        public BoundThrowIfModuleCancellationRequested(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ThrowIfModuleCancellationRequested, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundThrowIfModuleCancellationRequested(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ThrowIfModuleCancellationRequested, syntax, type)
+        public BoundThrowIfModuleCancellationRequested(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ThrowIfModuleCancellationRequested, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2599,7 +2599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundThrowIfModuleCancellationRequested(this.Syntax, type, this.HasErrors);
+                var result = new BoundThrowIfModuleCancellationRequested(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2609,16 +2609,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class ModuleCancellationTokenExpression : BoundExpression
     {
-        public ModuleCancellationTokenExpression(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ModuleCancellationTokenExpression, syntax, type, hasErrors)
+        public ModuleCancellationTokenExpression(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ModuleCancellationTokenExpression, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public ModuleCancellationTokenExpression(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ModuleCancellationTokenExpression, syntax, type)
+        public ModuleCancellationTokenExpression(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ModuleCancellationTokenExpression, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2634,7 +2634,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new ModuleCancellationTokenExpression(this.Syntax, type, this.HasErrors);
+                var result = new ModuleCancellationTokenExpression(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2644,16 +2644,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundModuleVersionId : BoundExpression
     {
-        public BoundModuleVersionId(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ModuleVersionId, syntax, type, hasErrors)
+        public BoundModuleVersionId(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ModuleVersionId, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundModuleVersionId(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ModuleVersionId, syntax, type)
+        public BoundModuleVersionId(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ModuleVersionId, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2669,7 +2669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundModuleVersionId(this.Syntax, type, this.HasErrors);
+                var result = new BoundModuleVersionId(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2679,16 +2679,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundModuleVersionIdString : BoundExpression
     {
-        public BoundModuleVersionIdString(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ModuleVersionIdString, syntax, type, hasErrors)
+        public BoundModuleVersionIdString(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ModuleVersionIdString, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundModuleVersionIdString(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ModuleVersionIdString, syntax, type)
+        public BoundModuleVersionIdString(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ModuleVersionIdString, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2704,7 +2704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundModuleVersionIdString(this.Syntax, type, this.HasErrors);
+                var result = new BoundModuleVersionIdString(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2714,8 +2714,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSourceDocumentIndex : BoundExpression
     {
-        public BoundSourceDocumentIndex(SyntaxNode syntax, Cci.DebugSourceDocument document, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.SourceDocumentIndex, syntax, type, hasErrors)
+        public BoundSourceDocumentIndex(SyntaxNode syntax, bool isInUnsafeRegion, Cci.DebugSourceDocument document, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.SourceDocumentIndex, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(document is object, "Field 'document' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2724,8 +2724,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Document = document;
         }
 
-        public BoundSourceDocumentIndex(SyntaxNode syntax, Cci.DebugSourceDocument document, TypeSymbol type)
-            : base(BoundKind.SourceDocumentIndex, syntax, type)
+        public BoundSourceDocumentIndex(SyntaxNode syntax, bool isInUnsafeRegion, Cci.DebugSourceDocument document, TypeSymbol type)
+            : base(BoundKind.SourceDocumentIndex, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(document is object, "Field 'document' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2744,7 +2744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (document != this.Document || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSourceDocumentIndex(this.Syntax, document, type, this.HasErrors);
+                var result = new BoundSourceDocumentIndex(this.Syntax, this.IsInUnsafeRegion, document, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2754,8 +2754,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMethodInfo : BoundExpression
     {
-        public BoundMethodInfo(SyntaxNode syntax, MethodSymbol method, MethodSymbol? getMethodFromHandle, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.MethodInfo, syntax, type, hasErrors)
+        public BoundMethodInfo(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol method, MethodSymbol? getMethodFromHandle, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.MethodInfo, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(method is object, "Field 'method' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2765,8 +2765,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetMethodFromHandle = getMethodFromHandle;
         }
 
-        public BoundMethodInfo(SyntaxNode syntax, MethodSymbol method, MethodSymbol? getMethodFromHandle, TypeSymbol type)
-            : base(BoundKind.MethodInfo, syntax, type)
+        public BoundMethodInfo(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol method, MethodSymbol? getMethodFromHandle, TypeSymbol type)
+            : base(BoundKind.MethodInfo, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(method is object, "Field 'method' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2787,7 +2787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(getMethodFromHandle, this.GetMethodFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundMethodInfo(this.Syntax, method, getMethodFromHandle, type, this.HasErrors);
+                var result = new BoundMethodInfo(this.Syntax, this.IsInUnsafeRegion, method, getMethodFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2797,8 +2797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFieldInfo : BoundExpression
     {
-        public BoundFieldInfo(SyntaxNode syntax, FieldSymbol field, MethodSymbol? getFieldFromHandle, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.FieldInfo, syntax, type, hasErrors)
+        public BoundFieldInfo(SyntaxNode syntax, bool isInUnsafeRegion, FieldSymbol field, MethodSymbol? getFieldFromHandle, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.FieldInfo, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(field is object, "Field 'field' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2808,8 +2808,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.GetFieldFromHandle = getFieldFromHandle;
         }
 
-        public BoundFieldInfo(SyntaxNode syntax, FieldSymbol field, MethodSymbol? getFieldFromHandle, TypeSymbol type)
-            : base(BoundKind.FieldInfo, syntax, type)
+        public BoundFieldInfo(SyntaxNode syntax, bool isInUnsafeRegion, FieldSymbol field, MethodSymbol? getFieldFromHandle, TypeSymbol type)
+            : base(BoundKind.FieldInfo, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(field is object, "Field 'field' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2830,7 +2830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(getFieldFromHandle, this.GetFieldFromHandle) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundFieldInfo(this.Syntax, field, getFieldFromHandle, type, this.HasErrors);
+                var result = new BoundFieldInfo(this.Syntax, this.IsInUnsafeRegion, field, getFieldFromHandle, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2840,13 +2840,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDefaultLiteral : BoundExpression
     {
-        public BoundDefaultLiteral(SyntaxNode syntax, bool hasErrors)
-            : base(BoundKind.DefaultLiteral, syntax, null, hasErrors)
+        public BoundDefaultLiteral(SyntaxNode syntax, bool isInUnsafeRegion, bool hasErrors)
+            : base(BoundKind.DefaultLiteral, syntax, isInUnsafeRegion, null, hasErrors)
         {
         }
 
-        public BoundDefaultLiteral(SyntaxNode syntax)
-            : base(BoundKind.DefaultLiteral, syntax, null)
+        public BoundDefaultLiteral(SyntaxNode syntax, bool isInUnsafeRegion)
+            : base(BoundKind.DefaultLiteral, syntax, isInUnsafeRegion, null)
         {
         }
 
@@ -2863,8 +2863,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDefaultExpression : BoundExpression
     {
-        public BoundDefaultExpression(SyntaxNode syntax, BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DefaultExpression, syntax, type, hasErrors || targetType.HasErrors())
+        public BoundDefaultExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundTypeExpression? targetType, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DefaultExpression, syntax, isInUnsafeRegion, type, hasErrors || targetType.HasErrors())
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2884,7 +2884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (targetType != this.TargetType || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDefaultExpression(this.Syntax, targetType, constantValueOpt, type, this.HasErrors);
+                var result = new BoundDefaultExpression(this.Syntax, this.IsInUnsafeRegion, targetType, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2894,8 +2894,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIsOperator : BoundExpression
     {
-        public BoundIsOperator(SyntaxNode syntax, BoundExpression operand, BoundTypeExpression targetType, ConversionKind conversionKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.IsOperator, syntax, type, hasErrors || operand.HasErrors() || targetType.HasErrors())
+        public BoundIsOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, BoundTypeExpression targetType, ConversionKind conversionKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.IsOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors() || targetType.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2919,7 +2919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || targetType != this.TargetType || conversionKind != this.ConversionKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIsOperator(this.Syntax, operand, targetType, conversionKind, type, this.HasErrors);
+                var result = new BoundIsOperator(this.Syntax, this.IsInUnsafeRegion, operand, targetType, conversionKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2929,8 +2929,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAsOperator : BoundExpression
     {
-        public BoundAsOperator(SyntaxNode syntax, BoundExpression operand, BoundTypeExpression targetType, BoundValuePlaceholder? operandPlaceholder, BoundExpression? operandConversion, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.AsOperator, syntax, type, hasErrors || operand.HasErrors() || targetType.HasErrors() || operandPlaceholder.HasErrors() || operandConversion.HasErrors())
+        public BoundAsOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, BoundTypeExpression targetType, BoundValuePlaceholder? operandPlaceholder, BoundExpression? operandConversion, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.AsOperator, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors() || targetType.HasErrors() || operandPlaceholder.HasErrors() || operandConversion.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2956,7 +2956,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || targetType != this.TargetType || operandPlaceholder != this.OperandPlaceholder || operandConversion != this.OperandConversion || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAsOperator(this.Syntax, operand, targetType, operandPlaceholder, operandConversion, type, this.HasErrors);
+                var result = new BoundAsOperator(this.Syntax, this.IsInUnsafeRegion, operand, targetType, operandPlaceholder, operandConversion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2966,8 +2966,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSizeOfOperator : BoundExpression
     {
-        public BoundSizeOfOperator(SyntaxNode syntax, BoundTypeExpression sourceType, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.SizeOfOperator, syntax, type, hasErrors || sourceType.HasErrors())
+        public BoundSizeOfOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundTypeExpression sourceType, ConstantValue? constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.SizeOfOperator, syntax, isInUnsafeRegion, type, hasErrors || sourceType.HasErrors())
         {
 
             RoslynDebug.Assert(sourceType is object, "Field 'sourceType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2988,7 +2988,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (sourceType != this.SourceType || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSizeOfOperator(this.Syntax, sourceType, constantValueOpt, type, this.HasErrors);
+                var result = new BoundSizeOfOperator(this.Syntax, this.IsInUnsafeRegion, sourceType, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2998,8 +2998,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConversion : BoundExpression
     {
-        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue? constantValueOpt, ConversionGroup? conversionGroupOpt, InConversionGroupFlags inConversionGroupFlags, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.Conversion, syntax, type, hasErrors || operand.HasErrors())
+        public BoundConversion(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, Conversion conversion, bool isBaseConversion, bool @checked, bool explicitCastInCode, ConstantValue? constantValueOpt, ConversionGroup? conversionGroupOpt, InConversionGroupFlags inConversionGroupFlags, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.Conversion, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -3036,7 +3036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || conversionGroupOpt != this.ConversionGroupOpt || inConversionGroupFlags != this.InConversionGroupFlags || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConversion(this.Syntax, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, inConversionGroupFlags, type, this.HasErrors);
+                var result = new BoundConversion(this.Syntax, this.IsInUnsafeRegion, operand, conversion, isBaseConversion, @checked, explicitCastInCode, constantValueOpt, conversionGroupOpt, inConversionGroupFlags, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3046,8 +3046,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundReadOnlySpanFromArray : BoundExpression
     {
-        public BoundReadOnlySpanFromArray(SyntaxNode syntax, BoundExpression operand, MethodSymbol conversionMethod, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ReadOnlySpanFromArray, syntax, type, hasErrors || operand.HasErrors())
+        public BoundReadOnlySpanFromArray(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression operand, MethodSymbol conversionMethod, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ReadOnlySpanFromArray, syntax, isInUnsafeRegion, type, hasErrors || operand.HasErrors())
         {
 
             RoslynDebug.Assert(operand is object, "Field 'operand' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -3069,7 +3069,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (operand != this.Operand || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(conversionMethod, this.ConversionMethod) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundReadOnlySpanFromArray(this.Syntax, operand, conversionMethod, type, this.HasErrors);
+                var result = new BoundReadOnlySpanFromArray(this.Syntax, this.IsInUnsafeRegion, operand, conversionMethod, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3079,16 +3079,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundArgList : BoundExpression
     {
-        public BoundArgList(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ArgList, syntax, type, hasErrors)
+        public BoundArgList(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ArgList, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundArgList(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ArgList, syntax, type)
+        public BoundArgList(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ArgList, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -3104,7 +3104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundArgList(this.Syntax, type, this.HasErrors);
+                var result = new BoundArgList(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3114,8 +3114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundArgListOperator : BoundExpression
     {
-        public BoundArgListOperator(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.ArgListOperator, syntax, type, hasErrors || arguments.HasErrors())
+        public BoundArgListOperator(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKindsOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.ArgListOperator, syntax, isInUnsafeRegion, type, hasErrors || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -3135,7 +3135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (arguments != this.Arguments || argumentRefKindsOpt != this.ArgumentRefKindsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundArgListOperator(this.Syntax, arguments, argumentRefKindsOpt, type, this.HasErrors);
+                var result = new BoundArgListOperator(this.Syntax, this.IsInUnsafeRegion, arguments, argumentRefKindsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -3145,8 +3145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFixedLocalCollectionInitializer : BoundExpression
     {
-        public BoundFixedLocalCollectionInitializer(SyntaxNode syntax, TypeSymbol elementPointerType, BoundValuePlaceholder? elementPointerPlaceholder, BoundExpression? elementPointerConversion, BoundExpression expression, MethodSymbol? getPinnableOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.FixedLocalCollectionInitializer, syntax, type, hasErrors || elementPointerPlaceholder.HasErrors() || elementPointerConversion.HasErrors() || expression.HasErrors())
+        public BoundFixedLocalCollectionInitializer(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol elementPointerType, BoundValuePlaceholder? elementPointerPlaceholder, BoundExpression? elementPointerConversion, BoundExpression expression, MethodSymbol? getPinnableOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.FixedLocalCollectionInitializer, syntax, isInUnsafeRegion, type, hasErrors || elementPointerPlaceholder.HasErrors() || elementPointerConversion.HasErrors() || expression.HasErrors())
         {
 
             RoslynDebug.Assert(elementPointerType is object, "Field 'elementPointerType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -3174,7 +3174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(elementPointerType, this.ElementPointerType, TypeCompareKind.ConsiderEverything) || elementPointerPlaceholder != this.ElementPointerPlaceholder || elementPointerConversion != this.ElementPointerConversion || expression != this.Expression || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(getPinnableOpt, this.GetPinnableOpt) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundFixedLocalCollectionInitializer(this.Syntax, elementPointerType, elementPointerPlaceholder, elementPointerConversion, expression, getPinnableOpt, type, this.HasErrors);
+                var result = new BoundFixedLocalCollectionInitializer(this.Syntax, this.IsInUnsafeRegion, elementPointerType, elementPointerPlaceholder, elementPointerConversion, expression, getPinnableOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4339,14 +4339,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLiteral : BoundExpression
     {
-        public BoundLiteral(SyntaxNode syntax, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.Literal, syntax, type, hasErrors)
+        public BoundLiteral(SyntaxNode syntax, bool isInUnsafeRegion, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.Literal, syntax, isInUnsafeRegion, type, hasErrors)
         {
             this.ConstantValueOpt = constantValueOpt;
         }
 
-        public BoundLiteral(SyntaxNode syntax, ConstantValue? constantValueOpt, TypeSymbol? type)
-            : base(BoundKind.Literal, syntax, type)
+        public BoundLiteral(SyntaxNode syntax, bool isInUnsafeRegion, ConstantValue? constantValueOpt, TypeSymbol? type)
+            : base(BoundKind.Literal, syntax, isInUnsafeRegion, type)
         {
             this.ConstantValueOpt = constantValueOpt;
         }
@@ -4360,7 +4360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundLiteral(this.Syntax, constantValueOpt, type, this.HasErrors);
+                var result = new BoundLiteral(this.Syntax, this.IsInUnsafeRegion, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4370,8 +4370,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUtf8String : BoundExpression
     {
-        public BoundUtf8String(SyntaxNode syntax, string value, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.Utf8String, syntax, type, hasErrors)
+        public BoundUtf8String(SyntaxNode syntax, bool isInUnsafeRegion, string value, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.Utf8String, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4380,8 +4380,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Value = value;
         }
 
-        public BoundUtf8String(SyntaxNode syntax, string value, TypeSymbol type)
-            : base(BoundKind.Utf8String, syntax, type)
+        public BoundUtf8String(SyntaxNode syntax, bool isInUnsafeRegion, string value, TypeSymbol type)
+            : base(BoundKind.Utf8String, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4400,7 +4400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUtf8String(this.Syntax, value, type, this.HasErrors);
+                var result = new BoundUtf8String(this.Syntax, this.IsInUnsafeRegion, value, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4410,16 +4410,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundThisReference : BoundExpression
     {
-        public BoundThisReference(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ThisReference, syntax, type, hasErrors)
+        public BoundThisReference(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ThisReference, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundThisReference(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ThisReference, syntax, type)
+        public BoundThisReference(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ThisReference, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4435,7 +4435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundThisReference(this.Syntax, type, this.HasErrors);
+                var result = new BoundThisReference(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4445,16 +4445,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPreviousSubmissionReference : BoundExpression
     {
-        public BoundPreviousSubmissionReference(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.PreviousSubmissionReference, syntax, type, hasErrors)
+        public BoundPreviousSubmissionReference(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.PreviousSubmissionReference, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundPreviousSubmissionReference(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.PreviousSubmissionReference, syntax, type)
+        public BoundPreviousSubmissionReference(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.PreviousSubmissionReference, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4470,7 +4470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPreviousSubmissionReference(this.Syntax, type, this.HasErrors);
+                var result = new BoundPreviousSubmissionReference(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4480,16 +4480,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundHostObjectMemberReference : BoundExpression
     {
-        public BoundHostObjectMemberReference(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.HostObjectMemberReference, syntax, type, hasErrors)
+        public BoundHostObjectMemberReference(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.HostObjectMemberReference, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundHostObjectMemberReference(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.HostObjectMemberReference, syntax, type)
+        public BoundHostObjectMemberReference(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.HostObjectMemberReference, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4505,7 +4505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundHostObjectMemberReference(this.Syntax, type, this.HasErrors);
+                var result = new BoundHostObjectMemberReference(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4515,13 +4515,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundBaseReference : BoundExpression
     {
-        public BoundBaseReference(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.BaseReference, syntax, type, hasErrors)
+        public BoundBaseReference(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.BaseReference, syntax, isInUnsafeRegion, type, hasErrors)
         {
         }
 
-        public BoundBaseReference(SyntaxNode syntax, TypeSymbol? type)
-            : base(BoundKind.BaseReference, syntax, type)
+        public BoundBaseReference(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(BoundKind.BaseReference, syntax, isInUnsafeRegion, type)
         {
         }
 
@@ -4534,7 +4534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundBaseReference(this.Syntax, type, this.HasErrors);
+                var result = new BoundBaseReference(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4544,8 +4544,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLocal : BoundExpression
     {
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue? constantValueOpt, bool isNullableUnknown, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.Local, syntax, type, hasErrors)
+        public BoundLocal(SyntaxNode syntax, bool isInUnsafeRegion, LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue? constantValueOpt, bool isNullableUnknown, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.Local, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(localSymbol is object, "Field 'localSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4557,8 +4557,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.IsNullableUnknown = isNullableUnknown;
         }
 
-        public BoundLocal(SyntaxNode syntax, LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue? constantValueOpt, bool isNullableUnknown, TypeSymbol type)
-            : base(BoundKind.Local, syntax, type)
+        public BoundLocal(SyntaxNode syntax, bool isInUnsafeRegion, LocalSymbol localSymbol, BoundLocalDeclarationKind declarationKind, ConstantValue? constantValueOpt, bool isNullableUnknown, TypeSymbol type)
+            : base(BoundKind.Local, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(localSymbol is object, "Field 'localSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4583,7 +4583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || declarationKind != this.DeclarationKind || constantValueOpt != this.ConstantValueOpt || isNullableUnknown != this.IsNullableUnknown || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundLocal(this.Syntax, localSymbol, declarationKind, constantValueOpt, isNullableUnknown, type, this.HasErrors);
+                var result = new BoundLocal(this.Syntax, this.IsInUnsafeRegion, localSymbol, declarationKind, constantValueOpt, isNullableUnknown, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4593,8 +4593,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPseudoVariable : BoundExpression
     {
-        public BoundPseudoVariable(SyntaxNode syntax, LocalSymbol localSymbol, PseudoVariableExpressions emitExpressions, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.PseudoVariable, syntax, type, hasErrors)
+        public BoundPseudoVariable(SyntaxNode syntax, bool isInUnsafeRegion, LocalSymbol localSymbol, PseudoVariableExpressions emitExpressions, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.PseudoVariable, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(localSymbol is object, "Field 'localSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4605,8 +4605,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.EmitExpressions = emitExpressions;
         }
 
-        public BoundPseudoVariable(SyntaxNode syntax, LocalSymbol localSymbol, PseudoVariableExpressions emitExpressions, TypeSymbol type)
-            : base(BoundKind.PseudoVariable, syntax, type)
+        public BoundPseudoVariable(SyntaxNode syntax, bool isInUnsafeRegion, LocalSymbol localSymbol, PseudoVariableExpressions emitExpressions, TypeSymbol type)
+            : base(BoundKind.PseudoVariable, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(localSymbol is object, "Field 'localSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4628,7 +4628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(localSymbol, this.LocalSymbol) || emitExpressions != this.EmitExpressions || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPseudoVariable(this.Syntax, localSymbol, emitExpressions, type, this.HasErrors);
+                var result = new BoundPseudoVariable(this.Syntax, this.IsInUnsafeRegion, localSymbol, emitExpressions, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4638,8 +4638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRangeVariable : BoundExpression
     {
-        public BoundRangeVariable(SyntaxNode syntax, RangeVariableSymbol rangeVariableSymbol, BoundExpression value, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.RangeVariable, syntax, type, hasErrors || value.HasErrors())
+        public BoundRangeVariable(SyntaxNode syntax, bool isInUnsafeRegion, RangeVariableSymbol rangeVariableSymbol, BoundExpression value, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.RangeVariable, syntax, isInUnsafeRegion, type, hasErrors || value.HasErrors())
         {
 
             RoslynDebug.Assert(rangeVariableSymbol is object, "Field 'rangeVariableSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4661,7 +4661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(rangeVariableSymbol, this.RangeVariableSymbol) || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundRangeVariable(this.Syntax, rangeVariableSymbol, value, type, this.HasErrors);
+                var result = new BoundRangeVariable(this.Syntax, this.IsInUnsafeRegion, rangeVariableSymbol, value, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4671,8 +4671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundParameter : BoundExpression
     {
-        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.Parameter, syntax, type, hasErrors)
+        public BoundParameter(SyntaxNode syntax, bool isInUnsafeRegion, ParameterSymbol parameterSymbol, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.Parameter, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(parameterSymbol is object, "Field 'parameterSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4681,8 +4681,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ParameterSymbol = parameterSymbol;
         }
 
-        public BoundParameter(SyntaxNode syntax, ParameterSymbol parameterSymbol, TypeSymbol type)
-            : base(BoundKind.Parameter, syntax, type)
+        public BoundParameter(SyntaxNode syntax, bool isInUnsafeRegion, ParameterSymbol parameterSymbol, TypeSymbol type)
+            : base(BoundKind.Parameter, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(parameterSymbol is object, "Field 'parameterSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4701,7 +4701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(parameterSymbol, this.ParameterSymbol) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundParameter(this.Syntax, parameterSymbol, type, this.HasErrors);
+                var result = new BoundParameter(this.Syntax, this.IsInUnsafeRegion, parameterSymbol, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4811,8 +4811,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLabel : BoundExpression
     {
-        public BoundLabel(SyntaxNode syntax, LabelSymbol label, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.Label, syntax, type, hasErrors)
+        public BoundLabel(SyntaxNode syntax, bool isInUnsafeRegion, LabelSymbol label, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.Label, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4820,8 +4820,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Label = label;
         }
 
-        public BoundLabel(SyntaxNode syntax, LabelSymbol label, TypeSymbol? type)
-            : base(BoundKind.Label, syntax, type)
+        public BoundLabel(SyntaxNode syntax, bool isInUnsafeRegion, LabelSymbol label, TypeSymbol? type)
+            : base(BoundKind.Label, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(label is object, "Field 'label' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4838,7 +4838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(label, this.Label) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundLabel(this.Syntax, label, type, this.HasErrors);
+                var result = new BoundLabel(this.Syntax, this.IsInUnsafeRegion, label, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -4918,8 +4918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundSwitchExpression : BoundExpression
     {
-        protected BoundSwitchExpression(BoundKind kind, SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundSwitchExpression(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -4983,8 +4983,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedSwitchExpression : BoundSwitchExpression
     {
-        public BoundUnconvertedSwitchExpression(SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.UnconvertedSwitchExpression, syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || reachabilityDecisionDag.HasErrors())
+        public BoundUnconvertedSwitchExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.UnconvertedSwitchExpression, syntax, isInUnsafeRegion, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || reachabilityDecisionDag.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5001,7 +5001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || switchArms != this.SwitchArms || reachabilityDecisionDag != this.ReachabilityDecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUnconvertedSwitchExpression(this.Syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
+                var result = new BoundUnconvertedSwitchExpression(this.Syntax, this.IsInUnsafeRegion, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5011,8 +5011,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedSwitchExpression : BoundSwitchExpression
     {
-        public BoundConvertedSwitchExpression(SyntaxNode syntax, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedSwitchExpression, syntax, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || reachabilityDecisionDag.HasErrors())
+        public BoundConvertedSwitchExpression(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? naturalTypeOpt, bool wasTargetTyped, BoundExpression expression, ImmutableArray<BoundSwitchExpressionArm> switchArms, BoundDecisionDag reachabilityDecisionDag, LabelSymbol? defaultLabel, bool reportedNotExhaustive, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedSwitchExpression, syntax, isInUnsafeRegion, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, hasErrors || expression.HasErrors() || switchArms.HasErrors() || reachabilityDecisionDag.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5035,7 +5035,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(naturalTypeOpt, this.NaturalTypeOpt, TypeCompareKind.ConsiderEverything) || wasTargetTyped != this.WasTargetTyped || expression != this.Expression || switchArms != this.SwitchArms || reachabilityDecisionDag != this.ReachabilityDecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(defaultLabel, this.DefaultLabel) || reportedNotExhaustive != this.ReportedNotExhaustive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedSwitchExpression(this.Syntax, naturalTypeOpt, wasTargetTyped, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
+                var result = new BoundConvertedSwitchExpression(this.Syntax, this.IsInUnsafeRegion, naturalTypeOpt, wasTargetTyped, expression, switchArms, reachabilityDecisionDag, defaultLabel, reportedNotExhaustive, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5794,8 +5794,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundMethodOrPropertyGroup : BoundExpression
     {
-        protected BoundMethodOrPropertyGroup(BoundKind kind, SyntaxNode syntax, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
-            : base(kind, syntax, null, hasErrors)
+        protected BoundMethodOrPropertyGroup(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, null, hasErrors)
         {
             this.ReceiverOpt = receiverOpt;
             this.ResultKind = resultKind;
@@ -5808,8 +5808,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSequencePointExpression : BoundExpression
     {
-        public BoundSequencePointExpression(SyntaxNode syntax, BoundExpression expression, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.SequencePointExpression, syntax, type, hasErrors || expression.HasErrors())
+        public BoundSequencePointExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.SequencePointExpression, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5826,7 +5826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSequencePointExpression(this.Syntax, expression, type, this.HasErrors);
+                var result = new BoundSequencePointExpression(this.Syntax, this.IsInUnsafeRegion, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5836,8 +5836,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSequence : BoundExpression
     {
-        public BoundSequence(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.Sequence, syntax, type, hasErrors || sideEffects.HasErrors() || value.HasErrors())
+        public BoundSequence(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.Sequence, syntax, isInUnsafeRegion, type, hasErrors || sideEffects.HasErrors() || value.HasErrors())
         {
 
             RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5862,7 +5862,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSequence(this.Syntax, locals, sideEffects, value, type, this.HasErrors);
+                var result = new BoundSequence(this.Syntax, this.IsInUnsafeRegion, locals, sideEffects, value, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5872,8 +5872,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSpillSequence : BoundExpression
     {
-        public BoundSpillSequence(SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.SpillSequence, syntax, type, hasErrors || sideEffects.HasErrors() || value.HasErrors())
+        public BoundSpillSequence(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression value, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.SpillSequence, syntax, isInUnsafeRegion, type, hasErrors || sideEffects.HasErrors() || value.HasErrors())
         {
 
             RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5898,7 +5898,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (locals != this.Locals || sideEffects != this.SideEffects || value != this.Value || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundSpillSequence(this.Syntax, locals, sideEffects, value, type, this.HasErrors);
+                var result = new BoundSpillSequence(this.Syntax, this.IsInUnsafeRegion, locals, sideEffects, value, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5908,8 +5908,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicMemberAccess : BoundExpression
     {
-        public BoundDynamicMemberAccess(SyntaxNode syntax, BoundExpression receiver, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DynamicMemberAccess, syntax, type, hasErrors || receiver.HasErrors())
+        public BoundDynamicMemberAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, bool invoked, bool indexed, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DynamicMemberAccess, syntax, isInUnsafeRegion, type, hasErrors || receiver.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5937,7 +5937,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver != this.Receiver || typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || invoked != this.Invoked || indexed != this.Indexed || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDynamicMemberAccess(this.Syntax, receiver, typeArgumentsOpt, name, invoked, indexed, type, this.HasErrors);
+                var result = new BoundDynamicMemberAccess(this.Syntax, this.IsInUnsafeRegion, receiver, typeArgumentsOpt, name, invoked, indexed, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -5947,8 +5947,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundDynamicInvocableBase : BoundExpression
     {
-        protected BoundDynamicInvocableBase(BoundKind kind, SyntaxNode syntax, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol? type, bool hasErrors = false)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundDynamicInvocableBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -5964,8 +5964,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicInvocation : BoundDynamicInvocableBase
     {
-        public BoundDynamicInvocation(SyntaxNode syntax, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<MethodSymbol> applicableMethods, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DynamicInvocation, syntax, expression, arguments, type, hasErrors || expression.HasErrors() || arguments.HasErrors())
+        public BoundDynamicInvocation(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<MethodSymbol> applicableMethods, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DynamicInvocation, syntax, isInUnsafeRegion, expression, arguments, type, hasErrors || expression.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!applicableMethods.IsDefault, "Field 'applicableMethods' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5990,7 +5990,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || applicableMethods != this.ApplicableMethods || expression != this.Expression || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDynamicInvocation(this.Syntax, argumentNamesOpt, argumentRefKindsOpt, applicableMethods, expression, arguments, type, this.HasErrors);
+                var result = new BoundDynamicInvocation(this.Syntax, this.IsInUnsafeRegion, argumentNamesOpt, argumentRefKindsOpt, applicableMethods, expression, arguments, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6000,8 +6000,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConditionalAccess : BoundExpression
     {
-        public BoundConditionalAccess(SyntaxNode syntax, BoundExpression receiver, BoundExpression accessExpression, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConditionalAccess, syntax, type, hasErrors || receiver.HasErrors() || accessExpression.HasErrors())
+        public BoundConditionalAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, BoundExpression accessExpression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConditionalAccess, syntax, isInUnsafeRegion, type, hasErrors || receiver.HasErrors() || accessExpression.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6023,7 +6023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver != this.Receiver || accessExpression != this.AccessExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConditionalAccess(this.Syntax, receiver, accessExpression, type, this.HasErrors);
+                var result = new BoundConditionalAccess(this.Syntax, this.IsInUnsafeRegion, receiver, accessExpression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6033,8 +6033,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLoweredConditionalAccess : BoundExpression
     {
-        public BoundLoweredConditionalAccess(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression? whenNullOpt, int id, bool forceCopyOfNullableValueType, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.LoweredConditionalAccess, syntax, type, hasErrors || receiver.HasErrors() || whenNotNull.HasErrors() || whenNullOpt.HasErrors())
+        public BoundLoweredConditionalAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, MethodSymbol? hasValueMethodOpt, BoundExpression whenNotNull, BoundExpression? whenNullOpt, int id, bool forceCopyOfNullableValueType, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.LoweredConditionalAccess, syntax, isInUnsafeRegion, type, hasErrors || receiver.HasErrors() || whenNotNull.HasErrors() || whenNullOpt.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6064,7 +6064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(hasValueMethodOpt, this.HasValueMethodOpt) || whenNotNull != this.WhenNotNull || whenNullOpt != this.WhenNullOpt || id != this.Id || forceCopyOfNullableValueType != this.ForceCopyOfNullableValueType || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundLoweredConditionalAccess(this.Syntax, receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, id, forceCopyOfNullableValueType, type, this.HasErrors);
+                var result = new BoundLoweredConditionalAccess(this.Syntax, this.IsInUnsafeRegion, receiver, hasValueMethodOpt, whenNotNull, whenNullOpt, id, forceCopyOfNullableValueType, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6074,8 +6074,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConditionalReceiver : BoundExpression
     {
-        public BoundConditionalReceiver(SyntaxNode syntax, int id, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ConditionalReceiver, syntax, type, hasErrors)
+        public BoundConditionalReceiver(SyntaxNode syntax, bool isInUnsafeRegion, int id, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ConditionalReceiver, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6083,8 +6083,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Id = id;
         }
 
-        public BoundConditionalReceiver(SyntaxNode syntax, int id, TypeSymbol type)
-            : base(BoundKind.ConditionalReceiver, syntax, type)
+        public BoundConditionalReceiver(SyntaxNode syntax, bool isInUnsafeRegion, int id, TypeSymbol type)
+            : base(BoundKind.ConditionalReceiver, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6102,7 +6102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (id != this.Id || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConditionalReceiver(this.Syntax, id, type, this.HasErrors);
+                var result = new BoundConditionalReceiver(this.Syntax, this.IsInUnsafeRegion, id, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6112,8 +6112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundComplexConditionalReceiver : BoundExpression
     {
-        public BoundComplexConditionalReceiver(SyntaxNode syntax, BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ComplexConditionalReceiver, syntax, type, hasErrors || valueTypeReceiver.HasErrors() || referenceTypeReceiver.HasErrors())
+        public BoundComplexConditionalReceiver(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression valueTypeReceiver, BoundExpression referenceTypeReceiver, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ComplexConditionalReceiver, syntax, isInUnsafeRegion, type, hasErrors || valueTypeReceiver.HasErrors() || referenceTypeReceiver.HasErrors())
         {
 
             RoslynDebug.Assert(valueTypeReceiver is object, "Field 'valueTypeReceiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6135,7 +6135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (valueTypeReceiver != this.ValueTypeReceiver || referenceTypeReceiver != this.ReferenceTypeReceiver || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundComplexConditionalReceiver(this.Syntax, valueTypeReceiver, referenceTypeReceiver, type, this.HasErrors);
+                var result = new BoundComplexConditionalReceiver(this.Syntax, this.IsInUnsafeRegion, valueTypeReceiver, referenceTypeReceiver, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6145,8 +6145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundMethodGroup : BoundMethodOrPropertyGroup
     {
-        public BoundMethodGroup(SyntaxNode syntax, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, FunctionTypeSymbol? functionType, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
-            : base(BoundKind.MethodGroup, syntax, receiverOpt, resultKind, hasErrors || receiverOpt.HasErrors())
+        public BoundMethodGroup(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<TypeWithAnnotations> typeArgumentsOpt, string name, ImmutableArray<MethodSymbol> methods, Symbol? lookupSymbolOpt, DiagnosticInfo? lookupError, BoundMethodGroupFlags? flags, FunctionTypeSymbol? functionType, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
+            : base(BoundKind.MethodGroup, syntax, isInUnsafeRegion, receiverOpt, resultKind, hasErrors || receiverOpt.HasErrors())
         {
 
             RoslynDebug.Assert(name is object, "Field 'name' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6176,7 +6176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeArgumentsOpt != this.TypeArgumentsOpt || name != this.Name || methods != this.Methods || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(lookupSymbolOpt, this.LookupSymbolOpt) || lookupError != this.LookupError || flags != this.Flags || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(functionType, this.FunctionType) || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
             {
-                var result = new BoundMethodGroup(this.Syntax, typeArgumentsOpt, name, methods, lookupSymbolOpt, lookupError, flags, functionType, receiverOpt, resultKind, this.HasErrors);
+                var result = new BoundMethodGroup(this.Syntax, this.IsInUnsafeRegion, typeArgumentsOpt, name, methods, lookupSymbolOpt, lookupError, flags, functionType, receiverOpt, resultKind, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6186,8 +6186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPropertyGroup : BoundMethodOrPropertyGroup
     {
-        public BoundPropertyGroup(SyntaxNode syntax, ImmutableArray<PropertySymbol> properties, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
-            : base(BoundKind.PropertyGroup, syntax, receiverOpt, resultKind, hasErrors || receiverOpt.HasErrors())
+        public BoundPropertyGroup(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<PropertySymbol> properties, BoundExpression? receiverOpt, LookupResultKind resultKind, bool hasErrors = false)
+            : base(BoundKind.PropertyGroup, syntax, isInUnsafeRegion, receiverOpt, resultKind, hasErrors || receiverOpt.HasErrors())
         {
 
             RoslynDebug.Assert(!properties.IsDefault, "Field 'properties' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6204,7 +6204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (properties != this.Properties || receiverOpt != this.ReceiverOpt || resultKind != this.ResultKind)
             {
-                var result = new BoundPropertyGroup(this.Syntax, properties, receiverOpt, resultKind, this.HasErrors);
+                var result = new BoundPropertyGroup(this.Syntax, this.IsInUnsafeRegion, properties, receiverOpt, resultKind, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6214,8 +6214,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCall : BoundExpression
     {
-        public BoundCall(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalMethodsOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.Call, syntax, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
+        public BoundCall(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, LookupResultKind resultKind, ImmutableArray<MethodSymbol> originalMethodsOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.Call, syntax, isInUnsafeRegion, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(method is object, "Field 'method' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6263,7 +6263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(method, this.Method) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || isDelegateCall != this.IsDelegateCall || expanded != this.Expanded || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || resultKind != this.ResultKind || originalMethodsOpt != this.OriginalMethodsOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCall(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, originalMethodsOpt, type, this.HasErrors);
+                var result = new BoundCall(this.Syntax, this.IsInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, defaultArguments, resultKind, originalMethodsOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6273,8 +6273,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundEventAssignmentOperator : BoundExpression
     {
-        public BoundEventAssignmentOperator(SyntaxNode syntax, EventSymbol @event, bool isAddition, bool isDynamic, BoundExpression? receiverOpt, BoundExpression argument, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.EventAssignmentOperator, syntax, type, hasErrors || receiverOpt.HasErrors() || argument.HasErrors())
+        public BoundEventAssignmentOperator(SyntaxNode syntax, bool isInUnsafeRegion, EventSymbol @event, bool isAddition, bool isDynamic, BoundExpression? receiverOpt, BoundExpression argument, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.EventAssignmentOperator, syntax, isInUnsafeRegion, type, hasErrors || receiverOpt.HasErrors() || argument.HasErrors())
         {
 
             RoslynDebug.Assert(@event is object, "Field '@event' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6302,7 +6302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(@event, this.Event) || isAddition != this.IsAddition || isDynamic != this.IsDynamic || receiverOpt != this.ReceiverOpt || argument != this.Argument || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundEventAssignmentOperator(this.Syntax, @event, isAddition, isDynamic, receiverOpt, argument, type, this.HasErrors);
+                var result = new BoundEventAssignmentOperator(this.Syntax, this.IsInUnsafeRegion, @event, isAddition, isDynamic, receiverOpt, argument, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6312,8 +6312,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAttribute : BoundExpression
     {
-        public BoundAttribute(SyntaxNode syntax, MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, BitVector constructorDefaultArguments, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.Attribute, syntax, type, hasErrors || constructorArguments.HasErrors() || namedArguments.HasErrors())
+        public BoundAttribute(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol? constructor, ImmutableArray<BoundExpression> constructorArguments, ImmutableArray<string?> constructorArgumentNamesOpt, ImmutableArray<int> constructorArgumentsToParamsOpt, bool constructorExpanded, BitVector constructorDefaultArguments, ImmutableArray<BoundAssignmentOperator> namedArguments, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.Attribute, syntax, isInUnsafeRegion, type, hasErrors || constructorArguments.HasErrors() || namedArguments.HasErrors())
         {
 
             RoslynDebug.Assert(!constructorArguments.IsDefault, "Field 'constructorArguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6347,7 +6347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorArguments != this.ConstructorArguments || constructorArgumentNamesOpt != this.ConstructorArgumentNamesOpt || constructorArgumentsToParamsOpt != this.ConstructorArgumentsToParamsOpt || constructorExpanded != this.ConstructorExpanded || constructorDefaultArguments != this.ConstructorDefaultArguments || namedArguments != this.NamedArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAttribute(this.Syntax, constructor, constructorArguments, constructorArgumentNamesOpt, constructorArgumentsToParamsOpt, constructorExpanded, constructorDefaultArguments, namedArguments, resultKind, type, this.HasErrors);
+                var result = new BoundAttribute(this.Syntax, this.IsInUnsafeRegion, constructor, constructorArguments, constructorArgumentNamesOpt, constructorArgumentsToParamsOpt, constructorExpanded, constructorDefaultArguments, namedArguments, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6357,8 +6357,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedObjectCreationExpression : BoundExpression
     {
-        public BoundUnconvertedObjectCreationExpression(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, Binder binder, bool hasErrors = false)
-            : base(BoundKind.UnconvertedObjectCreationExpression, syntax, null, hasErrors || arguments.HasErrors())
+        public BoundUnconvertedObjectCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundExpression> arguments, ImmutableArray<(string Name, Location Location)?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, InitializerExpressionSyntax? initializerOpt, Binder binder, bool hasErrors = false)
+            : base(BoundKind.UnconvertedObjectCreationExpression, syntax, isInUnsafeRegion, null, hasErrors || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6385,7 +6385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerOpt != this.InitializerOpt || binder != this.Binder)
             {
-                var result = new BoundUnconvertedObjectCreationExpression(this.Syntax, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerOpt, binder, this.HasErrors);
+                var result = new BoundUnconvertedObjectCreationExpression(this.Syntax, this.IsInUnsafeRegion, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerOpt, binder, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6395,16 +6395,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundObjectCreationExpressionBase : BoundExpression
     {
-        protected BoundObjectCreationExpressionBase(BoundKind kind, SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundObjectCreationExpressionBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        protected BoundObjectCreationExpressionBase(BoundKind kind, SyntaxNode syntax, TypeSymbol type)
-            : base(kind, syntax, type)
+        protected BoundObjectCreationExpressionBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(kind, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6416,8 +6416,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectCreationExpression : BoundObjectCreationExpressionBase
     {
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ConstantValue? constantValueOpt, BoundObjectInitializerExpressionBase? initializerExpressionOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ObjectCreationExpression, syntax, type, hasErrors || arguments.HasErrors() || initializerExpressionOpt.HasErrors())
+        public BoundObjectCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ConstantValue? constantValueOpt, BoundObjectInitializerExpressionBase? initializerExpressionOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ObjectCreationExpression, syntax, isInUnsafeRegion, type, hasErrors || arguments.HasErrors() || initializerExpressionOpt.HasErrors())
         {
 
             RoslynDebug.Assert(constructor is object, "Field 'constructor' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6457,7 +6457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || constructorsGroup != this.ConstructorsGroup || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || constantValueOpt != this.ConstantValueOpt || initializerExpressionOpt != this.InitializerExpressionOpt || wasTargetTyped != this.WasTargetTyped || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundObjectCreationExpression(this.Syntax, constructor, constructorsGroup, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, constantValueOpt, initializerExpressionOpt, wasTargetTyped, type, this.HasErrors);
+                var result = new BoundObjectCreationExpression(this.Syntax, this.IsInUnsafeRegion, constructor, constructorsGroup, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, constantValueOpt, initializerExpressionOpt, wasTargetTyped, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6467,8 +6467,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundCollectionExpressionBase : BoundExpression
     {
-        protected BoundCollectionExpressionBase(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundNode> elements, TypeSymbol? type, bool hasErrors = false)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundCollectionExpressionBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundNode> elements, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6485,8 +6485,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedCollectionExpression : BoundCollectionExpressionBase
     {
-        public BoundUnconvertedCollectionExpression(SyntaxNode syntax, BoundUnconvertedWithElement? withElement, ImmutableArray<BoundNode> elements, bool hasErrors = false)
-            : base(BoundKind.UnconvertedCollectionExpression, syntax, elements, null, hasErrors || withElement.HasErrors() || elements.HasErrors())
+        public BoundUnconvertedCollectionExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundUnconvertedWithElement? withElement, ImmutableArray<BoundNode> elements, bool hasErrors = false)
+            : base(BoundKind.UnconvertedCollectionExpression, syntax, isInUnsafeRegion, elements, null, hasErrors || withElement.HasErrors() || elements.HasErrors())
         {
 
             RoslynDebug.Assert(!elements.IsDefault, "Field 'elements' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6504,7 +6504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (withElement != this.WithElement || elements != this.Elements)
             {
-                var result = new BoundUnconvertedCollectionExpression(this.Syntax, withElement, elements, this.HasErrors);
+                var result = new BoundUnconvertedCollectionExpression(this.Syntax, this.IsInUnsafeRegion, withElement, elements, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6546,8 +6546,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionExpression : BoundCollectionExpressionBase
     {
-        public BoundCollectionExpression(SyntaxNode syntax, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionExpression, syntax, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderElementsPlaceholder.HasErrors() || unconvertedCollectionExpression.HasErrors() || elements.HasErrors())
+        public BoundCollectionExpression(SyntaxNode syntax, bool isInUnsafeRegion, CollectionExpressionTypeKind collectionTypeKind, BoundObjectOrCollectionValuePlaceholder? placeholder, BoundExpression? collectionCreation, MethodSymbol? collectionBuilderMethod, BoundCollectionBuilderElementsPlaceholder? collectionBuilderElementsPlaceholder, bool wasTargetTyped, bool hasWithElement, BoundUnconvertedCollectionExpression unconvertedCollectionExpression, ImmutableArray<BoundNode> elements, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionExpression, syntax, isInUnsafeRegion, elements, type, hasErrors || placeholder.HasErrors() || collectionCreation.HasErrors() || collectionBuilderElementsPlaceholder.HasErrors() || unconvertedCollectionExpression.HasErrors() || elements.HasErrors())
         {
 
             RoslynDebug.Assert(unconvertedCollectionExpression is object, "Field 'unconvertedCollectionExpression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6585,7 +6585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (collectionTypeKind != this.CollectionTypeKind || placeholder != this.Placeholder || collectionCreation != this.CollectionCreation || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(collectionBuilderMethod, this.CollectionBuilderMethod) || collectionBuilderElementsPlaceholder != this.CollectionBuilderElementsPlaceholder || wasTargetTyped != this.WasTargetTyped || hasWithElement != this.HasWithElement || unconvertedCollectionExpression != this.UnconvertedCollectionExpression || elements != this.Elements || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionExpression(this.Syntax, collectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder, wasTargetTyped, hasWithElement, unconvertedCollectionExpression, elements, type, this.HasErrors);
+                var result = new BoundCollectionExpression(this.Syntax, this.IsInUnsafeRegion, collectionTypeKind, placeholder, collectionCreation, collectionBuilderMethod, collectionBuilderElementsPlaceholder, wasTargetTyped, hasWithElement, unconvertedCollectionExpression, elements, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6595,13 +6595,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionExpressionSpreadExpressionPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundCollectionExpressionSpreadExpressionPlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.CollectionExpressionSpreadExpressionPlaceholder, syntax, type, hasErrors)
+        public BoundCollectionExpressionSpreadExpressionPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.CollectionExpressionSpreadExpressionPlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
         }
 
-        public BoundCollectionExpressionSpreadExpressionPlaceholder(SyntaxNode syntax, TypeSymbol? type)
-            : base(BoundKind.CollectionExpressionSpreadExpressionPlaceholder, syntax, type)
+        public BoundCollectionExpressionSpreadExpressionPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(BoundKind.CollectionExpressionSpreadExpressionPlaceholder, syntax, isInUnsafeRegion, type)
         {
         }
 
@@ -6613,7 +6613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionExpressionSpreadExpressionPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundCollectionExpressionSpreadExpressionPlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6663,8 +6663,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundTupleExpression : BoundExpression
     {
-        protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundTupleExpression(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6681,8 +6681,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTupleLiteral : BoundTupleExpression
     {
-        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.TupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || arguments.HasErrors())
+        public BoundTupleLiteral(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.TupleLiteral, syntax, isInUnsafeRegion, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6698,7 +6698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundTupleLiteral(this.Syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
+                var result = new BoundTupleLiteral(this.Syntax, this.IsInUnsafeRegion, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6708,8 +6708,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedTupleLiteral : BoundTupleExpression
     {
-        public BoundConvertedTupleLiteral(SyntaxNode syntax, BoundTupleLiteral? sourceTuple, bool wasTargetTyped, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.ConvertedTupleLiteral, syntax, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || sourceTuple.HasErrors() || arguments.HasErrors())
+        public BoundConvertedTupleLiteral(SyntaxNode syntax, bool isInUnsafeRegion, BoundTupleLiteral? sourceTuple, bool wasTargetTyped, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.ConvertedTupleLiteral, syntax, isInUnsafeRegion, arguments, argumentNamesOpt, inferredNamesOpt, type, hasErrors || sourceTuple.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6728,7 +6728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (sourceTuple != this.SourceTuple || wasTargetTyped != this.WasTargetTyped || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedTupleLiteral(this.Syntax, sourceTuple, wasTargetTyped, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
+                var result = new BoundConvertedTupleLiteral(this.Syntax, this.IsInUnsafeRegion, sourceTuple, wasTargetTyped, arguments, argumentNamesOpt, inferredNamesOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6738,8 +6738,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicObjectCreationExpression : BoundObjectCreationExpressionBase
     {
-        public BoundDynamicObjectCreationExpression(SyntaxNode syntax, string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundObjectInitializerExpressionBase? initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DynamicObjectCreationExpression, syntax, type, hasErrors || arguments.HasErrors() || initializerExpressionOpt.HasErrors())
+        public BoundDynamicObjectCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, string name, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, BoundObjectInitializerExpressionBase? initializerExpressionOpt, ImmutableArray<MethodSymbol> applicableMethods, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DynamicObjectCreationExpression, syntax, isInUnsafeRegion, type, hasErrors || arguments.HasErrors() || initializerExpressionOpt.HasErrors())
         {
 
             RoslynDebug.Assert(name is object, "Field 'name' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6771,7 +6771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (name != this.Name || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || initializerExpressionOpt != this.InitializerExpressionOpt || applicableMethods != this.ApplicableMethods || wasTargetTyped != this.WasTargetTyped || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDynamicObjectCreationExpression(this.Syntax, name, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerExpressionOpt, applicableMethods, wasTargetTyped, type, this.HasErrors);
+                var result = new BoundDynamicObjectCreationExpression(this.Syntax, this.IsInUnsafeRegion, name, arguments, argumentNamesOpt, argumentRefKindsOpt, initializerExpressionOpt, applicableMethods, wasTargetTyped, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6781,8 +6781,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNoPiaObjectCreationExpression : BoundObjectCreationExpressionBase
     {
-        public BoundNoPiaObjectCreationExpression(SyntaxNode syntax, string? guidString, BoundObjectInitializerExpressionBase? initializerExpressionOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.NoPiaObjectCreationExpression, syntax, type, hasErrors || initializerExpressionOpt.HasErrors())
+        public BoundNoPiaObjectCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, string? guidString, BoundObjectInitializerExpressionBase? initializerExpressionOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.NoPiaObjectCreationExpression, syntax, isInUnsafeRegion, type, hasErrors || initializerExpressionOpt.HasErrors())
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6803,7 +6803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (guidString != this.GuidString || initializerExpressionOpt != this.InitializerExpressionOpt || wasTargetTyped != this.WasTargetTyped || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundNoPiaObjectCreationExpression(this.Syntax, guidString, initializerExpressionOpt, wasTargetTyped, type, this.HasErrors);
+                var result = new BoundNoPiaObjectCreationExpression(this.Syntax, this.IsInUnsafeRegion, guidString, initializerExpressionOpt, wasTargetTyped, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6813,8 +6813,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundObjectInitializerExpressionBase : BoundExpression
     {
-        protected BoundObjectInitializerExpressionBase(BoundKind kind, SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundObjectInitializerExpressionBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6832,8 +6832,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectInitializerExpression : BoundObjectInitializerExpressionBase
     {
-        public BoundObjectInitializerExpression(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ObjectInitializerExpression, syntax, placeholder, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
+        public BoundObjectInitializerExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ObjectInitializerExpression, syntax, isInUnsafeRegion, placeholder, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
         {
 
             RoslynDebug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6850,7 +6850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundObjectInitializerExpression(this.Syntax, placeholder, initializers, type, this.HasErrors);
+                var result = new BoundObjectInitializerExpression(this.Syntax, this.IsInUnsafeRegion, placeholder, initializers, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6860,8 +6860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectInitializerMember : BoundExpression
     {
-        public BoundObjectInitializerMember(SyntaxNode syntax, Symbol? memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, LookupResultKind resultKind, AccessorKind accessorKind, TypeSymbol receiverType, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ObjectInitializerMember, syntax, type, hasErrors || arguments.HasErrors())
+        public BoundObjectInitializerMember(SyntaxNode syntax, bool isInUnsafeRegion, Symbol? memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, LookupResultKind resultKind, AccessorKind accessorKind, TypeSymbol receiverType, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ObjectInitializerMember, syntax, isInUnsafeRegion, type, hasErrors || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -6899,7 +6899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(memberSymbol, this.MemberSymbol) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || resultKind != this.ResultKind || accessorKind != this.AccessorKind || !TypeSymbol.Equals(receiverType, this.ReceiverType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, resultKind, accessorKind, receiverType, type, this.HasErrors);
+                var result = new BoundObjectInitializerMember(this.Syntax, this.IsInUnsafeRegion, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, resultKind, accessorKind, receiverType, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6909,8 +6909,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicObjectInitializerMember : BoundExpression
     {
-        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol receiverType, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.DynamicObjectInitializerMember, syntax, type, hasErrors)
+        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, bool isInUnsafeRegion, string memberName, TypeSymbol receiverType, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.DynamicObjectInitializerMember, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(memberName is object, "Field 'memberName' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6921,8 +6921,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ReceiverType = receiverType;
         }
 
-        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, string memberName, TypeSymbol receiverType, TypeSymbol type)
-            : base(BoundKind.DynamicObjectInitializerMember, syntax, type)
+        public BoundDynamicObjectInitializerMember(SyntaxNode syntax, bool isInUnsafeRegion, string memberName, TypeSymbol receiverType, TypeSymbol type)
+            : base(BoundKind.DynamicObjectInitializerMember, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(memberName is object, "Field 'memberName' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6944,7 +6944,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (memberName != this.MemberName || !TypeSymbol.Equals(receiverType, this.ReceiverType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDynamicObjectInitializerMember(this.Syntax, memberName, receiverType, type, this.HasErrors);
+                var result = new BoundDynamicObjectInitializerMember(this.Syntax, this.IsInUnsafeRegion, memberName, receiverType, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6954,8 +6954,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionInitializerExpression : BoundObjectInitializerExpressionBase
     {
-        public BoundCollectionInitializerExpression(SyntaxNode syntax, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionInitializerExpression, syntax, placeholder, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
+        public BoundCollectionInitializerExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundObjectOrCollectionValuePlaceholder placeholder, ImmutableArray<BoundExpression> initializers, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionInitializerExpression, syntax, isInUnsafeRegion, placeholder, initializers, type, hasErrors || placeholder.HasErrors() || initializers.HasErrors())
         {
 
             RoslynDebug.Assert(placeholder is object, "Field 'placeholder' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -6972,7 +6972,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (placeholder != this.Placeholder || initializers != this.Initializers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionInitializerExpression(this.Syntax, placeholder, initializers, type, this.HasErrors);
+                var result = new BoundCollectionInitializerExpression(this.Syntax, this.IsInUnsafeRegion, placeholder, initializers, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6982,8 +6982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCollectionElementInitializer : BoundExpression
     {
-        public BoundCollectionElementInitializer(SyntaxNode syntax, MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression? implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.CollectionElementInitializer, syntax, type, hasErrors || arguments.HasErrors() || implicitReceiverOpt.HasErrors())
+        public BoundCollectionElementInitializer(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol addMethod, ImmutableArray<BoundExpression> arguments, BoundExpression? implicitReceiverOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, bool invokedAsExtensionMethod, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.CollectionElementInitializer, syntax, isInUnsafeRegion, type, hasErrors || arguments.HasErrors() || implicitReceiverOpt.HasErrors())
         {
 
             RoslynDebug.Assert(addMethod is object, "Field 'addMethod' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7017,7 +7017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(addMethod, this.AddMethod) || arguments != this.Arguments || implicitReceiverOpt != this.ImplicitReceiverOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundCollectionElementInitializer(this.Syntax, addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, defaultArguments, invokedAsExtensionMethod, resultKind, type, this.HasErrors);
+                var result = new BoundCollectionElementInitializer(this.Syntax, this.IsInUnsafeRegion, addMethod, arguments, implicitReceiverOpt, expanded, argsToParamsOpt, defaultArguments, invokedAsExtensionMethod, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7027,8 +7027,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicCollectionElementInitializer : BoundDynamicInvocableBase
     {
-        public BoundDynamicCollectionElementInitializer(SyntaxNode syntax, ImmutableArray<MethodSymbol> applicableMethods, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DynamicCollectionElementInitializer, syntax, expression, arguments, type, hasErrors || expression.HasErrors() || arguments.HasErrors())
+        public BoundDynamicCollectionElementInitializer(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<MethodSymbol> applicableMethods, BoundExpression expression, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DynamicCollectionElementInitializer, syntax, isInUnsafeRegion, expression, arguments, type, hasErrors || expression.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(!applicableMethods.IsDefault, "Field 'applicableMethods' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -7049,7 +7049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (applicableMethods != this.ApplicableMethods || expression != this.Expression || arguments != this.Arguments || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDynamicCollectionElementInitializer(this.Syntax, applicableMethods, expression, arguments, type, this.HasErrors);
+                var result = new BoundDynamicCollectionElementInitializer(this.Syntax, this.IsInUnsafeRegion, applicableMethods, expression, arguments, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7059,16 +7059,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundImplicitReceiver : BoundExpression
     {
-        public BoundImplicitReceiver(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.ImplicitReceiver, syntax, type, hasErrors)
+        public BoundImplicitReceiver(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.ImplicitReceiver, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundImplicitReceiver(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.ImplicitReceiver, syntax, type)
+        public BoundImplicitReceiver(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol type)
+            : base(BoundKind.ImplicitReceiver, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7084,7 +7084,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundImplicitReceiver(this.Syntax, type, this.HasErrors);
+                var result = new BoundImplicitReceiver(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7094,8 +7094,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAnonymousObjectCreationExpression : BoundExpression
     {
-        public BoundAnonymousObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<BoundAnonymousPropertyDeclaration> declarations, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.AnonymousObjectCreationExpression, syntax, type, hasErrors || arguments.HasErrors() || declarations.HasErrors())
+        public BoundAnonymousObjectCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<BoundAnonymousPropertyDeclaration> declarations, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.AnonymousObjectCreationExpression, syntax, isInUnsafeRegion, type, hasErrors || arguments.HasErrors() || declarations.HasErrors())
         {
 
             RoslynDebug.Assert(constructor is object, "Field 'constructor' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7120,7 +7120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(constructor, this.Constructor) || arguments != this.Arguments || declarations != this.Declarations || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAnonymousObjectCreationExpression(this.Syntax, constructor, arguments, declarations, type, this.HasErrors);
+                var result = new BoundAnonymousObjectCreationExpression(this.Syntax, this.IsInUnsafeRegion, constructor, arguments, declarations, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7130,8 +7130,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAnonymousPropertyDeclaration : BoundExpression
     {
-        public BoundAnonymousPropertyDeclaration(SyntaxNode syntax, PropertySymbol property, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.AnonymousPropertyDeclaration, syntax, type, hasErrors)
+        public BoundAnonymousPropertyDeclaration(SyntaxNode syntax, bool isInUnsafeRegion, PropertySymbol property, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.AnonymousPropertyDeclaration, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(property is object, "Field 'property' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7140,8 +7140,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Property = property;
         }
 
-        public BoundAnonymousPropertyDeclaration(SyntaxNode syntax, PropertySymbol property, TypeSymbol type)
-            : base(BoundKind.AnonymousPropertyDeclaration, syntax, type)
+        public BoundAnonymousPropertyDeclaration(SyntaxNode syntax, bool isInUnsafeRegion, PropertySymbol property, TypeSymbol type)
+            : base(BoundKind.AnonymousPropertyDeclaration, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(property is object, "Field 'property' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7160,7 +7160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAnonymousPropertyDeclaration(this.Syntax, property, type, this.HasErrors);
+                var result = new BoundAnonymousPropertyDeclaration(this.Syntax, this.IsInUnsafeRegion, property, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7170,8 +7170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNewT : BoundObjectCreationExpressionBase
     {
-        public BoundNewT(SyntaxNode syntax, BoundObjectInitializerExpressionBase? initializerExpressionOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.NewT, syntax, type, hasErrors || initializerExpressionOpt.HasErrors())
+        public BoundNewT(SyntaxNode syntax, bool isInUnsafeRegion, BoundObjectInitializerExpressionBase? initializerExpressionOpt, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.NewT, syntax, isInUnsafeRegion, type, hasErrors || initializerExpressionOpt.HasErrors())
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7190,7 +7190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (initializerExpressionOpt != this.InitializerExpressionOpt || wasTargetTyped != this.WasTargetTyped || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundNewT(this.Syntax, initializerExpressionOpt, wasTargetTyped, type, this.HasErrors);
+                var result = new BoundNewT(this.Syntax, this.IsInUnsafeRegion, initializerExpressionOpt, wasTargetTyped, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7200,8 +7200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDelegateCreationExpression : BoundExpression
     {
-        public BoundDelegateCreationExpression(SyntaxNode syntax, BoundExpression argument, MethodSymbol? methodOpt, bool isExtensionMethod, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DelegateCreationExpression, syntax, type, hasErrors || argument.HasErrors())
+        public BoundDelegateCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression argument, MethodSymbol? methodOpt, bool isExtensionMethod, bool wasTargetTyped, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DelegateCreationExpression, syntax, isInUnsafeRegion, type, hasErrors || argument.HasErrors())
         {
 
             RoslynDebug.Assert(argument is object, "Field 'argument' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7226,7 +7226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (argument != this.Argument || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(methodOpt, this.MethodOpt) || isExtensionMethod != this.IsExtensionMethod || wasTargetTyped != this.WasTargetTyped || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDelegateCreationExpression(this.Syntax, argument, methodOpt, isExtensionMethod, wasTargetTyped, type, this.HasErrors);
+                var result = new BoundDelegateCreationExpression(this.Syntax, this.IsInUnsafeRegion, argument, methodOpt, isExtensionMethod, wasTargetTyped, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7236,8 +7236,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundArrayCreation : BoundExpression
     {
-        public BoundArrayCreation(SyntaxNode syntax, ImmutableArray<BoundExpression> bounds, BoundArrayInitialization? initializerOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ArrayCreation, syntax, type, hasErrors || bounds.HasErrors() || initializerOpt.HasErrors())
+        public BoundArrayCreation(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundExpression> bounds, BoundArrayInitialization? initializerOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ArrayCreation, syntax, isInUnsafeRegion, type, hasErrors || bounds.HasErrors() || initializerOpt.HasErrors())
         {
 
             RoslynDebug.Assert(!bounds.IsDefault, "Field 'bounds' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -7258,7 +7258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (bounds != this.Bounds || initializerOpt != this.InitializerOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundArrayCreation(this.Syntax, bounds, initializerOpt, type, this.HasErrors);
+                var result = new BoundArrayCreation(this.Syntax, this.IsInUnsafeRegion, bounds, initializerOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7268,8 +7268,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundArrayInitialization : BoundExpression
     {
-        public BoundArrayInitialization(SyntaxNode syntax, bool isInferred, ImmutableArray<BoundExpression> initializers, bool hasErrors = false)
-            : base(BoundKind.ArrayInitialization, syntax, null, hasErrors || initializers.HasErrors())
+        public BoundArrayInitialization(SyntaxNode syntax, bool isInUnsafeRegion, bool isInferred, ImmutableArray<BoundExpression> initializers, bool hasErrors = false)
+            : base(BoundKind.ArrayInitialization, syntax, isInUnsafeRegion, null, hasErrors || initializers.HasErrors())
         {
 
             RoslynDebug.Assert(!initializers.IsDefault, "Field 'initializers' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -7289,7 +7289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (isInferred != this.IsInferred || initializers != this.Initializers)
             {
-                var result = new BoundArrayInitialization(this.Syntax, isInferred, initializers, this.HasErrors);
+                var result = new BoundArrayInitialization(this.Syntax, this.IsInUnsafeRegion, isInferred, initializers, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7299,8 +7299,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundStackAllocArrayCreationBase : BoundExpression
     {
-        protected BoundStackAllocArrayCreationBase(BoundKind kind, SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundStackAllocArrayCreationBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(elementType is object, "Field 'elementType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7318,8 +7318,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStackAllocArrayCreation : BoundStackAllocArrayCreationBase
     {
-        public BoundStackAllocArrayCreation(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.StackAllocArrayCreation, syntax, elementType, count, initializerOpt, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
+        public BoundStackAllocArrayCreation(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.StackAllocArrayCreation, syntax, isInUnsafeRegion, elementType, count, initializerOpt, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
         {
 
             RoslynDebug.Assert(elementType is object, "Field 'elementType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7335,7 +7335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(elementType, this.ElementType, TypeCompareKind.ConsiderEverything) || count != this.Count || initializerOpt != this.InitializerOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundStackAllocArrayCreation(this.Syntax, elementType, count, initializerOpt, type, this.HasErrors);
+                var result = new BoundStackAllocArrayCreation(this.Syntax, this.IsInUnsafeRegion, elementType, count, initializerOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7345,8 +7345,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreationBase
     {
-        public BoundConvertedStackAllocExpression(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedStackAllocExpression, syntax, elementType, count, initializerOpt, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
+        public BoundConvertedStackAllocExpression(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization? initializerOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedStackAllocExpression, syntax, isInUnsafeRegion, elementType, count, initializerOpt, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
         {
 
             RoslynDebug.Assert(elementType is object, "Field 'elementType' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7364,7 +7364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(elementType, this.ElementType, TypeCompareKind.ConsiderEverything) || count != this.Count || initializerOpt != this.InitializerOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundConvertedStackAllocExpression(this.Syntax, elementType, count, initializerOpt, type, this.HasErrors);
+                var result = new BoundConvertedStackAllocExpression(this.Syntax, this.IsInUnsafeRegion, elementType, count, initializerOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7374,8 +7374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFieldAccess : BoundExpression
     {
-        public BoundFieldAccess(SyntaxNode syntax, BoundExpression? receiverOpt, FieldSymbol fieldSymbol, ConstantValue? constantValueOpt, LookupResultKind resultKind, bool isByValue, bool isDeclaration, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.FieldAccess, syntax, type, hasErrors || receiverOpt.HasErrors())
+        public BoundFieldAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, FieldSymbol fieldSymbol, ConstantValue? constantValueOpt, LookupResultKind resultKind, bool isByValue, bool isDeclaration, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.FieldAccess, syntax, isInUnsafeRegion, type, hasErrors || receiverOpt.HasErrors())
         {
 
             RoslynDebug.Assert(fieldSymbol is object, "Field 'fieldSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7404,7 +7404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiverOpt != this.ReceiverOpt || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(fieldSymbol, this.FieldSymbol) || constantValueOpt != this.ConstantValueOpt || resultKind != this.ResultKind || isByValue != this.IsByValue || isDeclaration != this.IsDeclaration || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundFieldAccess(this.Syntax, receiverOpt, fieldSymbol, constantValueOpt, resultKind, isByValue, isDeclaration, type, this.HasErrors);
+                var result = new BoundFieldAccess(this.Syntax, this.IsInUnsafeRegion, receiverOpt, fieldSymbol, constantValueOpt, resultKind, isByValue, isDeclaration, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7414,8 +7414,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundHoistedFieldAccess : BoundExpression
     {
-        public BoundHoistedFieldAccess(SyntaxNode syntax, FieldSymbol fieldSymbol, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.HoistedFieldAccess, syntax, type, hasErrors)
+        public BoundHoistedFieldAccess(SyntaxNode syntax, bool isInUnsafeRegion, FieldSymbol fieldSymbol, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.HoistedFieldAccess, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(fieldSymbol is object, "Field 'fieldSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7424,8 +7424,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.FieldSymbol = fieldSymbol;
         }
 
-        public BoundHoistedFieldAccess(SyntaxNode syntax, FieldSymbol fieldSymbol, TypeSymbol type)
-            : base(BoundKind.HoistedFieldAccess, syntax, type)
+        public BoundHoistedFieldAccess(SyntaxNode syntax, bool isInUnsafeRegion, FieldSymbol fieldSymbol, TypeSymbol type)
+            : base(BoundKind.HoistedFieldAccess, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(fieldSymbol is object, "Field 'fieldSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7444,7 +7444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(fieldSymbol, this.FieldSymbol) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundHoistedFieldAccess(this.Syntax, fieldSymbol, type, this.HasErrors);
+                var result = new BoundHoistedFieldAccess(this.Syntax, this.IsInUnsafeRegion, fieldSymbol, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7454,8 +7454,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPropertyAccess : BoundExpression
     {
-        public BoundPropertyAccess(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, AccessorKind autoPropertyAccessorKind, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.PropertyAccess, syntax, type, hasErrors || receiverOpt.HasErrors())
+        public BoundPropertyAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, AccessorKind autoPropertyAccessorKind, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.PropertyAccess, syntax, isInUnsafeRegion, type, hasErrors || receiverOpt.HasErrors())
         {
 
             RoslynDebug.Assert(propertySymbol is object, "Field 'propertySymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7482,7 +7482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(propertySymbol, this.PropertySymbol) || autoPropertyAccessorKind != this.AutoPropertyAccessorKind || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPropertyAccess(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, propertySymbol, autoPropertyAccessorKind, resultKind, type, this.HasErrors);
+                var result = new BoundPropertyAccess(this.Syntax, this.IsInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning, propertySymbol, autoPropertyAccessorKind, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7492,8 +7492,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundEventAccess : BoundExpression
     {
-        public BoundEventAccess(SyntaxNode syntax, BoundExpression? receiverOpt, EventSymbol eventSymbol, bool isUsableAsField, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.EventAccess, syntax, type, hasErrors || receiverOpt.HasErrors())
+        public BoundEventAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, EventSymbol eventSymbol, bool isUsableAsField, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.EventAccess, syntax, isInUnsafeRegion, type, hasErrors || receiverOpt.HasErrors())
         {
 
             RoslynDebug.Assert(eventSymbol is object, "Field 'eventSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7518,7 +7518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiverOpt != this.ReceiverOpt || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(eventSymbol, this.EventSymbol) || isUsableAsField != this.IsUsableAsField || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundEventAccess(this.Syntax, receiverOpt, eventSymbol, isUsableAsField, resultKind, type, this.HasErrors);
+                var result = new BoundEventAccess(this.Syntax, this.IsInUnsafeRegion, receiverOpt, eventSymbol, isUsableAsField, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7528,8 +7528,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIndexerAccess : BoundExpression
     {
-        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, AccessorKind accessorKind, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ImmutableArray<PropertySymbol> originalIndexersOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.IndexerAccess, syntax, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
+        public BoundIndexerAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, AccessorKind accessorKind, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ImmutableArray<PropertySymbol> originalIndexersOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.IndexerAccess, syntax, isInUnsafeRegion, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(indexer is object, "Field 'indexer' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7569,7 +7569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(indexer, this.Indexer) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || accessorKind != this.AccessorKind || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || originalIndexersOpt != this.OriginalIndexersOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt, type, this.HasErrors);
+                var result = new BoundIndexerAccess(this.Syntax, this.IsInUnsafeRegion, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7579,8 +7579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundImplicitIndexerAccess : BoundExpression
     {
-        public BoundImplicitIndexerAccess(SyntaxNode syntax, BoundExpression receiver, BoundExpression argument, BoundExpression lengthOrCountAccess, BoundImplicitIndexerReceiverPlaceholder receiverPlaceholder, BoundExpression indexerOrSliceAccess, ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ImplicitIndexerAccess, syntax, type, hasErrors || receiver.HasErrors() || argument.HasErrors() || lengthOrCountAccess.HasErrors() || receiverPlaceholder.HasErrors() || indexerOrSliceAccess.HasErrors() || argumentPlaceholders.HasErrors())
+        public BoundImplicitIndexerAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, BoundExpression argument, BoundExpression lengthOrCountAccess, BoundImplicitIndexerReceiverPlaceholder receiverPlaceholder, BoundExpression indexerOrSliceAccess, ImmutableArray<BoundImplicitIndexerValuePlaceholder> argumentPlaceholders, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ImplicitIndexerAccess, syntax, isInUnsafeRegion, type, hasErrors || receiver.HasErrors() || argument.HasErrors() || lengthOrCountAccess.HasErrors() || receiverPlaceholder.HasErrors() || indexerOrSliceAccess.HasErrors() || argumentPlaceholders.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7618,7 +7618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver != this.Receiver || argument != this.Argument || lengthOrCountAccess != this.LengthOrCountAccess || receiverPlaceholder != this.ReceiverPlaceholder || indexerOrSliceAccess != this.IndexerOrSliceAccess || argumentPlaceholders != this.ArgumentPlaceholders || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundImplicitIndexerAccess(this.Syntax, receiver, argument, lengthOrCountAccess, receiverPlaceholder, indexerOrSliceAccess, argumentPlaceholders, type, this.HasErrors);
+                var result = new BoundImplicitIndexerAccess(this.Syntax, this.IsInUnsafeRegion, receiver, argument, lengthOrCountAccess, receiverPlaceholder, indexerOrSliceAccess, argumentPlaceholders, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7628,8 +7628,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundInlineArrayAccess : BoundExpression
     {
-        public BoundInlineArrayAccess(SyntaxNode syntax, BoundExpression expression, BoundExpression argument, bool isValue, WellKnownMember getItemOrSliceHelper, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.InlineArrayAccess, syntax, type, hasErrors || expression.HasErrors() || argument.HasErrors())
+        public BoundInlineArrayAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, BoundExpression argument, bool isValue, WellKnownMember getItemOrSliceHelper, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.InlineArrayAccess, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors() || argument.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7659,7 +7659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || argument != this.Argument || isValue != this.IsValue || getItemOrSliceHelper != this.GetItemOrSliceHelper || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInlineArrayAccess(this.Syntax, expression, argument, isValue, getItemOrSliceHelper, type, this.HasErrors);
+                var result = new BoundInlineArrayAccess(this.Syntax, this.IsInUnsafeRegion, expression, argument, isValue, getItemOrSliceHelper, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7669,8 +7669,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDynamicIndexerAccess : BoundExpression
     {
-        public BoundDynamicIndexerAccess(SyntaxNode syntax, BoundExpression receiver, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<PropertySymbol> applicableIndexers, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.DynamicIndexerAccess, syntax, type, hasErrors || receiver.HasErrors() || arguments.HasErrors())
+        public BoundDynamicIndexerAccess(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, ImmutableArray<PropertySymbol> applicableIndexers, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.DynamicIndexerAccess, syntax, isInUnsafeRegion, type, hasErrors || receiver.HasErrors() || arguments.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7699,7 +7699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver != this.Receiver || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || applicableIndexers != this.ApplicableIndexers || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDynamicIndexerAccess(this.Syntax, receiver, arguments, argumentNamesOpt, argumentRefKindsOpt, applicableIndexers, type, this.HasErrors);
+                var result = new BoundDynamicIndexerAccess(this.Syntax, this.IsInUnsafeRegion, receiver, arguments, argumentNamesOpt, argumentRefKindsOpt, applicableIndexers, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7709,8 +7709,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundLambda : BoundExpression
     {
-        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, MethodSymbol symbol, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.Lambda, syntax, type, hasErrors || unboundLambda.HasErrors() || body.HasErrors())
+        public BoundLambda(SyntaxNode syntax, bool isInUnsafeRegion, UnboundLambda unboundLambda, MethodSymbol symbol, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.Lambda, syntax, isInUnsafeRegion, type, hasErrors || unboundLambda.HasErrors() || body.HasErrors())
         {
 
             RoslynDebug.Assert(unboundLambda is object, "Field 'unboundLambda' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7739,7 +7739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (unboundLambda != this.UnboundLambda || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(symbol, this.Symbol) || body != this.Body || diagnostics != this.Diagnostics || binder != this.Binder || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundLambda(this.Syntax, unboundLambda, symbol, body, diagnostics, binder, type, this.HasErrors);
+                var result = new BoundLambda(this.Syntax, this.IsInUnsafeRegion, unboundLambda, symbol, body, diagnostics, binder, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7749,8 +7749,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class UnboundLambda : BoundExpression
     {
-        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, FunctionTypeSymbol? functionType, Boolean withDependencies, bool hasErrors)
-            : base(BoundKind.UnboundLambda, syntax, null, hasErrors)
+        public UnboundLambda(SyntaxNode syntax, bool isInUnsafeRegion, UnboundLambdaState data, FunctionTypeSymbol? functionType, Boolean withDependencies, bool hasErrors)
+            : base(BoundKind.UnboundLambda, syntax, isInUnsafeRegion, null, hasErrors)
         {
 
             RoslynDebug.Assert(data is object, "Field 'data' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7760,8 +7760,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.WithDependencies = withDependencies;
         }
 
-        public UnboundLambda(SyntaxNode syntax, UnboundLambdaState data, FunctionTypeSymbol? functionType, Boolean withDependencies)
-            : base(BoundKind.UnboundLambda, syntax, null)
+        public UnboundLambda(SyntaxNode syntax, bool isInUnsafeRegion, UnboundLambdaState data, FunctionTypeSymbol? functionType, Boolean withDependencies)
+            : base(BoundKind.UnboundLambda, syntax, isInUnsafeRegion, null)
         {
 
             RoslynDebug.Assert(data is object, "Field 'data' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7783,7 +7783,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (data != this.Data || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(functionType, this.FunctionType) || withDependencies != this.WithDependencies)
             {
-                var result = new UnboundLambda(this.Syntax, data, functionType, withDependencies, this.HasErrors);
+                var result = new UnboundLambda(this.Syntax, this.IsInUnsafeRegion, data, functionType, withDependencies, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7793,8 +7793,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundQueryClause : BoundExpression
     {
-        public BoundQueryClause(SyntaxNode syntax, BoundExpression value, RangeVariableSymbol? definedSymbol, BoundExpression? operation, BoundExpression? cast, Binder binder, BoundExpression? unoptimizedForm, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.QueryClause, syntax, type, hasErrors || value.HasErrors() || operation.HasErrors() || cast.HasErrors() || unoptimizedForm.HasErrors())
+        public BoundQueryClause(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression value, RangeVariableSymbol? definedSymbol, BoundExpression? operation, BoundExpression? cast, Binder binder, BoundExpression? unoptimizedForm, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.QueryClause, syntax, isInUnsafeRegion, type, hasErrors || value.HasErrors() || operation.HasErrors() || cast.HasErrors() || unoptimizedForm.HasErrors())
         {
 
             RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7824,7 +7824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (value != this.Value || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(definedSymbol, this.DefinedSymbol) || operation != this.Operation || cast != this.Cast || binder != this.Binder || unoptimizedForm != this.UnoptimizedForm || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundQueryClause(this.Syntax, value, definedSymbol, operation, cast, binder, unoptimizedForm, type, this.HasErrors);
+                var result = new BoundQueryClause(this.Syntax, this.IsInUnsafeRegion, value, definedSymbol, operation, cast, binder, unoptimizedForm, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7860,8 +7860,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundNameOfOperator : BoundExpression
     {
-        public BoundNameOfOperator(SyntaxNode syntax, BoundExpression argument, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.NameOfOperator, syntax, type, hasErrors || argument.HasErrors())
+        public BoundNameOfOperator(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression argument, ConstantValue constantValueOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.NameOfOperator, syntax, isInUnsafeRegion, type, hasErrors || argument.HasErrors())
         {
 
             RoslynDebug.Assert(argument is object, "Field 'argument' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -7887,7 +7887,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (argument != this.Argument || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundNameOfOperator(this.Syntax, argument, constantValueOpt, type, this.HasErrors);
+                var result = new BoundNameOfOperator(this.Syntax, this.IsInUnsafeRegion, argument, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7897,8 +7897,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundInterpolatedStringBase : BoundExpression
     {
-        protected BoundInterpolatedStringBase(BoundKind kind, SyntaxNode syntax, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(kind, syntax, type, hasErrors)
+        protected BoundInterpolatedStringBase(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(!parts.IsDefault, "Field 'parts' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -7913,8 +7913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundUnconvertedInterpolatedString : BoundInterpolatedStringBase
     {
-        public BoundUnconvertedInterpolatedString(SyntaxNode syntax, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.UnconvertedInterpolatedString, syntax, parts, constantValueOpt, type, hasErrors || parts.HasErrors())
+        public BoundUnconvertedInterpolatedString(SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.UnconvertedInterpolatedString, syntax, isInUnsafeRegion, parts, constantValueOpt, type, hasErrors || parts.HasErrors())
         {
 
             RoslynDebug.Assert(!parts.IsDefault, "Field 'parts' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -7929,7 +7929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (parts != this.Parts || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundUnconvertedInterpolatedString(this.Syntax, parts, constantValueOpt, type, this.HasErrors);
+                var result = new BoundUnconvertedInterpolatedString(this.Syntax, this.IsInUnsafeRegion, parts, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7939,8 +7939,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundInterpolatedString : BoundInterpolatedStringBase
     {
-        public BoundInterpolatedString(SyntaxNode syntax, InterpolatedStringHandlerData? interpolationData, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.InterpolatedString, syntax, parts, constantValueOpt, type, hasErrors || parts.HasErrors())
+        public BoundInterpolatedString(SyntaxNode syntax, bool isInUnsafeRegion, InterpolatedStringHandlerData? interpolationData, ImmutableArray<BoundExpression> parts, ConstantValue? constantValueOpt, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.InterpolatedString, syntax, isInUnsafeRegion, parts, constantValueOpt, type, hasErrors || parts.HasErrors())
         {
 
             RoslynDebug.Assert(!parts.IsDefault, "Field 'parts' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -7957,7 +7957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!interpolationData.Equals(this.InterpolationData) || parts != this.Parts || constantValueOpt != this.ConstantValueOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInterpolatedString(this.Syntax, interpolationData, parts, constantValueOpt, type, this.HasErrors);
+                var result = new BoundInterpolatedString(this.Syntax, this.IsInUnsafeRegion, interpolationData, parts, constantValueOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7967,13 +7967,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundInterpolatedStringHandlerPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundInterpolatedStringHandlerPlaceholder(SyntaxNode syntax, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.InterpolatedStringHandlerPlaceholder, syntax, type, hasErrors)
+        public BoundInterpolatedStringHandlerPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.InterpolatedStringHandlerPlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
         }
 
-        public BoundInterpolatedStringHandlerPlaceholder(SyntaxNode syntax, TypeSymbol? type)
-            : base(BoundKind.InterpolatedStringHandlerPlaceholder, syntax, type)
+        public BoundInterpolatedStringHandlerPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, TypeSymbol? type)
+            : base(BoundKind.InterpolatedStringHandlerPlaceholder, syntax, isInUnsafeRegion, type)
         {
         }
 
@@ -7985,7 +7985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInterpolatedStringHandlerPlaceholder(this.Syntax, type, this.HasErrors);
+                var result = new BoundInterpolatedStringHandlerPlaceholder(this.Syntax, this.IsInUnsafeRegion, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7995,8 +7995,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundInterpolatedStringArgumentPlaceholder : BoundValuePlaceholderBase
     {
-        public BoundInterpolatedStringArgumentPlaceholder(SyntaxNode syntax, int argumentIndex, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.InterpolatedStringArgumentPlaceholder, syntax, type, hasErrors)
+        public BoundInterpolatedStringArgumentPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, int argumentIndex, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.InterpolatedStringArgumentPlaceholder, syntax, isInUnsafeRegion, type, hasErrors)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -8004,8 +8004,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ArgumentIndex = argumentIndex;
         }
 
-        public BoundInterpolatedStringArgumentPlaceholder(SyntaxNode syntax, int argumentIndex, TypeSymbol type)
-            : base(BoundKind.InterpolatedStringArgumentPlaceholder, syntax, type)
+        public BoundInterpolatedStringArgumentPlaceholder(SyntaxNode syntax, bool isInUnsafeRegion, int argumentIndex, TypeSymbol type)
+            : base(BoundKind.InterpolatedStringArgumentPlaceholder, syntax, isInUnsafeRegion, type)
         {
 
             RoslynDebug.Assert(type is object, "Field 'type' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -8023,7 +8023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (argumentIndex != this.ArgumentIndex || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundInterpolatedStringArgumentPlaceholder(this.Syntax, argumentIndex, type, this.HasErrors);
+                var result = new BoundInterpolatedStringArgumentPlaceholder(this.Syntax, this.IsInUnsafeRegion, argumentIndex, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8033,8 +8033,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundStringInsert : BoundExpression
     {
-        public BoundStringInsert(SyntaxNode syntax, BoundExpression value, BoundExpression? alignment, BoundLiteral? format, bool isInterpolatedStringHandlerAppendCall, bool hasErrors = false)
-            : base(BoundKind.StringInsert, syntax, null, hasErrors || value.HasErrors() || alignment.HasErrors() || format.HasErrors())
+        public BoundStringInsert(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression value, BoundExpression? alignment, BoundLiteral? format, bool isInterpolatedStringHandlerAppendCall, bool hasErrors = false)
+            : base(BoundKind.StringInsert, syntax, isInUnsafeRegion, null, hasErrors || value.HasErrors() || alignment.HasErrors() || format.HasErrors())
         {
 
             RoslynDebug.Assert(value is object, "Field 'value' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -8058,7 +8058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (value != this.Value || alignment != this.Alignment || format != this.Format || isInterpolatedStringHandlerAppendCall != this.IsInterpolatedStringHandlerAppendCall)
             {
-                var result = new BoundStringInsert(this.Syntax, value, alignment, format, isInterpolatedStringHandlerAppendCall, this.HasErrors);
+                var result = new BoundStringInsert(this.Syntax, this.IsInUnsafeRegion, value, alignment, format, isInterpolatedStringHandlerAppendCall, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8068,8 +8068,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIsPatternExpression : BoundExpression
     {
-        public BoundIsPatternExpression(SyntaxNode syntax, BoundExpression expression, BoundPattern pattern, bool hasUnionMatching, bool isNegated, BoundDecisionDag reachabilityDecisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.IsPatternExpression, syntax, type, hasErrors || expression.HasErrors() || pattern.HasErrors() || reachabilityDecisionDag.HasErrors())
+        public BoundIsPatternExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, BoundPattern pattern, bool hasUnionMatching, bool isNegated, BoundDecisionDag reachabilityDecisionDag, LabelSymbol whenTrueLabel, LabelSymbol whenFalseLabel, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.IsPatternExpression, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors() || pattern.HasErrors() || reachabilityDecisionDag.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -8102,7 +8102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || pattern != this.Pattern || hasUnionMatching != this.HasUnionMatching || isNegated != this.IsNegated || reachabilityDecisionDag != this.ReachabilityDecisionDag || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenTrueLabel, this.WhenTrueLabel) || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(whenFalseLabel, this.WhenFalseLabel) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIsPatternExpression(this.Syntax, expression, pattern, hasUnionMatching, isNegated, reachabilityDecisionDag, whenTrueLabel, whenFalseLabel, type, this.HasErrors);
+                var result = new BoundIsPatternExpression(this.Syntax, this.IsInUnsafeRegion, expression, pattern, hasUnionMatching, isNegated, reachabilityDecisionDag, whenTrueLabel, whenFalseLabel, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8746,15 +8746,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDiscardExpression : BoundExpression
     {
-        public BoundDiscardExpression(SyntaxNode syntax, NullableAnnotation nullableAnnotation, bool isInferred, TypeSymbol? type, bool hasErrors)
-            : base(BoundKind.DiscardExpression, syntax, type, hasErrors)
+        public BoundDiscardExpression(SyntaxNode syntax, bool isInUnsafeRegion, NullableAnnotation nullableAnnotation, bool isInferred, TypeSymbol? type, bool hasErrors)
+            : base(BoundKind.DiscardExpression, syntax, isInUnsafeRegion, type, hasErrors)
         {
             this.NullableAnnotation = nullableAnnotation;
             this.IsInferred = isInferred;
         }
 
-        public BoundDiscardExpression(SyntaxNode syntax, NullableAnnotation nullableAnnotation, bool isInferred, TypeSymbol? type)
-            : base(BoundKind.DiscardExpression, syntax, type)
+        public BoundDiscardExpression(SyntaxNode syntax, bool isInUnsafeRegion, NullableAnnotation nullableAnnotation, bool isInferred, TypeSymbol? type)
+            : base(BoundKind.DiscardExpression, syntax, isInUnsafeRegion, type)
         {
             this.NullableAnnotation = nullableAnnotation;
             this.IsInferred = isInferred;
@@ -8771,7 +8771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (nullableAnnotation != this.NullableAnnotation || isInferred != this.IsInferred || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDiscardExpression(this.Syntax, nullableAnnotation, isInferred, type, this.HasErrors);
+                var result = new BoundDiscardExpression(this.Syntax, this.IsInUnsafeRegion, nullableAnnotation, isInferred, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8781,8 +8781,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundThrowExpression : BoundExpression
     {
-        public BoundThrowExpression(SyntaxNode syntax, BoundExpression expression, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.ThrowExpression, syntax, type, hasErrors || expression.HasErrors())
+        public BoundThrowExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.ThrowExpression, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -8799,7 +8799,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundThrowExpression(this.Syntax, expression, type, this.HasErrors);
+                var result = new BoundThrowExpression(this.Syntax, this.IsInUnsafeRegion, expression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8809,8 +8809,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class VariablePendingInference : BoundExpression
     {
-        protected VariablePendingInference(BoundKind kind, SyntaxNode syntax, Symbol variableSymbol, BoundExpression? receiverOpt, bool hasErrors = false)
-            : base(kind, syntax, null, hasErrors)
+        protected VariablePendingInference(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, Symbol variableSymbol, BoundExpression? receiverOpt, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, null, hasErrors)
         {
 
             RoslynDebug.Assert(variableSymbol is object, "Field 'variableSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -8826,8 +8826,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class OutVariablePendingInference : VariablePendingInference
     {
-        public OutVariablePendingInference(SyntaxNode syntax, Symbol variableSymbol, BoundExpression? receiverOpt, bool hasErrors = false)
-            : base(BoundKind.OutVariablePendingInference, syntax, variableSymbol, receiverOpt, hasErrors || receiverOpt.HasErrors())
+        public OutVariablePendingInference(SyntaxNode syntax, bool isInUnsafeRegion, Symbol variableSymbol, BoundExpression? receiverOpt, bool hasErrors = false)
+            : base(BoundKind.OutVariablePendingInference, syntax, isInUnsafeRegion, variableSymbol, receiverOpt, hasErrors || receiverOpt.HasErrors())
         {
 
             RoslynDebug.Assert(variableSymbol is object, "Field 'variableSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -8842,7 +8842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || receiverOpt != this.ReceiverOpt)
             {
-                var result = new OutVariablePendingInference(this.Syntax, variableSymbol, receiverOpt, this.HasErrors);
+                var result = new OutVariablePendingInference(this.Syntax, this.IsInUnsafeRegion, variableSymbol, receiverOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8852,8 +8852,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class DeconstructionVariablePendingInference : VariablePendingInference
     {
-        public DeconstructionVariablePendingInference(SyntaxNode syntax, Symbol variableSymbol, BoundExpression? receiverOpt, bool hasErrors = false)
-            : base(BoundKind.DeconstructionVariablePendingInference, syntax, variableSymbol, receiverOpt, hasErrors || receiverOpt.HasErrors())
+        public DeconstructionVariablePendingInference(SyntaxNode syntax, bool isInUnsafeRegion, Symbol variableSymbol, BoundExpression? receiverOpt, bool hasErrors = false)
+            : base(BoundKind.DeconstructionVariablePendingInference, syntax, isInUnsafeRegion, variableSymbol, receiverOpt, hasErrors || receiverOpt.HasErrors())
         {
 
             RoslynDebug.Assert(variableSymbol is object, "Field 'variableSymbol' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -8868,7 +8868,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || receiverOpt != this.ReceiverOpt)
             {
-                var result = new DeconstructionVariablePendingInference(this.Syntax, variableSymbol, receiverOpt, this.HasErrors);
+                var result = new DeconstructionVariablePendingInference(this.Syntax, this.IsInUnsafeRegion, variableSymbol, receiverOpt, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8878,15 +8878,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class OutDeconstructVarPendingInference : BoundExpression
     {
-        public OutDeconstructVarPendingInference(SyntaxNode syntax, Symbol? variableSymbol, bool isDiscardExpression, bool hasErrors)
-            : base(BoundKind.OutDeconstructVarPendingInference, syntax, null, hasErrors)
+        public OutDeconstructVarPendingInference(SyntaxNode syntax, bool isInUnsafeRegion, Symbol? variableSymbol, bool isDiscardExpression, bool hasErrors)
+            : base(BoundKind.OutDeconstructVarPendingInference, syntax, isInUnsafeRegion, null, hasErrors)
         {
             this.VariableSymbol = variableSymbol;
             this.IsDiscardExpression = isDiscardExpression;
         }
 
-        public OutDeconstructVarPendingInference(SyntaxNode syntax, Symbol? variableSymbol, bool isDiscardExpression)
-            : base(BoundKind.OutDeconstructVarPendingInference, syntax, null)
+        public OutDeconstructVarPendingInference(SyntaxNode syntax, bool isInUnsafeRegion, Symbol? variableSymbol, bool isDiscardExpression)
+            : base(BoundKind.OutDeconstructVarPendingInference, syntax, isInUnsafeRegion, null)
         {
             this.VariableSymbol = variableSymbol;
             this.IsDiscardExpression = isDiscardExpression;
@@ -8903,7 +8903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(variableSymbol, this.VariableSymbol) || isDiscardExpression != this.IsDiscardExpression)
             {
-                var result = new OutDeconstructVarPendingInference(this.Syntax, variableSymbol, isDiscardExpression, this.HasErrors);
+                var result = new OutDeconstructVarPendingInference(this.Syntax, this.IsInUnsafeRegion, variableSymbol, isDiscardExpression, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8979,8 +8979,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundExpressionWithNullability : BoundExpression
     {
-        public BoundExpressionWithNullability(SyntaxNode syntax, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.ExpressionWithNullability, syntax, type, hasErrors || expression.HasErrors())
+        public BoundExpressionWithNullability(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression expression, NullableAnnotation nullableAnnotation, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.ExpressionWithNullability, syntax, isInUnsafeRegion, type, hasErrors || expression.HasErrors())
         {
 
             RoslynDebug.Assert(expression is object, "Field 'expression' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -9000,7 +9000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != this.Expression || nullableAnnotation != this.NullableAnnotation || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundExpressionWithNullability(this.Syntax, expression, nullableAnnotation, type, this.HasErrors);
+                var result = new BoundExpressionWithNullability(this.Syntax, this.IsInUnsafeRegion, expression, nullableAnnotation, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9010,8 +9010,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundValueForNullableAnalysis : BoundExpression
     {
-        public BoundValueForNullableAnalysis(SyntaxNode syntax, BoundExpression? originalExpression, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.ValueForNullableAnalysis, syntax, type, hasErrors || originalExpression.HasErrors())
+        public BoundValueForNullableAnalysis(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression? originalExpression, TypeSymbol? type, bool hasErrors = false)
+            : base(BoundKind.ValueForNullableAnalysis, syntax, isInUnsafeRegion, type, hasErrors || originalExpression.HasErrors())
         {
             this.OriginalExpression = originalExpression;
         }
@@ -9025,7 +9025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (originalExpression != this.OriginalExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundValueForNullableAnalysis(this.Syntax, originalExpression, type, this.HasErrors);
+                var result = new BoundValueForNullableAnalysis(this.Syntax, this.IsInUnsafeRegion, originalExpression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -9035,8 +9035,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundWithExpression : BoundExpression
     {
-        public BoundWithExpression(SyntaxNode syntax, BoundExpression receiver, MethodSymbol? cloneMethod, BoundObjectInitializerExpressionBase initializerExpression, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.WithExpression, syntax, type, hasErrors || receiver.HasErrors() || initializerExpression.HasErrors())
+        public BoundWithExpression(SyntaxNode syntax, bool isInUnsafeRegion, BoundExpression receiver, MethodSymbol? cloneMethod, BoundObjectInitializerExpressionBase initializerExpression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.WithExpression, syntax, isInUnsafeRegion, type, hasErrors || receiver.HasErrors() || initializerExpression.HasErrors())
         {
 
             RoslynDebug.Assert(receiver is object, "Field 'receiver' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -9060,7 +9060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (receiver != this.Receiver || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(cloneMethod, this.CloneMethod) || initializerExpression != this.InitializerExpression || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundWithExpression(this.Syntax, receiver, cloneMethod, initializerExpression, type, this.HasErrors);
+                var result = new BoundWithExpression(this.Syntax, this.IsInUnsafeRegion, receiver, cloneMethod, initializerExpression, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundLocal rightResult = _factory.StoreToTemp(loweredRight, out BoundAssignmentOperator assignmentToTemp, refKind: RefKind.None);
                     assignment = MakeAssignmentOperator(syntax, transformedLHS, rightResult, used: true, isChecked: false, AssignmentKind.NullCoalescingAssignment, receiverIsKnownToBeCaptured: true);
                     Debug.Assert(assignment.Type is { });
-                    assignment = new BoundSequence(syntax, [rightResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
+                    assignment = new BoundSequence(syntax, isInUnsafeRegion: false, [rightResult.LocalSymbol], [assignmentToTemp], assignment, assignment.Type);
                 }
                 else
                 {
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // lhsRead ?? (transformedLHS = loweredRight)
-                var leftPlaceholder = new BoundValuePlaceholder(lhsRead.Syntax, lhsRead.Type);
+                var leftPlaceholder = new BoundValuePlaceholder(lhsRead.Syntax, isInUnsafeRegion: false, lhsRead.Type);
                 BoundExpression conditionalExpression = MakeNullCoalescingOperator(syntax, lhsRead, assignment, leftPlaceholder: leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, node.LeftOperand.Type);
                 Debug.Assert(conditionalExpression.Type is { });
 
@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundSequence(
                         syntax,
+                        isInUnsafeRegion: false,
                         temps.ToImmutableAndFree(),
                         stores.ToImmutableAndFree(),
                         conditionalExpression,
@@ -123,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // tmp = lhsRead.GetValueOrDefault();
-                var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault),
+                var tmp = _factory.StoreToTemp(BoundCall.Synthesized(leftOperand.Syntax, isInUnsafeRegion: false, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, getValueOrDefault),
                                                out var getValueOrDefaultStore);
 
                 stores.Add(getValueOrDefaultStore);
@@ -149,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiverIsKnownToBeCaptured: true);
 
                 // lhsRead.HasValue
-                var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, hasValue);
+                var lhsReadHasValue = BoundCall.Synthesized(leftOperand.Syntax, isInUnsafeRegion: false, lhsRead, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, hasValue);
 
                 // { tmp = b; transformedLhs = tmp; tmp }
                 var alternative = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create(tmpAssignment, transformedLhsAssignment), tmp);

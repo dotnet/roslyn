@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundAwaitExpression BindAwait(BoundExpression expression, SyntaxNode node, BindingDiagnosticBag diagnostics)
         {
             bool hasErrors = false;
-            var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
+            var placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, isInUnsafeRegion: expression.IsInUnsafeRegion, expression.Type);
 
             ReportBadAwaitDiagnostics(node, diagnostics, ref hasErrors);
             var info = BindAwaitInfo(placeholder, node, diagnostics, ref hasErrors, expressionOpt: expression);
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // non-void return type T, the await-expression is classified as a value of type T.
             TypeSymbol awaitExpressionType = (info.GetResult ?? info.RuntimeAsyncAwaitCall?.Method)?.ReturnType ?? (hasErrors ? CreateErrorType() : Compilation.DynamicType);
 
-            return new BoundAwaitExpression(node, expression, info, debugInfo: default, awaitExpressionType, hasErrors);
+            return new BoundAwaitExpression(node, isInUnsafeRegion: InUnsafeRegion, expression, info, debugInfo: default, awaitExpressionType, hasErrors);
         }
 
         internal void ReportBadAwaitDiagnostics(SyntaxNodeOrToken nodeOrToken, BindingDiagnosticBag diagnostics, ref bool hasErrors)
@@ -377,9 +377,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, expression.Type);
+                    placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, isInUnsafeRegion: InUnsafeRegion, expression.Type);
 
-                    BoundExpression argument = CreateConversion(placeholder, argumentConversion, destination: method.Parameters[0].Type, diagnostics);
+                    BoundExpression argument = CreateConversion(isInUnsafeRegion: InUnsafeRegion, placeholder, argumentConversion, destination: method.Parameters[0].Type, diagnostics);
 
                     if (argument is BoundConversion)
                     {
@@ -388,6 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     runtimeAwaitCall = new BoundCall(
                         expression.Syntax,
+                        isInUnsafeRegion: InUnsafeRegion,
                         receiverOpt: null,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                         method,
@@ -525,10 +526,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 reportObsoleteAndUnsafeDiagnostics(this, diagnostics, runtimeAwaitAwaiterMethod, syntax);
 
-                placeholder = new BoundAwaitableValuePlaceholder(syntax, awaiterType);
+                placeholder = new BoundAwaitableValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, awaiterType);
 
                 runtimeAwaitAwaiterCall = new BoundCall(
                     syntax,
+                    isInUnsafeRegion: InUnsafeRegion,
                     receiverOpt: null,
                     initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                     runtimeAwaitAwaiterMethod,
@@ -553,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 @this.ReportDiagnosticsIfObsolete(diagnostics, method, syntax, hasBaseReceiver: false);
                 @this.ReportDiagnosticsIfObsolete(diagnostics, method.ContainingType, syntax, hasBaseReceiver: false);
-                @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, syntax);
+                @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, syntax, @this.InUnsafeRegion);
             }
         }
 
@@ -637,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private bool GetIsCompletedProperty(TypeSymbol awaiterType, SyntaxNode node, TypeSymbol awaitedExpressionType, BindingDiagnosticBag diagnostics, [NotNullWhen(true)] out PropertySymbol? isCompletedProperty)
         {
-            var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
+            var receiver = new BoundLiteral(node, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Null, awaiterType);
             var name = WellKnownMemberNames.IsCompleted;
             var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeWithAnnotations>), invoked: false, indexed: false, diagnostics);
             if (qualified.HasAnyErrors)

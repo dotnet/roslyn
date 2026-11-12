@@ -119,18 +119,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             case ParameterSyntax parameterSyntax: // Initializer for a generated property based on record parameters
 
-                                if (firstDebugImports == null)
-                                {
-                                    if (binderFactory == null)
-                                    {
-                                        binderFactory = compilation.GetBinderFactory(syntaxRef.SyntaxTree);
-                                    }
+                                binderFactory ??= compilation.GetBinderFactory(syntaxRef.SyntaxTree);
 
-                                    firstDebugImports = binderFactory.GetBinder(parameterSyntax).ImportChain;
-                                }
+                                var parameterBinder = binderFactory.GetBinder(parameterSyntax);
+                                firstDebugImports ??= parameterBinder.ImportChain;
 
-                                boundInitializers.Add(new BoundFieldEqualsValue(parameterSyntax, fieldSymbol, ImmutableArray<LocalSymbol>.Empty,
+                                boundInitializers.Add(new BoundFieldEqualsValue(parameterSyntax, isInUnsafeRegion: parameterBinder.InUnsafeRegion, fieldSymbol, ImmutableArray<LocalSymbol>.Empty,
                                                                                 new BoundParameter(parameterSyntax,
+                                                                                                   isInUnsafeRegion: parameterBinder.InUnsafeRegion,
                                                                                                    ((SynthesizedRecordPropertySymbol)fieldSymbol.AssociatedSymbol).BackingParameter).MakeCompilerGenerated()));
                                 break;
 
@@ -259,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ((object?)expression.Type == null || !expression.Type.IsVoidType()))
                     {
                         var submissionResultType = scriptInitializer.ResultType;
-                        expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
+                        expression = binder.GenerateConversionForAssignment(isInUnsafeRegion: binder.InUnsafeRegion, submissionResultType, expression, diagnostics);
                         statement = new BoundExpressionStatement(statement.Syntax, expression, expression.HasErrors);
                     }
                 }
@@ -280,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundGlobalStatementInitializer(statementNode, statement);
+            return new BoundGlobalStatementInitializer(statementNode, isInUnsafeRegion: binder.InUnsafeRegion, statement);
         }
 
         private static BoundFieldEqualsValue BindFieldInitializer(Binder binder, FieldSymbol fieldSymbol, EqualsValueClauseSyntax equalsValueClauseNode,

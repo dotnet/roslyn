@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         $"Unexpected typeNameKind '{typeNameKind}'");
                     return null;
                 }
-                return new BoundParameter(syntax, _thisParameter);
+                return new BoundParameter(syntax, isInUnsafeRegion: false, _thisParameter);
             }
             return null;
         }

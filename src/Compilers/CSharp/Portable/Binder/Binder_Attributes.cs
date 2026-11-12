@@ -269,6 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundAttribute(
                 node,
+                isInUnsafeRegion: binder.InUnsafeRegion,
                 attributeConstructor,
                 boundConstructorArguments,
                 boundConstructorArgumentNamesOpt,
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var badLHS = BadExpression(nameSyntax, lookupResultKind: LookupResultKind.Empty);
                 var rhs = BindRValueWithoutTargetType(namedArgument.Expression, diagnostics);
-                return new BoundAssignmentOperator(namedArgument, badLHS, rhs, CreateErrorType());
+                return new BoundAssignmentOperator(namedArgument, isInUnsafeRegion: InUnsafeRegion, badLHS, rhs, CreateErrorType());
             }
 
             bool wasError;
@@ -538,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod != null)
                 {
                     ReportDiagnosticsIfObsolete(diagnostics, setMethod, namedArgument, hasBaseReceiver: false);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, namedArgument);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, setMethod, namedArgument, InUnsafeRegion);
 
                     if (setMethod.IsInitOnly && setMethod.DeclaringCompilation != this.Compilation)
                     {
@@ -549,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, namedArgumentNameSymbol, namedArgument);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, namedArgumentNameSymbol, namedArgument, InUnsafeRegion);
             }
 
             Debug.Assert(resultKind == LookupResultKind.Viable || wasError);
@@ -567,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // BindRValue just binds the expression without doing any validation (if its a valid expression for attribute argument).
             // Validation is done later by AttributeExpressionVisitor
             BoundExpression namedArgumentValue = this.BindValue(namedArgument.Expression, diagnostics, BindValueKind.RValue);
-            namedArgumentValue = GenerateConversionForAssignment(namedArgumentType, namedArgumentValue, diagnostics);
+            namedArgumentValue = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, namedArgumentType, namedArgumentValue, diagnostics);
 
             // TODO: should we create an entry even if there are binding errors?
             var fieldSymbol = namedArgumentNameSymbol as FieldSymbol;
@@ -579,14 +580,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We do not want to generate any unassigned field or unreferenced field diagnostics.
                 containingAssembly?.NoteFieldAccess(fieldSymbol, read: true, write: true);
 
-                lvalue = new BoundFieldAccess(nameSyntax, null, fieldSymbol, ConstantValue.NotAvailable, resultKind, fieldSymbol.Type);
+                lvalue = new BoundFieldAccess(nameSyntax, isInUnsafeRegion: InUnsafeRegion, null, fieldSymbol, ConstantValue.NotAvailable, resultKind, fieldSymbol.Type);
             }
             else
             {
                 var propertySymbol = namedArgumentNameSymbol as PropertySymbol;
                 if (propertySymbol is object)
                 {
-                    lvalue = new BoundPropertyAccess(nameSyntax, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, namedArgumentType);
+                    lvalue = new BoundPropertyAccess(nameSyntax, isInUnsafeRegion: InUnsafeRegion, receiverOpt: null, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, resultKind, namedArgumentType);
                 }
                 else
                 {
@@ -594,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundAssignmentOperator(namedArgument, lvalue, namedArgumentValue, namedArgumentType);
+            return new BoundAssignmentOperator(namedArgument, isInUnsafeRegion: InUnsafeRegion, lvalue, namedArgumentValue, namedArgumentType);
         }
 
         private Symbol BindNamedAttributeArgumentName(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, BindingDiagnosticBag diagnostics, out bool wasError, out LookupResultKind resultKind)

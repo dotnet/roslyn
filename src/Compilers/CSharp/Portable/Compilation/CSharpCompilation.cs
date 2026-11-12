@@ -2289,7 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = method.ExtractReturnTypeSyntax();
-            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
+            var dumbInstance = new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out BoundExpression? result, out BoundCall? runtimeAwaitCall, syntax, diagnostics);
 

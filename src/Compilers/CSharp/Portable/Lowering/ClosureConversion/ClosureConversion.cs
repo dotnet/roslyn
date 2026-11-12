@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If in an instance method of the right type, we can just return the "this" pointer.
             if ((object)_currentFrameThis != null && TypeSymbol.Equals(_currentFrameThis.Type, frameClass, TypeCompareKind.ConsiderEverything2))
             {
-                return new BoundThisReference(syntax, frameClass);
+                return new BoundThisReference(syntax, isInUnsafeRegion: false, frameClass);
             }
 
             // If the current method has by-ref struct closure parameters, and one of them is correct, use it.
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var potentialParameter = lambda.Parameters[i];
                     if (TypeSymbol.Equals(potentialParameter.Type.OriginalDefinition, frameClass, TypeCompareKind.ConsiderEverything2))
                     {
-                        return new BoundParameter(syntax, potentialParameter);
+                        return new BoundParameter(syntax, isInUnsafeRegion: false, potentialParameter);
                     }
                 }
             }
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var localFrame = (LocalSymbol)framePointer;
-            return new BoundLocal(syntax, localFrame, null, localFrame.Type);
+            return new BoundLocal(syntax, isInUnsafeRegion: false, localFrame, null, localFrame.Type);
         }
 
         private static void InsertAndFreePrologue<T>(ArrayBuilder<BoundStatement> result, ArrayBuilder<T> prologue) where T : BoundNode
@@ -692,8 +692,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(TypeSymbol.Equals(frameType, constructor.ContainingType, TypeCompareKind.ConsiderEverything2));
 
                 prologue.Add(new BoundAssignmentOperator(syntax,
-                    new BoundLocal(syntax, framePointer, null, frameType),
-                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor),
+                    isInUnsafeRegion: false,
+                    new BoundLocal(syntax, isInUnsafeRegion: false, framePointer, null, frameType),
+                    new BoundObjectCreationExpression(syntax: syntax, isInUnsafeRegion: false, constructor: constructor),
                     frameType));
             }
 
@@ -705,9 +706,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var capturedFrame = LambdaCapturedVariable.Create(frame, _innermostFramePointer, ref _synthesizedFieldNameIdDispenser);
                     FieldSymbol frameParent = capturedFrame.AsMember(frameType);
-                    BoundExpression left = new BoundFieldAccess(syntax, new BoundLocal(syntax, framePointer, null, frameType), frameParent, null);
+                    BoundExpression left = new BoundFieldAccess(syntax, isInUnsafeRegion: false, new BoundLocal(syntax, isInUnsafeRegion: false, framePointer, null, frameType), frameParent, null);
                     BoundExpression right = FrameOfType(syntax, frameParent.Type as NamedTypeSymbol);
-                    BoundExpression assignment = new BoundAssignmentOperator(syntax, left, right, left.Type);
+                    BoundExpression assignment = new BoundAssignmentOperator(syntax, isInUnsafeRegion: false, left, right, left.Type);
                     prologue.Add(assignment);
 
                     if (CompilationState.Emitting)
@@ -772,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             parameterToUse = parameter;
                         }
 
-                        value = new BoundParameter(syntax, parameterToUse);
+                        value = new BoundParameter(syntax, isInUnsafeRegion: false, parameterToUse);
                         break;
 
                     case SymbolKind.Local:
@@ -788,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             localToUse = local;
                         }
 
-                        value = new BoundLocal(syntax, localToUse, null, localToUse.Type);
+                        value = new BoundLocal(syntax, isInUnsafeRegion: false, localToUse, null, localToUse.Type);
                         break;
 
                     default:
@@ -797,10 +798,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var left = proxy.Replacement(
                     syntax,
-                    static (frameType1, arg) => new BoundLocal(arg.syntax, arg.framePointer, null, arg.framePointer.Type),
+                    static (frameType1, arg) => new BoundLocal(arg.syntax, isInUnsafeRegion: false, arg.framePointer, null, arg.framePointer.Type),
                     (syntax, framePointer));
 
-                var assignToProxy = new BoundAssignmentOperator(syntax, left, value, value.Type);
+                var assignToProxy = new BoundAssignmentOperator(syntax, isInUnsafeRegion: false, left, value, value.Type);
                 if (_currentMethod.MethodKind == MethodKind.Constructor &&
                     symbol == _currentMethod.ThisParameter &&
                     !_seenBaseCall &&
@@ -836,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterSymbol replacementParameter;
             if (_parameterMap.TryGetValue(node.ParameterSymbol, out replacementParameter))
             {
-                return new BoundParameter(node.Syntax, replacementParameter, node.HasErrors);
+                return new BoundParameter(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, replacementParameter, node.HasErrors);
             }
 
             return base.VisitUnhoistedParameter(node);
@@ -1069,11 +1070,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (closureKind == ClosureKind.Singleton)
             {
                 var field = containerAsFrame.SingletonCache.AsMember(constructedFrame);
-                receiver = new BoundFieldAccess(syntax, null, field, constantValueOpt: null);
+                receiver = new BoundFieldAccess(syntax, isInUnsafeRegion: false, null, field, constantValueOpt: null);
             }
             else if (closureKind == ClosureKind.Static)
             {
-                receiver = new BoundTypeExpression(syntax, null, synthesizedMethod.ContainingType);
+                receiver = new BoundTypeExpression(syntax, isInUnsafeRegion: false, null, synthesizedMethod.ContainingType);
             }
             else // ThisOnly and General
             {
@@ -1135,6 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Create bound sequence: { ctor call, thisProxyInitDeferred }
                         return new BoundSequence(
                             syntax: node.Syntax,
+                            isInUnsafeRegion: node.IsInUnsafeRegion,
                             locals: ImmutableArray<LocalSymbol>.Empty,
                             sideEffects: ImmutableArray.Create<BoundExpression>(rewritten),
                             value: _thisProxyInitDeferred,
@@ -1258,6 +1260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     rewrittenExceptionSource = new BoundSequence(
                         rewrittenExceptionSource.Syntax,
+                        isInUnsafeRegion: rewrittenExceptionSource.IsInUnsafeRegion,
                         ImmutableArray.Create<LocalSymbol>(),
                         prologue.ToImmutable(),
                         rewrittenExceptionSource,
@@ -1363,6 +1366,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundDelegateCreationExpression(
                     node.Syntax,
+                    isInUnsafeRegion: node.IsInUnsafeRegion,
                     receiver,
                     method,
                     node.IsExtensionMethod,
@@ -1413,6 +1417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     result = new BoundConversion(
                         syntax: conversion.Syntax,
+                        isInUnsafeRegion: conversion.IsInUnsafeRegion,
                         operand: result,
                         conversion: conversion.Conversion,
                         isBaseConversion: false,
@@ -1674,6 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // do not capture anything
             BoundExpression result = new BoundDelegateCreationExpression(
                 node.Syntax,
+                isInUnsafeRegion: node.IsInUnsafeRegion,
                 receiver,
                 referencedMethod,
                 isExtensionMethod: false,
@@ -1742,7 +1748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {
                     Diagnostics.Add(ex.Diagnostic);
-                    return new BoundBadExpression(F.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
+                    return new BoundBadExpression(F.Syntax, isInUnsafeRegion: false, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
                 }
             }
 

@@ -65,6 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundWithExpression(
                 syntax,
+                isInUnsafeRegion: InUnsafeRegion,
                 receiver,
                 cloneMethod,
                 initializer,

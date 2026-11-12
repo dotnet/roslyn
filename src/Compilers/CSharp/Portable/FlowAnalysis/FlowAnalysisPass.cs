@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(!submissionResultType.IsVoidType());
 
-                    var trailingExpression = new BoundDefaultExpression(method.GetNonNullSyntaxNode(), submissionResultType);
+                    var trailingExpression = new BoundDefaultExpression(method.GetNonNullSyntaxNode(), isInUnsafeRegion: false, submissionResultType);
                     var newStatements = block.Statements.Add(new BoundReturnStatement(trailingExpression.Syntax, RefKind.None, trailingExpression, @checked: false));
                     block = new BoundBlock(block.Syntax, ImmutableArray<LocalSymbol>.Empty, newStatements) { WasCompilerGenerated = true };
 #if DEBUG

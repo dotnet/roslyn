@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
             {
                 if (!_binder.HasCollectionExpressionApplicableConstructor(
-                        node.WithElement, node.WithElement?.Syntax ?? syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
+                        node.IsInUnsafeRegion, node.WithElement, node.WithElement?.Syntax ?? syntax, targetType, out constructor, out isExpanded, BindingDiagnosticBag.Discarded))
                 {
                     return Conversion.NoConversion;
                 }
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
             return ClassifyImplicitConversionFromExpression(
-                new BoundValuePlaceholder(element.Syntax, enumeratorInfo.ElementType),
+                new BoundValuePlaceholder(element.Syntax, isInUnsafeRegion: element.Expression.IsInUnsafeRegion, enumeratorInfo.ElementType),
                 targetType,
                 ref useSiteInfo);
         }
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)delegateInvokeMethodOpt != null)
             {
                 var analyzedArguments = AnalyzedArguments.GetInstance();
-                GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
+                GetDelegateOrFunctionPointerArguments(source.Syntax, source.IsInUnsafeRegion, analyzedArguments, delegateInvokeMethodOpt.Parameters, binder.Compilation);
                 resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
                     options: OverloadResolution.Options.InferWithDynamic | OverloadResolution.Options.IsMethodGroupConversion |
                              (isFunctionPointer ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)delegateInvokeMethod != null && !delegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
-            GetDelegateOrFunctionPointerArguments(syntax, analyzedArguments, delegateInvokeMethod.Parameters, Compilation);
+            GetDelegateOrFunctionPointerArguments(syntax, _binder.InUnsafeRegion, analyzedArguments, delegateInvokeMethod.Parameters, Compilation);
             _binder.OverloadResolution.MethodInvocationOverloadResolution(
                 methods: methodGroup.Methods,
                 typeArguments: methodGroup.TypeArguments,
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        public static void GetDelegateOrFunctionPointerArguments(SyntaxNode syntax, AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> delegateParameters, CSharpCompilation compilation)
+        public static void GetDelegateOrFunctionPointerArguments(SyntaxNode syntax, bool isInUnsafeRegion, AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> delegateParameters, CSharpCompilation compilation)
         {
             foreach (var p in delegateParameters)
             {
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                    isParamsArray: parameter.IsParamsArray, isParamsCollection: parameter.IsParamsCollection, parameter.RefKind);
                 }
 
-                analyzedArguments.Arguments.Add(new BoundParameter(syntax, parameter) { WasCompilerGenerated = true });
+                analyzedArguments.Arguments.Add(new BoundParameter(syntax, isInUnsafeRegion, parameter) { WasCompilerGenerated = true });
                 analyzedArguments.RefKinds.Add(parameter.RefKind);
             }
         }

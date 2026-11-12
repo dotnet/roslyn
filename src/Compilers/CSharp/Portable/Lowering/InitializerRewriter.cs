@@ -89,15 +89,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static BoundStatement RewriteFieldInitializer(BoundFieldEqualsValue fieldInit)
         {
             var field = fieldInit.Field;
+            bool isInUnsafeRegion = fieldInit.IsInUnsafeRegion;
             SyntaxNode syntax = fieldInit.Syntax;
             syntax = (syntax as EqualsValueClauseSyntax)?.Value ?? syntax; //we want the attached sequence point to indicate the value node
             var boundReceiver = field.IsStatic ? null :
-                                        new BoundThisReference(syntax, field.ContainingType);
+                                        new BoundThisReference(syntax, isInUnsafeRegion, field.ContainingType);
 
             BoundStatement boundStatement =
                 new BoundExpressionStatement(syntax,
                     new BoundAssignmentOperator(syntax,
+                        isInUnsafeRegion,
                         new BoundFieldAccess(syntax,
+                            isInUnsafeRegion,
                             boundReceiver,
                             field,
                             constantValueOpt: null),

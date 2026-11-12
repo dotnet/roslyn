@@ -303,6 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             visited = new BoundPassByCopy(
                         visited.Syntax,
+                        isInUnsafeRegion: visited.IsInUnsafeRegion,
                         visited,
                         type: visited.Type);
 
@@ -320,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 primaryCtor.GetCapturedParameters().TryGetValue(node.ParameterSymbol, out var field))
             {
                 Debug.Assert(CanBePassedByReference(node));
-                var result = new BoundFieldAccess(node.Syntax, new BoundThisReference(node.Syntax, primaryCtor.ContainingType), field, ConstantValue.NotAvailable, LookupResultKind.Viable, node.Type);
+                var result = new BoundFieldAccess(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, new BoundThisReference(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, primaryCtor.ContainingType), field, ConstantValue.NotAvailable, LookupResultKind.Viable, node.Type);
                 Debug.Assert(CanBePassedByReference(result));
                 return result;
             }
@@ -600,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression BadExpression(SyntaxNode syntax, TypeSymbol resultType, ImmutableArray<BoundExpression> children)
         {
-            return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol?>.Empty, children, resultType);
+            return new BoundBadExpression(syntax, isInUnsafeRegion: false, LookupResultKind.NotReferencable, ImmutableArray<Symbol?>.Empty, children, resultType);
         }
 
         private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode? syntax, WellKnownMember member, [NotNullWhen(true)] out TSymbol? symbol, bool isOptional = false, Location? location = null) where TSymbol : Symbol
@@ -678,7 +679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!tryGetResult)
             {
-                return new BoundTypeOfOperator(node.Syntax, sourceType, null, type, hasErrors: true);
+                return new BoundTypeOfOperator(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, sourceType, null, type, hasErrors: true);
             }
 
             Debug.Assert(getTypeFromHandle is not null);
@@ -697,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? getTypeFromHandle;
             if (!TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Type__GetTypeFromHandle, out getTypeFromHandle))
             {
-                return new BoundRefTypeOperator(node.Syntax, operand, null, type, hasErrors: true);
+                return new BoundRefTypeOperator(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, operand, null, type, hasErrors: true);
             }
 
             return node.Update(operand, getTypeFromHandle, type);

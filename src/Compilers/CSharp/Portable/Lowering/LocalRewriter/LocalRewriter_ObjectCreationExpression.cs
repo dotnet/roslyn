@@ -96,13 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // replace "new S()" with a default struct ctor with "default(S)"
             if (constructor.IsDefaultValueTypeConstructor())
             {
-                rewrittenObjectCreation = new BoundDefaultExpression(rewrittenObjectCreation.Syntax, rewrittenObjectCreation.Type!);
+                rewrittenObjectCreation = new BoundDefaultExpression(rewrittenObjectCreation.Syntax, isInUnsafeRegion: rewrittenObjectCreation.IsInUnsafeRegion, rewrittenObjectCreation.Type!);
             }
 
             if (!temps.IsDefaultOrEmpty)
             {
                 rewrittenObjectCreation = new BoundSequence(
                     node.Syntax,
+                    isInUnsafeRegion: node.IsInUnsafeRegion,
                     temps,
                     ImmutableArray<BoundExpression>.Empty,
                     rewrittenObjectCreation,
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression value = _factory.New(anonymousType, getAnonymousTypeValues(withExpr, oldValue, anonymousType, sideEffects, temps));
 
-                return new BoundSequence(withExpr.Syntax, temps.ToImmutableAndFree(), sideEffects.ToImmutableAndFree(), value, type);
+                return new BoundSequence(withExpr.Syntax, isInUnsafeRegion: withExpr.IsInUnsafeRegion, temps.ToImmutableAndFree(), sideEffects.ToImmutableAndFree(), value, type);
             }
 
             BoundExpression expression;
@@ -303,6 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax,
+                isInUnsafeRegion: false,
                 locals,
                 sideEffects.ToImmutableAndFree(),
                 value,
@@ -339,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!this.TryGetWellKnownTypeMember(syntax, WellKnownMember.System_Activator__CreateInstance_T, out method))
             {
-                return new BoundDefaultExpression(syntax, type: typeParameter, hasErrors: true);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, type: typeParameter, hasErrors: true);
             }
 
             Debug.Assert((object)method != null);
@@ -349,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var createInstanceCall = new BoundCall(
                 syntax,
+                isInUnsafeRegion: false,
                 receiverOpt: null,
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 method,
@@ -391,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                newGuid = new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
+                newGuid = new BoundBadExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, LookupResultKind.NotCreatable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
             var getTypeFromCLSID = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional: true);
@@ -409,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                callGetTypeFromCLSID = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
+                callGetTypeFromCLSID = new BoundBadExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
             var createInstance = _factory.WellKnownMethod(WellKnownMember.System_Activator__CreateInstance);
@@ -425,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                rewrittenObjectCreation = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, node.Type);
+                rewrittenObjectCreation = new BoundBadExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, node.Type);
             }
 
             _factory.Syntax = oldSyntax;

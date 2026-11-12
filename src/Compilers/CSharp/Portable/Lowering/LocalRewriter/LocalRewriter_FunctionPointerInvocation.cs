@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                rewrittenInvocation = new BoundSequence(rewrittenInvocation.Syntax, temps.ToImmutableAndFree(), sideEffects: ImmutableArray<BoundExpression>.Empty, rewrittenInvocation, node.Type);
+                rewrittenInvocation = new BoundSequence(rewrittenInvocation.Syntax, isInUnsafeRegion: rewrittenInvocation.IsInUnsafeRegion, temps.ToImmutableAndFree(), sideEffects: ImmutableArray<BoundExpression>.Empty, rewrittenInvocation, node.Type);
             }
 
             if (Instrument)

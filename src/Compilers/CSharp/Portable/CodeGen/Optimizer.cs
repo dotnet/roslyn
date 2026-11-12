@@ -1668,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (node.OperatorKind.IsChecked() && node.OperatorKind.Operator() == UnaryOperatorKind.UnaryMinus)
             {
                 var origStack = StackDepth();
-                PushEvalStack(new BoundDefaultExpression(node.Syntax, node.Operand.Type), ExprContext.Value);
+                PushEvalStack(new BoundDefaultExpression(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, node.Operand.Type), ExprContext.Value);
                 BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
                 return node.Update(node.OperatorKind, operand, node.ConstantValueOpt, node.MethodOpt, node.ConstrainedToTypeOpt, node.ResultKind, node.Type);
             }
@@ -2201,7 +2201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (!IsLastAccess(locInfo, _nodeCounter))
             {
                 bool isAlive = locInfo.LocalDefs.Any(static (d, c) => c == d.Start, _nodeCounter);
-                return new BoundDup(node.Syntax, node.LocalSymbol.RefKind, isAlive, node.Type);
+                return new BoundDup(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, node.LocalSymbol.RefKind, isAlive, node.Type);
             }
 
             // last access - leave the node as is. Emit will do nothing expecting the node on the stack
@@ -2258,13 +2258,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (node.IsRef)
                 {
-                    return new BoundRefAccess(node.Syntax, left.LocalSymbol.RefKind, right, right.Type);
+                    return new BoundRefAccess(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, left.LocalSymbol.RefKind, right, right.Type);
                 }
 
                 // assigned local is not used later => just emit the Right as value.
                 if (CodeGenerator.IsRef(right))
                 {
-                    return new BoundPassByCopy(node.Syntax, right, right.Type);
+                    return new BoundPassByCopy(node.Syntax, isInUnsafeRegion: node.IsInUnsafeRegion, right, right.Type);
                 }
 
                 return right;

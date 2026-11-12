@@ -1224,7 +1224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Note: we create a value for purpose of inferring type arguments even when the receiver type is static
                 var syntax = (CSharpSyntaxNode)CSharpSyntaxTree.Dummy.GetRoot();
-                var receiverValue = new BoundLiteral(syntax, ConstantValue.Bad, receiverType) { WasCompilerGenerated = true };
+                var receiverValue = new BoundLiteral(syntax, isInUnsafeRegion: false, ConstantValue.Bad, receiverType) { WasCompilerGenerated = true };
 
                 var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                 ImmutableArray<TypeWithAnnotations> typeArguments = MethodTypeInferrer.InferTypeArgumentsFromReceiverType(extension, receiverValue, compilation, conversions, ref discardedUseSiteInfo);

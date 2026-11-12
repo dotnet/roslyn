@@ -30,12 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = oldNodeOpt != null ?
                 oldNodeOpt.Update(rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type) :
-                new BoundFieldAccess(syntax, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
+                new BoundFieldAccess(syntax, isInUnsafeRegion: false, rewrittenReceiver, fieldSymbol, constantValueOpt, resultKind, type);
 
             if (fieldSymbol.IsFixedSizeBuffer)
             {
                 // a reference to a fixed buffer is translated into its address
-                result = new BoundAddressOfOperator(syntax, result, type, false);
+                result = new BoundAddressOfOperator(syntax, isInUnsafeRegion: false, result, type, false);
             }
 
             return result;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (rewrittenReceiver?.Kind == BoundKind.DefaultExpression)
             {
                 // Optimization: `default((int, string)).Item2` is simply `default(string)`
-                return new BoundDefaultExpression(syntax, tupleField.Type);
+                return new BoundDefaultExpression(syntax, isInUnsafeRegion: false, tupleField.Type);
             }
 
             if (!TypeSymbol.Equals(underlyingField.ContainingType, currentLinkType, TypeCompareKind.ConsiderEverything2))

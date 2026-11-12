@@ -274,6 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // &pinnedTemp
             var addr = new BoundAddressOfOperator(
                 factory.Syntax,
+                 isInUnsafeRegion: false,
                  factory.Local(pinnedTemp),
                  type: fixedInitializer.ElementPointerType);
 
@@ -345,6 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentConditionalAccessID = ++_currentConditionalAccessID;
                     callReceiver = new BoundConditionalReceiver(
                         initializerSyntax,
+                        isInUnsafeRegion: false,
                         currentConditionalAccessID,
                         initializerType);
                 }
@@ -369,6 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // &pinnedTemp
             var addr = new BoundAddressOfOperator(
                 factory.Syntax,
+                isInUnsafeRegion: false,
                 factory.Local(pinnedTemp),
                 type: fixedInitializer.ElementPointerType);
 
@@ -408,6 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // initializer?.{temp =ref .GetPinnable(), (int*)&pinnedTemp} ?? default;
                     pinAndGetPtr = new BoundLoweredConditionalAccess(
                         initializerSyntax,
+                        isInUnsafeRegion: false,
                         initializerExpr,
                         hasValueMethodOpt: null,
                         whenNotNull: pinAndGetPtr,
@@ -481,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                helperCall = new BoundBadExpression(fixedInitializer.Syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
+                helperCall = new BoundBadExpression(fixedInitializer.Syntax, isInUnsafeRegion: fixedInitializer.IsInUnsafeRegion, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
             BoundExpression addition = factory.Binary(BinaryOperatorKind.PointerAndIntAddition, localType, factory.Local(localSymbol), helperCall);
@@ -542,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    lengthCall = new BoundBadExpression(fixedInitializer.Syntax, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(factory.Local(pinnedTemp)), ErrorTypeSymbol.UnknownResultType);
+                    lengthCall = new BoundBadExpression(fixedInitializer.Syntax, isInUnsafeRegion: fixedInitializer.IsInUnsafeRegion, LookupResultKind.NotInvocable, ImmutableArray<Symbol?>.Empty, ImmutableArray.Create<BoundExpression>(factory.Local(pinnedTemp)), ErrorTypeSymbol.UnknownResultType);
                 }
             }
 
@@ -558,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: this is a fixed statement address-of in that it's the initial value of the pointer.
             //&temp[0]
-            BoundExpression firstElementAddress = new BoundAddressOfOperator(factory.Syntax, firstElement, type: new PointerTypeSymbol(arrayElementType));
+            BoundExpression firstElementAddress = new BoundAddressOfOperator(factory.Syntax, isInUnsafeRegion: false, firstElement, type: new PointerTypeSymbol(arrayElementType));
             BoundExpression convertedFirstElementAddress = ApplyConversionIfNotIdentity(fixedInitializer.ElementPointerConversion, fixedInitializer.ElementPointerPlaceholder, firstElementAddress);
 
             //loc = &temp[0]
@@ -569,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //(((temp = array) != null && temp.Length != 0) ? loc = &temp[0] : loc = null)
             BoundStatement localInit = factory.ExpressionStatement(
-                new BoundConditionalOperator(factory.Syntax, false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType, wasTargetTyped: false, localType));
+                new BoundConditionalOperator(factory.Syntax, isInUnsafeRegion: false, false, condition, consequenceAssignment, alternativeAssignment, ConstantValue.NotAvailable, localType, wasTargetTyped: false, localType));
 
             return InstrumentLocalDeclarationIfNecessary(localDecl, localSymbol, localInit);
         }

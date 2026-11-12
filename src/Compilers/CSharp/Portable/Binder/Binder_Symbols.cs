@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
                     symbol.TypeWithAnnotations.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
-                    if (symbol.TypeWithAnnotations.IsResolved) ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol.TypeWithAnnotations.Type, syntax);
+                    if (symbol.TypeWithAnnotations.IsResolved) ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol.TypeWithAnnotations.Type, syntax, InUnsafeRegion);
                 }
 
                 return symbol;
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
                     MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, functionPointerTypeSyntax.DelegateKeyword);
 
-                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRulesVersion.Version1, ignoreUnsafeDiagnosticsSuppression: false, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
+                    if (GetUnsafeDiagnosticInfo(InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1, ignoreUnsafeDiagnosticsSuppression: false, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
                         var @delegate = functionPointerTypeSyntax.DelegateKeyword;
                         var asterisk = functionPointerTypeSyntax.AsteriskToken;
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = (PointerTypeSyntax)syntax;
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
 
                 if ((Flags & BinderFlags.SuppressConstraintChecks) != BinderFlags.SuppressConstraintChecks)
                 {
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (type.ContainsPointerOrFunctionPointer())
                         {
-                            ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                            ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
                         }
                     }
                 }
@@ -1462,6 +1462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Method:
                     return new BoundMethodGroup(
                         syntax,
+                        isInUnsafeRegion: InUnsafeRegion,
                         typeArguments,
                         receiver,
                         plainName,
@@ -1474,6 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Property:
                     return new BoundPropertyGroup(
                         syntax,
+                        isInUnsafeRegion: InUnsafeRegion,
                         members.SelectAsArray(s_toPropertySymbolFunc),
                         receiver,
                         lookupResult.Kind,
@@ -1519,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (haveStaticCandidates)
                 {
                     // Wrap into bad expression with HasErrors in an attempt to suppress cascading diagnostics
-                    receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Ambiguous, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), receiver.Type, hasErrors: true).MakeCompilerGenerated();
+                    receiver = new BoundBadExpression(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, LookupResultKind.Ambiguous, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(receiver), receiver.Type, hasErrors: true).MakeCompilerGenerated();
                 }
             }
             else if (haveStaticCandidates)
@@ -1529,7 +1531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMemberOrExtension, right, receiver.Type, plainName);
-                receiver = new BoundBadExpression(receiver.Syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes: [AdjustBadExpressionChild(receiver)], receiver.Type, hasErrors: true).MakeCompilerGenerated();
+                receiver = new BoundBadExpression(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childBoundNodes: [AdjustBadExpressionChild(receiver)], receiver.Type, hasErrors: true).MakeCompilerGenerated();
             }
 
             return receiver;
@@ -1670,7 +1672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var left = BindNamespaceOrTypeSymbol(leftName, diagnostics, basesBeingResolved, suppressUseSiteDiagnostics: false).NamespaceOrTypeSymbol;
             ReportDiagnosticsIfObsolete(diagnostics, left, leftName, hasBaseReceiver: false);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, left, leftName);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, left, leftName, InUnsafeRegion);
 
             bool isLeftUnboundGenericType = left.Kind == SymbolKind.NamedType &&
                 ((NamedTypeSymbol)left).IsUnboundGenericType;
