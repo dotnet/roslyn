@@ -432,7 +432,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             var discoveryInputs = allTagHelpers.Combine(componentAliasTargets);
 
-            var csharpDocuments = parsedDocuments
+            var generatedDocuments = parsedDocuments
 
                 // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
                 .Combine(discoveryInputs)
@@ -517,7 +517,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         codeDocument: document.CodeDocument,
                         csharpDocument: document.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false),
                         declCSharpDocument: document.CodeDocument.GetCSharpDocument(declarationDocument: true));
-                })
+                });
+
+            var csharpDocuments = generatedDocuments
                 .WithLambdaComparer(static (a, b) =>
                 {
                     // If either side has diagnostics on either document, force uncached output.
@@ -571,7 +573,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 context.AddSource(hintName, csharpDocument.Text);
             });
 
-            var hostOutputs = csharpDocuments
+            // Host consumers need current binding information even when the generated C# is unchanged.
+            var hostOutputs = generatedDocuments
                 .Collect()
                 .Combine(allTagHelpers)
                 .WithTrackingName("HostOutputs");
