@@ -18285,14 +18285,14 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             htmlFormatted: """
                 @foreach (var i in new[] { 1 })
                 {
-                @if (true)
-                {
+                    @if (true)
+                    {
                 <style>
                     .a {
                         color: red;
                     }
                 </style>
-                }
+                    }
                 }
                 """,
             expected: """
