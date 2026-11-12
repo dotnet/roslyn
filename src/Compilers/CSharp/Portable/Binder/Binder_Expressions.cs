@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.WRN_CapturedPrimaryConstructorParameterInFieldInitializer, syntax.Location, parameter);
             }
 
-            return new BoundFieldEqualsValue(initializerOpt, field, initializerBinder.GetDeclaredLocalsForScope(initializerOpt), result);
+            return new BoundFieldEqualsValue(initializerOpt, isInUnsafeRegion: initializerBinder.InUnsafeRegion, field, initializerBinder.GetDeclaredLocalsForScope(initializerOpt), result);
         }
 
         internal BoundExpression BindVariableOrAutoPropInitializerValue(
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
-            var result = new BoundParameterEqualsValue(defaultValueSyntax, parameter, defaultValueBinder.GetDeclaredLocalsForScope(defaultValueSyntax),
+            var result = new BoundParameterEqualsValue(defaultValueSyntax, isInUnsafeRegion: defaultValueBinder.InUnsafeRegion, parameter, defaultValueBinder.GetDeclaredLocalsForScope(defaultValueSyntax),
                               defaultValueBinder.GenerateConversionForAssignment(isInUnsafeRegion: defaultValueBinder.InUnsafeRegion, parameter.Type, valueBeforeConversion, diagnostics, ConversionForAssignmentFlags.DefaultParameter));
 
             return result;
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var initializer = initializerBinder.BindValue(equalsValueSyntax.Value, diagnostics, BindValueKind.RValue);
             initializer = initializerBinder.GenerateConversionForAssignment(isInUnsafeRegion: initializerBinder.InUnsafeRegion, symbol.ContainingType.EnumUnderlyingType, initializer, diagnostics);
-            return new BoundFieldEqualsValue(equalsValueSyntax, symbol, initializerBinder.GetDeclaredLocalsForScope(equalsValueSyntax), initializer);
+            return new BoundFieldEqualsValue(equalsValueSyntax, isInUnsafeRegion: initializerBinder.InUnsafeRegion, symbol, initializerBinder.GetDeclaredLocalsForScope(equalsValueSyntax), initializer);
         }
 
         public BoundExpression BindExpression(ExpressionSyntax node, BindingDiagnosticBag diagnostics)

@@ -9,6 +9,14 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    internal partial class BoundInitializer
+    {
+        /// <summary>
+        /// The initializer's binding context, preserved when rewriting it as an assignment.
+        /// </summary>
+        public new bool IsInUnsafeRegion => base.IsInUnsafeRegion;
+    }
+
     internal sealed partial class BoundFieldAccess
     {
         public BoundFieldAccess(

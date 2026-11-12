@@ -1245,6 +1245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundExpression RebindSimpleBinaryOperatorAsConverted(BoundBinaryOperator unconvertedBinaryOperator, BindingDiagnosticBag diagnostics)
         {
+            if (InUnsafeRegion != unconvertedBinaryOperator.IsInUnsafeRegion)
+            {
+                return WithUnsafeRegion(unconvertedBinaryOperator.IsInUnsafeRegion).RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
+            }
+
             if (TryBindUnconvertedBinaryOperatorToDefaultInterpolatedStringHandler(unconvertedBinaryOperator, diagnostics, out var convertedBinaryOperator))
             {
                 return convertedBinaryOperator;

@@ -2414,7 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return binder.BindStatement(statement, diagnostics);
                 case GlobalStatementSyntax globalStatement:
                     BoundStatement bound = binder.BindStatement(globalStatement.Statement, diagnostics);
-                    return new BoundGlobalStatementInitializer(node, bound);
+                    return new BoundGlobalStatementInitializer(node, isInUnsafeRegion: binder.InUnsafeRegion, bound);
             }
 
             return null;

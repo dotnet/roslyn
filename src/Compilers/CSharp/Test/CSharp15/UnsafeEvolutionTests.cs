@@ -6760,6 +6760,117 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
+    public void UnsafeExpression_Context_NaturalInterpolatedString()
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    var single = unsafe($"{1}");
+                    var concatenated = unsafe($"{1}" + $"{2}");
+                    _ = single;
+                    _ = concatenated;
+                }
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                [InterpolatedStringHandler]
+                public struct DefaultInterpolatedStringHandler
+                {
+                    public unsafe DefaultInterpolatedStringHandler(int literalLength, int formattedCount) { }
+                    public unsafe void AppendFormatted<T>(T value) { }
+                    public unsafe void AppendLiteral(string value) { }
+                    public string ToStringAndClear() => "";
+                }
+            }
+            """;
+
+        CreateCompilation([source, InterpolatedStringHandlerAttribute], options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_TargetTypedInterpolatedString()
+    {
+        var source = """
+            using System.Runtime.CompilerServices;
+
+            [InterpolatedStringHandler]
+            struct Handler
+            {
+                public unsafe Handler(int literalLength, int formattedCount) { }
+                public unsafe void AppendFormatted<T>(T value) { }
+            }
+
+            class C
+            {
+                static int Take(Handler value) => 0;
+                static int M() => Take(unsafe($"{1}"));
+                static int N() => unsafe(Take($"{1}"));
+                static int O() => Take(unsafe($"{1}" + $"{2}"));
+                static int P() => unsafe(Take($"{1}" + $"{2}"));
+            }
+            """;
+
+        CreateCompilation([source, InterpolatedStringHandlerAttribute], options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (13,37): error CS9362: 'Handler.AppendFormatted<int>(int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int M() => Take(unsafe($"{1}"));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "{1}").WithArguments("Handler.AppendFormatted<int>(int)").WithLocation(13, 37),
+            // (13,35): error CS9362: 'Handler.Handler(int, int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int M() => Take(unsafe($"{1}"));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "$\"{1}\"").WithArguments("Handler.Handler(int, int)").WithLocation(13, 35),
+            // (15,37): error CS9362: 'Handler.AppendFormatted<int>(int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int O() => Take(unsafe($"{1}" + $"{2}"));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "{1}").WithArguments("Handler.AppendFormatted<int>(int)").WithLocation(15, 37),
+            // (15,46): error CS9362: 'Handler.AppendFormatted<int>(int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int O() => Take(unsafe($"{1}" + $"{2}"));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "{2}").WithArguments("Handler.AppendFormatted<int>(int)").WithLocation(15, 46),
+            // (15,35): error CS9362: 'Handler.Handler(int, int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int O() => Take(unsafe($"{1}" + $"{2}"));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "$\"{1}\" + $\"{2}\"").WithArguments("Handler.Handler(int, int)").WithLocation(15, 35));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_FieldAndPropertyInitializers()
+    {
+        var source = """
+            using System;
+
+            unsafe ref struct Unsafe
+            {
+                public Span<int> Field = stackalloc int[1];
+                public Span<int> Property { get; } = stackalloc int[1];
+                public Unsafe() { }
+            }
+
+            ref struct Safe
+            {
+                public Span<int> Field = unsafe(stackalloc int[1]);
+                public Span<int> Property { get; } = unsafe(stackalloc int[1]);
+                public Safe() { }
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyDiagnostics(
+            // (5,30): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+            //     public Span<int> Field = stackalloc int[1];
+            Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(5, 30),
+            // (6,42): warning CS9081: A result of a stackalloc expression of type 'Span<int>' in this context may be exposed outside of the containing method
+            //     public Span<int> Property { get; } = stackalloc int[1];
+            Diagnostic(ErrorCode.WRN_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(6, 42),
+            // (12,37): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+            //     public Span<int> Field = unsafe(stackalloc int[1]);
+            Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(12, 37),
+            // (13,49): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
+            //     public Span<int> Property { get; } = unsafe(stackalloc int[1]);
+            Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(13, 49));
+    }
+
+    [Fact]
     public void UnsafeExpression_Context_EventDoesNotEscape()
     {
         var source = """

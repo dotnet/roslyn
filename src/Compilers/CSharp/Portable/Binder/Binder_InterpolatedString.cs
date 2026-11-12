@@ -216,6 +216,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundInterpolatedString BindUnconvertedInterpolatedStringToString(BoundUnconvertedInterpolatedString unconvertedInterpolatedString, BindingDiagnosticBag diagnostics)
         {
+            if (InUnsafeRegion != unconvertedInterpolatedString.IsInUnsafeRegion)
+            {
+                return WithUnsafeRegion(unconvertedInterpolatedString.IsInUnsafeRegion).BindUnconvertedInterpolatedStringToString(unconvertedInterpolatedString, diagnostics);
+            }
+
             Debug.Assert(unconvertedInterpolatedString.Type?.SpecialType == SpecialType.System_String);
 
             // We have 5 possible lowering strategies, dependent on the contents of the string, in this order:

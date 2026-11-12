@@ -349,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // needs to wait until the attributes are populated on the parameter symbol.
             var parameterEqualsValue = new BoundParameterEqualsValue(
                 parameterSyntax,
+                isInUnsafeRegion: binder.InUnsafeRegion,
                 this,
                 ImmutableArray<LocalSymbol>.Empty,
                 // note that if the parameter type conflicts with the default value from attributes,

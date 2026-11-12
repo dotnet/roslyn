@@ -261,13 +261,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundInitializer : BoundNode
     {
-        protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool hasErrors)
-            : base(kind, syntax, hasErrors)
+        protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, bool hasErrors)
+            : base(kind, syntax, isInUnsafeRegion, hasErrors)
         {
         }
 
-        protected BoundInitializer(BoundKind kind, SyntaxNode syntax)
-            : base(kind, syntax)
+        protected BoundInitializer(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion)
+            : base(kind, syntax, isInUnsafeRegion, hasErrors: false)
         {
         }
 
@@ -275,8 +275,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract partial class BoundEqualsValue : BoundInitializer
     {
-        protected BoundEqualsValue(BoundKind kind, SyntaxNode syntax, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
-            : base(kind, syntax, hasErrors)
+        protected BoundEqualsValue(BoundKind kind, SyntaxNode syntax, bool isInUnsafeRegion, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
+            : base(kind, syntax, isInUnsafeRegion, hasErrors)
         {
 
             RoslynDebug.Assert(!locals.IsDefault, "Field 'locals' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -292,8 +292,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundFieldEqualsValue : BoundEqualsValue
     {
-        public BoundFieldEqualsValue(SyntaxNode syntax, FieldSymbol field, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
-            : base(BoundKind.FieldEqualsValue, syntax, locals, value, hasErrors || value.HasErrors())
+        public BoundFieldEqualsValue(SyntaxNode syntax, bool isInUnsafeRegion, FieldSymbol field, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
+            : base(BoundKind.FieldEqualsValue, syntax, isInUnsafeRegion, locals, value, hasErrors || value.HasErrors())
         {
 
             RoslynDebug.Assert(field is object, "Field 'field' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(field, this.Field) || locals != this.Locals || value != this.Value)
             {
-                var result = new BoundFieldEqualsValue(this.Syntax, field, locals, value, this.HasErrors);
+                var result = new BoundFieldEqualsValue(this.Syntax, this.IsInUnsafeRegion, field, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -322,8 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPropertyEqualsValue : BoundEqualsValue
     {
-        public BoundPropertyEqualsValue(SyntaxNode syntax, PropertySymbol property, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
-            : base(BoundKind.PropertyEqualsValue, syntax, locals, value, hasErrors || value.HasErrors())
+        public BoundPropertyEqualsValue(SyntaxNode syntax, bool isInUnsafeRegion, PropertySymbol property, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
+            : base(BoundKind.PropertyEqualsValue, syntax, isInUnsafeRegion, locals, value, hasErrors || value.HasErrors())
         {
 
             RoslynDebug.Assert(property is object, "Field 'property' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(property, this.Property) || locals != this.Locals || value != this.Value)
             {
-                var result = new BoundPropertyEqualsValue(this.Syntax, property, locals, value, this.HasErrors);
+                var result = new BoundPropertyEqualsValue(this.Syntax, this.IsInUnsafeRegion, property, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundParameterEqualsValue : BoundEqualsValue
     {
-        public BoundParameterEqualsValue(SyntaxNode syntax, ParameterSymbol parameter, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
-            : base(BoundKind.ParameterEqualsValue, syntax, locals, value, hasErrors || value.HasErrors())
+        public BoundParameterEqualsValue(SyntaxNode syntax, bool isInUnsafeRegion, ParameterSymbol parameter, ImmutableArray<LocalSymbol> locals, BoundExpression value, bool hasErrors = false)
+            : base(BoundKind.ParameterEqualsValue, syntax, isInUnsafeRegion, locals, value, hasErrors || value.HasErrors())
         {
 
             RoslynDebug.Assert(parameter is object, "Field 'parameter' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(parameter, this.Parameter) || locals != this.Locals || value != this.Value)
             {
-                var result = new BoundParameterEqualsValue(this.Syntax, parameter, locals, value, this.HasErrors);
+                var result = new BoundParameterEqualsValue(this.Syntax, this.IsInUnsafeRegion, parameter, locals, value, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -382,8 +382,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundGlobalStatementInitializer : BoundInitializer
     {
-        public BoundGlobalStatementInitializer(SyntaxNode syntax, BoundStatement statement, bool hasErrors = false)
-            : base(BoundKind.GlobalStatementInitializer, syntax, hasErrors || statement.HasErrors())
+        public BoundGlobalStatementInitializer(SyntaxNode syntax, bool isInUnsafeRegion, BoundStatement statement, bool hasErrors = false)
+            : base(BoundKind.GlobalStatementInitializer, syntax, isInUnsafeRegion, hasErrors || statement.HasErrors())
         {
 
             RoslynDebug.Assert(statement is object, "Field 'statement' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statement != this.Statement)
             {
-                var result = new BoundGlobalStatementInitializer(this.Syntax, statement, this.HasErrors);
+                var result = new BoundGlobalStatementInitializer(this.Syntax, this.IsInUnsafeRegion, statement, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
