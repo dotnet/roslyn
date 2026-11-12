@@ -26,7 +26,15 @@ MyType
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<MyType>.
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,17)-(1,23) "x:\dir\subdir\Test\TestComponent.cshtml"
+MyType
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (1,25)-(1,32) "x:\dir\subdir\Test\TestComponent.cshtml"
 OnClick
@@ -46,15 +54,6 @@ OnClick
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private int counter;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

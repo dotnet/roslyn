@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
 
@@ -26,7 +27,7 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
 {
     public string Action => LanguageServerConstants.CodeActions.ExtractToNewComponent;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         if (data.ValueKind == JsonValueKind.Undefined)
         {
@@ -39,10 +40,10 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
             return null;
         }
 
-        var componentDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var componentDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var text = componentDocument.Source.Text;
-        var path = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
+        var path = FilePathNormalizer.Normalize(documentSnapshot.Uri.GetAbsoluteOrUNCPath());
         var directoryName = Path.GetDirectoryName(path).AssumeNotNull();
         var templatePath = Path.Combine(directoryName, "Component.razor");
         var componentPath = FileUtilities.GenerateUniquePath(templatePath, ".razor");
@@ -83,7 +84,7 @@ internal sealed class ExtractToComponentCodeActionResolver : IRazorCodeActionRes
             new CreateFile { DocumentUri = newComponentUri },
             new TextDocumentEdit
             {
-                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentContext.Uri },
+                TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = documentSnapshot.Uri },
                 Edits =
                 [
                     new TextEdit

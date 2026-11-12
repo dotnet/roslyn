@@ -116,6 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override Symbol AssociatedSymbol
             => _property;
 
+        internal SourcePropertySymbolBase AssociatedProperty
+            => _property;
+
         public override ImmutableArray<Location> Locations
             => _property.Locations;
 
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override RefKind RefKind => _property.RefKind;
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
 

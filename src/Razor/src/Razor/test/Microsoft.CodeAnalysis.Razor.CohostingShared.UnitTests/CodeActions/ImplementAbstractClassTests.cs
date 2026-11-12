@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
@@ -87,6 +87,52 @@ public class ImplementAbstractClassTests(ITestOutputHelper testOutputHelper) : C
                 """,
             additionalFiles:
             [
+                (FilePath("GenericBase.cs"), """
+                    namespace SomeProject;
+
+                    public abstract class GenericBase<T>
+                    {
+                        protected abstract T Transform(T value);
+                    }
+                    """)
+            ],
+            codeActionName: PredefinedCodeFixProviderNames.ImplementAbstractClass,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task ImplementAbstractClass_FromGenericInheritsDirective_ExistingCodeBlock_UsesEditorConfig()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @inherits [||]GenericBase<int>
+
+                @code
+                {
+                    private int value = 1;
+                }
+                """,
+            expected: """
+                @inherits GenericBase<int>
+
+                @code
+                {
+                    private int value = 1;
+
+                    protected override int Transform (int value)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """),
                 (FilePath("GenericBase.cs"), """
                     namespace SomeProject;
 

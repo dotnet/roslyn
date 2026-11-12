@@ -278,9 +278,9 @@ class C
             var assignment = (AssignmentExpressionSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.SimpleAssignmentExpression, occurrence: 2).AsNode();
             Assert.Equal("a = 1", assignment.ToString());
             var defaultInfo = model.GetDeconstructionInfo(assignment);
+            Assert.Equal(Conversion.NoConversion, defaultInfo.Conversion.Value);
             Assert.Null(defaultInfo.Method);
             Assert.Empty(defaultInfo.Nested);
-            Assert.Equal(ConversionKind.UnsetConversionKind, defaultInfo.Conversion.Value.Kind);
         }
 
         [Fact]
@@ -311,7 +311,7 @@ class C
             var foreachDeconstruction = (ForEachVariableStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.ForEachVariableStatement).AsNode();
             Assert.Equal(@"foreach (char in s) { }", foreachDeconstruction.ToString());
             var deconstructionInfo = model.GetDeconstructionInfo(foreachDeconstruction);
-            Assert.Equal(Conversion.UnsetConversion, deconstructionInfo.Conversion);
+            Assert.Equal(Conversion.NoConversion, deconstructionInfo.Conversion);
             Assert.Null(deconstructionInfo.Method);
             Assert.Empty(deconstructionInfo.Nested);
         }

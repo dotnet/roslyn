@@ -6166,7 +6166,7 @@ public static class Extensions
         IL_0012: call string Extensions::'<M>g__local|1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         string '<M>g__local|1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
         ) cil managed 
@@ -7561,7 +7561,7 @@ public class C<T>(string val)
         IL_0033: call class C`1<!!1> Extensions::'<M>g__local|1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
         IL_0038: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         class C`1<!!U> '<M>g__local|1_0'<T, U, X, Y, Z> (
             !!T t2,
             !!U u2,
@@ -9335,7 +9335,7 @@ public static class Extensions
         IL_0012: call string Extensions::'<M>g__local|1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         string '<M>g__local|1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
         ) cil managed 
@@ -9556,7 +9556,7 @@ public static class Extensions
         IL_0012: call string Extensions::'<M>g__local|3_0'(valuetype Extensions/'<>c__DisplayClass3_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         string '<M>g__local|1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
         ) cil managed 
@@ -9580,7 +9580,7 @@ public static class Extensions
         IL_0018: call string [mscorlib]System.String::Concat(string, string)
         IL_001d: ret
     } // end of method Extensions::'<M>g__local|1_0'
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         string '<M>g__local|3_0' (
             valuetype Extensions/'<>c__DisplayClass3_0'& ''
         ) cil managed 
@@ -11326,7 +11326,7 @@ class C1
         IL_000a: pop
         IL_000b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         class [mscorlib]System.Func`1<!!V> '<M2>g__local|1_0'<T, U, V> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11489,7 +11489,7 @@ class C1
         IL_0005: callvirt instance void [mscorlib]System.Action::Invoke()
         IL_000a: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         class [mscorlib]System.Action '<M2>g__local|1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11648,7 +11648,7 @@ class C1
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         class [mscorlib]System.Action '<M2>g__local|1_0' () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11811,7 +11811,7 @@ public static class Extensions
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11967,7 +11967,7 @@ public static class Extensions
         IL_0016: stsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0' () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -12135,7 +12135,7 @@ public static class Extensions
         IL_001a: call void Extensions::'<M2>g__local|1_0'<!!T, !!U, int64>(object, !!0, !!1, !!2)
         IL_001f: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0'<T, U, V> (
             object d,
             !!T t,
@@ -12328,7 +12328,7 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0'<T> (
             object d,
             !!T t
@@ -12505,7 +12505,7 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0' (
             object d
         ) cil managed 
@@ -20037,7 +20037,7 @@ unsafe static class E
     }
 }
 """;
-        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
+        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics(
             // (1,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // D d = object.M;
@@ -25064,18 +25064,14 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Consider improving the error message
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // Enum.Zero.Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Enum.Zero.Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Enum.Zero.Property");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<G>$5BDAAC939B0896D4F1349316F7C8CE0F.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        AssertEx.Equal("E.extension(Enum).Property", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        AssertEx.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
@@ -25237,18 +25233,14 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Consider improving the error message
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // 1.Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1.Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        AssertEx.Equal("E.extension(int).Property", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        AssertEx.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
     }
 
     [Fact]
@@ -25363,18 +25355,14 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Consider improving the error message
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // (1, 2).Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "(1, 2).Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 2).Property");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<G>$49AAF2D3C1326E88AED3848611C299DA.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        AssertEx.Equal("E.extension((int, int)).Property", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        AssertEx.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
     }
 
     [Fact]
@@ -28555,35 +28543,25 @@ static class E
 {
     extension(System.ReadOnlySpan<object> s)
     {
-        public int Property { set { } }
+        public int Property { set { System.Console.Write(value); } }
     }
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics(
-            // (1,41): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new System.ReadOnlySpan<string>() { Property = 42 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 41),
-            // (3,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // new System.ReadOnlySpan<string>().Property = 43;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new System.ReadOnlySpan<string>().Property").WithLocation(3, 1));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         src = """
 new S().Property = 42;
 
 struct S
 {
-    public int Property { set { } }
+    public readonly int Property { set { } }
 }
 """;
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // new S().Property = 42;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S().Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -28605,10 +28583,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,44): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new System.ValueTuple<int, string>() { Property = 42 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 44));
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -28630,10 +28605,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyDiagnostics(
-            // (1,34): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new System.String('a', 10) { Property = 42 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 34));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 using Roslyn.Text.Adornments;
 using Xunit;
 

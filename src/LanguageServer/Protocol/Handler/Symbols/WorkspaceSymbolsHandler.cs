@@ -49,9 +49,7 @@ internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProv
 
     public async Task<SumType<SymbolInformation[], WorkspaceSymbol[]>?> HandleRequestAsync(WorkspaceSymbolParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
-
-        var solution = context.Solution;
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         using var progress = BufferedProgress.Create(
             request.PartialResultToken,
@@ -77,8 +75,7 @@ internal sealed class WorkspaceSymbolsHandler(IAsynchronousOperationListenerProv
         public async Task AddResultsAsync(
             ImmutableArray<INavigateToSearchResult> results, Document? activeDocument, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(context.Solution);
-            var solution = context.Solution;
+            var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();

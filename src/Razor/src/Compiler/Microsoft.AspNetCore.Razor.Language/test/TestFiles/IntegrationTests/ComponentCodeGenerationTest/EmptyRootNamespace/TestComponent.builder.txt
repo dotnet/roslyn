@@ -1,0 +1,4 @@
+﻿[0000] AddMarkupContent("<h1>Generated</h1>\r\n")
+[0001] OpenComponent<global::Component1>()
+[0002] AddMarkupContent("\r\n")
+[0003] OpenComponent<global::Shared.Component2>()

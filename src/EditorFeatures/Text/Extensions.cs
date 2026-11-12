@@ -36,6 +36,9 @@ public static partial class Extensions
     internal static TextLine AsTextLine(this ITextSnapshotLine line)
         => line.Snapshot.AsText().Lines[line.LineNumber];
 
+    internal static IReadOnlyList<TextChangeRange> GetChangeRanges(this ITextVersion newVersion, ITextVersion oldVersion)
+        => ITextImageHelpers.GetChangeRanges(((ITextVersion2)oldVersion).ImageVersion, ((ITextVersion2)newVersion).ImageVersion);
+
     public static SourceText AsText(this ITextSnapshot textSnapshot)
     {
         textSnapshot.TextBuffer.Properties.TryGetProperty<ITextBufferCloneService>(typeof(ITextBufferCloneService), out var textBufferCloneServiceOpt);

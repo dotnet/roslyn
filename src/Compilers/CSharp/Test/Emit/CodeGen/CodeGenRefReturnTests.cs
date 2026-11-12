@@ -31,6 +31,196 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verify: verify);
         }
 
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/83549")]
+        public void RefReturnLocalInUnsafeContext(string refKind)
+        {
+            var source = $$"""
+                delegate {{refKind}} int D();
+                class C
+                {
+                    static unsafe {{refKind}} int Method()
+                    {
+                        int local = 0;
+                        return ref local;
+                    }
+
+                    static {{refKind}} int Block()
+                    {
+                        int local = 0;
+                        unsafe { return ref local; }
+                    }
+
+                    static D Lambda() => () =>
+                    {
+                        int local = 0;
+                        unsafe { return ref local; }
+                    };
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (7,20): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         return ref local;
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(7, 20),
+                // (13,29): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         unsafe { return ref local; }
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(13, 29),
+                // (19,29): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         unsafe { return ref local; }
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(19, 29)
+            };
+
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            verifier.VerifyDiagnostics(expectedDiagnostics);
+            var expectedIL = """
+                {
+                  // Code size        5 (0x5)
+                  .maxstack  1
+                  .locals init (int V_0) //local
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  ret
+                }
+                """;
+            verifier.VerifyIL("C.Method()", expectedIL);
+            verifier.VerifyIL("C.Block()", expectedIL);
+            verifier.VerifyIL("C.<>c.<Lambda>b__2_0()", expectedIL);
+
+            verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, verify: Verification.Fails);
+            verifier.VerifyDiagnostics(expectedDiagnostics);
+            verifier.VerifyIL("C.Method()", """
+                {
+                  // Code size       10 (0xa)
+                  .maxstack  1
+                  .locals init (int V_0, //local
+                                int& V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  ldloca.s   V_0
+                  IL_0005:  stloc.1
+                  IL_0006:  br.s       IL_0008
+                  IL_0008:  ldloc.1
+                  IL_0009:  ret
+                }
+                """);
+            expectedIL = """
+                {
+                  // Code size       11 (0xb)
+                  .maxstack  1
+                  .locals init (int V_0, //local
+                                int& V_1)
+                  IL_0000:  nop
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stloc.0
+                  IL_0003:  nop
+                  IL_0004:  ldloca.s   V_0
+                  IL_0006:  stloc.1
+                  IL_0007:  br.s       IL_0009
+                  IL_0009:  ldloc.1
+                  IL_000a:  ret
+                }
+                """;
+            verifier.VerifyIL("C.Block()", expectedIL);
+            verifier.VerifyIL("C.<>c.<Lambda>b__2_0()", expectedIL);
+        }
+
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/83549")]
+        public void RefReturnLocalInUnsafeContextWithFinally(string refKind)
+        {
+            var source = $$"""
+                class C
+                {
+                    static unsafe {{refKind}} int Method()
+                    {
+                        int local;
+                        try
+                        {
+                            local = 1;
+                            return ref local;
+                        }
+                        finally
+                        {
+                            local = 42;
+                        }
+                    }
+                }
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,24): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //             return ref local;
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(9, 24)
+            };
+
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            verifier.VerifyDiagnostics(expectedDiagnostics);
+            verifier.VerifyIL("C.Method()", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  .locals init (int V_0, //local
+                                int& V_1)
+                  .try
+                  {
+                    IL_0000:  ldc.i4.1
+                    IL_0001:  stloc.0
+                    IL_0002:  ldloca.s   V_0
+                    IL_0004:  stloc.1
+                    IL_0005:  leave.s    IL_000b
+                  }
+                  finally
+                  {
+                    IL_0007:  ldc.i4.s   42
+                    IL_0009:  stloc.0
+                    IL_000a:  endfinally
+                  }
+                  IL_000b:  ldloc.1
+                  IL_000c:  ret
+                }
+                """);
+
+            verifier = CompileAndVerify(source, options: TestOptions.UnsafeDebugDll, verify: Verification.Fails);
+            verifier.VerifyDiagnostics(expectedDiagnostics);
+            verifier.VerifyIL("C.Method()", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  .locals init (int V_0, //local
+                                int& V_1)
+                  IL_0000:  nop
+                  .try
+                  {
+                    IL_0001:  nop
+                    IL_0002:  ldc.i4.1
+                    IL_0003:  stloc.0
+                    IL_0004:  ldloca.s   V_0
+                    IL_0006:  stloc.1
+                    IL_0007:  leave.s    IL_000f
+                  }
+                  finally
+                  {
+                    IL_0009:  nop
+                    IL_000a:  ldc.i4.s   42
+                    IL_000c:  stloc.0
+                    IL_000d:  nop
+                    IL_000e:  endfinally
+                  }
+                  IL_000f:  ldloc.1
+                  IL_0010:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void RefReturnRefAssignment()
         {
@@ -1302,7 +1492,7 @@ class Program
 
             CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails).VerifyIL("Program.Main()", @"
 {
-  // Code size      291 (0x123)
+  // Code size      285 (0x11d)
   .maxstack  4
   .locals init (pinned int& V_0)
   IL_0000:  newobj     ""Program..ctor()""
@@ -1336,114 +1526,108 @@ class Program
   IL_003c:  dup
   IL_003d:  callvirt   ""ref int Program.P.get""
   IL_0042:  stloc.0
-  IL_0043:  ldloc.0
-  IL_0044:  pop
-  IL_0045:  ldc.i4.0
-  IL_0046:  conv.u
-  IL_0047:  stloc.0
-  IL_0048:  dup
-  IL_0049:  callvirt   ""ref int Program.P.get""
-  IL_004e:  mkrefany   ""int""
-  IL_0053:  pop
-  IL_0054:  dup
-  IL_0055:  ldc.i4.0
-  IL_0056:  callvirt   ""ref int Program.this[int].get""
-  IL_005b:  ldc.i4.0
-  IL_005c:  stind.i4
-  IL_005d:  dup
-  IL_005e:  ldc.i4.0
-  IL_005f:  callvirt   ""ref int Program.this[int].get""
-  IL_0064:  dup
-  IL_0065:  ldind.i4
-  IL_0066:  ldc.i4.1
-  IL_0067:  add
-  IL_0068:  stind.i4
-  IL_0069:  dup
-  IL_006a:  ldc.i4.0
-  IL_006b:  callvirt   ""ref int Program.this[int].get""
-  IL_0070:  dup
-  IL_0071:  ldind.i4
-  IL_0072:  ldc.i4.1
-  IL_0073:  add
-  IL_0074:  stind.i4
-  IL_0075:  dup
-  IL_0076:  dup
-  IL_0077:  ldc.i4.0
-  IL_0078:  callvirt   ""ref int Program.this[int].get""
-  IL_007d:  callvirt   ""ref int Program.M(ref int)""
-  IL_0082:  pop
-  IL_0083:  dup
-  IL_0084:  dup
-  IL_0085:  ldc.i4.0
-  IL_0086:  callvirt   ""ref int Program.this[int].get""
-  IL_008b:  callvirt   ""void Program.N(out int)""
-  IL_0090:  dup
-  IL_0091:  ldc.i4.0
-  IL_0092:  callvirt   ""ref int Program.this[int].get""
-  IL_0097:  stloc.0
-  IL_0098:  ldloc.0
-  IL_0099:  pop
+  IL_0043:  ldc.i4.0
+  IL_0044:  conv.u
+  IL_0045:  stloc.0
+  IL_0046:  dup
+  IL_0047:  callvirt   ""ref int Program.P.get""
+  IL_004c:  mkrefany   ""int""
+  IL_0051:  pop
+  IL_0052:  dup
+  IL_0053:  ldc.i4.0
+  IL_0054:  callvirt   ""ref int Program.this[int].get""
+  IL_0059:  ldc.i4.0
+  IL_005a:  stind.i4
+  IL_005b:  dup
+  IL_005c:  ldc.i4.0
+  IL_005d:  callvirt   ""ref int Program.this[int].get""
+  IL_0062:  dup
+  IL_0063:  ldind.i4
+  IL_0064:  ldc.i4.1
+  IL_0065:  add
+  IL_0066:  stind.i4
+  IL_0067:  dup
+  IL_0068:  ldc.i4.0
+  IL_0069:  callvirt   ""ref int Program.this[int].get""
+  IL_006e:  dup
+  IL_006f:  ldind.i4
+  IL_0070:  ldc.i4.1
+  IL_0071:  add
+  IL_0072:  stind.i4
+  IL_0073:  dup
+  IL_0074:  dup
+  IL_0075:  ldc.i4.0
+  IL_0076:  callvirt   ""ref int Program.this[int].get""
+  IL_007b:  callvirt   ""ref int Program.M(ref int)""
+  IL_0080:  pop
+  IL_0081:  dup
+  IL_0082:  dup
+  IL_0083:  ldc.i4.0
+  IL_0084:  callvirt   ""ref int Program.this[int].get""
+  IL_0089:  callvirt   ""void Program.N(out int)""
+  IL_008e:  dup
+  IL_008f:  ldc.i4.0
+  IL_0090:  callvirt   ""ref int Program.this[int].get""
+  IL_0095:  stloc.0
+  IL_0096:  ldc.i4.0
+  IL_0097:  conv.u
+  IL_0098:  stloc.0
+  IL_0099:  dup
   IL_009a:  ldc.i4.0
-  IL_009b:  conv.u
-  IL_009c:  stloc.0
-  IL_009d:  dup
-  IL_009e:  ldc.i4.0
-  IL_009f:  callvirt   ""ref int Program.this[int].get""
-  IL_00a4:  mkrefany   ""int""
-  IL_00a9:  pop
-  IL_00aa:  dup
-  IL_00ab:  dup
-  IL_00ac:  ldflda     ""int Program.field""
-  IL_00b1:  callvirt   ""ref int Program.M(ref int)""
-  IL_00b6:  ldc.i4.0
-  IL_00b7:  stind.i4
-  IL_00b8:  dup
-  IL_00b9:  dup
-  IL_00ba:  ldflda     ""int Program.field""
-  IL_00bf:  callvirt   ""ref int Program.M(ref int)""
-  IL_00c4:  dup
-  IL_00c5:  ldind.i4
-  IL_00c6:  ldc.i4.1
-  IL_00c7:  add
-  IL_00c8:  stind.i4
-  IL_00c9:  dup
-  IL_00ca:  dup
-  IL_00cb:  ldflda     ""int Program.field""
-  IL_00d0:  callvirt   ""ref int Program.M(ref int)""
-  IL_00d5:  dup
-  IL_00d6:  ldind.i4
-  IL_00d7:  ldc.i4.1
-  IL_00d8:  add
-  IL_00d9:  stind.i4
-  IL_00da:  dup
-  IL_00db:  dup
-  IL_00dc:  dup
-  IL_00dd:  ldflda     ""int Program.field""
-  IL_00e2:  callvirt   ""ref int Program.M(ref int)""
-  IL_00e7:  callvirt   ""ref int Program.M(ref int)""
-  IL_00ec:  pop
-  IL_00ed:  dup
-  IL_00ee:  dup
-  IL_00ef:  dup
-  IL_00f0:  ldflda     ""int Program.field""
-  IL_00f5:  callvirt   ""ref int Program.M(ref int)""
-  IL_00fa:  callvirt   ""void Program.N(out int)""
-  IL_00ff:  dup
-  IL_0100:  dup
-  IL_0101:  ldflda     ""int Program.field""
-  IL_0106:  callvirt   ""ref int Program.M(ref int)""
-  IL_010b:  stloc.0
-  IL_010c:  ldloc.0
-  IL_010d:  pop
-  IL_010e:  ldc.i4.0
-  IL_010f:  conv.u
-  IL_0110:  stloc.0
-  IL_0111:  dup
-  IL_0112:  ldflda     ""int Program.field""
-  IL_0117:  callvirt   ""ref int Program.M(ref int)""
-  IL_011c:  mkrefany   ""int""
-  IL_0121:  pop
-  IL_0122:  ret
+  IL_009b:  callvirt   ""ref int Program.this[int].get""
+  IL_00a0:  mkrefany   ""int""
+  IL_00a5:  pop
+  IL_00a6:  dup
+  IL_00a7:  dup
+  IL_00a8:  ldflda     ""int Program.field""
+  IL_00ad:  callvirt   ""ref int Program.M(ref int)""
+  IL_00b2:  ldc.i4.0
+  IL_00b3:  stind.i4
+  IL_00b4:  dup
+  IL_00b5:  dup
+  IL_00b6:  ldflda     ""int Program.field""
+  IL_00bb:  callvirt   ""ref int Program.M(ref int)""
+  IL_00c0:  dup
+  IL_00c1:  ldind.i4
+  IL_00c2:  ldc.i4.1
+  IL_00c3:  add
+  IL_00c4:  stind.i4
+  IL_00c5:  dup
+  IL_00c6:  dup
+  IL_00c7:  ldflda     ""int Program.field""
+  IL_00cc:  callvirt   ""ref int Program.M(ref int)""
+  IL_00d1:  dup
+  IL_00d2:  ldind.i4
+  IL_00d3:  ldc.i4.1
+  IL_00d4:  add
+  IL_00d5:  stind.i4
+  IL_00d6:  dup
+  IL_00d7:  dup
+  IL_00d8:  dup
+  IL_00d9:  ldflda     ""int Program.field""
+  IL_00de:  callvirt   ""ref int Program.M(ref int)""
+  IL_00e3:  callvirt   ""ref int Program.M(ref int)""
+  IL_00e8:  pop
+  IL_00e9:  dup
+  IL_00ea:  dup
+  IL_00eb:  dup
+  IL_00ec:  ldflda     ""int Program.field""
+  IL_00f1:  callvirt   ""ref int Program.M(ref int)""
+  IL_00f6:  callvirt   ""void Program.N(out int)""
+  IL_00fb:  dup
+  IL_00fc:  dup
+  IL_00fd:  ldflda     ""int Program.field""
+  IL_0102:  callvirt   ""ref int Program.M(ref int)""
+  IL_0107:  stloc.0
+  IL_0108:  ldc.i4.0
+  IL_0109:  conv.u
+  IL_010a:  stloc.0
+  IL_010b:  dup
+  IL_010c:  ldflda     ""int Program.field""
+  IL_0111:  callvirt   ""ref int Program.M(ref int)""
+  IL_0116:  mkrefany   ""int""
+  IL_011b:  pop
+  IL_011c:  ret
 }");
         }
 

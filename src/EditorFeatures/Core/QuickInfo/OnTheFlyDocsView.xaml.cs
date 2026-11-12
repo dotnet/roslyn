@@ -323,5 +323,9 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     }
 
     private UIElement ToUIElement(object model)
-        => _viewElementFactoryService.CreateViewElement<UIElement>(_textView, model);
+    {
+        var element = _viewElementFactoryService.CreateViewElement<UIElement>(_textView, model);
+        Contract.ThrowIfNull(element, "We expect that we should be able to convert anything we're passing in to UIElements.");
+        return element;
+    }
 }

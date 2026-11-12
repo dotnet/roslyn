@@ -114,8 +114,9 @@ internal sealed class TestDiscoveryServiceContributor : ILspService, IServiceBro
         return workspace.Services.GetService<ITestDiscoveryLanguageService>();
     }
 
-    public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+    public ValueTask OnServiceBrokerInitializedAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
     {
         // No initialization is necessary; the service object is created and initialized on demand in the Proffer callback.
+        return ValueTask.CompletedTask;
     }
 }

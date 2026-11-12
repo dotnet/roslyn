@@ -1853,7 +1853,7 @@ class Program1 { static void Main(string[] args) {    } }
 System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA1)
 System.Reflection.AssemblyCultureAttribute(""en-US"")
 System.Reflection.AssemblyDelaySignAttribute(true)
-System.Reflection.AssemblyFlagsAttribute(System.Reflection.AssemblyNameFlags.None | System.Reflection.AssemblyNameFlags.EnableJITcompileOptimizer | System.Reflection.AssemblyNameFlags.EnableJITcompileTracking | System.Reflection.AssemblyNameFlags.Retargetable)
+System.Reflection.AssemblyFlagsAttribute(System.Reflection.AssemblyNameFlags.EnableJITcompileOptimizer | System.Reflection.AssemblyNameFlags.EnableJITcompileTracking | System.Reflection.AssemblyNameFlags.Retargetable)
 System.Reflection.AssemblyVersionAttribute(""1.2.3.4"")
 System.Reflection.AssemblyFileVersionAttribute(""4.3.2.1"")
 System.Reflection.AssemblyTitleAttribute(""HELLO"")

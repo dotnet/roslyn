@@ -206,9 +206,7 @@ public sealed class ConvertSwitchStatementToExpressionFixAllTests
                                             {
                                                 _ => 3,
                                             };
-                                        }
-
-                        ,
+                                        },
                     };
                 }
             }

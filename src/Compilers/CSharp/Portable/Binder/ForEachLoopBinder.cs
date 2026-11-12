@@ -718,6 +718,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return gotInfo;
         }
 
+        internal bool TryGetForEachIterationType(SyntaxNode syntax, TypeSymbol collectionType, bool isAsync, out TypeWithAnnotations iterationType)
+        {
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            return GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax, ref collectionExpr, isAsync, isSpread: false, BindingDiagnosticBag.Discarded, out iterationType, out _);
+        }
+
         private BoundExpression UnwrapCollectionExpressionIfNullable(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)
         {
             TypeSymbol collectionExprType = collectionExpr.Type;
@@ -729,7 +735,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode exprSyntax = collectionExpr.Syntax;
 
                 MethodSymbol nullableValueGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value, diagnostics, exprSyntax);
-                if ((object)nullableValueGetter != null)
+
+                // 'collectionExprType' can be a constructed error type over a missing 'System.Nullable<T>', for example when
+                // it comes from a compilation without a core library. Adjusting 'get_Value' to such a type is not possible,
+                // so the collection expression is treated as bad instead.
+                if ((object)nullableValueGetter != null &&
+                    ReferenceEquals(collectionExprType.OriginalDefinition, nullableValueGetter.ContainingSymbol))
                 {
                     nullableValueGetter = nullableValueGetter.AsMember((NamedTypeSymbol)collectionExprType);
 

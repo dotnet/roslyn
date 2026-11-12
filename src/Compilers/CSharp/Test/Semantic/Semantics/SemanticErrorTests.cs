@@ -8630,7 +8630,7 @@ public class MyClass
    }
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (16,27): error CS0233: 'S' does not have a predefined size, therefore sizeof can only be used in an unsafe context (consider using System.Runtime.InteropServices.Marshal.SizeOf)
                 //         Console.WriteLine(sizeof(S));   // CS0233
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(S)").WithArguments("S"),
@@ -16167,7 +16167,7 @@ class Test
 }
 ";
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (13,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         System.Console.Write(inst.field.buffer[0]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "inst.field.buffer").WithLocation(13, 30),

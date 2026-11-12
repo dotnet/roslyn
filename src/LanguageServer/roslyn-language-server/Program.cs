@@ -39,7 +39,7 @@ internal static class Program
             {
                 using var daemonResult = await DaemonClient.ConnectAsync(
                     executable,
-                    thinClientArguments.ServerArguments);
+                    thinClientArguments);
 
                 if (daemonResult.DaemonConnected)
                 {

@@ -581,7 +581,7 @@ class Test
             var cv = CompileAndVerify(comp, expectedOutput: "", verify: Verification.Passes);
             cv.VerifyIL("Test.<>c__1<T>.<M1>b__1_0(T[])", @"
 {
-  // Code size       17 (0x11)
+  // Code size       22 (0x16)
   .maxstack  2
   .locals init (System.ReadOnlySpan<T> V_0) //span
   IL_0000:  ldarg.1
@@ -590,14 +590,15 @@ class Test
   IL_0007:  ldloca.s   V_0
   IL_0009:  ldc.i4.0
   IL_000a:  call       ""ref readonly T System.ReadOnlySpan<T>.this[int].get""
-  IL_000f:  pop
-  IL_0010:  ret
+  IL_000f:  ldobj      ""T""
+  IL_0014:  pop
+  IL_0015:  ret
 }");
             cv.VerifyIL("Test.<M2>d__2<T>.System.Collections.IEnumerator.MoveNext()", @"{
-  // Code size       42 (0x2a)
+  // Code size       47 (0x2f)
   .maxstack  2
   .locals init (int V_0,
-                System.ReadOnlySpan<T> V_1) //span
+            System.ReadOnlySpan<T> V_1) //span
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Test.<M2>d__2<T>.<>1__state""
   IL_0006:  stloc.0
@@ -615,9 +616,10 @@ class Test
   IL_001f:  ldloca.s   V_1
   IL_0021:  ldc.i4.0
   IL_0022:  call       ""ref readonly T System.ReadOnlySpan<T>.this[int].get""
-  IL_0027:  pop
-  IL_0028:  ldc.i4.0
-  IL_0029:  ret
+  IL_0027:  ldobj      ""T""
+  IL_002c:  pop
+  IL_002d:  ldc.i4.0
+  IL_002e:  ret
 }");
         }
 

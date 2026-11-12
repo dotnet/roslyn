@@ -11,6 +11,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI;
@@ -32,7 +33,7 @@ internal sealed class InlineDiagnosticsTag : GraphicsTag
     private readonly IEditorFormatMap _editorFormatMap;
     private readonly IClassificationFormatMap _classificationFormatMap;
     private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
-    private readonly IClassificationType? _classificationType;
+    private readonly IClassificationType _classificationType;
 
     public InlineDiagnosticsTag(string errorType, DiagnosticData diagnostic, IEditorFormatMap editorFormatMap,
         IClassificationFormatMapService classificationFormatMapService, IClassificationTypeRegistryService classificationTypeRegistryService,
@@ -46,7 +47,7 @@ internal sealed class InlineDiagnosticsTag : GraphicsTag
         _editorFormatMap = editorFormatMap;
         _classificationFormatMap = classificationFormatMapService.GetClassificationFormatMap("text");
         _classificationTypeRegistryService = classificationTypeRegistryService;
-        _classificationType = _classificationTypeRegistryService.GetClassificationType("url");
+        _classificationType = _classificationTypeRegistryService.GetRequiredClassificationType("url");
     }
 
     /// <summary>

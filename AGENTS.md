@@ -8,7 +8,7 @@ memory-first orientation protocol, and the doc-update obligation.
 ## Where to find things
 
 - **Repo-wide rules & orientation:** [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
-- **Knowledge base (load on demand):** [`.github/memory/INDEX.md`](.github/memory/INDEX.md) — the loading map; start here for architecture, conventions, file map, APIs, known issues, and testing.
+- **Knowledge base (load on demand):** [`.github/memory/INDEX.md`](.github/memory/INDEX.md) — the loading map; start here for architecture, conventions, file map, APIs, and testing.
 - **Area-specific rules (auto-applied by path):** [`.github/instructions/`](.github/instructions/)
   - [`Compiler.instructions.md`](.github/instructions/Compiler.instructions.md) — `src/{Compilers,Dependencies,ExpressionEvaluator,Tools}`
   - [`IDE.instructions.md`](.github/instructions/IDE.instructions.md) — `src/{Analyzers,CodeStyle,Features,Workspaces,EditorFeatures,VisualStudio,LanguageServer}`

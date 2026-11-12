@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.ComponentWithEditorRequiredParameters>()
+[0001] AddComponentParameter(nameof(global::Test.ComponentWithEditorRequiredParameters. Property1 ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Boolean>( false ))

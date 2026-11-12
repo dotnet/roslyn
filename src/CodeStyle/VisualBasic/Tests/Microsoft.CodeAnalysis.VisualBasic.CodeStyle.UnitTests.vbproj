@@ -14,14 +14,12 @@
     <Compile Include="..\..\..\Features\VisualBasicTest\Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor.vb" Link="AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor.vb" />
     <Compile Include="..\..\..\Features\VisualBasicTest\Utils.vb" Link="Utils.vb" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <!-- Directly reference the Workspaces project so we always test against the latest Roslyn bits -->
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+    <ProjectReference Include="..\..\..\RoslynSdk\Microsoft.CodeAnalysis.Testing\Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing\Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.vbproj" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />

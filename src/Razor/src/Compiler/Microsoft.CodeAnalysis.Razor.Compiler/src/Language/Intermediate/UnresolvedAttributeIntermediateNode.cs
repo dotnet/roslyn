@@ -1,6 +1,8 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Diagnostics;
+
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 /// <summary>
@@ -75,6 +77,43 @@ internal sealed class UnresolvedAttributeIntermediateNode : IntermediateNode
     public override void Accept(IntermediateNodeVisitor visitor)
     {
         visitor.VisitDefault(this);
+    }
+
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new UnresolvedAttributeIntermediateNode
+        {
+            AttributeName = AttributeName,
+            IsMinimized = IsMinimized,
+            IsDirectiveAttributeCandidate = IsDirectiveAttributeCandidate,
+            ValueContent = ValueContent,
+            ValueSourceSpan = ValueSourceSpan,
+            AttributeStructure = AttributeStructure,
+            AttributeNameSpan = AttributeNameSpan,
+            AsTagHelperAttribute = AsTagHelperAttribute?.Clone(),
+            AsMarkupAttribute = AsMarkupAttribute?.Clone(),
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
+    internal override IntermediateNode Clone()
+    {
+        var clone = (UnresolvedAttributeIntermediateNode)base.Clone();
+
+        // HtmlAttributeNode aliases one of Children, so point the clone at its cloned child rather than
+        // an independent copy. Cloning it separately would leave the clone's HtmlAttributeNode and its
+        // Children entry as two divergent instances, so a phase that mutates one and walks the other
+        // would see stale state.
+        if (HtmlAttributeNode is { } htmlAttributeNode)
+        {
+            var index = Children.IndexOf(htmlAttributeNode);
+            Debug.Assert(index >= 0, "HtmlAttributeNode is expected to be one of Children.");
+            clone.HtmlAttributeNode = (HtmlAttributeIntermediateNode)clone.Children[index];
+        }
+
+        return clone;
     }
 
     public override void FormatNode(IntermediateNodeFormatter formatter)

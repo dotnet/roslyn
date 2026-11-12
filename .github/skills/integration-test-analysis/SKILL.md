@@ -188,7 +188,7 @@ pwsh -File .github/skills/integration-test-analysis/scripts/Get-IntegrationTestS
 
 ## References
 
-- [Integration Test Pipeline](../../azure-pipelines-integration.yml) — Pipeline YAML with queue and timeout parameters
-- [Integration Test Helix Template](../../eng/pipelines/test-integration-helix.yml) — Job template for integration tests
-- [ServiceHub Configuration](../../eng/targets/GenerateServiceHubConfigurationFiles.targets) — How ServiceHub services are configured
-- [Target Frameworks](../../eng/targets/TargetFrameworks.props) — TFM definitions (NetVS, NetRoslyn, etc.)
+- [Integration Test Pipeline](../../../azure-pipelines-integration.yml) — Pipeline YAML with queue and timeout parameters
+- [Integration Test Helix Template](../../../eng/pipelines/test-integration-helix.yml) — Job template for integration tests
+- [ServiceHub Configuration](../../../eng/targets/GenerateServiceHubConfigurationFiles.targets) — How ServiceHub services are configured
+- [Target Frameworks](../../../eng/targets/TargetFrameworks.props) — TFM definitions (NetVS, NetRoslyn, etc.)

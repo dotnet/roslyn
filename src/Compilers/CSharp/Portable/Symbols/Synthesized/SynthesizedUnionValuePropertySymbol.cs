@@ -76,6 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<ParameterSymbol>.Empty);
         }
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
     }
 }

@@ -12,10 +12,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -26,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SemanticTokens;
 internal sealed partial class RazorSemanticTokensInfoService(
     IDocumentMappingService documentMappingService,
     ISemanticTokensLegendService semanticTokensLegendService,
-    ICSharpSemanticTokensProvider csharpSemanticTokensProvider,
+    IClientCapabilitiesService clientCapabilitiesService,
+    ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory)
     : IRazorSemanticTokensInfoService
 {
@@ -41,21 +46,22 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ISemanticTokensLegendService _semanticTokensLegendService = semanticTokensLegendService;
-    private readonly ICSharpSemanticTokensProvider _csharpSemanticTokensProvider = csharpSemanticTokensProvider;
+    private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
+    private readonly ITelemetryReporter _telemetryReporter = telemetryReporter;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorSemanticTokensInfoService>();
 
     public async Task<int[]?> GetSemanticTokensAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         LinePositionSpan span,
         bool colorBackground,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var semanticTokens = await GetSemanticTokensAsync(documentContext, span, correlationId, colorBackground, cancellationToken).ConfigureAwait(false);
+        var semanticTokens = await GetSemanticTokensAsync(documentSnapshot, span, correlationId, colorBackground, cancellationToken).ConfigureAwait(false);
 
         var amount = semanticTokens is null ? "no" : (semanticTokens.Length / TokenSize).ToString(Thread.CurrentThread.CurrentCulture);
 
-        _logger.LogDebug($"Returned {amount} semantic tokens for span {span} in {documentContext.Uri}.");
+        _logger.LogDebug($"Returned {amount} semantic tokens for span {span} in {documentSnapshot.Uri}.");
 
         if (semanticTokens is not null)
         {
@@ -67,20 +73,20 @@ internal sealed partial class RazorSemanticTokensInfoService(
     }
 
     private async Task<int[]?> GetSemanticTokensAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         LinePositionSpan span,
         Guid correlationId,
         bool colorBackground,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         cancellationToken.ThrowIfCancellationRequested();
 
         var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetTextSpan(span, out var textSpan))
         {
-            _logger.LogWarning($"Semantic tokens request span {span} was outside the bounds of {documentContext.Uri} with {sourceText.Lines.Count} lines. Returning null.");
+            _logger.LogWarning($"Semantic tokens request span {span} was outside the bounds of {documentSnapshot.Uri} with {sourceText.Lines.Count} lines. Returning null.");
             return null;
         }
 
@@ -93,7 +99,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
         try
         {
-            successfullyRetrievedCSharpSemanticRanges = await AddCSharpSemanticRangesAsync(combinedSemanticRanges, documentContext, codeDocument, span, colorBackground, correlationId, cancellationToken).ConfigureAwait(false);
+            successfullyRetrievedCSharpSemanticRanges = await AddCSharpSemanticRangesAsync(combinedSemanticRanges, documentSnapshot, codeDocument, span, colorBackground, correlationId, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -108,7 +114,7 @@ internal sealed partial class RazorSemanticTokensInfoService(
         // We return null (which to the LSP is a no-op) to prevent flashing of CSharp elements.
         if (!successfullyRetrievedCSharpSemanticRanges)
         {
-            _logger.LogDebug($"Couldn't get C# tokens for version {documentContext.Snapshot.Version} of {documentContext.Uri}. Returning null");
+            _logger.LogDebug($"Couldn't get C# tokens for {documentSnapshot.Uri}. Returning null");
             return null;
         }
 
@@ -123,35 +129,85 @@ internal sealed partial class RazorSemanticTokensInfoService(
 
     private async Task<bool> AddCSharpSemanticRangesAsync(
         List<SemanticRange> ranges,
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         RazorCodeDocument codeDocument,
         LinePositionSpan razorSpan,
         bool colorBackground,
         Guid correlationId,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = codeDocument.GetRequiredCSharpDocument();
-
-        // Get a list of precise ranges for the C# code embedded in the Razor document.
-        if (!TryGetSortedCSharpRanges(codeDocument, razorSpan, out var csharpRanges))
+        // Impl pass
+        var implGeneratedDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+        if (!await AddCSharpSemanticRangesForDocumentAsync(implGeneratedDocument).ConfigureAwait(false))
         {
-            // There's no C# in the range.
-            return true;
+            return false;
         }
 
-        _logger.LogDebug($"Requesting C# semantic tokens for host version {documentContext.Snapshot.Version}, correlation ID {correlationId}, and the server thinks there are {codeDocument.GetCSharpSourceText().Lines.Count} lines of C#");
+        // Run a second pass against the decl-half generated document, if there is one. For an
+        // @code / @functions block the impl half only contains BuildRenderTree and an invocation,
+        // while the full method bodies (and therefore most C# tokens) live in the decl half.
+        if (codeDocument.GetCSharpDocument(declarationDocument: true) is { } declGeneratedDocument &&
+            !await AddCSharpSemanticRangesForDocumentAsync(declGeneratedDocument).ConfigureAwait(false))
+        {
+            return false;
+        }
 
-        var csharpResponse = await _csharpSemanticTokensProvider.GetCSharpSemanticTokensResponseAsync(documentContext, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
+        return true;
 
+        async Task<bool> AddCSharpSemanticRangesForDocumentAsync(RazorCSharpDocument csharpDocument)
+        {
+            if (!TryGetSortedCSharpRanges(codeDocument, csharpDocument, razorSpan, out var csharpRanges))
+            {
+                return true;
+            }
+
+            _logger.LogDebug($"Requesting C# semantic tokens for correlation ID {correlationId}, decl half: {csharpDocument.IsDeclarationDocument}, and the server thinks there are {csharpDocument.Text.Lines.Count} lines of C#");
+
+            var csharpResponse = await GetCSharpSemanticTokensResponseAsync(documentSnapshot, csharpDocument.IsDeclarationDocument, csharpRanges, correlationId, cancellationToken).ConfigureAwait(false);
+
+            return ProcessCSharpResponse(ranges, codeDocument, csharpDocument, csharpResponse, razorSpan, colorBackground);
+        }
+    }
+
+    private async Task<int[]?> GetCSharpSemanticTokensResponseAsync(
+        RemoteDocumentSnapshot documentSnapshot,
+        bool declarationDocument,
+        ImmutableArray<LinePositionSpan> csharpRanges,
+        Guid correlationId,
+        CancellationToken cancellationToken)
+    {
+        var generatedDocument = await documentSnapshot.GetGeneratedDocumentAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
+
+        using var _ = _telemetryReporter.TrackLspRequest(Methods.TextDocumentSemanticTokensRangeName,
+            Constants.ExternalAccessServerName,
+            TelemetryThresholds.SemanticTokensSubLSPTelemetryThreshold,
+            correlationId);
+
+        return await SemanticTokensHelpers.HandleRequestHelperAsync(
+            generatedDocument,
+            csharpRanges,
+            supportsVisualStudioExtensions: _clientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions,
+            ClassificationOptions.Default,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private bool ProcessCSharpResponse(
+        List<SemanticRange> ranges,
+        RazorCodeDocument codeDocument,
+        RazorCSharpDocument generatedDocument,
+        int[]? csharpResponse,
+        LinePositionSpan razorSpan,
+        bool colorBackground)
+    {
         // Indicates an issue with retrieving the C# response (e.g. no response or C# is out of sync with us).
-        // Unrecoverable, return default to indicate no change. We've already queued up a refresh request in
+        // Unrecoverable, return false to indicate no change. We've already queued up a refresh request in
         // the server call that will cause us to retry in a bit.
         if (csharpResponse is null)
         {
             return false;
         }
 
-        ranges.SetCapacityIfLarger(csharpResponse.Length / TokenSize);
+        ranges.SetCapacityIfLarger(ranges.Count + (csharpResponse.Length / TokenSize));
 
         var textClassification = _semanticTokensLegendService.TokenTypes.MarkupTextLiteral;
         var razorSource = codeDocument.Source.Text;
@@ -227,19 +283,16 @@ internal sealed partial class RazorSemanticTokensInfoService(
         return true;
     }
 
-    // Internal for testing only
-    internal static bool TryGetSortedCSharpRanges(RazorCodeDocument codeDocument, LinePositionSpan razorRange, out ImmutableArray<LinePositionSpan> ranges)
+    private static bool TryGetSortedCSharpRanges(RazorCodeDocument codeDocument, RazorCSharpDocument csharpDoc, LinePositionSpan razorRange, out ImmutableArray<LinePositionSpan> ranges)
     {
         using var _ = ArrayBuilderPool<LinePositionSpan>.GetPooledObject(out var csharpRanges);
-        var csharpSourceText = codeDocument.GetCSharpSourceText();
+        var csharpSourceText = csharpDoc.Text;
         var sourceText = codeDocument.Source.Text;
         if (!sourceText.TryGetTextSpan(razorRange, out var textSpan))
         {
             ranges = [];
             return false;
         }
-
-        var csharpDoc = codeDocument.GetRequiredCSharpDocument();
 
         // We want to find the min and max C# source mapping that corresponds with our Razor range.
         foreach (var mapping in csharpDoc.SourceMappingsSortedByOriginal)

@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent. OnClick ), (global::System.Action<global::System.EventArgs>)( e => { Increment(); } ))

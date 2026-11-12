@@ -253,6 +253,24 @@ class CLS
             Assert.False(sx.AnonymousTypeManager.AreTemplatesSealed);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86096")]
+        public void CompilationChain_AnonymousDelegates(
+            [CombinatorialValues("int i = 0", "params int[] args")] string parameters)
+        {
+            var source = $"System.Delegate d = ({parameters}) => 0;";
+            var s0 = CreateSubmission(source);
+            s0.VerifyEmitDiagnostics();
+
+            // The second submission reuses the first submission's template, whose
+            // source location belongs to the first compilation and must not be updated.
+            var s1 = CreateSubmission(source, previous: s0);
+            s1.VerifyEmitDiagnostics();
+
+            Assert.Single(s0.AnonymousTypeManager.GetAllCreatedTemplates());
+            Assert.Empty(s1.AnonymousTypeManager.GetAllCreatedTemplates());
+        }
+
         [Fact]
         public void Submissions_EmitToPeStream()
         {

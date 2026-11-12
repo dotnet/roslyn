@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(5,1): Error RZ9985: Multiple components use the tag 'MyButton'. Components: OtherLibrary.MyButton, AnotherLibrary.MyButton

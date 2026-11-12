@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="2.0.0"
+            Type="ProjectGroup"
+            xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Analyzer with Code Fix (.NET Standard)</Name>
+    <Description>Create a Visual Basic analyzer that comes with a code fix and generates diagnostics. The analyzer can be deployed as either a NuGet package or a VSIX extension.</Description>
+    <Icon>CodeInformation.ico</Icon>
+    <ProjectType>VisualBasic</ProjectType>
+    <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
+    <SortOrder>1000</SortOrder>
+    <TemplateID>Microsoft.VisualBasic.Analyzer</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <CreateInPlace>true</CreateInPlace>
+    <DefaultName>Analyzer</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+    <LanguageTag>Visual Basic</LanguageTag>
+    <PlatformTag>Windows</PlatformTag>
+    <PlatformTag>Linux</PlatformTag>
+    <PlatformTag>macOS</PlatformTag>
+    <ProjectTypeTag>Roslyn</ProjectTypeTag>
+    <ProjectTypeTag>Extensions</ProjectTypeTag>    
+  </TemplateData>
+  <TemplateContent>
+    <!-- These projects are created in the order they are listed. 
+         Our wizard depends on this order.  
+         Modifying it requires changes to the wizard code.-->
+    <ProjectCollection>
+      <ProjectTemplateLink ProjectName="$safeprojectname$">
+        ProjectTemplates\VisualBasic\Diagnostic\Analyzer\DiagnosticAnalyzer.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.CodeFixes">
+        ProjectTemplates\VisualBasic\Diagnostic\CodeFix\CodeFixProvider.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Package">
+        ProjectTemplates\VisualBasic\Diagnostic\Package\Package.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Test">
+        ProjectTemplates\VisualBasic\Diagnostic\Test\Test.vstemplate
+      </ProjectTemplateLink>
+      <ProjectTemplateLink ProjectName="$safeprojectname$.Vsix">
+        ProjectTemplates\VisualBasic\Diagnostic\Vsix\Deployment.vstemplate
+      </ProjectTemplateLink>
+    </ProjectCollection>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Roslyn.SDK.Template.Wizard, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>RoslynSDKRootTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

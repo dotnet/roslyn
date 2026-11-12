@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="ImplementNotifyPropertyChanged..14aeb04d-ba60-45ca-8bd7-e43278d6d4ce" Version="1.0" Language="en-US" Publisher="Microsoft"/>
+    <DisplayName>Implement INotifyPropertyChanged for C#</DisplayName>
+    <Description xml:space="preserve">This is a sample extension to implement INotifyPropertyChanged using the .NET Compiler Platform ("Roslyn").</Description>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,)" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+  </Dependencies>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="ImplementNotifyPropertyChanged.CSharp" Path="..\ImplementNotifyPropertyChanged\ImplementNotifyPropertyChanged.CSharp.csproj"/>
+  </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.LanguageServices" Version="[15.0,16.0)" DisplayName="Roslyn Language Services" />
+  </Prerequisites>
+</PackageManifest>

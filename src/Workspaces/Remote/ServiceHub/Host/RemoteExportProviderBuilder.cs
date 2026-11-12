@@ -21,16 +21,22 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
 {
+    internal static readonly ImmutableArray<string> AdditionalRemoteHostAssemblyNames =
+    [
+        "Microsoft.CodeAnalysis.Remote.ServiceHub",
+        "Microsoft.CodeAnalysis.Remote.Workspaces",
+        "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore",
+        "Microsoft.CodeAnalysis.ExternalAccess.Extensions",
+        "Microsoft.CodeAnalysis.Features.ExternalAccess",
+        "Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch",
+    ];
+
     internal static readonly ImmutableArray<string> RemoteHostAssemblyNames =
-        MefHostServices.DefaultAssemblyNames
-            .Add("Microsoft.CodeAnalysis.Remote.ServiceHub")
-            .Add("Microsoft.CodeAnalysis.Remote.Workspaces")
-            .Add("Microsoft.CodeAnalysis.ExternalAccess.AspNetCore")
-            .Add("Microsoft.CodeAnalysis.ExternalAccess.Extensions")
-            .Add("Microsoft.CodeAnalysis.ExternalAccess.Copilot")
-            .Add("Microsoft.VisualStudio.Copilot.Roslyn.SemanticSearch");
+        [.. MefHostServices.DefaultAssemblyNames, .. AdditionalRemoteHostAssemblyNames];
 
     private static ExportProvider? s_instance;
+    private static Task? s_cacheWriteTask_forTestingPurposesOnly;
+
     internal static ExportProvider ExportProvider
         => s_instance ?? throw new InvalidOperationException($"Default export provider not initialized. Call {nameof(InitializeAsync)} first.");
 
@@ -92,11 +98,31 @@ internal sealed class RemoteExportProviderBuilder : ExportProviderBuilder
         _traceLogger.TraceEvent(TraceEventType.Information, 0, message);
     }
 
+    protected override Task<ExportProvider> CreateExportProviderAsync(CancellationToken cancellationToken)
+    {
+        s_cacheWriteTask_forTestingPurposesOnly = null;
+        return base.CreateExportProviderAsync(cancellationToken);
+    }
+
+    protected override Task WriteCompositionCacheAsync(string compositionCacheFile, CompositionConfiguration config, CancellationToken cancellationToken)
+    {
+        s_cacheWriteTask_forTestingPurposesOnly = base.WriteCompositionCacheAsync(compositionCacheFile, config, cancellationToken);
+        return s_cacheWriteTask_forTestingPurposesOnly;
+    }
+
     protected override bool ContainsUnexpectedErrors(IEnumerable<string> erroredParts)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         var expectedErrorPartsSet = new HashSet<string>(["PythiaSignatureHelpProvider", "VSTypeScriptAnalyzerService", "CodeFixService", "CSharpMapCodeService", "CopilotSemanticSearchQueryExecutor"]);
         return erroredParts.Any(part => !expectedErrorPartsSet.Contains(part));
+    }
+
+    internal static class TestAccessor
+    {
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+        public static Task? GetCacheWriteTask()
+            => Interlocked.Exchange(ref s_cacheWriteTask_forTestingPurposesOnly, null);
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
     }
 
     private sealed class SimpleAssemblyLoader : IAssemblyLoader

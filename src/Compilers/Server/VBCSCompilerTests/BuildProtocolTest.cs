@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -39,6 +40,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(42, read.ReturnCode);
             Assert.False(read.Utf8Output);
             Assert.Equal("a string", read.Output);
+            Assert.Empty(read.TelemetryEvents);
+        }
+
+        [Fact]
+        public async Task ReadWriteCompleted_WithTelemetryEvents()
+        {
+            var events = new[]
+            {
+                new BuildTelemetryEvent("roslyn/compilercache", new Dictionary<string, string>
+                {
+                    ["cachestatus"] = "hit",
+                    ["language"] = "C#",
+                    ["restorems"] = "12",
+                }),
+                new BuildTelemetryEvent("roslyn/other", new Dictionary<string, string>()),
+            };
+
+            var response = new CompletedBuildResponse(0, utf8output: true, output: "out", telemetryEvents: events);
+            var memoryStream = new MemoryStream();
+            await response.WriteAsync(memoryStream, CancellationToken.None);
+            memoryStream.Position = 0;
+            var read = (CompletedBuildResponse)await BuildResponse.ReadAsync(memoryStream, CancellationToken.None);
+
+            Assert.Equal(0, read.ReturnCode);
+            Assert.True(read.Utf8Output);
+            Assert.Equal("out", read.Output);
+            Assert.Equal(2, read.TelemetryEvents.Count);
+
+            Assert.Equal("roslyn/compilercache", read.TelemetryEvents[0].EventName);
+            Assert.Equal("hit", read.TelemetryEvents[0].Properties["cachestatus"]);
+            Assert.Equal("C#", read.TelemetryEvents[0].Properties["language"]);
+            Assert.Equal("12", read.TelemetryEvents[0].Properties["restorems"]);
+
+            Assert.Equal("roslyn/other", read.TelemetryEvents[1].EventName);
+            Assert.Empty(read.TelemetryEvents[1].Properties);
         }
 
         [Fact]
@@ -64,6 +100,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(BuildProtocolConstants.ArgumentId.CommandLineArgument, read.Arguments[1].ArgumentId);
             Assert.Equal(1, read.Arguments[1].ArgumentIndex);
             Assert.Equal("file", read.Arguments[1].Value);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task ReadWriteCreatedRequest(bool isCSharp, bool includeOptionalArguments)
+        {
+            var language = isCSharp ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
+            var request = BuildServerConnection.CreateBuildRequest(
+                requestId: "request-id",
+                language,
+                arguments: new List<string> { "/nologo", "file" },
+                workingDirectory: "directory",
+                keepAlive: includeOptionalArguments ? "42" : null,
+                libDirectory: includeOptionalArguments ? "library-directory" : null,
+                compilerHash: "HashValue");
+            var expectedArguments = new List<BuildRequest.Argument>
+            {
+                new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CurrentDirectory, 0, "directory")
+            };
+            if (includeOptionalArguments)
+            {
+                expectedArguments.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.KeepAlive, 0, "42"));
+                expectedArguments.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.LibEnvVariable, 0, "library-directory"));
+            }
+
+            expectedArguments.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, 0, "/nologo"));
+            expectedArguments.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, 1, "file"));
+
+            using var memoryStream = new MemoryStream();
+            await request.WriteAsync(memoryStream, CancellationToken.None);
+            memoryStream.Position = 0;
+            var read = await BuildRequest.ReadAsync(memoryStream, CancellationToken.None);
+            Assert.Equal("request-id", read.RequestId);
+            Assert.Equal(language, read.Language);
+            Assert.Equal("HashValue", read.CompilerHash);
+            AssertEx.Equal(expectedArguments, read.Arguments, itemInspector: argument => $"{argument.ArgumentId}({argument.ArgumentIndex}): {argument.Value}");
         }
 
         [Fact]

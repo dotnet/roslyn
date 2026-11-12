@@ -30,23 +30,6 @@ namespace Test
 
         }
         #pragma warning restore 1998
-#nullable restore
-#line (7,8)-(17,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public class Counter
-    {
-        public int Value { get; private set; }
-    
-        public void operator +=(int value)
-        {
-            Value += value;
-        }
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

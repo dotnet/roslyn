@@ -23,7 +23,7 @@
     </InstallationTarget>
   </Installation>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;BrokeredServicesPkgdefOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.CodeLensComponent.Dotnet" d:Source="File" Path="Microsoft.VisualStudio.LanguageServices.CodeLens.dll" />
     <!-- ServiceHub assets are added by msbuild target -->
     <!--#SERVICEHUB_ASSETS#-->

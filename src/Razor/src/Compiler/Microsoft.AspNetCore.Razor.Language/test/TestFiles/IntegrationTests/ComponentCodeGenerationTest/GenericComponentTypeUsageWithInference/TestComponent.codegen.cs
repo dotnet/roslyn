@@ -36,16 +36,6 @@ TItem
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter]
-    public TItem MyItem { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

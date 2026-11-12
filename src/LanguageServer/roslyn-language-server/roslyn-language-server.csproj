@@ -42,8 +42,12 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" LinkBase="DaemonConnection" />
   </ItemGroup>
 
-  <ItemGroup Label="Shared runtime host helper">
+  <ItemGroup Label="Shared runtime helpers">
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\EnvironmentExtensions.cs" LinkBase="Shared" />
+    <Compile Include="..\..\Compilers\Shared\IBuildEnvironment.cs" LinkBase="Shared" />
     <Compile Include="..\..\Compilers\Shared\RuntimeHostInfo.cs" LinkBase="Shared" />
+    <Compile Include="..\..\Compilers\Shared\StandardBuildEnvironment.cs" LinkBase="Shared" />
+    <Compile Include="..\..\Workspaces\Core\Portable\Utilities\StandardHandleInheritance.cs" LinkBase="Shared" />
   </ItemGroup>
 
   <!--
@@ -56,6 +60,6 @@
   <Target Name="PublishBundledLanguageServer" AfterTargets="Publish">
     <MSBuild Projects="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj"
              Targets="Publish"
-             Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained);PublishDir=$(PublishDir)" />
+             Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained)" />
   </Target>
 </Project>

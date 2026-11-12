@@ -248,9 +248,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                         bool hasErrors = node.HasErrors;
                         NamedTypeSymbol unionType = null;
-                        bool permitDesignations = true;
                         BoundPattern pattern = sectionBinder.BindConstantPatternWithFallbackToTypePattern(
-                            caseLabelSyntax.Value, caseLabelSyntax.Value, ref unionType, SwitchGoverningType, ref permitDesignations, hasErrors, diagnostics, out bool hasUnionMatching);
+                            caseLabelSyntax.Value, caseLabelSyntax.Value, ref unionType, SwitchGoverningType, hasErrors, diagnostics, out bool hasUnionMatching);
                         pattern.WasCompilerGenerated = true; // we don't have a pattern syntax here
                         reportIfConstantNamedUnderscore(pattern, caseLabelSyntax.Value);
 
@@ -282,9 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MessageID.IDS_FeaturePatternMatching.CheckFeatureAvailability(diagnostics, node.Keyword);
 
                         NamedTypeSymbol unionType = null;
-                        bool permitDesignations = true;
                         BoundPattern pattern = sectionBinder.BindPattern(
-                            matchLabelSyntax.Pattern, ref unionType, SwitchGoverningType, ref permitDesignations, node.HasErrors, diagnostics, out bool hasUnionMatching, underIsPattern: false);
+                            matchLabelSyntax.Pattern, ref unionType, SwitchGoverningType, permitDesignations: true, node.HasErrors, diagnostics, out bool hasUnionMatching, underIsPattern: false);
                         if (matchLabelSyntax.Pattern is ConstantPatternSyntax p)
                             reportIfConstantNamedUnderscore(pattern, p.Expression);
 

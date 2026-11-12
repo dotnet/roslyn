@@ -39,10 +39,11 @@ internal class WaitForAsyncOperationsHandler : ILspServiceRequestHandler<WaitFor
 
     public bool RequiresLSPSolution => true;
 
-    public async Task<WaitForAsyncOperationsResponse> HandleRequestAsync(WaitForAsyncOperationsParams request, RequestContext context, CancellationToken _)
+    public async Task<WaitForAsyncOperationsResponse> HandleRequestAsync(WaitForAsyncOperationsParams request, RequestContext context, CancellationToken cancellationToken)
     {
         context.TraceInformation($"Waiting for {string.Join(", ", request.Operations)} to complete");
-        await _provider.WaitAllAsync(context.Solution!.Workspace, request.Operations).ConfigureAwait(false);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
+        await _provider.WaitAllAsync(solution.Workspace, request.Operations).ConfigureAwait(false);
         return new WaitForAsyncOperationsResponse();
     }
 }

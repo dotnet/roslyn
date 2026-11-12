@@ -38,13 +38,13 @@ internal sealed class InlayHintHandler : ILspServiceDocumentRequestHandler<Inlay
     public TextDocumentIdentifier GetTextDocumentIdentifier(InlayHintParams request)
         => request.TextDocument;
 
-    public Task<LSP.InlayHint[]?> HandleRequestAsync(InlayHintParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<LSP.InlayHint[]?> HandleRequestAsync(InlayHintParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var inlayHintCache = context.GetRequiredLspService<InlayHintCache>();
         var options = _optionsService.GetInlineHintsOptions(document.Project.Language);
 
-        return GetInlayHintsAsync(document, request.TextDocument, request.Range, options, displayAllOverride: false, inlayHintCache, cancellationToken);
+        return await GetInlayHintsAsync(document, request.TextDocument, request.Range, options, displayAllOverride: false, inlayHintCache, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<LSP.InlayHint[]?> GetInlayHintsAsync(Document document, TextDocumentIdentifier textDocumentIdentifier, LSP.Range range, InlineHintsOptions options, bool displayAllOverride, InlayHintCache inlayHintCache, CancellationToken cancellationToken)

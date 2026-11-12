@@ -1,0 +1,2 @@
+﻿[0000] OpenElement("input")
+[0001] AddAttribute("@bind", ParentValue)

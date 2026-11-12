@@ -78,7 +78,7 @@ internal sealed class ConvertNamespaceCommandHandler(
         using var transaction = CaretPreservingEditTransaction.TryCreate(
             this.DisplayName, args.TextView, _textUndoHistoryRegistry, _editorOperationsFactoryService);
 
-        var edit = args.SubjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+        using var edit = args.SubjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
         edit.Replace(new Span(0, args.SubjectBuffer.CurrentSnapshot.Length), convertedText.ToString());
 
         edit.Apply();

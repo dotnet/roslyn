@@ -44,15 +44,48 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
             .ToImmutableDictionary(kvp => kvp.Name, kvp => kvp);
     }
 
-    public ImmutableArray<string> GetDocumentSourceProviderNames(ClientCapabilities clientCapabilities)
-        => _nameToDocumentProviderMap.SelectAsArray(
-            predicate: kvp => kvp.Value.IsEnabled(clientCapabilities),
-            selector: kvp => kvp.Key);
+    public ImmutableArray<DiagnosticRegistrationOptions> GetDiagnosticRegistrationOptions(ClientCapabilities clientCapabilities)
+    {
+        using var _ = PooledDictionary<string, DiagnosticRegistrationOptions>.GetInstance(out var registrationOptions);
 
-    public ImmutableArray<string> GetWorkspaceSourceProviderNames(ClientCapabilities clientCapabilities)
-        => _nameToWorkspaceProviderMap.SelectAsArray(
-            predicate: kvp => kvp.Value.IsEnabled(clientCapabilities),
-            selector: kvp => kvp.Key);
+        AddRegistrationOptions(_nameToDocumentProviderMap, isWorkspaceSource: false);
+        AddRegistrationOptions(_nameToWorkspaceProviderMap, isWorkspaceSource: true);
+
+        return [.. registrationOptions.Values];
+
+        void AddRegistrationOptions(
+            ImmutableDictionary<string, IDiagnosticSourceProvider> providers,
+            bool isWorkspaceSource)
+        {
+            foreach (var (name, provider) in providers)
+            {
+                if (!provider.IsEnabled(clientCapabilities))
+                    continue;
+
+                // Document and workspace providers may share a name, so merge their registration options.
+                if (registrationOptions.TryGetValue(name, out var existingOptions))
+                {
+                    registrationOptions[name] = new()
+                    {
+                        Identifier = name,
+                        InterFileDependencies = existingOptions.InterFileDependencies || provider.HasInterFileDependencies,
+                        WorkspaceDiagnostics = existingOptions.WorkspaceDiagnostics || isWorkspaceSource,
+                        WorkDoneProgress = existingOptions.WorkDoneProgress || isWorkspaceSource,
+                    };
+                }
+                else
+                {
+                    registrationOptions.Add(name, new()
+                    {
+                        Identifier = name,
+                        InterFileDependencies = provider.HasInterFileDependencies,
+                        WorkspaceDiagnostics = isWorkspaceSource,
+                        WorkDoneProgress = isWorkspaceSource,
+                    });
+                }
+            }
+        }
+    }
 
     public ValueTask<ImmutableArray<IDiagnosticSource>> CreateDocumentDiagnosticSourcesAsync(RequestContext context, string? providerName, CancellationToken cancellationToken)
         => CreateDiagnosticSourcesAsync(context, providerName, _nameToDocumentProviderMap, isDocument: true, cancellationToken);

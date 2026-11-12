@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BitVector _alreadyReported;
 
         /// <summary>
+        /// Tracks variables for which we have already reported an unsafe unassigned address-of error.
+        /// </summary>
+        private BitVector _alreadyReportedUnsafeAddressOf;
+
+        /// <summary>
         /// true if we should check to ensure that out parameters are assigned on every exit point.
         /// </summary>
         private readonly bool _requireOutParamsAssigned;
@@ -160,9 +165,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
         /// <summary>
-        /// Check that every rvalue has been converted in the definite assignment pass only (not later passes deriving from it).
+        /// Whether this walker is the definite-assignment diagnostic pass rather than a derived analysis.
         /// </summary>
-        private readonly bool _shouldCheckConverted;
+        private readonly bool _isDefiniteAssignmentPass;
 
         internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
@@ -185,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _trackClassFields = trackClassFields;
             _trackStaticMembers = trackStaticMembers;
             this.topLevelMethod = member as MethodSymbol;
-            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            _isDefiniteAssignmentPass = this.GetType() == typeof(DefiniteAssignmentPass);
             State = new LocalState(BitVector.Empty);
         }
 
@@ -204,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unassignedVariableAddressOfSyntaxes = null;
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
-            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            _isDefiniteAssignmentPass = this.GetType() == typeof(DefiniteAssignmentPass);
             State = new LocalState(BitVector.Empty);
         }
 
@@ -226,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sourceAssembly = null;
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
-            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            _isDefiniteAssignmentPass = this.GetType() == typeof(DefiniteAssignmentPass);
             State = new LocalState(BitVector.Empty);
         }
 
@@ -314,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(
                 node is null ||
-                !_shouldCheckConverted ||
+                !_isDefiniteAssignmentPass ||
                 isKnownToBeAnLvalue ||
                 !node.NeedsToBeConverted() ||
                 node.WasCompilerGenerated, "expressions should have been converted");
@@ -333,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> methodParameters = MethodParameters;
             ParameterSymbol methodThisParameter = MethodThisParameter;
             _alreadyReported = BitVector.Empty;           // no variables yet reported unassigned
+            _alreadyReportedUnsafeAddressOf = BitVector.Empty;
             this.regionPlace = RegionPlace.Before;
             EnterParameters(methodParameters);               // with parameters assigned
 
@@ -571,10 +577,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning restore format
                 };
 
-                // We don't know any other way this can happen, but if it does we recover gracefully in production.
-                Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
-
                 var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
+
+                // We can get here with ERR_UnsafeUnassignedAddressOf in strict analysis for imported structs that compatibility analysis treats as empty.
+                Debug.Assert(newCode != oldCode ||
+                    oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_UnsafeUnassignedAddressOf,
+                    oldCode.ToString());
+
                 diagnostics.Add(newCode, diagnostic.Location, args);
             }
 
@@ -2508,10 +2517,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
         {
             var initializer = node.Expression;
+            var addressOf = initializer as BoundAddressOfOperator;
 
-            if (initializer.Kind == BoundKind.AddressOfOperator)
+            if (addressOf is not null)
             {
-                initializer = ((BoundAddressOfOperator)initializer).Operand;
+                initializer = addressOf.Operand;
             }
 
             // If the node is a fixed statement address-of operator (e.g. fixed(int *p = &...)),
@@ -2519,7 +2529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because it is either not a local/parameter/range variable (if the variable is
             // non-moveable) or it is and it has a RefKind other than None, in which case it can't
             // be referred to in a lambda (i.e. can't be captured).
-            VisitAddressOfOperand(initializer, shouldReadOperand: false);
+            VisitAddressOfOperandAndReportSafetyDiagnostics(initializer, shouldReadOperand: false, addressOf);
             return null;
         }
 
@@ -2547,9 +2557,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            VisitAddressOfOperand(node.Operand, shouldReadOperand);
+            VisitAddressOfOperandAndReportSafetyDiagnostics(node.Operand, shouldReadOperand, node);
 
             return null;
+        }
+
+        private void VisitAddressOfOperandAndReportSafetyDiagnostics(BoundExpression operand, bool shouldReadOperand, BoundAddressOfOperator addressOfOpt)
+        {
+            if (shouldReadOperand)
+            {
+                VisitRvalue(operand);
+            }
+            else
+            {
+                VisitLvalue(operand);
+            }
+
+            // Operand evaluation can assign the variable, for example in an inline array index.
+            if (_isDefiniteAssignmentPass &&
+                addressOfOpt is { RequiresAssignedOperand: true } &&
+                this.State.Reachable &&
+                !IsAssigned(operand, out int unassignedSlot))
+            {
+                var symbol = variableBySlot[unassignedSlot].Symbol;
+                if (!_alreadyReportedUnsafeAddressOf[unassignedSlot] && !symbol.GetTypeOrReturnType().Type.IsErrorType())
+                {
+                    Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, addressOfOpt.Syntax.Location);
+                }
+
+                _alreadyReportedUnsafeAddressOf[unassignedSlot] = true;
+            }
+
+            WriteArgument(operand, RefKind.Out, null);
         }
 
 #nullable enable

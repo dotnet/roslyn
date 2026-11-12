@@ -28,14 +28,6 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
-  <ItemGroup Label="PkgDef">
-    <PkgDefPackageRegistration Include="{78d5a8b5-1634-434b-802d-e3e4a46b1aa6}"
-                               Name="IntegrationTestServicePackage"
-                               Class="Microsoft.VisualStudio.IntegrationTestService.IntegrationTestServicePackage"
-                               AllowsBackgroundLoad="true"/>
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
-  </ItemGroup>
-
   <ItemGroup>
     <Reference Include="System.Runtime.Remoting" />
   </ItemGroup>

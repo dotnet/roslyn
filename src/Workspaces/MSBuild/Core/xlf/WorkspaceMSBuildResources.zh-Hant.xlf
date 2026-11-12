@@ -4,7 +4,7 @@
     <body>
       <trans-unit id="Applying_updates_to_file_based_apps_is_not_supported_0">
         <source>Applying updates to file-based apps is not supported: {0}</source>
-        <target state="new">Applying updates to file-based apps is not supported: {0}</target>
+        <target state="translated">不支援將更新套用至檔案型應用程式: {0}</target>
         <note>{0} is path to the file-based app</note>
       </trans-unit>
       <trans-unit id="Failed_to_load_solution_0">

@@ -1,0 +1,5 @@
+﻿Source Location: (1:0,1 [49] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.RenderTree;|
+Generated Location: (372:12,0 [49] )
+|using Microsoft.AspNetCore.Components.RenderTree;|
+

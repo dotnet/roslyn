@@ -5,8 +5,8 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
@@ -226,8 +226,7 @@ public class HtmlFormattingPassTest(ITestOutputHelper testOutput) : DocumentForm
 
     private async Task<ImmutableArray<TextChange>> GetHtmlFormattingEditsAsync(CodeAnalysis.TextDocument document, params ImmutableArray<TextChange> changes)
     {
-        var documentMappingService = OOPExportProvider.GetExportedValue<IDocumentMappingService>();
-        var pass = new HtmlFormattingPass(documentMappingService, LoggerFactory);
+        var pass = new HtmlFormattingPass(LoggerFactory);
 
         var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
         var snapshot = snapshotManager.GetSnapshot(document);

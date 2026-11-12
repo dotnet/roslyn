@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private static string DataToHex(ImmutableArray<byte> data)
         {
             ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(data);
-            return HashToHex(hash.AsSpan());
+            return HexUtilities.ToHexString(hash.AsSpan());
         }
 
         private string DataToHexViaXxHash128(ImmutableArray<byte> data)
@@ -527,36 +527,13 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Span<byte> hash = stackalloc byte[sizeof(ulong) * 2];
             int bytesWritten = XxHash128.Hash(data.AsSpan(), hash);
             Debug.Assert(bytesWritten == hash.Length);
-            return HashToHex(hash);
+            return HexUtilities.ToHexString(hash);
         }
 
         private static string ConstantsToHex(ImmutableArray<ConstantValue> constants)
         {
             ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSourceHash(constants);
-            return HashToHex(hash.AsSpan());
-        }
-
-        public static string HashToHex(ReadOnlySpan<byte> hash)
-        {
-#if NET10_0_OR_GREATER
-            return string.Create(hash.Length * 2, hash, (destination, hash) => toHex(hash, destination));
-#else
-            char[] c = new char[hash.Length * 2];
-            toHex(hash, c);
-            return new string(c);
-#endif
-
-            static void toHex(ReadOnlySpan<byte> source, Span<char> destination)
-            {
-                int i = 0;
-                foreach (var b in source)
-                {
-                    destination[i++] = hexchar(b >> 4);
-                    destination[i++] = hexchar(b & 0xF);
-                }
-            }
-
-            static char hexchar(int x) => (char)((x <= 9) ? (x + '0') : (x + ('A' - 10)));
+            return HexUtilities.ToHexString(hash.AsSpan());
         }
 
         private sealed class FieldComparer : IComparer<SynthesizedStaticField>

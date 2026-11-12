@@ -1,0 +1,9 @@
+﻿Source Location: (7:0,7 [78] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
+|
+Generated Location: (557:18,0 [78] )
+|
+    [Parameter] public (int Horizontal, int Vertical) Gutter { get; set; }
+|
+

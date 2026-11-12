@@ -16,7 +16,7 @@ internal interface IExtensionMessageHandlerFactory : IWorkspaceService
 {
     /// <summary>
     /// Creates <see cref="IExtensionMessageHandlerWrapper{Solution}"/> instances for each
-    /// <c>IExtensionWorkspaceMessageHandler</c> type in <paramref name="assembly"/>.
+    /// <see cref="IExtensionWorkspaceMessageHandler{TMessage, TResponse}"/> type in <paramref name="assembly"/>.
     /// </summary>
     /// <param name="assembly">The assembly to scan for handlers.</param>
     /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
@@ -25,12 +25,12 @@ internal interface IExtensionMessageHandlerFactory : IWorkspaceService
         Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Creates <see cref="IExtensionMessageHandlerWrapper{Document}"/> instances for each
+    /// Creates <see cref="IExtensionMessageHandlerWrapper{TextDocument}"/> instances for each
     /// <c>IExtensionDocumentMessageHandler</c> type in <paramref name="assembly"/>.
     /// </summary>
     /// <param name="assembly">The assembly to scan for handlers.</param>
     /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
     /// <remarks>May be called multiple times for the same <see cref="Assembly"/> instance.</remarks>
-    ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(
+    ImmutableArray<IExtensionMessageHandlerWrapper<TextDocument>> CreateDocumentMessageHandlers(
         Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken);
 }

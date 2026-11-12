@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// should be significantly faster with larger projects and have a smaller memory
     /// footprint.
     /// </summary>
+    [MSBuildMultiThreadableTask]
     public class Csc : ManagedCompiler
     {
         #region Properties
@@ -90,6 +91,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(GenerateFullPaths)] = value; }
             get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
+        }
+
+        public int MemorySafetyRulesVersion
+        {
+            set { _store[nameof(MemorySafetyRulesVersion)] = value; }
+            get { return _store.GetOrDefault(nameof(MemorySafetyRulesVersion), 1); }
         }
 
         public string? ModuleAssemblyName
@@ -214,7 +221,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 if (!NoConfig)
                 {
                     var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "csc.rsp");
-                    if (File.Exists(rspFile))
+                    if (TaskEnvironment.FileExists(rspFile))
                     {
                         commandLine.AppendSwitchIfNotNull("@", rspFile);
                     }
@@ -248,6 +255,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
             commandLine.AppendSwitchIfNotNull("/nullable:", Nullable);
             commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
+            commandLine.AppendSwitchWithInteger("/memorysafetyrulesversion:", _store, nameof(MemorySafetyRulesVersion));
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;

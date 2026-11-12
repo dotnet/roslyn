@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Razor.Language.Components;
 
@@ -50,6 +51,14 @@ public sealed class ComponentAttributeIntermediateNode : IntermediateNode
     /// We use this metadata on its bound attributes to track the updated type.
     /// </summary>
     public string ConcreteContainingType { get; set; }
+
+    /// <summary>
+    /// The type arguments of <see cref="ConcreteContainingType"/>, in order, as recorded by the
+    /// generic type pass. Writers can emit these nodes so that user-written type arguments keep
+    /// their source mappings, instead of writing the flattened <see cref="ConcreteContainingType"/>
+    /// string, which has no mappings.
+    /// </summary>
+    public ImmutableArray<ComponentTypeArgumentIntermediateNode> ContainingTypeArguments { get; set; }
 
     public ComponentAttributeIntermediateNode()
     {

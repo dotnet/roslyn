@@ -10,5 +10,3 @@
                 MarkupElement - (96:5,0 [13] x:\dir\subdir\Test\TestComponent.razor) - p
                     CSharpExpression - (100:5,4 [5] x:\dir\subdir\Test\TestComponent.razor)
                         LazyIntermediateToken - (100:5,4 [5] x:\dir\subdir\Test\TestComponent.razor) - CSharp - Value
-            CSharpCode - (7:0,7 [84] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (7:0,7 [84] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    #:package Newtonsoft.Json@13.0.3\n    private static readonly int Value = 1;\n

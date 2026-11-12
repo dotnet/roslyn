@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Rule Name="ComponentDebuggerLaunchProfile"
+      Description="Allows a user to debug a Roslyn Component by running it in the context of another projects build."
+      DisplayName="Roslyn Component"
+      PageTemplate="commandNameBasedDebugger"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns="http://schemas.microsoft.com/build/2009/properties">
+
+    <Rule.Metadata>
+        <sys:String x:Key="CommandName">DebugRoslynComponent</sys:String>
+
+        <!-- KnownImageIds.ImageCatalogGuid -->
+        <sys:Guid x:Key="ImageMonikerGuid">AE27A6B0-E345-4288-96DF-5EAF394EE369</sys:Guid>
+
+        <!-- KnownImageIds.Execute -->
+        <sys:Int32 x:Key="ImageMonikerId">3644</sys:Int32>
+    </Rule.Metadata>
+
+    <Rule.DataSource>
+        <DataSource Persistence="LaunchProfile"
+                HasConfigurationCondition="False"
+                ItemType="LaunchProfile"/>
+    </Rule.DataSource>
+
+    <DynamicEnumProperty Name="targetProject"
+                       DisplayName="Target Project"
+                       Description="A project that uses this component, whose compilation will be debugged."
+                       EnumProvider="TargetProjectEnumProvider" />
+
+    <StringProperty Name="Description"
+                Description="A Roslyn Component can be debugged in the context of compiling a second project that uses it. Ensure your target project is referencing this component for it to appear in the list.">
+        <StringProperty.DataSource>
+            <DataSource PersistedName="Description"
+                Persistence="ProjectFileWithInterception"
+                HasConfigurationCondition="False" />
+        </StringProperty.DataSource>
+        <StringProperty.ValueEditors>
+            <ValueEditor EditorType="Description" />
+        </StringProperty.ValueEditors>
+    </StringProperty>
+
+</Rule>

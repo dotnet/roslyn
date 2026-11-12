@@ -10,7 +10,8 @@ namespace Microsoft.CodeAnalysis.Razor.Workspaces.CodeLens;
 
 internal sealed record RazorCodeLensResolveData(
     TextDocumentIdentifier TextDocument,
-    [property: JsonPropertyName("data")] object? OriginalData) : DocumentResolveData(TextDocument)
+    [property: JsonPropertyName("data")] object? OriginalData,
+    [property: JsonPropertyName("inDeclDocument")] bool InDeclDocument) : DocumentResolveData(TextDocument)
 {
     public static RazorCodeLensResolveData Unwrap(LspCodeLens codeLens)
     {
@@ -27,8 +28,8 @@ internal sealed record RazorCodeLensResolveData(
         return data;
     }
 
-    public static void Wrap(LspCodeLens codeLens, TextDocumentIdentifier textDocument)
+    public static void Wrap(LspCodeLens codeLens, TextDocumentIdentifier textDocument, bool inDeclDocument)
     {
-        codeLens.Data = new RazorCodeLensResolveData(textDocument, codeLens.Data);
+        codeLens.Data = new RazorCodeLensResolveData(textDocument, codeLens.Data, inDeclDocument);
     }
 }

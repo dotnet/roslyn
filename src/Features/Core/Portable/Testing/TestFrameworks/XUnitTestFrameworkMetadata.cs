@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -11,6 +12,11 @@ namespace Microsoft.CodeAnalysis.Features.Testing;
 [Export(typeof(ITestFrameworkMetadata)), Shared]
 internal sealed class XUnitTestFrameworkMetadata : ITestFrameworkMetadata
 {
+    public ImmutableArray<string> TestAttributeMetadataNames { get; } =
+        ["Xunit.FactAttribute", "Xunit.TheoryAttribute"];
+
+    public bool SupportsDerivedTestAttributes => true;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public XUnitTestFrameworkMetadata()

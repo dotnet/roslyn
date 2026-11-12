@@ -2,21 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Razor.AutoInsert;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Protocol.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -33,7 +39,13 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             => new RemoteAutoInsertService(in args);
     }
 
-    private readonly IAutoInsertService _autoInsertService = args.ExportProvider.GetExportedValue<IAutoInsertService>();
+    private static readonly FrozenSet<string> s_htmlAllowedAutoInsertTriggerCharacters
+        = new string[] { "=" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private static readonly FrozenSet<string> s_csharpAllowedAutoInsertTriggerCharacters
+        = new string[] { "'", "/", "\n", "\"" }.ToFrozenSet(StringComparer.Ordinal);
+
+    private readonly ImmutableArray<IOnAutoInsertProvider> _onAutoInsertProviders = args.ExportProvider.GetExportedValues<IOnAutoInsertProvider>().ToImmutableArray();
     private readonly IRazorFormattingService _razorFormattingService = args.ExportProvider.GetExportedValue<IRazorFormattingService>();
     private readonly IClientSettingsManager _clientSettingsManager = args.ExportProvider.GetExportedValue<IClientSettingsManager>();
 
@@ -58,26 +70,26 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             cancellationToken);
 
     private async ValueTask<Response> TryResolveInsertionAsync(
-        RemoteDocumentContext remoteDocumentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         LinePosition linePosition,
         string character,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         if (!sourceText.TryGetAbsoluteIndex(linePosition, out var index))
         {
             return Response.NoFurtherHandling;
         }
 
-        var codeDocument = await remoteDocumentContext.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
 
         // Always try our own service first, regardless of language
         // E.g. if ">" is typed for html tag, it's actually our auto-insert provider
         // that adds closing tag instead of HTML even though we are in HTML
-        if (_autoInsertService.TryResolveInsertion(
+        if (TryResolveRazorInsertion(
                 codeDocument,
                 linePosition.ToPosition(),
                 character,
@@ -96,14 +108,15 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
                 // If we are in Razor and got no edit from our own service, there is nothing else to do
                 return Response.NoFurtherHandling;
             case RazorLanguageKind.Html:
-                return AutoInsertService.HtmlAllowedAutoInsertTriggerCharacters.Contains(character)
+                return s_htmlAllowedAutoInsertTriggerCharacters.Contains(character)
                     ? Response.CallHtml
                     : Response.NoFurtherHandling;
             case RazorLanguageKind.CSharp:
                 var mappedPosition = positionInfo.Position.ToLinePosition();
                 return await TryResolveInsertionInCSharpAsync(
-                        remoteDocumentContext,
+                        documentSnapshot,
                         mappedPosition,
+                        positionInfo.InDeclDocument,
                         character,
                         options,
                         cancellationToken)
@@ -115,8 +128,9 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
     }
 
     private async ValueTask<Response> TryResolveInsertionInCSharpAsync(
-        RemoteDocumentContext remoteDocumentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         LinePosition mappedPosition,
+        bool inDeclDocument,
         string character,
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
@@ -137,13 +151,13 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        if (!AutoInsertService.CSharpAllowedAutoInsertTriggerCharacters.Contains(character))
+        if (!s_csharpAllowedAutoInsertTriggerCharacters.Contains(character))
         {
             return Response.NoFurtherHandling;
         }
 
-        var generatedDocument = await remoteDocumentContext.Snapshot
-            .GetGeneratedDocumentAsync(cancellationToken)
+        var generatedDocument = await documentSnapshot
+            .GetGeneratedDocumentAsync(inDeclDocument, cancellationToken)
             .ConfigureAwait(false);
         var globalOptions = generatedDocument.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var services = generatedDocument.Project.Solution.Services.ExportProvider
@@ -151,16 +165,13 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             .SelectAsArray(
                 predicate: s => s.Metadata.Language == LanguageNames.CSharp,
                 selector: s => s.Value);
-        var csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions
-            ?? throw new InvalidOperationException("C# syntax formatting options were not provided for auto insert.");
-
         var autoInsertResponseItem = await OnAutoInsertHandler.GetOnAutoInsertResponseAsync(
             globalOptions,
             services,
             generatedDocument,
             mappedPosition,
             character,
-            csharpSyntaxFormattingOptions,
+            options.CSharpSyntaxFormattingOptions,
             includeNewLineBraceFormatting: true,
             cancellationToken
         ).ConfigureAwait(false);
@@ -170,18 +181,20 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var csharpSourceText = await remoteDocumentContext.GetCSharpSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var csharpSourceText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var csharpTextChange = new TextChange(csharpSourceText.GetTextSpan(autoInsertResponseItem.TextEdit.Range), autoInsertResponseItem.TextEdit.NewText);
         var mappedChange = autoInsertResponseItem.TextEditFormat == InsertTextFormat.Snippet
             ? await _razorFormattingService.TryGetCSharpSnippetFormattingEditAsync(
-                remoteDocumentContext,
+                documentSnapshot,
                 [csharpTextChange],
+                inDeclDocument,
                 options,
                 cancellationToken)
             .ConfigureAwait(false)
             : await _razorFormattingService.TryGetSingleCSharpEditAsync(
-                remoteDocumentContext,
+                documentSnapshot,
                 csharpTextChange,
+                inDeclDocument,
                 options,
                 cancellationToken)
             .ConfigureAwait(false);
@@ -191,11 +204,55 @@ internal sealed class RemoteAutoInsertService(in ServiceArgs args)
             return Response.NoFurtherHandling;
         }
 
-        var sourceText = await remoteDocumentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         return Response.Results(
             new RemoteAutoInsertTextEdit(
                 sourceText.GetLinePositionSpan(change.Span),
                 change.NewText,
                 autoInsertResponseItem.TextEditFormat));
+    }
+
+    private bool TryResolveRazorInsertion(
+        RazorCodeDocument codeDocument,
+        Position position,
+        string character,
+        bool autoCloseTags,
+        [NotNullWhen(true)] out VSInternalDocumentOnAutoInsertResponseItem? insertTextEdit)
+    {
+        using var applicableProviders = new PooledArrayBuilder<IOnAutoInsertProvider>(capacity: _onAutoInsertProviders.Length);
+        foreach (var provider in _onAutoInsertProviders)
+        {
+            if (provider.TriggerCharacter == character)
+            {
+                applicableProviders.Add(provider);
+            }
+        }
+
+        if (applicableProviders.Count == 0)
+        {
+            // There's currently a bug in the LSP platform where other language clients OnAutoInsert trigger characters influence every language clients trigger characters.
+            // To combat this we need to preemptively return so we don't try having our providers handle characters that they can't.
+            insertTextEdit = null;
+            return false;
+        }
+
+        foreach (var provider in applicableProviders)
+        {
+            if (provider.TryResolveInsertion(position, codeDocument, autoCloseTags, out insertTextEdit))
+            {
+                return true;
+            }
+        }
+
+        // No provider could handle the text edit.
+        insertTextEdit = null;
+        return false;
+    }
+
+    internal static class TestAccessor
+    {
+        public static FrozenSet<string> GetHtmlAllowedAutoInsertTriggerCharacters() => s_htmlAllowedAutoInsertTriggerCharacters;
+
+        public static FrozenSet<string> GetCSharpAllowedAutoInsertTriggerCharacters() => s_csharpAllowedAutoInsertTriggerCharacters;
     }
 }

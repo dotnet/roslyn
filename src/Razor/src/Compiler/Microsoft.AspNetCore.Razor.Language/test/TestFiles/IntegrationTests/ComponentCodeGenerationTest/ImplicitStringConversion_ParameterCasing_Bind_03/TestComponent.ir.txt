@@ -16,5 +16,3 @@
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
                             IntermediateToken -  - CSharp - __value => s = __value
                             IntermediateToken -  - CSharp - , s)
-            CSharpCode - (84:2,7 [73] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (84:2,7 [73] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string s = "abc";\n    private void Changed(string s) { }\n

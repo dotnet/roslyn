@@ -6,21 +6,20 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public sealed class ComponentIntermediateNode : IntermediateNode
 {
-    public IEnumerable<ComponentAttributeIntermediateNode> Attributes => Children.OfType<ComponentAttributeIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<ComponentAttributeIntermediateNode> Attributes => new(Children);
 
-    public IEnumerable<ReferenceCaptureIntermediateNode> Captures => Children.OfType<ReferenceCaptureIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<ReferenceCaptureIntermediateNode> Captures => new(Children);
 
-    public IEnumerable<SetKeyIntermediateNode> SetKeys => Children.OfType<SetKeyIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<SetKeyIntermediateNode> SetKeys => new(Children);
 
-    public IEnumerable<SplatIntermediateNode> Splats => Children.OfType<SplatIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<SplatIntermediateNode> Splats => new(Children);
 
-    public IEnumerable<ComponentChildContentIntermediateNode> ChildContents => Children.OfType<ComponentChildContentIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<ComponentChildContentIntermediateNode> ChildContents => new(Children);
 
     public override IntermediateNodeCollection Children { get => field ??= []; }
 
@@ -31,7 +30,7 @@ public sealed class ComponentIntermediateNode : IntermediateNode
     /// </summary>
     public string ChildContentParameterName { get; set; }
 
-    public IEnumerable<ComponentTypeArgumentIntermediateNode> TypeArguments => Children.OfType<ComponentTypeArgumentIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<ComponentTypeArgumentIntermediateNode> TypeArguments => new(Children);
 
     public ImmutableArray<ComponentTypeArgumentIntermediateNode> OrderedTypeArguments { get; set; }
 

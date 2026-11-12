@@ -55,9 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!_inExpressionLambda)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
-                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValueOpt, ref useSiteInfo);
-                _diagnostics.Add(syntax, useSiteInfo);
+                ConstantValue constantValue = Binder.GetIsOperatorConstantResult(operandType, targetType, conversionKind, rewrittenOperand.ConstantValueOpt);
 
                 if (constantValue != null)
                 {

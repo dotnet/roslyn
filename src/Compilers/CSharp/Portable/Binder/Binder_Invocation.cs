@@ -1349,7 +1349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                gotError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) || gotError;
+                gotError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1) || gotError;
             }
 
             bool hasBaseReceiver = receiver != null && receiver.Kind == BoundKind.BaseReference;
@@ -1426,6 +1426,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiver is BoundValuePlaceholderBase || receiver?.Type is null or { IsReferenceType: true })
             {
                 return ThreeState.False;
+            }
+
+            // Using and by-value foreach locals are mutable receivers despite not being assignable.
+            if (receiver is BoundLocal { LocalSymbol: { RefKind: RefKind.None } local } && (local.IsUsing || local.IsForEach))
+            {
+                return ThreeState.False;
+            }
+
+            if (receiver is BoundConditionalOperator { IsRef: true } conditional)
+            {
+                return (ReceiverIsSubjectToCloning(conditional.Consequence, method) == ThreeState.True ||
+                        ReceiverIsSubjectToCloning(conditional.Alternative, method) == ThreeState.True).ToThreeState();
             }
 
             var valueKind = method.IsEffectivelyReadOnly
@@ -2614,8 +2626,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy) ||
-                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Updated);
+            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1) ||
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version2);
             return new BoundFunctionPointerInvocation(
                 node,
                 boundExpression,

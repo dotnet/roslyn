@@ -12,11 +12,11 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 public sealed class MarkupElementIntermediateNode : IntermediateNode
 {
-    public IEnumerable<HtmlAttributeIntermediateNode> Attributes => Children.OfType<HtmlAttributeIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<HtmlAttributeIntermediateNode> Attributes => new(Children);
 
-    public IEnumerable<ReferenceCaptureIntermediateNode> Captures => Children.OfType<ReferenceCaptureIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<ReferenceCaptureIntermediateNode> Captures => new(Children);
 
-    public IEnumerable<SetKeyIntermediateNode> SetKeys => Children.OfType<SetKeyIntermediateNode>();
+    public IntermediateNodeCollection.TypedEnumerable<SetKeyIntermediateNode> SetKeys => new(Children);
 
     public IEnumerable<IntermediateNode> Body => Children.Where(c =>
     {
@@ -40,6 +40,17 @@ public sealed class MarkupElementIntermediateNode : IntermediateNode
         }
 
         visitor.VisitMarkupElement(this);
+    }
+
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new MarkupElementIntermediateNode
+        {
+            TagName = TagName,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
     }
 
     public override void FormatNode(IntermediateNodeFormatter formatter)

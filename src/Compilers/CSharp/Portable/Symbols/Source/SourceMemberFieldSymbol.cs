@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     this.DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_RequiredMemberAttribute__ctor));
             }
 
-            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
                 DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     ModifiersTokenList.GetModifierLocation(SyntaxKind.UnsafeKeyword, ErrorLocation),
@@ -190,19 +190,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
                 return HasUnsafeModifier &&
                     AssociatedSymbol is null &&
                     !IsConst
-                        ? CallerUnsafeMode.Explicit
-                        : CallerUnsafeMode.None;
+                        ? RequiresUnsafeMode.Explicit
+                        : RequiresUnsafeMode.None;
             }
 
             return !IsFixedSizeBuffer && GetFieldType(fieldsBeingBound).Type.ContainsPointerOrFunctionPointer()
-                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                ? RequiresUnsafeMode.Implicit : RequiresUnsafeMode.None;
         }
 
         internal static DeclarationModifiers MakeModifiers(NamedTypeSymbol containingType, SyntaxToken firstIdentifier, SyntaxTokenList modifiers, bool isRefField, BindingDiagnosticBag diagnostics, out bool modifierErrors)
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
-                isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+                isForInterfaceMember: isInterface,
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors, out _);
 
             if ((result & DeclarationModifiers.Abstract) != 0)
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // to determine whether or not unsafe is allowed.  Since this symbol and the containing type are
                 // in the same compilation, it won't make a difference.  We do, however, have to pass the error
                 // location explicitly.
-                containingType.CheckUnsafeModifier(result, errorLocation, diagnostics);
+                containingType.CheckUnsafeOptionForModifiers(result, diagnostics, modifiers, errorLocation);
             }
 
             if (isRefField)
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private TypeAndRefKind _lazyTypeAndRefKind;
+        private volatile TypeAndRefKind _lazyTypeAndRefKind;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -623,12 +623,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_IllegalFixedType, loc);
                     }
 
-                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRules.Legacy);
+                    binder.ReportUnsafeIfNotAllowed(declarator.Location, diagnosticsForFirstDeclarator, disallowedUnder: MemorySafetyRulesVersion.Version1);
                 }
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
             if (Interlocked.CompareExchange(ref _lazyTypeAndRefKind, new TypeAndRefKind(refKind, type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             {
                 TypeChecks(type.Type, diagnostics);
 

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>$(TestingLibraryTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>Microsoft.CodeAnalysis.CSharp.CodeFix.Testing</AssemblyName>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.Testing</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <Description>Roslyn Code Fix Framework C# Types.</Description>
+    <PackageReleaseNotes>Roslyn Code Fix Framework C# Types.</PackageReleaseNotes>
+    <PackageTags>Roslyn Code Fix Framework C# Types</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+    <PackageReference Include="System.Formats.Asn1" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.CodeFix.Testing\Microsoft.CodeAnalysis.CodeFix.Testing.csproj" />
+  </ItemGroup>
+
+</Project>

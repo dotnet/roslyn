@@ -2843,7 +2843,7 @@ public class MyClass
 }
 ";
             // NOTE: only first in scope is reported.
-            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (11,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         S* s2 = &s;    // CS0214
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "S*"),
@@ -2883,7 +2883,7 @@ class Program
     }
 }";
             // NOTE: only first in scope is reported.
-            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (11,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         s.x[1] = s.x[2];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x"),
@@ -2913,7 +2913,7 @@ class Program
     public fixed int buf[10];
 }
 ";
-            CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (3,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public fixed int buf[10];
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "buf[10]"));
@@ -2938,7 +2938,7 @@ namespace System
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //             var x = stackalloc int[10];    // ERROR
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[10]").WithLocation(8, 21));
@@ -3186,9 +3186,9 @@ public class A
 ";
             var c = CreateCompilation(text, options: TestOptions.ReleaseDll.WithAllowUnsafe(false));
             c.VerifyDiagnostics(
-                // (3,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe public static void Main()   // CS0227
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Main").WithLocation(3, 31));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 5));
         }
 
         [Fact]
@@ -14748,9 +14748,9 @@ namespace TestNamespace
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,23): error CS1014: A get, set or init accessor expected
+                // (3,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public object P { partial get; set; }
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 23),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 23),
                 // (4,34): error CS1014: A get, set or init accessor expected
                 //     object Q { get { return 0; } add { } }
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 34));
@@ -16850,9 +16850,9 @@ class E1 : I<dynamic> {}
 unsafe class E2 : I<C<dynamic>.D*[]> {}
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (10,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class E2 : I<C<dynamic>.D*[]> {}
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E2").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(10, 1),
                 // (9,12): error CS1966: 'E1': cannot implement a dynamic interface 'I<dynamic>'
                 // class E1 : I<dynamic> {}
                 Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<dynamic>").WithArguments("E1", "I<dynamic>").WithLocation(9, 12),
@@ -22309,32 +22309,17 @@ using System.Runtime.CompilerServices;
                 // 6.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static public PartialStaticPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // 6.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial static public PartialStaticPublicCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // 0.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial static PartialStaticCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
                 // 0.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static PartialStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
                 // 7.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial public static PartialPublicStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // 7.cs(3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial public static PartialPublicStaticCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-                // 3.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     public partial static PublicPartialStaticCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
                 // 3.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public partial static PublicPartialStaticCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
                 // 1.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial StaticPartialCtor() { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
-                // 5.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     static partial public StaticPartialPublicCtor() { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 12),
                 // 5.cs(3,12): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     static partial public StaticPartialPublicCtor() { }

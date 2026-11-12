@@ -71,7 +71,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -93,7 +93,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -118,7 +118,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -140,7 +140,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -162,7 +162,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -182,7 +182,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -210,7 +210,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -239,7 +239,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -268,7 +268,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             """,
             path: DefaultLegacyFileName);
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssemblyUsingAppSyntaxTrees(generated);
     }
@@ -295,7 +295,7 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
@@ -322,14 +322,14 @@ public sealed class CSharp10LanguageFeaturesIntegrationTest_Legacy : Integration
             path: DefaultLegacyFileName);
 
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetRequiredDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetRequiredImplCSharpDocument());
         AssertCSharpDiagnosticsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated);
     }
 
     private void CompileToAssemblyUsingAppSyntaxTrees(CompiledCSharpCode code)
     {
-        var generatedCode = code.CodeDocument.GetRequiredCSharpDocument();
+        var generatedCode = code.CodeDocument.GetRequiredImplCSharpDocument();
         var generatedSyntaxTree = (CSharpSyntaxTree)CSharpSyntaxTree.ParseText(
             generatedCode.Text,
             CSharpParseOptions,

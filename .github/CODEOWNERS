@@ -12,13 +12,10 @@ AGENTS.md @dotnet/roslyn-infrastructure
 
 .github/instructions/Compiler.instructions.md @dotnet/roslyn-compiler
 .github/instructions/IDE.instructions.md @dotnet/roslyn-ide
-.github/instructions/Razor.instructions.md @dotnet/razor-tooling
-.github/memory/known-issues/compiler.md @dotnet/roslyn-compiler
-.github/memory/known-issues/ide.md @dotnet/roslyn-ide
-.github/memory/known-issues/razor.md @dotnet/razor-tooling
+.github/instructions/Razor.instructions.md @dotnet/roslyn-ide
 .github/memory/testing/compiler.md @dotnet/roslyn-compiler
 .github/memory/testing/ide.md @dotnet/roslyn-ide
-.github/memory/testing/razor.md @dotnet/razor-tooling
+.github/memory/testing/razor.md @dotnet/roslyn-ide
 
 docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
@@ -31,18 +28,17 @@ src/CodeStyle/ @dotnet/roslyn-ide
 src/Compilers/ @dotnet/roslyn-compiler
 
 # Both IDE and Compiler traits are in this file, so we don't want to ping each other for changes to just this file.
-
-# Technically this means that if someone changes _just_ this file no reviewers will be tagged, but this isn't likely
-
-# to happen.
-
+# Technically this means that if someone changes _just_ this file no reviewers will be tagged, but this isn't likely to happen.
 src/Compilers/Test/Core/Traits/Traits.cs
+
 src/EditorFeatures/ @dotnet/roslyn-ide
+src/ExpressionEvaluator/ @dotnet/roslyn-ide @dotnet/roslyn-compiler @tmat
 src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
 src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
-src/Razor/ @dotnet/razor-tooling
+src/Razor/ @dotnet/roslyn-ide
+src/Razor/src/Compiler/ @dotnet/roslyn-ide @dotnet/razor-compiler
 src/RoslynAnalyzers/ @dotnet/roslyn-ide
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure
@@ -51,6 +47,7 @@ src/Tools/BuildActionTelemetryTable @dotnet/roslyn-infrastructure
 src/Tools/BuildBoss @dotnet/roslyn-infrastructure
 src/Tools/BuildValidator @dotnet/roslyn-infrastructure
 src/Tools/dotnet-format @dotnet/roslyn-infrastructure
+src/Tools/dotnet-roslyn-tools/ @dotnet/roslyn-infrastructure
 src/Tools/ExternalAccess @dotnet/roslyn-ide
 src/Tools/IdeBenchmarks @dotnet/roslyn-ide
 src/Tools/IdeCoreBenchmarks @dotnet/roslyn-ide
@@ -66,6 +63,5 @@ src/Workspaces/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Features/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 
-src/Tools/ExternalAccess/OmniSharp*/ @333fred @dibarbet
 src/Tools/ExternalAccess/RazorCompiler*/ @dotnet/roslyn-compiler
 src/Tools/ExternalAccess/CompilerDeveloperSDK/ @333fred

@@ -20,5 +20,3 @@
                             IntermediateToken -  - CSharp - , ParentValue)
                     ComponentAttribute - (62:0,62 [9] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         IntermediateToken - (62:0,62 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
-            CSharpCode - (84:1,7 [50] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (84:1,7 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n

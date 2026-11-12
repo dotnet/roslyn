@@ -14,5 +14,3 @@
                     ComponentAttribute -  - MyEvent -  - AttributeStructure.DoubleQuotes
                         HtmlContent - (35:0,35 [14] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (35:0,35 [14] x:\dir\subdir\Test\TestComponent.cshtml) - Html - MyEventHandler
-            CSharpCode - (64:2,7 [39] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (64:2,7 [39] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public void MyEventHandler() {}\n

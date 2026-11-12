@@ -22,18 +22,19 @@ internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOpti
 {
     public bool IsDocument => false;
     public string Name => PullDiagnosticCategories.Task;
+    public bool HasInterFileDependencies => false;
 
     public bool IsEnabled(ClientCapabilities capabilities) => capabilities.HasVisualStudioLspCapability();
 
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         // Only compute task list items for closed files if the option is on for it.
         if (globalOptions.GetTaskListOptions().ComputeForClosedFiles)
         {
             using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
-            foreach (var project in WorkspaceDiagnosticSourceHelpers.GetProjectsInPriorityOrder(context.Solution, context.SupportedLanguages))
+            foreach (var project in WorkspaceDiagnosticSourceHelpers.GetProjectsInPriorityOrder(solution, context.SupportedLanguages))
             {
                 foreach (var document in project.Documents)
                 {

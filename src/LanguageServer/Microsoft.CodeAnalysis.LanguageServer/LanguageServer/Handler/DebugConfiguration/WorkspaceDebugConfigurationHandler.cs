@@ -22,10 +22,10 @@ internal sealed class WorkspaceDebugConfigurationHandler() : ILspServiceRequestH
 
     public async Task<ProjectDebugConfiguration[]> HandleRequestAsync(WorkspaceDebugConfigurationParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution, nameof(context.Solution));
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
         var projectTargetFrameworkManager = context.GetRequiredService<ProjectTargetFrameworkManager>();
 
-        var projects = context.Solution.Projects
+        var projects = solution.Projects
             .Where(p => p is { FilePath: not null, OutputFilePath: not null })
             .Where(p => IsProjectInWorkspace(request.WorkspacePath, p))
             .Select(p => GetProjectDebugConfiguration(p, projectTargetFrameworkManager)).ToArray();
@@ -34,7 +34,7 @@ internal sealed class WorkspaceDebugConfigurationHandler() : ILspServiceRequestH
 
     private static bool IsProjectInWorkspace(DocumentUri workspacePath, Project project)
     {
-        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.GetRequiredParsedUri().LocalPath);
+        return PathUtilities.IsSameDirectoryOrChildOf(project.FilePath!, workspacePath.GetRequiredParsedUri().FsPath);
     }
 
     private static ProjectDebugConfiguration GetProjectDebugConfiguration(Project project, ProjectTargetFrameworkManager projectTargetFrameworkManager)

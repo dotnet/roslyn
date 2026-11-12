@@ -1,0 +1,2 @@
+﻿[0000] OpenElement("input")
+[0001] AddAttribute("onclick", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, OnClick ))

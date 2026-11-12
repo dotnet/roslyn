@@ -34,16 +34,6 @@ myInstance
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private Test.MyComponent myInstance;
-    public void Foo() { System.GC.KeepAlive(myInstance); }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

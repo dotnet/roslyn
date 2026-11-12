@@ -1,0 +1,4 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent. Parameter1 ), "SomeValue")
+[0002] AddComponentParameter(nameof(global::Test.MyComponent. Parameter2 ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Boolean>( true ))
+[0003] AddComponentParameter(nameof(global::Test.MyComponent. Parameter3 ), "SomeOtherValue")

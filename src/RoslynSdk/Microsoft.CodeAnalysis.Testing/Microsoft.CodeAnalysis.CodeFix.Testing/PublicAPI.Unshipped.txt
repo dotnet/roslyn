@@ -1,0 +1,54 @@
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.BatchFixedCode.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.BatchFixedState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixEquivalenceKey.get -> string
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixEquivalenceKey.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixIndex.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixIndex.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixTest() -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixTestBehaviors.get -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixTestBehaviors.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixValidationMode.get -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CodeFixValidationMode.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.FixedCode.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.FixedState.get -> Microsoft.CodeAnalysis.Testing.SolutionState
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInDocumentIterations.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInDocumentIterations.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInProjectIterations.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllInProjectIterations.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllIterations.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfFixAllIterations.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfIncrementalIterations.get -> int?
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.NumberOfIncrementalIterations.set -> void
+Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.VerifyFixAsync(Microsoft.CodeAnalysis.Testing.SolutionState testState, Microsoft.CodeAnalysis.Testing.SolutionState fixedState, Microsoft.CodeAnalysis.Testing.SolutionState batchFixedState, Microsoft.CodeAnalysis.Testing.IVerifier verifier, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.FixOne = 8 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.None = 0 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllCheck = Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck | Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck | Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInSolutionCheck -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck = 1 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck = 2 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInSolutionCheck = 4 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors.SkipLocalDiagnosticCheck = 16 -> Microsoft.CodeAnalysis.Testing.CodeFixTestBehaviors
+Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
+Microsoft.CodeAnalysis.Testing.CodeFixValidationMode.Full = 2 -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
+Microsoft.CodeAnalysis.Testing.CodeFixValidationMode.None = 0 -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
+Microsoft.CodeAnalysis.Testing.CodeFixValidationMode.SemanticStructure = 1 -> Microsoft.CodeAnalysis.Testing.CodeFixValidationMode
+Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>
+Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.CodeFixVerifier() -> void
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider
+Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.EmptyCodeFixProvider() -> void
+abstract Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.GetCodeFixProviders() -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider>
+override Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.IsCompilerDiagnosticIncluded(Microsoft.CodeAnalysis.Diagnostic diagnostic, Microsoft.CodeAnalysis.Testing.CompilerDiagnostics compilerDiagnostics) -> bool
+override Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.RunImplAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task
+override Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.FixableDiagnosticIds.get -> System.Collections.Immutable.ImmutableArray<string>
+override Microsoft.CodeAnalysis.Testing.EmptyCodeFixProvider.RegisterCodeFixesAsync(Microsoft.CodeAnalysis.CodeFixes.CodeFixContext context) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.Diagnostic() -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.Diagnostic(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.Diagnostic(string diagnosticId) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
+static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyAnalyzerAsync(string source, params Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult expected, string fixedSource) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, Microsoft.CodeAnalysis.Testing.DiagnosticResult[] expected, string fixedSource) -> System.Threading.Tasks.Task
+static Microsoft.CodeAnalysis.Testing.CodeFixVerifier<TAnalyzer, TCodeFix, TTest, TVerifier>.VerifyCodeFixAsync(string source, string fixedSource) -> System.Threading.Tasks.Task
+virtual Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CreateCodeFixContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, System.Action<Microsoft.CodeAnalysis.CodeActions.CodeAction, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>> registerCodeFix, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeFixes.CodeFixContext
+virtual Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.CreateFixAllContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan? diagnosticSpan, Microsoft.CodeAnalysis.Project project, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllScope scope, string codeActionEquivalenceKey, System.Collections.Generic.IEnumerable<string> diagnosticIds, Microsoft.CodeAnalysis.DiagnosticSeverity minimumSeverity, Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider fixAllDiagnosticProvider, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeFixes.FixAllContext
+virtual Microsoft.CodeAnalysis.Testing.CodeFixTest<TVerifier>.TrySelectDiagnosticToFix(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> fixableDiagnostics) -> Microsoft.CodeAnalysis.Diagnostic

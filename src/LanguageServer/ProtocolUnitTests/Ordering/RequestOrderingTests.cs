@@ -278,9 +278,9 @@ public sealed partial class RequestOrderingTests : AbstractLanguageServerProtoco
         Contract.ThrowIfNull(response);
         if (response.ContextHasSolution)
         {
-            var (_, solution) = await testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None).ConfigureAwait(false);
-            Contract.ThrowIfNull(solution);
-            return solution;
+            var context = await testLspServer.CaptureLspSolutionContextAsync().ConfigureAwait(false);
+            Contract.ThrowIfNull(context);
+            return context.Value.Solution;
         }
 
         return null;

@@ -19,20 +19,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 internal sealed class DispatchDocumentExtensionMessageHandler()
     : AbstractExtensionHandler, ILspServiceDocumentRequestHandler<DispatchDocumentExtensionMessageParams, DispatchExtensionMessageResponse>
 {
-    private const string MethodName = "textDocument/_vs_dipatchExtensionMessage";
+    private const string MethodName = "textDocument/_vs_dispatchExtensionMessage";
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DispatchDocumentExtensionMessageParams request)
         => request.TextDocument;
 
     public async Task<DispatchExtensionMessageResponse> HandleRequestAsync(DispatchDocumentExtensionMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Document);
-
-        var solution = context.Document.Project.Solution;
+        var document = await context.GetRequiredTextDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var solution = document.Project.Solution;
 
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
         var (response, extensionWasUnloaded, exception) = await service.HandleExtensionDocumentMessageAsync(
-            context.Document, request.MessageName, request.Message, cancellationToken).ConfigureAwait(false);
+            document, request.MessageName, request.Message, cancellationToken).ConfigureAwait(false);
 
         // Report any exceptions the extension itself caused while handling the request.
         if (exception is not null)

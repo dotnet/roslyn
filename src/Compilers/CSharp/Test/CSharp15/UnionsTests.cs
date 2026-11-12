@@ -2511,19 +2511,17 @@ class Program
             verifier.VerifyIL("Program.Test2", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -2531,24 +2529,22 @@ class Program
             verifier.VerifyIL("Program.Test1", @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (S1 V_0,
-                bool V_1)
+  .maxstack  2
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ");
@@ -3186,19 +3182,17 @@ class Program
 @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -4605,6 +4599,18 @@ struct S1
                 // (29,16): error CS0165: Use of unassigned local variable 'y'
                 //         return y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(29, 16),
+
+                // https://github.com/dotnet/roslyn/issues/82636: The following diagnostics is somewhat confusing in these cases.
+                //            A type cannot be handled by the pattern of the same type.
+                //            Syntactially it is not obvious that we are doing a union matching.
+
+                // (44,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'S1'.
+                //         return u is not (S1 and int);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S1").WithArguments("S1", "S1").WithLocation(44, 26),
+                // (49,26): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'S1'.
+                //         return u is not (S1 and int);
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "S1").WithArguments("S1", "S1").WithLocation(49, 26),
+
                 // (100,16): error CS0165: Use of unassigned local variable 'y'
                 //         return y;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(100, 16)
@@ -4710,73 +4716,59 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       37 (0x25)
+  // Code size       30 (0x1e)
   .maxstack  2
-  .locals init (S1 V_0,
-            bool V_1)
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001c
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
-  IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
-  IL_0021:  ldc.i4.0
-  IL_0022:  ceq
-  IL_0024:  ret
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       22 (0x16)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
 }
 ");
             var test3 = @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (S1 V_0,
-            bool V_1)
+  .maxstack  2
+  .locals init (S1 V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool S1?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""S1 S1?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object S1.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ";
@@ -4784,19 +4776,17 @@ class Program
             var test4 = @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ";
@@ -7205,19 +7195,17 @@ class C<T>
             verifier.VerifyIL("C<T>.Test2(C<T>)", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C<T>.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -7307,24 +7295,22 @@ struct C<T>
             verifier.VerifyIL("C<T>.Test1(C<T>?)", @"
 {
   // Code size       34 (0x22)
-  .maxstack  1
-  .locals init (C<T> V_0,
-            bool V_1)
+  .maxstack  2
+  .locals init (C<T> V_0)
   IL_0000:  ldarga.s   V_0
   IL_0002:  call       ""bool C<T>?.HasValue.get""
-  IL_0007:  brfalse.s  IL_001a
+  IL_0007:  brfalse.s  IL_001d
   IL_0009:  ldarga.s   V_0
   IL_000b:  call       ""C<T> C<T>?.GetValueOrDefault()""
   IL_0010:  stloc.0
   IL_0011:  ldloca.s   V_0
   IL_0013:  call       ""object C<T>.Value.get""
-  IL_0018:  brtrue.s   IL_001e
-  IL_001a:  ldc.i4.1
-  IL_001b:  stloc.1
-  IL_001c:  br.s       IL_0020
+  IL_0018:  ldnull
+  IL_0019:  cgt.un
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldc.i4.0
   IL_001e:  ldc.i4.0
-  IL_001f:  stloc.1
-  IL_0020:  ldloc.1
+  IL_001f:  ceq
   IL_0021:  ret
 }
 ");
@@ -7470,19 +7456,17 @@ class C<T>
             verifier.VerifyIL("C<T>.Test2(C<T>)", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object C<T>.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
@@ -8345,15 +8329,12 @@ struct S2;
 ";
             var comp = CreateCompilation([src2, src1, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyDiagnostics(
-                // (300,13): warning CS0183: The given expression is always of the provided ('object') type
-                //         _ = u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(300, 13),
-                // (400,13): warning CS0184: The given expression is never of the provided ('long') type
+                // (400,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
                 //         _ = u is long;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is long").WithArguments("long").WithLocation(400, 13),
-                // (500,13): warning CS0184: The given expression is never of the provided ('long') type
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(400, 18),
+                // (500,18): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'long'.
                 //         _ = u is long;
-                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "u is long").WithArguments("long").WithLocation(500, 13),
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "long").WithArguments("S1", "long").WithLocation(500, 18),
                 // (600,13): warning CS0183: The given expression is always of the provided ('object') type
                 //         _ = u is object;
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(600, 13),
@@ -11304,15 +11285,12 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,40): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         return u switch { object => 1, null => 3 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(100, 40),
-                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // (500,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
+                //         return u switch { object => 2 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(500, 18),
+                // (900,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
                 //         return u switch { not object => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(900, 18),
-                // (900,27): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         return u switch { not object => 1 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not object").WithLocation(900, 27)
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(900, 18)
                 );
         }
 
@@ -12391,24 +12369,24 @@ class Program
                 // (200,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
                 //         return u switch { null => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(200, 18),
+                // (300,38): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch { null => 3, object => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(300, 38),
                 // (400,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'int'.
                 //         return u switch { int => 1 };
                 Diagnostic(ErrorCode.ERR_PatternWrongType, "int").WithArguments("S1", "int").WithLocation(400, 27),
-                // (600,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                // (500,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
+                //         return u switch { object => 1 };
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(500, 27),
+                // (600,31): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
                 //         return u switch { not object => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(600, 18),
-                // (600,27): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         return u switch { not object => 1 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not object").WithLocation(600, 27),
-                // (700,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'not null' is not covered.
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(600, 31),
+                // (700,43): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
                 //         return u switch {  null => 3, not object => 1 };
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("not null").WithLocation(700, 18),
-                // (700,39): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         return u switch {  null => 3, not object => 1 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "not object").WithLocation(700, 39),
-                // (800,40): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(700, 43),
+                // (800,27): error CS8121: An expression of type 'S1' cannot be handled by a pattern of type 'object'.
                 //         return u switch { object => 1, null => 3 };
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "null").WithLocation(800, 40),
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("S1", "object").WithLocation(800, 27),
                 // (900,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         return u switch { not null => 1 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(900, 18),
@@ -16629,21 +16607,24 @@ class Program
 [System.Runtime.CompilerServices.Union]
 class S1 : S1.IUnionMembers
 {
-    private readonly object _value;
-    S1(int x)
-    {
-        System.Console.Write(""int {"");
-        System.Console.Write(x);
-        System.Console.Write(""} "");
-        _value = x;
-    }
+    object IUnionMembers.Value => throw null!;
 
-    object IUnionMembers.Value => _value;
+    public interface IUnionMembers  
+    {
+        public static S1? Create(int x) => throw null!;
+        public static S1 Create(string x) => throw null!;
+        public object Value { get; }
+    }
+}
+
+[System.Runtime.CompilerServices.Union]
+class S2<T> : S2<T>.IUnionMembers where T : class?
+{
+    object IUnionMembers.Value => throw null!;
     
     public interface IUnionMembers  
     {
-        public static S1? Create(int x) => new S1(x);
-
+        public static S2<T?> Create(int x) => throw null!;
         public object Value { get; }
     }
 }
@@ -16652,15 +16633,46 @@ class Program
 {
     static S1 Test1()
     {
+#line 100
         return 10;
     }   
+
+    static S1 Test2()
+    {
+#line 200
+        return 10!;
+    }   
+
+    static S2<T> Test3<T>() where T : class
+    {
+#line 300
+        return 10;
+    }   
+
+    static S2<T> Test4<T>() where T : class
+    {
+#line 400
+        return 10!;
+    }   
+
+    static S1 Test5(bool b, int x, string y)
+    {
+#line 500
+        return b ? x : y;
+    }
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (30,16): warning CS8603: Possible null reference return.
+                // (100,16): warning CS8603: Possible null reference return.
                 //         return 10;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "10").WithLocation(30, 16)
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "10").WithLocation(100, 16),
+                // (300,16): warning CS8619: Nullability of reference types in value of type 'S2<T?>' doesn't match target type 'S2<T>'.
+                //         return 10;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "10").WithArguments("S2<T?>", "S2<T>").WithLocation(300, 16),
+                // (500,16): warning CS8603: Possible null reference return.
+                //         return b ? x : y;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b ? x : y").WithLocation(500, 16)
                 );
         }
 
@@ -20821,7 +20833,7 @@ class Program
 
     static void Test2(S3 s)
     {
-        if (s is " + typeNameSyntax + @") return;
+        if (s is { Value: " + typeNameSyntax + @" }) return;
 
 #line 200
         s.Value.ToString();
@@ -20846,15 +20858,15 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (21,13): warning CS0183: The given expression is always of the provided ('object') type
-                //         if (s is System.Object) return;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is " + typeNameSyntax).WithArguments("object").WithLocation(21, 13),
-                // (105,13): warning CS0183: The given expression is always of the provided ('object') type
-                //         if (s is System.Object) return;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "s is " + typeNameSyntax).WithArguments("object").WithLocation(105, 13),
-                // (205,47): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //         if (s switch { System.Object => true, _ => false }) return;
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(205, 34 + typeNameSyntax.Length),
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 9),
+                // (300,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(300, 9),
                 // (305,47): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
                 //         if (s switch { System.Object => true, _ => false }) return;
                 Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(305, 34 + typeNameSyntax.Length)
@@ -20955,6 +20967,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
+                //         s.S.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(100, 9),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(200, 9)
@@ -21036,7 +21051,7 @@ class Program
 
     static void Test2(S3 s)
     {
-        if (s is " + typeNameSyntax + @") return;
+        if (s is { Value: " + typeNameSyntax + @" }) return;
 
 #line 200
         s.Value.ToString();
@@ -21063,13 +21078,13 @@ class Program
             comp.VerifyDiagnostics(
                 // (100,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(100, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 9),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(200, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 9),
                 // (300,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(300, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(300, 9),
                 // (400,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(400, 9)
@@ -21172,7 +21187,7 @@ class Program
             comp.VerifyDiagnostics(
                 // (100,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S").WithLocation(100, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(100, 9),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value").WithLocation(200, 9)
@@ -21258,7 +21273,7 @@ class Program
     static void Test2(S3? s)
     {
         if (s is null) return;
-        if (s is " + typeNameSyntax + @") return;
+        if (s is { Value: " + typeNameSyntax + @" }) return;
 
 #line 200
         s.Value.Value.ToString();
@@ -21285,15 +21300,15 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,9): warning CS8629: Nullable value type may be null.
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(100, 9),
-                // (200,9): warning CS8629: Nullable value type may be null.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Value").WithLocation(100, 9),
+                // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(200, 9),
-                // (300,9): warning CS8629: Nullable value type may be null.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Value").WithLocation(200, 9),
+                // (300,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.Value.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(300, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value.Value").WithLocation(300, 9),
                 // (400,9): warning CS8629: Nullable value type may be null.
                 //         s.Value.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s").WithLocation(400, 9)
@@ -21398,9 +21413,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,9): warning CS8629: Nullable value type may be null.
+                // (100,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullableValueTypeMayBeNull, "s.S").WithLocation(100, 9),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value.Value").WithLocation(100, 9),
                 // (200,9): warning CS8602: Dereference of a possibly null reference.
                 //         s.S.Value.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.S.Value.Value").WithLocation(200, 9)
@@ -21507,9 +21522,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (100,17): warning CS0162: Unreachable code detected
+                // (100,17): warning CS8602: Dereference of a possibly null reference.
                 //                 s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "s").WithLocation(100, 17),
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 17),
                 // (200,17): warning CS8602: Dereference of a possibly null reference.
                 //                 s.Value.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 17)
@@ -21612,9 +21627,9 @@ class Program
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
             comp.VerifyDiagnostics(
-                // (24,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             _ =>
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(24, 13),
+                // (100,17): warning CS8602: Dereference of a possibly null reference.
+                //                 s.Value.ToString()
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 17),
                 // (200,17): warning CS8602: Dereference of a possibly null reference.
                 //                 s.Value.ToString()
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 17)
@@ -21665,6 +21680,1614 @@ class Program
                 // (101,15): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
                 //         _ = s switch { int => 1, bool => 3 };
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(101, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_64_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_65_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_66_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_67_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(int i = 0) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_68_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_69_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = default;
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = default;
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_70_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    class Result<TSuccess, TFailure>
+    {
+        public object? Value => throw null!;
+        public Result(TSuccess x) => throw null!;
+        public Result(TFailure x) => throw null!;
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_71_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"", null => ""null"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_72_State_From_Call()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    U M1() => 42;
+
+    void M2()
+    {
+#line 100
+        M1().Value.ToString();
+    }
+
+    void M3()
+    {
+        U u = M1();
+#line 200
+        u.Value.ToString();
+    }
+}
+
+union U(string, int);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_73_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1?(string s) => null; }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_74_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1(string? s) => new C1(); }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1((string?)null);
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_75_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1?(string s) => null; }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1 x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        var s = new S1("""");
+#line 150
+        _ = s.Value.ToString();
+    } 
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1(null);
+#line 250
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,24): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(C1 x)'.
+                //         var s = new S1("");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, @"""""").WithArguments("x", "S1.S1(C1 x)").WithLocation(100, 24),
+                // (150,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(150, 13),
+                // (200,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         var s = new S1(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(200, 24),
+                // (250,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(250, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_76_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1?(string s) => null; }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        S1 s = new("""");
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_77_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1(string? s) => new C1(); }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        S1 s = new((string?)null);
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86057")]
+        public void NullableAnalysis_78_State_From_Constructor_PostCondition()
+        {
+            var src = @"
+#nullable enable
+class C1
+{
+    public static implicit operator C1? (string s) => null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] C1? x)
+    {
+        if (x is null)
+            throw new System.ArgumentNullException(nameof(x));
+        Value = x;
+    }
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2(string? x)
+    {
+        var s = new S2(x);
+#line 200
+        _ = x.ToString();
+    }
+}
+
+class S2
+{
+    public S2([System.Diagnostics.CodeAnalysis.NotNull] C2? x)
+    {
+        if (x is null)
+            throw new System.ArgumentNullException(nameof(x));
+    }
+}
+
+class C2
+{
+    public static implicit operator C2? (string? s) => """";
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
+            // Diagnostic at line 100 is not expected, but it is expected at line 200 - https://github.com/dotnet/roslyn/issues/86057
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        public void NullableAnalysis_79_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+class C1
+{
+    public static implicit operator C1? (string s) => null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params C1?[]? x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        public void NullableAnalysis_80_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params string?[]? x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+        var s = new S1((string?)null);
+#line 200
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+        var s = new S1();
+#line 300
+        _ = s.Value.ToString();
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86064")]
+        public void NullableAnalysis_81_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params MyCollection x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        var s = new S1("""");
+#line 150
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1((string?)null);
+#line 250
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+#line 300
+        var s = new S1();
+#line 350
+        _ = s.Value.ToString();
+    }
+
+    static void Test4()
+    {
+#line 400
+        _ = new S1([""""]);
+#line 500
+        _ = new S1([null]);
+#line 600
+        _ = new S1([]);
+    }
+}
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    private readonly List<object?> _list;
+    public MyCollection(List<object?> list) { _list = list; }
+    public IEnumerator<object?> GetEnumerator() => _list.GetEnumerator();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection? Create(ReadOnlySpan<object?> items)
+    {
+        return new MyCollection(new List<object?>(items.ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
+
+            // Note, expecting warnings for lines 100, 150, 200, 250, 300, 350. Tracked by https://github.com/dotnet/roslyn/issues/86064
+            comp.VerifyDiagnostics(
+                // (400,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([""]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, @"[""""]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(400, 20),
+                // (500,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([null]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[null]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(500, 20),
+                // (600,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(600, 20)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86064")]
+        public void NullableAnalysis_82_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params MyCollection? x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+        var s = new S1((string?)null);
+#line 200
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+        var s = new S1();
+#line 300
+        _ = s.Value.ToString();
+    }
+}
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    private readonly List<object?> _list;
+    public MyCollection(List<object?> list) { _list = list; }
+    public IEnumerator<object?> GetEnumerator() => _list.GetEnumerator();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection? Create(ReadOnlySpan<object?> items)
+    {
+        return new MyCollection(new List<object?>(items.ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
+
+            // Note, expecting warnings for lines 100, 200, 300. Tracked by https://github.com/dotnet/roslyn/issues/86064
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_83_State_From_Conversion_Params()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params string?[] x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = """";
+#line 150
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+#line 200
+        S1 s = (string?)null;
+#line 250
+        _ = s.Value.ToString();
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            comp.VerifyDiagnostics(
+                // (100,16): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //         S1 s = "";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "S1").WithLocation(100, 16),
+                // (200,16): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //         S1 s = (string?)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string?)null").WithArguments("string", "S1").WithLocation(200, 16),
+                // (200,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         S1 s = (string?)null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string?)null").WithLocation(200, 16),
+                // (250,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(250, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86225")]
+        public void NullableAnalysis_84_Conversion_UnderConditional()
+        {
+            var src = @"
+#nullable enable
+
+union U1(int, string);
+
+struct U2
+{
+    public static implicit operator U2(string s) => new U2();
+}
+
+class Program
+{
+    static U1? Test1(bool b, U1 u1)
+    {
+#line 100
+        return b ? u1 : null;
+    }
+
+    static U1 Test2()
+    {
+#line 200
+        return null;
+    }
+
+    static U1? Test3(bool b, U1 u1)
+    {
+#line 300
+        return b ? u1 : (U1)null;
+    }
+
+    static U1? Test4(bool b, U1 u1)
+    {
+#line 400
+        return b switch { true => u1, false => null };
+    }
+
+    static U1? Test5(bool b, U1 u1)
+    {
+#line 500
+        return b switch { true => u1, false => (U1)null };
+    }
+
+    static U2? Test6(bool b, U2 u2)
+    {
+#line 600
+        return b ? u2 : null;
+    }
+
+    static U2? Test7(bool b, U2 u2)
+    {
+#line 700
+        return b switch { true => u2, false => null };
+    }
+
+    static string? Test8(bool b, string s)
+    {
+#line 800
+        return b ? s : null;
+    }
+
+    static string? Test9(bool b, string s)
+    {
+#line 900
+        return b switch { true => s, false => null };
+    }
+
+    static string Test10(bool b, string s)
+    {
+#line 1000
+        return b ? s : null;
+    }
+
+    static string Test11(bool b, string s)
+    {
+#line 1100
+        return b switch { true => s, false => null };
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (100,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b ? u1 : null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(100, 25),
+                // (200,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(200, 16),
+                // (300,25): warning CS8604: Possible null reference argument for parameter 'value' in 'U1.U1(string value)'.
+                //         return b ? u1 : (U1)null;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(U1)null").WithArguments("value", "U1.U1(string value)").WithLocation(300, 25),
+                // (400,48): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b switch { true => u1, false => null };
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(400, 48),
+                // (500,48): warning CS8604: Possible null reference argument for parameter 'value' in 'U1.U1(string value)'.
+                //         return b switch { true => u1, false => (U1)null };
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(U1)null").WithArguments("value", "U1.U1(string value)").WithLocation(500, 48),
+                // (600,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b ? u2 : null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(600, 25),
+                // (700,48): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b switch { true => u2, false => null };
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(700, 48),
+                // (1000,16): warning CS8603: Possible null reference return.
+                //         return b ? s : null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b ? s : null").WithLocation(1000, 16),
+                // (1100,16): warning CS8603: Possible null reference return.
+                //         return b switch { true => s, false => null };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b switch { true => s, false => null }").WithLocation(1100, 16)
+                );
+
+            verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000b
+  IL_0003:  ldnull
+  IL_0004:  newobj     "U1..ctor(string)"
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldarg.1
+  IL_000c:  newobj     "U1?..ctor(U1)"
+  IL_0011:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test4", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (U1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_000e
+  IL_0007:  ldnull
+  IL_0008:  newobj     "U1..ctor(string)"
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  newobj     "U1?..ctor(U1)"
+  IL_0014:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test6", """
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000b
+  IL_0003:  ldnull
+  IL_0004:  call       "U2 U2.op_Implicit(string)"
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldarg.1
+  IL_000c:  newobj     "U2?..ctor(U2)"
+  IL_0011:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test7", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (U2 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_000e
+  IL_0007:  ldnull
+  IL_0008:  call       "U2 U2.op_Implicit(string)"
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  newobj     "U2?..ctor(U2)"
+  IL_0014:  ret
+}
+
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86225")]
+        public void NullableAnalysis_85_Conversion_UnderConditional()
+        {
+            var src = @"
+#nullable enable
+
+union U1(int, string);
+
+struct U2
+{
+    public static implicit operator U2(string s) => new U2();
+}
+
+class Program
+{
+    static U1? Test1(bool b, U1 u1)
+    {
+#line 100
+        return b ? null : u1;
+    }
+
+    static U1? Test4(bool b, U1 u1)
+    {
+#line 400
+        return b switch { true => null, false => u1 };
+    }
+
+    static U2? Test6(bool b, U2 u2)
+    {
+#line 600
+        return b ? null : u2;
+    }
+
+    static U2? Test7(bool b, U2 u2)
+    {
+#line 700
+        return b switch { true => null, false => u2 };
+    }
+
+    static string? Test8(bool b, string s)
+    {
+#line 800
+        return b ? null : s;
+    }
+
+    static string? Test9(bool b, string s)
+    {
+#line 900
+        return b switch { true => null, false => s };
+    }
+
+    static string Test10(bool b, string s)
+    {
+#line 1000
+        return b ? null : s;
+    }
+
+    static string Test11(bool b, string s)
+    {
+#line 1100
+        return b switch { true => null, false => s };
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (100,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b ? null : u1;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(100, 20),
+                // (400,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b switch { true => null, false => u1 };
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(400, 35),
+                // (600,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b ? null : u2;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(600, 20),
+                // (700,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b switch { true => null, false => u2 };
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(700, 35),
+                // (1000,16): warning CS8603: Possible null reference return.
+                //         return b ? null : s;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b ? null : s").WithLocation(1000, 16),
+                // (1100,16): warning CS8603: Possible null reference return.
+                //         return b switch { true => null, false => s };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b switch { true => null, false => s }").WithLocation(1100, 16)
+                );
+
+            verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldarg.1
+  IL_0004:  br.s       IL_000c
+  IL_0006:  ldnull
+  IL_0007:  newobj     "U1..ctor(string)"
+  IL_000c:  newobj     "U1?..ctor(U1)"
+  IL_0011:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test4", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (U1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000c
+  IL_0003:  ldnull
+  IL_0004:  newobj     "U1..ctor(string)"
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000e
+  IL_000c:  ldarg.1
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  newobj     "U1?..ctor(U1)"
+  IL_0014:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test6", """
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0006
+  IL_0003:  ldarg.1
+  IL_0004:  br.s       IL_000c
+  IL_0006:  ldnull
+  IL_0007:  call       "U2 U2.op_Implicit(string)"
+  IL_000c:  newobj     "U2?..ctor(U2)"
+  IL_0011:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test7", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (U2 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000c
+  IL_0003:  ldnull
+  IL_0004:  call       "U2 U2.op_Implicit(string)"
+  IL_0009:  stloc.0
+  IL_000a:  br.s       IL_000e
+  IL_000c:  ldarg.1
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  newobj     "U2?..ctor(U2)"
+  IL_0014:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86225")]
+        public void NullableAnalysis_86_Conversion_UnderConditional()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class U1
+{
+    public U1(int x) => throw null!;
+    public U1(string x) => throw null!;
+    public object? Value => throw null!;
+}
+
+class U2
+{
+    public static implicit operator U2(string s) => new U2();
+}
+
+class Program
+{
+    static U1? Test1(bool b, U1 u1)
+    {
+#line 100
+        return b ? u1 : null;
+    }
+
+    static U1 Test2()
+    {
+#line 200
+        return null;
+    }
+
+    static U1? Test3(bool b, U1 u1)
+    {
+#line 300
+        return b ? u1 : (U1)null;
+    }
+
+    static U1? Test4(bool b, U1 u1)
+    {
+#line 400
+        return b switch { true => u1, false => null };
+    }
+
+    static U1? Test5(bool b, U1 u1)
+    {
+#line 500
+        return b switch { true => u1, false => (U1)null };
+    }
+
+    static U2? Test6(bool b, U2 u2)
+    {
+#line 600
+        return b ? u2 : null;
+    }
+
+    static U2? Test7(bool b, U2 u2)
+    {
+#line 700
+        return b switch { true => u2, false => null };
+    }
+
+    static U1 Test8(bool b, U1 u1)
+    {
+#line 800
+        return b ? u1 : null;
+    }
+
+    static U1 Test9(bool b, U1 u1)
+    {
+#line 900
+        return b switch { true => u1, false => null };
+    }
+
+    static U2 Test10(bool b, U2 u2)
+    {
+#line 1000
+        return b ? u2 : null;
+    }
+
+    static U2 Test11(bool b, U2 u2)
+    {
+#line 1100
+        return b switch { true => u2, false => null };
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (200,16): warning CS8603: Possible null reference return.
+                //         return null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "null").WithLocation(200, 16),
+                // (300,25): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         return b ? u1 : (U1)null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U1)null").WithLocation(300, 25),
+                // (500,48): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         return b switch { true => u1, false => (U1)null };
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U1)null").WithLocation(500, 48),
+                // (800,16): warning CS8603: Possible null reference return.
+                //         return b ? u1 : null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b ? u1 : null").WithLocation(800, 16),
+                // (900,16): warning CS8603: Possible null reference return.
+                //         return b switch { true => u1, false => null };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b switch { true => u1, false => null }").WithLocation(900, 16),
+                // (1000,16): warning CS8603: Possible null reference return.
+                //         return b ? u2 : null;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b ? u2 : null").WithLocation(1000, 16),
+                // (1100,16): warning CS8603: Possible null reference return.
+                //         return b switch { true => u2, false => null };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b switch { true => u2, false => null }").WithLocation(1100, 16)
+                );
+
+            verifier.VerifyIL("Program.Test1", """
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldnull
+  IL_0004:  ret
+  IL_0005:  ldarg.1
+  IL_0006:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test4", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (U1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldnull
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test6", """
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldnull
+  IL_0004:  ret
+  IL_0005:  ldarg.1
+  IL_0006:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test7", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (U2 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldarg.1
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldnull
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86225")]
+        public void NullableAnalysis_87_Conversion_UnderConditional()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class U1
+{
+    public U1(int x) => throw null!;
+    public U1(string x) => throw null!;
+    public object? Value => throw null!;
+}
+
+class U2
+{
+    public static implicit operator U2(string s) => new U2();
+}
+
+class Program
+{
+    static U1? Test1(bool b, U1 u1)
+    {
+#line 100
+        return b ? null : u1;
+    }
+
+    static U1? Test4(bool b, U1 u1)
+    {
+#line 400
+        return b switch { true => null, false => u1 };
+    }
+
+    static U2? Test6(bool b, U2 u2)
+    {
+#line 600
+        return b ? null : u2;
+    }
+
+    static U2? Test7(bool b, U2 u2)
+    {
+#line 700
+        return b switch { true => null, false => u2 };
+    }
+
+    static U1 Test8(bool b, U1 u1)
+    {
+#line 800
+        return b ? null : u1;
+    }
+
+    static U1 Test9(bool b, U1 u1)
+    {
+#line 900
+        return b switch { true => null, false => u1 };
+    }
+
+    static U2 Test10(bool b, U2 u2)
+    {
+#line 1000
+        return b ? null : u2;
+    }
+
+    static U2 Test11(bool b, U2 u2)
+    {
+#line 1100
+        return b switch { true => null, false => u2 };
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (800,16): warning CS8603: Possible null reference return.
+                //         return b ? null : u1;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b ? null : u1").WithLocation(800, 16),
+                // (900,16): warning CS8603: Possible null reference return.
+                //         return b switch { true => null, false => u1 };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b switch { true => null, false => u1 }").WithLocation(900, 16),
+                // (1000,16): warning CS8603: Possible null reference return.
+                //         return b ? null : u2;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b ? null : u2").WithLocation(1000, 16),
+                // (1100,16): warning CS8603: Possible null reference return.
+                //         return b switch { true => null, false => u2 };
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b switch { true => null, false => u2 }").WithLocation(1100, 16)
+                );
+
+            verifier.VerifyIL("Program.Test1", """
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldarg.1
+  IL_0004:  ret
+  IL_0005:  ldnull
+  IL_0006:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test4", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (U1 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldnull
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldarg.1
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test6", """
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0005
+  IL_0003:  ldarg.1
+  IL_0004:  ret
+  IL_0005:  ldnull
+  IL_0006:  ret
+}
+""");
+
+            verifier.VerifyIL("Program.Test7", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (U2 V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0007
+  IL_0003:  ldnull
+  IL_0004:  stloc.0
+  IL_0005:  br.s       IL_0009
+  IL_0007:  ldarg.1
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void NullableAnalysis_88_Conversion()
+        {
+            var src = @"
+#nullable enable
+
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct U1
+{
+    public U1(C<string> value) { }
+    public object? Value => null;
+}
+
+struct U2
+{
+    public static implicit operator U2(C<string> s) => new U2();
+}
+
+class C<T>;
+
+public class C
+{
+    static void M1(C<string?>[] items)
+    {
+#line 100
+        foreach (U1 u in items!)
+        { }
+    }
+
+    static void M2(C<string?>[] items)
+    {
+#line 200
+        foreach (U1 u in items)
+        { }
+    }
+
+    static void M3(C<string?>[] items)
+    {
+#line 300
+        foreach (U2 u in items!)
+        { }
+    }
+
+    static void M4(C<string?>[] items)
+    {
+#line 400
+        foreach (U2 u in items)
+        { }
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            comp.VerifyDiagnostics(
+                // (200,21): warning CS8620: Argument of type 'C<string?>' cannot be used for parameter 'value' of type 'C<string>' in 'U1.U1(C<string> value)' due to differences in the nullability of reference types.
+                //         foreach (U1 u in items)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "u").WithArguments("C<string?>", "C<string>", "value", "U1.U1(C<string> value)").WithLocation(200, 21),
+                // (400,21): warning CS8619: Nullability of reference types in value of type 'C<string?>' doesn't match target type 'C<string>'.
+                //         foreach (U2 u in items)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "u").WithArguments("C<string?>", "C<string>").WithLocation(400, 21)
+                );
+        }
+
+        [Fact]
+        public void NullableAnalysis_89_Conversion()
+        {
+            var src = @"
+#nullable enable
+
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+struct U1
+{
+    public U1(C value) { }
+    public object? Value => null;
+}
+
+struct U2
+{
+    public static implicit operator U2(C s) => new U2();
+}
+
+public class C
+{
+    static void M1(C?[] items)
+    {
+#line 100
+        foreach (U1 u in items!)
+        { }
+    }
+
+    static void M2(C?[] items)
+    {
+#line 200
+        foreach (U1 u in items)
+        { }
+    }
+
+    static void M3(C?[] items)
+    {
+#line 300
+        foreach (U2 u in items!)
+        { }
+    }
+
+    static void M4(C?[] items)
+    {
+#line 400
+        foreach (U2 u in items)
+        { }
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            comp.VerifyDiagnostics(
+                // (200,21): warning CS8604: Possible null reference argument for parameter 'value' in 'U1.U1(C value)'.
+                //         foreach (U1 u in items)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "u").WithArguments("value", "U1.U1(C value)").WithLocation(200, 21),
+                // (400,18): warning CS8604: Possible null reference argument for parameter 's' in 'U2.implicit operator U2(C s)'.
+                //         foreach (U2 u in items)
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "U2").WithArguments("s", "U2.implicit operator U2(C s)").WithLocation(400, 18)
                 );
         }
 
@@ -24831,6 +26454,299 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_46_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_47_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_48_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_49_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(int i = 0) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_50_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_51_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = default;
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = default;
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_52_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    class Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NonBoxingUnionMatching_01_HasValue_Struct()
         {
             var src = @"
@@ -24994,43 +26910,31 @@ class S1
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -25076,42 +26980,34 @@ class S1
             verifier.VerifyIL("S1.Test1", @"
 {
   // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000e
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  br.s       IL_000f
+  IL_000e:  ldc.i4.0
   IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
+  IL_0010:  ceq
   IL_0012:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
+  // Code size       15 (0xf)
   .maxstack  2
-  .locals init (bool V_0)
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000d
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""object S1.Value.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
 }
 ");
         }
@@ -25352,21 +27248,17 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C2.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -25448,61 +27340,49 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("Program.Test3", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool C1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -25914,37 +27794,36 @@ struct S1
 #line 200
         return u is not object;
     }   
-
-    static bool Test3(S2 u)
-    {
-#line 300
-        return u is object;
-    }   
-
-    static bool Test4(S2 u)
-    {
-#line 400
-        return u is not object;
-    }   
 }
-
-struct S2;
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (100,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(100, 16),
-                // (200,16): error CS8518: An expression of type 'S1' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S1").WithLocation(200, 16),
-                // (300,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(300, 16),
-                // (400,16): error CS8518: An expression of type 'S2' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S2").WithLocation(400, 16)
-                );
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out object)""
+  IL_0009:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (object V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool S1.TryGetValue(out object)""
+  IL_0009:  ldc.i4.0
+  IL_000a:  ceq
+  IL_000c:  ret
+}
+");
         }
 
         [Fact]
@@ -25982,37 +27861,32 @@ struct S1
 #line 200
         return u is not object;
     }   
-
-    static bool Test3(S2 u)
-    {
-#line 300
-        return u is object;
-    }   
-
-    static bool Test4(S2 u)
-    {
-#line 400
-        return u is not object;
-    }   
 }
-
-struct S2;
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (100,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(100, 16),
-                // (200,16): error CS8518: An expression of type 'S1' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S1").WithLocation(200, 16),
-                // (300,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(300, 16),
-                // (400,16): error CS8518: An expression of type 'S2' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S2").WithLocation(400, 16)
-                );
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
         }
 
         [Fact]
@@ -26049,37 +27923,32 @@ struct S1
 #line 200
         return u is not object;
     }   
-
-    static bool Test3(S2 u)
-    {
-#line 300
-        return u is object;
-    }   
-
-    static bool Test4(S2 u)
-    {
-#line 400
-        return u is not object;
-    }   
 }
-
-struct S2;
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (100,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(100, 16),
-                // (200,16): error CS8518: An expression of type 'S1' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S1").WithLocation(200, 16),
-                // (300,16): warning CS0183: The given expression is always of the provided ('object') type
-                //         return u is object;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is object").WithArguments("object").WithLocation(300, 16),
-                // (400,16): error CS8518: An expression of type 'S2' can never match the provided pattern.
-                //         return u is not object;
-                Diagnostic(ErrorCode.ERR_IsPatternImpossible, "u is not object").WithArguments("S2").WithLocation(400, 16)
-                );
+            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueFalseTrueFalse").VerifyDiagnostics();
+
+            verifier.VerifyIL("S1.Test1", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ret
+}
+");
+
+            verifier.VerifyIL("S1.Test2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool S1.HasValue.get""
+  IL_0007:  ldc.i4.0
+  IL_0008:  ceq
+  IL_000a:  ret
+}
+");
         }
 
         [Fact]
@@ -33949,43 +35818,31 @@ class S1 : S1.IUnionMembers
 
             verifier.VerifyIL("S1.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
 
             verifier.VerifyIL("S1.Test2", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -34380,21 +36237,17 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalse").VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -34635,23 +36488,15 @@ class Program
             var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "TrueFalseTrueTrue" : null, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       22 (0x16)
-  .maxstack  2
-  .locals init (bool V_0)
+  // Code size       12 (0xc)
+  .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_000b
+  IL_0001:  brfalse.s  IL_000a
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembers.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ldc.i4.0
-  IL_0013:  ceq
-  IL_0015:  ret
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -35446,21 +37291,17 @@ class Program
 
             verifier.VerifyIL("Program.Test1", @"
 {
-  // Code size       19 (0x13)
-  .maxstack  1
-  .locals init (bool V_0)
+  // Code size       16 (0x10)
+  .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  brfalse.s  IL_000b
   IL_0003:  ldarg.0
   IL_0004:  callvirt   ""bool S1.IUnionMembersBase.HasValue.get""
-  IL_0009:  brtrue.s   IL_000f
-  IL_000b:  ldc.i4.1
-  IL_000c:  stloc.0
-  IL_000d:  br.s       IL_0011
-  IL_000f:  ldc.i4.0
-  IL_0010:  stloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  ret
+  IL_0009:  br.s       IL_000c
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ceq
+  IL_000f:  ret
 }
 ");
         }
@@ -47649,6 +49490,12 @@ union S1(System.ArgIterator, int);
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
             VerifyCaseTypes(comp, "S1", ["System.ArgIterator", "System.Int32"]);
 
+            comp.GetDeclarationDiagnostics().Verify(
+                // (100,10): error CS9371: Cannot convert type 'ArgIterator' to 'object' via an implicit reference or boxing conversion
+                // union S1(System.ArgIterator, int);
+                Diagnostic(ErrorCode.ERR_NoImplicitConversionToObject, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(100, 10)
+                );
+
             comp.VerifyEmitDiagnostics(
                 // (100,10): error CS9371: Cannot convert type 'ArgIterator' to 'object' via an implicit reference or boxing conversion
                 // union S1(System.ArgIterator, int);
@@ -48627,6 +50474,180 @@ union S2(int, bool)
             VerifyCaseTypes(comp, "S1", ["System.String"]);
             Assert.True(comp.GetTypeByMetadataName("S2").IsUnionType);
             VerifyCaseTypes(comp, "S2", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
+        public void UnionDeclaration_39()
+        {
+            var src1 = @"
+partial union S1(int, bool)
+{
+}
+";
+            var src2 = @"
+partial union S1
+{
+}
+";
+            var comp = CreateCompilation([(src1, "src1.cs"), (src2, "src2.cs"), UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86005")]
+        public void UnionDeclaration_40()
+        {
+            var src1 = @"
+partial union S1
+{
+}
+";
+            var src2 = @"
+partial union S1(int, bool)
+{
+}
+";
+            var comp = CreateCompilation([(src1, "src1.cs"), (src2, "src2.cs"), UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionDeclaration_41()
+        {
+            var src1 = @"
+partial union S1(int, bool);
+";
+            var src2 = @"
+partial union S1;
+";
+            var comp = CreateCompilation([(src1, "src1.cs"), (src2, "src2.cs"), UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86005")]
+        public void UnionDeclaration_42()
+        {
+            var src1 = @"
+partial union S1;
+";
+            var src2 = @"
+partial union S1(int, bool);
+";
+            var comp = CreateCompilation([(src1, "src1.cs"), (src2, "src2.cs"), UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86075")]
+        public void UnionDeclaration_43_Recursive()
+        {
+            var source = """
+union U1(U1, U2);
+union U2(U1, U2);
+""";
+
+            var comp = CreateEmptyCompilation(
+                [source, UnionAttributeSource, IUnionSource],
+                options: TestOptions.ReleaseDll.WithConcurrentBuild(false),
+                skipUsesIsNullable: true);
+
+            comp.GetDiagnostics();
+            VerifyCaseTypes(comp, "U1", ["U1", "U2"]);
+            VerifyCaseTypes(comp, "U2", ["U1", "U2"]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86075")]
+        public void UnionDeclaration_44_Recursive()
+        {
+            var source = """
+union U1(U1, U2);
+union U2(U1, U2);
+""";
+
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource]);
+            comp.MakeTypeMissing(SpecialType.System_Object);
+            VerifyCaseTypes(comp, "U1", ["U1", "U2"]);
+            VerifyCaseTypes(comp, "U2", ["U1", "U2"]);
         }
 
         [Fact]
@@ -51802,11 +53823,11 @@ class Program
 ";
 
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (13,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         if (this is T and var val)
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "val").WithLocation(13, 31)
-                );
+            CompileAndVerify(comp, expectedOutput: @"
+TrueTrueFalseFalse
+FalseTrue4
+TrueFalse
+").VerifyDiagnostics();
         }
 
         [Fact]
@@ -53000,16 +55021,19 @@ class Program
 #line 300
         return u switch { dynamic => true, _ => false };
     }   
+
+    static bool Test4(S1 u)
+    {
+#line 400
+        return u is dynamic x;
+    }   
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
-                // (100,16): warning CS1981: Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object' and will succeed for all non-null values
+                // (100,21): error CS8208: It is not legal to use the type 'dynamic' in a pattern.
                 //         return u is dynamic;
-                Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "u is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(100, 16),
-                // (100,16): warning CS0183: The given expression is always of the provided ('dynamic') type
-                //         return u is dynamic;
-                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is dynamic").WithArguments("dynamic").WithLocation(100, 16),
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(100, 21),
                 // (200,16): warning CS1981: Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object' and will succeed for all non-null values
                 //         return u is dynamic;
                 Diagnostic(ErrorCode.WRN_IsDynamicIsConfusing, "u is dynamic").WithArguments("is", "dynamic", "Object").WithLocation(200, 16),
@@ -53018,7 +55042,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "u is dynamic").WithArguments("dynamic").WithLocation(200, 16),
                 // (300,27): error CS0103: The name 'dynamic' does not exist in the current context
                 //         return u switch { dynamic => true, _ => false };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(300, 27)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "dynamic").WithArguments("dynamic").WithLocation(300, 27),
+                // (400,21): error CS8208: It is not legal to use the type 'dynamic' in a pattern.
+                //         return u is dynamic x;
+                Diagnostic(ErrorCode.ERR_PatternDynamicType, "dynamic").WithLocation(400, 21)
                 );
         }
 
@@ -56667,4103 +58694,2227 @@ False
         }
 
         [Fact]
-        public void TypePattern_01_UnionInstance_Only_BindConstantPatternWithFallbackToTypePattern()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_01()
         {
-            var src = @"
-class C0;
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { C1 => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }
+    }
 }
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.Test1", @"
+public sealed class A
 {
-  // Code size       11 (0xb)
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_02_UnionInstance_Only_BindConstantPatternWithFallbackToTypePattern()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
 {
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C2 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
+  // Code size       82 (0x52)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
-        public void TypePattern_03_UnionInstance_Only_BindTypePattern()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_02()
         {
-            var src = @"
-class C0;
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { global::C1 => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+            default:
+                ;
+        }
+    }
 }
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.Test1", @"
+public sealed class A
 {
-  // Code size       11 (0xb)
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_04_UnionInstance_Only_BindTypePattern()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
 {
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { global::C2 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
+  // Code size       82 (0x52)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
-        public void TypePattern_05_UnionInstance_Only_BindIsOperator()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_03()
         {
-            var src = @"
-class C0 {}
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u is C1;
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+            default:
+                System.Console.WriteLine(""unreachable"");
+        }
+    }
 }
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.Test1", @"
+public sealed class A
 {
-  // Code size        5 (0x5)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldnull
-  IL_0002:  cgt.un
-  IL_0004:  ret
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (20,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("unreachable");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_06_UnionInstance_Only_BindIsOperator()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (20,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("unreachable");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
+                );
+            verifier.VerifyIL("Program.Pick", @"
 {
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u is C2;
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  ldnull
-  IL_0007:  cgt.un
-  IL_0009:  ret
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
-        public void TypePattern_07_UnionInstance_And_Value_BindConstantPatternWithFallbackToTypePattern()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_04()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { I1 => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+            default:
+                System.Console.WriteLine(""unreachable1"");
+                System.Console.WriteLine(""unreachable2"");
+        }
+    }
 }
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <arm> `I1 => true`
-[5]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
-                //         return u switch { I1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "I1").WithArguments("unions", "15.0").WithLocation(42, 27)
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (20,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("unreachable1");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
                 );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (20,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("unreachable1");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
         }
 
         [Fact]
-        public void TypePattern_08_UnionInstance_And_Value_Plus_Conjunction()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_05()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(10))));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(11)));
-        System.Console.Write(Test1(new C3(new C2(10))));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { I1 and { Value1: 10 } => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null:
+            default:
+                 return ""c"";
+        }
+    }
 }
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
 
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [6]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [15]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [14] : [15]
-[6]: t0 != null ? [7] : [15]
-[7]: t4 = t0.Value; [8]
-[8]: t4 is I1 ? [9] : [15]
-[9]: t5 = (I1)t4; [10]
-[10]: t6 = t5.Value1; [11]
-[11]: t6 is int ? [12] : [15]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 10 ? [14] : [15]
-[14]: leaf <arm> `I1 and { Value1: 10 } => true`
-[15]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseFalseFalseFalseTrueFalseFalseFalseFalseFalse").VerifyDiagnostics();
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
         }
 
         [Fact]
-        public void TypePattern_09_UnionInstance_And_Value_Plus_Conjunction()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_06()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-interface I2
-{
-    object Value2 { get; }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-}
-
-class C6(object x) : C4(x), I2
-{
-    object I2.Value2 => _value;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { C4 and I2 and { Value2: 11 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is C4 ? [1] : [15]
-[1]: t1 = (C4)t0; [2]
-[2]: t1 is I2 ? [3] : [8]
-[3]: t2 = (I2)t1; [4]
-[4]: t3 = t2.Value2; [5]
-[5]: t3 is int ? [6] : [33]
-[6]: t4 = (int)t3; [7]
-[7]: t4 == 11 ? [32] : [33]
-[8]: t5 = t1.Value; [9]
-[9]: t5 is I2 ? [10] : [33]
-[10]: t6 = (I2)t5; [11]
-[11]: t7 = t6.Value2; [12]
-[12]: t7 is int ? [13] : [33]
-[13]: t8 = (int)t7; [14]
-[14]: t8 == 11 ? [32] : [33]
-[15]: t0 != null ? [16] : [33]
-[16]: t9 = t0.Value; [17]
-[17]: t9 is C4 ? [18] : [33]
-[18]: t10 = (C4)t9; [19]
-[19]: t10 is I2 ? [20] : [25]
-[20]: t11 = (I2)t10; [21]
-[21]: t12 = t11.Value2; [22]
-[22]: t12 is int ? [23] : [33]
-[23]: t13 = (int)t12; [24]
-[24]: t13 == 11 ? [32] : [33]
-[25]: t14 = t10.Value; [26]
-[26]: t14 is I2 ? [27] : [33]
-[27]: t15 = (I2)t14; [28]
-[28]: t16 = t15.Value2; [29]
-[29]: t16 is int ? [30] : [33]
-[30]: t17 = (int)t16; [31]
-[31]: t17 == 11 ? [32] : [33]
-[32]: leaf <arm> `C4 and I2 and { Value2: 11 } => true`
-[33]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_10_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-interface I2
-{
-    object Value2 { get; }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-}
-
-class C6(object x) : C4(x), I2
-{
-    object I2.Value2 => _value;
-}
-
-class C7(object x) : C6(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [45]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: t6 = t5.Value2; [11]
-[11]: t6 is int ? [12] : [45]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: t10 = t9.Value2; [18]
-[18]: t10 is int ? [19] : [45]
-[19]: t11 = (int)t10; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: t14 = t13.Value1; [26]
-[26]: t14 is int ? [27] : [45]
-[27]: t15 = (int)t14; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: t18 = t17.Value2; [34]
-[34]: t18 is int ? [35] : [45]
-[35]: t19 = (int)t18; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: t22 = t21.Value2; [41]
-[41]: t22 is int ? [42] : [45]
-[42]: t23 = (int)t22; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true`
-[45]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void TypePattern_11_UnionInstance_And_Value_Exhaustiveness_And_Reachability()
-        {
-            var src0 = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2 : I1
-{
-    public bool Value1 => throw null;
-}
-
-class C3(object x) : C1(x), I1
-{
-    bool I1.Value1 => throw null;
-}
-
-interface I1
-{
-    bool Value1 { get; }
-}
-";
-            var src1 = @"
-class Program
-{
-    static int Test1(C1 u)
-    {
-        return u switch
-        {
-            I1 => 1,
-#line 100
-            I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            var comp = CreateCompilation([src1, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "I1 and { Value1: true }").WithLocation(100, 13)
-                );
-
-            var src2 = @"
-class Program
-{
-    static int Test2(C1 u)
-    {
-        return u switch
-        {
-            I1 and { Value1: true } => 2,
-            I1 => 1,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src2, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics();
-
-            var src3 = @"
-class Program
-{
-    static int Test3(C1 u)
-    {
-#line 300
-        return u switch
-        {
-            I1 and { Value1: true } => 2,
-            not I1 => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'I1{ Value1: false }' is not covered.
-                //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("I1{ Value1: false }").WithLocation(300, 18)
-                );
-
-            src3 = @"
-class Program
-{
-    static int Test3(object u)
-    {
-#line 300
-        return u switch
-        {
-            C1 and I1 and { Value1: true } => 2,
-            not C1 => 3,
-            not I1 => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'I1{ Value1: false }' is not covered.
-                //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("I1{ Value1: false }").WithLocation(300, 18)
-                );
-
-            src3 = @"
-class Program
-{
-    static int Test3(object u)
-    {
-#line 300
-        return u switch
-        {
-            C1 { Value: I1 { Value1: false } } => 1,
-            C1 and I1 and { Value1: true } => 2,
-            not C1 => 3,
-        };
-    }  
-
-    static int Test4(object u)
-    {
-#line 400
-        return u switch
-        {
-            C1 { Value: I1 { Value1: false } } => 1,
-            C1 and I1 and { Value1: true } => 2,
-            not C1 => 3,
-            C1 { Value: int } => 4,
-        };
-    }   
-
-    static int Test5(object u)
-    {
-#line 500
-        return u switch
-        {
-            C1 { Value: I1 { Value1: false } } => 1,
-            C1 and I1 and { Value1: true } => 2,
-            not C1 => 3,
-            C1 { Value: int } => 4,
-            C1 => 5,
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src3, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            comp.VerifyDiagnostics(
-                // (300,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1{ Value: int }' is not covered.
-                //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1{ Value: int }").WithLocation(300, 18),
-                // (400,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern 'C1' is not covered.
-                //         return u switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("C1").WithLocation(400, 18)
-                );
-
-            var src4 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 => 1,
-            C1 { Value: I1 } => 4,
-#line 400
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src4, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (400,13): error CS8510: The pattern is unreachable. It has already been handled by a previous arm of the switch expression or it is impossible to match.
-                //             C1 and I1 and { Value1: true } => 2,
-                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "C1 and I1 and { Value1: true }").WithLocation(400, 13)
-                );
-
-            var src5 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 => 1,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src5, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [2]
-[1]: leaf <arm> `I1 => 1`
-[2]: t0 is C1 ? [3] : [10]
-[3]: t1 = (C1)t0; [4]
-[4]: t2 = t1.Value; [5]
-[5]: t2 is I1 ? [6] : [10]
-[6]: t3 = (I1)t2; [7]
-[7]: t4 = t3.Value1; [8]
-[8]: t4 == True ? [9] : [10]
-[9]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[10]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var src6 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            C1 { Value: I1 } => 4,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src6, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is C1 ? [1] : [10]
-[1]: t1 = (C1)t0; [2]
-[2]: t2 = t1.Value; [3]
-[3]: t2 is I1 ? [4] : [5]
-[4]: leaf <arm> `C1 { Value: I1 } => 4`
-[5]: t1 is I1 ? [6] : [10]
-[6]: t3 = (I1)t1; [7]
-[7]: t4 = t3.Value1; [8]
-[8]: t4 == True ? [9] : [10]
-[9]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[10]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var src7 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 { Value1: false } => 1,
-            C1 { Value: I1 { Value1: false } } => 4,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src7, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [9]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 == False ? [4] : [5]
-[4]: leaf <arm> `I1 { Value1: false } => 1`
-[5]: t0 is C1 ? [6] : [18]
-[6]: t3 = (C1)t0; [7]
-[7]: t4 = t3.Value; [8]
-[8]: t4 is I1 ? [13] : [17]
-[9]: t0 is C1 ? [10] : [18]
-[10]: t3 = (C1)t0; [11]
-[11]: t4 = t3.Value; [12]
-[12]: t4 is I1 ? [13] : [18]
-[13]: t5 = (I1)t4; [14]
-[14]: t6 = t5.Value1; [15]
-[15]: t6 == False ? [16] : [17]
-[16]: leaf <arm> `C1 { Value: I1 { Value1: false } } => 4`
-[17]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[18]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var src8 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 => 1,
-            C1 { Value: I1 { Value1: false } } => 4,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src8, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [2]
-[1]: leaf <arm> `I1 => 1`
-[2]: t0 is C1 ? [3] : [11]
-[3]: t1 = (C1)t0; [4]
-[4]: t2 = t1.Value; [5]
-[5]: t2 is I1 ? [6] : [11]
-[6]: t3 = (I1)t2; [7]
-[7]: t4 = t3.Value1; [8]
-[8]: t4 == False ? [9] : [10]
-[9]: leaf <arm> `C1 { Value: I1 { Value1: false } } => 4`
-[10]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[11]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var src9 = @"
-class Program
-{
-    static int Test4(object u)
-    {
-        return u switch
-        {
-            I1 { Value1: false } => 1,
-            C1 { Value: I1 } => 4,
-            C1 and I1 and { Value1: true } => 2,
-            _ => 3
-        };
-    }   
-}
-";
-            comp = CreateCompilation([src9, src0, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [10]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 == False ? [4] : [5]
-[4]: leaf <arm> `I1 { Value1: false } => 1`
-[5]: t0 is C1 ? [6] : [15]
-[6]: t3 = (C1)t0; [7]
-[7]: t4 = t3.Value; [8]
-[8]: t4 is I1 ? [14] : [9]
-[9]: leaf <arm> `C1 and I1 and { Value1: true } => 2`
-[10]: t0 is C1 ? [11] : [15]
-[11]: t3 = (C1)t0; [12]
-[12]: t4 = t3.Value; [13]
-[13]: t4 is I1 ? [14] : [15]
-[14]: leaf <arm> `C1 { Value: I1 } => 4`
-[15]: leaf <arm> `_ => 3`
-",
-forLowering: true);
-
-            comp.VerifyDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_12_UnionInstance_And_Value_BindTypePattern()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { global::I1 => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            default:
+            case null:
+                 return ""c"";
+        }
+    }
 }
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
 
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <arm> `global::I1 => true`
-[5]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
-                //         return u switch { global::I1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "global::I1").WithArguments("unions", "15.0").WithLocation(42, 27)
-                );
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
         }
 
         [Fact]
-        public void TypePattern_13_UnionInstance_And_Value_BindIsOperator()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_07()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2 : I1
-{
-    private object _x;
-    public C2(object x) { _x = x; }
-    public object Value1 => _x;
-}
-
-class C3 : C1, I1
-{
-    public C3(object x) : base(x) { }
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-#line 42
-        return u is I1;
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }
+
+        System.Console.WriteLine(""unreachable"");
+    }
 }
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<BinaryExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <isPatternSuccess> `u is I1`
-[5]: leaf <isPatternFailure> `u is I1`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,16): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
-                //         return u is I1;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "u is I1").WithArguments("unions", "15.0").WithLocation(42, 16)
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (21,9): warning CS0162: Unreachable code detected
+                //         System.Console.WriteLine("unreachable");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(21, 9)
                 );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular6);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrueTrue").VerifyDiagnostics();
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (21,9): warning CS0162: Unreachable code detected
+                //         System.Console.WriteLine("unreachable");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(21, 9)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
         }
 
         [Fact]
-        public void TypePattern_14_UnionInstance_And_Value_Plus_Designation()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_08()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(12))));
-        System.Console.Write(Test1(new C1(new C2(13))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(14)));
-        System.Console.Write(Test1(new C3(15)));
-        System.Console.Write(Test1(new C3(new C2(16))));
-        System.Console.Write(Test1(new C3(new C2(17))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static int Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { I1 and { Value1: int i } => -i, _ => -999 };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            comp.VerifyDiagnostics(
-                // (48,48): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 and { Value1: int i } => -i, _ => -999 };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(48, 48)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_15_UnionInstance_And_Value_Plus_Designation()
+        switch (value)
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(12))));
-        System.Console.Write(Test1(new C1(new C2(13))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(14)));
-        System.Console.Write(Test1(new C3(15)));
-        System.Console.Write(Test1(new C3(new C2(16))));
-        System.Console.Write(Test1(new C3(new C2(17))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }
     }
+}
 
-    static int Test1(C1 u)
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
     {
-        if ( u is not (I1 and { Value1: int i }))
-            return -999;
-
-        return -i;
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (48,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         if ( u is not (I1 and { Value1: int i }))
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i").WithLocation(48, 45)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_16_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(12))));
-        System.Console.Write(Test1(new C1(new C2(13))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(14)));
-        System.Console.Write(Test1(new C3(15)));
-        System.Console.Write(Test1(new C3(new C2(16))));
-        System.Console.Write(Test1(new C3(new C2(17))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static int Test1(C1 u)
-    {
-        return u switch { I1 and var i1 and { Value1: int } => -(int)i1.Value1, _ => -999 };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (48,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 and var i1 and { Value1: int } => -(int)i1.Value1, _ => -999 };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(48, 38)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_17_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        //System.Console.Write(Test1(new C1(10)));
-        //System.Console.Write(Test1(new C1(11)));
-        //System.Console.Write(Test1(new C1(new C2(12))));
-        //System.Console.Write(Test1(new C1(new C2(13))));
-        //System.Console.Write(Test1(new C1(new C2(null))));
-        //System.Console.Write(Test1(new C1(null)));
-        //System.Console.Write(Test1(null));
-        //System.Console.Write(Test1(new C3(14)));
-        //System.Console.Write(Test1(new C3(15)));
-        //System.Console.Write(Test1(new C3(new C2(16))));
-        //System.Console.Write(Test1(new C3(new C2(17))));
-        //System.Console.Write(Test1(new C3(new C2(null))));
-        //System.Console.Write(Test1(new C3(null)));
-    }
-
-    static int Test1(C1 u)
-    {
-        switch (u)
-        {
-#line 100
-            case I1 and var i1 and { Value1: int } when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(object u)
-    {
-        switch (u)
-        {
-#line 200
-            case C1 and I1 and var i1 and { Value1: int } when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(object u)
-    {
-        switch (u)
-        {
-#line 300
-            case C1 and (I1) and var i1 and { Value1: int } when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test4(object u)
-    {
-        switch (u)
-        {
-#line 400
-            case (C1 and I1) and var i1 and { Value1: int } when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test5(object u)
-    {
-        switch (u)
-        {
-#line 500
-            case C1 and (I1 and { Value1: int }) and var i1 when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test6(object u)
-    {
-        switch (u)
-        {
-#line 600
-            case (C1 and I1) and ({ Value1: int } and var i1) when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test7(object u)
-    {
-        switch (u)
-        {
-#line 700
-            case C1 and I1 and { Value1: int } i1 when GetTrue(ref i1):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test8(C1 u)
-    {
-        switch (u)
-        {
-#line 800
-            case (I1 or int) and var i1:
-                return 0;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test9(C1 u)
-    {
-        switch (u)
-        {
-#line 900
-            case (int or I1) and var i1:
-                return 0;
-            default:
-                return -999;
-        }
-    }   
-
-    static bool GetTrue(ref I1 i1) => true;
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (100,29): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case I1 and var i1 and { Value1: int } when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 29),
-                // (200,36): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case C1 and I1 and var i1 and { Value1: int } when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(200, 36),
-                // (300,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case C1 and (I1) and var i1 and { Value1: int } when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 38),
-                // (400,38): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (C1 and I1) and var i1 and { Value1: int } when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(400, 38),
-                // (500,58): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case C1 and (I1 and { Value1: int }) and var i1 when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(500, 58),
-                // (600,59): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (C1 and I1) and ({ Value1: int } and var i1) when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(600, 59),
-                // (700,48): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case C1 and I1 and { Value1: int } i1 when GetTrue(ref i1):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(700, 48)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_18_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-
-    public int Length => 0;
-    public object this[int i] => null;
-    public C1 this[System.Range i] => null;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static int Test1(C1 u)
-    {
-        switch (u)
-        {
-#line 100
-            case [.. I1 and var i1, _ ]:
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(C1 u)
-    {
-        switch (u)
-        {
-#line 200
-            case [.. I1, var i1 ] and var u1:
-                return -(int)i1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(C1 u)
-    {
-        switch (u)
-        {
-#line 300
-            case not [.. var i1, _ ]:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case [.. I1 and var i1, _ ]:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 33),
-                // (300,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not [.. var i1, _ ]:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 30)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_19_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static int Test1(C1[] u)
-    {
-        switch (u)
-        {
-#line 100
-            case [I1 and var i1, _ ]:
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(C1[] u)
-    {
-        switch (u)
-        {
-#line 200
-            case [I1, var i1 ] and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(C1[] u)
-    {
-        switch (u)
-        {
-#line 300
-            case not [var i1, _ ]:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case [I1 and var i1, _ ]:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not [var i1, _ ]:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_20_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static int Test1((C1, object) u)
-    {
-        switch (u)
-        {
-#line 100
-            case (I1 and var i1, _ ):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2((C1, object) u)
-    {
-        switch (u)
-        {
-#line 200
-            case (I1, var i1 ) and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3((C1, object) u)
-    {
-        switch (u)
-        {
-#line 300
-            case not (var i1, _ ):
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (I1 and var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
-                // (300,18): error CS8120: The switch case is unreachable. It has already been handled by a previous case or it is impossible to match.
-                //             case not (var i1, _ ):
-                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "not (var i1, _ )").WithLocation(300, 18),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not (var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_21_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class C4
-{
-    public void Deconstruct(out C1 c, out object x) => throw null;
-}
-
-class Program
-{
-    static int Test1(C4 u)
-    {
-        switch (u)
-        {
-#line 100
-            case (I1 and var i1, _ ):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(C4 u)
-    {
-        switch (u)
-        {
-#line 200
-            case (I1, var i1 ) and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(C4 u)
-    {
-        switch (u)
-        {
-#line 300
-            case not (var i1, _ ):
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (I1 and var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 30),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not (var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_22_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static int Test1(System.Runtime.CompilerServices.ITuple u)
-    {
-        switch (u)
-        {
-#line 100
-            case (C1 and I1 and var i1, _ ):
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(System.Runtime.CompilerServices.ITuple u)
-    {
-        switch (u)
-        {
-#line 200
-            case (C1 and I1, var i1 ) and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(System.Runtime.CompilerServices.ITuple u)
-    {
-        switch (u)
-        {
-#line 300
-            case not (var i1, _ ):
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.NetCoreApp, options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case (C1 and I1 and var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 37),
-                // (300,27): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not (var i1, _ ):
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 27)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_23_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class C4
-{
-    public C1 C => throw null;
-    public object O => throw null;
-}
-
-class Program
-{
-    static int Test1(C4 u)
-    {
-        switch (u)
-        {
-#line 100
-            case { C: I1 and var i1, O: _ }:
-                return -(int)i1.Value1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test2(C4 u)
-    {
-        switch (u)
-        {
-#line 200
-            case { C: I1, O: var i1 } and var u1:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-
-    static int Test3(C4 u)
-    {
-        switch (u)
-        {
-#line 300
-            case not { C: var i1, O: _ }:
-                return -1;
-            default:
-                return -999;
-        }
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-            comp.VerifyDiagnostics(
-                // (100,34): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case { C: I1 and var i1, O: _ }:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(100, 34),
-                // (300,31): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //             case not { C: var i1, O: _ }:
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(300, 31)
-                );
-        }
-
-        [Fact]
-        public void TypePattern_24_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y)
-    {
-        return y switch
-        {
-            Y => 1,
-        };
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
     }
 }
 ";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       88 (0x58)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_0055
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_0055
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_0055
+  IL_0049:  ldloc.2
+  IL_004a:  box        ""Choice""
+  IL_004f:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
+  IL_0054:  throw
+  IL_0055:  ldloc.s    V_5
+  IL_0057:  ret
+}
+");
 
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_InvalidOperationException__ctor);
 
             comp.VerifyEmitDiagnostics(
-                // (10,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(10, 18)
-                );
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y)
-    {
-        return y switch
+                    // (14,9): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
+                    //         switch (value)
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (value)
         {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(14, 9)
                 );
         }
 
         [Fact]
-        public void TypePattern_25_UnionInstance_And_Value()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_09()
         {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : struct
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics();
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : struct
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_26_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : class?
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                // (10,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(10, 18)
-                );
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : class?
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_27_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : notnull
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics();
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : notnull
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_28_UnionInstance_And_Value()
-        {
-            var source1 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : class
-    {
-        return y switch
-        {
-            Y => 1,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics();
-
-            var source2 = @"
-#nullable enable
-
-public union U<T>(T);
-
-class Program
-{
-    int M9<Y>(U<Y> y) where Y : class
-    {
-        return y switch
-        {
-            Y => 1,
-            null => 2,
-        };
-    }
-}
-";
-
-            comp = CreateCompilation([source2, UnionAttributeSource, IUnionSource, IsClosedTypeAttributeDefinition]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [3] : [1]
-[1]: t1 = t0.Value; [2]
-[2]: t1 != null ? [3] : [4]
-[3]: leaf <arm> `Y => 1`
-[4]: leaf <arm> `null => 2`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                );
-        }
-
-        [Fact]
-        public void TypePattern_29_UnionInstance_And_Value()
-        {
-            var source1 = @"
-[System.Runtime.CompilerServices.Union]
-class U<T>
-{
-    private readonly object _value;
-    public U(T x) { _value = x; }
-    public object Value => _value;
-}
-";
-
-            var source2 = @"
-#nullable enable
-
-class Program
-{
-    int M9<X, Y>(U<Y> y) where Y : X
-    {
-    #line 100
-        return y switch
-        {
-            Y => 1,
-    #line 400
-            X => 2,
-        };
-    }
-}
-";
-
-            var comp = CreateCompilation([source1 + source2, UnionAttributeSource]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [4] : [1]
-[1]: t0 != null ? [2] : [7]
-[2]: t1 = t0.Value; [3]
-[3]: t1 != null ? [4] : [5]
-[4]: leaf <arm> `Y => 1`
-[5]: t0 is X ? [6] : [7]
-[6]: leaf <arm> `X => 2`
-[7]: leaf <default> `y switch
-        {
-            Y => 1,
-    #line 400
-            X => 2,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                // (100,18): warning CS8655: The switch expression does not handle some null inputs (it is not exhaustive). For example, the pattern 'null' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustiveForNull, "switch").WithArguments("null").WithLocation(100, 18)
-                );
-
-            var source3 = @"
-class U<T>
-{
-}
-";
-
-            comp = CreateCompilation([source3 + source2]);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is Y ? [1] : [2]
-[1]: leaf <arm> `Y => 1`
-[2]: t0 is X ? [3] : [4]
-[3]: leaf <arm> `X => 2`
-[4]: leaf <default> `y switch
-        {
-            Y => 1,
-    #line 400
-            X => 2,
-        }`
-",
-forLowering: false);
-
-            comp.VerifyEmitDiagnostics(
-                // (100,18): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-                //         return y switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(100, 18)
-                );
-        }
-
-        [Fact]
-        public void DeclarationPattern_01_UnionInstance_Only()
-        {
-            var src = @"
-class C0;
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { C1 x => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
+        string result;
 
-            verifier.VerifyIL("Program.Test1", @"
+        switch (value)
+        {
+            case A a: result = a.Text; break;
+            case B b: result = b.Message; break;
+            case null: result = ""c""; break;
+        }
+
+        return result;
+    }
+}
+
+public sealed class A
 {
-  // Code size       11 (0xb)
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       67 (0x43)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
+  .locals init (string V_0, //result
+                A V_1, //a
+                B V_2, //b
+                object V_3)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.3
+  IL_0008:  ldloc.3
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.3
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  brtrue.s   IL_002a
+  IL_001c:  ldloc.3
+  IL_001d:  brfalse.s  IL_0033
+  IL_001f:  br.s       IL_003b
+  IL_0021:  ldloc.1
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  stloc.0
+  IL_0028:  br.s       IL_0041
+  IL_002a:  ldloc.2
+  IL_002b:  callvirt   ""string B.Message.get""
+  IL_0030:  stloc.0
+  IL_0031:  br.s       IL_0041
+  IL_0033:  ldstr      ""c""
+  IL_0038:  stloc.0
+  IL_0039:  br.s       IL_0041
+  IL_003b:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_0040:  throw
+  IL_0041:  ldloc.0
+  IL_0042:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void DeclarationPattern_02_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
 {
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C2 x => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
+  // Code size       88 (0x58)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
+  .locals init (string V_0, //result
+            A V_1, //a
+            B V_2, //b
+            Choice V_3,
+            object V_4,
+            Choice V_5,
+            string V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_5
+  IL_0004:  ldloc.s    V_5
+  IL_0006:  stloc.3
+  IL_0007:  ldloca.s   V_3
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.s    V_4
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  isinst     ""A""
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  brtrue.s   IL_002c
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  isinst     ""B""
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.2
+  IL_0024:  brtrue.s   IL_0037
+  IL_0026:  ldloc.s    V_4
+  IL_0028:  brfalse.s  IL_0042
+  IL_002a:  br.s       IL_004a
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ldloc.1
+  IL_002f:  callvirt   ""string A.Text.get""
+  IL_0034:  stloc.0
+  IL_0035:  br.s       IL_0050
+  IL_0037:  br.s       IL_0039
+  IL_0039:  ldloc.2
+  IL_003a:  callvirt   ""string B.Message.get""
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0050
+  IL_0042:  ldstr      ""c""
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0050
+  IL_004a:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004f:  throw
+  IL_0050:  ldloc.0
+  IL_0051:  stloc.s    V_6
+  IL_0053:  br.s       IL_0055
+  IL_0055:  ldloc.s    V_6
+  IL_0057:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
-        public void DeclarationPattern_03_UnionInstance_And_Value()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_10()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { I1 x => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+        string result = ""c"";
 
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [2]
-[1]: t1 = (I1)t0; [7]
-[2]: t0 != null ? [3] : [9]
-[3]: t2 = t0.Value; [4]
-[4]: t2 != null ? [5] : [9]
-[5]: t2 is I1 ? [6] : [9]
-[6]: t3 = (I1)t2; [7]
-[7]: when <true> ? [8] : <unreachable>
-[8]: leaf <arm> `I1 x => true`
-[9]: leaf <arm> `_ => false`
-",
-forLowering: false);
-
-            comp.VerifyDiagnostics(
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 x => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
-                );
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            comp.VerifyDiagnostics(
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 x => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
-                );
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
-                //         return u switch { I1 x => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "I1 x").WithArguments("unions", "15.0").WithLocation(42, 27),
-                // (42,30): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 x => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(42, 30)
-                );
+        switch (value)
+        {
+            case A a: result = a.Text; break;
+            case B b: result = b.Message; break;
         }
 
-        [Fact]
-        public void PropertyPattern_01_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(""11"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
+        return result;
     }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { {} => true, _ => false };
-    }   
 }
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.Test1", @"
+public sealed class A
 {
-  // Code size       11 (0xb)
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       54 (0x36)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
+  .locals init (string V_0, //result
+                A V_1, //a
+                B V_2, //b
+                object V_3)
+  IL_0000:  ldstr      ""c""
+  IL_0005:  stloc.0
+  IL_0006:  ldarga.s   V_0
+  IL_0008:  call       ""object Choice.Value.get""
+  IL_000d:  stloc.3
+  IL_000e:  ldloc.3
+  IL_000f:  isinst     ""A""
+  IL_0014:  stloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  brtrue.s   IL_0024
+  IL_0018:  ldloc.3
+  IL_0019:  isinst     ""B""
+  IL_001e:  stloc.2
+  IL_001f:  ldloc.2
+  IL_0020:  brtrue.s   IL_002d
+  IL_0022:  br.s       IL_0034
+  IL_0024:  ldloc.1
+  IL_0025:  callvirt   ""string A.Text.get""
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_0034
+  IL_002d:  ldloc.2
+  IL_002e:  callvirt   ""string B.Message.get""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_02_UnionInstance_Only()
-        {
-            var src = @"
-class C0;
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
 {
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C0 {} => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
+  // Code size       76 (0x4c)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
+  .locals init (string V_0, //result
+                A V_1, //a
+                B V_2, //b
+                Choice V_3,
+                object V_4,
+                Choice V_5,
+                string V_6)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""c""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stloc.s    V_5
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  stloc.3
+  IL_000d:  ldloca.s   V_3
+  IL_000f:  call       ""object Choice.Value.get""
+  IL_0014:  stloc.s    V_4
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  isinst     ""A""
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  brtrue.s   IL_002e
+  IL_0021:  ldloc.s    V_4
+  IL_0023:  isinst     ""B""
+  IL_0028:  stloc.2
+  IL_0029:  ldloc.2
+  IL_002a:  brtrue.s   IL_0039
+  IL_002c:  br.s       IL_0044
+  IL_002e:  br.s       IL_0030
+  IL_0030:  ldloc.1
+  IL_0031:  callvirt   ""string A.Text.get""
+  IL_0036:  stloc.0
+  IL_0037:  br.s       IL_0044
+  IL_0039:  br.s       IL_003b
+  IL_003b:  ldloc.2
+  IL_003c:  callvirt   ""string B.Message.get""
+  IL_0041:  stloc.0
+  IL_0042:  br.s       IL_0044
+  IL_0044:  ldloc.0
+  IL_0045:  stloc.s    V_6
+  IL_0047:  br.s       IL_0049
+  IL_0049:  ldloc.s    V_6
+  IL_004b:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
-        public void PropertyPattern_03_UnionInstance_Only()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_11()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x);
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { C2 {} => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            default: return ""c"";
+        }
+    }
 }
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.Test1", @"
+public sealed class A
 {
-  // Code size       16 (0x10)
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       50 (0x32)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_001e
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0025
+  IL_001c:  br.s       IL_002c
+  IL_001e:  ldloc.0
+  IL_001f:  callvirt   ""string A.Text.get""
+  IL_0024:  ret
+  IL_0025:  ldloc.1
+  IL_0026:  callvirt   ""string B.Message.get""
+  IL_002b:  ret
+  IL_002c:  ldstr      ""c""
+  IL_0031:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_04_UnionInstance_And_Value()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
 {
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 {} => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <arm> `I1 {} => true`
-[5]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (42,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
-                //         return u switch { I1 {} => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "I1 {}").WithArguments("unions", "15.0").WithLocation(42, 27)
-                );
-        }
-
-        [Fact]
-        public void PropertyPattern_05_UnionInstance_And_Value()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(10))));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(11)));
-        System.Console.Write(Test1(new C3(new C2(10))));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 { Value1: 10 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [6]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [15]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [14] : [15]
-[6]: t0 != null ? [7] : [15]
-[7]: t4 = t0.Value; [8]
-[8]: t4 is I1 ? [9] : [15]
-[9]: t5 = (I1)t4; [10]
-[10]: t6 = t5.Value1; [11]
-[11]: t6 is int ? [12] : [15]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 10 ? [14] : [15]
-[14]: leaf <arm> `I1 { Value1: 10 } => true`
-[15]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseFalseFalseFalseTrueFalseFalseFalseFalseFalse").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_06_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-interface I2
-{
-    object Value2 { get; }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-}
-
-class C6(object x) : C4(x), I2
-{
-    object I2.Value2 => _value;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { C4 { } and I2 and { Value2: 11 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is C4 ? [1] : [15]
-[1]: t1 = (C4)t0; [2]
-[2]: t1 is I2 ? [3] : [8]
-[3]: t2 = (I2)t1; [4]
-[4]: t3 = t2.Value2; [5]
-[5]: t3 is int ? [6] : [33]
-[6]: t4 = (int)t3; [7]
-[7]: t4 == 11 ? [32] : [33]
-[8]: t5 = t1.Value; [9]
-[9]: t5 is I2 ? [10] : [33]
-[10]: t6 = (I2)t5; [11]
-[11]: t7 = t6.Value2; [12]
-[12]: t7 is int ? [13] : [33]
-[13]: t8 = (int)t7; [14]
-[14]: t8 == 11 ? [32] : [33]
-[15]: t0 != null ? [16] : [33]
-[16]: t9 = t0.Value; [17]
-[17]: t9 is C4 ? [18] : [33]
-[18]: t10 = (C4)t9; [19]
-[19]: t10 is I2 ? [20] : [25]
-[20]: t11 = (I2)t10; [21]
-[21]: t12 = t11.Value2; [22]
-[22]: t12 is int ? [23] : [33]
-[23]: t13 = (int)t12; [24]
-[24]: t13 == 11 ? [32] : [33]
-[25]: t14 = t10.Value; [26]
-[26]: t14 is I2 ? [27] : [33]
-[27]: t15 = (I2)t14; [28]
-[28]: t16 = t15.Value2; [29]
-[29]: t16 is int ? [30] : [33]
-[30]: t17 = (int)t16; [31]
-[31]: t17 == 11 ? [32] : [33]
-[32]: leaf <arm> `C4 { } and I2 and { Value2: 11 } => true`
-[33]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_07_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-interface I2
-{
-    object Value2 { get; }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-}
-
-class C6(object x) : C4(x), I2
-{
-    object I2.Value2 => _value;
-}
-
-class C7(object x) : C6(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 { Value1: 10 } and C4 and I2 and { Value2: 11 } => true, _ => false };
-    }   
-
-    static bool Test2(C1 u)
-    {
-        return u switch { I1 {} and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [45]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: t6 = t5.Value2; [11]
-[11]: t6 is int ? [12] : [45]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: t10 = t9.Value2; [18]
-[18]: t10 is int ? [19] : [45]
-[19]: t11 = (int)t10; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: t14 = t13.Value1; [26]
-[26]: t14 is int ? [27] : [45]
-[27]: t15 = (int)t14; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: t18 = t17.Value2; [34]
-[34]: t18 is int ? [35] : [45]
-[35]: t19 = (int)t18; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: t22 = t21.Value2; [41]
-[41]: t22 is int ? [42] : [45]
-[42]: t23 = (int)t22; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 { Value1: 10 } and C4 and I2 and { Value2: 11 } => true`
-[45]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: t2 = t1.Value1; [3]
-[3]: t2 is int ? [4] : [45]
-[4]: t3 = (int)t2; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: t6 = t5.Value2; [11]
-[11]: t6 is int ? [12] : [45]
-[12]: t7 = (int)t6; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: t10 = t9.Value2; [18]
-[18]: t10 is int ? [19] : [45]
-[19]: t11 = (int)t10; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: t14 = t13.Value1; [26]
-[26]: t14 is int ? [27] : [45]
-[27]: t15 = (int)t14; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: t18 = t17.Value2; [34]
-[34]: t18 is int ? [35] : [45]
-[35]: t19 = (int)t18; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: t22 = t21.Value2; [41]
-[41]: t22 is int ? [42] : [45]
-[42]: t23 = (int)t22; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 {} and { Value1: 10 } and C4 and I2 and { Value2: 11 } => true`
-[45]: leaf <arm> `_ => false`
-",
-index: 1, forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PropertyPattern_08_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-}
-
-class C3(object x) : C1(x), I1
-{
-    object I1.Value1 => _value;
-}
-
-interface I1
-{
-    object Value1 { get; }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 {} i1 => true, _ => false };
-    }   
-
-    static bool Test2(C1 u)
-    {
-        return u switch { I1 { Value1: var v1 } => true, _ => false };
-    }   
-
-    static bool Test3(C1 u)
-    {
-        return u switch { I1 {} and var i1 => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (42,33): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 {} i1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(42, 33),
-                // (47,44): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 { Value1: var v1 } => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(47, 44),
-                // (52,41): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 {} and var i1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(52, 41)
-                );
-        }
-
-        [Fact]
-        public void PositionalPattern_01_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-
-    public void Deconstruct(out object x, out object y)
-    {
-        x = 1;
-        y = 2;
-    }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(""11"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { (_, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       11 (0xb)
+  // Code size       73 (0x49)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0031
+  IL_0023:  br.s       IL_003d
+  IL_0025:  br.s       IL_0027
+  IL_0027:  ldloc.0
+  IL_0028:  callvirt   ""string A.Text.get""
+  IL_002d:  stloc.s    V_5
+  IL_002f:  br.s       IL_0046
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ldloc.1
+  IL_0034:  callvirt   ""string B.Message.get""
+  IL_0039:  stloc.s    V_5
+  IL_003b:  br.s       IL_0046
+  IL_003d:  ldstr      ""c""
+  IL_0042:  stloc.s    V_5
+  IL_0044:  br.s       IL_0046
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueTrueTrueFalse").VerifyDiagnostics();
         }
 
         [Fact]
-        public void PositionalPattern_02_UnionInstance_Only()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_12()
         {
-            var src = @"
-class C0
-{
-    public void Deconstruct(out object x, out object y)
-    {
-        x = 1;
-        y = 2;
-    }
-}
-
-[System.Runtime.CompilerServices.Union]
-class C1 : C0
-{
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C0 x) { _value = x; }
-    public object Value => _value;
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(new C1(1))));
-        System.Console.Write(Test1(new C1(new C0())));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { C0 (_, _) => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: goto default;
+            default: return ""c"";
+        }
+    }
 }
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
-            verifier.VerifyIL("Program.Test1", @"
+public sealed class A
 {
-  // Code size       11 (0xb)
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  brfalse.s  IL_0007
-  IL_0003:  ldc.i4.1
-  IL_0004:  stloc.0
-  IL_0005:  br.s       IL_0009
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ret
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
 
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "TrueFalseTrueTrue").VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_03_UnionInstance_Only()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
 {
-    private readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(string x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(string x) : C1(x)
-{
-    public void Deconstruct(out object x, out object y)
-    {
-        x = 1;
-        y = 2;
-    }
-}
-
-class Program
-{
-    static void Main()
-    {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C1(""a"")));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(new C2(""a"")));
-        System.Console.Write(Test1(new C2(null)));
-    }
-
-    static bool Test1(C1 u)
-    {
-        return u switch { C2 (_, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            verifier.VerifyIL("Program.Test1", @"
-{
-  // Code size       16 (0x10)
+  // Code size       84 (0x54)
   .maxstack  1
-  .locals init (bool V_0)
-  IL_0000:  ldarg.0
-  IL_0001:  isinst     ""C2""
-  IL_0006:  brfalse.s  IL_000c
-  IL_0008:  ldc.i4.1
-  IL_0009:  stloc.0
-  IL_000a:  br.s       IL_000e
-  IL_000c:  ldc.i4.0
-  IL_000d:  stloc.0
-  IL_000e:  ldloc.0
-  IL_000f:  ret
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_004b
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_0051
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_0051
+  IL_0040:  br.s       IL_0042
+  IL_0042:  ldstr      ""c""
+  IL_0047:  stloc.s    V_5
+  IL_0049:  br.s       IL_0051
+  IL_004b:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_0050:  throw
+  IL_0051:  ldloc.s    V_5
+  IL_0053:  ret
 }
 ");
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            CompileAndVerify(comp, expectedOutput: "FalseFalseFalseFalseTrueTrue").VerifyDiagnostics();
         }
 
         [Fact]
-        public void PositionalPattern_04_UnionInstance_And_Value()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_13()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-    void I1.Deconstruct(out object x, out object y) => throw null;
-}
-
-class C3(object x) : C1(x), I1
-{
-    void I1.Deconstruct(out object x, out object y) => throw null;
-}
-
-interface I1
-{
-    public void Deconstruct(out object x, out object y);
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+        System.Console.Write(Pick(null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice? value)
     {
-        return u switch { I1 (_, _) => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: goto case null;
+            case null:
+            default: return ""c"";
+        }
+    }
 }
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"accc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  1
+  .locals init (A V_0, //a
+            Choice V_1,
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool Choice?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0037
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""Choice Choice?.GetValueOrDefault()""
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       ""object Choice.Value.get""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  isinst     ""A""
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  brtrue.s   IL_0030
+  IL_0023:  ldloc.2
+  IL_0024:  isinst     ""B""
+  IL_0029:  brtrue.s   IL_0037
+  IL_002b:  ldloc.2
+  IL_002c:  brfalse.s  IL_0037
+  IL_002e:  br.s       IL_003d
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   ""string A.Text.get""
+  IL_0036:  ret
+  IL_0037:  ldstr      ""c""
+  IL_003c:  ret
+  IL_003d:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_0042:  throw
+}
+");
 
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [4] : [1]
-[1]: t0 != null ? [2] : [5]
-[2]: t1 = t0.Value; [3]
-[3]: t1 is I1 ? [4] : [5]
-[4]: leaf <arm> `I1 (_, _) => true`
-[5]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular15);
-            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseFalseTrueTrueTrue").VerifyDiagnostics();
-
-            comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular14);
-            comp.VerifyDiagnostics(
-                // (43,27): error CS9327: Feature 'unions' is not available in C# 14.0. Please use language version 15.0 or greater.
-                //         return u switch { I1 (_, _) => true, _ => false };
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "I1 (_, _)").WithArguments("unions", "15.0").WithLocation(43, 27)
-                );
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"accc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       95 (0x5f)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice? V_2,
+            Choice V_3,
+            object V_4,
+            Choice? V_5,
+            string V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_5
+  IL_0004:  ldloc.s    V_5
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""bool Choice?.HasValue.get""
+  IL_000e:  brfalse.s  IL_004d
+  IL_0010:  ldloca.s   V_2
+  IL_0012:  call       ""Choice Choice?.GetValueOrDefault()""
+  IL_0017:  stloc.3
+  IL_0018:  ldloca.s   V_3
+  IL_001a:  call       ""object Choice.Value.get""
+  IL_001f:  stloc.s    V_4
+  IL_0021:  ldloc.s    V_4
+  IL_0023:  isinst     ""A""
+  IL_0028:  stloc.0
+  IL_0029:  ldloc.0
+  IL_002a:  brtrue.s   IL_003d
+  IL_002c:  ldloc.s    V_4
+  IL_002e:  isinst     ""B""
+  IL_0033:  stloc.1
+  IL_0034:  ldloc.1
+  IL_0035:  brtrue.s   IL_0049
+  IL_0037:  ldloc.s    V_4
+  IL_0039:  brfalse.s  IL_004d
+  IL_003b:  br.s       IL_0056
+  IL_003d:  br.s       IL_003f
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string A.Text.get""
+  IL_0045:  stloc.s    V_6
+  IL_0047:  br.s       IL_005c
+  IL_0049:  br.s       IL_004b
+  IL_004b:  br.s       IL_004d
+  IL_004d:  ldstr      ""c""
+  IL_0052:  stloc.s    V_6
+  IL_0054:  br.s       IL_005c
+  IL_0056:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_005b:  throw
+  IL_005c:  ldloc.s    V_6
+  IL_005e:  ret
+}
+");
         }
 
         [Fact]
-        public void PositionalPattern_05_UnionInstance_And_Value()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_14()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    void I1.Deconstruct(out object x1, out object y1)
-    {
-        x1 = x;
-        y1 = 2;
-    }
-}
-
-class C3(object x) : C1(x), I1
-{
-    void I1.Deconstruct(out object x, out object y)
-    {
-        x = _value;
-        y = 2;
-    }
-}
-
-interface I1
-{
-    public void Deconstruct(out object x, out object y);
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(11)));
-        System.Console.Write(Test1(new C1(new C2(10))));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(new C2(null))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(11)));
-        System.Console.Write(Test1(new C3(new C2(10))));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(new C2(null))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { I1 (10, _) => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+            default:
+                throw null;
+        }
+    }
 }
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
 
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [6]
-[1]: t1 = (I1)t0; [2]
-[2]: (Item1, Item2) t2 = t1; [3]
-[3]: t2.Item1 is int ? [4] : [15]
-[4]: t3 = (int)t2.Item1; [5]
-[5]: t3 == 10 ? [14] : [15]
-[6]: t0 != null ? [7] : [15]
-[7]: t4 = t0.Value; [8]
-[8]: t4 is I1 ? [9] : [15]
-[9]: t5 = (I1)t4; [10]
-[10]: (Item1, Item2) t6 = t5; [11]
-[11]: t6.Item1 is int ? [12] : [15]
-[12]: t7 = (int)t6.Item1; [13]
-[13]: t7 == 10 ? [14] : [15]
-[14]: leaf <arm> `I1 (10, _) => true`
-[15]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp, expectedOutput: "FalseFalseTrueFalseFalseFalseFalseTrueFalseFalseFalseFalseFalse").VerifyDiagnostics();
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
         }
 
         [Fact]
-        public void PositionalPattern_06_UnionInstance_And_Value_Plus_Conjunction()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_15()
         {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-interface I2
-{
-    public void Deconstruct(out object x1, out object y1);
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-
-    public void Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-    void I2.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C6(object x) : C4(x), I2
-{
-    void I2.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { C4 (_, _) and I2 and (11, _) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is C4 ? [1] : [15]
-[1]: t1 = (C4)t0; [2]
-[2]: t1 is I2 ? [3] : [8]
-[3]: t2 = (I2)t1; [4]
-[4]: (Item1, Item2) t3 = t2; [5]
-[5]: t3.Item1 is int ? [6] : [33]
-[6]: t4 = (int)t3.Item1; [7]
-[7]: t4 == 11 ? [32] : [33]
-[8]: t5 = t1.Value; [9]
-[9]: t5 is I2 ? [10] : [33]
-[10]: t6 = (I2)t5; [11]
-[11]: (Item1, Item2) t7 = t6; [12]
-[12]: t7.Item1 is int ? [13] : [33]
-[13]: t8 = (int)t7.Item1; [14]
-[14]: t8 == 11 ? [32] : [33]
-[15]: t0 != null ? [16] : [33]
-[16]: t9 = t0.Value; [17]
-[17]: t9 is C4 ? [18] : [33]
-[18]: t10 = (C4)t9; [19]
-[19]: t10 is I2 ? [20] : [25]
-[20]: t11 = (I2)t10; [21]
-[21]: (Item1, Item2) t12 = t11; [22]
-[22]: t12.Item1 is int ? [23] : [33]
-[23]: t13 = (int)t12.Item1; [24]
-[24]: t13 == 11 ? [32] : [33]
-[25]: t14 = t10.Value; [26]
-[26]: t14 is I2 ? [27] : [33]
-[27]: t15 = (I2)t14; [28]
-[28]: (Item1, Item2) t16 = t15; [29]
-[29]: t16.Item1 is int ? [30] : [33]
-[30]: t17 = (int)t16.Item1; [31]
-[31]: t17 == 11 ? [32] : [33]
-[32]: leaf <arm> `C4 (_, _) and I2 and (11, _) => true`
-[33]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_07_UnionInstance_And_Value_Plus_Conjunction()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    public C1(C4 x) { _value = x; }
-    public C1(C5 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-    void I1.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C3(object x) : C1(x), I1
-{
-    void I1.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-interface I1
-{
-    public void Deconstruct(out object x1, out object y1);
-}
-
-interface I2
-{
-    public void Deconstruct(out object x1, out object y1);
-}
-
-[System.Runtime.CompilerServices.Union]
-class C4 : C1
-{
-    public C4(int x) : base(x) {}
-    public C4(C5 x) : base(x) {}
-    protected C4(object x) : base(x) {}
-}
-
-class C5(object x) : I2
-{
-    public object Value2 => x;
-    void I2.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C6(object x) : C4(x), I2
-{
-    void I2.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class C7(object x) : C6(x), I1
-{
-    void I1.Deconstruct(out object x1, out object y1) => throw null;
-}
-
-class Program
-{
-    static bool Test1(C1 u)
-    {
-        return u switch { I1 (10, _) and C4 and I2 and (_, 11) => true, _ => false };
-    }   
-
-    static bool Test2(C1 u)
-    {
-        return u switch { I1 (_, _) and (10, _) and C4 and I2 and (_, 11) => true, _ => false };
-    }   
-}
-";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseDll);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: (Item1, Item2) t2 = t1; [3]
-[3]: t2.Item1 is int ? [4] : [45]
-[4]: t3 = (int)t2.Item1; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: (Item1, Item2) t6 = t5; [11]
-[11]: t6.Item2 is int ? [12] : [45]
-[12]: t7 = (int)t6.Item2; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: (Item1, Item2) t10 = t9; [18]
-[18]: t10.Item2 is int ? [19] : [45]
-[19]: t11 = (int)t10.Item2; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: (Item1, Item2) t14 = t13; [26]
-[26]: t14.Item1 is int ? [27] : [45]
-[27]: t15 = (int)t14.Item1; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: (Item1, Item2) t18 = t17; [34]
-[34]: t18.Item2 is int ? [35] : [45]
-[35]: t19 = (int)t18.Item2; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: (Item1, Item2) t22 = t21; [41]
-[41]: t22.Item2 is int ? [42] : [45]
-[42]: t23 = (int)t22.Item2; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 (10, _) and C4 and I2 and (_, 11) => true`
-[45]: leaf <arm> `_ => false`
-",
-forLowering: true);
-
-            VerifyDecisionDagDump<SwitchExpressionSyntax>(comp,
-@"[0]: t0 is I1 ? [1] : [21]
-[1]: t1 = (I1)t0; [2]
-[2]: (Item1, Item2) t2 = t1; [3]
-[3]: t2.Item1 is int ? [4] : [45]
-[4]: t3 = (int)t2.Item1; [5]
-[5]: t3 == 10 ? [6] : [45]
-[6]: t1 is C4 ? [7] : [45]
-[7]: t4 = (C4)t1; [8]
-[8]: t4 is I2 ? [9] : [14]
-[9]: t5 = (I2)t4; [10]
-[10]: (Item1, Item2) t6 = t5; [11]
-[11]: t6.Item2 is int ? [12] : [45]
-[12]: t7 = (int)t6.Item2; [13]
-[13]: t7 == 11 ? [44] : [45]
-[14]: t8 = t4.Value; [15]
-[15]: t8 is I2 ? [16] : [45]
-[16]: t9 = (I2)t8; [17]
-[17]: (Item1, Item2) t10 = t9; [18]
-[18]: t10.Item2 is int ? [19] : [45]
-[19]: t11 = (int)t10.Item2; [20]
-[20]: t11 == 11 ? [44] : [45]
-[21]: t0 != null ? [22] : [45]
-[22]: t12 = t0.Value; [23]
-[23]: t12 is I1 ? [24] : [45]
-[24]: t13 = (I1)t12; [25]
-[25]: (Item1, Item2) t14 = t13; [26]
-[26]: t14.Item1 is int ? [27] : [45]
-[27]: t15 = (int)t14.Item1; [28]
-[28]: t15 == 10 ? [29] : [45]
-[29]: t13 is C4 ? [30] : [45]
-[30]: t16 = (C4)t13; [31]
-[31]: t16 is I2 ? [32] : [37]
-[32]: t17 = (I2)t16; [33]
-[33]: (Item1, Item2) t18 = t17; [34]
-[34]: t18.Item2 is int ? [35] : [45]
-[35]: t19 = (int)t18.Item2; [36]
-[36]: t19 == 11 ? [44] : [45]
-[37]: t20 = t16.Value; [38]
-[38]: t20 is I2 ? [39] : [45]
-[39]: t21 = (I2)t20; [40]
-[40]: (Item1, Item2) t22 = t21; [41]
-[41]: t22.Item2 is int ? [42] : [45]
-[42]: t23 = (int)t22.Item2; [43]
-[43]: t23 == 11 ? [44] : [45]
-[44]: leaf <arm> `I1 (_, _) and (10, _) and C4 and I2 and (_, 11) => true`
-[45]: leaf <arm> `_ => false`
-",
-index: 1, forLowering: true);
-
-            CompileAndVerify(comp).VerifyDiagnostics();
-        }
-
-        [Fact]
-        public void PositionalPattern_08_UnionInstance_And_Value_Plus_Designation()
-        {
-            var src = @"
-[System.Runtime.CompilerServices.Union]
-class C1
-{
-    protected readonly object _value;
-    public C1(int x) { _value = x; }
-    public C1(C2 x) { _value = x; }
-    protected C1(object x) { _value = x; }
-    public object Value => _value;
-}
-
-class C2(object x) : I1
-{
-    public object Value1 => x;
-    void I1.Deconstruct(out object x, out object y) => throw null;
-}
-
-class C3(object x) : C1(x), I1
-{
-    void I1.Deconstruct(out object x, out object y) => throw null;
-}
-
-interface I1
-{
-    public void Deconstruct(out object x, out object y);
-}
+            var source = @"
 
 class Program
 {
     static void Main()
     {
-        System.Console.Write(Test1(new C1(10)));
-        System.Console.Write(Test1(new C1(new C2(11))));
-        System.Console.Write(Test1(new C1(null)));
-        System.Console.Write(Test1(null));
-        System.Console.Write(Test1(new C3(10)));
-        System.Console.Write(Test1(new C3(new C2(11))));
-        System.Console.Write(Test1(new C3(null)));
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
     }
 
-    static bool Test1(C1 u)
+    static string Pick(Choice value)
     {
-        return u switch { I1 (_, _) i1 => true, _ => false };
-    }   
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }
 
-    static bool Test2(C1 u)
-    {
-        return u switch { I1 (var v1, _) => true, _ => false };
-    }   
-
-    static bool Test3(C1 u)
-    {
-        return u switch { I1 (_, _) and var i1 => true, _ => false };
-    }   
+        throw null;
+    }
 }
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource], options: TestOptions.ReleaseExe);
-            comp.VerifyDiagnostics(
-                // (43,37): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 (_, _) i1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(43, 37),
-                // (48,35): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 (var v1, _) => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "v1").WithLocation(48, 35),
-                // (53,45): error CS8780: A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.
-                //         return u switch { I1 (_, _) and var i1 => true, _ => false };
-                Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "i1").WithLocation(53, 45)
-                );
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_16()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case var c: return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_001e
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0025
+  IL_001c:  br.s       IL_002c
+  IL_001e:  ldloc.0
+  IL_001f:  callvirt   ""string A.Text.get""
+  IL_0024:  ret
+  IL_0025:  ldloc.1
+  IL_0026:  callvirt   ""string B.Message.get""
+  IL_002b:  ret
+  IL_002c:  ldstr      ""c""
+  IL_0031:  ret
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2, //c
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0031
+  IL_0023:  br.s       IL_003d
+  IL_0025:  br.s       IL_0027
+  IL_0027:  ldloc.0
+  IL_0028:  callvirt   ""string A.Text.get""
+  IL_002d:  stloc.s    V_5
+  IL_002f:  br.s       IL_0048
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ldloc.1
+  IL_0034:  callvirt   ""string B.Message.get""
+  IL_0039:  stloc.s    V_5
+  IL_003b:  br.s       IL_0048
+  IL_003d:  br.s       IL_003f
+  IL_003f:  ldstr      ""c""
+  IL_0044:  stloc.s    V_5
+  IL_0046:  br.s       IL_0048
+  IL_0048:  ldloc.s    V_5
+  IL_004a:  ret
+}
+");
         }
 
         [Fact]

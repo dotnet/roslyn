@@ -19,19 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(7,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    [System.Runtime.CompilerServices.InlineArray(4)]
-    public struct Buffer
-    {
-        private int _element0;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

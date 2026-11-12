@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -76,6 +77,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var switchSections = _switchArms.ToImmutableDictionary(kv => kv.Key, kv => kv.Value.ToImmutableAndFree());
                 _switchArms.Clear();
                 return (loweredDag, switchSections);
+            }
+
+            protected enum UnreachableDefaultLabelExceptionCreationStrategy
+            {
+                System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
+                System_Runtime_CompilerServices_SwitchExpressionException__ctor,
+                System_InvalidOperationException__ctor,
+            }
+
+            protected (UnreachableDefaultLabelExceptionCreationStrategy, Conversion) DetermineUnreachableDefaultLabelExceptionCreationStrategy(BoundExpression savedInputExpression)
+            {
+                UnreachableDefaultLabelExceptionCreationStrategy strategy;
+                Conversion inputToObjectConversion = Conversion.NoConversion;
+
+                var objectType = _factory.SpecialType(SpecialType.System_Object);
+
+                if (tryGetImplicitConversion(savedInputExpression, objectType) is Conversion c &&
+                    _factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject, isOptional: true) is MethodSymbol)
+                {
+                    Debug.Assert(c.IsImplicit);
+                    Debug.Assert(c.IsBoxing || c.IsReference || c.IsIdentity);
+                    strategy = UnreachableDefaultLabelExceptionCreationStrategy.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject;
+                    inputToObjectConversion = c;
+                }
+                else
+                {
+                    strategy = (_factory.WellKnownMember(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor, isOptional: true) is MethodSymbol) ?
+                                        UnreachableDefaultLabelExceptionCreationStrategy.System_Runtime_CompilerServices_SwitchExpressionException__ctor :
+                                        UnreachableDefaultLabelExceptionCreationStrategy.System_InvalidOperationException__ctor;
+                }
+
+                return (strategy, inputToObjectConversion);
+
+                Conversion? tryGetImplicitConversion(BoundExpression expression, TypeSymbol type)
+                {
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    Conversion c = _localRewriter._compilation.Conversions.ClassifyConversionFromExpression(expression, type, isChecked: false, ref discardedUseSiteInfo);
+                    if (c.IsImplicit)
+                    {
+                        return c;
+                    }
+
+                    return null;
+                }
             }
         }
     }

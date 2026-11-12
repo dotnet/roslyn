@@ -1474,6 +1474,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
+        ''' <summary>
+        ''' Gets the underlying <see cref="Conversion"/> information from this <see cref="ICoalesceOperation"/>. This
+        ''' conversion is applied to <see cref="ICoalesceOperation.Value"/> when it is not null.
+        ''' </summary>
+        ''' <remarks>
+        ''' This coalesce operation must have been created from Visual Basic code.
+        ''' </remarks>
+        <Extension>
+        Public Function GetValueConversion(coalesceExpression As ICoalesceOperation) As Conversion
+            If coalesceExpression Is Nothing Then
+                Throw New ArgumentNullException(NameOf(coalesceExpression))
+            End If
+
+            If coalesceExpression.Language = LanguageNames.VisualBasic Then
+                Return DirectCast(DirectCast(coalesceExpression, CoalesceOperation).ValueConversionConvertible, Conversion)
+            Else
+                Throw New ArgumentException(String.Format(VBResources.ICoalesceOperationIsNotVisualBasicCoalesceOperation,
+                                                          NameOf(coalesceExpression)),
+                                            NameOf(coalesceExpression))
+            End If
+        End Function
+
         <Extension>
         Public Function GetSpeculativeConversion(semanticModel As SemanticModel, position As Integer, expression As ExpressionSyntax, bindingOption As SpeculativeBindingOption) As Conversion
             Dim vbmodel = TryCast(semanticModel, VBSemanticModel)

@@ -3,12 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 
@@ -26,6 +28,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
     public CpsDiagnosticItemSource(
         IThreadingContext threadingContext,
         Workspace workspace,
+        ImmutableArray<IAnalyzerAssemblyRedirector> analyzerAssemblyRedirectors,
         ProjectId projectId,
         IVsHierarchyItem item,
         IAnalyzersCommandHandler commandHandler,
@@ -35,8 +38,16 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
         _item = item;
 
         // CPS (VS16.7+) supplies the analyzer assembly's full file path as the hierarchy item's
-        // canonical name, which we use directly to look up the corresponding AnalyzerReference.
-        _analyzerFilePath = _item.CanonicalName;
+        // canonical name. Apply the same redirection used when adding the analyzer to the workspace before
+        // looking up the corresponding AnalyzerReference.
+        var analyzerFilePath = _item.CanonicalName;
+        if (analyzerFilePath is not null)
+        {
+            analyzerFilePath = AnalyzerAssemblyRedirectorUtilities.TryRedirectAnalyzerAssembly(
+                analyzerFilePath, analyzerAssemblyRedirectors, logProjectName: null) ?? analyzerFilePath;
+        }
+
+        _analyzerFilePath = analyzerFilePath;
 
         this.AnalyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
         if (this.AnalyzerReference == null)

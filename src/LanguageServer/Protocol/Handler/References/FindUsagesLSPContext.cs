@@ -74,6 +74,8 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
     // Unique identifier given to each definition and reference.
     private int _id = 0;
 
+    internal bool HasReportedReferences { get; private set; }
+
     public FindUsagesLSPContext(
         IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> progress,
         Workspace workspace,
@@ -222,7 +224,7 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
             DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
             DefinitionIcon = new ImageElement(definitionGlyph.ToLSPImageId()),
             Location = location,
-            DisplayPath = location?.DocumentUri.GetRequiredParsedUri().LocalPath,
+            DisplayPath = location?.DocumentUri.GetRequiredParsedUri().FsPath,
             Id = id,
             Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : [],
             ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
@@ -374,6 +376,9 @@ internal sealed class FindUsagesLSPContext : FindUsagesContext
 
     private async ValueTask ReportReferencesAsync(ImmutableSegmentedList<SumType<VSInternalReferenceItem, LSP.Location>> referencesToReport, CancellationToken cancellationToken)
     {
+        if (!referencesToReport.IsEmpty)
+            HasReportedReferences = true;
+
         // We can report outside of the lock here since _progress is thread-safe.
         _progress.Report([.. referencesToReport]);
     }

@@ -8,7 +8,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
 /// <summary>
-/// Parameters for the textDocument/_vs_dipatchExtensionMessage request.
+/// Parameters for the textDocument/_vs_dispatchExtensionMessage request.
 /// </summary>
 /// <param name="MessageName">Name of the extension message to be invoked.</param>
 /// <param name="Message">Json message to be passed to an extension message handler.</param>

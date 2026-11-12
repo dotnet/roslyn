@@ -135,7 +135,7 @@ internal sealed class CompleteStatementCommandHandler(
         {
             if (!speculative)
             {
-                var edit = args.SubjectBuffer.CreateEdit();
+                using var edit = args.SubjectBuffer.CreateEdit();
                 edit.Insert(caret, "();");
                 edit.Apply();
             }

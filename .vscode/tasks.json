@@ -54,6 +54,20 @@
         "group": "build"
     },
     {
+        "label": "build Compilers.slnf with analyzers",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=true",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Compilers.slnf"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
         "label": "build Roslyn.slnx",
         "command": "dotnet",
         "type": "shell",

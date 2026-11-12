@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -79,7 +79,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
 
         // Assert
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
         var diagnostic = Assert.Single(csharpDocument.Diagnostics);
         Assert.Same(expectedDiagnostic, diagnostic);
     }
@@ -99,7 +99,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -131,7 +131,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -163,7 +163,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -201,7 +201,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -234,7 +234,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -281,7 +281,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -328,7 +328,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -376,7 +376,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -423,7 +423,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -466,7 +466,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();
@@ -506,7 +506,7 @@ public class DefaultRazorCSharpLoweringPhaseTest : RazorProjectEngineTestBase
 
         // Act
         codeDocument = ProjectEngine.ExecutePhase<DefaultRazorCSharpLoweringPhase>(codeDocument);
-        var result = codeDocument.GetRequiredCSharpDocument();
+        var result = codeDocument.GetRequiredImplCSharpDocument();
 
         // Assert
         var csharp = result.Text.ToString();

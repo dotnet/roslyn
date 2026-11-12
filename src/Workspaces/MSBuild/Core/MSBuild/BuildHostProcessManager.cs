@@ -29,6 +29,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     private readonly ILogger? _logger;
     private readonly IBinLogPathProvider? _binaryLogPathProvider;
     private readonly int? _maxNodeCount;
+    private readonly Action<Process>? _beforeKillHungBuildHostProcess;
 
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = [];
@@ -43,7 +44,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         ImmutableDictionary<string, string>? globalMSBuildProperties = null,
         IBinLogPathProvider? binaryLogPathProvider = null,
         int? maxNodeCount = null,
-        ILoggerFactory? loggerFactory = null)
+        ILoggerFactory? loggerFactory = null,
+        Action<Process>? beforeKillHungBuildHostProcess = null)
     {
         _knownCommandLineParserLanguages = knownCommandLineParserLanguages;
         _globalMSBuildProperties = globalMSBuildProperties ?? ImmutableDictionary<string, string>.Empty;
@@ -51,6 +53,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         _loggerFactory = loggerFactory;
         _logger = loggerFactory?.CreateLogger<BuildHostProcessManager>();
         _maxNodeCount = maxNodeCount;
+        _beforeKillHungBuildHostProcess = beforeKillHungBuildHostProcess;
     }
 
     /// <summary>
@@ -121,7 +124,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             var process = Process.Start(processStartInfo);
             Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
 
-            var buildHostProcess = new BuildHostProcess(process, _loggerFactory);
+            var buildHostProcess = new BuildHostProcess(process, _loggerFactory, _beforeKillHungBuildHostProcess);
 
             try
             {
@@ -252,6 +255,20 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         {
             FileName = dotnetPath ?? DotnetExecutable,
         };
+
+        if (dotnetPath is not null)
+        {
+            // Clear architecture-specific roots so they cannot override the selected installation.
+            foreach (var key in processStartInfo.Environment.Keys
+                .Where(static key => key.StartsWith("DOTNET_ROOT", Environment.EnvironmentVariableComparison))
+                .ToArray())
+            {
+                processStartInfo.Environment.Remove(key);
+            }
+
+            processStartInfo.Environment["DOTNET_ROOT"] = Path.GetDirectoryName(dotnetPath);
+            processStartInfo.Environment["DOTNET_HOST_PATH"] = dotnetPath;
+        }
 
         // We need to roll forward to the latest runtime, since the project may be using an SDK (or an SDK required runtime) newer than we ourselves built with.
         // We set the environment variable since --roll-forward LatestMajor doesn't roll forward to prerelease SDKs otherwise.
@@ -436,6 +453,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     {
         private readonly ILogger? _logger;
         private readonly Process _process;
+        private readonly Action<Process>? _beforeKillHungBuildHostProcess;
         private RpcClient? _rpcClient;
         private RemoteBuildHost? _buildHost;
 
@@ -447,10 +465,11 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
         private int _disposed = 0;
 
-        public BuildHostProcess(Process process, ILoggerFactory? loggerFactory)
+        public BuildHostProcess(Process process, ILoggerFactory? loggerFactory, Action<Process>? beforeKillHungBuildHostProcess)
         {
             _logger = loggerFactory?.CreateLogger($"BuildHost PID {process.Id}");
             _process = process;
+            _beforeKillHungBuildHostProcess = beforeKillHungBuildHostProcess;
 
             _process.EnableRaisingEvents = true;
             _process.Exited += Process_Exited;
@@ -539,11 +558,14 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             {
                 try
                 {
-                    _process.WaitForExit(milliseconds: 500);
+                    _process.WaitForExit(milliseconds: 5_000);
 
                     if (!_process.HasExited)
                     {
                         LogProcessFailure();
+
+                        _beforeKillHungBuildHostProcess?.Invoke(_process);
+
                         _process.Kill();
                     }
                 }

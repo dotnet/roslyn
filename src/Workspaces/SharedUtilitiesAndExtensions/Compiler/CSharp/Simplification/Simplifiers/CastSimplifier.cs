@@ -350,19 +350,34 @@ internal static class CastSimplifier
         if (rewrittenSemanticModel is null || rewrittenExpression is null)
             return false;
 
-        var (rewrittenConvertedType, rewrittenConversion) = GetRewrittenInfo(
-            castNode, rewrittenExpression,
-            originalSemanticModel, rewrittenSemanticModel,
-            originalConversion, originalConvertedType, cancellationToken);
-        if (rewrittenConvertedType is null || rewrittenConvertedType.TypeKind == TypeKind.Error || !rewrittenConversion.Exists)
+        ITypeSymbol? rewrittenConvertedType;
+        Conversion rewrittenConversion = default;
+
+        if (castNode.WalkUpParentheses().Parent is InterpolationSyntax)
+        {
+            // Workaround https://github.com/dotnet/roslyn/issues/56934
+            // Compiler does not give a conversion inside an interpolation. However, all values in the interpolation
+            // holes are converted to object.
+            //
+            // Note: this may need to be revisited with improved interpolated strings (as they could take
+            // strongly typed args and could avoid the object boxing).
+            rewrittenConvertedType = originalConversion.IsIdentity ? originalConvertedType : originalSemanticModel.Compilation.ObjectType;
+        }
+        else
+        {
+            rewrittenConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).ConvertedType;
+            rewrittenConversion = rewrittenSemanticModel.GetConversion(rewrittenExpression, cancellationToken);
+
+            if (rewrittenConvertedType is null || !rewrittenConversion.Exists)
+                return false;
+        }
+
+        if (rewrittenConvertedType.TypeKind == TypeKind.Error)
             return false;
 
         // If removing the conversion caused us to now become an explicit conversion (a conversion that can cause
         // lossyness), then we must block as that's disallowed by the language.
-        //
-        // Note: compiler API is slightly odd here as they return such an 'IsExplicit+Exists' conversion when casting
-        // the expression inside a string interpolation.  So we ignore that case here
-        if (rewrittenConversion.IsExplicit && castNode.WalkUpParentheses().Parent is not InterpolationSyntax)
+        if (rewrittenConversion.IsExplicit)
             return false;
 
         if (CastRemovalWouldCauseUnintendedReferenceComparisonWarning(rewrittenExpression, rewrittenSemanticModel, cancellationToken))
@@ -390,6 +405,21 @@ internal static class CastSimplifier
         // object o2 = (IFormattable)$"";
         if (originalConversion.IsInterpolatedString && !rewrittenConversion.IsInterpolatedString)
             return false;
+
+#if !OLDER_ROSLYN
+        // Union conversions invoke a constructor or factory to wrap the case value.  For example, in
+        // `object o = (Union)caseValue`, removing the cast stores the case value instead of the union,
+        // even though the final converted type is still object.  Only remove the cast if the same
+        // union creation member will still be invoked by the implicit conversion.
+        if (originalConversion.IsUnion)
+        {
+            if (!rewrittenConversion.IsUnion)
+                return false;
+
+            if (!Equals(originalConversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                return false;
+        }
+#endif
 
         // If we have:
         //
@@ -1654,30 +1684,6 @@ internal static class CastSimplifier
         }
 
         return true;
-    }
-
-    private static (ITypeSymbol? rewrittenConvertedType, Conversion rewrittenConversion) GetRewrittenInfo(
-        ExpressionSyntax castNode, ExpressionSyntax rewrittenExpression,
-        SemanticModel originalSemanticModel, SemanticModel rewrittenSemanticModel,
-        Conversion originalConversion, ITypeSymbol originalConvertedType,
-        CancellationToken cancellationToken)
-    {
-        if (castNode.WalkUpParentheses().Parent is InterpolationSyntax)
-        {
-            // Workaround https://github.com/dotnet/roslyn/issues/56934
-            // Compiler does not give a conversion inside an interpolation. However, all values in the interpolation
-            // holes are converted to object.
-            //
-            // Note: this may need to be revisited with improved interpolated strings (as they could take
-            // strongly typed args and could avoid the object boxing).
-            var convertedType = originalConversion.IsIdentity ? originalConvertedType : originalSemanticModel.Compilation.ObjectType;
-            return (convertedType, default);
-        }
-
-        var rewrittenConvertedType = rewrittenSemanticModel.GetTypeInfo(rewrittenExpression, cancellationToken).ConvertedType;
-        var rewrittenConversion = rewrittenSemanticModel.GetConversion(rewrittenExpression, cancellationToken);
-
-        return (rewrittenConvertedType, rewrittenConversion);
     }
 
     private static (SemanticModel? rewrittenSemanticModel, ExpressionSyntax? rewrittenExpression) GetSemanticModelWithCastRemoved(

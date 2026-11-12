@@ -3,6 +3,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.Razor.ProjectSystem;
@@ -33,7 +34,7 @@ internal sealed partial class RenameProjectTreeHandler
         {
             Marshal.ThrowExceptionForHR(dialogFactory.CreateInstance(out var dialog2));
 
-            Assumes.NotNull(dialog2);
+            Contract.ThrowIfNull(dialog2);
 
             var dialog3 = (IVsThreadedWaitDialog3)dialog2;
 

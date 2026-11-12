@@ -26,8 +26,7 @@ public class VisualBasicScriptTestBase : ScriptTestBase
         var buildPaths = new BuildPaths(
             clientDir: AppContext.BaseDirectory,
             workingDir: workingDirectory ?? AppContext.BaseDirectory,
-            sdkDir: RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory(),
-            tempDir: Path.GetTempPath());
+            sdkDir: RuntimeMetadataReferenceResolver.GetDesktopFrameworkDirectory());
 
         var compiler = new VisualBasicInteractiveCompiler(
             responseFile,

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
-  <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="GeneratePkgDef">
+  <Target Name="GeneratePkgDefServiceRegistrations" BeforeTargets="_InitializeBrokeredServiceEntries">
     <ItemGroup>
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64')" SubFolder="$(ServiceHubCoreSubPath)" />
       <PkgDefBrokeredService Include="@(ServiceHubService->'%(Identity)Core64S')" SubFolder="$(ServiceHubCoreSubPath)" />
@@ -20,10 +20,11 @@
     <IncludeVSIXItemsDependsOn>$(IncludeVSIXItemsDependsOn);RemoveMergedRoslynVsixSourceItems</IncludeVSIXItemsDependsOn>
   </PropertyGroup>
 
-  <Target Name="GenerateRazorClientEnabledPkg">
+  <Target Name="GenerateRazorClientEnabledPkg" DependsOnTargets="_IncludeGeneratedRegistrationFiles">
     <ItemGroup>
+      <_ExtraRegistrationFile Include="@(Content)" Condition="'%(Content.Extension)' == '.pkgdef' and '%(Content.IncludeInVSIX)' == 'true'" />
       <_RazorClientEnabledPkgLine Include="$(TargetName).pkgdef" />
-      <_RazorClientEnabledPkgLine Include="$(TargetName).Custom.pkgdef" />
+      <_RazorClientEnabledPkgLine Include="@(_GeneratedRegistrationFile->'%(Filename)%(Extension)');@(_ExtraRegistrationFile->'%(Filename)%(Extension)')" />
     </ItemGroup>
     <PropertyGroup>
       <_RazorClientEnabledPkgPath>$(IntermediateOutputPath)$(TargetName).clientenabledpkg</_RazorClientEnabledPkgPath>

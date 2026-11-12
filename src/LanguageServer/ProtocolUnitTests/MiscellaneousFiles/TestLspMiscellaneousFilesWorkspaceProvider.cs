@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -29,14 +29,15 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
 
     private class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
     {
-        public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo trackedDocumentInfo)
+        public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
         {
+            if (trackedDocumentInfo is null)
+                return new(result: null);
+
             var documentFilePath = documentUri.GetDocumentFilePathFromUri();
-
-            var sourceTextLoader = new SourceTextLoader(trackedDocumentInfo.SourceText, documentFilePath);
-
+            var sourceTextLoader = new SourceTextLoader(trackedDocumentInfo.Value.SourceText, documentFilePath);
             var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), trackedDocumentInfo.SourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
+                this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), trackedDocumentInfo.Value.SourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
             OnProjectAdded(projectInfo);
 
             var id = projectInfo.Documents.Single().Id;
@@ -64,4 +65,3 @@ internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILsp
         }
     }
 }
-

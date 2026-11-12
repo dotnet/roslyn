@@ -33,15 +33,6 @@ someDate.Day
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(5,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private DateTime someDate = DateTime.Now;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

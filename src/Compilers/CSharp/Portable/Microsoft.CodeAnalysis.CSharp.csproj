@@ -35,6 +35,7 @@
     <None Include="BoundTree\BoundNodes.xsd" />
     <None Include="Generated\CSharp.Generated.g4" />
     <AdditionalFiles Include="Syntax\Syntax.xml" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\..\Core\Portable\BannedSymbols.CompilerLibraries.txt" />
     <None Include="Syntax\Syntax.xsd" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <None Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
@@ -64,6 +65,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CSharp15.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CSharp16.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests" />
@@ -84,6 +86,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="CompilerBenchmarks" />
+    <InternalsVisibleTo Include="Benchmarks" />
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities" />

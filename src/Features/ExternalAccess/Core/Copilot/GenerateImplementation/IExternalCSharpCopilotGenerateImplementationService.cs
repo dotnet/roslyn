@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 
 internal interface IExternalCSharpCopilotGenerateImplementationService
 {
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken);
+
     Task<ImmutableDictionary<SyntaxNode, ImplementationDetailsWrapper>> ImplementNotImplementedExceptionsAsync(
         Document document,
         ImmutableDictionary<SyntaxNode, ImmutableArray<ReferencedSymbol>> methodOrProperties,

@@ -132,9 +132,9 @@
   <data name="Client_failed_to_attach_the_debugger" xml:space="preserve">
     <value>Client failed to attach the debugger</value>
   </data>
-  <data name="Completed_reload_of_all_projects_in_0" xml:space="preserve">
-    <value>Completed (re)load of all projects in {0}</value>
-    <comment>The placeholder is a time duration like 00:15</comment>
+  <data name="Completed_reload_of_0_projects_in_1" xml:space="preserve">
+    <value>Completed (re)load of {0} project(s) in {1}</value>
+    <comment>The second placeholder is a time duration like 00:15</comment>
   </data>
   <data name="Debugging_tests" xml:space="preserve">
     <value>Debugging tests...</value>

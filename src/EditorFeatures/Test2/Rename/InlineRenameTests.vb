@@ -2473,6 +2473,61 @@ class [|C|]
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84906")>
+        Public Async Function RenameTypeContainingSourceGeneratedPartialProperty(host As RenameTestHost) As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferencesNet9="true" LanguageVersion="preview">
+                            <Document>
+                                using System.Text.RegularExpressions;
+
+                                partial class [|$$MyClass|]
+                                {
+                                    [GeneratedRegex(@"\w")]
+                                    private static partial Regex HelperRegex { get; }
+                                }
+                            </Document>
+                            <DocumentFromSourceGenerator>
+                                partial class MyClass
+                                {
+                                    private static partial global::System.Text.RegularExpressions.Regex HelperRegex =>
+                                        global::System.Text.RegularExpressions.Generated.HelperRegex_0.Instance;
+                                }
+
+                                namespace System.Text.RegularExpressions.Generated
+                                {
+                                    file sealed class HelperRegex_0 : Regex
+                                    {
+                                        internal static readonly HelperRegex_0 Instance = new();
+                                    }
+                                }
+                            </DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>, host)
+
+                Dim session = StartSession(workspace)
+                Dim caretPosition = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+
+                Using viewModel = New RenameFlyoutViewModel(
+                        session,
+                        New TextSpan(caretPosition, "MyClass".Length),
+                        registerOleComponent:=False,
+                        workspace.GetService(Of IGlobalOptionService)(),
+                        workspace.GetService(Of IThreadingContext)(),
+                        workspace.GetService(Of IAsynchronousOperationListenerProvider)(),
+                        smartRenameSessionFactory:=Nothing)
+
+                    session.ApplyReplacementText("NewClass", propagateEditImmediately:=True)
+                    Await WaitForRename(workspace)
+
+                    Assert.Equal(RenameFlyoutViewModel.Severity.None, viewModel.StatusSeverity)
+                    session.Cancel()
+                End Using
+            End Using
+        End Function
+
+        <WpfTheory>
+        <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithRazorGeneratedFile(host As RenameTestHost) As Task
             Dim generatedCode = "
 public class GeneratedClass

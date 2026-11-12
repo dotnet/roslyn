@@ -1,0 +1,3 @@
+﻿[0000] OpenElement("div")
+[0001] OpenComponent<global::Test.MyComponent>()
+[0002] AddComponentParameter(nameof(global::Test.MyComponent. Name ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.String>( person.Name ))

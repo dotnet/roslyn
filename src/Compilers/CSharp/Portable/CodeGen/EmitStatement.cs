@@ -551,7 +551,7 @@ oneMoreTime:
 
                             EmitCondBranch(receiver, ref fallThrough, sense: false);
                             // receiver is a reference type, and we only intend to read it
-                            EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                            EmitReceiverRef(receiver, AddressKind.ReadOnly, used: true);
                             EmitCondBranch(ca.WhenNotNull, ref dest, sense: true);
 
                             if (fallThrough != null)
@@ -565,7 +565,7 @@ oneMoreTime:
                             // gotoif(!receiver.Access) labDest
                             EmitCondBranch(receiver, ref dest, sense: false);
                             // receiver is a reference type, and we only intend to read it
-                            EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                            EmitReceiverRef(receiver, AddressKind.ReadOnly, used: true);
                             condition = ca.WhenNotNull;
                             goto oneMoreTime;
                         }
@@ -880,7 +880,7 @@ oneMoreTime:
             {
                 // NOTE: passing "ReadOnlyStrict" here.
                 //       we should never return an address of a copy
-                var unexpectedTemp = this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                var unexpectedTemp = this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable, used: true);
                 Debug.Assert(unexpectedTemp == null, "ref-returning a temp?");
             }
 
@@ -1192,7 +1192,7 @@ oneMoreTime:
                         var temp = AllocateTemp(exceptionSource.Type, exceptionSource.Syntax);
                         _builder.EmitLocalStore(temp);
 
-                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
+                        var receiverTemp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable, used: true);
                         Debug.Assert(receiverTemp == null);
 
                         _builder.EmitLocalLoad(temp);

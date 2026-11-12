@@ -1,0 +1,3 @@
+﻿[0000] OpenElement("img")
+[0001] AddAttribute("srcset", Assets[@"a.gif"])
+[0002] AddAttribute("src", Assets[@"b.gif"])

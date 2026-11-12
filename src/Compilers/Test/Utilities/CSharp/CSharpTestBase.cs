@@ -3355,7 +3355,7 @@ namespace System
                 case SwitchStatementSyntax n:
                     {
                         var b = (BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded);
-                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp, out _) : b.ReachabilityDecisionDag;
                     }
                     break;
 

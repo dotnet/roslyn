@@ -50,8 +50,8 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
 
         _ = await document.Project.GetCompilationAsync(DisposalToken);
 
-        var generatedDocument = await document.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(document, DisposalToken);
-        Assert.NotNull(generatedDocument);
+        var generatedDocuments = await document.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(document, DisposalToken);
+        Assert.NotNull(generatedDocuments);
     }
 
     [Theory]
@@ -77,9 +77,9 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
 
         _ = await document.Project.GetCompilationAsync(DisposalToken);
 
-        var generatedDocument = await document.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(document, DisposalToken);
-        Assert.NotNull(generatedDocument);
-        Assert.Equal($"{s_hintNamePrefix}/File1_razor.g.cs", generatedDocument.HintName);
+        var generatedDocuments = await document.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(document, DisposalToken);
+        Assert.NotNull(generatedDocuments);
+        Assert.Equal($"{s_hintNamePrefix}/File1_razor.g.cs", generatedDocuments.Value.ImplDoc.HintName);
     }
 
     [Theory]
@@ -102,13 +102,15 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
         var doc1 = solution.GetAdditionalDocument(doc1Id).AssumeNotNull();
         var doc2 = solution.GetAdditionalDocument(doc2Id).AssumeNotNull();
 
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc1, DisposalToken);
-        Assert.NotNull(generatedDocument);
-        Assert.Equal($"Pages/Index_razor.g.cs", generatedDocument.HintName);
+        var generatedDocuments = await doc1.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(doc1, DisposalToken);
+        Assert.NotNull(generatedDocuments);
+        Assert.Equal($"Pages/Index_razor.g.cs", generatedDocuments.Value.ImplDoc.HintName);
+        Assert.Equal($"Pages/Index_razor.decl.g.cs", generatedDocuments.Value.DeclDoc.AssumeNotNull().HintName);
 
-        generatedDocument = await doc2.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc2, DisposalToken);
-        Assert.NotNull(generatedDocument);
-        Assert.Equal($"Components/Index_razor.g.cs", generatedDocument.HintName);
+        generatedDocuments = await doc2.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(doc2, DisposalToken);
+        Assert.NotNull(generatedDocuments);
+        Assert.Equal($"Components/Index_razor.g.cs", generatedDocuments.Value.ImplDoc.HintName);
+        Assert.Equal($"Components/Index_razor.decl.g.cs", generatedDocuments.Value.DeclDoc.AssumeNotNull().HintName);
     }
 
     [Theory]
@@ -134,13 +136,15 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
         var doc1 = solution.GetAdditionalDocument(doc1Id).AssumeNotNull();
         var doc2 = solution.GetAdditionalDocument(doc2Id).AssumeNotNull();
 
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc1, DisposalToken);
-        Assert.NotNull(generatedDocument);
-        Assert.Equal($"{s_hintNamePrefix}/Pages/Index_razor.g.cs", generatedDocument.HintName);
+        var generatedDocuments = await doc1.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(doc1, DisposalToken);
+        Assert.NotNull(generatedDocuments);
+        Assert.Equal($"{s_hintNamePrefix}/Pages/Index_razor.g.cs", generatedDocuments.Value.ImplDoc.HintName);
+        Assert.Equal($"{s_hintNamePrefix}/Pages/Index_razor.decl.g.cs", generatedDocuments.Value.DeclDoc.AssumeNotNull().HintName);
 
-        generatedDocument = await doc2.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc2, DisposalToken);
-        Assert.NotNull(generatedDocument);
-        Assert.Equal($"{s_hintNamePrefix}/Components/Index_razor.g.cs", generatedDocument.HintName);
+        generatedDocuments = await doc2.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(doc2, DisposalToken);
+        Assert.NotNull(generatedDocuments);
+        Assert.Equal($"{s_hintNamePrefix}/Components/Index_razor.g.cs", generatedDocuments.Value.ImplDoc.HintName);
+        Assert.Equal($"{s_hintNamePrefix}/Components/Index_razor.decl.g.cs", generatedDocuments.Value.DeclDoc.AssumeNotNull().HintName);
     }
 
     [Theory]
@@ -166,12 +170,12 @@ public class ComputedTargetPathTest(ITestOutputHelper testOutputHelper) : Cohost
         var doc1 = solution.GetAdditionalDocument(doc1Id).AssumeNotNull();
         var doc2 = solution.GetAdditionalDocument(doc2Id).AssumeNotNull();
 
-        var generatedDocument = await doc1.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc1, DisposalToken);
-        Assert.NotNull(generatedDocument);
-        Assert.Equal($"{s_hintNamePrefix}/Pages/Index_razor.g.cs", generatedDocument.HintName);
+        var generatedDocuments = await doc1.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(doc1, DisposalToken);
+        Assert.NotNull(generatedDocuments);
+        Assert.Equal($"{s_hintNamePrefix}/Pages/Index_razor.g.cs", generatedDocuments.Value.ImplDoc.HintName);
 
-        generatedDocument = await doc2.Project.TryGetSourceGeneratedDocumentForRazorDocumentAsync(doc2, DisposalToken);
-        Assert.NotNull(generatedDocument);
-        Assert.Equal($"{s_hintNamePrefix}/Pages_Index_razor.g.cs", generatedDocument.HintName);
+        generatedDocuments = await doc2.Project.TryGetSourceGeneratedDocumentsForRazorDocumentAsync(doc2, DisposalToken);
+        Assert.NotNull(generatedDocuments);
+        Assert.Equal($"{s_hintNamePrefix}/Pages_Index_razor.g.cs", generatedDocuments.Value.ImplDoc.HintName);
     }
 }

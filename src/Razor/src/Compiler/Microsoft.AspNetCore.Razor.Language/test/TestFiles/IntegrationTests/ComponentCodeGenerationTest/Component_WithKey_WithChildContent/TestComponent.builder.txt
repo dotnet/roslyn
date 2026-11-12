@@ -1,0 +1,5 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter("SomeProp", "val")
+[0002] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddMarkupContent(3, "\r\n Some "); __builder2.AddMarkupContent(4, "<el>further</el> content\r\n"); } ))
+[0003] AddMarkupContent("\r\n Some ")
+[0004] AddMarkupContent("<el>further</el> content\r\n")

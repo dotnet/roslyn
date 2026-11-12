@@ -9,7 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -376,6 +375,44 @@ build_property.Property2 = def456
             Assert.True(File.Exists(fileName));
             Assert.True(configTask.WriteMSBuildEditorConfig());
             Assert.Equal(expectedContents, File.ReadAllText(fileName));
+        }
+
+        [Fact]
+        public void FileNameIsResolvedAgainstProjectDirectory()
+        {
+            string projectDirectory = Path.Combine(TempRoot.Root, nameof(FileNameIsResolvedAgainstProjectDirectory));
+            Directory.CreateDirectory(projectDirectory);
+
+            string relativeFileName = nameof(FileNameIsResolvedAgainstProjectDirectory) + ".editorconfig";
+            string currentDirectoryTarget = Path.Combine(Directory.GetCurrentDirectory(), relativeFileName);
+            File.Delete(currentDirectoryTarget);
+
+            TaskEnvironment taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory);
+            GenerateMSBuildEditorConfig configTask = new GenerateMSBuildEditorConfig()
+            {
+                TaskEnvironment = taskEnvironment,
+                PropertyItems = new ITaskItem[]
+                {
+                    new TaskItem("Property1", new Dictionary<string, string> { { "Value", "abc123" } }),
+                },
+                FileName = new TaskItem(relativeFileName),
+            };
+            Assert.True(configTask.Execute());
+
+            string projectDirectoryTarget = Path.Combine(taskEnvironment.ProjectDirectory.Value, relativeFileName);
+
+            try
+            {
+                // The file must be written relative to the project directory, not the process current directory.
+                Assert.True(File.Exists(projectDirectoryTarget));
+                Assert.False(File.Exists(currentDirectoryTarget));
+                Assert.Equal(configTask.ConfigFileContents, File.ReadAllText(projectDirectoryTarget));
+            }
+            finally
+            {
+                File.Delete(projectDirectoryTarget);
+                File.Delete(currentDirectoryTarget);
+            }
         }
     }
 }

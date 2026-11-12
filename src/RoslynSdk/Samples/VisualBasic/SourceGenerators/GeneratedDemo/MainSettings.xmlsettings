@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Settings name="Main">
+  <Setting name="FirstRun" type="Boolean">False</Setting>
+  <Setting name="CacheSize" type="Integer">1234</Setting>
+  <Setting name="TwitchPhrase" type="String">Hello World!</Setting>
+</Settings>

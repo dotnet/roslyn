@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.cshtml(2,11): Warning RZ10029: The '~' path prefix in 'src' cannot be expanded because the attribute value contains mixed content. Use '@(Assets["..."])' for dynamic paths.

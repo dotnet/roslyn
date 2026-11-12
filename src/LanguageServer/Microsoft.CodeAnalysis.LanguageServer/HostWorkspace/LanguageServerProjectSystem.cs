@@ -4,14 +4,19 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.NET.ProjectData;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -44,6 +49,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     private readonly ILogger _logger;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
     private readonly ProjectSystemProjectFactory _hostProjectFactory;
+    private readonly ImmutableHashSet<string> _supportedLanguages;
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
 
     public LanguageServerProjectSystem(
@@ -68,6 +74,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         var workspace = _hostProjectFactory.Workspace;
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace), workspace.Services.GetService<IFileBasedProgramService>());
+        _supportedLanguages = workspace.Services.SolutionServices.GetSupportedLanguages<ICommandLineParserService>().ToImmutableHashSet();
     }
 
     /// <summary>
@@ -88,6 +95,10 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
         // If no solution is open, restore each project individually.
         if (solutionPath is null)
+            return projectsThatNeedRestore;
+
+        // If there's only one project to restore, then there's no advantage to restoring the entire solution
+        if (projectsThatNeedRestore.Length == 1)
             return projectsThatNeedRestore;
 
         // Re-read the solution's current project set so a solution-level restore only collapses projects that are
@@ -126,23 +137,45 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         return [solutionPath, .. projectsNotInSolution];
     }
 
+    private string NormalizeDriveLetter(string filePath)
+    {
+        // VS Code likes to have drive letters lowercase, so let's match what the rest of the system will expect;
+        // if we don't do this, when we shell out to things like dotnet restore, we'll pass lowercase drive letters,
+        // and this tends to result in various part of NuGet writing out cache files with different casing
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && filePath.Length > 3)
+        {
+            if (char.IsLower(filePath[0]) && filePath[1] == ':' && filePath[2] == Path.DirectorySeparatorChar)
+                return char.ToUpper(filePath[0]) + filePath.Substring(1);
+        }
+
+        return filePath;
+    }
+
     public async Task OpenSolutionAsync(string solutionFilePath, IProgress<LSP.WorkDoneProgress>? progressReporter = null)
     {
+        solutionFilePath = NormalizeDriveLetter(solutionFilePath);
+
         _logger.LogInformation(string.Format(LanguageServerResources.Loading_0, solutionFilePath));
         _hostProjectFactory.SolutionPath = solutionFilePath;
 
-        var (_, projects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
+        var (_, allProjects) = await SolutionFileReader.ReadSolutionFileAsync(solutionFilePath, DiagnosticReportingMode.Throw, CancellationToken.None);
+        var supportedProjects = allProjects.WhereAsArray(p => IsSupportedProjectLoggingIfNot(p.ProjectPath));
 
-        await using var progressTracker = progressReporter != null && projects.Length > 0
-            ? new WorkDoneProgressTracker(progressReporter, projects.Length)
+        await using var progressTracker = progressReporter != null && supportedProjects.Length > 0
+            ? new WorkDoneProgressTracker(progressReporter, supportedProjects.Length)
             : null;
 
-        foreach (var (path, guid) in projects)
+        var loadedProjects = ImmutableArray.CreateBuilder<LoadedProject>(supportedProjects.Length);
+        foreach (var (path, guid) in supportedProjects)
         {
-            await BeginLoadingProjectAsync(path, guid, progressTracker);
+            var loadedProject = await BeginLoadingProjectAsync(path);
+            if (guid is not null)
+                await loadedProject.SetProjectGuidForTelemetryAsync(Guid.Parse(guid));
+
+            loadedProjects.Add(loadedProject);
         }
 
-        await WaitForProjectsToFinishLoadingAsync();
+        await WaitForProjectLoadsAsync(loadedProjects.MoveToImmutable(), progressTracker);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
     }
 
@@ -151,25 +184,51 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         if (!projectFilePaths.Any())
             return;
 
+        projectFilePaths = projectFilePaths.Select(NormalizeDriveLetter).Where(IsSupportedProjectLoggingIfNot).ToImmutableArray();
+
         await using var progressTracker = progressReporter != null && projectFilePaths.Length > 0
             ? new WorkDoneProgressTracker(progressReporter, projectFilePaths.Length)
             : null;
 
+        var loadedProjects = ImmutableArray.CreateBuilder<LoadedProject>(projectFilePaths.Length);
         foreach (var path in projectFilePaths)
         {
-            await BeginLoadingProjectAsync(path, projectGuid: null, progressTracker);
+            var loadedProject = await BeginLoadingProjectAsync(path);
+            loadedProjects.Add(loadedProject);
         }
 
-        await WaitForProjectsToFinishLoadingAsync();
+        await WaitForProjectLoadsAsync(loadedProjects.MoveToImmutable(), progressTracker, CancellationToken.None);
         await ProjectInitializationHandler.SendProjectInitializationCompleteNotificationAsync(_clientLanguageServerManager);
+    }
+
+    internal ImmutableArray<string> GetSupportedProjectFileExtensions()
+        => _projectFileExtensionRegistry.GetRegisteredProjectFileExtensions().WhereAsArray(
+            extension => _projectFileExtensionRegistry.TryGetLanguageNameFromExtension(extension, out var languageName) && _supportedLanguages.Contains(languageName));
+
+    /// <summary>
+    /// Gets the language of a project we can load. Projects without one are never queued, so project loading itself can assume it exists.
+    /// </summary>
+    private bool TryGetSupportedLanguage(string projectPath, [NotNullWhen(true)] out string? languageName)
+        => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out languageName) && _supportedLanguages.Contains(languageName);
+
+    private bool IsSupportedProjectLoggingIfNot(string projectPath)
+    {
+        if (TryGetSupportedLanguage(projectPath, out _))
+            return true;
+
+        // Shared projects are expected solution entries, but don't need to be loaded since we don't do anything special with them
+        if (projectPath.EndsWith(".shproj", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        _logger.LogInformation("Not loading project '{ProjectPath}' because its language is not supported.", projectPath);
+        return false;
     }
 
     protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(PathUtilities.IsAbsolute(projectPath));
-        if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out var languageName))
-            return null;
+        Contract.ThrowIfFalse(TryGetSupportedLanguage(projectPath, out var languageName));
 
         var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
@@ -188,5 +247,95 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             PreferredBuildHostKind = preferredBuildHostKind,
             ActualBuildHostKind = actualBuildHostKind
         };
+    }
+
+    protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        Contract.ThrowIfFalse(TryGetSupportedLanguage(projectPath, out var languageName));
+
+        var projectSnapshots = await CacheFileReader.ReadProjectDataSnapshotsAsync(
+            projectPath,
+            cacheInProject: false,
+            solutionPath: _hostProjectFactory.SolutionPath,
+            stringPool: null,
+            cancellationToken);
+
+        if (projectSnapshots.IsEmpty)
+            return null;
+
+        return (projectSnapshots.SelectAsArray(snapshot =>
+        {
+            var projectDirectory = PathUtilities.GetDirectoryName(snapshot.ProjectPath);
+            Contract.ThrowIfNull(projectDirectory);
+
+            return new ProjectFileInfo
+            {
+                IsEmpty = false,
+                Language = languageName,
+                FilePath = snapshot.ProjectPath,
+                OutputFilePath = snapshot.Properties["TargetPath"],
+                OutputRefFilePath = snapshot.Properties["TargetRefPath"],
+                IntermediateOutputFilePath = snapshot.Properties["IntermediateAssembly"],
+                GeneratedFilesOutputDirectory = snapshot.Properties["CompilerGeneratedFilesOutputPath"],
+                DefaultNamespace = snapshot.Properties["RootNamespace"],
+                TargetFramework = snapshot.Properties["TargetFramework"],
+                TargetFrameworkIdentifier = snapshot.Properties["TargetFrameworkIdentifier"],
+                TargetFrameworkVersion = snapshot.Properties["TargetFrameworkVersion"],
+                ProjectAssetsFilePath = snapshot.Properties["ProjectAssetsFile"],
+                CommandLineArgs = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToArray(),
+                Documents = GetItems("Compile").Select(item => CreateDocumentFileInfo(item, projectDirectory)).ToArray(),
+                AdditionalDocuments = GetItems("AdditionalFile").Select(item => CreateDocumentFileInfo(item, projectDirectory)).ToArray(),
+                AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(item => CreateDocumentFileInfo(item, projectDirectory)).ToArray(),
+                ProjectReferences = GetItems("ProjectReference").Select(item =>
+                    new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
+                MetadataReferences = GetItems("MetadataReference").Select(item =>
+                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item), EmbedInteropTypes: item.Metadata["embedInteropTypes"] is not null)).ToArray(),
+                AnalyzerReferences = GetItems("AnalyzerReference").Select(static item => item.ItemSpec).ToArray(),
+                ProjectCapabilities = [.. snapshot.Capabilities],
+                ContentFilePaths = [],
+                PackageReferences = [],
+                FileGlobs = [],
+            };
+
+            ImmutableArray<ProjectDataItem> GetItems(string itemType)
+                => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
+
+            static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item, string projectDirectory)
+            {
+                var link = item.Metadata["Link"];
+                if (!string.IsNullOrEmpty(link))
+                {
+                    return new DocumentFileInfo(item.ItemSpec, link, isLinked: true, isGenerated: false, folders: GetFolders(link));
+                }
+
+                var relativePath = PathUtilities.GetRelativePath(projectDirectory, item.ItemSpec);
+                return new DocumentFileInfo(item.ItemSpec, item.ItemSpec, isLinked: false, isGenerated: false, folders: GetFolders(relativePath));
+
+                static string[] GetFolders(string relativePath)
+                {
+                    var folderPath = PathUtilities.GetDirectoryName(relativePath);
+                    return folderPath is null
+                        ? []
+                        : folderPath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
+                }
+            }
+
+            static string[] GetAliases(ProjectDataItem item)
+                => item.Metadata["aliases"] is string aliases ? aliases.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : [];
+        }), _hostProjectFactory);
+    }
+
+    internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
+        => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
+
+    internal new TestAccessor GetTestAccessor() => new(this);
+
+    internal new readonly struct TestAccessor(LanguageServerProjectSystem projectSystem)
+    {
+        public Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+            => projectSystem.TryLoadProjectFromCacheAsync(projectPath, cancellationToken);
+
+        public ValueTask<ImmutableArray<string>> GetLoadedProjectPathsAsync()
+            => ((LanguageServerProjectLoader)projectSystem).GetTestAccessor().GetLoadedProjectPathsAsync();
     }
 }

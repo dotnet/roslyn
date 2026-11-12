@@ -1,0 +1,11 @@
+﻿Source Location: (240:8,7 [112] x:\dir\subdir\Test\TestComponent.razor)
+|
+    private static int CountValues(System.Collections.Generic.List<string> values)
+        => values.Count;
+|
+Generated Location: (557:18,0 [112] )
+|
+    private static int CountValues(System.Collections.Generic.List<string> values)
+        => values.Count;
+|
+

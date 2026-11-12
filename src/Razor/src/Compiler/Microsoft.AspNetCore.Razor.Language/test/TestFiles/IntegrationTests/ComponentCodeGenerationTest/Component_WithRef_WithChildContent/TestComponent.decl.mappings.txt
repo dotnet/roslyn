@@ -1,0 +1,11 @@
+﻿Source Location: (108:4,7 [104] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private Test.MyComponent myInstance;
+    public void Foo() { System.GC.KeepAlive(myInstance); }
+|
+Generated Location: (557:18,0 [104] )
+|
+    private Test.MyComponent myInstance;
+    public void Foo() { System.GC.KeepAlive(myInstance); }
+|
+

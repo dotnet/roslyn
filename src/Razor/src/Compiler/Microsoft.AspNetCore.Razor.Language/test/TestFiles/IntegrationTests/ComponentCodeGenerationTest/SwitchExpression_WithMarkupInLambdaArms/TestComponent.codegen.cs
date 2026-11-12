@@ -25,9 +25,7 @@ using Microsoft.AspNetCore.Components
         }
         #pragma warning restore 1998
 #nullable restore
-#line (3,8)-(9,10) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public enum SampleType { Alpha, Beta, Gamma }
+#line (5,1)-(9,10) "x:\dir\subdir\Test\TestComponent.cshtml"
 
     private static RenderFragment RenderBadge(SampleType type) => type switch
     {

@@ -1,0 +1,10 @@
+﻿Source Location: (2:0,2 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+| var path = "x"; |
+Generated Location: (735:21,0 [17] )
+| var path = "x"; |
+
+Source Location: (36:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml)
+|path|
+Generated Location: (989:31,0 [4] )
+|path|
+

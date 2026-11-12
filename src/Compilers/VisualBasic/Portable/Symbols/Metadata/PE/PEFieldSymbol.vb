@@ -367,7 +367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Private Sub EnsureSignatureIsLoaded()
-            If _lazyType Is Nothing Then
+            If Volatile.Read(_lazyType) Is Nothing Then
                 Dim moduleSymbol = _containingType.ContainingPEModule
                 Dim fieldInfo As FieldInfo(Of TypeSymbol) = New MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle)
 

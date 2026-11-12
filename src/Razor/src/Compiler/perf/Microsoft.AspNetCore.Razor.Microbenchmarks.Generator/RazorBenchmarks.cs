@@ -16,6 +16,9 @@ public class RazorBenchmarks : AbstractBenchmark
     public GeneratorDriver Razor_Edit_Independent() => RunRazorBenchmark(Independent, "0.razor");
 
     [Benchmark]
+    public GeneratorDriver Razor_Edit_IndependentIgnorable() => RunRazorBenchmark(IndependentIgnorable, "0.razor");
+
+    [Benchmark]
     public GeneratorDriver Razor_Remove_Independent() => RunRazorBenchmark(null, "0.razor");
 
     [Benchmark]
@@ -54,7 +57,17 @@ public class RazorBenchmarks : AbstractBenchmark
         return project.GeneratorDriver;
     });
 
+
+    // Replacing the file body without an @page directive drops the route from the component's declaration,
+    // so this is a public-surface (signature) change: it invalidates whole-compilation tag-helper discovery.
     private const string Independent = "<h1>Independent file</h1>";
+
+    // Keeps the file's @page route (its declaration/public surface), changing only the markup body, so the
+    // decl stays byte-identical and discovery is not re-run -- the common "edit a leaf's body" case.
+    private const string IndependentIgnorable = """
+        @page "/0"
+        <h1>Independent file</h1>
+        """;
 
     private const string DependentIgnorable = """
         @page "/counter"

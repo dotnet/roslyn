@@ -19,29 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(17,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public readonly struct Counter
-    {
-        public int Value { get; }
-    
-        public Counter(int value)
-        {
-            Value = value;
-        }
-    
-        public static Counter operator +(Counter left, Counter right)
-            => new(left.Value + right.Value);
-    
-        public static Counter operator checked +(Counter left, Counter right)
-            => new(checked(left.Value + right.Value));
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

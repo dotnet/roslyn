@@ -31,6 +31,7 @@ internal sealed class CSharpOptionsSerializationService : AbstractOptionsSeriali
         writer.WriteArray(csharpOptions.Usings, static (w, u) => w.WriteString(u));
         writer.WriteBoolean(csharpOptions.AllowUnsafe);
         writer.WriteByte((byte)csharpOptions.NullableContextOptions);
+        writer.WriteByte((byte)csharpOptions.MemorySafetyRulesVersion);
     }
 
     public override void WriteTo(ParseOptions options, ObjectWriter writer)
@@ -54,12 +55,15 @@ internal sealed class CSharpOptionsSerializationService : AbstractOptionsSeriali
         var usings = reader.ReadArray(static r => r.ReadString());
         var allowUnsafe = reader.ReadBoolean();
         var nullableContextOptions = (NullableContextOptions)reader.ReadByte();
+        var memorySafetyRulesVersion = (MemorySafetyRulesVersion)reader.ReadByte();
 
         return new CSharpCompilationOptions(
             outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings, optimizationLevel, checkOverflow, allowUnsafe,
             cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions, concurrentBuild,
             deterministic, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer, strongNameProvider, publicSign,
-            metadataImportOptions, nullableContextOptions);
+            metadataImportOptions, nullableContextOptions)
+            // https://github.com/dotnet/roslyn/issues/82546: use constructor parameter instead when available
+            .WithMemorySafetyRulesVersion(memorySafetyRulesVersion);
     }
 
     public override ParseOptions ReadParseOptionsFrom(ObjectReader reader, CancellationToken cancellationToken)

@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool IsReadOnly { get; }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         public string ToDisplayString(CodeAnalysis.NullableFlowState topLevelNullability, SymbolDisplayFormat format = null)
         {
@@ -1799,10 +1799,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                     },
                                                                                     (implementingType, isExplicit));
 
-                    SourceMemberContainerTypeSymbol.CheckCallerUnsafeMismatch(
+                    SourceMemberContainerTypeSymbol.CheckRequiresUnsafeMismatch(
                         implementedEvent,
                         implementingEvent,
-                        isExplicit ? ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe,
+                        isExplicit ? ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe,
                         (implementedEvent, implementingType, implementingEvent),
                         static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedEvent, arg.implementingType, arg.implementingEvent),
                         diagnostics);
@@ -1905,10 +1905,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             implementingType,
                             invokedAsExtensionMethod: false);
 
-                        SourceMemberContainerTypeSymbol.CheckCallerUnsafeMismatch(
+                        SourceMemberContainerTypeSymbol.CheckRequiresUnsafeMismatch(
                             implementedMethod,
                             implementingMethod,
-                            isExplicit ? ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe,
+                            isExplicit ? ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe : ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe,
                             (implementedMethod, implementingType, implementingMethod),
                             static arg => GetImplicitImplementationDiagnosticLocation(arg.implementedMethod, arg.implementingType, arg.implementingMethod),
                             diagnostics);

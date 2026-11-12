@@ -335,7 +335,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
                     symbol.TypeWithAnnotations.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
-                    if (symbol.TypeWithAnnotations.IsResolved) ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol.TypeWithAnnotations.Type, syntax);
+                    if (symbol.TypeWithAnnotations.IsResolved)
+                    {
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol.TypeWithAnnotations.Type, syntax);
+                    }
+                    else
+                    {
+                        // An unresolved T? can only become T or Nullable<T>. Neither requires an unsafe context,
+                        // and the type argument T of Nullable<T> cannot have an unsafe constructor.
+                        Debug.Assert(symbol.TypeWithAnnotations.DefaultType is TypeParameterSymbol);
+                    }
                 }
 
                 return symbol;
@@ -460,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
                     MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, functionPointerTypeSyntax.DelegateKeyword);
 
-                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRules.Legacy, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
+                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRulesVersion.Version1, ignoreUnsafeDiagnosticsSuppression: false, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
                         var @delegate = functionPointerTypeSyntax.DelegateKeyword;
                         var asterisk = functionPointerTypeSyntax.AsteriskToken;
@@ -603,9 +612,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var node = (PointerTypeSyntax)syntax;
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
-                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
+                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
 
-                if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
+                if ((Flags & BinderFlags.SuppressConstraintChecks) != BinderFlags.SuppressConstraintChecks)
                 {
                     CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
                 }
@@ -929,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (type.ContainsPointerOrFunctionPointer())
                         {
-                            ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
+                            ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
                         }
                     }
                 }

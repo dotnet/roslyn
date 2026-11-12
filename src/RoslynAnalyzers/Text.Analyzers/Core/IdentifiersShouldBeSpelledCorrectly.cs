@@ -246,6 +246,7 @@ namespace Text.Analyzers
             var cancellationToken = context.CancellationToken;
 
             var dictionaries = ReadDictionaries().Add(s_mainDictionary);
+            var eventArgsType = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemEventArgs);
 
             context.RegisterOperationAction(AnalyzeVariable, OperationKind.VariableDeclarator);
             context.RegisterCompilationEndAction(AnalyzeAssembly);
@@ -368,6 +369,11 @@ namespace Text.Analyzers
 
             void ReportDiagnosticsForSymbol(ISymbol symbol, string symbolName, Action<Diagnostic> reportDiagnostic, bool checkForUnmeaningful = true)
             {
+                if (IsNumberedTypeParameter(symbol, symbolName) || IsEventArgsParameter(symbol) || IsDiscardParameter(symbol))
+                {
+                    return;
+                }
+
                 foreach (var misspelledWord in GetMisspelledWords(symbolName))
                 {
                     reportDiagnostic(GetMisspelledWordDiagnostic(symbol, misspelledWord));
@@ -378,6 +384,19 @@ namespace Text.Analyzers
                     reportDiagnostic(GetUnmeaningfulIdentifierDiagnostic(symbol, symbolName));
                 }
             }
+
+            // Only digits remain of type parameter names like 'T1' after the prefix was removed. Fields ('_1') and
+            // interfaces ('I1') have their prefix removed too, but a bare number is no more meaningful a name there.
+            static bool IsNumberedTypeParameter(ISymbol symbol, string symbolName)
+                => symbol.Kind == SymbolKind.TypeParameter && symbolName.All(char.IsDigit);
+
+            // 'e' of an EventArgs type is the standard event handler signature; legacy FxCop did not report it either.
+            bool IsEventArgsParameter(ISymbol symbol)
+                => symbol is IParameterSymbol { Name: "e" } parameter && parameter.Type.DerivesFrom(eventArgsType);
+
+            // '_' marks a parameter that a signature requires but the method does not use; IDE0060 skips it too.
+            static bool IsDiscardParameter(ISymbol symbol)
+                => symbol is IParameterSymbol { Name: "_" };
 
             IEnumerable<string> GetMisspelledWords(string symbolName)
             {

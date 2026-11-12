@@ -11,6 +11,8 @@ namespace Microsoft.VisualStudio.IntegrationTestService
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.Shell;
 
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid("78d5a8b5-1634-434b-802d-e3e4a46b1aa6")]
     public sealed class IntegrationTestServicePackage : AsyncPackage
     {

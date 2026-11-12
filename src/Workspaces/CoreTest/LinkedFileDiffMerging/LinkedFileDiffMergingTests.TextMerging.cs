@@ -59,6 +59,22 @@ public partial class LinkedFileDiffMergingTests
             """,
             LanguageNames.CSharp);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86001")]
+    public void TestConflictingChangeThatEndsInsideLineBreak()
+        => TestLinkedFileSet(
+            "a b c d e\r\nf g h",
+            ["a b z d e\r\nf g h", "a b y d e\nf g h"],
+            $"""
+
+            <<<<<<< {string.Format(WorkspacesResources.TODO_Unmerged_change_from_project_0, "ProjectName1")}, {WorkspacesResources.Before_colon}
+            a b c d e
+            =======
+            a b y d e
+            >>>>>>> {WorkspacesResources.After}
+
+            """ + "a b z d e\r\nf g h",
+            LanguageNames.CSharp);
+
     [Fact]
     public void TestTwoConflictsOnSameLine()
         => TestLinkedFileSet(

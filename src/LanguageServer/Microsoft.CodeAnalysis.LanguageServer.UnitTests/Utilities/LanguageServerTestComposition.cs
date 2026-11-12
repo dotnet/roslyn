@@ -22,12 +22,14 @@ internal sealed class LanguageServerTestComposition
         return LanguageServerExportProviderBuilder.CreateExportProviderAsync(TestPaths.GetLanguageServerDirectory(), extensionManager, assemblyLoader, serverConfiguration, cacheDirectory, loggerFactory, CancellationToken.None);
     }
 
-    public static ExportProvider GetSharedExportProvider(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory)
+    public static ExportProvider GetSharedExportProvider(ServerConfiguration serverConfiguration, ILoggerFactory loggerFactory, params Type[] additionalParts)
     {
         Contract.ThrowIfTrue(serverConfiguration.ExtensionAssemblyPaths.Any(), "Tests that require extension assemblies should use AbstractLanguageServerMefHost instead");
-        var exportProvider = serverConfiguration.DevKitDependencyPath != null
-            ? s_devKit.ExportProviderFactory.CreateExportProvider()
-            : s_languageServer.ExportProviderFactory.CreateExportProvider();
+        var composition = serverConfiguration.DevKitDependencyPath != null ? s_devKit : s_languageServer;
+        if (additionalParts.Length > 0)
+            composition = composition.AddParts(additionalParts);
+
+        var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
 
         LanguageServerExportProviderBuilder.TestAccessor.InitializeManualExports(exportProvider, new ExtensionAssemblyManager([], [], []), loggerFactory, serverConfiguration);
         return exportProvider;

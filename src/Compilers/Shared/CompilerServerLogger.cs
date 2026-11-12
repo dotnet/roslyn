@@ -105,32 +105,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public bool IsLogging => _loggingStream is object;
 
-        /// <summary>
-        /// Static class initializer that initializes logging.
-        /// </summary>
-        public CompilerServerLogger(string identifier, string? loggingFilePath = null)
+        public CompilerServerLogger(string identifier, IBuildEnvironment buildEnvironment)
+            : this(identifier, GetLoggingFilePath(buildEnvironment))
         {
-            _identifier = identifier;
+        }
 
+        /// <summary>
+        /// Initializes logging using the supplied environment variable lookup and path absolutization.
+        /// </summary>
+        public CompilerServerLogger(string identifier, string? loggingFilePath)
+        {
+            Debug.Assert(loggingFilePath is null || Path.IsPathFullyQualified(loggingFilePath));
+            _identifier = identifier;
             try
             {
-                if (loggingFilePath is null)
-                {
-                    loggingFilePath = Environment.GetEnvironmentVariable(EnvironmentVariableName);
-                    // If the environment variable contains the path of a currently existing directory,
-                    // then use a process-specific name for the log file and put it in that directory.
-                    // Otherwise, assume that the environment variable specifies the name of the log file.
-                    if (Directory.Exists(loggingFilePath))
-                    {
-                        var processId = Process.GetCurrentProcess().Id;
-                        loggingFilePath = Path.Combine(loggingFilePath, $"server.{processId}.log");
-                    }
-                }
-
                 if (loggingFilePath is not null)
                 {
                     // Open allowing sharing. We allow multiple processes to log to the same file, so we use share mode to allow that.
+#pragma warning disable RS0030 // getFullPath guarantees a full path
                     _loggingStream = new FileStream(loggingFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
+#pragma warning restore RS0030
                 }
             }
             catch (Exception e)
@@ -159,6 +153,41 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 _loggingStream.Seek(0, SeekOrigin.End);
                 _loggingStream.Write(bytes, 0, bytes.Length);
                 _loggingStream.Flush();
+            }
+        }
+
+        /// <summary>
+        /// Get the fully qualified file path for the log file to use for logging. Returns null if logging is not enabled.
+        /// </summary>
+        private static string? GetLoggingFilePath(IBuildEnvironment buildEnvironment)
+        {
+            try
+            {
+                var loggingFilePath = buildEnvironment.GetEnvironmentVariable(EnvironmentVariableName);
+                if (string.IsNullOrEmpty(loggingFilePath))
+                {
+                    return null;
+                }
+
+                loggingFilePath = buildEnvironment.GetFullyQualifiedPath(loggingFilePath);
+
+                // If the environment variable contains the path of a currently existing directory,
+                // then use a process-specific name for the log file and put it in that directory.
+                // Otherwise, assume that the environment variable specifies the name of the log file.
+#pragma warning disable RS0030 // getFullPath guarantees a full path
+                if (Directory.Exists(loggingFilePath))
+#pragma warning restore RS0030
+                {
+                    var processId = Process.GetCurrentProcess().Id;
+                    loggingFilePath = Path.Combine(loggingFilePath, $"server.{processId}.log");
+                }
+
+                return loggingFilePath;
+            }
+            catch (Exception e)
+            {
+                Debug.Assert(false, e.Message);
+                return null;
             }
         }
     }

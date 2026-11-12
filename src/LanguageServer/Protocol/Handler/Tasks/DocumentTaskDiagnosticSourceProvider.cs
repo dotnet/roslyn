@@ -20,12 +20,13 @@ internal sealed class DocumentTaskDiagnosticSourceProvider([Import] IGlobalOptio
 {
     public bool IsDocument => true;
     public string Name => PullDiagnosticCategories.Task;
+    public bool HasInterFileDependencies => false;
 
     public bool IsEnabled(ClientCapabilities capabilities) => capabilities.HasVisualStudioLspCapability();
 
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        return [new TaskListDiagnosticSource(context.GetRequiredDocument(), globalOptions)];
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+        return [new TaskListDiagnosticSource(document, globalOptions)];
     }
 }
-

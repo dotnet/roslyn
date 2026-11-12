@@ -17,7 +17,6 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CompilationAvailable" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCompilationAvailableService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ConvertTupleToStructCodeRefactoring" ClassName="Microsoft.CodeAnalysis.Remote.RemoteConvertTupleToStructCodeRefactoringService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CopilotChangeAnalysis" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCopilotChangeAnalysisService+Factory" />
-    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.CopilotProposalAdjuster" ClassName="Microsoft.CodeAnalysis.Remote.RemoteCopilotProposalAdjusterService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DependentTypeFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDependentTypeFinderService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DesignerAttributeDiscovery" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDesignerAttributeDiscoveryService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DiagnosticAnalyzer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDiagnosticAnalyzerService+Factory" />
@@ -58,6 +57,6 @@
   <ItemGroup>
     <InProcService Include="Microsoft.VisualStudio.LanguageServices.SolutionAssetProvider" />
     <InProcService Include="Microsoft.VisualStudio.LanguageServices.WorkspaceProjectFactoryService" />
-    <InProcService Include="Microsoft.CodeAnalysis.LanguageServer.ManagedHotReloadLanguageService" Version="0.1" />
+    <InProcService Include="Microsoft.CodeAnalysis.LanguageServer.ManagedHotReloadUpdatesProvider" Version="3.0" />
   </ItemGroup>
 </Project>

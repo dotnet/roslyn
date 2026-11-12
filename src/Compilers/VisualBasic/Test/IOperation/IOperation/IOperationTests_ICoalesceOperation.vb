@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
@@ -1473,6 +1474,88 @@ Block[B11] - Exit
 
             VerifyFlowGraphForTest(Of MethodBlockSyntax)(compilation, expectedGraph)
         End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")>
+        Public Sub GetValueConversion_NullArgumentThrows()
+            Dim nullCoalesce As ICoalesceOperation = Nothing
+            Assert.Throws(Of ArgumentNullException)("coalesceExpression", Function() nullCoalesce.GetValueConversion())
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")>
+        Public Sub GetValueConversion_IdentityConversion()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class C1
+    Sub M1(input As Integer?, alternative As Integer)
+        Dim result = If(input, alternative)
+    End Sub
+End Class
+         ]]>
+    </file>
+</compilation>
+
+            Dim coalesce = GetCoalesceOperation(source)
+
+            Assert.Equal(New Conversion(Conversions.Identity), coalesce.GetValueConversion())
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")>
+        Public Sub GetValueConversion_WideningNumericConversion()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class C1
+    Sub M1(input As Integer?, alternative As Long)
+        Dim result = If(input, alternative)
+    End Sub
+End Class
+         ]]>
+    </file>
+</compilation>
+
+            Dim coalesce = GetCoalesceOperation(source)
+
+            Dim conversion = coalesce.GetValueConversion()
+            Assert.Equal(ConversionKind.WideningNumeric, conversion.Kind)
+            Assert.True(conversion.IsWidening)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84905")>
+        Public Sub GetValueConversion_FromCSharpExtensionThrows()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Public Class C1
+    Sub M1(input As Integer?, alternative As Integer)
+        Dim result = If(input, alternative)
+    End Sub
+End Class
+         ]]>
+    </file>
+</compilation>
+
+            Dim coalesce = GetCoalesceOperation(source)
+
+            ' We are calling the C# extension method on an ICoalesceOperation created from Visual Basic code, therefore an exception is expected here.
+            Assert.Throws(Of ArgumentException)("coalesceExpression", Function() CSharp.CSharpExtensions.GetValueConversion(coalesce))
+        End Sub
+
+        Private Function GetCoalesceOperation(source As Xml.Linq.XElement) As ICoalesceOperation
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source)
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of BinaryConditionalExpressionSyntax)().Single()
+
+            Return DirectCast(compilation.GetSemanticModel(tree).GetOperation(node), ICoalesceOperation)
+        End Function
     End Class
 End Namespace
-

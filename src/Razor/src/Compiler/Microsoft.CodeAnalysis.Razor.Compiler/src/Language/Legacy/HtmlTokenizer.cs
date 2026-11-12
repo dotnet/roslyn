@@ -39,6 +39,8 @@ internal class HtmlTokenizer : Tokenizer
 
     private new HtmlTokenizerState? CurrentState => (HtmlTokenizerState?)base.CurrentState;
 
+    public bool IgnoreRazorTransitions { get; set; }
+
     public override SyntaxKind RazorCommentKind => SyntaxKind.RazorCommentLiteral;
 
     public override SyntaxKind RazorCommentTransitionKind => SyntaxKind.RazorCommentTransition;
@@ -155,7 +157,7 @@ internal class HtmlTokenizer : Tokenizer
         {
             return Stay(Newline());
         }
-        else if (CurrentCharacter == '@')
+        else if (CurrentCharacter == '@' && !IgnoreRazorTransitions)
         {
             TakeCurrent();
             if (CurrentCharacter == '*')
@@ -285,7 +287,8 @@ internal class HtmlTokenizer : Tokenizer
     private bool AtToken()
         => CurrentCharacter switch
         {
-            '<' or '!' or '/' or '?' or '[' or '>' or ']' or '=' or '"' or '\'' or '@' => true,
+            '<' or '!' or '/' or '?' or '[' or '>' or ']' or '=' or '"' or '\'' => true,
+            '@' => !IgnoreRazorTransitions,
             '-' => Peek() == '-',
             _ => false,
         };

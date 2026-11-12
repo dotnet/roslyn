@@ -27,7 +27,11 @@ public abstract class RazorToolingProjectEngineTestBase : ToolingTestBase
     protected RazorProjectEngine CreateProjectEngine()
     {
         var configuration = new RazorConfiguration(Version, "test", Extensions: []);
-        return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, ConfigureProjectEngine);
+        return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, b =>
+        {
+            EnableMarkupSplit(b);
+            ConfigureProjectEngine(b);
+        });
     }
 
     protected RazorProjectEngine CreateProjectEngine(Action<RazorProjectEngineBuilder> configure)
@@ -35,8 +39,16 @@ public abstract class RazorToolingProjectEngineTestBase : ToolingTestBase
         var configuration = new RazorConfiguration(Version, "test", Extensions: []);
         return RazorProjectEngine.Create(configuration, RazorProjectFileSystem.Empty, b =>
         {
+            EnableMarkupSplit(b);
             ConfigureProjectEngine(b);
             configure?.Invoke(b);
         });
     }
+
+    /// <summary>
+    ///  Opts the engine into the decl/impl markup split. The split is off by default in the compiler
+    ///  (only the source generator consumes both halves), but tests assert against split output.
+    /// </summary>
+    private static void EnableMarkupSplit(RazorProjectEngineBuilder builder)
+        => builder.ConfigureCodeGenerationOptions(static options => options.EnableMarkupSplit = true);
 }

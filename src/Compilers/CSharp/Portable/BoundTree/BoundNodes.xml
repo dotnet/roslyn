@@ -186,6 +186,16 @@
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
+    <!-- 
+    Optimizer can inject a BoundDup node that is never meant to be translated into 
+    any IL instruction. This happens because optimizer predicts that the value is not used
+    (referenced in a side effect only context). In a case like this, there actually might be
+    nothing on the stack to dup, because optimizer decides that the last use happens 
+    before this node is reached. Therefore, it would be popped off the stack at that time
+    without leaving any copy on the stack. Or, perhaps, some unrelated value could be on the stack.
+    Nodes like that have IsAlive set to false.
+    -->
+    <Field Name="IsAlive" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <!-- Wrapper node used to prevent passing the underlying expression by direct reference -->
@@ -392,7 +402,9 @@
          However, managed (GC-tracked) pointers have some limited support
          at IL level and could be used in lowering of certain kinds
          of unsafe code - such as fixed field indexing. -->
-    <Field Name="IsManaged" Type="bool"/>  
+    <Field Name="IsManaged" Type="bool"/>
+    <!-- True when an unassigned operand requires an unsafe context at this location. -->
+    <Field Name="RequiresAssignedOperand" Type="bool"/>
   </Node>
   <!-- Represents an AddressOf operator that has not yet been assigned to a
        target-type. It has no natural type. -->
@@ -412,22 +424,14 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
-    <!-- Used by emit to determine whether this pointer indirection is by value or by ref. If true, emit
-         will emit the address of the target, and not actually perform an indirect load (in practice this just
-         means emitting the Operand alone). -->
-    <Field Name="RefersToLocation" Type="bool"/>
   </Node>
-  <Node Name="BoundPointerElementAccess" Base="BoundExpression">
+  <Node Name="BoundPointerElementAccess" Base="BoundExpression" DoesNotSurvive="LocalRewriting">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Index" Type="BoundExpression"/>
     <Field Name="Checked" Type="bool"/>
-    <!-- Used by emit to determine whether this pointer element access is by value or by ref. If true, emit
-         will emit the address of the target, and not actually perform an indirect load (in practice this just
-         means emitting the Operand alone). -->
-    <Field Name="RefersToLocation" Type="bool"/>
   </Node>
 
   <Node Name="BoundFunctionPointerInvocation" Base="BoundExpression">
@@ -672,12 +676,13 @@
   </Node>
 
   <!--
-    Represents an array access that comes from the RHS of an unused ref (non-readonly) assignment.
-    Needed so we can emit with correct side effects (runtime element type check).
+    Represents an expression that comes from the RHS of an unused ref assignment.
+    Needed so we can emit with correct side effects (runtime array element type check, etc.).
   -->
-  <Node Name="BoundRefArrayAccess" Base="BoundExpression">
+  <Node Name="BoundRefAccess" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
+    <Field Name="RefKind" Type="RefKind"/>
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
 
   <!--
@@ -2462,7 +2467,7 @@
   <Node Name="BoundConstantPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
-    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode"/>
   </Node>
 
   <!--
@@ -2471,15 +2476,15 @@
       of any bound node, except another BoundPatternWithUnionMatching node. In which case,
       it must be the LeftOfPendingConjunction child.
 
-      The ExclusiveInstancePattern, ValueProperty, ExclusiveValuePattern and SharedRightOfPendingConjunction
-      represent a Union matching operation pending a rewrite to a BoundRecursivePattern and possibly a
-      disjunction. 
+      The ValueProperty and ValuePattern represent a Union matching operation
+      pending a rewrite to a BoundRecursivePattern. 
 
       The BoundPatternWithUnionMatching node represents either a standalone Union matching operation
       (LeftOfPendingConjunction is null), or a conjunction with a Union matching operation
       on the right hand side. The left hand side of the conjunction is then
-      represented by the LeftOfPendingConjunction child. It represents a pattern that is matched immediately
-      before the union match. 
+      represented by the LeftOfPendingConjunction child, and it is not applied
+      to the ValueProperty. It represents a pattern that is matched immediately
+      before ValueProperty is matched against ValuePattern. 
 
       A Union matching operation corresponding to the top most BoundPatternWithUnionMatching node
       represents the last Union matching operation in evaluation order in the entire hierarchy.
@@ -2488,19 +2493,16 @@
       Etc.
 
       InputType is LeftOfPendingConjunction.InputType ?? UnionMatchingInputType 
-      NarrowedType is (SharedRightOfPendingConjunction ?? ExclusiveValuePattern).NarrowedType
+      NarrowedType is ValuePattern.NarrowedType
   -->
   <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true" DoesNotSurvive="InitialBinding">
     <!-- The Union or Nullable<Union> type matched -->
     <Field Name="UnionMatchingInputType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="LeftOfPendingConjunction" Type="BoundPattern?"/>
-    <Field Name="ExclusiveInstancePattern" Type="BoundPattern?" Null="allow"/>
     <!-- Info for the corresponding union Value property -->    
     <Field Name="ValueProperty" Type="BoundPropertySubpatternMember"/>
     <!-- The pattern to match against the union Value property -->
-    <Field Name="ExclusiveValuePattern" Type="BoundPattern"/>
-    <!-- The pattern that is conjunctively combined with ExclusiveInstancePattern and with ExclusiveValuePattern -->
-    <Field Name="SharedRightOfPendingConjunction" Type="BoundPattern?"/>
+    <Field Name="ValuePattern" Type="BoundPattern"/>
   </Node>
 
   <!-- NarrowedType is always the InputType -->
@@ -2525,7 +2527,7 @@
   <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
-    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2538,7 +2540,7 @@
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
-    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2609,7 +2611,7 @@
   <Node Name="BoundTypePattern" Base="BoundPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
-    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!-- 
@@ -2643,7 +2645,7 @@
     <Field Name="Relation" Type="BinaryOperatorKind"/>
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
-    <Field Name="UnionMatchingMode" Type="UnionMatchingMode" PropertyOverrides="true"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <Node Name="BoundDiscardExpression" Base="BoundExpression">

@@ -1,0 +1,2 @@
+﻿[0000] OpenElement("div")
+[0001] AddContent(myValue)

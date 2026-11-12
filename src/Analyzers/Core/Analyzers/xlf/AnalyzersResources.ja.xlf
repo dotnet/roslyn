@@ -59,11 +59,10 @@
         <target state="translated">MSBuild プロジェクト ファイルに次の PropertyGroup を追加して、ビルドで IDE0005 (不要な usings/imports を削除する) を有効にします。
   &lt;PropertyGroup&gt;
     &lt;!--
-      コードにドキュメント コメントが含まれている場合には、ビルド中に構文チェックが行われるようにしますが、
-。
-      抜けているコメントに関する警告は報告しません。
-      CS1573: パラメーター 'parameter' には、'parameter' の XML コメントに一致するパラメーター タグがありません (ただし、他のパラメーターにはあります)。
-      CS1591: 公開されている型またはメンバー 'Type_or_Member'
+      コードにドキュメント コメントが含まれている場合には、ビルド中に構文チェックが行われるようにしてください。
+      ただし、抜けているコメントに関する警告は報告してください。
+      CS1573: パラメーター 'parameter' には、'parameter' の XML コメントに一致するパラメーター タグがありません (ただし、他のパラメーターにはあります)
+      CS1591: 公開されている型またはメンバー 'Type_or_Member' が欠落しています
       CS1712: 型パラメーター 'type_parameter' には、'type_or_member' の XML コメントに一致する typeparam タグがありません (ただし、他の型パラメーターにはあります)
     --&gt;
     &lt;GenerateDocumentationFile&gt;True&lt;/GenerateDocumentationFile&gt;

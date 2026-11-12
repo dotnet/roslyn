@@ -1,0 +1,11 @@
+﻿Source Location: (7:0,7 [88] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public static int Sum(int first = 0, int second = 0)
+        => first + second;
+|
+Generated Location: (556:18,0 [88] )
+|
+    public static int Sum(int first = 0, int second = 0)
+        => first + second;
+|
+

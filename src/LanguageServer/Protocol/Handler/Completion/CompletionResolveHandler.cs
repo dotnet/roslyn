@@ -55,7 +55,7 @@ internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.C
             return completionItem;
         }
 
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
 
         return await ResolveCompletionItemAsync(

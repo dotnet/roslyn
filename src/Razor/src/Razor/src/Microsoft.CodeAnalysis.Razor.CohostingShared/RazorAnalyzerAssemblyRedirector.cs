@@ -58,7 +58,9 @@ internal sealed class RazorCompilerAnalyzerAssemblyRedirector : RazorAnalyzerAss
             GetRedirectEntry(typeof(ImmutableArray)), // System.Collections.Immutable
         ];
 
-        return compilerAssemblyTypes.ToFrozenDictionary(t => t.name, t => t.path);
+        // CPS canonicalizes analyzer paths to lowercase, so match assembly names case-insensitively, otherwise the source
+        // generator doesn't show up in the Dependencies node in Visual Studio.
+        return compilerAssemblyTypes.ToFrozenDictionary(t => t.name, t => t.path, StringComparer.OrdinalIgnoreCase);
     }
 
     private static (string name, string path) GetRedirectEntry(Type type, string? overrideName = null)

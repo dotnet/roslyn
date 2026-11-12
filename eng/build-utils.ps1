@@ -3,6 +3,9 @@
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
+# Set the repository default before Arcade supplies its own default.
+$warnAsError = if (Test-Path variable:warnAsError) { $warnAsError } else { $false }
+
 # Import Arcade functions
 . (Join-Path $PSScriptRoot "common\tools.ps1")
 
@@ -271,6 +274,10 @@ function Unsubst-TempDir() {
 }
 
 function EnablePreviewSdks() {
+  if ($msbuildEngine -eq "dotnet") {
+    return
+  }
+
   $vsInfo = LocateVisualStudio
   if ($vsInfo -eq $null) {
     # Preview SDKs are allowed when no Visual Studio instance is installed

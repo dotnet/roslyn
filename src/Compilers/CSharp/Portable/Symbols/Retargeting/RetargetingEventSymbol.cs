@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.RetargetAttributes(_underlyingEvent.GetCustomAttributesToEmit(moduleBuilder));
         }
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingEvent.GetCallerUnsafeMode(fieldsBeingBound);
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingEvent.GetRequiresUnsafeMode(fieldsBeingBound);
 
         internal override bool MustCallMethodsDirectly
         {

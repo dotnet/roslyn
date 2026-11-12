@@ -15,10 +15,15 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 internal sealed class TestFileSystem((string filePath, string contents)[]? files) : IFileSystem
 {
+    public List<string> FileExistsCalls { get; } = new();
+
     public List<(string source, string destination)> MovedFiles { get; } = new();
 
     public bool FileExists(string filePath)
-        => files?.Any(f => FilePathNormalizingComparer.Instance.Equals(f.filePath, filePath)) ?? false;
+    {
+        FileExistsCalls.Add(filePath);
+        return files?.Any(f => FilePathNormalizingComparer.Instance.Equals(f.filePath, filePath)) ?? false;
+    }
 
     public string ReadFile(string filePath)
         => files.AssumeNotNull().Single(f => FilePathNormalizingComparer.Instance.Equals(f.filePath, filePath)).contents;

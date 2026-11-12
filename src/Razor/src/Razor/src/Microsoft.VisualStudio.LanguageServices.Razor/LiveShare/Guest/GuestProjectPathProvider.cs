@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Threading;
 
@@ -53,7 +54,7 @@ internal class GuestProjectPathProvider(
     private Uri? GetHostProjectPath(ITextDocument textDocument)
     {
         var session = _liveShareSessionAccessor.Session;
-        Assumes.NotNull(session);
+        Contract.ThrowIfNull(session);
 
         if (string.IsNullOrEmpty(textDocument.FilePath))
         {
@@ -84,7 +85,7 @@ internal class GuestProjectPathProvider(
     private string ResolveGuestPath(Uri hostProjectPath)
     {
         var session = _liveShareSessionAccessor.Session;
-        Assumes.NotNull(session);
+        Contract.ThrowIfNull(session);
 
         return session.ConvertSharedUriToLocalPath(hostProjectPath) ?? hostProjectPath.LocalPath;
     }

@@ -1,16 +1,6 @@
-#!/usr/bin/env bash
+PLEASE READ
 
-source="${BASH_SOURCE[0]}"
-
-# resolve $SOURCE until the file is no longer a symlink
-while [[ -h $source ]]; do
-  scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
-  source="$(readlink "$source")"
-
-  # if $source was a relative symlink, we need to resolve it relative to the path where the
-  # symlink file was located
-  [[ $source != /* ]] && source="$scriptroot/$source"
-done
-
-scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
-"$scriptroot/eng/build.sh" --build --restore --rebuild --pack --test --runAnalyzers --warnAsError $@
+Please remove this file during conflict resolution in your PR.
+This file has been reverted (removed) in the source repository but the PR branch
+does not have the file yet as it's based on an older commit. This means the file is
+not getting removed in the PR due to the other conflicts.

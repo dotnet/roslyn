@@ -8,6 +8,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Roslyn.LanguageServer.Protocol.CompletionItem" Alias="CompletionItem" />
+    <Using Include="Roslyn.LanguageServer.Protocol.CompletionItemKind" Alias="CompletionItemKind" />
+    <Using Include="Roslyn.LanguageServer.Protocol.CompletionItemKindSetting" Alias="CompletionItemKindSetting" />
+    <Using Include="Roslyn.LanguageServer.Protocol.CompletionTriggerKind" Alias="CompletionTriggerKind" />
+    <Using Include="Roslyn.LanguageServer.Protocol.InsertTextFormat" Alias="InsertTextFormat" />
+    <Using Include="Roslyn.LanguageServer.Protocol.MarkupKind" Alias="MarkupKind" />
+    <Using Include="Roslyn.LanguageServer.Protocol.Position" Alias="Position" />
+    <Using Include="Roslyn.LanguageServer.Protocol.Range" Alias="LspRange" />
+    <Using Include="Roslyn.LanguageServer.Protocol.RazorVSInternalCompletionList" Alias="RazorVSInternalCompletionList" />
+    <Using Include="Roslyn.LanguageServer.Protocol.TextEdit" Alias="TextEdit" />
+    <Using Include="Roslyn.LanguageServer.Protocol.TextDocumentClientCapabilities" Alias="TextDocumentClientCapabilities" />
+    <Using Include="Roslyn.LanguageServer.Protocol.VSInternalClientCapabilities" Alias="VSInternalClientCapabilities" />
+    <Using Include="Roslyn.LanguageServer.Protocol.VSInternalCompletionContext" Alias="VSInternalCompletionContext" />
+    <Using Include="Roslyn.LanguageServer.Protocol.VSInternalCompletionInvokeKind" Alias="VSInternalCompletionInvokeKind" />
+    <Using Include="Roslyn.LanguageServer.Protocol.VSInternalCompletionItem" Alias="VSInternalCompletionItem" />
+    <Using Include="Roslyn.LanguageServer.Protocol.VSInternalCompletionListSetting" Alias="VSInternalCompletionListSetting" />
+    <Using Include="Roslyn.LanguageServer.Protocol.VSInternalCompletionSetting" Alias="VSInternalCompletionSetting" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Remote.Razor\Microsoft.CodeAnalysis.Remote.Razor.csproj" />
     <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />

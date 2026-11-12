@@ -123,18 +123,6 @@ internal abstract class CommandLineArgumentReader
         }
     }
 
-    protected void ReadAnalyzers()
-    {
-        var analyzers = Project.GetAnalyzers();
-        if (analyzers != null)
-        {
-            foreach (var analyzer in analyzers)
-            {
-                Add("analyzer", Project.GetAbsolutePath(analyzer.ItemSpec));
-            }
-        }
-    }
-
     protected void ReadCodePage()
     {
         var codePage = Project.ReadCodePage();
@@ -221,31 +209,6 @@ internal abstract class CommandLineArgumentReader
         }
 
         AddIfNotNullOrWhiteSpace("platform", platform);
-    }
-
-    protected void ReadReferences()
-    {
-        foreach (var (filePath, aliases) in Project.GetMetadataReferences())
-        {
-            if (aliases.Length == 0)
-            {
-                Add("reference", filePath);
-            }
-            else
-            {
-                foreach (var alias in aliases)
-                {
-                    if (string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Add("reference", filePath);
-                    }
-                    else
-                    {
-                        Add("reference", $"{alias}=\"{filePath}\"");
-                    }
-                }
-            }
-        }
     }
 
     protected void ReadSigning()

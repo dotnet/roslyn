@@ -34,7 +34,7 @@ public partial class AbstractLanguageServerClientTests
             var serverProcessTaskCompletionSource = new TaskCompletionSource<Process>();
             var lspClient = new DaemonStdioLspClient(thinClientProcess, serverProcessTaskCompletionSource.Task, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory, launchOptions.InitializeProcessId);
 
-            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath);
+            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath, launchOptions.InitializationOptions);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ public partial class AbstractLanguageServerClientTests
             var serverProcessTaskCompletionSource = new TaskCompletionSource<Process>();
             var lspClient = new DaemonPipeClient(thinClientProcess, pipeServer, serverProcessTaskCompletionSource.Task, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory, launchOptions.InitializeProcessId);
 
-            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath);
+            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath, launchOptions.InitializationOptions);
         }
     }
 

@@ -1004,7 +1004,7 @@ End Class
                                                            Assert.False(itest1.IsNotInheritable)
                                                            Assert.Equal(System.Runtime.InteropServices.CharSet.Ansi, itest1.MarshallingCharSet)
                                                            Assert.Equal(System.Runtime.InteropServices.LayoutKind.Auto, itest1.Layout.Kind)
-                                                           Assert.Equal(0, itest1.Layout.Alignment)
+                                                           Assert.Equal(0, itest1.Layout.PackingSize)
                                                            Assert.Equal(0, itest1.Layout.Size)
 
                                                            Dim attributes = itest1.GetAttributes()
@@ -1026,7 +1026,7 @@ End Class
                                                            Assert.True(test2.IsNotInheritable)
                                                            Assert.Equal(System.Runtime.InteropServices.CharSet.Ansi, test2.MarshallingCharSet)
                                                            Assert.Equal(System.Runtime.InteropServices.LayoutKind.Sequential, test2.Layout.Kind)
-                                                           Assert.Equal(0, test2.Layout.Alignment)
+                                                           Assert.Equal(0, test2.Layout.PackingSize)
                                                            Assert.Equal(1, test2.Layout.Size)
 
                                                            ' TypDefName: Test2  (02000013)
@@ -1046,7 +1046,7 @@ End Class
                                                            Assert.False(itest3.IsNotInheritable)
                                                            Assert.Equal(System.Runtime.InteropServices.CharSet.Ansi, itest3.MarshallingCharSet)
                                                            Assert.Equal(System.Runtime.InteropServices.LayoutKind.Auto, itest3.Layout.Kind)
-                                                           Assert.Equal(0, itest3.Layout.Alignment)
+                                                           Assert.Equal(0, itest3.Layout.PackingSize)
                                                            Assert.Equal(0, itest3.Layout.Size)
 
                                                            Assert.Equal(0, [module].GlobalNamespace.GetTypeMembers("ITest4").Length)
@@ -1058,7 +1058,7 @@ End Class
                                                            Assert.True(test5.IsNotInheritable)
                                                            Assert.Equal(System.Runtime.InteropServices.CharSet.Unicode, test5.MarshallingCharSet)
                                                            Assert.Equal(System.Runtime.InteropServices.LayoutKind.Explicit, test5.Layout.Kind)
-                                                           Assert.Equal(16, test5.Layout.Alignment)
+                                                           Assert.Equal(16, test5.Layout.PackingSize)
                                                            Assert.Equal(64, test5.Layout.Size)
 
                                                            Dim f5 = DirectCast(test5.GetMembers()(0), PEFieldSymbol)

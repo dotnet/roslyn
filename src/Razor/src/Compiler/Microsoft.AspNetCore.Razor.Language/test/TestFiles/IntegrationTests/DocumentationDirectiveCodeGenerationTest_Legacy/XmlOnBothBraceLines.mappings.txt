@@ -1,0 +1,9 @@
+﻿Source Location: (16:0,16 [66] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/XmlOnBothBraceLines.cshtml)
+|<summary>
+    Uses <see cref="System.DateTime"/>.
+    </summary>|
+Generated Location: (1176:18,4 [66] )
+|<summary>
+    Uses <see cref="System.DateTime"/>.
+    </summary>|
+

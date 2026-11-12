@@ -26,7 +26,15 @@ string
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<string>.
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,20)-(1,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (1,33)-(1,37) "x:\dir\subdir\Test\TestComponent.cshtml"
 Item
@@ -43,19 +51,18 @@ Value
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent<string>.ItemChanged), (global::System.Action<string>)(__value => Value = __value));
-            __builder.CloseComponent();
-        }
-        #pragma warning restore 1998
+            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent<
 #nullable restore
-#line (2,8)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    string Value;
+#line (1,20)-(1,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
 
 #line default
 #line hidden
 #nullable disable
-
+            >.ItemChanged), (global::System.Action<string>)(__value => Value = __value));
+            __builder.CloseComponent();
+        }
+        #pragma warning restore 1998
     }
 }
 #pragma warning restore 1591

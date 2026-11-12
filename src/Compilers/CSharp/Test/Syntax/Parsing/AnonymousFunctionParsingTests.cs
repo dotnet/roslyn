@@ -1864,7 +1864,7 @@ public class C
             var test = @"delegate*<void> ptr = &() => { };";
             var testWithStatement = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &() => { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),
@@ -1984,7 +1984,7 @@ public class C
             var test = @"delegate*<void> ptr = &static () => { };";
             var testInMethod = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(testInMethod, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &static () => { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),
@@ -2133,7 +2133,7 @@ public class C
         {
             var test = @"delegate*<void> ptr = &delegate() { };";
 
-            CreateCompilation(test, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(test, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // delegate*<void> ptr = &delegate() { };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 1),
@@ -2230,7 +2230,7 @@ public class C
             var test = @"delegate*<void> ptr = &delegate() { };";
             var testWithStatement = @$"class C {{ void M() {{ {test} }} }}";
 
-            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(testWithStatement, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (1,22): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // class C { void M() { delegate*<void> ptr = &delegate() { }; } }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(1, 22),

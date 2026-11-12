@@ -222,5 +222,10 @@ namespace Microsoft.CodeAnalysis
         /// Returns null otherwise.
         /// </summary>
         string? ExtensionMarkerName { get; }
+
+        /// <summary>
+        /// Returns the type layout information for this type.
+        /// </summary>
+        TypeLayout TypeLayout { get; }
     }
 }

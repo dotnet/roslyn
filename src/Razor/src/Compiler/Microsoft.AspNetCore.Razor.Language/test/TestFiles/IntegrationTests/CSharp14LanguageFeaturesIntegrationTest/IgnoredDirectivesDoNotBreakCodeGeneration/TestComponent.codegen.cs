@@ -29,16 +29,6 @@ __builder.AddContent(1, Value
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(4,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    #:package Newtonsoft.Json@13.0.3
-    private static readonly int Value = 1;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

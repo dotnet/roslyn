@@ -7,6 +7,7 @@ trigger:
     - release/dev16.*-vs-deps
     - release/dev17.*
     - release/dev18.*
+    - release/*.0.*
     - release/insiders
     - release/stable
     - demos/mvu-experimentation
@@ -58,6 +59,13 @@ parameters:
   type: string
   default: '(default)'
 
+- name: LocalizableBranches
+  type: object
+  default:
+    - refs/heads/main
+    - refs/heads/release/insiders
+    - refs/heads/release/stable
+
 schedules:
   - cron: "0 8 23-29 * 0"
     displayName: "Monthly smoke test"
@@ -82,7 +90,6 @@ variables:
   # DevDiv drop access token is acquired via WIF service connection (dnceng-devdiv-drop-rw-code-rw-wif)
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
   - group: DotNet-Versions-Publish
-  - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
     value: ''
@@ -146,7 +153,7 @@ extends:
     - ES365AIMigrationTooling
     stages:
 
-    - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')) }}:
+    - ${{ if containsValue(parameters.LocalizableBranches, variables['Build.SourceBranch']) }}:
       - stage: localization
         displayName: Localization
 
@@ -350,7 +357,6 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(Build.BuildNumber)
-                       -officialSkipTests ${{ parameters.SkipTests }}
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop ${{ parameters.IbcDrop }}
@@ -362,7 +368,23 @@ extends:
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
+                       /p:DotNetBuildTests=${{ not(parameters.SkipTests) }}
           condition: succeeded()
+
+        - task: PowerShell@2
+          displayName: Run Tests
+          inputs:
+            targetType: inline
+            script: |
+              & dotnet exec `
+                "$(Build.SourcesDirectory)\artifacts\bin\RunTests\$(BuildConfiguration)\net10.0\RunTests.dll" `
+                --logs "$(Build.SourcesDirectory)\artifacts\log\$(BuildConfiguration)" `
+                --testConfiguration $(BuildConfiguration) `
+                --testFramework:desktop `
+                --collectdumps `
+                --ci `
+                --timeout 90
+          condition: and(succeeded(), ${{ not(parameters.SkipTests) }})
 
         - template: /eng/common/templates-official/steps/generate-sbom.yml@self
 

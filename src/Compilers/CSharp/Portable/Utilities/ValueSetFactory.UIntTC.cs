@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public ConstantValue ToConstantValue(uint value) => ConstantValue.Create(value);
 
-            string INumericTC<uint>.ToString(uint value) => value.ToString();
+            string INumericTC<uint>.ToString(uint value) => value.ToString(CultureInfo.InvariantCulture);
 
             uint INumericTC<uint>.Prev(uint value)
             {

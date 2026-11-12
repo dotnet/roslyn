@@ -14,4 +14,10 @@ public sealed class CSharpIntermediateToken : IntermediateToken
         : base(content, source)
     {
     }
+
+    protected override IntermediateNode CloneNode()
+        => new CSharpIntermediateToken(Content, Source)
+        {
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
 }

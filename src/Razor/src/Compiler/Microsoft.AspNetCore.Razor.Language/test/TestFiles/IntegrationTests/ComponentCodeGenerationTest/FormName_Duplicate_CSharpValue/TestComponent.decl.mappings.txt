@@ -1,0 +1,16 @@
+﻿Source Location: (1:0,1 [41] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components.Web|
+Generated Location: (372:12,0 [41] )
+|using Microsoft.AspNetCore.Components.Web|
+
+Source Location: (132:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    string x = "a";
+    string y = "b";
+|
+Generated Location: (709:24,0 [44] )
+|
+    string x = "a";
+    string y = "b";
+|
+

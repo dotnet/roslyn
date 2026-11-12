@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent. Value ), "@currentCount")

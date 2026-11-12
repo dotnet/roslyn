@@ -1,0 +1,11 @@
+﻿[0000] OpenComponent<global::Test.Parent<
+#nullable restore
+#line (1,15)-(1,21) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment<string>)((context) => (__builder2) => { global::__Blazor.Test.TestComponent.TypeInference.CreateChild_0(__builder2, 2, default(string)!, 3, (childContext) => (__builder3) => { __builder3.AddContent(4, childContext.Length ); } ); } ))
+[0004] AddContent(childContext.Length)

@@ -18,8 +18,6 @@
                             IntermediateToken -  - CSharp - ); }
                     ComponentAttribute - (62:0,62 [6] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         IntermediateToken - (62:0,62 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Update
-            CSharpCode - (81:1,7 [82] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (81:1,7 [82] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n\n    public void Update() { }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

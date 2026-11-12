@@ -38,18 +38,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             utf8output: false,
             output: string.Empty);
 
-        internal static BuildRequest CreateEmptyCSharp(string workingDirectory, string tempDirectory = null) => BuildRequest.Create(
+        internal static BuildRequest CreateEmptyCSharp(string workingDirectory) => BuildRequest.Create(
             RequestLanguage.CSharpCompile,
             Array.Empty<string>(),
             workingDirectory,
-            tempDirectory ?? Path.GetTempPath(),
             compilerHash: BuildProtocolConstants.GetCommitHash());
 
-        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive, string workingDirectory, string tempDirectory = null) => BuildRequest.Create(
+        internal static BuildRequest CreateEmptyCSharpWithKeepAlive(TimeSpan keepAlive, string workingDirectory) => BuildRequest.Create(
             RequestLanguage.CSharpCompile,
             Array.Empty<string>(),
             workingDirectory,
-            tempDirectory ?? Path.GetTempPath(),
             compilerHash: BuildProtocolConstants.GetCommitHash(),
             keepAlive: keepAlive.TotalSeconds.ToString());
 
@@ -159,13 +157,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         internal static string DefaultClientDirectory { get; } = Path.GetDirectoryName(typeof(BuildClientTests).Assembly.Location);
         internal static string DefaultSdkDirectory { get; } = BuildClient.GetSystemSdkDirectory();
 
-        internal static BuildPaths CreateBuildPaths(string workingDir, string tempDir)
+        internal static BuildPaths CreateBuildPaths(string workingDir)
         {
             return new BuildPaths(
                 clientDir: DefaultClientDirectory,
                 workingDir: workingDir,
-                sdkDir: DefaultSdkDirectory,
-                tempDir: tempDir);
+                sdkDir: DefaultSdkDirectory);
         }
 
         internal static string GetPipeName() => Guid.NewGuid().ToString().Substring(0, 10);
@@ -204,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static CompileFunc GetCompileFunc(RequestLanguage language)
         {
-            Func<string[], string, string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
+            Func<string[], string, string, string, TextWriter, IAnalyzerAssemblyLoader, int> func;
             switch (language)
             {
                 case RequestLanguage.CSharpCompile:
@@ -217,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     throw new InvalidOperationException();
             }
 
-            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, buildPaths.TempDirectory, textWriter, loader);
+            return (args, buildPaths, textWriter, loader) => func(args, buildPaths.ClientDirectory, buildPaths.WorkingDirectory, buildPaths.SdkDirectory, textWriter, loader);
         }
     }
 }

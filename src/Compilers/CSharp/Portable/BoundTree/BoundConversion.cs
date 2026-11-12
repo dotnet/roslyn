@@ -114,13 +114,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if ((InConversionGroupFlags & InConversionGroupFlags.UserDefinedReturnTypeAdjustment) != 0)
                     {
+                        Debug.Assert(false, "Please add test coverage for this tree shape. Consider covering SemanticModel, Nullable Analysis and IOperation behavior too.");
                         Debug.Assert((InConversionGroupFlags & InConversionGroupFlags.UserDefinedAllFlags) == InConversionGroupFlags.UserDefinedReturnTypeAdjustment);
                         Debug.Assert(Conversion.IsNullable);
                         Debug.Assert(Conversion.IsImplicit);
                         Debug.Assert(!Conversion.UnderlyingConversions[0].IsIdentity);
                         Debug.Assert(Operand is BoundConversion operandAsConversion &&
                                      operandAsConversion.ConversionGroupOpt == ConversionGroupOpt &&
-                                     operandAsConversion.Conversion.IsUserDefined);
+                                     operandAsConversion.Conversion.IsUserDefined &&
+                                     operandAsConversion.WasCompilerGenerated &&
+                                     operandAsConversion.Syntax == Syntax);
                     }
                     else if ((InConversionGroupFlags & InConversionGroupFlags.UserDefinedFinal) != 0)
                     {
@@ -128,8 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         Debug.Assert(Operand is BoundConversion operandAsConversion &&
                                      operandAsConversion.ConversionGroupOpt == ConversionGroupOpt &&
-                                     (operandAsConversion.Conversion.IsUserDefined ||
-                                      (operandAsConversion.InConversionGroupFlags & InConversionGroupFlags.UserDefinedReturnTypeAdjustment) != 0));
+                                     operandAsConversion.WasCompilerGenerated &&
+                                     operandAsConversion.Conversion.IsUserDefined &&
+                                     operandAsConversion.Syntax == Syntax);
 
                     }
                     else

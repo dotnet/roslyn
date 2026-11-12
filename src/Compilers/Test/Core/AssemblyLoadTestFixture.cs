@@ -518,7 +518,7 @@ public class Analyzer : DiagnosticAnalyzer
             return GenerateDll(assemblyName, directory, csSource, publicKeyOpt: default, additionalReferences);
         }
 
-        private static string GenerateDll(string assemblyName, TempDirectory directory, string csSource, ImmutableArray<byte> publicKeyOpt, params MetadataReference[] additionalReferences)
+        internal static string GenerateDll(string assemblyName, TempDirectory directory, string csSource, ImmutableArray<byte> publicKeyOpt, params MetadataReference[] additionalReferences)
         {
             CSharpCompilationOptions options = new(OutputKind.DynamicallyLinkedLibrary, warningLevel: Diagnostic.MaxWarningLevel);
 

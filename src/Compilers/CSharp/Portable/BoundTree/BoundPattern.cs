@@ -21,19 +21,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (innerPattern is BoundNegatedPattern negatedPattern)
             {
-                Debug.Assert(negatedPattern.UnionMatchingMode == UnionMatchingMode.None);
+                Debug.Assert(!negatedPattern.IsUnionMatching);
                 negated = !negated;
                 innerPattern = negatedPattern.Negated;
             }
             return negated;
         }
 
-        public virtual UnionMatchingMode UnionMatchingMode => UnionMatchingMode.None;
+        public virtual bool IsUnionMatching => false;
 
         private partial void Validate()
         {
-            Debug.Assert(UnionMatchingMode != UnionMatchingMode.UnionInstance);
-            Debug.Assert(UnionMatchingMode == UnionMatchingMode.None || InputType is { IsSubjectForUnionMatching: true });
+            Debug.Assert(!IsUnionMatching || InputType is { IsSubjectForUnionMatching: true });
         }
     }
 }

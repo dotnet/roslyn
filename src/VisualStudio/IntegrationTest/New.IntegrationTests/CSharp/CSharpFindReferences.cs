@@ -27,7 +27,7 @@ public class CSharpFindReferences : AbstractEditorTest
 
     protected override string LanguageName => LanguageNames.CSharp;
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task FindReferencesToCtor()
     {
         await SetUpEditorAsync("""
@@ -81,7 +81,7 @@ public class CSharpFindReferences : AbstractEditorTest
         Assert.Equal("Program", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task FindReferencesToLocals()
     {
         await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);

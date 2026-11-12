@@ -1,0 +1,9 @@
+﻿AreaSquare(l)       = pow(l, 2)
+AreaRectangle(w, h) = w * h
+AreaCircle(r)       = pi * r * r
+Quadratic(a, b, c)  = {-b + sqrt(pow(b,2) - 4 * a * c)} / (2 * a)
+
+GoldenRatio         = 1.61803
+GoldHarm(n)         = GoldenRatio + 1 * ∑(i, 1, n, 1 / i)
+
+D(x', x'', y', y'') = sqrt(pow([x'-x''],2) + pow([y'-y''], 2))

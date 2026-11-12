@@ -152,6 +152,7 @@ internal abstract partial class AbstractMetadataAsSourceService
         public IParameterSymbol ExtensionParameter => _symbol.ExtensionParameter;
         public string ExtensionGroupingName => _symbol.ExtensionGroupingName;
         public string ExtensionMarkerName => _symbol.ExtensionMarkerName;
+        public TypeLayout TypeLayout => _symbol.TypeLayout;
 
         public bool IsFileLocal => _symbol.IsFileLocal;
 

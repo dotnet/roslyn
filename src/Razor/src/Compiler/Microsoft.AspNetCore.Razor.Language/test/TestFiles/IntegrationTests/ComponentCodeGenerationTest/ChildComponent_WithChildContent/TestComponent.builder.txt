@@ -1,0 +1,5 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent. MyAttr ), "abc")
+[0002] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddContent(3, "Some text"); __builder2.AddMarkupContent(4, "<some-child a=\'1\'>Nested text</some-child>"); } ))
+[0003] AddContent("Some text")
+[0004] AddMarkupContent("<some-child a=\'1\'>Nested text</some-child>")

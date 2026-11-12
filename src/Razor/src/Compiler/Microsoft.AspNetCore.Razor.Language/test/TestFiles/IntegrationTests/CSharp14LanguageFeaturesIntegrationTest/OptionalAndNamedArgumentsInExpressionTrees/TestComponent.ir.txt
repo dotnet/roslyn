@@ -9,5 +9,3 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (102:5,2 [227] x:\dir\subdir\Test\TestComponent.razor)
                     LazyIntermediateToken - (102:5,2 [227] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    System.Linq.Expressions.Expression<System.Func<int>> named = () => Sum(first: 1, second: 2);\n    System.Linq.Expressions.Expression<System.Func<int>> optional = () => Sum();\n    _ = named.Body;\n    _ = optional.Body;\n
-            CSharpCode - (7:0,7 [88] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (7:0,7 [88] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public static int Sum(int first = 0, int second = 0)\n        => first + second;\n

@@ -10,6 +10,8 @@ This tool is run on every CI job against our important solution files: [Roslyn.s
 
 Violations reported are important to fix as they represent correctness issues in our build.  Many of the properties verified represent problems that otherwise won't be verified at check in time.
 
+Each check writes a log to `artifacts/log/<configuration>/BuildBoss`.  CI publishes these with the job logs.
+
 ## Options
 
 Most checks run unconditionally.  One check is opt in:

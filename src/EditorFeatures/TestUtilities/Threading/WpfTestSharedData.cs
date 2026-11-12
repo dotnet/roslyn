@@ -21,7 +21,9 @@ public sealed class WpfTestSharedData
     /// </summary>
     private readonly List<string> _recentTestCases = [];
 
+#pragma warning disable RS0030 // The runner acquires this gate asynchronously before starting a WPF test.
     public readonly SemaphoreSlim TestSerializationGate = new(1, 1);
+#pragma warning restore RS0030
 
     private WpfTestSharedData()
     {

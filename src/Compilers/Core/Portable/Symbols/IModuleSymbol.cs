@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -40,6 +40,15 @@ namespace Microsoft.CodeAnalysis
         /// from ReferencedAssemblySymbols correspond to each other.
         /// </summary>
         ImmutableArray<IAssemblySymbol> ReferencedAssemblySymbols { get; }
+
+        /// <summary>
+        /// Which memory safety rules are enabled in this module. Determines which symbols are considered requires-unsafe (<see cref="ISymbol.RequiresUnsafeContext"/>).
+        /// </summary>
+        /// <remarks>
+        /// A metadata module compiled with an unsupported rules version may return a value that is not defined by <see cref="Microsoft.CodeAnalysis.MemorySafetyRulesVersion"/>.
+        /// </remarks>
+        [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
+        MemorySafetyRulesVersion MemorySafetyRulesVersion { get; }
 
         /// <summary>
         /// If this symbol represents a metadata module returns the underlying <see cref="ModuleMetadata"/>.

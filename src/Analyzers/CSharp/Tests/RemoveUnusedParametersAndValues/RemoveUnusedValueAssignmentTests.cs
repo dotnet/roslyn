@@ -9492,4 +9492,24 @@ class C
                 OutputKind = OutputKind.ConsoleApplication,
             }
         }.RunAsync();
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/44948")]
+    [InlineData(nameof(PreferDiscard))]
+    [InlineData(nameof(PreferUnusedLocal))]
+    public Task ConstUsedInStaticLocalFunction_DeclaredAfterCall(string optionName)
+        => TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    _ = FormatDate(DateTime.Now);
+
+                    const string [|DatePickerFormat|] = "MM/dd/yyyy hh:mm";
+                    static string FormatDate(DateTime? date) => date?.ToString(DatePickerFormat);
+                }
+            }
+            """, optionName);
 }
