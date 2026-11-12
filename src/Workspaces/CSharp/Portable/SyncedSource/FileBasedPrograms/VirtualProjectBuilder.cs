@@ -171,9 +171,9 @@ sealed class VirtualProjectBuilder
         return Path.Combine(GetTempSubdirectory(dotNetSubdirectory), name);
     }
 
-    public static bool IsValidEntryPointPath(string entryPointFilePath)
+    public static bool IsValidEntryPointPath(string entryPointFilePath, bool requireFileToExist = true)
     {
-        if (!File.Exists(entryPointFilePath))
+        if (requireFileToExist && !File.Exists(entryPointFilePath))
         {
             return false;
         }
@@ -181,6 +181,12 @@ sealed class VirtualProjectBuilder
         if (entryPointFilePath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
         {
             return true;
+        }
+
+        // If we haven't checked file existence yet, do it before opening the file.
+        if (!requireFileToExist && !File.Exists(entryPointFilePath))
+        {
+            return false;
         }
 
         // Check if the first two characters are #!
@@ -622,19 +628,16 @@ sealed class VirtualProjectBuilder
             Debug.Assert(!string.IsNullOrWhiteSpace(artifactsPath));
             Debug.Assert(entryPointFilePath is not null);
 
-            // Note that ArtifactsPath needs to be specified before Sdk.props
+            // Note that FileBasedAppArtifactsPath needs to be specified before Sdk.props
             // (usually it's recommended to specify it in Directory.Build.props
             // but importing Sdk.props manually afterwards also works).
             writer.WriteLine($"""
                 <Project>
 
                   <PropertyGroup>
-                    <IncludeProjectNameInArtifactsPaths>false</IncludeProjectNameInArtifactsPaths>
-                    <ArtifactsPath>{EscapeValue(artifactsPath)}</ArtifactsPath>
+                    <FileBasedAppArtifactsPath>{EscapeValue(artifactsPath)}</FileBasedAppArtifactsPath>
                     <AssemblyName>{EscapeValue(Path.GetFileNameWithoutExtension(entryPointFilePath))}</AssemblyName>
                     <RootNamespace>$(AssemblyName)</RootNamespace>
-                    <PublishDir>artifacts/$(AssemblyName)</PublishDir>
-                    <PackageOutputPath>artifacts/$(AssemblyName)</PackageOutputPath>
                     <FileBasedProgram>true</FileBasedProgram>
                     <EntryPointFilePath>{EscapeValue(entryPointFilePath)}</EntryPointFilePath>
                     <FileBasedProgramsItemMapping>{CSharpDirective.IncludeOrExclude.DefaultMappingString}</FileBasedProgramsItemMapping>
