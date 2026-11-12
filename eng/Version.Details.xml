@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Dependencies>
-  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="7b5d3d081f9bebbcaecd5a540719d00716f550b8" BarId="340644" />
+  <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="fc2f38dc0e8f414999b85bd02878fdf0f238fe5c" BarId="341015" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
     <Dependency Name="Microsoft.CodeAnalysis" Version="3.11.0">
@@ -9,7 +9,7 @@
     </Dependency>
     <Dependency Name="System.CommandLine" Version="2.0.16">
       <Uri>https://github.com/dotnet/dotnet</Uri>
-      <Sha>7b5d3d081f9bebbcaecd5a540719d00716f550b8</Sha>
+      <Sha>fc2f38dc0e8f414999b85bd02878fdf0f238fe5c</Sha>
     </Dependency>
     <!-- Necessary for source-build. This allows the live version of the package to be used by source-build. -->
     <Dependency Name="Microsoft.Bcl.AsyncInterfaces" Version="9.0.0">
