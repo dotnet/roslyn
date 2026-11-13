@@ -14548,6 +14548,631 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                        id="q">z</p>
+                </div>
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                            id="q">z</p>
+                </div>
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_ExplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                   @(1+2)"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                   @(1+2)"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @(1 + 2)"
+                       id="q">z</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_ImplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                   @DateTime.Now"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                   @DateTime.Now"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @DateTime.Now"
+                       id="q">z</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_EscapedTransition()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <p title="first
+                       @@ second">
+                a
+                </p>
+                """,
+            htmlFormatted: """
+                <p title="first
+                       @@ second">
+                    a
+                </p>
+                """,
+            expected: """
+                <p title="first
+                       @@ second">
+                    a
+                </p>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_EscapedTransition_Nested()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                       @@ second">
+                a
+                </p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                       @@ second">
+                        a
+                    </p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                       @@ second">
+                        a
+                    </p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_ClosingQuoteOnOwnLine()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                <p title="first
+                second
+                            third
+                  "
+                   id="q">z</p>
+                </section>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        <p title="first
+                second
+                            third
+                  "
+                           id="q">z</p>
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <p title="first
+                second
+                            third
+                  "
+                           id="q">z</p>
+                    </section>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Component()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <InputText Value="a
+                   b c"
+                   id="q" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <InputText Value="a
+                   b c"
+                               id="q" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <InputText Value="a
+                   b c"
+                               id="q" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Component_Expressions()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <InputText Value="a
+                   @(1+2)"
+                   title="b
+                   @DateTime.Now"
+                   id="q" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <InputText Value="a
+                   @(1+2)"
+                               title="b
+                   @DateTime.Now"
+                               id="q" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <InputText Value="a
+                   @(1 + 2)"
+                               title="b
+                   @DateTime.Now"
+                               id="q" />
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_ExpressionBeforeLineBreak()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div title="Show(@x,
+                             2)"
+                   class="x">y</div>
+                </div>
+                @code {
+                    int x;
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <div title="Show(@x,
+                             2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                @code {
+                    int x;
+                }
+                """,
+            expected: """
+                <div>
+                    <div title="Show(@x,
+                             2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                @code {
+                    int x;
+                }
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div title="Show(@x,
+                             2)"
+                         class="x">y</div>
+                </div>
+                @code {
+                    int x;
+                }
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Component_ExpressionBeforeLineBreak()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton ImageContentSource="a @x
+                                                    b" />
+                </div>
+                @code {
+                    string x;
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton ImageContentSource="a @x
+                                                    b" />
+                </div>
+                @code {
+                    string x;
+                }
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton ImageContentSource="a @x
+                                                    b" />
+                </div>
+                @code {
+                    string x;
+                }
+                """,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_DirectiveAttribute()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <InputDate @bind-Value="d"
+                   @bind-Value:format="yyyy
+                   @("MM")"
+                   id="q" />
+                </div>
+                @code {
+                    private System.DateTime d;
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <InputDate @bind-Value="d"
+                               @bind-Value:format="yyyy
+                   @("MM")"
+                               id="q" />
+                </div>
+                @code {
+                    private System.DateTime d;
+                }
+                """,
+            expected: """
+                <div>
+                    <InputDate @bind-Value="d"
+                               @bind-Value:format="yyyy
+                   @("MM")"
+                               id="q" />
+                </div>
+                @code {
+                    private System.DateTime d;
+                }
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   data-label="d
+                   e f"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p class="a
+                   b c"
+                       data-label="d
+                   e f"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                       data-label="d
+                   e f"
+                       id="q">z</p>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy_ExplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                   @(1+2)"
+                   data-label="second
+                   @(3+4)"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                   @(1+2)"
+                       data-label="second
+                   @(3+4)"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @(1 + 2)"
+                       data-label="second
+                   @(3 + 4)"
+                       id="q">z</p>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy_ImplicitExpression()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                   @DateTime.Now"
+                   data-label="second
+                   @DateTime.Today"
+                   id="q">z</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                   @DateTime.Now"
+                       data-label="second
+                   @DateTime.Today"
+                       id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                   @DateTime.Now"
+                       data-label="second
+                   @DateTime.Today"
+                       id="q">z</p>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy_EscapedTransition()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <p title="first
+                       @@ second"
+                   data-label="third
+                       @@ fourth">
+                a
+                </p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p title="first
+                       @@ second"
+                       data-label="third
+                       @@ fourth">
+                        a
+                    </p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p title="first
+                       @@ second"
+                       data-label="third
+                       @@ fourth">
+                        a
+                    </p>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public async Task MultilineAttributeValue_PreservesContents_Legacy_TagHelper()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <a asp-action="Index"
+                   asp-route-x="a
+                   b c"
+                   asp-route-y="d
+                   @DateTime.Now"
+                   title="e
+                   @@ f"
+                   data-label="g
+                   @(1+2)"
+                   data-x="h
+                   @@ i"
+                   id="q">z</a>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <a asp-action="Index"
+                       asp-route-x="a
+                   b c"
+                       asp-route-y="d
+                   @DateTime.Now"
+                       title="e
+                   @@ f"
+                       data-label="g
+                   @(1+2)"
+                       data-x="h
+                   @@ i"
+                       id="q">z</a>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <a asp-action="Index"
+                       asp-route-x="a
+                   b c"
+                       asp-route-y="d
+                   @DateTime.Now"
+                       title="e
+                   @@ f"
+                       data-label="g
+                   @(1 + 2)"
+                       data-x="h
+                   @@ i"
+                       id="q">z</a>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
     public async Task MultilineLambdaInDirectiveAttribute_MovesWithTag()
     {

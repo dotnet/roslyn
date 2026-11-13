@@ -900,6 +900,12 @@ internal partial class CSharpFormattingPass
             public override LineInfo VisitMarkupEphemeralTextLiteral(MarkupEphemeralTextLiteralSyntax node)
             {
                 // A MarkupEphemeralTextLiteral is an escaped @ sign, eg in CSS "@@font-face". We just treat it like markup text
+                if (IsQuotedAttributeValueContinuation(node))
+                {
+                    // The leading whitespace is part of an attribute value, see VisitMarkupTextLiteral.
+                    return EmitCurrentLineWithNoFormatting();
+                }
+
                 return EmitCurrentLineAsComment();
             }
 
@@ -915,7 +921,76 @@ internal partial class CSharpFormattingPass
                     return result;
                 }
 
+                if (IsQuotedAttributeValueContinuation(node))
+                {
+                    // This line continues a quoted attribute value that started on a previous line, eg the second line of:
+                    //
+                    // <p class="a
+                    //    b c"
+                    //
+                    // The leading whitespace is part of the attribute value, so changing it would change the value.
+                    return EmitCurrentLineWithNoFormatting();
+                }
+
                 return EmitCurrentLineAsComment();
+            }
+
+            private bool IsQuotedAttributeValueContinuation(RazorSyntaxNode node)
+            {
+                // The node at the start of the line is a known, short distance from the attribute whose value contains it:
+                //
+                // Html attribute:   MarkupAttributeBlock > GenericBlock > MarkupLiteralAttributeValue > MarkupTextLiteral
+                //                   MarkupAttributeBlock > GenericBlock > MarkupBlock > MarkupTextLiteral (for an "@@" escape)
+                //                   MarkupAttributeBlock > GenericBlock > MarkupDynamicAttributeValue > GenericBlock > CSharpCodeBlock > expression
+                // Tag helper and    Attribute > MarkupTagHelperAttributeValue > MarkupTextLiteral
+                // directive         Attribute > MarkupTagHelperAttributeValue > MarkupLiteralAttributeValue > MarkupTextLiteral
+                // attribute:        Attribute > MarkupTagHelperAttributeValue > MarkupBlock > MarkupTextLiteral (for an "@@" escape)
+                //                   Attribute > MarkupTagHelperAttributeValue > MarkupBlock > CSharpCodeBlock > expression
+                //                   Attribute > MarkupTagHelperAttributeValue > MarkupDynamicAttributeValue > GenericBlock > CSharpCodeBlock > expression
+                //
+                // In legacy (.cshtml) files, "data-*" attributes aren't conditional, so their values are flatter, and the first "@"
+                // of an "@@" escape is a MarkupEphemeralTextLiteral:
+                //
+                // Html attribute:   MarkupAttributeBlock > GenericBlock > MarkupTextLiteral or MarkupEphemeralTextLiteral
+                //                   MarkupAttributeBlock > GenericBlock > CSharpCodeBlock > expression
+                // Tag helper        Attribute > MarkupTagHelperAttributeValue > MarkupTextLiteral or MarkupEphemeralTextLiteral
+                // attribute:        Attribute > MarkupTagHelperAttributeValue > CSharpCodeBlock > expression
+                //
+                // A closing quote on its own line is the attribute's ValueSuffix, so its parent is the attribute itself.
+                var parent = node.Parent;
+                if (node is CSharpExplicitExpressionSyntax or CSharpImplicitExpressionSyntax)
+                {
+                    parent = parent switch
+                    {
+                        CSharpCodeBlockSyntax { Parent: GenericBlockSyntax { Parent: MarkupDynamicAttributeValueSyntax value } } => value,
+                        CSharpCodeBlockSyntax { Parent: MarkupBlockSyntax or GenericBlockSyntax or MarkupTagHelperAttributeValueSyntax } codeBlock => codeBlock.Parent,
+                        _ => null
+                    };
+                }
+
+                if (parent is MarkupLiteralAttributeValueSyntax or MarkupDynamicAttributeValueSyntax or MarkupBlockSyntax)
+                {
+                    parent = parent.Parent;
+                }
+
+                if (parent is GenericBlockSyntax or MarkupTagHelperAttributeValueSyntax)
+                {
+                    parent = parent.Parent;
+                }
+
+                var valuePrefix = parent switch
+                {
+                    MarkupAttributeBlockSyntax attribute => attribute.ValuePrefix,
+                    MarkupTagHelperAttributeSyntax attribute => attribute.ValuePrefix,
+                    MarkupTagHelperDirectiveAttributeSyntax attribute => attribute.ValuePrefix,
+                    _ => null
+                };
+
+                // The value prefix is the opening quote, so if it's on an earlier line, and we're after it, then we're inside
+                // the value.
+                return valuePrefix is { Width: > 0 } &&
+                    _currentFirstNonWhitespacePosition >= valuePrefix.EndPosition &&
+                    GetLineNumber(valuePrefix) < _currentLine.LineNumber;
             }
 
             public override LineInfo VisitMarkupCommentBlock(MarkupCommentBlockSyntax node)
@@ -1140,6 +1215,23 @@ internal partial class CSharpFormattingPass
                     return VisitCSharpCodeBlock(node, csharpCode);
                 }
 
+                return EmitSingleLineExpressionLine(node);
+            }
+
+            private LineInfo EmitSingleLineExpressionLine(RazorSyntaxNode node)
+            {
+                if (IsQuotedAttributeValueContinuation(node))
+                {
+                    // This line continues a quoted attribute value that started on a previous line, eg the second line of:
+                    //
+                    // <p title="first
+                    //    @(1 + 2)"
+                    //
+                    // The leading whitespace is part of the attribute value. The expression itself is still formatted, along
+                    // with any others on this line, by the additional lines we emit in Generate.
+                    return EmitCurrentLineWithNoFormatting();
+                }
+
                 return EmitCurrentLineAsComment();
             }
 
@@ -1152,7 +1244,7 @@ internal partial class CSharpFormattingPass
                 var csharpCode = body.CSharpCode;
                 if (GetLineNumber(closeParen) == GetLineNumber(node))
                 {
-                    return EmitCurrentLineAsComment();
+                    return EmitSingleLineExpressionLine(node);
                 }
 
                 return VisitCSharpCodeBlock(node, csharpCode);
