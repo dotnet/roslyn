@@ -15,8 +15,10 @@ using System.Text.Json.Serialization;
 /// </summary>
 [JsonConverter(typeof(StringEnumConverter<CodeActionKind>))]
 [TypeConverter(typeof(StringEnumConverter<CodeActionKind>.TypeConverter))]
-internal readonly record struct CodeActionKind(string Value) : IStringEnum
+internal readonly record struct CodeActionKind(string Value) : IStringEnum<CodeActionKind>
 {
+    CodeActionKind IStringEnum<CodeActionKind>.Create(string value) => new(value);
+
     /// <summary>
     /// Empty kind.
     /// </summary>

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Razor.Formatting;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -232,7 +233,7 @@ public class HtmlFormattingPassTest(ITestOutputHelper testOutput) : DocumentForm
         var snapshot = snapshotManager.GetSnapshot(document);
 
         var loggerFactory = new TestFormattingLoggerFactory(TestOutputHelper);
-        var logger = loggerFactory.CreateLogger(document.FilePath.AssumeNotNull(), "Html");
+        var logger = loggerFactory.CreateLogger(document.FilePath.AssumeNotNull(), "Html", RemoteRazorJsonSerializerContext.FormattingLogJsonSerializerOptions);
         var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
         var context = FormattingContext.Create(snapshot,
             codeDocument,

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis;
 
 namespace Roslyn.LanguageServer.Protocol;
@@ -15,6 +16,7 @@ namespace Roslyn.LanguageServer.Protocol;
 /// The underlying parsed representation is <see cref="Protocol.ParsedUri"/>, which implements vscode-uri compatible
 /// parsing without depending on System.Uri.
 /// </remarks>
+[JsonConverter(typeof(DocumentUriConverter))]
 internal sealed record class DocumentUri(string UriString)
 {
     private Optional<ParsedUri?> _parsedUri;

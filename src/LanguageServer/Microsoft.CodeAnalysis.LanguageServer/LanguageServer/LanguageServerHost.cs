@@ -36,7 +36,7 @@ internal sealed class LanguageServerHost
         LanguageServerTelemetry? processTelemetry,
         string? copilotSessionId)
     {
-        var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+        var messageFormatter = CreateJsonMessageFormatter();
 
         var handler = new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter);
 
@@ -109,6 +109,13 @@ internal sealed class LanguageServerHost
 
             throw;
         }
+    }
+
+    internal static SystemTextJsonFormatter CreateJsonMessageFormatter()
+    {
+        var formatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+        formatter.JsonSerializerOptions.AddLspSerializerContext(HostJsonSerializerContext.Default);
+        return formatter;
     }
 
     public void Start()

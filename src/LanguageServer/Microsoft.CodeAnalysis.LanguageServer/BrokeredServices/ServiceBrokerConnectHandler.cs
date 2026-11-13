@@ -44,7 +44,7 @@ internal sealed class ServiceBrokerConnectHandler() : ILspServiceNotificationHan
         await connectTask.ConfigureAwait(false);
     }
 
-    private sealed class NotificationParams
+    internal sealed class NotificationParams
     {
         [JsonPropertyName("pipeName")]
         public required string PipeName { get; set; }

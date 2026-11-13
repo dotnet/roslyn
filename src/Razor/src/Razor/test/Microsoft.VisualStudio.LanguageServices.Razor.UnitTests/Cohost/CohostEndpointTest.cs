@@ -6,13 +6,16 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Protocol.CodeActions;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -24,6 +27,82 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTestBase(testOutputHelper)
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void MissingRazorResolverIsResilientInProductionAndRejectedInValidation(bool requireGeneratedMetadata)
+    {
+        var composition = TestComposition.Empty.AddParts(typeof(CSharpVisualBasicLspServiceProvider));
+        using var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
+        var serviceProvider = exportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
+        var formatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+        var options = serviceProvider.ConfigureJsonSerializerOptions(formatter.JsonSerializerOptions);
+        var reportedTypes = new List<Type>();
+        var fallback = new ReflectionFallbackJsonTypeInfoResolver(requireGeneratedMetadata, reportedTypes.Add);
+        options.TypeInfoResolverChain[options.TypeInfoResolverChain.Count - 1] = fallback;
+        const string request = """
+            {
+                "textDocument": { "uri": "file:///C:/project/Test.razor" },
+                "position": { "line": 0, "character": 1 },
+                "context": { "triggerKind": 1 }
+            }
+            """;
+
+        if (requireGeneratedMetadata)
+        {
+            Assert.Throws<NotSupportedException>(() => JsonSerializer.Deserialize<RazorVSInternalCompletionParams>(request, options));
+            Assert.Empty(reportedTypes);
+            Assert.False(fallback.IsReflectionResolverCreated);
+        }
+        else
+        {
+            var completion = JsonSerializer.Deserialize<RazorVSInternalCompletionParams>(request, options);
+            Assert.NotNull(completion);
+            Assert.Equal(1, completion.Position.Character);
+            Assert.Contains(typeof(RazorVSInternalCompletionParams), reportedTypes);
+        }
+    }
+
+    [Fact]
+    public void VisualStudioCompositionDeserializesRazorRequests()
+    {
+        // Razor.Workspaces ships as an Assembly asset, not a VS MEF component.
+        var composition = TestComposition.Empty
+            .AddAssemblies(typeof(CohostVSEndpointRegistration).Assembly)
+            .AddParts(typeof(CSharpVisualBasicLspServiceProvider));
+
+        using var exportProvider = composition.ExportProviderFactory.CreateExportProvider();
+        var serviceProvider = exportProvider.GetExportedValue<CSharpVisualBasicLspServiceProvider>();
+        var formatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+        var options = serviceProvider.ConfigureJsonSerializerOptions(formatter.JsonSerializerOptions);
+
+        var completion = JsonSerializer.Deserialize<RazorVSInternalCompletionParams>("""
+            {
+                "textDocument": { "uri": "file:///C:/project/Test.razor" },
+                "position": { "line": 0, "character": 1 },
+                "context": { "triggerKind": 1 }
+            }
+            """, options);
+        Assert.NotNull(completion);
+        Assert.Equal(1, completion.Position.Character);
+        Assert.NotNull(completion.Context);
+        Assert.Equal(CompletionTriggerKind.Invoked, completion.Context.TriggerKind);
+
+        var codeAction = JsonSerializer.Deserialize<VSCodeActionParams>("""
+            {
+                "textDocument": { "uri": "file:///C:/project/Test.razor" },
+                "range": {
+                    "start": { "line": 0, "character": 0 },
+                    "end": { "line": 0, "character": 1 }
+                },
+                "context": { "diagnostics": [] }
+            }
+            """, options);
+        Assert.NotNull(codeAction);
+        Assert.Equal(1, codeAction.Range.End.Character);
+        Assert.Empty(codeAction.Context.Diagnostics);
+    }
+
     [Fact]
     public void EndpointsHaveUniqueLSPMethods()
     {

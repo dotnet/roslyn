@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -14,5 +15,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpVisualBasicLspServiceProvider(
     [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<ILspService, LspServiceMetadataView>> lspServices,
-    [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories)
-    : AbstractLspServiceProvider(lspServices, lspServiceFactories);
+    [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<ILspServiceFactory, LspServiceMetadataView>> lspServiceFactories,
+    [ImportMany(ProtocolConstants.RoslynLspLanguagesContract)] IEnumerable<Lazy<IJsonTypeInfoResolver>> jsonTypeInfoResolvers)
+    : AbstractLspServiceProvider(lspServices, lspServiceFactories, jsonTypeInfoResolvers);

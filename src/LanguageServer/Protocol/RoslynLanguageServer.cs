@@ -39,7 +39,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
         WellKnownLspServerKinds serverKind,
         AbstractTypeRefResolver? typeRefResolver = null,
         ILspLogger? logger = null)
-        : base(jsonRpc, serializerOptions, typeRefResolver)
+        : base(jsonRpc, lspServiceProvider.ConfigureJsonSerializerOptions(serializerOptions), typeRefResolver, LspJsonSerializerContext.AddProgressConverters)
     {
         _lspServiceProvider = lspServiceProvider;
         _serverKind = serverKind;
@@ -93,6 +93,7 @@ internal sealed class RoslynLanguageServer : SystemTextJsonLanguageServer<Reques
     public static SystemTextJsonFormatter CreateJsonMessageFormatter()
     {
         var messageFormatter = new SystemTextJsonFormatter();
+        LspJsonSerializerContext.RegisterGenericTypes(messageFormatter);
         messageFormatter.JsonSerializerOptions.AddLspSerializerOptions();
         return messageFormatter;
     }

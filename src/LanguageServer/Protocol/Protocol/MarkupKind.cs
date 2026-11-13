@@ -14,8 +14,10 @@ using System.Text.Json.Serialization;
 /// </summary>
 [JsonConverter(typeof(StringEnumConverter<MarkupKind>))]
 [TypeConverter(typeof(StringEnumConverter<MarkupKind>.TypeConverter))]
-internal readonly record struct MarkupKind(string Value) : IStringEnum
+internal readonly record struct MarkupKind(string Value) : IStringEnum<MarkupKind>
 {
+    MarkupKind IStringEnum<MarkupKind>.Create(string value) => new(value);
+
     /// <summary>
     /// Markup type is plain text.
     /// </summary>

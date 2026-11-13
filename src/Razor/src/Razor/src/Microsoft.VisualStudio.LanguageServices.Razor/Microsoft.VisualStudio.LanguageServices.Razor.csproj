@@ -18,6 +18,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Editor" />
     <PackageReference Include="Microsoft.VisualStudio.ProjectSystem" />
+    <PackageReference Include="System.Text.Json" />
     <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" />
 

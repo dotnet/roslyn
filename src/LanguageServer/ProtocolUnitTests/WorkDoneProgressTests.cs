@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -245,7 +245,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
         [JsonRpcMethod(Methods.ProgressNotificationName, UseSingleObjectParameterDeserialization = true)]
         public Task HandleProgressAsync(JsonElement progressParams, CancellationToken _)
         {
-            var progressReport = progressParams.Deserialize<ProgressReportParams>(ProtocolConversions.LspJsonSerializerOptions);
+            var progressReport = progressParams.Deserialize<ProgressReportParams>(JsonSerializerOptions);
 
             lock (_gate)
             {

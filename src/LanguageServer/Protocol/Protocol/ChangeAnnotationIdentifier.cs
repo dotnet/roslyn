@@ -18,6 +18,8 @@ namespace Roslyn.LanguageServer.Protocol;
 /// </remarks>
 [JsonConverter(typeof(StringEnumConverter<ChangeAnnotationIdentifier>))]
 [TypeConverter(typeof(StringEnumConverter<ChangeAnnotationIdentifier>.TypeConverter))]
-internal readonly record struct ChangeAnnotationIdentifier(string Value) : IStringEnum
+internal readonly record struct ChangeAnnotationIdentifier(string Value) : IStringEnum<ChangeAnnotationIdentifier>
 {
+    ChangeAnnotationIdentifier IStringEnum<ChangeAnnotationIdentifier>.Create(string value) => new(value);
+
 }

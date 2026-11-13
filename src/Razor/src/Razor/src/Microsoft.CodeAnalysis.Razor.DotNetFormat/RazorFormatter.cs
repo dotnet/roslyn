@@ -49,7 +49,7 @@ public static class RazorFormatter
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var options = GetFormattingOptions(document, sourceText, cancellationToken);
-        var formattingLogger = s_formattingLoggerFactory.CreateLogger(document.FilePath!, "DotNetFormat");
+        var formattingLogger = s_formattingLoggerFactory.CreateLogger(document.FilePath!, "DotNetFormat", FormattingJsonSerializerContext.JsonSerializerOptions);
         var context = FormattingContext.Create(snapshot, snapshot.CodeDocument, options, formattingLogger);
 
         try

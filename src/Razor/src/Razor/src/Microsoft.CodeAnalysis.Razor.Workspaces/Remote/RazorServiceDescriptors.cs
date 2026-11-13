@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using MessagePack;
 using MessagePack.Formatters;
 using Microsoft.CodeAnalysis.Remote;
@@ -35,6 +36,17 @@ internal readonly struct RazorServiceDescriptors
         ImmutableArray<JsonConverter> jsonConverters,
         IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
         => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(jsonConverters), interfaces);
+
+    /// <summary>
+    /// Creates a service descriptor set using generated System.Text.Json metadata.
+    /// </summary>
+    public RazorServiceDescriptors(
+        string componentName,
+        Func<string, string> featureDisplayNameProvider,
+        ImmutableArray<JsonConverter> jsonConverters,
+        IJsonTypeInfoResolver jsonTypeInfoResolver,
+        IEnumerable<(Type serviceInterface, Type? callbackInterface)> interfaces)
+        => UnderlyingObject = new ServiceDescriptors(componentName, featureDisplayNameProvider, new RemoteSerializationOptions(jsonConverters, jsonTypeInfoResolver), interfaces);
 
     /// <summary>
     /// To be called from a service factory in OOP.
