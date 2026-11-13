@@ -283,12 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
-        {
-            SourcePartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
-            base.ForceComplete(locationOpt, filter, cancellationToken);
-        }
-
         protected override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
         {
             if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))

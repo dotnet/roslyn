@@ -13,7 +13,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -457,30 +456,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isForInterfaceMember: containingType.IsInterface,
                                                                     syntax.Modifiers, defaultAccess: DeclarationModifiers.None, allowedModifiers, location, diagnostics, out _, out _);
-        }
-
-        internal sealed override void ForceComplete(SourceLocation locationOpt, Predicate<Symbol> filter, CancellationToken cancellationToken)
-        {
-            var implementingPart = this.SourcePartialImplementation;
-            if ((object)implementingPart != null)
-            {
-                implementingPart.ForceComplete(locationOpt, filter, cancellationToken);
-            }
-
-            base.ForceComplete(locationOpt, filter, cancellationToken);
-        }
-
-        public sealed override bool IsDefinedInSourceTree(
-            SyntaxTree tree,
-            TextSpan? definedWithinSpan,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            // Since only the declaring (and not the implementing) part of a partial method appears in the member
-            // list, we need to ensure we complete the implementation part when needed.
-            Debug.Assert(this.DeclaringSyntaxReferences.Length == 1);
-            return
-                IsDefinedInSourceTree(this.SyntaxRef, tree, definedWithinSpan) ||
-                this.SourcePartialImplementation?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
         protected abstract override void CheckConstraintsForExplicitInterfaceType(ConversionsBase conversions, BindingDiagnosticBag diagnostics);
