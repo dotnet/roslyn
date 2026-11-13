@@ -20151,6 +20151,98 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             ],
             validateHtmlFormattedMatchesWebTools: false);
 
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86441")]
+    public Task CSharpBlockInScriptOrStyleKeepsIndentationWhenOptionDisabled(bool style)
+    {
+        var tag = style ? "style" : "script";
+        var code = $$"""
+            <{{tag}}>
+                @if (true)
+                {
+                    @:value
+                }
+            </{{tag}}>
+            """;
+        return RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86441")]
+    public Task CSharpBlockInScriptKeepsIndentationWhenOptionDisabled_Legacy()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </script>
+                """,
+            fileKind: RazorFileKind.Legacy,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86441")]
+    public Task CSharpBlockInScriptFunctionKeepsIndentationWhenOptionDisabled()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    function f() {
+                        @if (true)
+                        {
+                            @:value
+                        }
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    function f() {
+                        @if (true)
+                        {
+                            @:value
+                        }
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    function f() {
+                        @if (true)
+                        {
+                            @:value
+                        }
+                    }
+                </script>
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
+    }
+
     [Fact]
     public Task PreservesMultilineRawStringLiteralContents()
         => RunFormattingTestAsync(
