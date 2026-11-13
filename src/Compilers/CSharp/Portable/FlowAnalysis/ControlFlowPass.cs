@@ -350,9 +350,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var usingDecl in _usingDeclarations)
             {
                 var usingStart = usingDecl.symbol.GetFirstLocation().SourceSpan.Start;
-                if (sourceStart < usingStart && targetStart > usingStart)
+                var usingBlockEnd = usingDecl.block.Syntax.Span.End;
+                if (sourceStart < usingStart && targetStart > usingStart && targetStart < usingBlockEnd)
                 {
-                    // No forward jumps
+                    // No forward jumps to a location still in scope of the using declaration
                     Diagnostics.Add(ErrorCode.ERR_GoToForwardJumpOverUsingVar, sourceLocation);
                     break;
                 }
