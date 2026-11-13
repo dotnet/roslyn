@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -97,7 +98,17 @@ internal abstract class DocumentBasedRefactorAllProvider(ImmutableArray<Refactor
             async (tuple, cancellationToken) =>
             {
                 var (document, spans) = tuple;
-                var newDocument = await this.RefactorAllAsync(refactorAllContext, document, spans).ConfigureAwait(false);
+
+                Document? newDocument;
+                try
+                {
+                    newDocument = await this.RefactorAllAsync(refactorAllContext, document, spans).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    throw new RefactorOrFixAllDocumentException(document, ex);
+                }
+
                 await onDocumentRefactored(document, newDocument).ConfigureAwait(false);
             }).ConfigureAwait(false);
     }
