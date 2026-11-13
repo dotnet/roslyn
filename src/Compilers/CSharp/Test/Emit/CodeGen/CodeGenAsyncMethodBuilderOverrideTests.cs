@@ -1510,6 +1510,39 @@ class C<U>
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86391")]
+        public void BuilderOnMethod_BoundGeneric_ReportedOnlyOnEmit()
+        {
+            var source = $@"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+class C
+{{
+    [AsyncMethodBuilder(typeof(MyTaskMethodBuilder<int>))]
+    static async MyTask<int> M() {{ await Task.Delay(0); return 1; }}
+}}
+
+{AwaitableTypeCode("MyTask", "T")}
+
+{AsyncBuilderCode("MyTaskMethodBuilder", "MyTask", "T")}
+
+{AsyncMethodBuilderAttribute}
+";
+            var compilation = CreateCompilationWithMscorlib461(source);
+
+            // CS8940 is reported while lowering the async method, so it must be a build-only diagnostic
+            compilation.VerifyDiagnostics();
+            Assert.True(ErrorFacts.IsBuildOnlyDiagnostic(ErrorCode.ERR_WrongArityAsyncReturn));
+
+            compilation.VerifyEmitDiagnostics(
+                // (9,34): error CS8940: A generic task-like return type was expected, but the type 'MyTaskMethodBuilder<int>' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
+                //     static async MyTask<int> M() { await Task.Delay(0); return 1; }
+                Diagnostic(ErrorCode.ERR_WrongArityAsyncReturn, "{ await Task.Delay(0); return 1; }").WithArguments("MyTaskMethodBuilder<int>").WithLocation(9, 34)
+                );
+        }
+
         [Fact]
         public void BuilderOnMethod_TaskPropertyIsInternal()
         {
