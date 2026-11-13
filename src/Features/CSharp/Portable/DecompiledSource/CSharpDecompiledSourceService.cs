@@ -85,7 +85,7 @@ internal sealed class CSharpDecompiledSourceService : IDecompiledSourceService
                 SyntaxFactory.CarriageReturnLineFeed,
                 SyntaxFactory.Comment("// " + assemblyPath),
                 SyntaxFactory.CarriageReturnLineFeed,
-                SyntaxFactory.Comment($"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}"),
+                SyntaxFactory.Comment($"// Decompiled with ICSharpCode.Decompiler {decompilerVersion}"),
                 SyntaxFactory.CarriageReturnLineFeed,
                 SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)),
                 SyntaxFactory.CarriageReturnLineFeed,
