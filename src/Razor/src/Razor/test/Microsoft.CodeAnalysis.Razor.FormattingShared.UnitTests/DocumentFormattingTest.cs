@@ -15652,6 +15652,57 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    public Task TextAreaWithSplitStartTag()
+        => RunFormattingTestAsync(
+            input: """
+                <textarea
+                >keep this
+                </textarea>
+                """,
+            htmlFormatted: """
+                <textarea>keep this
+                </textarea>
+                """,
+            expected: """
+                <textarea>keep this
+                </textarea>
+                """);
+
+    [Fact]
+    public Task TextAreaWithSplitEndTag()
+        => RunFormattingTestAsync(
+            input: """
+                <textarea>
+                    keep this
+                </textarea
+                >
+                """,
+            htmlFormatted: """
+                <textarea>
+                    keep this
+                </textarea>
+                """,
+            expected: """
+                <textarea>
+                    keep this
+                </textarea>
+                """);
+
+    [Fact]
+    public Task StandaloneStartTagSplitAcrossLines()
+        => RunFormattingTestAsync(
+            input: """
+                <div
+                >
+                """,
+            htmlFormatted: """
+                <div>
+                """,
+            expected: """
+                <div>
+                """);
+
+    [Fact]
     internal Task TextArea_WithAttributes()
         => RunFormattingTestAsync(
             input: """
@@ -17763,6 +17814,283 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task EndTagSplitAcrossLinesInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                    </div
+                    >
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <span>a</span>
+                </div>
+                <p>b</p>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                    </div>
+                    <p>b</p>
+                }
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task EndTagSplitAcrossLinesInIf_Legacy()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                    </div
+                    >
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <span>a</span>
+                </div>
+                <p>b</p>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                    </div>
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task NestedEndTagsSplitAcrossLinesInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        <div>
+                            <span>a</span>
+                        </div
+                        >
+                    </div
+                    >
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <div>
+                        <span>a</span>
+                    </div>
+                </div>
+                <p>b</p>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <div>
+                            <span>a</span>
+                        </div>
+                    </div>
+                    <p>b</p>
+                }
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task EndTagSplitAcrossLinesInForeach()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                    <ul>
+                        <li>@item</li>
+                    </ul
+                    >
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                <ul>
+                    <li>@item</li>
+                </ul>
+                <p>b</p>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                    <ul>
+                        <li>@item</li>
+                    </ul>
+                    <p>b</p>
+                }
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task EndTagSplitAcrossLinesClosesMultilineTemplate()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @code {
+                    private void M()
+                    {
+                        Render(@<div>
+                            <span>a</span>
+                        </div
+                        >);
+                        var x = 1;
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        Render(@<div>
+                    <span>a</span>
+                </div>);
+                        var x = 1;
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M()
+                    {
+                        Render(@<div>
+                            <span>a</span>
+                        </div>);
+                        var x = 1;
+                    }
+                }
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task SingleLineElementEndTagSplitAcrossLinesInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span
+                        >
+                        <p>b</p>
+                    </div>
+                    <p>c</p>
+                }
+                <section>d</section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <span>a</span>
+                    <p>b</p>
+                </div>
+                <p>c</p>
+                }
+                <section>d</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                        <p>b</p>
+                    </div>
+                    <p>c</p>
+                }
+                <section>d</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagSplitAcrossLinesOnItsOwnLineInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        text
+                    </div
+                    >
+                    <p>x</p>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    text
+                </div>
+                <p>x</p>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        text
+                    </div>
+                    <p>x</p>
+                }
+                """);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
     public Task EndTagSplitAcrossLinesAfterTextInIf()
     {
@@ -17802,21 +18130,33 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                @if (true)
-                {
-                    <div>
-                        text
-                    </div
-                    >
+                """);
+    }
+
+    [Fact]
+    public Task StandaloneSplitEndTagDoesNotAffectFollowingIndentation()
+        => RunFormattingTestAsync(
+            input: """
+                </div
+                >
+                <section>
                     <p>x</p>
-                }
+                </section>
+                """,
+            htmlFormatted: """
+                </div
+                >
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                </div
+                >
                 <section>
                     <p>x</p>
                 </section>
                 """);
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
@@ -17850,17 +18190,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div>
                         text
                     </div>
-                    <p>x</p>
-                </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <div>
-                        text </div
-                    >
                     <p>x</p>
                 </div>
                 <section>

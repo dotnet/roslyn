@@ -65,6 +65,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
             TryFormatCSharpBlockStructure(context, ref changes.AsRef(), source, node);
             TryFormatSingleLineDirective(ref changes.AsRef(), node);
             TryFormatBlocks(context, ref changes.AsRef(), source, node);
+            TryFormatHtmlStartTag(ref changes.AsRef(), source, node);
             TryFormatHtmlElement(context, ref changes.AsRef(), source, node);
         }
 
@@ -486,10 +487,26 @@ internal sealed class RazorFormattingPass : IFormattingPass
         // (ie, dotnet format) we need to move element content onto its own lines ourselves.
         if (node is not BaseMarkupElementSyntax { StartTag: { } startTag, EndTag: { } endTag } element ||
             startTag.CloseAngle.IsMissing ||
-            endTag.OpenAngle.IsMissing ||
-            endTag.CloseAngle.IsMissing)
+            endTag.OpenAngle.IsMissing)
         {
             return;
+        }
+
+        var text = source.Text;
+        var hasEndTagCloseAngle = TryGetEndTagCloseAngleStart(text, endTag, out var endTagCloseAngleStart);
+        if (endTag.CloseAngle.IsMissing && !hasEndTagCloseAngle)
+        {
+            return;
+        }
+
+        var endTagNameEnd = endTag.Name.Span.End;
+        if (!endTag.Name.IsMissing &&
+            hasEndTagCloseAngle &&
+            text.GetLinePositionSpan(endTagNameEnd, endTagCloseAngleStart).SpansMultipleLines() &&
+            string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(endTagNameEnd, endTagCloseAngleStart))))
+        {
+            // This whitespace is inside the tag, not its content, so WebTools joins it even for whitespace-sensitive elements.
+            changes.Add(new TextChange(TextSpan.FromBounds(endTagNameEnd, endTagCloseAngleStart), string.Empty));
         }
 
         // Whitespace is significant in things like <pre>, and <script> and <style> contents aren't Html, so leave them alone.
@@ -500,7 +517,6 @@ internal sealed class RazorFormattingPass : IFormattingPass
             return;
         }
 
-        var text = source.Text;
         var contentStart = startTag.CloseAngle.Span.End;
         var contentEnd = endTag.OpenAngle.SpanStart;
         if (contentStart > contentEnd)
@@ -532,6 +548,43 @@ internal sealed class RazorFormattingPass : IFormattingPass
         {
             changes.Add(new TextChange(endBreak, context.NewLineString));
         }
+    }
+
+    private static void TryFormatHtmlStartTag(ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    {
+        if (node is not BaseMarkupStartTagSyntax { CloseAngle.IsMissing: false } startTag ||
+            startTag.Name.IsMissing)
+        {
+            return;
+        }
+
+        var text = source.Text;
+        var nameEnd = startTag.Name.Span.End;
+        var closeAngleStart = startTag.CloseAngle.SpanStart;
+        if (text.GetLinePositionSpan(nameEnd, closeAngleStart).SpansMultipleLines() &&
+            string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(nameEnd, closeAngleStart))))
+        {
+            // Line breaks inside a tag aren't significant whitespace in its content, including for <textarea> and <pre>.
+            changes.Add(new TextChange(TextSpan.FromBounds(nameEnd, closeAngleStart), string.Empty));
+        }
+    }
+
+    private static bool TryGetEndTagCloseAngleStart(SourceText text, BaseMarkupEndTagSyntax endTag, out int position)
+    {
+        position = endTag.CloseAngle.SpanStart;
+        if (!endTag.CloseAngle.IsMissing)
+        {
+            return true;
+        }
+
+        // In whitespace-sensitive elements, Razor can parse a split '>' as markup text instead of part of the end tag.
+        position = endTag.Name.Span.End;
+        while (position < text.Length && char.IsWhiteSpace(text[position]))
+        {
+            position++;
+        }
+
+        return position < text.Length && text[position] == '>';
     }
 
     /// <summary>
