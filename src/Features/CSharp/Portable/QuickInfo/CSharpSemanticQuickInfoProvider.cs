@@ -6,10 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
@@ -84,6 +86,25 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
+
+    protected override ImmutableArray<ISymbol> FilterMemberGroup(
+        SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        var invokedExpression = bindableParent as ExpressionSyntax;
+        if (invokedExpression?.Parent is MemberAccessExpressionSyntax parentAccess && parentAccess.Name == invokedExpression)
+            invokedExpression = parentAccess;
+
+        var invocation = bindableParent as InvocationExpressionSyntax;
+        if (invocation == null && invokedExpression?.Parent is InvocationExpressionSyntax parentInvocation && parentInvocation.Expression == invokedExpression)
+            invocation = parentInvocation;
+
+        // Invocation filtering only applies to method groups.
+        if (invocation == null || memberGroup.IsEmpty || !memberGroup.All(static s => s is IMethodSymbol))
+            return memberGroup;
+
+        return [.. InvocationMethodGroupFilter.FilterByStaticness(
+            invocation, semanticModel, memberGroup.Cast<IMethodSymbol>(), out _, cancellationToken)];
+    }
 
     protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(
         SemanticModel semanticModel,
