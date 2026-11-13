@@ -1240,7 +1240,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
                     NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
 
-                bool success = result.CheckConstraints(constraintArgs);
+                var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                var skipParameters = BitVector.Create(typeArguments.Length);
+                for (int i = 0; i < typeArguments.Length; i++)
+                {
+                    if (!typeArguments[i].HasType)
+                    {
+                        skipParameters[i] = true;
+                        notInferredTypeParameters.Add(extension.TypeParameters[i]);
+                    }
+                }
+
+                // Defer constraints on uninferred parameters and constraints that depend on them,
+                // just as when reducing a legacy extension method.
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+                bool success = result.CheckConstraints(constraintArgs, result.TypeSubstitution, extension.TypeParameters, typeArgsForConstruct,
+                    diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null, ref useSiteDiagnosticsBuilder, skipParameters,
+                    ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters);
+                diagnosticsBuilder.Free();
+                useSiteDiagnosticsBuilder?.Free();
+                notInferredTypeParameters.Free();
+
                 if (!success)
                 {
                     return null;
