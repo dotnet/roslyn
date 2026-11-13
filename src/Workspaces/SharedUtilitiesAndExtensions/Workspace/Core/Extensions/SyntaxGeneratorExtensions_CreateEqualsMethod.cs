@@ -488,9 +488,12 @@ internal static partial class SyntaxGeneratorExtensions
         bool generateProperties,
         bool isContainedInUnsafeType)
     {
+        var usesMemorySafetyRulesVersion2 = containingType?.UsesMemorySafetyRulesVersion2() ?? semanticModel.Compilation.SourceModule.UsesMemorySafetyRulesVersion2();
+        // Fresh field/property symbols have no containing type, so capture the destination layout requirement now.
+        var requiresExplicitSafetyModifier = containingType?.RequiresExplicitSafetyModifierForInstanceFields() == true;
         var newMembers = generateProperties
-            ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType)
-            : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType);
+            ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType, usesMemorySafetyRulesVersion2, requiresExplicitSafetyModifier)
+            : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType, usesMemorySafetyRulesVersion2, requiresExplicitSafetyModifier);
         var statements = factory.CreateAssignmentStatements(
             generatorInternal, semanticModel,
             parameters, parameterToExistingMemberMap, parameterToNewMemberMap,
@@ -500,13 +503,14 @@ internal static partial class SyntaxGeneratorExtensions
         var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
             attributes: default,
             accessibility: accessibility,
-            modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
+            modifiers: DeclarationModifiers.None.WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifierUnderVersion1Rules())),
             typeName: typeName,
             parameters: parameters,
             statements: statements,
             thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
                 ? []
-                : default);
+                : default,
+            usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2);
 
         return newMembers.Concat(constructor);
     }

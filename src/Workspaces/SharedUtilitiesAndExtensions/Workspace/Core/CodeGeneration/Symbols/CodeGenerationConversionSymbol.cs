@@ -16,7 +16,9 @@ internal sealed class CodeGenerationConversionSymbol(
     IParameterSymbol fromType,
     bool isImplicit,
     ImmutableArray<AttributeData> toTypeAttributes,
-    string? documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
+    string? documentationCommentXml,
+    bool requiresUnsafeContext,
+    bool usesMemorySafetyRulesVersion2) : CodeGenerationMethodSymbol(containingType,
           attributes,
           declaredAccessibility,
           modifiers,
@@ -29,6 +31,8 @@ internal sealed class CodeGenerationConversionSymbol(
           typeParameters: [],
           parameters: [fromType],
           returnTypeAttributes: toTypeAttributes,
+          requiresUnsafeContext,
+          usesMemorySafetyRulesVersion2,
           documentationCommentXml)
 {
     public override MethodKind MethodKind => MethodKind.Conversion;

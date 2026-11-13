@@ -281,7 +281,8 @@ internal static partial class SyntaxGeneratorExtensions
     }
 
     public static ImmutableArray<ISymbol> CreateFieldsForParameters(
-        ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewFieldMap, bool isContainedInUnsafeType)
+        ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewFieldMap, bool isContainedInUnsafeType,
+        bool usesMemorySafetyRulesVersion2 = false, bool requiresExplicitSafetyModifier = false)
     {
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
         foreach (var parameter in parameters)
@@ -290,12 +291,18 @@ internal static partial class SyntaxGeneratorExtensions
             if (parameter.RefKind != RefKind.Out &&
                 TryGetValue(parameterToNewFieldMap, parameter.Name, out var fieldName))
             {
+                var modifiers = DeclarationModifiers.None.WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules());
+#if !OLDER_ROSLYN
+                modifiers = modifiers.WithIsSafe(usesMemorySafetyRulesVersion2 && requiresExplicitSafetyModifier);
+#endif
+
                 result.Add(CodeGenerationSymbolFactory.CreateFieldSymbol(
                     attributes: default,
                     accessibility: Accessibility.Private,
-                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                    modifiers: modifiers,
                     type: parameter.Type,
-                    name: fieldName));
+                    name: fieldName,
+                    usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2));
             }
         }
 
@@ -303,7 +310,8 @@ internal static partial class SyntaxGeneratorExtensions
     }
 
     public static ImmutableArray<ISymbol> CreatePropertiesForParameters(
-        ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewPropertyMap, bool isContainedInUnsafeType)
+        ImmutableArray<IParameterSymbol> parameters, ImmutableDictionary<string, string>? parameterToNewPropertyMap, bool isContainedInUnsafeType,
+        bool usesMemorySafetyRulesVersion2 = false, bool requiresExplicitSafetyModifier = false)
     {
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
         foreach (var parameter in parameters)
@@ -312,10 +320,15 @@ internal static partial class SyntaxGeneratorExtensions
             if (parameter.RefKind != RefKind.Out &&
                 TryGetValue(parameterToNewPropertyMap, parameter.Name, out var propertyName))
             {
+                var modifiers = DeclarationModifiers.None.WithIsUnsafe(!usesMemorySafetyRulesVersion2 && !isContainedInUnsafeType && parameter.RequiresUnsafeModifierUnderVersion1Rules());
+#if !OLDER_ROSLYN
+                modifiers = modifiers.WithIsSafe(usesMemorySafetyRulesVersion2 && requiresExplicitSafetyModifier);
+#endif
+
                 result.Add(CodeGenerationSymbolFactory.CreatePropertySymbol(
                     attributes: default,
                     accessibility: Accessibility.Public,
-                    modifiers: DeclarationModifiers.None.WithIsUnsafe(!isContainedInUnsafeType && parameter.RequiresUnsafeModifier()),
+                    modifiers: modifiers,
                     type: parameter.Type,
                     refKind: RefKind.None,
                     explicitInterfaceImplementations: [],
@@ -324,8 +337,10 @@ internal static partial class SyntaxGeneratorExtensions
                     getMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
                         attributes: default,
                         accessibility: default,
-                        statements: default),
-                    setMethod: null));
+                        statements: default,
+                        usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2),
+                    setMethod: null,
+                    usesMemorySafetyRulesVersion2: usesMemorySafetyRulesVersion2));
             }
         }
 
