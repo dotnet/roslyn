@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMakeStructReadOnly = "CodeActions.MakeStructReadOnly";
             public const string CodeActionsMakeStructMemberReadOnly = "CodeActions.MakeStructMemberReadOnly";
             public const string CodeActionsMakeTypeAbstract = "CodeActions.MakeTypeAbstract";
+            public const string CodeActionsMakeTypeClosed = "CodeActions.MakeTypeClosed";
             public const string CodeActionsMergeConsecutiveIfStatements = "CodeActions.MergeConsecutiveIfStatements";
             public const string CodeActionsMergeNestedIfStatements = "CodeActions.MergeNestedIfStatements";
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";

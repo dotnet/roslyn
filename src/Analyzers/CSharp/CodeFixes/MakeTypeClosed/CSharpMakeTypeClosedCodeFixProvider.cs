@@ -1,0 +1,282 @@
+﻿// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+using System;
+using System.Collections.Immutable;
+using System.Composition;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
+
+namespace Microsoft.CodeAnalysis.CSharp.MakeTypeClosed;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeTypeClosed), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+{
+    public override ImmutableArray<string> FixableDiagnosticIds => [
+            "CS8509", // warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{some pattern}' is not covered.
+        ];
+
+    private static async Task<TypeDeclarationSyntax?> GetTypeToRefactorWhenValidAsync(
+        Solution solution,
+        SemanticModel semanticModel,
+        SyntaxNode? node,
+        CancellationToken cancellationToken = default)
+    {
+        var switchExpression = node?.FirstAncestorOrSelf<SwitchExpressionSyntax>();
+        if (switchExpression == null)
+            return null;
+
+        var switchedOnTypeInfo = semanticModel.GetTypeInfo(switchExpression.GoverningExpression, cancellationToken: cancellationToken);
+        var switchedOnType = switchedOnTypeInfo.Type;
+
+        if (switchedOnType is not INamedTypeSymbol namedType)
+            return null;
+
+        if (namedType.TypeKind != TypeKind.Class)
+            return null;
+
+        if (namedType.IsStatic)
+            return null;
+
+        if (namedType.IsSealed)
+            return null;
+
+        if (namedType.IsClosed)
+            return null;
+
+        var declaration = namedType.DeclaringSyntaxReferences.FirstOrDefault();
+        if (declaration == null)
+            return null;
+
+        if (await declaration.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TypeDeclarationSyntax syntax)
+            return null;
+
+        // If the type is nullable we should assume the type can be null
+        // Thus we also want to check if the null arm is present because if not it won't actually be exhaustive
+        if (IsNullableType(semanticModel, switchExpression.GoverningExpression, switchedOnTypeInfo, cancellationToken) &&
+            !switchExpression.Arms.Any(arm => arm.Pattern is ConstantPatternSyntax constantPattern && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression)))
+        {
+            return null;
+        }
+
+        // When all types arent handled already by the user adding the closed modifier won't actually fix the diagnostic
+        if (!await AreAllDerivedTypesHandledAsync(solution, semanticModel, switchExpression.Arms, namedType, cancellationToken: cancellationToken).ConfigureAwait(false))
+            return null;
+
+        // If the type is ever instantiated it cant be closed because closed types can't be instantiated
+        if (!namedType.IsAbstract && await IsTypeEverInstantiatedAsync(solution, namedType, cancellationToken).ConfigureAwait(false))
+            return null;
+
+        return syntax;
+    }
+
+    private static bool IsNullableType(
+        SemanticModel semanticModel,
+        ExpressionSyntax expression,
+        TypeInfo typeInfo,
+        CancellationToken cancellationToken)
+    {
+        var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+
+        // because we cant directly check if the switched on type is nullable we have to check if the symbol is nullable instead,
+        // this is because the type can be a non-nullable reference type but the symbol can still be nullable
+        return symbol switch
+        {
+            IParameterSymbol parameter => parameter.NullableAnnotation == NullableAnnotation.Annotated,
+            ILocalSymbol local => local.NullableAnnotation == NullableAnnotation.Annotated,
+            IFieldSymbol field => field.NullableAnnotation == NullableAnnotation.Annotated,
+            IPropertySymbol property => property.NullableAnnotation == NullableAnnotation.Annotated,
+            IMethodSymbol method => method.ReturnNullableAnnotation == NullableAnnotation.Annotated,
+            // If the symbol is null we can check if the type is nullable instead, this is because the symbol can be null in some cases, probably not applicable on switches though but just to be safe we check both the symbol and the type
+            _ => typeInfo.Nullability.Annotation == NullableAnnotation.Annotated ||
+                typeInfo.Type?.NullableAnnotation == NullableAnnotation.Annotated ||
+                typeInfo.ConvertedType?.NullableAnnotation == NullableAnnotation.Annotated,
+        };
+    }
+
+    private static async Task<bool> AreAllDerivedTypesHandledAsync(
+        Solution solution,
+        SemanticModel semanticModel,
+        SeparatedSyntaxList<SwitchExpressionArmSyntax> switchArms,
+        INamedTypeSymbol type,
+        bool hasToBeInSameAssembly = true,
+        bool isSwitchedOnRootType = true,
+        CancellationToken cancellationToken = default)
+    {
+        var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(type, solution, false, [.. solution.Projects], cancellationToken).ConfigureAwait(false);
+
+        // early return, this cant ever have a false positive because the only case that a false positive would occur would be when a branch is the default ('_') branch but then all types are handled and the diagnostic would not be raised in the first place.
+        if (isSwitchedOnRootType && derivedClasses.Count() > switchArms.Count)
+            return false;
+
+        foreach (var derivedClass in derivedClasses)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (hasToBeInSameAssembly && !SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, derivedClass.ContainingAssembly))
+                return false;
+
+            var isHandled = switchArms.Any(arm =>
+            {
+                var patternType = semanticModel.GetTypeInfo(arm.Pattern, cancellationToken: cancellationToken).Type;
+                return SymbolEqualityComparer.Default.Equals(patternType, derivedClass);
+            });
+            if (isHandled)
+                continue;
+
+            if (!await AreAllDerivedTypesHandledAsync(solution, semanticModel, switchArms, derivedClass, false, false, cancellationToken).ConfigureAwait(false))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static async Task<bool> IsTypeEverInstantiatedAsync(
+        Solution solution,
+        INamedTypeSymbol type,
+        CancellationToken cancellationToken = default)
+    {
+        var references = await SymbolFinder.FindReferencesAsync(type, solution, cancellationToken).ConfigureAwait(false);
+        foreach (var reference in references)
+        {
+            foreach (var location in reference.Locations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!location.Location.IsInSource)
+                    continue;
+
+                var document = solution.GetDocument(location.Location.SourceTree);
+                if (document == null)
+                    continue;
+
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(root);
+
+                var node = root.FindNode(location.Location.SourceSpan);
+
+                var objectCreation = node.FirstAncestorOrSelf<BaseObjectCreationExpressionSyntax>();
+                if (objectCreation != null)
+                {
+                    var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var createdType = model.GetTypeInfo(objectCreation, cancellationToken: cancellationToken).Type;
+                    if (SymbolEqualityComparer.Default.Equals(createdType, type))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        var document = context.Document;
+        Contract.ThrowIfNull(document);
+
+        var diagnostic = context.Diagnostics[0];
+        var diagTree = diagnostic.Location.SourceTree;
+        var diagDocument = diagTree != null ? document.Project.Solution.GetDocument(diagTree) : document;
+        if (diagDocument == null)
+            return;
+
+        var semanticModel = await diagDocument.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(semanticModel);
+
+        var root = await diagDocument.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(root);
+
+        var node = root.FindNode(diagnostic.Location.SourceSpan);
+
+        var typeDecl = await GetTypeToRefactorWhenValidAsync(document.Project.Solution, semanticModel, node, context.CancellationToken).ConfigureAwait(false);
+
+        if (typeDecl == null)
+            return;
+
+        async Task<Solution> ApplyAsync(CancellationToken ct)
+        {
+            var targetDoc = document.Project.Solution.GetDocument(typeDecl.SyntaxTree);
+            if (targetDoc == null)
+                return document.Project.Solution;
+
+            var targetRoot = await targetDoc.GetSyntaxRootAsync(ct).ConfigureAwait(false);
+            Contract.ThrowIfNull(targetRoot);
+
+            var generator = SyntaxGenerator.GetGenerator(targetDoc);
+            var newNode = generator.WithModifiers(
+                typeDecl,
+                generator.GetModifiers(typeDecl)
+                    .WithIsAbstract(false)
+                    .WithIsClosed(true));
+            var newRoot = targetRoot.ReplaceNode(typeDecl, newNode);
+
+            return targetDoc.Project.Solution.WithDocumentSyntaxRoot(targetDoc.Id, newRoot);
+        }
+
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                CodeFixesResources.Make_class_closed,
+                ApplyAsync,
+                CodeFixesResources.Make_class_closed),
+            context.Diagnostics);
+    }
+
+    protected override async Task FixAllAsync(
+        Document document,
+        ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor,
+        CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(semanticModel);
+
+        foreach (var diagnostic in diagnostics)
+        {
+            var diagTree = diagnostic.Location.SourceTree;
+            var diagDocument = diagTree != null ? document.Project.Solution.GetDocument(diagTree) : document;
+            if (diagDocument == null)
+                continue;
+
+            var diagSemanticModel = await diagDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(diagSemanticModel);
+
+            var diagRoot = await diagDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(diagRoot);
+
+            var node = diagRoot.FindNode(diagnostic.Location.SourceSpan);
+
+            var typeDeclaration = await GetTypeToRefactorWhenValidAsync(
+                    document.Project.Solution,
+                    diagSemanticModel,
+                    node,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (typeDeclaration != null)
+            {
+                var targetDoc = document.Project.Solution.GetDocument(typeDeclaration.SyntaxTree);
+                if (targetDoc != null && targetDoc.Id == document.Id)
+                {
+                    editor.ReplaceNode(typeDeclaration,
+                        (currentTypeDeclaration, generator) =>
+                            generator.WithModifiers(
+                                currentTypeDeclaration,
+                                generator.GetModifiers(currentTypeDeclaration)
+                                    .WithIsAbstract(false)
+                                    .WithIsClosed(true)
+                            )
+                    );
+                }
+            }
+        }
+    }
+}
