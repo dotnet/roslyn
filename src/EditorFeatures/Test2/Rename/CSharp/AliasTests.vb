@@ -188,6 +188,88 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             End Using
         End Sub
 
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74474")>
+        <CombinatorialData>
+        Public Sub RenameGlobalUsingPrimitiveTypeAliasFromDeclaration(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            global using {|alias:$$MyInteger|} = int;
+                        </Document>
+                        <Document>
+                            public class C { public {|alias:MyInteger|} M() => 42; }
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="MyInt")
+
+                result.AssertLabeledSpansAre("alias", "MyInt", RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74474")>
+        <CombinatorialData>
+        Public Sub RenameGlobalUsingPrimitiveTypeAliasFromUse(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            global using {|alias:MyInteger|} = int;
+                        </Document>
+                        <Document>
+                            public class C { public {|alias:$$MyInteger|} M() => 42; }
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="MyInt")
+
+                result.AssertLabeledSpansAre("alias", "MyInt", RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74474")>
+        <CombinatorialData>
+        Public Sub RenameGlobalUsingNamedTypeAliasFromDeclaration(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            global using {|alias:$$MyHelper|} = N.Helper;
+                        </Document>
+                        <Document>
+                            namespace N { public class Helper { } }
+                        </Document>
+                        <Document>
+                            public class C { public {|alias:MyHelper|} M() => null; }
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Renamed")
+
+                result.AssertLabeledSpansAre("alias", "Renamed", RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
+        <Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74474")>
+        <CombinatorialData>
+        Public Sub RenameGlobalUsingNamedTypeAliasFromUse(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            global using {|alias:MyHelper|} = N.Helper;
+                        </Document>
+                        <Document>
+                            namespace N { public class Helper { } }
+                        </Document>
+                        <Document>
+                            public class C { public {|alias:$$MyHelper|} M() => null; }
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="Renamed")
+
+                result.AssertLabeledSpansAre("alias", "Renamed", RelatedLocationType.NoConflict)
+            End Using
+        End Sub
+
         <Theory>
         <CombinatorialData>
         Public Sub RenameSimpleSpecialTypeAliasVariable(host As RenameTestHost)
