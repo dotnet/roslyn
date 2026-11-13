@@ -292,7 +292,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                     }
                     else
                     {
-                        return new EditorSuggestedActionWithNestedFlavors(
+                        return EditorSuggestedAction.Create(
                             _threadingContext, owner, originalDocument, subjectBuffer, action.Provider, action.CodeAction,
                             ConvertFlavors(action.Flavors), action.Diagnostics);
                     }
