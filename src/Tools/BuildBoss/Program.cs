@@ -37,6 +37,7 @@ namespace BuildBoss
             string configuration = "Debug";
             string primarySolution = null;
             bool checkPackageInstall = false;
+            bool checkBom = false;
             List<string> solutionFiles;
 
             var options = new OptionSet
@@ -48,6 +49,7 @@ namespace BuildBoss
                 // check on. Without it Mono.Options silently discards an explicit value and
                 // --check-package-install=false would still run the check.
                 { "check-package-install:", "Verify our NuGet packages can be installed", value => checkPackageInstall = value is null || bool.Parse(value) },
+                { "check-bom:", "Validate tracked files against EditorConfig charset settings", value => checkBom = value is null || bool.Parse(value) },
             };
 
             if (configuration is not "Debug" and not "Release")
@@ -84,7 +86,7 @@ namespace BuildBoss
                 solutionFiles = Directory.EnumerateFiles(repositoryDirectory, "*.sln").ToList();
             }
 
-            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles, checkPackageInstall);
+            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles, checkPackageInstall, checkBom);
         }
 
         private static string FindRepositoryRoot(string startDirectory)
@@ -98,7 +100,7 @@ namespace BuildBoss
             return dir;
         }
 
-        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames, bool checkPackageInstall)
+        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames, bool checkPackageInstall, bool checkBom)
         {
             var allGood = true;
             var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
@@ -119,6 +121,11 @@ namespace BuildBoss
             }
 
             allGood &= ProcessGeneratedFiles(repositoryDirectory, Path.Combine(logDirectory, "GeneratedFiles.log"));
+            if (checkBom)
+            {
+                allGood &= ProcessBom(repositoryDirectory, Path.Combine(logDirectory, "BOM.log"));
+            }
+
             allGood &= ProcessTargets(repositoryDirectory, Path.Combine(logDirectory, "Targets.log"));
             allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration, Path.Combine(logDirectory, "PackageContents.log"));
             allGood &= ProcessStructuredLog(artifactsDirectory, configuration, Path.Combine(logDirectory, "StructuredLog.log"));
@@ -174,6 +181,12 @@ namespace BuildBoss
         {
             var checker = new GeneratedFilesCheckerUtil(repositoryDirectory);
             return CheckCore(checker, $"Generated files {repositoryDirectory}", logFilePath);
+        }
+
+        private static bool ProcessBom(string repositoryDirectory, string logFilePath)
+        {
+            var checker = new BomCheckerUtil(repositoryDirectory);
+            return CheckCore(checker, $"BOM settings {repositoryDirectory}", logFilePath);
         }
 
         private static bool ProcessTargets(string repositoryDirectory, string logFilePath)
