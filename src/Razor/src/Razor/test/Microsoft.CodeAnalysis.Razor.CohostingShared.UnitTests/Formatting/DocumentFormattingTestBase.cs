@@ -89,8 +89,13 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         {
 #if NETFRAMEWORK
             using var htmlFormattingService = new HtmlFormattingService();
+            // The endpoint gives the Html formatter Razor's indent size, which can come from .editorconfig, as its tab size
+            var htmlTabSize = document.GetRazorFormattingOptions(
+                ClientSettingsManager.GetClientSettings(),
+                new FormattingOptions() { TabSize = tabSize, InsertSpaces = insertSpaces },
+                DisposalToken).IndentSize;
             // Lets make sure everything is working as we expect in our tests
-            var htmlEditsResult = await htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, tabSize);
+            var htmlEditsResult = await htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, htmlTabSize);
             var htmlChangesResult = htmlEditsResult.Select(source.GetTextChange);
 
             var htmlEdited = source.WithChanges(htmlChanges);

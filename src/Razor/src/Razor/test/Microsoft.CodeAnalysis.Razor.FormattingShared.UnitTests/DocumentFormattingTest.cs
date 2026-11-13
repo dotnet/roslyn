@@ -145,6 +145,198 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             ]);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task DocumentFormatting_IndentsBySpacesUsingEditorConfigIndentSize()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <span class="a"
+                id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                  <span class="a"
+                        id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            expected: """
+                <div>
+                  <span class="a"
+                        id="b">Content</span>
+                </div>
+                @code {
+                  void M()
+                  {
+                  }
+                }
+                """,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 2
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task DocumentFormatting_IndentsScriptBySpacesUsingEditorConfigIndentSize()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <script>
+                function f() {
+                return 1;
+                }
+                </script>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                  <script>
+                    function f() {
+                    return 1;
+                    }
+                  </script>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                  <script>
+                function f() {
+                return 1;
+                }
+                  </script>
+                </div>
+                """,
+            expected: """
+                <div>
+                  <script>
+                    function f() {
+                    return 1;
+                    }
+                  </script>
+                </div>
+                """,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 2
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task DocumentFormatting_IndentsByTabsUsingOneTabPerLevel()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <span class="a"
+                id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                	<span class="a"
+                		  id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            expected: """
+                <div>
+                	<span class="a"
+                		  id="b">Content</span>
+                </div>
+                @code {
+                	void M()
+                	{
+                	}
+                }
+                """,
+            insertSpaces: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 2
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task DocumentFormatting_ZeroEditorConfigIndentSizeUsesTabSize()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <span class="a"
+                id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <span class="a"
+                          id="b">Content</span>
+                </div>
+                @code {
+                void M()
+                {
+                }
+                }
+                """,
+            expected: """
+                <div>
+                    <span class="a"
+                          id="b">Content</span>
+                </div>
+                @code {
+                    void M()
+                    {
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 0
+                    """)
+            ]);
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public Task DocumentFormatting_UsesNestedEditorConfigs_Razor()
         => RunFormattingTestAsync(
@@ -308,7 +500,7 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                           </Footer>
                           </FCBS5Modal>
                           """)</PageTitle>
-                    </PageTitle>
+                </PageTitle>
                 """",
             expected: """"
                 <PageTitle>
@@ -4158,8 +4350,8 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <html>
                 <head>
                     <title>Hello</title></head>
-                    <body><div>
-                    </div>
+                <body><div>
+                </div>
                 </body>
                 </html>
                 """,
@@ -4241,19 +4433,19 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <h3>Development Mode</h3>
                 <p>
                     Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</p>
-                    <p>
-                        <strong>The Development environment shouldn't be enabled for deployed applications.
-                        </strong>
+                <p>
+                    <strong>The Development environment shouldn't be enabled for deployed applications.
+                    </strong>
+                    <div>
                         <div>
                             <div>
                                 <div>
-                                    <div>
-                                        This is heavily nested
-                                    </div>
+                                    This is heavily nested
                                 </div>
                             </div>
                         </div>
-                    </p>
+                    </div>
+                </p>
                 """,
             expected: """
                 @page "/error"
@@ -14356,6 +14548,505 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(1,
+                                          2)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                          2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_MovesWithTag_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(1,
+                                          2)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                          2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                        class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                        class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_MovesWithTag_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="() => Show(1,
+                                          2)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                          2)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                            class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="() => Show(1,
+                                              2)"
+                            class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_RazorCommentBetweenArguments()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() => Show(1, @* c *@
+                                  2)"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() => Show(1, @* c *@
+                                  2)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() => Show(1, @* c *@
+                                      2)"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() => Show(1, @* c *@
+                                      2)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_RazorCommentLineBetweenArguments()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() => Show(1,
+                                  @* c *@
+                                  2)"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                  @* c *@
+                                  2)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      @* c *@
+                                      2)"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      @* c *@
+                                      2)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInDirectiveAttribute_RazorCommentAtEnd()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() => Show(1,
+                                  2) @* c *@"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                  2) @* c *@"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2) @* c *@"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() => Show(1,
+                                      2) @* c *@"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineExplicitExpressionInAttribute_FollowingAttribute()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button name="@(
+                              x)"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button name="@(
+                              x)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button name="@(
+                            x)"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button name="@(
+                            x)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineExplicitExpressionInDirectiveAttribute_FollowingAttribute()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="@(
+                                  x)"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="@(
+                                  x)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="@(
+                            x)"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="@(
+                            x)"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineExplicitExpressionInComponentAttribute_FollowingAttribute()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton OnClick="@(
+                                     x)"
+                   ImgSize=24 />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton OnClick="@(
+                                     x)"
+                                    ImgSize=24 />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton OnClick="@(
+                                    x)"
+                                    ImgSize=24 />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInComponentAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton OnClick="() => Show(1,
+                                         2)"
+                   ImgSize=24 />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton OnClick="() => Show(1,
+                                         2)"
+                                    ImgSize=24 />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton OnClick="() => Show(1,
+                                             2)"
+                                    ImgSize=24 />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineMethodCallInComponentAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton ImgSize="Compute(1,
+                                         2)"
+                   OnClick="A" />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton ImgSize="Compute(1,
+                                         2)"
+                                    OnClick="A" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton ImgSize="Compute(1,
+                                             2)"
+                                    OnClick="A" />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineLambdaInBindAfterAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                <InputText @bind-Value="currentCount"
+                           @bind-Value:after="() => Show(1,
+                                                         2)"
+                   class="x" />
+                </div>
+                """,
+            htmlFormatted: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                    <InputText @bind-Value="currentCount"
+                               @bind-Value:after="() => Show(1,
+                                                         2)"
+                               class="x" />
+                </div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                    <InputText @bind-Value="currentCount"
+                               @bind-Value:after="() => Show(1,
+                                                             2)"
+                               class="x" />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86306")]
+    public async Task MultilineBlockBodiedLambdaInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() =>
+                                          {
+                                              Show(1);
+                                          }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13064")]
     public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression_IndentByOne()
     {
@@ -16929,6 +17620,556 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </table>
                 </div>
                 """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterRazorCommentOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterTextOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    text</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    text
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    text
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    text</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterElementOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>a</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>a</span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>a</span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <span>a</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterExpressionOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    @DateTime.Now</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    @DateTime.Now
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    @DateTime.Now
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    @DateTime.Now</div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterHtmlCommentOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <!-- c --></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <!-- c -->
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <!-- c -->
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <!-- c --></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task NestedEndTagsAfterRazorCommentOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>
+                        @* note *@ </span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        @* note *@
+                    </span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        @* note *@
+                    </span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <span>
+                        @* note *@ </span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task NestedEndTagsAfterTextOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>
+                        text</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <span>
+                        text</span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task NestedEndTagsAfterContentOnDifferentLines()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <section>
+                        text</section>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        text
+                    </section>
+                    <p>x</p>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        text
+                    </section>
+                    <p>x</p>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <section>
+                        text</section>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterRazorCommentAndNestedEndTagOnItsOwnLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <span>
+                        text
+                    </span>
+                    <p>x</p>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagSplitAcrossLinesAfterTextInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    text
+                </div>
+                <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        text
+                    </div>
+                    <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                @if (true)
+                {
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                }
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagSplitAcrossLinesAfterText()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div>
+                        text
+                    </div>
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <div>
+                        text
+                    </div>
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div>
+                        text </div
+                    >
+                    <p>x</p>
+                </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task ComplexScriptEndTagSharesBodyLineDoesNotAffectFollowingContent()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (condition)
+                    {
+                        value++;
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (condition)
+                    {
+                        value++;
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            expected: """
+                <script>
+                    @if (condition)
+                    {
+                        value++;
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task ComplexScriptEndTagAfterRazorCommentDoesNotAffectFollowingContentWhenOptionDisabled()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            expected: """
+                <script>
+                    value=1;
+                    @* Keep this comment. *@</script>
+                <div>
+                    <p>x</p>
+                </div>
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
     }
 
     [Fact]

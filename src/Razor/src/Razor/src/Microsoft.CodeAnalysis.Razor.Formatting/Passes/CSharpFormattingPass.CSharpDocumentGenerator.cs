@@ -88,9 +88,10 @@ internal partial class CSharpFormattingPass
         {
             using var _1 = StringBuilderPool.GetPooledObject(out var builder);
             using var _2 = ArrayBuilderPool<LineInfo>.GetPooledObject(out var lineInfoBuilder);
+            using var _3 = DictionaryPool<int, int>.GetPooledObject(out var closeBraceCountsByLine);
             lineInfoBuilder.SetCapacityIfLarger(codeDocument.Source.Text.Lines.Count);
 
-            var generator = new Generator(codeDocument, csharpSyntaxRoot, declSyntaxRoot, options, builder, lineInfoBuilder);
+            var generator = new Generator(codeDocument, csharpSyntaxRoot, declSyntaxRoot, options, builder, lineInfoBuilder, closeBraceCountsByLine);
 
             generator.Generate();
 
@@ -151,7 +152,8 @@ internal partial class CSharpFormattingPass
             SyntaxNode? declSyntaxRoot,
             FormattingEngineOptions options,
             StringBuilder builder,
-            ImmutableArray<LineInfo>.Builder lineInfoBuilder) : SyntaxVisitor<LineInfo>
+            ImmutableArray<LineInfo>.Builder lineInfoBuilder,
+            Dictionary<int, int> closeBraceCountsByLine) : SyntaxVisitor<LineInfo>
         {
             private const string SyntheticLambdaBodyStart = "() => {";
             private const int SyntheticLambdaSignatureLength = 5;
@@ -162,6 +164,7 @@ internal partial class CSharpFormattingPass
             private readonly SyntaxNode? _declSyntaxRoot = declSyntaxRoot;
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
+            private readonly int _indentSize = options.IndentSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
             private readonly bool _ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor;
             private readonly CSharpSyntaxFormattingOptions _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
@@ -196,6 +199,11 @@ internal partial class CSharpFormattingPass
             /// This field tracks the last ignored line so we can avoid repeatedly traversing the syntax tree.
             /// </remarks>
             private int? _ignoreUntilLine;
+            /// <summary>
+            /// The number of close braces to emit after each line, for end tags of elements that we emitted an open brace for, but
+            /// that won't be visited because they aren't the first thing on their line.
+            /// </summary>
+            private readonly Dictionary<int, int> _closeBraceCountsByLine = closeBraceCountsByLine;
 
             public void Generate()
             {
@@ -243,7 +251,8 @@ internal partial class CSharpFormattingPass
                             }
                         }
 
-                        _lineInfoBuilder.Add(Visit(_currentToken.Parent));
+                        var lineInfo = Visit(_currentToken.Parent);
+                        _lineInfoBuilder.Add(EmitCloseBracesForEndTagsLaterInLine(lineInfo, line.LineNumber));
                         Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
                     }
                     else if (DocumentMappingHelper.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
@@ -429,7 +438,7 @@ internal partial class CSharpFormattingPass
                         if (ElementCausesIndentation(attributeStartTag))
                         {
                             // The start tag is emitted as an open brace, so Roslyn contributes one more structural indent.
-                            startTagIndentationWidth += _tabSize;
+                            startTagIndentationWidth += _indentSize;
                         }
                     }
                 }
@@ -437,7 +446,7 @@ internal partial class CSharpFormattingPass
                 // First, emit the whitespace, so user spacing is honoured if possible. We do this while taking into account
                 // any indentation we want to add to line up attribute content, otherwise we'd end up pushing that content to
                 // the right repeatedly.
-                var attributeIndentationWidth = startTagIndentationWidth + (htmlIndentLevel * _tabSize) + additionalIndentation.GetValueOrDefault();
+                var attributeIndentationWidth = startTagIndentationWidth + (htmlIndentLevel * _indentSize) + additionalIndentation.GetValueOrDefault();
 
                 // For lambda attributes like `OnClick=@(() => ...)`, Roslyn already contributes the
                 // lambda-body indentation on wrapped lines. If we keep applying the full attribute
@@ -484,8 +493,10 @@ internal partial class CSharpFormattingPass
                     else
                     {
                         end = node.EndPosition;
-                        // Semi-colons are vitally important for block bodied lambdas to not affect subsequent lines
-                        emitSemiColon = expressionStartsBlockLambda && end != _currentLine.End;
+                        // Semi-colons are vitally important for block bodied lambdas, and for expressions that are the entire value
+                        // of a component or directive attribute (eg `@onclick="() => Show(1,` ... `2)"`), to not affect subsequent lines
+                        emitSemiColon = (expressionStartsBlockLambda || node.Parent is MarkupTagHelperAttributeValueSyntax) &&
+                            end != _currentLine.End;
                     }
                 }
 
@@ -622,7 +633,7 @@ internal partial class CSharpFormattingPass
                     }
 
                     return CreateLineInfo(
-                        skipNextLine: emitSemiColon,
+                        skipNextLines: emitSemiColon ? 1 : 0,
                         formattedLength: span.Length,
                         formattedOffsetFromEndOfLine: 4, // "null".Length
                         processFormatting: true,
@@ -672,6 +683,7 @@ internal partial class CSharpFormattingPass
                 {
                     // When an element causes indentation, we emit an open brace to tell the C# formatter to indent.
                     lineInfo = EmitOpenBraceLine();
+                    RecordEndTagNotStartingALine(node);
                 }
                 else if (ContainsMultilineCollectionExpressionStartingOnCurrentLine(node))
                 {
@@ -760,6 +772,53 @@ internal partial class CSharpFormattingPass
 
                 _builder.AppendLine();
                 return CreateLineInfo();
+            }
+
+            private void RecordEndTagNotStartingALine(BaseMarkupStartTagSyntax startTag)
+            {
+                // The Visit methods only ever see the first node on a line, so an end tag that comes later in the line, eg:
+                //
+                // <div>
+                //     @* comment *@ </div>
+                //
+                // won't be visited, and won't emit the close brace that matches the open brace we just emitted. Without it,
+                // everything after the element would be indented one level too deep, so we remember which line the end tag is on.
+                // If the end tag continues onto another line, then that line starts inside the end tag, and VisitEndTag will
+                // emit the close brace for it.
+                if (startTag.GetEndTag() is not { } endTag)
+                {
+                    return;
+                }
+
+                var endTagLine = _sourceText.Lines.GetLineFromPosition(endTag.Position);
+                if (endTagLine.GetFirstNonWhitespacePosition() == endTag.Position ||
+                    endTag.EndPosition > endTagLine.End)
+                {
+                    return;
+                }
+
+                _closeBraceCountsByLine.TryGetValue(endTagLine.LineNumber, out var count);
+                _closeBraceCountsByLine[endTagLine.LineNumber] = count + 1;
+            }
+
+            private LineInfo EmitCloseBracesForEndTagsLaterInLine(LineInfo lineInfo, int lineNumber)
+            {
+                // Lines that might be followed by an open brace, depending on how Roslyn formats them, can't also be followed by
+                // close braces that we skip, so we leave those alone.
+                if (lineInfo.SkipNextLineIfBrace ||
+                    !_closeBraceCountsByLine.TryGetValue(lineNumber, out var closeBraceCount))
+                {
+                    return lineInfo;
+                }
+
+                // We emit the close braces on lines after this one, which leaves this line indented as content of the element,
+                // and skip those lines when mapping the formatted document back.
+                for (var i = 0; i < closeBraceCount; i++)
+                {
+                    _builder.AppendLine("}");
+                }
+
+                return lineInfo with { SkipNextLines = lineInfo.SkipNextLines + closeBraceCount };
             }
 
             private bool ElementCausesIndentation(BaseMarkupStartTagSyntax node)
@@ -962,7 +1021,7 @@ internal partial class CSharpFormattingPass
                     // so it's really relative to the first non-whitespace character on the line. We use the line that the attribute
                     // is on, just in case it's not on the same line as the start tag.
                     var lineStart = _sourceText.Lines[GetLineNumber(firstAttributeNameSpan)].GetFirstNonWhitespacePosition().GetValueOrDefault();
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(firstAttributeNameSpan.Start - lineStart, _tabSize, out additionalIndentation);
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(firstAttributeNameSpan.Start - lineStart, _indentSize, out additionalIndentation);
 
                     if (startTagAddsIndentation &&
                         GetLineNumber(firstAttributeNameSpan) == GetLineNumber(startTag.Name))
@@ -1337,7 +1396,7 @@ internal partial class CSharpFormattingPass
                 _builder.AppendLine("=> null");
 
                 return CreateLineInfo(
-                    skipNextLine: true,
+                    skipNextLines: 1,
                     processFormatting: true,
                     originOffset: conditions.SpanStart - _currentToken.Position,
                     formattedOffset: methodDef.Length);
@@ -1504,7 +1563,7 @@ internal partial class CSharpFormattingPass
                 bool processFormatting = false,
                 bool checkForNewLines = false,
                 int? skippedPreviousLineOriginOffset = null,
-                bool skipNextLine = false,
+                int skipNextLines = 0,
                 bool skipNextLineIfBrace = false,
                 int htmlIndentLevel = 0,
                 int originOffset = 0,
@@ -1521,7 +1580,7 @@ internal partial class CSharpFormattingPass
                     _honourHtmlFormattingUntilLine is { } endLine &&
                     endLine >= _currentLine.LineNumber)
                 {
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var calculatedAdditionalIndentation) - _htmlIndentationLevelInGeneratedDocument;
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _indentSize, out var calculatedAdditionalIndentation) - _htmlIndentationLevelInGeneratedDocument;
                     additionalIndentation = calculatedAdditionalIndentation;
                 }
 
@@ -1530,7 +1589,7 @@ internal partial class CSharpFormattingPass
                     ProcessFormatting: processFormatting,
                     CheckForNewLines: checkForNewLines,
                     SkippedPreviousLineOriginOffset: skippedPreviousLineOriginOffset,
-                    SkipNextLine: skipNextLine,
+                    SkipNextLines: skipNextLines,
                     SkipNextLineIfBrace: skipNextLineIfBrace,
                     FixedIndentLevel: htmlIndentLevel,
                     OriginOffset: originOffset,

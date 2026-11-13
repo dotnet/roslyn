@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.HotReload;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.BrokeredServices;
@@ -17,5 +18,8 @@ public sealed class DescriptorsTests
         Assert.Contains(IProcessTrackingService.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
         Assert.Contains(IRemoteProjectHotReloadSession.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
         Assert.Contains(IManagedHotReloadState.ServiceDescriptor.Moniker, Descriptors.RemoteServicesToRegister.Keys);
+
+        // TODO: Use IHotReloadProjectEventSubscriber.ServiceDescriptor once the referenced Microsoft.VisualStudio.HotReload.RemoteContracts package includes it.
+        Assert.Contains(new ServiceMoniker("Microsoft.VisualStudio.HotReload.HotReloadProjectEventSubscriber", new Version(3, 0)), Descriptors.RemoteServicesToRegister.Keys);
     }
 }
