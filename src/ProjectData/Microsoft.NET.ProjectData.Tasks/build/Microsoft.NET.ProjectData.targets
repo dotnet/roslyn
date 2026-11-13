@@ -11,22 +11,22 @@
 <Project>
 
   <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" Runtime="NET" />
 
   <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" Runtime="NET" />
 
   <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteUnsupportedProjectDataMarkerTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" Runtime="NET" />
 
   <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.ValidateProjectDataPackagesTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" Runtime="NET" />
 
   <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteProjectDataBuildReceiptTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" Runtime="NET" />
 
   <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.GetProjectDataBuildProjectIdTask"
-             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" Runtime="NET" />
 
   <!-- Track the task DLL as a property so it can be included in Inputs for incremental build. -->
   <PropertyGroup>
