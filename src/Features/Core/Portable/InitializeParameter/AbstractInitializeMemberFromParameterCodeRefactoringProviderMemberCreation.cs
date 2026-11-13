@@ -652,7 +652,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                     // We also allow assigning into a property of the form `=> throw new NotImplementedException()`.
                     // That way users can easily spit out those methods, but then convert them to be normal
                     // properties with ease.
-                    if (initializeParameterService.IsThrowNotImplementedProperty(compilation, property, cancellationToken))
+                    if (await initializeParameterService.IsThrowNotImplementedPropertyAsync(
+                        document.Project.Solution, property, cancellationToken).ConfigureAwait(false))
                         return (property, isThrowNotImplementedProperty: true);
 
                     if (property.IsWritableInConstructor())

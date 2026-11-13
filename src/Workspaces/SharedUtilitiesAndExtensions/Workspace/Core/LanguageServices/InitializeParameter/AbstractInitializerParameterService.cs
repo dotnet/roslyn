@@ -190,7 +190,7 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
         return TryGetLastStatement(blockStatement);
     }
 
-    public bool IsThrowNotImplementedProperty(Compilation compilation, IPropertySymbol property, CancellationToken cancellationToken)
+    public async Task<bool> IsThrowNotImplementedPropertyAsync(Solution solution, IPropertySymbol property, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
 
@@ -205,8 +205,10 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
 
         foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
         {
-            var semanticModel = compilation.GetSemanticModel(group.Key);
-            foreach (var accessorBody in accessors)
+            // The property may be declared in another project, so use the semantic model from the project that owns the tree.
+            var document = solution.GetRequiredDocument(group.Key);
+            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var accessorBody in group)
             {
                 var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
                 if (operation is null)
