@@ -16,7 +16,7 @@ internal sealed class DefaultRazorTagHelperRewritePhase : RazorEnginePhaseBase
         }
 
         if (!codeDocument.TryGetTagHelperContext(out var context) ||
-            context.TagHelpers is [])
+            (context.TagHelpers is [] && !context.HasAliases))
         {
             // No tag helpers to rewrite. The rewritten tree is the same as the canonical tree.
             // Tooling in the workspaces layer always expects GetRequiredTagHelperRewrittenSyntaxTree()

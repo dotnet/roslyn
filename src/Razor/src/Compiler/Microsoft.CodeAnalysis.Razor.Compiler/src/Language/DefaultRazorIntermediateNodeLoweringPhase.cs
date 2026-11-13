@@ -115,6 +115,7 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             var @using = new UsingDirectiveIntermediateNode()
             {
                 Content = reference.Namespace,
+                Alias = reference.Alias,
                 Source = reference.Source,
                 HasExplicitSemicolon = reference.HasExplicitSemicolon
             };
@@ -261,13 +262,16 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
 
     private struct UsingReference : IEquatable<UsingReference>
     {
-        public UsingReference(string @namespace, SourceSpan? source, bool hasExplicitSemicolon)
+        public UsingReference(string @namespace, SourceSpan? source, bool hasExplicitSemicolon, ReadOnlyMemory<char> alias)
         {
             Namespace = @namespace;
             Source = source;
             HasExplicitSemicolon = hasExplicitSemicolon;
+            Alias = alias;
         }
         public string Namespace { get; }
+
+        public ReadOnlyMemory<char> Alias { get; }
 
         public SourceSpan? Source { get; }
 
@@ -416,7 +420,16 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 case AddImportChunkGenerator importChunkGenerator:
                     var namespaceImport = importChunkGenerator.Namespace;
                     var namespaceSpan = BuildSourceSpanFromNode(node);
-                    _usings.Add(new UsingReference(namespaceImport, namespaceSpan, importChunkGenerator.HasExplicitSemicolon));
+                    // Keep the parsed alias separately: the emitted using keeps its comments and
+                    // whitespace, but component matching needs the normalised identifier.
+                    var equalsIndex = importChunkGenerator.ParsedNamespace.IndexOf('=');
+                    var alias = equalsIndex >= 0 ? importChunkGenerator.ParsedNamespace.AsMemory(0, equalsIndex) : default;
+                    if (alias.Span.StartsWith('@'))
+                    {
+                        alias = alias[1..];
+                    }
+
+                    _usings.Add(new UsingReference(namespaceImport, namespaceSpan, importChunkGenerator.HasExplicitSemicolon, alias));
                     break;
                 case AddTagHelperChunkGenerator addTagHelperChunkGenerator:
                     {

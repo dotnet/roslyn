@@ -394,17 +394,55 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 })
                 .WithTrackingName("Utf8SupportMap");
 
-            var csharpDocuments = parsedDocuments
+            // Resolve aliases against all declarations, not just those that produce tag helpers.
+            // A value-comparable projection keeps unrelated C# edits from invalidating document output.
+            var componentAliasTargets = parsedDocuments
+                .Select(static (item, _) => ComponentAliasTargetMap.GetAliasInfos(item.Item3.CodeDocument))
+                .WithLambdaComparer(static (a, b) => a.SequenceEqual(b))
+                .Collect()
+                .Combine(compilation)
+                .Combine(fallbackDeclTrees)
+                .Select(static (pair, cancellationToken) =>
+                {
+                    var ((documents, compilation), fallbackTrees) = pair;
+                    var hasAliases = false;
+                    foreach (var aliases in documents)
+                    {
+                        if (!aliases.IsEmpty)
+                        {
+                            hasAliases = true;
+                            break;
+                        }
+                    }
+
+                    if (!hasAliases)
+                    {
+                        // Most documents do not use aliases. Avoid augmenting the compilation or
+                        // creating a probe/semantic model for the ordinary-document path.
+                        return ComponentAliasTargetMap.Empty;
+                    }
+
+                    var completeCompilation = fallbackTrees.IsDefaultOrEmpty
+                        ? compilation
+                        : compilation.AddSyntaxTrees(fallbackTrees);
+                    return ComponentAliasTargetMap.Create(documents, completeCompilation, cancellationToken);
+                })
+                .WithLambdaComparer(static (a, b) => Equals(a, b))
+                .WithTrackingName("ComponentAliasTargets");
+
+            var discoveryInputs = allTagHelpers.Combine(componentAliasTargets);
+
+            var generatedDocuments = parsedDocuments
 
                 // Add the tag helpers in, but ignore if they've changed or not, only reprocessing the actual document changed
-                .Combine(allTagHelpers)
+                .Combine(discoveryInputs)
                 .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left))
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var ((projectEngine, filePath, codeDocument), allTagHelpers) = pair;
+                    var ((projectEngine, filePath, codeDocument), (allTagHelpers, aliasTargets)) = pair;
                     RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStart(filePath);
 
-                    codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false, cancellationToken);
+                    codeDocument = projectEngine.ProcessTagHelpers(codeDocument, allTagHelpers, checkForIdempotency: false, aliasTargets, cancellationToken);
 
                     RazorSourceGeneratorEventSource.Log.RewriteTagHelpersStop(filePath);
                     return (projectEngine, filePath, codeDocument);
@@ -412,13 +450,18 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithTrackingName("RewrittenTagHelpers")
 
                 // next we do a second parse, along with the helpers, but check for idempotency. If the tag helpers used on the previous parse match, the compiler can skip re-writing them
-                .Combine(allTagHelpers)
+                .Combine(discoveryInputs)
+                // A project-wide target map change should only invalidate documents whose aliases resolved differently.
+                .WithLambdaComparer(static (old, @new) =>
+                    old.Left.Equals(@new.Left) &&
+                    old.Right.Left.Equals(@new.Right.Left) &&
+                    old.Right.Right.EqualsForDocument(old.Left.Item3.CodeDocument, @new.Right.Right))
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var ((projectEngine, filePath, document), allTagHelpers) = pair;
+                    var ((projectEngine, filePath, document), (allTagHelpers, aliasTargets)) = pair;
                     RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStart(filePath);
 
-                    document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true, cancellationToken);
+                    document = projectEngine.ProcessTagHelpers(document, allTagHelpers, checkForIdempotency: true, aliasTargets, cancellationToken);
 
                     RazorSourceGeneratorEventSource.Log.CheckAndRewriteTagHelpersStop(filePath);
                     return (projectEngine, filePath, document);
@@ -474,7 +517,9 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         codeDocument: document.CodeDocument,
                         csharpDocument: document.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false),
                         declCSharpDocument: document.CodeDocument.GetCSharpDocument(declarationDocument: true));
-                })
+                });
+
+            var csharpDocuments = generatedDocuments
                 .WithLambdaComparer(static (a, b) =>
                 {
                     // If either side has diagnostics on either document, force uncached output.
@@ -528,7 +573,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 context.AddSource(hintName, csharpDocument.Text);
             });
 
-            var hostOutputs = csharpDocuments
+            // Host consumers need current binding information even when the generated C# is unchanged.
+            var hostOutputs = generatedDocuments
                 .Collect()
                 .Combine(allTagHelpers)
                 .WithTrackingName("HostOutputs");

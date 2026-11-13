@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -77,6 +78,572 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // _Imports.razor (no decl), Component1.razor (decl + impl), Component2.razor (decl + impl) = 5
         Assert.Equal(5, result.GeneratedSources.Length);
         result.VerifyOutputsMatchBaseline();
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_InvalidNamespaceDoesNotAffectOtherDocuments()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["A/namespace/Broken.razor"] = """
+                @using UI = Library
+                <UI.Button />
+                """,
+            ["Other.razor"] = """
+                @namespace Other
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver, out _, output =>
+        {
+            // The bad namespace still produces C# errors, but only in its own generated files.
+            var errors = output.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToArray();
+            Assert.NotEmpty(errors);
+            Assert.All(errors, diagnostic =>
+            {
+                Assert.NotNull(diagnostic.Location.SourceTree);
+                Assert.Contains("Broken_razor", diagnostic.Location.SourceTree.FilePath);
+            });
+        });
+
+        var other = result.GeneratedSources.Single(source => source.HintName == "Other_razor.g.cs").SourceText.ToString();
+        Assert.Contains("OpenComponent<global::Library.Button>", other);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_Razor11DoesNotBind()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @using Button = Library.Button
+                @using UI = Library
+                <Button />
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "11.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+        var generatedSource = result.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+
+        Assert.Contains("using Button = Library.Button", generatedSource);
+        Assert.Contains("using UI = Library", generatedSource);
+        Assert.DoesNotContain("OpenComponent<", generatedSource);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_Razor11DoesNotChangeExistingComponentBinding()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace Library
+                @using Button = OtherLibrary.Button
+                <Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                namespace OtherLibrary { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "11.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+        var generatedSource = result.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+
+        Assert.Contains("using Button = OtherLibrary.Button", generatedSource);
+        Assert.Contains("OpenComponent<global::Library.Button>", generatedSource);
+        Assert.DoesNotContain("OpenComponent<Button>", generatedSource);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_Razor12Binds()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @using Button = Library.Button
+                @using UI = Library
+                <Button />
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+        var generatedSource = result.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+
+        Assert.DoesNotContain("OpenComponent<Button>", generatedSource);
+        Assert.Contains("OpenComponent<global::Library.Button>", generatedSource);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_TypeAliasAvoidsNamespaceMemberConflicts()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["TypeConflict.razor"] = """
+                @namespace MyApp.TypeConflict
+                @using Button = global::Library.Button
+                <Button />
+                """,
+            ["NamespaceConflict.razor"] = """
+                @namespace MyApp.NamespaceConflict
+                @using Button = global::Library.Button
+                <Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                namespace MyApp.TypeConflict { public class Button { } }
+                namespace MyApp.NamespaceConflict.Button { public class Helper { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver, out _, output =>
+        {
+            Assert.DoesNotContain(output.GetDiagnostics(), diagnostic => diagnostic.Id == "CS0576");
+        });
+
+        Assert.Contains("OpenComponent<global::Library.Button>",
+            result.GeneratedSources.Single(source => source.HintName == "TypeConflict_razor.g.cs").SourceText.ToString());
+        Assert.Contains("OpenComponent<global::Library.Button>",
+            result.GeneratedSources.Single(source => source.HintName == "NamespaceConflict_razor.g.cs").SourceText.ToString());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_MalformedGlobalTargetDoesNotAffectOtherDocuments()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Broken.razor"] = """
+                @using Bad = namespace
+                """,
+            ["Other.razor"] = """
+                @namespace Other
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RootNamespace"] = string.Empty;
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver, out _, output =>
+        {
+            // The malformed directive must not move errors or change bindings in another document.
+            var errors = output.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToArray();
+            Assert.NotEmpty(errors);
+            Assert.All(errors, diagnostic =>
+            {
+                Assert.NotNull(diagnostic.Location.SourceTree);
+                Assert.Contains("Broken_razor", diagnostic.Location.SourceTree.FilePath);
+            });
+        });
+
+        var other = result.GeneratedSources.Single(source => source.HintName == "Other_razor.g.cs").SourceText.ToString();
+        Assert.Contains("OpenComponent<global::Library.Button>", other);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_MalformedNamespacedTargetDoesNotAffectOtherDocuments()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Broken.razor"] = """
+                @using Bad = Foo<namespace{
+                """,
+            ["Other.razor"] = """
+                @namespace Other
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver, out _, output =>
+        {
+            // The malformed directive must not move errors or change bindings in another document.
+            var errors = output.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToArray();
+            Assert.NotEmpty(errors);
+            Assert.All(errors, diagnostic =>
+            {
+                Assert.NotNull(diagnostic.Location.SourceTree);
+                Assert.Contains("Broken_razor", diagnostic.Location.SourceTree.FilePath);
+            });
+        });
+
+        var other = result.GeneratedSources.Single(source => source.HintName == "Other_razor.g.cs").SourceText.ToString();
+        Assert.Contains("OpenComponent<global::Library.Button>", other);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_NonComponentNamespaceShadowsOuterComponent()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace MyApp
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                namespace MyApp.Library { public class Helper { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+
+        Assert.DoesNotContain("OpenComponent<global::Library.Button>", string.Join("\n", result.GeneratedSources.Select(s => s.SourceText)));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_NonComponentTypeShadowsOuterComponent()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace MyApp
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                namespace MyApp { public class Library { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+
+        Assert.DoesNotContain("OpenComponent<global::Library.Button>", string.Join("\n", result.GeneratedSources.Select(s => s.SourceText)));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_GlobalTargetBypassesNonComponentNamespace()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace MyApp
+                @using UI = global::Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                namespace MyApp.Library { public class Helper { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+
+        Assert.Contains("OpenComponent<global::Library.Button>", string.Join("\n", result.GeneratedSources.Select(s => s.SourceText)));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_ImportResolvesInEachDocumentNamespace()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["_Imports.razor"] = "@using UI = Library",
+            ["Index.razor"] = """
+                @namespace MyApp
+                <UI.Button />
+                """,
+            ["Other.razor"] = """
+                @namespace OtherApp
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                namespace MyApp.Library { public class Helper { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+
+        var index = result.GeneratedSources.Single(s => s.HintName == "Index_razor.g.cs").SourceText.ToString();
+        var other = result.GeneratedSources.Single(s => s.HintName == "Other_razor.g.cs").SourceText.ToString();
+        Assert.DoesNotContain("OpenComponent<global::Library.Button>", index);
+        Assert.Contains("OpenComponent<global::Library.Button>", other);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_ShadowingDeclarationChangesWithoutRazorEdit()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace MyApp
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+        Assert.Contains("OpenComponent<global::Library.Button>", string.Join("\n", result.GeneratedSources.Select(s => s.SourceText)));
+
+        // This changes name lookup but not the component descriptors or the Razor input.
+        var shadow = CSharpSyntaxTree.ParseText(SourceText.From("namespace MyApp.Library { public class Helper { } }"), (CSharpParseOptions)project.ParseOptions!);
+        result = RunGenerator(compilation!.AddSyntaxTrees(shadow), ref driver);
+        Assert.DoesNotContain("OpenComponent<global::Library.Button>", string.Join("\n", result.GeneratedSources.Select(s => s.SourceText)));
+
+        result = RunGenerator(compilation, ref driver);
+        Assert.Contains("OpenComponent<global::Library.Button>", string.Join("\n", result.GeneratedSources.Select(s => s.SourceText)));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_ShadowingDeclarationChangesWithOrdinaryImport()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace MyApp
+                @using Library
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var result = RunGenerator(compilation!, ref driver);
+        var originalOutput = result.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+        Assert.Contains("OpenComponent<global::Library.Button>", originalOutput);
+
+        // The ordinary import keeps the descriptor in scope, but the alias must stop matching.
+        var shadow = CSharpSyntaxTree.ParseText(SourceText.From("namespace MyApp.Library { public class Helper { } }"), (CSharpParseOptions)project.ParseOptions!);
+        var shadowedCompilation = compilation!.AddSyntaxTrees(shadow);
+        result = RunGenerator(shadowedCompilation, ref driver);
+        var shadowedOutput = result.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+
+        var freshDriver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var freshResult = RunGenerator(shadowedCompilation, ref freshDriver);
+        var freshOutput = freshResult.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+        Assert.DoesNotContain("OpenComponent<global::Library.Button>", freshOutput);
+        Assert.Equal(freshOutput, shadowedOutput);
+
+        // Removing the shadow must restore the alias without touching the Razor document.
+        result = RunGenerator(compilation, ref driver);
+        Assert.Equal(originalOutput, result.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_NewComponentInAliasNamespaceRewritesDocument()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @using UI = global::UI
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace UI { public class Helper { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var initial = RunGenerator(compilation!, ref driver);
+        Assert.DoesNotContain("OpenComponent<global::UI.Button>", string.Join("\n", initial.GeneratedSources.Select(source => source.SourceText)));
+
+        var newComponent = CSharpSyntaxTree.ParseText(SourceText.From("""
+            namespace UI { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+            """), (CSharpParseOptions)project.ParseOptions!);
+        var updatedCompilation = compilation!.AddSyntaxTrees(newComponent);
+        var updated = RunGenerator(updatedCompilation, ref driver);
+        var updatedOutput = updated.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+
+        var freshDriver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0";
+        });
+        var fresh = RunGenerator(updatedCompilation, ref freshDriver);
+        var freshOutput = fresh.GeneratedSources.Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+
+        Assert.Contains("OpenComponent<global::UI.Button>", updatedOutput);
+        Assert.Equal(freshOutput, updatedOutput);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_ShadowingDeclarationPreservesUnaffectedDocumentCache()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace MyApp
+                @using UI = Library
+                <UI.Button />
+                """,
+            ["Other.razor"] = """
+                @namespace OtherApp
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(
+            project,
+            configureGlobalOptions: options => options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0",
+            trackSteps: true);
+        RunGenerator(compilation!, ref driver);
+
+        var shadow = CSharpSyntaxTree.ParseText(SourceText.From("namespace MyApp.Library { public class Helper { } }"), (CSharpParseOptions)project.ParseOptions!);
+        var result = RunGenerator(compilation!.AddSyntaxTrees(shadow), ref driver);
+        var reasons = result.TrackedSteps["CSharpDocuments"].SelectMany(step => step.Outputs).Select(output => output.Reason).ToArray();
+
+        Assert.Equal(1, reasons.Count(reason => reason == IncrementalStepRunReason.Cached));
+        Assert.Equal(1, reasons.Count(reason => reason == IncrementalStepRunReason.Modified));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public async Task ComponentAlias_UnrelatedDeclarationPreservesGeneratedOutputCache()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Index.razor"] = """
+                @namespace MyApp
+                @using UI = Library
+                <UI.Button />
+                """,
+        }, new()
+        {
+            ["Components.cs"] = """
+                namespace Library { public class Button : Microsoft.AspNetCore.Components.ComponentBase { } }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(
+            project,
+            configureGlobalOptions: options => options.TestGlobalOptions["build_property.RazorLangVersion"] = "12.0",
+            trackSteps: true);
+        RunGenerator(compilation!, ref driver);
+
+        var unrelated = CSharpSyntaxTree.ParseText(SourceText.From("namespace Unrelated { public class Helper { } }"), (CSharpParseOptions)project.ParseOptions!);
+        var result = RunGenerator(compilation!.AddSyntaxTrees(unrelated), ref driver);
+
+        result.VerifyIncrementalSteps("CSharpDocuments", IncrementalStepRunReason.Cached);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/10991")]

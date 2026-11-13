@@ -2637,7 +2637,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         using var whitespaceOrComments = new PooledArrayBuilder<SyntaxToken>();
         ReadWhile(IsSpacingTokenIncludingComments, ref whitespaceOrComments.AsRef());
         var atLeftParen = At(SyntaxKind.LeftParenthesis);
-        var atIdentifier = At(SyntaxKind.Identifier);
+        var atIdentifier = At(SyntaxKind.Identifier) || AtEscapedIdentifier();
         var atStaticOrGlobal = At(CSharpSyntaxKind.StaticKeyword, CSharpSyntaxKind.GlobalKeyword);
 
         // Put the read tokens back and let them be handled later.
@@ -2733,7 +2733,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             var nonNamespaceTokenCount = TokenBuilder.Count;
             AcceptWhile(IsSpacingTokenIncludingComments);
             var start = CurrentStart;
-            if (At(SyntaxKind.Identifier) || At(CSharpSyntaxKind.GlobalKeyword))
+            if (At(SyntaxKind.Identifier) || At(CSharpSyntaxKind.GlobalKeyword) || AtEscapedIdentifier())
             {
                 // non-static using
                 nonNamespaceTokenCount = TokenBuilder.Count;
@@ -2845,52 +2845,60 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
             return true;
         }
-        else if (TryAccept(SyntaxKind.Identifier) || TryAccept(SyntaxKind.Keyword))
+        else if (AtEscapedIdentifier())
         {
-            if (TryAccept(SyntaxKind.DoubleColon))
-            {
-                if (!TryAccept(SyntaxKind.Identifier))
-                {
-                    TryAccept(SyntaxKind.Keyword);
-                }
-            }
-            if (At(SyntaxKind.LessThan))
-            {
-                ParseTypeArgumentList(builder);
-            }
-            if (TryAccept(SyntaxKind.Dot))
-            {
-                TryParseNamespaceOrTypeName(builder);
-            }
-
-            if (At(SyntaxKind.Whitespace) && NextIs(SyntaxKind.QuestionMark))
-            {
-                // Only accept the whitespace if we are going to consume the next token.
-                AcceptAndMoveNext();
-            }
-
-            TryAccept(SyntaxKind.QuestionMark); // Nullable
-
-            if (At(SyntaxKind.Whitespace) && NextIs(SyntaxKind.LeftBracket))
-            {
-                // Only accept the whitespace if we are going to consume the next token.
-                AcceptAndMoveNext();
-            }
-
-            while (At(SyntaxKind.LeftBracket))
-            {
-                Balance(builder, BalancingModes.None);
-                if (!TryAccept(SyntaxKind.RightBracket))
-                {
-                    Accept(SyntaxFactory.MissingToken(SyntaxKind.RightBracket));
-                }
-            }
-            return true;
+            Accept(NextAsEscapedIdentifier());
         }
-        else
+        else if (!TryAccept(SyntaxKind.Identifier) && !TryAccept(SyntaxKind.Keyword))
         {
             return false;
         }
+
+        if (TryAccept(SyntaxKind.DoubleColon))
+        {
+            if (AtEscapedIdentifier())
+            {
+                Accept(NextAsEscapedIdentifier());
+            }
+            else if (!TryAccept(SyntaxKind.Identifier))
+            {
+                TryAccept(SyntaxKind.Keyword);
+            }
+        }
+
+        if (At(SyntaxKind.LessThan))
+        {
+            ParseTypeArgumentList(builder);
+        }
+        if (TryAccept(SyntaxKind.Dot))
+        {
+            TryParseNamespaceOrTypeName(builder);
+        }
+
+        if (At(SyntaxKind.Whitespace) && NextIs(SyntaxKind.QuestionMark))
+        {
+            // Only accept the whitespace if we are going to consume the next token.
+            AcceptAndMoveNext();
+        }
+
+        TryAccept(SyntaxKind.QuestionMark); // Nullable
+
+        if (At(SyntaxKind.Whitespace) && NextIs(SyntaxKind.LeftBracket))
+        {
+            // Only accept the whitespace if we are going to consume the next token.
+            AcceptAndMoveNext();
+        }
+
+        while (At(SyntaxKind.LeftBracket))
+        {
+            Balance(builder, BalancingModes.None);
+            if (!TryAccept(SyntaxKind.RightBracket))
+            {
+                Accept(SyntaxFactory.MissingToken(SyntaxKind.RightBracket));
+            }
+        }
+
+        return true;
     }
 
     private void ParseTypeArgumentList(in SyntaxListBuilder<RazorSyntaxNode> builder)
@@ -3249,6 +3257,10 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             builder.Add(comment);
         }
     }
+
+    // The Razor lexer keeps the escape prefix separate from the C# identifier token.
+    private bool AtEscapedIdentifier()
+        => At(SyntaxKind.Transition) && NextIs(SyntaxKind.Keyword, SyntaxKind.Identifier);
 
     private SyntaxToken NextAsEscapedIdentifier()
     {

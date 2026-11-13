@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -30,6 +31,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
 
         var @namespace = documentNode.FindPrimaryNamespace();
         var @class = documentNode.FindPrimaryClass();
+        var supportsComponentAliases = codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_12_0;
         if (@namespace == null || @class == null)
         {
             // Nothing to do, bail. We can't function without the standard structure.
@@ -67,7 +69,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             }
             else if (count > 1)
             {
-                var tagHelper = GetTagHelperOrAddDiagnostic(node, usings);
+                var tagHelper = GetTagHelperOrAddDiagnostic(node, usings, supportsComponentAliases);
                 if (tagHelper == null)
                 {
                     // An ambiguous tag must not prevent unrelated components from being lowered.
@@ -85,12 +87,16 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
         // We have several tag helpers that are candidates for the same tag node. We need to disambiguate which tag helper applies to this tag
         // since we now fully qualify the tag helper when we emit the code, and we can't rely on the compiler to error out when there are ambiguous
         // tag helpers.
-        // We look based on the set of usings if there is only a single component for that can be applied to that tag or if we detect more than one
-        // we add a diagnostic and return null
-        static TagHelperDescriptor GetTagHelperOrAddDiagnostic(TagHelperIntermediateNode node, IReadOnlyList<UsingDirectiveIntermediateNode> usings)
+        // Preserve Razor's preference for explicit namespace imports over the document's namespace.
+        // If no ordinary import selects candidates, keep the bound matches so aliases and fully
+        // qualified component tags do not require an additional namespace import.
+        static TagHelperDescriptor GetTagHelperOrAddDiagnostic(
+            TagHelperIntermediateNode node,
+            ImmutableArray<UsingDirectiveIntermediateNode> usings,
+            bool supportsComponentAliases)
         {
-            TagHelperDescriptor candidate = null;
-            List<TagHelperDescriptor> matched = null;
+            using var _ = ListPool<TagHelperDescriptor>.GetPooledObject(out var matched);
+            var hasImportedCandidate = false;
             foreach (var tagHelper in node.TagHelpers)
             {
                 if (tagHelper.Kind != TagHelperKind.Component)
@@ -98,33 +104,47 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                     continue;
                 }
 
-                for (var j = 0; j < usings.Count; j++)
+                var isImported = false;
+                for (var i = 0; i < usings.Length; i++)
                 {
-                    var usingNamespace = usings[j].Content;
-                    if (string.Equals(tagHelper.TypeNamespace, usingNamespace, StringComparison.Ordinal))
+                    var usingNode = usings[i];
+                    if (usingNode.Alias.IsEmpty &&
+                        string.Equals(tagHelper.TypeNamespace, usingNode.Content, StringComparison.Ordinal))
                     {
-                        if (candidate == null)
-                        {
-                            candidate = tagHelper;
-                        }
-                        else
-                        {
-                            matched ??= new();
-                            matched.Add(tagHelper);
-                        }
+                        isImported = true;
+                        break;
                     }
                 }
+
+                if (isImported)
+                {
+                    if (!hasImportedCandidate)
+                    {
+                        // Drop namespace-scope matches, but retain ambiguity between explicit imports.
+                        matched.Clear();
+                        hasImportedCandidate = true;
+                    }
+                }
+                else if (hasImportedCandidate)
+                {
+                    continue;
+                }
+
+                matched.Add(tagHelper);
             }
 
-            if (matched != null)
+            // Before Razor 12, only an explicit namespace import could select an ambiguous component.
+            if (!supportsComponentAliases && !hasImportedCandidate)
             {
-                // Insert candidate at the beginning to maintain the original order
-                matched.Insert(0, candidate);
+                return null;
+            }
 
+            if (matched.Count > 1)
+            {
                 // Before reporting an ambiguity error, try to disambiguate based on whether
                 // type parameters are provided. This handles the case where both a generic
                 // and non-generic version of a component exist with the same name.
-                var resolvedCandidate = TryDisambiguateByTypeParameters(node, matched);
+                var resolvedCandidate = TryDisambiguateByTypeParameters(node, matched, supportsComponentAliases);
                 if (resolvedCandidate != null)
                 {
                     return resolvedCandidate;
@@ -145,7 +165,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                 return null;
             }
 
-            return candidate;
+            return matched.Count == 1 ? matched[0] : null;
         }
 
         // Try to disambiguate between multiple components with the same name by checking if
@@ -155,11 +175,19 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
         //
         // Disambiguation is based on matching the provided type parameters in the markup
         // with the type parameters defined by each candidate component.
-        static TagHelperDescriptor TryDisambiguateByTypeParameters(TagHelperIntermediateNode node, List<TagHelperDescriptor> candidates)
+        static TagHelperDescriptor TryDisambiguateByTypeParameters(TagHelperIntermediateNode node, List<TagHelperDescriptor> candidates, bool supportsComponentAliases)
         {
-            // Separate candidates into generic and non-generic
-            var genericCandidates = candidates.Where(c => c.IsGenericTypedComponent()).ToList();
-            var nonGenericCandidates = candidates.Where(c => !c.IsGenericTypedComponent()).ToList();
+            // Count non-generic candidates without allocating filtered lists for each ambiguous tag.
+            TagHelperDescriptor nonGenericComponent = null;
+            var nonGenericCount = 0;
+            foreach (var candidate in candidates)
+            {
+                if (!candidate.IsGenericTypedComponent())
+                {
+                    nonGenericComponent = candidate;
+                    nonGenericCount++;
+                }
+            }
 
             // Get all type parameter attributes provided in the markup
             using var providedTypeParameters = GetProvidedTypeParameters(node);
@@ -168,87 +196,105 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             if (providedTypeParameters.Count == 0)
             {
                 // If there's exactly one non-generic component, prefer it
-                if (nonGenericCandidates.Count == 1 && genericCandidates.Count >= 1)
+                if (nonGenericCount == 1 && candidates.Count > 1)
                 {
-                    var nonGenericComponent = nonGenericCandidates[0];
-                    
                     // Check for ambiguity with any generic component
-                    foreach (var genericComponent in genericCandidates)
+                    foreach (var genericComponent in candidates)
                     {
+                        if (!genericComponent.IsGenericTypedComponent())
+                        {
+                            continue;
+                        }
+
                         if (HasAmbiguousParameters(node, genericComponent, nonGenericComponent))
                         {
                             // Report an ambiguity error and return null
                             node.AddDiagnostic(ComponentDiagnosticFactory.Create_AmbiguousComponentSelection(
-                                node.Source, 
-                                node.TagName, 
-                                genericComponent, 
+                                node.Source,
+                                node.TagName,
+                                genericComponent,
                                 nonGenericComponent));
                             return null;
                         }
                     }
-                    
+
                     // No ambiguity with any generic variant, use the non-generic component
                     return nonGenericComponent;
                 }
-                
+
                 // Can't disambiguate - either no non-generic or multiple non-generic components
                 return null;
             }
 
-            // Type parameters are provided - find the generic component that matches
-            TagHelperDescriptor bestMatch = null;
-            var providedTypeParametersArray = providedTypeParameters.ToArray();
-            
-            foreach (var candidate in genericCandidates)
+            // From Razor 12, a unique exact match wins over partial matches regardless of descriptor order.
+            TagHelperDescriptor exactMatch = null;
+            TagHelperDescriptor partialMatch = null;
+            var multiplePartialMatches = false;
+            foreach (var candidate in candidates)
             {
-                using var candidateTypeParams = GetTypeParameterNames(candidate);
-                
-                // Check if all provided type parameters exist in this candidate's type parameters
-                var allProvidedMatch = true;
-                foreach (var provided in providedTypeParametersArray)
-                {
-                    if (!candidateTypeParams.Contains(provided))
-                    {
-                        allProvidedMatch = false;
-                        break;
-                    }
-                }
-                
-                if (!allProvidedMatch)
+                if (!candidate.IsGenericTypedComponent())
                 {
                     continue;
                 }
-                
-                // All provided type parameters match this candidate
-                // Check if this is a complete match (all type parameters provided)
-                if (providedTypeParameters.Count == candidateTypeParams.Count)
+
+                // Type parameter names are unique in a component, so count matches without allocating another collection.
+                var candidateTypeParameterCount = 0;
+                var matchingTypeParameterCount = 0;
+                foreach (var attribute in candidate.BoundAttributes)
                 {
-                    // Exact match - this is the component to use
-                    return candidate;
+                    if (attribute.IsTypeParameterProperty())
+                    {
+                        candidateTypeParameterCount++;
+                        if (providedTypeParameters.Contains(attribute.Name))
+                        {
+                            matchingTypeParameterCount++;
+                        }
+                    }
                 }
-                
-                // Partial match - could be this component (type inference will handle the rest)
-                // Keep track of it as a potential match
-                if (bestMatch == null)
+
+                if (matchingTypeParameterCount != providedTypeParameters.Count)
                 {
-                    bestMatch = candidate;
+                    continue;
+                }
+
+                if (providedTypeParameters.Count == candidateTypeParameterCount)
+                {
+                    // Preserve the first-match behavior for earlier Razor versions.
+                    if (!supportsComponentAliases)
+                    {
+                        return candidate;
+                    }
+
+                    if (exactMatch != null)
+                    {
+                        return null;
+                    }
+
+                    exactMatch = candidate;
+                }
+                else if (partialMatch == null)
+                {
+                    // Keep the partial match in case there is no exact match.
+                    partialMatch = candidate;
+                }
+                else if (!supportsComponentAliases)
+                {
+                    return null;
                 }
                 else
                 {
-                    // Multiple components match the provided type parameters - ambiguous
-                    return null;
+                    multiplePartialMatches = true;
                 }
             }
 
-            // Return the best match if we found one, otherwise null (ambiguous or no match)
-            return bestMatch;
+            return exactMatch ?? (multiplePartialMatches ? null : partialMatch);
         }
 
         // Get all type parameter names provided in the markup
         static PooledHashSet<string> GetProvidedTypeParameters(TagHelperIntermediateNode node)
         {
             var result = new PooledHashSet<string>(StringComparer.Ordinal);
-            
+
             foreach (var child in node.Children)
             {
                 if (child is TagHelperPropertyIntermediateNode property)
@@ -271,7 +317,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                     }
                 }
             }
-            
+
             return result;
         }
 
