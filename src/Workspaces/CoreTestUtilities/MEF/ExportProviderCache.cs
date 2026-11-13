@@ -31,6 +31,21 @@ public static class ExportProviderCache
     internal static ExportProvider? LocalExportProviderForCleanup => _localCompositionScope.CurrentExportProvider;
     internal static ExportProvider? RemoteExportProviderForCleanup => _remoteCompositionScope.CurrentExportProvider;
 
+    internal static VisualStudioMefHostServices GetOrCreateHostServices(ExportProvider exportProvider)
+    {
+        if (ReferenceEquals(exportProvider, _localCompositionScope.CurrentExportProvider))
+        {
+            return _localCompositionScope.GetOrCreateHostServices(exportProvider);
+        }
+
+        if (ReferenceEquals(exportProvider, _remoteCompositionScope.CurrentExportProvider))
+        {
+            return _remoteCompositionScope.GetOrCreateHostServices(exportProvider);
+        }
+
+        return VisualStudioMefHostServices.Create(exportProvider);
+    }
+
     internal static void SetEnabled_OnlyUseExportProviderAttributeCanCall(bool value)
     {
         Enabled = value;
@@ -234,13 +249,28 @@ public static class ExportProviderCache
         public ComposableCatalog? ExpectedCatalog;
         public ExportProvider? ExpectedProviderForCatalog;
 
+        private VisualStudioMefHostServices? _hostServices;
+
         public Scope(string name)
         {
             Name = name;
         }
 
+        public VisualStudioMefHostServices GetOrCreateHostServices(ExportProvider exportProvider)
+        {
+            var hostServices = Volatile.Read(ref _hostServices);
+            if (hostServices != null)
+            {
+                return hostServices;
+            }
+
+            hostServices = VisualStudioMefHostServices.Create(exportProvider);
+            return Interlocked.CompareExchange(ref _hostServices, hostServices, null) ?? hostServices;
+        }
+
         public void Clear()
         {
+            _hostServices = null;
             CurrentExportProvider = null;
             ExpectedCatalog = null;
             ExpectedProviderForCatalog = null;
