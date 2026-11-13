@@ -23,6 +23,21 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal const int NumberRadixDecimal = 10;
         internal const int NumberRadixHexadecimal = 16;
 
+        /// <summary>
+        /// Returns true for a ref struct type, or a by-ref to one. Reflection can't box values of these types.
+        /// </summary>
+        internal static bool IsByRefLikeType(Type type)
+        {
+            if (type.IsByRef)
+            {
+                type = type.GetElementType();
+            }
+
+            // Type.IsByRefLike isn't available on netstandard2.0, so look for the attribute the compiler emits.
+            return type.GetTypeInfo().IsValueType &&
+                type.GetTypeInfo().CustomAttributes.Any(a => a.AttributeType.FullName == "System.Runtime.CompilerServices.IsByRefLikeAttribute");
+        }
+
         internal static bool HasOverriddenToString(TypeInfo type)
         {
             if (type.IsInterface)
