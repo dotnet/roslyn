@@ -33,6 +33,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private readonly Dictionary<BuildHostProcessKind, BuildHostProcess> _processes = [];
+    private Func<Task>? _beforeLogProcessFailureAsync;
+    private int _disposing;
 
     private static string MSBuildWorkspaceDirectory => Path.GetDirectoryName(typeof(BuildHostProcessManager).Assembly.Location) ?? AppContext.BaseDirectory;
     private static bool IsLoadedFromNuGetPackage => File.Exists(Path.Combine(MSBuildWorkspaceDirectory, "..", "..", "microsoft.codeanalysis.workspaces.msbuild.nuspec"));
@@ -209,39 +211,68 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     {
         Contract.ThrowIfNull(sender, $"{nameof(BuildHostProcess)}.{nameof(BuildHostProcess.Disconnected)} was raised with a null sender.");
 
-        Task.Run(async () =>
+        _ = Task.Run(() => HandleBuildHostProcessDisconnectedAsync(sender));
+    }
+
+    private async Task HandleBuildHostProcessDisconnectedAsync(object sender)
+    {
+        BuildHostProcess? processToDispose = null;
+
+        using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
-            BuildHostProcess? processToDispose = null;
+            if (Volatile.Read(ref _disposing) != 0)
+                return;
 
-            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            // Remove it from our map; it's possible it might have already been removed if we had more than one way we observed a disconnect.
+            var existingProcess = _processes.SingleOrNull(p => p.Value == sender);
+            if (existingProcess.HasValue)
             {
-                // Remove it from our map; it's possible it might have already been removed if we had more than one way we observed a disconnect.
-                var existingProcess = _processes.SingleOrNull(p => p.Value == sender);
-                if (existingProcess.HasValue)
-                {
-                    processToDispose = existingProcess.Value.Value;
-                    _processes.Remove(existingProcess.Value.Key);
-                }
+                processToDispose = existingProcess.Value.Value;
+                _processes.Remove(existingProcess.Value.Key);
             }
+        }
 
-            // Dispose outside of the lock (even though we don't expect much to happen at this point)
-            if (processToDispose != null)
-            {
+        // Dispose outside of the lock (even though we don't expect much to happen at this point)
+        if (processToDispose != null)
+        {
+            if (_beforeLogProcessFailureAsync is { } beforeLogProcessFailureAsync)
+                await beforeLogProcessFailureAsync().ConfigureAwait(false);
+
+            // Disposal can start after this callback has removed the process from the map.
+            if (Volatile.Read(ref _disposing) == 0)
                 processToDispose.LogProcessFailure();
-                await processToDispose.DisposeAsync().ConfigureAwait(false);
-            }
-        });
+
+            await processToDispose.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(BuildHostProcessManager manager)
+    {
+        public Func<Task>? BeforeLogProcessFailureAsync
+        {
+            set => manager._beforeLogProcessFailureAsync = value;
+        }
+
+        public Task DisconnectAsync(BuildHostProcessKind kind)
+            => manager.HandleBuildHostProcessDisconnectedAsync(manager._processes[kind]);
     }
 
     public async ValueTask DisposeAsync()
     {
+        Interlocked.Exchange(ref _disposing, 1);
         List<BuildHostProcess> processesToDispose;
 
-        // Copy the list out while we're in the lock, otherwise as we dispose these events will get fired, which
-        // may try to mutate the list while we're enumerating.
+        // Copy the list and detach the handlers while holding the lock so intentional shutdowns aren't handled as
+        // unexpected disconnects and cannot mutate the list while we're enumerating it.
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
             processesToDispose = [.. _processes.Values];
+
+            foreach (var process in processesToDispose)
+                process.Disconnected -= BuildHostProcess_Disconnected;
+
             _processes.Clear();
         }
 
