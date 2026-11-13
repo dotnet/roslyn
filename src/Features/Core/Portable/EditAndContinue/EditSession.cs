@@ -527,7 +527,7 @@ internal sealed class EditSession
             return;
         }
 
-        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, oldProject, diagnostics, cancellationToken).ConfigureAwait(false);
+        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, oldProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
         var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, newProject, diagnostics, cancellationToken).ConfigureAwait(false);
