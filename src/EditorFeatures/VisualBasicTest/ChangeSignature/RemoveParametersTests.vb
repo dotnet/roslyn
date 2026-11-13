@@ -177,5 +177,50 @@ End Class]]></Text>.NormalizedValue()
             Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
 
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/62824")>
+        Public Async Function RemoveParameters_AfterEscapedNamedArgument() As Task
+
+            Dim markup = <Text><![CDATA[
+MustInherit Class Analyzer
+    Protected Sub $$New(diagnosticId As String, enforceOnBuild As Integer, [option] As Object, language As String, title As String)
+    End Sub
+End Class
+
+Class Derived
+    Inherits Analyzer
+
+    Sub New()
+        MyBase.New(
+            diagnosticId:="ID0001",
+            enforceOnBuild:=0,
+            [option]:=Nothing,
+            language:="VB",
+            title:="Title")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+            Dim permutation = {0, 1, 2, 4}
+            Dim updatedCode = <Text><![CDATA[
+MustInherit Class Analyzer
+    Protected Sub New(diagnosticId As String, enforceOnBuild As Integer, [option] As Object, title As String)
+    End Sub
+End Class
+
+Class Derived
+    Inherits Analyzer
+
+    Sub New()
+        MyBase.New(
+            diagnosticId:="ID0001",
+            enforceOnBuild:=0,
+            [option]:=Nothing,
+            title:="Title")
+    End Sub
+End Class]]></Text>.NormalizedValue()
+
+            Await TestChangeSignatureViaCommandAsync(LanguageNames.VisualBasic, markup, updatedSignature:=permutation, expectedUpdatedInvocationDocumentCode:=updatedCode)
+
+        End Function
     End Class
 End Namespace
