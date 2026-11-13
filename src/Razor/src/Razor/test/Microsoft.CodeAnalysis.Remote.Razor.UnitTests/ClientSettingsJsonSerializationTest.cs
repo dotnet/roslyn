@@ -15,7 +15,7 @@ public class ClientSettingsJsonSerializationTest
     public void ClientSettings_RoundTripsWithExpectedPropertyNames()
     {
         var settings = new ClientSettings(
-            new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 2),
+            new ClientSpaceSettings(IndentWithTabs: true, TabSize: 2, IndentSize: 3),
             new ClientCompletionSettings(AutoShowCompletion: false, AutoListParams: false),
             new ClientAdvancedSettings(
                 FormatOnType: false,
@@ -42,8 +42,10 @@ public class ClientSettingsJsonSerializationTest
 
         Assert.True(clientSpaceSettings.TryGetProperty("indentWithTabs", out var indentWithTabs));
         Assert.True(indentWithTabs.GetBoolean());
+        Assert.True(clientSpaceSettings.TryGetProperty("tabSize", out var tabSize));
+        Assert.Equal(2, tabSize.GetInt32());
         Assert.True(clientSpaceSettings.TryGetProperty("indentSize", out var indentSize));
-        Assert.Equal(2, indentSize.GetInt32());
+        Assert.Equal(3, indentSize.GetInt32());
 
         Assert.True(clientCompletionSettings.TryGetProperty("autoShowCompletion", out var autoShowCompletion));
         Assert.False(autoShowCompletion.GetBoolean());

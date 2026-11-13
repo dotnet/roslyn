@@ -34,11 +34,16 @@ internal sealed record ClientCompletionSettings(
     public static readonly ClientCompletionSettings Default = new(AutoShowCompletion: true, AutoListParams: true);
 }
 
+/// <param name="IndentWithTabs">Whether the client indents with tabs.</param>
+/// <param name="TabSize">The width of a tab character.</param>
+/// <param name="IndentSize">The width of one level of indentation, or <see langword="null"/> when the client doesn't
+/// report one separately from the tab size.</param>
 internal sealed record ClientSpaceSettings(
     [property: JsonPropertyName("indentWithTabs")] bool IndentWithTabs,
-    [property: JsonPropertyName("indentSize")] int IndentSize)
+    [property: JsonPropertyName("tabSize")] int TabSize,
+    [property: JsonPropertyName("indentSize")] int? IndentSize = null)
 {
-    public static readonly ClientSpaceSettings Default = new(IndentWithTabs: false, IndentSize: 4);
+    public static readonly ClientSpaceSettings Default = new(IndentWithTabs: false, TabSize: 4);
 }
 
 internal sealed record ClientAdvancedSettings(
