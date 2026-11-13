@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.LanguageServer.Protocol;
@@ -114,7 +115,8 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
                 servicesProvider, jsonRpc, messageFormatter.JsonSerializerOptions,
                 TestWorkspace.Services.HostServices,
                 [InternalLanguageNames.TypeScript],
-                WellKnownLspServerKinds.RoslynTypeScriptLspServer);
+                WellKnownLspServerKinds.RoslynTypeScriptLspServer,
+                TestWorkspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             jsonRpc.StartListening();
             return languageServer;
