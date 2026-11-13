@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebu
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.Rebuild.UnitTests", "..\..\Compilers\Core\RebuildTest\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj", "{48B87FA3-669F-48D2-A23A-50E43D875C61}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildValidator.UnitTests", "..\BuildValidator.UnitTests\BuildValidator.UnitTests.csproj", "{010A9D8F-5143-4741-82FC-56B96E42E375}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{48B87FA3-669F-48D2-A23A-50E43D875C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48B87FA3-669F-48D2-A23A-50E43D875C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48B87FA3-669F-48D2-A23A-50E43D875C61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{010A9D8F-5143-4741-82FC-56B96E42E375}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{010A9D8F-5143-4741-82FC-56B96E42E375}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{010A9D8F-5143-4741-82FC-56B96E42E375}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{010A9D8F-5143-4741-82FC-56B96E42E375}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

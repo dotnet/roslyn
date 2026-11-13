@@ -24,6 +24,7 @@ namespace BuildValidator
         /// This maps MVID to the <see cref="AssemblyInfo"/> we are using for that particular MVID.
         /// </summary>
         private readonly Dictionary<Guid, AssemblyInfo> _mvidMap = new();
+        private readonly HashSet<Guid> _readyToRunMvids = new();
 
         /// <summary>
         /// Map file names to all of the paths it exists at. This map is depopulated as we realize
@@ -40,7 +41,7 @@ namespace BuildValidator
         private readonly HashSet<DirectoryInfo> _indexDirectories = new();
         private readonly ILogger _logger;
 
-        private LocalReferenceResolver(Dictionary<string, List<string>> nameToLocationsMap, ILogger logger)
+        internal LocalReferenceResolver(Dictionary<string, List<string>> nameToLocationsMap, ILogger logger)
         {
             _nameToLocationsMap = nameToLocationsMap;
             _logger = logger;
@@ -153,6 +154,7 @@ namespace BuildValidator
 
             using var _ = _logger.BeginScope($"Populating {fileName}");
             var assemblyInfoList = new List<AssemblyInfo>();
+            var readyToRunInfoList = new List<AssemblyInfo>();
             foreach (var filePath in locations)
             {
                 if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
@@ -161,19 +163,38 @@ namespace BuildValidator
                     continue;
                 }
 
-                if (peInfo.IsReadyToRun)
-                {
-                    _logger.LogInformation($@"Skipping ReadyToRun image ""{filePath}""");
-                    continue;
-                }
-
                 var currentInfo = new AssemblyInfo(filePath, peInfo.Mvid);
                 assemblyInfoList.Add(currentInfo);
 
-                if (!_mvidMap.ContainsKey(peInfo.Mvid))
+                // ReadyToRun images can share an MVID with their IL input but have different PE
+                // headers, which are recorded in the PDB. Prefer IL, retaining ReadyToRun as a
+                // fallback for references that are only available in that form.
+                if (peInfo.IsReadyToRun)
                 {
-                    _logger.LogTrace($"Caching [{peInfo.Mvid}, {filePath}]");
-                    _mvidMap[peInfo.Mvid] = currentInfo;
+                    readyToRunInfoList.Add(currentInfo);
+                    continue;
+                }
+
+                TryCacheMvid(currentInfo, isReadyToRun: false);
+            }
+
+            foreach (var readyToRunInfo in readyToRunInfoList)
+            {
+                TryCacheMvid(readyToRunInfo, isReadyToRun: true);
+            }
+
+            void TryCacheMvid(AssemblyInfo assemblyInfo, bool isReadyToRun)
+            {
+                // A different filename can expose an IL copy after an R2R fallback was cached.
+                if (!_mvidMap.ContainsKey(assemblyInfo.Mvid) ||
+                    (!isReadyToRun && _readyToRunMvids.Remove(assemblyInfo.Mvid)))
+                {
+                    _logger.LogTrace($"Caching [{assemblyInfo.Mvid}, {assemblyInfo.FilePath}]");
+                    _mvidMap[assemblyInfo.Mvid] = assemblyInfo;
+                    if (isReadyToRun)
+                    {
+                        _readyToRunMvids.Add(assemblyInfo.Mvid);
+                    }
                 }
             }
 
