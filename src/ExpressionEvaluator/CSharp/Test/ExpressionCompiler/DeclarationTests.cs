@@ -280,7 +280,7 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/13159")]
         public void ExpressionLocals_ExpressionStatement_02()
         {
@@ -1747,7 +1747,8 @@ class C
             flags = resultProperties.Flags;
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_01()
         {
             var source =
@@ -1815,7 +1816,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_02()
         {
             var source =
@@ -1882,7 +1884,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_03()
         {
             var source =
@@ -1945,7 +1948,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_04()
         {
             var source =
@@ -2004,7 +2008,8 @@ class C
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_Assignment_05()
         {
             var source =
@@ -2037,44 +2042,43 @@ class C
                 context.CompileAssignment("x", "Test(x is int i)", out error, testData);
                 testData.GetMethodData("<>x.<>m0<T>").VerifyIL(
     @"{
-  // Code size       74 (0x4a)
+  // Code size       73 (0x49)
   .maxstack  4
   .locals init (object V_0, //y
                 bool V_1,
-                int? V_2,
-                int V_3,
-                object V_4,
-                System.Guid V_5,
-                int V_6)
+                object V_2,
+                System.Guid V_3,
+                int V_4)
   IL_0000:  ldtoken    ""int""
   IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_000a:  ldstr      ""i""
-  IL_000f:  ldloca.s   V_5
+  IL_000f:  ldloca.s   V_3
   IL_0011:  initobj    ""System.Guid""
-  IL_0017:  ldloc.s    V_5
-  IL_0019:  ldnull
-  IL_001a:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
-  IL_001f:  ldarga.s   V_0
-  IL_0021:  call       ""bool int?.HasValue.get""
-  IL_0026:  brfalse.s  IL_0041
-  IL_0028:  ldarga.s   V_0
-  IL_002a:  call       ""int int?.GetValueOrDefault()""
-  IL_002f:  stloc.s    V_6
-  IL_0031:  ldstr      ""i""
-  IL_0036:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
-  IL_003b:  ldloc.s    V_6
-  IL_003d:  stind.i4
-  IL_003e:  ldc.i4.1
-  IL_003f:  br.s       IL_0042
-  IL_0041:  ldc.i4.0
-  IL_0042:  call       ""int? C.Test(bool)""
-  IL_0047:  starg.s    V_0
-  IL_0049:  ret
+  IL_0017:  ldloc.3
+  IL_0018:  ldnull
+  IL_0019:  call       ""void Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.CreateVariable(System.Type, string, System.Guid, byte[])""
+  IL_001e:  ldarga.s   V_0
+  IL_0020:  call       ""bool int?.HasValue.get""
+  IL_0025:  brfalse.s  IL_0040
+  IL_0027:  ldarga.s   V_0
+  IL_0029:  call       ""int int?.GetValueOrDefault()""
+  IL_002e:  stloc.s    V_4
+  IL_0030:  ldstr      ""i""
+  IL_0035:  call       ""int Microsoft.VisualStudio.Debugger.Clr.IntrinsicMethods.GetVariableAddress<int>(string)""
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  stind.i4
+  IL_003d:  ldc.i4.1
+  IL_003e:  br.s       IL_0041
+  IL_0040:  ldc.i4.0
+  IL_0041:  call       ""int? C.Test(bool)""
+  IL_0046:  starg.s    V_0
+  IL_0048:  ret
 }");
             });
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25702")]
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/25702")]
         public void PatternLocals_LocalDeclarationStatement_01()
         {
             var source =
