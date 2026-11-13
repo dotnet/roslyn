@@ -62,8 +62,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InvertIf
             Return node.IsStatementContainerNode()
         End Function
 
-        Protected NotOverridable Overrides Function GetStatements(node As SyntaxNode) As SyntaxList(Of StatementSyntax)
+        Protected NotOverridable Overrides Function GetStatements(node As SyntaxNode) As IReadOnlyList(Of StatementSyntax)
             Return node.GetStatements()
+        End Function
+
+        ' VB has no top-level statements, so a statement's container is always its parent.
+        Protected NotOverridable Overrides Function GetStatementContainer(statement As StatementSyntax) As SyntaxNode
+            Return statement.Parent
         End Function
 
         Protected NotOverridable Overrides Function GetNextStatement(node As StatementSyntax) As StatementSyntax
