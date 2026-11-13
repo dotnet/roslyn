@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -25,15 +24,23 @@ using static SyntaxFactory;
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpRemoveUnusedValuesCodeFixProvider()
-    : AbstractRemoveUnusedValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax,
-        ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
+    : AbstractRemoveUnusedValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, ExpressionStatementSyntax,
+        LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
         ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
 {
     protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
 
-    protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
-        => Block(statements);
+    protected override StatementSyntax WrapWithBlockIfNecessary(
+        ExpressionStatementSyntax expressionStatement, LocalDeclarationStatementSyntax declarationStatement)
+    {
+        if (!expressionStatement.Parent.IsEmbeddedStatementOwner())
+            return declarationStatement;
+
+        return Block(declarationStatement.WithoutTrivia())
+            .WithTriviaFrom(declarationStatement)
+            .WithAdditionalAnnotations(Formatter.Annotation);
+    }
 
     protected override SyntaxToken GetForEachStatementIdentifier(ForEachStatementSyntax node)
         => node.Identifier;
