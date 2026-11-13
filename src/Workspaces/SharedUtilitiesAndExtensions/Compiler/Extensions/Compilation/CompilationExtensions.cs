@@ -297,6 +297,9 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? SpanOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(Span<>).FullName!);
 
+    public static INamedTypeSymbol? InterpolatedStringHandlerArgumentAttributeType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerArgumentAttribute).FullName!);
+
     public static INamedTypeSymbol? InterpolatedStringHandlerAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerAttribute).FullName!);
 

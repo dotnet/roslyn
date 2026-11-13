@@ -109,10 +109,11 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
         private void OnSymbolEnd(SymbolAnalysisContext context)
         {
             var interpolatedStringHandlerAttribute = context.Compilation.InterpolatedStringHandlerAttributeType();
+            var interpolatedStringHandlerArgumentAttribute = context.Compilation.InterpolatedStringHandlerArgumentAttributeType();
 
             foreach (var (parameter, hasReference) in _unusedParameters)
             {
-                ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, interpolatedStringHandlerAttribute, context.CancellationToken);
+                ReportUnusedParameterDiagnostic(parameter, hasReference, context.ReportDiagnostic, context.Options, interpolatedStringHandlerAttribute, interpolatedStringHandlerArgumentAttribute, context.CancellationToken);
             }
         }
 
@@ -122,9 +123,10 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             Action<Diagnostic> reportDiagnostic,
             AnalyzerOptions analyzerOptions,
             INamedTypeSymbol? interpolatedStringHandlerAttributeType,
+            INamedTypeSymbol? interpolatedStringHandlerArgumentAttributeType,
             CancellationToken cancellationToken)
         {
-            if (!IsUnusedParameterCandidate(parameter, interpolatedStringHandlerAttributeType, cancellationToken))
+            if (!IsUnusedParameterCandidate(parameter, interpolatedStringHandlerAttributeType, interpolatedStringHandlerArgumentAttributeType, cancellationToken))
             {
                 return;
             }
@@ -193,7 +195,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             yield return compilation.SystemComponentModelCompositionImportingConstructorAttribute();
         }
 
-        private bool IsUnusedParameterCandidate(IParameterSymbol parameter, INamedTypeSymbol? interpolatedStringHandlerAttributeType, CancellationToken cancellationToken)
+        private bool IsUnusedParameterCandidate(IParameterSymbol parameter, INamedTypeSymbol? interpolatedStringHandlerAttributeType, INamedTypeSymbol? interpolatedStringHandlerArgumentAttributeType, CancellationToken cancellationToken)
         {
             // Ignore certain special parameters/methods.
             // Note that "method.ExplicitOrImplicitInterfaceImplementations" check below is not a complete check,
@@ -284,7 +286,74 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 }
             }
 
+            if (IsInterpolatedStringHandlerArgument(parameter, method, interpolatedStringHandlerArgumentAttributeType))
+            {
+                return false;
+            }
+
             return true;
+
+            static bool IsInterpolatedStringHandlerArgument(
+                IParameterSymbol parameter,
+                IMethodSymbol method,
+                INamedTypeSymbol? interpolatedStringHandlerArgumentAttributeType)
+            {
+                if (interpolatedStringHandlerArgumentAttributeType is null)
+                    return false;
+
+                foreach (var otherParam in method.Parameters)
+                {
+                    if (Equals(otherParam, parameter))
+                        continue;
+
+                    foreach (var attribute in otherParam.GetAttributes())
+                    {
+                        if (Equals(attribute.AttributeClass, interpolatedStringHandlerArgumentAttributeType) &&
+                            AttributeReferencesParameter(attribute, parameter.Name))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+
+                static bool AttributeReferencesParameter(AttributeData attribute, string parameterName)
+                {
+                    foreach (var constructorArgument in attribute.ConstructorArguments)
+                    {
+                        if (Matches(constructorArgument, parameterName))
+                            return true;
+                    }
+
+                    foreach (var namedArgument in attribute.NamedArguments)
+                    {
+                        if (Matches(namedArgument.Value, parameterName))
+                            return true;
+                    }
+
+                    return false;
+                }
+
+                static bool Matches(TypedConstant constant, string parameterName)
+                {
+                    if (constant.Kind == TypedConstantKind.Array)
+                    {
+                        foreach (var element in constant.Values)
+                        {
+                            if (Matches(element, parameterName))
+                                return true;
+                        }
+                    }
+                    else if (constant.Value is string name &&
+                             string.Equals(name, parameterName, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+            }
 
             static bool IsInterpolatedStringHandlerMandatoryConstructorParameter(
                 IParameterSymbol parameter,
