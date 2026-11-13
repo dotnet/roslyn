@@ -76,7 +76,7 @@ internal static partial class SymbolUsageAnalysis
                 PooledDictionary<BasicBlock, BasicBlockAnalysisData> analysisDataByBasicBlockMap,
                 PooledDictionary<(ISymbol symbol, IOperation operation), bool> symbolsWriteMap,
                 PooledHashSet<ISymbol> symbolsRead,
-                PooledHashSet<IMethodSymbol> lambdaOrLocalFunctionsBeingAnalyzed,
+                PooledDictionary<IMethodSymbol, bool> lambdaOrLocalFunctionsBeingAnalyzed,
                 Func<IMethodSymbol, ControlFlowGraph, AnalysisData, CancellationToken, BasicBlockAnalysisData> analyzeLocalFunctionOrLambdaInvocation,
                 PooledDictionary<IOperation, PooledHashSet<IOperation>> reachingDelegateCreationTargets,
                 PooledDictionary<IMethodSymbol, ControlFlowGraph> localFunctionTargetsToAccessingCfgMap,
@@ -109,7 +109,7 @@ internal static partial class SymbolUsageAnalysis
 
             protected override PooledDictionary<(ISymbol symbol, IOperation operation), bool> SymbolsWriteBuilder { get; }
 
-            protected override PooledHashSet<IMethodSymbol> LambdaOrLocalFunctionsBeingAnalyzed { get; }
+            protected override PooledDictionary<IMethodSymbol, bool> LambdaOrLocalFunctionsBeingAnalyzed { get; }
 
             public ImmutableHashSet<ILocalSymbol> CapturedLocals { get; }
 
@@ -130,7 +130,7 @@ internal static partial class SymbolUsageAnalysis
                     analysisDataByBasicBlockMap: CreateAnalysisDataByBasicBlockMap(cfg),
                     symbolsWriteMap: CreateSymbolsWriteMap(parameters),
                     symbolsRead: PooledHashSet<ISymbol>.GetInstance(),
-                    lambdaOrLocalFunctionsBeingAnalyzed: PooledHashSet<IMethodSymbol>.GetInstance(),
+                    lambdaOrLocalFunctionsBeingAnalyzed: PooledDictionary<IMethodSymbol, bool>.GetInstance(),
                     analyzeLocalFunctionOrLambdaInvocation,
                     reachingDelegateCreationTargets: PooledDictionary<IOperation, PooledHashSet<IOperation>>.GetInstance(),
                     localFunctionTargetsToAccessingCfgMap: PooledDictionary<IMethodSymbol, ControlFlowGraph>.GetInstance(),
