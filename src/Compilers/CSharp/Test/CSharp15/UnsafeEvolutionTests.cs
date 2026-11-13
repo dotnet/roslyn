@@ -4466,7 +4466,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86293")]
     public void StackAlloc_SafeContext()
     {
         var source = """
@@ -4518,23 +4518,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(expectedDiagnosticsWithoutOptIn);
 
-        var expectedDiagnosticsWithOptIn = new[]
-        {
-            // (8,26): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //     System.Span<int> a = stackalloc int[5];
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 26),
-            // (11,26): error CS0847: An array initializer of length '3' is expected
-            //     System.Span<int> e = stackalloc int[3] { 1, 2 };
-            Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26),
-        };
-
         CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(expectedDiagnosticsWithOptIn);
+            .VerifyDiagnostics(expectedDiagnosticsWithoutOptIn);
 
         CreateCompilationWithSpan(source,
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(expectedDiagnosticsWithOptIn);
+            .VerifyDiagnostics(expectedDiagnosticsWithoutOptIn);
 
         CreateCompilationWithSpan(source,
             parseOptions: TestOptions.Regular15,
@@ -4548,9 +4538,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (1,10): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = stackalloc int[3];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc int[3]").WithArguments("updated memory safety rules").WithLocation(1, 10),
-            // (8,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            //     System.Span<int> a = stackalloc int[5];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "stackalloc int[5]").WithArguments("updated memory safety rules").WithLocation(8, 26),
             // (11,26): error CS0847: An array initializer of length '3' is expected
             //     System.Span<int> e = stackalloc int[3] { 1, 2 };
             Diagnostic(ErrorCode.ERR_ArrayInitializerIncorrectLength, "stackalloc int[3] { 1, 2 }").WithArguments("3").WithLocation(11, 26));
@@ -4587,22 +4574,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics();
 
         CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (7,31): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //         System.Span<int> a = (stackalloc int[5]);
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(7, 31),
-            // (8,34): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //         System.Span<int> c = b ? stackalloc int[5] : default;
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 34),
-            // (9,48): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //         System.Span<int> d = (System.Span<int>)stackalloc int[5];
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(9, 48),
-            // (10,17): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //         Consume(stackalloc int[5]);
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(10, 17),
-            // (11,19): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //         ConsumeRo(stackalloc int[5]);
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(11, 19));
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -4682,13 +4654,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilationWithSpan(sourceWithAttribute, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (6,30): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //         System.Span<int> a = stackalloc int[5];
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(6, 30),
-            // (8,17): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //         Consume(stackalloc int[5]);
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(8, 17));
+            .VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -4826,10 +4792,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
-            .VerifyDiagnostics(
-            // (3,26): error CS9361: stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context
-            //     System.Span<int> a = stackalloc int[5];
-            Diagnostic(ErrorCode.ERR_UnsafeUninitializedStackAlloc, "stackalloc int[5]").WithLocation(3, 26));
+            .VerifyEmitDiagnostics();
 
         CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseExe)
             .VerifyEmitDiagnostics();
