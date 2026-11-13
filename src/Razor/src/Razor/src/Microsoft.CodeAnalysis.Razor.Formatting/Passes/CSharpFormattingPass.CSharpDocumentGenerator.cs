@@ -684,10 +684,17 @@ internal partial class CSharpFormattingPass
                     // When an element causes indentation, we emit an open brace to tell the C# formatter to indent.
                     lineInfo = EmitOpenBraceLine();
                     RecordEndTagNotStartingALine(node);
+
+                    if (ContainsMultilineAttributeExpressionStartingOnCurrentLine(node))
+                    {
+                        // The expression needs the assignment too, after the brace, so emit it as a line the mapping skips.
+                        _builder.AppendLine("_ =");
+                        lineInfo = lineInfo with { SkipNextLines = lineInfo.SkipNextLines + 1 };
+                    }
                 }
-                else if (ContainsMultilineCollectionExpressionStartingOnCurrentLine(node))
+                else if (ContainsMultilineAttributeExpressionStartingOnCurrentLine(node))
                 {
-                    lineInfo = EmitCollectionExpressionAssignmentLine();
+                    lineInfo = EmitExpressionAssignmentLine();
                 }
                 else
                 {
@@ -740,13 +747,21 @@ internal partial class CSharpFormattingPass
                 return indentationLevel;
             }
 
-            private bool ContainsMultilineCollectionExpressionStartingOnCurrentLine(RazorSyntaxNode node)
+            /// <summary>
+            /// Whether an attribute on the current line has a multiline C# expression starting on it that needs an expression context:
+            /// a collection expression, the whole value of a component or directive attribute (eg `@onclick="flag` / `? A` / `: B"`),
+            /// or an explicit expression whose content starts on this line (eg `@onclick="@(flag` ...).
+            /// </summary>
+            private bool ContainsMultilineAttributeExpressionStartingOnCurrentLine(RazorSyntaxNode node)
                 => node.DescendantNodes()
                     .OfType<CSharpExpressionLiteralSyntax>()
                     .Any(expression =>
                         GetLineNumber(expression) == _currentLine.LineNumber &&
                         _sourceText.GetLinePositionSpan(expression.Span).SpansMultipleLines() &&
-                        _sourceText[expression.SpanStart] == '[');
+                        (_sourceText[expression.SpanStart] == '[' ||
+                            expression.Parent is MarkupTagHelperAttributeValueSyntax ||
+                            (expression.Parent?.Parent is CSharpExplicitExpressionBodySyntax or CSharpImplicitExpressionBodySyntax &&
+                                !char.IsWhiteSpace(_sourceText[expression.SpanStart]))));
 
             public override LineInfo VisitMarkupEndTag(MarkupEndTagSyntax node)
             {
@@ -968,9 +983,9 @@ internal partial class CSharpFormattingPass
                     var attributeNode = node.Parent;
                     Debug.Assert(attributeNode?.IsAnyAttributeSyntax() == true);
                     if (attributeNode is not null &&
-                        ContainsMultilineCollectionExpressionStartingOnCurrentLine(attributeNode))
+                        ContainsMultilineAttributeExpressionStartingOnCurrentLine(attributeNode))
                     {
-                        return EmitCollectionExpressionAssignmentLine(htmlIndentLevel, additionalIndentation);
+                        return EmitExpressionAssignmentLine(htmlIndentLevel, additionalIndentation);
                     }
 
                     // Self-closing tags can be the last line of a multiline template, so emit the synthetic close here.
@@ -1020,10 +1035,11 @@ internal partial class CSharpFormattingPass
                     : endTagLine.LineNumber;
             }
 
-            private LineInfo EmitCollectionExpressionAssignmentLine(int htmlIndentLevel = 0, int? additionalIndentation = null)
+            private LineInfo EmitExpressionAssignmentLine(int htmlIndentLevel = 0, int? additionalIndentation = null)
             {
-                // Without an expression context, C# parses the leading '[' as an attribute list and loses the element's
-                // structural indentation. This line is synthetic, so only its indentation is mapped back to Razor.
+                // Without an expression context, C# parses a leading '[' as an attribute list and loses the element's
+                // structural indentation, and parses `flag` / `? A` / `: B` as a declaration of `A`, of type `flag?`, so
+                // the `: B` line doesn't move. This line is synthetic, so only its indentation is mapped back to Razor.
                 _builder.AppendLine("_ =");
                 return CreateLineInfo(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
             }

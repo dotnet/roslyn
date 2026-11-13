@@ -15541,6 +15541,395 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="flag
+                                  ? A
+                                  : B"
+                   class="x">y</button>
+                </div>
+                @code {
+                    bool flag;
+                    void A() { }
+                    void B() { }
+                }
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="flag
+                                  ? A
+                                  : B"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                @code {
+                    bool flag;
+                    void A() { }
+                    void B() { }
+                }
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="flag
+                                      ? A
+                                      : B"
+                            class="x">y</button>
+                </div>
+                @code {
+                    bool flag;
+                    void A() { }
+                    void B() { }
+                }
+                """,
+            expected: """
+                <div>
+                    <button @onclick="flag
+                                      ? A
+                                      : B"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                @code {
+                    bool flag;
+                    void A() { }
+                    void B() { }
+                }
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInDirectiveAttribute_MovesWithTag_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="flag
+                               ? A
+                               : B"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="flag
+                               ? A
+                               : B"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="flag
+                                   ? A
+                                   : B"
+                        class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="flag
+                                   ? A
+                                   : B"
+                        class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInDirectiveAttribute_MovesWithTag_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="flag
+                               ? A
+                               : B"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="flag
+                               ? A
+                               : B"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="flag
+                                   ? A
+                                   : B"
+                            class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="flag
+                                   ? A
+                                   : B"
+                            class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInDirectiveAttributeOnItsOwnLine_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button class="x"
+                        @onclick="flag
+                                  ? A
+                                  : B">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button class="x"
+                            @onclick="flag
+                                  ? A
+                                  : B">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button class="x"
+                            @onclick="flag
+                                      ? A
+                                      : B">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button class="x"
+                            @onclick="flag
+                                      ? A
+                                      : B">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInDirectiveAttributeOfElementWithContent_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="flag
+                               ? A
+                               : B"
+                   class="x">
+                    <span>y</span>
+                </div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="flag
+                               ? A
+                               : B"
+                         class="x">
+                        <span>y</span>
+                    </div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="flag
+                                   ? A
+                                   : B"
+                         class="x">
+                        <span>y</span>
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInComponentAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton OnClick="flag
+                                         ? A
+                                         : B"
+                   ImgSize=24 />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton OnClick="flag
+                                         ? A
+                                         : B"
+                                    ImgSize=24 />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton OnClick="flag
+                                             ? A
+                                             : B"
+                                    ImgSize=24 />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInBoundAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <cache enabled="flag
+                                ? on
+                                : off"
+                   priority="CacheItemPriority.High">y</cache>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <cache enabled="flag
+                                ? on
+                                : off"
+                           priority="CacheItemPriority.High">y</cache>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <cache enabled="flag
+                                    ? on
+                                    : off"
+                           priority="CacheItemPriority.High">y</cache>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInExplicitExpressionInDirectiveAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div @onclick="@(flag
+                                 ? A
+                                 : B)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div @onclick="@(flag
+                                 ? A
+                                 : B)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div @onclick="@(flag
+                                     ? A
+                                     : B)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div @onclick="@(flag
+                                     ? A
+                                     : B)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86402")]
+    public async Task MultilineTernaryInExplicitExpressionInUnboundAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <div title="@(flag
+                              ? a
+                              : b)"
+                   class="x">y</div>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <div title="@(flag
+                              ? a
+                              : b)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <div title="@(flag
+                                  ? a
+                                  : b)"
+                         class="x">y</div>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <div title="@(flag
+                                  ? a
+                                  : b)"
+                         class="x">
+                        y
+                    </div>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/13064")]
     public async Task RenderFragment_Multiline_ComponentAttributesWithExplicitExpression_IndentByOne()
     {
