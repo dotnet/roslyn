@@ -270,7 +270,6 @@ public abstract partial class AbstractLanguageServerProtocolTests
             FilterText = filterText,
             Label = label,
             SortText = sortText,
-            InsertTextFormat = LSP.InsertTextFormat.Plaintext,
             Kind = kind,
             Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
             Preselect = preselect,
