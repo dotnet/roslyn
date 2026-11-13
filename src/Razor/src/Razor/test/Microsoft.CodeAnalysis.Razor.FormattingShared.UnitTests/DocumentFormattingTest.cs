@@ -482,26 +482,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </PageTitle>
                 </PageTitle>
                 """",
-            dotNetFormatExpected: """"
-                <PageTitle>
-                    <PageTitle>
-                        @("""
-                          <FluentButton IconStart="Icons.Create" @onclick="(() => _createDialogBs5?.Show())">Nieuw</FluentButton>
-                
-                          <FCBS5Modal @ref="_createDialogBs5" OnClose="() => _createDialogBs5?.Hide()">
-                          <Title>Aanmaak scherm</Title>
-                          <Body>
-                                <label>Vul hier een tekst in</label>
-                                <input @bind=_createItem />
-                          </Body>
-                          <Footer>
-                                <FluentButton IconStart="Icons.Save" @onclick="SaveItem">Opslaan</FluentButton>
-                                <FluentButton IconStart="Icons.Cancel" @onclick="() => _createDialogBs5?.Hide()">Annuleren</FluentButton>
-                          </Footer>
-                          </FCBS5Modal>
-                          """)</PageTitle>
-                </PageTitle>
-                """",
             expected: """"
                 <PageTitle>
                     <PageTitle>
@@ -4346,15 +4326,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </body>
                 </html>
                 """,
-            dotNetFormatExpected: """
-                <html>
-                <head>
-                    <title>Hello</title></head>
-                <body><div>
-                </div>
-                </body>
-                </html>
-                """,
             expected: """
                 <html>
                 <head>
@@ -4367,6 +4338,589 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </html>
                 """);
     }
+
+    [Fact]
+    public Task FormatsNestedTagsOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section><div>
+                Text <b>here</b></div></section>
+                <p>next</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        <div>
+                            Text <b>here</b>
+                        </div>
+                    </section>
+                    <p>next</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <div>
+                            Text <b>here</b>
+                        </div>
+                    </section>
+                    <p>next</p>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsAfterCSharpExpression()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <span>
+                @(1+2)</span>
+                <p>next</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        @(1+2)
+                    </span>
+                    <p>next</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        @(1 + 2)
+                    </span>
+                    <p>next</p>
+                </div>
+                """);
+
+    [Fact]
+    public Task KeepsSingleLineInlineElementsTogether()
+        => RunFormattingTestAsync(
+            input: "<div><span>Hello <b>there</b></span></div>",
+            htmlFormatted: "<div><span>Hello <b>there</b></span></div>",
+            expected: "<div><span>Hello <b>there</b></span></div>");
+
+    [Fact]
+    public Task KeepsInlineContentWithMultilineAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <a href="/"
+                   class="a">link</a>
+                """,
+            htmlFormatted: """
+                <a href="/"
+                   class="a">link</a>
+                """,
+            expected: """
+                <a href="/"
+                   class="a">link</a>
+                """);
+
+    [Fact]
+    public Task KeepsUnknownElementContentWithMultilineAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <custom-element class="a"
+                                id="b">text</custom-element>
+                """,
+            htmlFormatted: """
+                <custom-element class="a"
+                                id="b">text</custom-element>
+                """,
+            expected: """
+                <custom-element class="a"
+                                id="b">text</custom-element>
+                """);
+
+    [Fact]
+    public Task SplitsSingleLineContentWithMultilineAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <div
+                    class="a">text</div>
+                """,
+            htmlFormatted: """
+                <div class="a">
+                    text
+                </div>
+                """,
+            expected: """
+                <div class="a">
+                    text
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div
+                    class="a">
+                    text
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsStartingOnDifferentLinesAndEndingOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                <p>
+                text</p></section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        <p>
+                            text
+                        </p>
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <p>
+                            text
+                        </p>
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsStartingOnSameLineAndEndingOnNextLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section>text
+                more</section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        text
+                        more
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        text
+                        more
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsStartingAndEndingOnSameLinesWithContentOnOwnLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section><p>
+                text
+                </p></section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        <p>
+                            text
+                        </p>
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <p>
+                            text
+                        </p>
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsCloseTagFollowedBySiblingOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <section>
+                text</section><p>next</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        text
+                    </section><p>next</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        text
+                    </section><p>next</p>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsMultilineSiblingsSharingLines()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section>
+                one</section><section>
+                two</section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        one
+                    </section><section>
+                        two
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        one
+                    </section><section>
+                        two
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsMultilineSiblingAfterInlineSibling()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <section>
+                        one
+                    </section><span>inline</span><section>
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        one
+                    </section><span>inline</span><section>
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        one
+                    </section><span>inline</span><section>
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task FormatsMultilineSiblingWithMultilineAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <section>
+                        one
+                    </section><section
+                        class="next">
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        one
+                    </section><section
+                        class="next">
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        one
+                    </section><section
+                        class="next">
+                        two
+                    </section>
+                    <p>after</p>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+
+    [Fact]
+    public Task FormatsListItemsWithSharedLines()
+        => RunFormattingTestAsync(
+            input: """
+                <ul><li>one</li>
+                <li>two</li></ul>
+                """,
+            htmlFormatted: """
+                <ul>
+                    <li>one</li>
+                    <li>two</li>
+                </ul>
+                """,
+            expected: """
+                <ul>
+                    <li>one</li>
+                    <li>two</li>
+                </ul>
+                """);
+
+    [Fact]
+    public Task FormatsContentOnStartTagLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>text
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    text
+                </div>
+                """,
+            expected: """
+                <div>
+                    text
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsWhitespaceOnlyMultilineContent()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section>
+
+                </section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                    </section>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <section>
+
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsInlineElementSpanningLines()
+        => RunFormattingTestAsync(
+            input: """
+                <div><span>one
+                two</span></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>
+                        one
+                        two
+                    </span>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        one
+                        two
+                    </span>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsVoidElementsInMultilineContent()
+        => RunFormattingTestAsync(
+            input: """
+                <div><br />
+                <input type="text"><img src="a.png" /></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <br />
+                    <input type="text"><img src="a.png" />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <br />
+                    <input type="text"><img src="a.png" />
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsUnclosedTagInMultilineContent()
+        => RunFormattingTestAsync(
+            input: """
+                <div><p>
+                text</div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <p>
+                        text
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p>
+                        text
+                    </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsOnSameLineInsideCodeBlock()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                <div><section>
+                text</section></div>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <section>
+                        text
+                    </section>
+                </div>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <section>
+                            text
+                        </section>
+                    </div>
+                }
+                """);
+
+    [Fact]
+    public Task FormatsTagsOnSameLineAroundCSharpBlock()
+        => RunFormattingTestAsync(
+            input: """
+                <div><section>@if (true)
+                {
+                <p>text</p>
+                }</section></div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <section>
+                        @if (true)
+                        {
+                        <p>text</p>
+                        }
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        @if (true)
+                        {
+                            <p>text</p>
+                        }
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task FormatsTagsWithMultilineAttributesEndingOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="a"
+                    id="b"><section
+                    class="c">text</section></div>
+                """,
+            htmlFormatted: """
+                <div class="a"
+                     id="b">
+                    <section class="c">
+                        text
+                    </section>
+                </div>
+                """,
+            expected: """
+                <div class="a"
+                     id="b">
+                    <section class="c">
+                        text
+                    </section>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div class="a"
+                     id="b">
+                    <section
+                        class="c">
+                        text
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    public Task PreservesTagsInsidePreformattedContent()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                <pre>
+                <div><div>
+                  text
+                </div></div>
+                </pre>
+                <p>next</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                <pre>
+                <div><div>
+                  text
+                </div></div>
+                </pre>
+                <p>next</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <pre>
+                <div><div>
+                  text
+                </div></div>
+                </pre>
+                    <p>next</p>
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
 
     [Fact]
     public async Task FormatsRazorHtmlBlock()
@@ -4427,14 +4981,18 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @page "/error"
                 
                 <h1 class=
-                "text-danger">Error.</h1>
+                    "text-danger">
+                    Error.
+                </h1>
                 <h2 class="text-danger">An error occurred while processing your request.</h2>
                 
                 <h3>Development Mode</h3>
                 <p>
-                    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.</p>
+                    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+                </p>
                 <p>
-                    <strong>The Development environment shouldn't be enabled for deployed applications.
+                    <strong>
+                        The Development environment shouldn't be enabled for deployed applications.
                     </strong>
                     <div>
                         <div>
@@ -4737,8 +5295,10 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @page "/test"
                 
                 <div
-                attr='val'
-                class=@className>Some Text</div>
+                    attr='val'
+                    class=@className>
+                    Some Text
+                </div>
                 
                 @{
                     @: Hi!
@@ -14568,13 +15128,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </div>
                 </div>
                 """,
-            dotNetFormatExpected: """
-                <div>
-                    <div @onclick="() => Show(1,
-                                              2)"
-                         class="x">y</div>
-                </div>
-                """,
             expected: """
                 <div>
                     <div @onclick="() => Show(1,
@@ -14606,13 +15159,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                          class="x">
                         y
                     </div>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <div @onclick="() => Show(1,
-                                              2)"
-                        class="x">y</div>
                 </div>
                 """,
             expected: """
@@ -14649,13 +15195,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </div>
                 </div>
                 """,
-            dotNetFormatExpected: """
-                <div>
-                    <div @onclick="() => Show(1,
-                                              2)"
-                            class="x">y</div>
-                </div>
-                """,
             expected: """
                 <div>
                     <div @onclick="() => Show(1,
@@ -14688,13 +15227,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             class="x">
                         y
                     </button>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="() => Show(1, @* c *@
-                                      2)"
-                            class="x">y</button>
                 </div>
                 """,
             expected: """
@@ -14732,14 +15264,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="() => Show(1,
-                                      @* c *@
-                                      2)"
-                            class="x">y</button>
-                </div>
-                """,
             expected: """
                 <div>
                     <button @onclick="() => Show(1,
@@ -14772,13 +15296,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             class="x">
                         y
                     </button>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="() => Show(1,
-                                      2) @* c *@"
-                            class="x">y</button>
                 </div>
                 """,
             expected: """
@@ -14814,13 +15331,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            dotNetFormatExpected: """
-                <div>
-                    <button name="@(
-                            x)"
-                            class="x">y</button>
-                </div>
-                """,
             expected: """
                 <div>
                     <button name="@(
@@ -14852,13 +15362,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             class="x">
                         y
                     </button>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="@(
-                            x)"
-                            class="x">y</button>
                 </div>
                 """,
             expected: """
@@ -15021,15 +15524,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             class="x">
                         y
                     </button>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="() =>
-                                      {
-                                          Show(1);
-                                      }"
-                            class="x">y</button>
                 </div>
                 """,
             expected: """
@@ -15813,6 +16307,57 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """,
             expected: code);
     }
+
+    [Fact]
+    public Task TextAreaWithSplitStartTag()
+        => RunFormattingTestAsync(
+            input: """
+                <textarea
+                >keep this
+                </textarea>
+                """,
+            htmlFormatted: """
+                <textarea>keep this
+                </textarea>
+                """,
+            expected: """
+                <textarea>keep this
+                </textarea>
+                """);
+
+    [Fact]
+    public Task TextAreaWithSplitEndTag()
+        => RunFormattingTestAsync(
+            input: """
+                <textarea>
+                    keep this
+                </textarea
+                >
+                """,
+            htmlFormatted: """
+                <textarea>
+                    keep this
+                </textarea>
+                """,
+            expected: """
+                <textarea>
+                    keep this
+                </textarea>
+                """);
+
+    [Fact]
+    public Task StandaloneStartTagSplitAcrossLines()
+        => RunFormattingTestAsync(
+            input: """
+                <div
+                >
+                """,
+            htmlFormatted: """
+                <div>
+                """,
+            expected: """
+                <div>
+                """);
 
     [Fact]
     internal Task TextArea_WithAttributes()
@@ -17649,13 +18194,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    @* note *@ </div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -17683,13 +18221,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     text
                 </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    text</div>
                 <section>
                     <p>x</p>
                 </section>
@@ -17723,13 +18254,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <span>a</span></div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -17760,13 +18284,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    @DateTime.Now</div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -17794,13 +18311,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <div>
                     <!-- c -->
                 </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <!-- c --></div>
                 <section>
                     <p>x</p>
                 </section>
@@ -17839,14 +18349,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <span>
-                        @* note *@ </span></div>
-                <section>
-                    <p>x</p>
-                </section>
                 """);
     }
 
@@ -17879,14 +18381,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         text
                     </span>
                 </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <span>
-                        text</span></div>
                 <section>
                     <p>x</p>
                 </section>
@@ -17928,16 +18422,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <p>x</p>
                     @* note *@
                 </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <section>
-                        text</section>
-                    <p>x</p>
-                    @* note *@ </div>
                 <section>
                     <p>x</p>
                 </section>
@@ -17983,17 +18467,283 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task EndTagSplitAcrossLinesInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                    </div
+                    >
+                    <p>b</p>
+                }
+                <section>c</section>
                 """,
-            dotNetFormatExpected: """
+            htmlFormatted: """
+                @if (true)
+                {
                 <div>
-                    <span>
+                    <span>a</span>
+                </div>
+                <p>b</p>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                    </div>
+                    <p>b</p>
+                }
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task EndTagSplitAcrossLinesInIf_Legacy()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                    </div
+                    >
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <span>a</span>
+                </div>
+                <p>b</p>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                    </div>
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task NestedEndTagsSplitAcrossLinesInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        <div>
+                            <span>a</span>
+                        </div
+                        >
+                    </div
+                    >
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <div>
+                        <span>a</span>
+                    </div>
+                </div>
+                <p>b</p>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <div>
+                            <span>a</span>
+                        </div>
+                    </div>
+                    <p>b</p>
+                }
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task EndTagSplitAcrossLinesInForeach()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                    <ul>
+                        <li>@item</li>
+                    </ul
+                    >
+                    <p>b</p>
+                }
+                <section>c</section>
+                """,
+            htmlFormatted: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                <ul>
+                    <li>@item</li>
+                </ul>
+                <p>b</p>
+                }
+                <section>c</section>
+                """,
+            expected: """
+                @foreach (var item in new[] { 1, 2 })
+                {
+                    <ul>
+                        <li>@item</li>
+                    </ul>
+                    <p>b</p>
+                }
+                <section>c</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task EndTagSplitAcrossLinesClosesMultilineTemplate()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @code {
+                    private void M()
+                    {
+                        Render(@<div>
+                            <span>a</span>
+                        </div
+                        >);
+                        var x = 1;
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                    private void M()
+                    {
+                        Render(@<div>
+                    <span>a</span>
+                </div>);
+                        var x = 1;
+                    }
+                }
+                """,
+            expected: """
+                @code {
+                    private void M()
+                    {
+                        Render(@<div>
+                            <span>a</span>
+                        </div>);
+                        var x = 1;
+                    }
+                }
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86396")]
+    public Task SingleLineElementEndTagSplitAcrossLinesInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span
+                        >
+                        <p>b</p>
+                    </div>
+                    <p>c</p>
+                }
+                <section>d</section>
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    <span>a</span>
+                    <p>b</p>
+                </div>
+                <p>c</p>
+                }
+                <section>d</section>
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        <span>a</span>
+                        <p>b</p>
+                    </div>
+                    <p>c</p>
+                }
+                <section>d</section>
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagSplitAcrossLinesOnItsOwnLineInIf()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <div>
                         text
-                    </span>
+                    </div
+                    >
                     <p>x</p>
-                    @* note *@ </div>
-                <section>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <div>
+                    text
+                </div>
+                <p>x</p>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <div>
+                        text
+                    </div>
                     <p>x</p>
-                </section>
+                }
                 """);
     }
 
@@ -18037,20 +18787,33 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 <section>
                     <p>x</p>
                 </section>
-                """,
-            dotNetFormatExpected: """
-                @if (true)
-                {
-                    <div>
-                        text </div
-                    >
+                """);
+    }
+
+    [Fact]
+    public Task StandaloneSplitEndTagDoesNotAffectFollowingIndentation()
+        => RunFormattingTestAsync(
+            input: """
+                </div
+                >
+                <section>
                     <p>x</p>
-                }
+                </section>
+                """,
+            htmlFormatted: """
+                </div
+                >
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                </div
+                >
                 <section>
                     <p>x</p>
                 </section>
                 """);
-    }
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
@@ -18084,17 +18847,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <div>
                         text
                     </div>
-                    <p>x</p>
-                </div>
-                <section>
-                    <p>x</p>
-                </section>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <div>
-                        text </div
-                    >
                     <p>x</p>
                 </div>
                 <section>
