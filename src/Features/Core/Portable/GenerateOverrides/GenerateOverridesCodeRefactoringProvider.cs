@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -52,9 +53,16 @@ internal sealed partial class GenerateOverridesCodeRefactoringProvider(IPickMemb
         if (overridableMembers.Length == 0)
             return;
 
-        context.RegisterRefactoring(
-            new GenerateOverridesWithDialogCodeAction(
-                this, document, textSpan, containingType, overridableMembers),
-            typeDeclaration.Span);
+        var dialogAction = new GenerateOverridesWithDialogCodeAction(
+            this, document, textSpan, containingType, overridableMembers);
+
+        var pickMembersService = _pickMembersService_forTestingPurposes ?? document.Project.Solution.Services.GetService<IPickMembersService>();
+        CodeAction codeAction = pickMembersService is not null
+            ? dialogAction
+            : new PickAllMembersCodeAction(
+                dialogAction, FeaturesResources.Generate_overrides_for_all_members,
+                document.Project.Solution, overridableMembers, options: []);
+
+        context.RegisterRefactoring(codeAction, typeDeclaration.Span);
     }
 }

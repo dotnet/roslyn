@@ -895,9 +895,29 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Equals(...) oluştur</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals_and_GetHashCode_from_all_members">
+        <source>Generate Equals and GetHashCode from all members</source>
+        <target state="new">Generate Equals and GetHashCode from all members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Equals_from_all_members">
+        <source>Generate Equals from all members</source>
+        <target state="new">Generate Equals from all members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_GetHashCode_from_all_members">
+        <source>Generate GetHashCode from all members</source>
+        <target state="new">Generate GetHashCode from all members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Karşılaştırma işleçlerini oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_from_all_members">
+        <source>Generate constructor from all members</source>
+        <target state="new">Generate constructor from all members</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_from_members">
@@ -908,6 +928,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">'{0}' için oluştur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_overrides_for_all_members">
+        <source>Generate overrides for all members</source>
+        <target state="new">Generate overrides for all members</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
