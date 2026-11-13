@@ -232,20 +232,23 @@ internal partial class CSharpIndentationService
                 embeddedStatementOwner = embeddedStatementOwner.Parent;
             }
 
+            // Match the indentation level of the outermost embedded statement owner.
             return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(embeddedStatementOwner.GetFirstToken(includeZeroWidth: true).SpanStart));
         }
+
+        var allowExtraIndentationLevel = true;
 
         switch (token.Kind())
         {
             case SyntaxKind.SemicolonToken:
                 {
                     // special cases
-                    if (token.IsSemicolonInForStatement())
+                    if (!token.IsSemicolonInForStatement())
                     {
-                        return GetDefaultIndentationFromToken(indenter, token);
+                        allowExtraIndentationLevel = false;
                     }
 
-                    return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
+                    break;
                 }
 
             case SyntaxKind.CloseBraceToken:
@@ -255,16 +258,18 @@ internal partial class CSharpIndentationService
                     {
                         if (token.GetNextToken().IsEqualsTokenInAutoPropertyInitializers())
                         {
-                            return GetDefaultIndentationFromToken(indenter, token);
+                            break;
                         }
                     }
 
-                    return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
+                    allowExtraIndentationLevel = false;
+                    break;
                 }
 
             case SyntaxKind.OpenBraceToken:
                 {
-                    return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, indenter.CancellationToken));
+                    allowExtraIndentationLevel = false;
+                    break;
                 }
 
             case SyntaxKind.ColonToken:
@@ -274,10 +279,11 @@ internal partial class CSharpIndentationService
 
                     if (nonTerminalNode is SwitchLabelSyntax)
                     {
+                        // Match the indentation level on the line starting the switch, then add an extra level of indentation.
                         return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart), indenter.Options.FormattingOptions.IndentationSize);
                     }
 
-                    goto default;
+                    break;
                 }
 
             case SyntaxKind.CloseBracketToken:
@@ -288,58 +294,74 @@ internal partial class CSharpIndentationService
                     // if this is closing an attribute, we shouldn't indent.
                     if (nonTerminalNode is AttributeListSyntax)
                     {
+                        // Match the indentation level of the line starting the attribute.
                         return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(nonTerminalNode.GetFirstToken(includeZeroWidth: true).SpanStart));
                     }
 
-                    goto default;
+                    break;
                 }
 
             case SyntaxKind.XmlTextLiteralToken:
                 {
+                    // Match the indentation level of the line starting the XML doc comment.
                     return indenter.GetIndentationOfLine(sourceText.Lines.GetLineFromPosition(token.SpanStart));
                 }
 
             case SyntaxKind.CommaToken:
                 {
-                    return GetIndentationFromCommaSeparatedList(indenter, token);
+                    if (TryGetIndentationFromCommaSeparatedList(indenter, token) is { } commaResult)
+                    {
+                        return commaResult;
+                    }
+
+                    break;
                 }
 
             case SyntaxKind.CloseParenToken:
                 {
                     if (token.Parent.IsKind(SyntaxKind.ArgumentList))
                     {
-                        return GetDefaultIndentationFromToken(indenter, token.Parent.GetFirstToken(includeZeroWidth: true));
+                        token = token.Parent.GetFirstToken(includeZeroWidth: true);
                     }
 
-                    goto default;
-                }
-
-            default:
-                {
-                    return GetDefaultIndentationFromToken(indenter, token);
+                    break;
                 }
         }
+
+        var result = TryGetIndentationForQueryExpression(indenter, token)
+            ?? TryGetIndentationFromMultilineStatement(indenter, token);
+
+        if (result is not null)
+        {
+            return result.Value;
+        }
+
+        // Apply indentation from format rules' IndentBlockOperations, possibly adding an extra level of indentation for
+        // wrapping. This is only added if a relative IndentBlockOperation is not selected.
+        var extraSpaces = allowExtraIndentationLevel ? indenter.Options.FormattingOptions.IndentationSize : 0;
+
+        return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, extraSpaces, indenter.CancellationToken));
     }
 
-    private static IndentationResult GetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
+    private static IndentationResult? TryGetIndentationFromCommaSeparatedList(Indenter indenter, SyntaxToken token)
         => token.Parent switch
         {
-            BaseArgumentListSyntax argument => GetIndentationFromCommaSeparatedList(indenter, argument.Arguments, token),
-            BaseParameterListSyntax parameter => GetIndentationFromCommaSeparatedList(indenter, parameter.Parameters, token),
-            TypeArgumentListSyntax typeArgument => GetIndentationFromCommaSeparatedList(indenter, typeArgument.Arguments, token),
-            TypeParameterListSyntax typeParameter => GetIndentationFromCommaSeparatedList(indenter, typeParameter.Parameters, token),
-            EnumDeclarationSyntax enumDeclaration => GetIndentationFromCommaSeparatedList(indenter, enumDeclaration.Members, token),
-            InitializerExpressionSyntax initializerSyntax => GetIndentationFromCommaSeparatedList(indenter, initializerSyntax.Expressions, token),
-            _ => GetDefaultIndentationFromToken(indenter, token),
+            BaseArgumentListSyntax argument => TryGetIndentationFromCommaSeparatedList(indenter, argument.Arguments, token),
+            BaseParameterListSyntax parameter => TryGetIndentationFromCommaSeparatedList(indenter, parameter.Parameters, token),
+            TypeArgumentListSyntax typeArgument => TryGetIndentationFromCommaSeparatedList(indenter, typeArgument.Arguments, token),
+            TypeParameterListSyntax typeParameter => TryGetIndentationFromCommaSeparatedList(indenter, typeParameter.Parameters, token),
+            EnumDeclarationSyntax enumDeclaration => TryGetIndentationFromCommaSeparatedList(indenter, enumDeclaration.Members, token),
+            InitializerExpressionSyntax initializerSyntax => TryGetIndentationFromCommaSeparatedList(indenter, initializerSyntax.Expressions, token),
+            _ => null,
         };
 
-    private static IndentationResult GetIndentationFromCommaSeparatedList<T>(
+    private static IndentationResult? TryGetIndentationFromCommaSeparatedList<T>(
         Indenter indenter, SeparatedSyntaxList<T> list, SyntaxToken token) where T : SyntaxNode
     {
         var index = list.GetWithSeparators().IndexOf(token);
         if (index < 0)
         {
-            return GetDefaultIndentationFromToken(indenter, token);
+            return null;
         }
 
         // find node that starts at the beginning of a line
@@ -356,28 +378,21 @@ internal partial class CSharpIndentationService
             }
         }
 
-        // smart indenter has a special indent block rule for comma separated list, so don't
-        // need to add default additional space for multiline expressions
-        return GetDefaultIndentationFromTokenLine(indenter, token, additionalSpace: 0);
+        return null;
     }
 
-    private static IndentationResult GetDefaultIndentationFromToken(Indenter indenter, SyntaxToken token)
+    private static IndentationResult? TryGetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
     {
-        if (IsPartOfQueryExpression(token))
+        if (!IsPartOfQueryExpression(token))
         {
-            return GetIndentationForQueryExpression(indenter, token);
+            return null;
         }
 
-        return GetDefaultIndentationFromTokenLine(indenter, token);
-    }
-
-    private static IndentationResult GetIndentationForQueryExpression(Indenter indenter, SyntaxToken token)
-    {
         // find containing non terminal node
         var queryExpressionClause = GetQueryExpressionClause(token);
         if (queryExpressionClause == null)
         {
-            return GetDefaultIndentationFromTokenLine(indenter, token);
+            return null;
         }
 
         // find line where first token of the node is
@@ -392,7 +407,7 @@ internal partial class CSharpIndentationService
         if (firstTokenLine.LineNumber != givenTokenLine.LineNumber)
         {
             // do default behavior
-            return GetDefaultIndentationFromTokenLine(indenter, token);
+            return null;
         }
 
         // okay, we are right under the query expression.
@@ -462,38 +477,28 @@ internal partial class CSharpIndentationService
         return queryExpression != null;
     }
 
-    private static IndentationResult GetDefaultIndentationFromTokenLine(
-        Indenter indenter, SyntaxToken token, int? additionalSpace = null)
+    private static IndentationResult? TryGetIndentationFromMultilineStatement(Indenter indenter, SyntaxToken token)
     {
-        var spaceToAdd = additionalSpace ?? indenter.Options.FormattingOptions.IndentationSize;
-
-        var sourceText = indenter.LineToBeIndented.Text;
-        RoslynDebug.AssertNotNull(sourceText);
-
-        // find line where given token is
-        var givenTokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
-
-        // find right position
-        var position = indenter.GetCurrentPositionNotBelongToEndOfFileToken(indenter.LineToBeIndented.Start);
-
-        // find containing non expression node
         var nonExpressionNode = token.GetAncestors<SyntaxNode>().FirstOrDefault(n => n is StatementSyntax);
-        if (nonExpressionNode == null)
+        if (nonExpressionNode != null)
         {
-            // well, I can't find any non expression node. use default behavior
-            return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
+            var sourceText = indenter.LineToBeIndented.Text;
+            RoslynDebug.AssertNotNull(sourceText);
+
+            // find line where first token of the node is
+            var firstTokenLine = sourceText.Lines.GetLineFromPosition(nonExpressionNode.GetFirstToken(includeZeroWidth: true).SpanStart);
+
+            // find line where given token is
+            var givenTokenLine = sourceText.Lines.GetLineFromPosition(token.SpanStart);
+
+            // multiline expression
+            if (firstTokenLine.LineNumber != givenTokenLine.LineNumber)
+            {
+                // okay, looks like containing node is written over multiple lines, in that case, give same indentation as given token
+                return indenter.GetIndentationOfLine(givenTokenLine);
+            }
         }
 
-        // find line where first token of the node is
-        var firstTokenLine = sourceText.Lines.GetLineFromPosition(nonExpressionNode.GetFirstToken(includeZeroWidth: true).SpanStart);
-
-        // single line expression
-        if (firstTokenLine.LineNumber == givenTokenLine.LineNumber)
-        {
-            return indenter.IndentFromStartOfLine(indenter.Finder.GetIndentationOfCurrentPosition(indenter.Tree, token, position, spaceToAdd, indenter.CancellationToken));
-        }
-
-        // okay, looks like containing node is written over multiple lines, in that case, give same indentation as given token
-        return indenter.GetIndentationOfLine(givenTokenLine);
+        return null;
     }
 }
