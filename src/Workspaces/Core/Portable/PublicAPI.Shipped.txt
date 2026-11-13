@@ -931,7 +931,7 @@ Microsoft.CodeAnalysis.Host.Mef.ExportWorkspaceServiceFactoryAttribute.ServiceTy
 Microsoft.CodeAnalysis.Host.Mef.ILanguageServiceFactory
 Microsoft.CodeAnalysis.Host.Mef.ILanguageServiceFactory.CreateLanguageService(Microsoft.CodeAnalysis.Host.HostLanguageServices languageServices) -> Microsoft.CodeAnalysis.Host.ILanguageService
 Microsoft.CodeAnalysis.Host.Mef.IWorkspaceServiceFactory
-Microsoft.CodeAnalysis.Host.Mef.IWorkspaceServiceFactory.CreateService(Microsoft.CodeAnalysis.Host.HostWorkspaceServices workspaceServices) -> Microsoft.CodeAnalysis.Host.IWorkspaceService
+Microsoft.CodeAnalysis.Host.Mef.IWorkspaceServiceFactory.CreateService(Microsoft.CodeAnalysis.Host.HostWorkspaceServices workspaceServices) -> Microsoft.CodeAnalysis.Host.IWorkspaceService?
 Microsoft.CodeAnalysis.Host.Mef.MefHostServices
 Microsoft.CodeAnalysis.Host.Mef.MefHostServices.MefHostServices(System.Composition.CompositionContext compositionContext) -> void
 Microsoft.CodeAnalysis.Host.Mef.ServiceLayer
