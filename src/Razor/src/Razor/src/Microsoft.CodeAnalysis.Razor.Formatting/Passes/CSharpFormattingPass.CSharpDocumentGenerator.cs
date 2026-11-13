@@ -253,6 +253,7 @@ internal partial class CSharpFormattingPass
 
                         var lineInfo = Visit(_currentToken.Parent);
                         _lineInfoBuilder.Add(EmitCloseBracesForEndTagsLaterInLine(lineInfo, line.LineNumber));
+                        IgnoreContentsOfElementsWithSignificantWhitespaceLaterInLine();
                         Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
                     }
                     else if (DocumentMappingHelper.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
@@ -819,6 +820,51 @@ internal partial class CSharpFormattingPass
                 }
 
                 return lineInfo with { SkipNextLines = lineInfo.SkipNextLines + closeBraceCount };
+            }
+
+            private void IgnoreContentsOfElementsWithSignificantWhitespaceLaterInLine()
+            {
+                // The Visit methods only ever see the first node on a line, so VisitStartTag won't see a start tag that comes later
+                // in the line, eg:
+                //
+                // <div>
+                //     text <pre>
+                //   a
+                //     </pre>
+                // </div>
+                //
+                // and so won't stop us formatting its contents. A start tag that continues onto another line is handled when we
+                // visit its last line, in TryVisitAttribute.
+                if (_ignoreUntilLine is { } ignoreUntilLine && ignoreUntilLine > _currentLine.LineNumber)
+                {
+                    return;
+                }
+
+                for (var token = _currentToken.GetNextToken();
+                    token.Kind != SyntaxKind.None && token.Position < _currentLine.End;
+                    token = token.GetNextToken())
+                {
+                    if (token.Parent is CSharpStatementLiteralSyntax or RazorMetaCodeSyntax or MarkupTransitionSyntax)
+                    {
+                        // We don't look past C# code on the same line, or into a template, because the lines we would ignore
+                        // could contain the C# that closes it.
+                        return;
+                    }
+
+                    if (token.Kind == SyntaxKind.OpenAngle &&
+                        token.Parent is BaseMarkupStartTagSyntax startTag &&
+                        ElementHasSignificantWhitespace(startTag) &&
+                        GetLineNumber(startTag.CloseAngle) == _currentLine.LineNumber)
+                    {
+                        // An element that ends on this line has no contents on other lines, so we keep looking.
+                        var endLine = GetLineNumber(startTag.GetEndTag()?.CloseAngle ?? startTag.CloseAngle);
+                        if (endLine > _currentLine.LineNumber)
+                        {
+                            _ignoreUntilLine = endLine;
+                            return;
+                        }
+                    }
+                }
             }
 
             private bool ElementCausesIndentation(BaseMarkupStartTagSyntax node)

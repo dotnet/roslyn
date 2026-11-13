@@ -16010,6 +16010,255 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 """);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86439")]
+    public Task PreTag_StartTagLaterInLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                </div>
+                """,
+            expected: """
+                <div>
+                    text <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86439")]
+    public Task PreTag_StartTagLaterInLine_Legacy()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                </div>
+                """,
+            expected: """
+                <div>
+                    text <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                </div>
+                """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86439")]
+    public Task TextArea_StartTagLaterInLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <textarea>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </textarea>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <textarea>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </textarea>
+                </div>
+                """,
+            expected: """
+                <div>
+                    text <textarea>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </textarea>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86439")]
+    public Task PreTag_StartTagAfterElementOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <span>a</span><pre>
+                  a
+                      b
+                    </pre>
+                    <p>c</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <span>a</span><pre>
+                  a
+                      b
+                    </pre>
+                    <p>c</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <span>a</span><pre>
+                  a
+                      b
+                    </pre>
+                    <p>c</p>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86439")]
+    public Task PreTag_StartTagAfterSingleLinePreOnSameLine()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    <pre> a</pre> <pre>
+                  b
+                      c
+                    </pre>
+                    <p>d</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <pre> a</pre> <pre>
+                  b
+                      c
+                    </pre>
+                    <p>d</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <pre> a</pre> <pre>
+                  b
+                      c
+                    </pre>
+                    <p>d</p>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86439")]
+    public Task PreTag_StartTagLaterInLine_InIf()
+        => RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <span>a</span> <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <span>a</span> <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <span>a</span> <pre>
+                  a
+                      @if (true)
+                   {
+                 b
+                      }
+                    </pre>
+                }
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86439")]
+    public Task PreTag_StartTagLaterInLine_ContentAfterEndTag()
+        => RunFormattingTestAsync(
+            input: """
+                <div>
+                    text <pre>
+                  a
+                    </pre> <span>b</span>
+                    <p>c</p>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    text <pre>
+                  a
+                    </pre> <span>b</span>
+                    <p>c</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    text <pre>
+                  a
+                    </pre> <span>b</span>
+                    <p>c</p>
+                </div>
+                """);
+
+    [Fact]
     public async Task PreTag_IndentStartTag()
     {
         await RunFormattingTestAsync(
