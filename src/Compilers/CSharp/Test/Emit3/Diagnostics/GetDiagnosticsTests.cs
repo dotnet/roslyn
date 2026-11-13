@@ -656,6 +656,44 @@ class C
         }
 
         [Fact]
+        public async Task TestCompilerAnalyzerSingleFileAnalysisDoesNotRetainCompilationEvents()
+        {
+            var source1 = @"
+class C
+{
+    void M()
+    {
+        int x;
+        new D().N();
+    }
+}
+";
+            var source2 = @"
+class D
+{
+    public void N() { }
+    public int P { get; set; }
+    public event System.Action E;
+}
+";
+            var compilation = CreateCompilation(new[] { source1, source2 });
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
+
+            var trees = compilation.SyntaxTrees.ToArray();
+            var diagnostics1 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(trees[0]), filterSpan: null, CancellationToken.None);
+            var diagnostics2 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(trees[1]), filterSpan: null, CancellationToken.None);
+
+            diagnostics1.Verify(
+                // (6,13): warning CS0168: The variable 'x' is declared but never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13));
+            diagnostics2.Verify();
+
+            Assert.Equal(0, compilationWithAnalyzers.Compilation.EventQueue!.Count);
+        }
+
+        [Fact]
         [WorkItem(42116, "https://github.com/dotnet/roslyn/issues/42116")]
         public async Task TestAnalyzerConfigurationDoesNotAffectCompilerDiagnostics()
         {

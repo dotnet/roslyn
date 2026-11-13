@@ -95,10 +95,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             VerifyArguments(compilation, analyzers, analysisOptions);
 
+            // PERF: Events on the root compilation are never consumed. Analysis either runs on a clone with its own
+            // event queue or synthesizes the events it needs, so discard them rather than rooting their semantic models.
             compilation = compilation
                 .WithOptions(compilation.Options.WithReportSuppressedDiagnostics(analysisOptions.ReportSuppressedDiagnostics))
                 .WithSemanticModelProvider(CachingSemanticModelProvider.Instance)
-                .WithEventQueue(new AsyncQueue<CompilationEvent>());
+                .WithEventQueue(AsyncQueue<CompilationEvent>.CreateDiscarding());
             _compilation = compilation;
             _analyzers = analyzers;
             _suppressors = analyzers.OfType<DiagnosticSuppressor>().ToImmutableArrayOrEmpty();
