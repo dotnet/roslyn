@@ -8923,6 +8923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.MethodGroup:
                     case BoundKind.UnboundLambda:
                     case BoundKind.UnconvertedObjectCreationExpression:
+                    case BoundKind.TupleLiteral:
                     case BoundKind.ConvertedTupleLiteral:
                     case BoundKind.UnconvertedCollectionExpression:
                         return NullableAnnotation.NotAnnotated;
@@ -9005,6 +9006,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // the same as if the user did not provide any.
                     return new BoundUnconvertedCollectionExpression(
                         collection.Syntax, withElement: null, elements: elementsBuilder.ToImmutableAndFree())
+                    {
+                        WasCompilerGenerated = true
+                    };
+                }
+
+                // A converted tuple literal is an artifact of the conversion removed above: undo it, like the conversion.
+                // A literal without a natural type (e.g. `(null, 0)`) can't be re-inferred as written, as it would contribute
+                // nothing against a bare type parameter and its elements' nullability would be lost; it keeps its converted type.
+                if ((argument is BoundConvertedTupleLiteral { SourceTuple: { } sourceTuple } ? sourceTuple : argument) is BoundTupleLiteral { Type: NamedTypeSymbol { IsTupleType: true } tupleType } tuple &&
+                    visitResult.NestedVisitResults is { } tupleElementVisitResults)
+                {
+                    // MethodTypeInferrer must infer types from the tuple literal as written, as the initial binding
+                    // did, not from its converted type: the converted type can equal the inferred type minus its
+                    // element names, and would make the re-inferred tuple lose them
+                    // (https://github.com/dotnet/roslyn/issues/74493).
+                    // The nested visit results are those of the literal's own elements (see VisitConvertedTupleLiteral).
+                    Debug.Assert(tupleElementVisitResults.Length == tuple.Arguments.Length);
+
+                    var elementsBuilder = ArrayBuilder<BoundExpression>.GetInstance(tupleElementVisitResults.Length);
+                    var elementTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(tupleElementVisitResults.Length);
+                    for (int i = 0; i < tupleElementVisitResults.Length; i++)
+                    {
+                        elementsBuilder.Add(getArgumentForMethodTypeInference(tuple.Arguments[i], tupleElementVisitResults[i]));
+                        elementTypesBuilder.Add(tupleElementVisitResults[i].RValueType.ToTypeWithAnnotations(compilation));
+                    }
+
+                    // The literal keeps its natural type, now with the nullability from flow analysis.
+                    var naturalType = tupleType.WithElementTypes(elementTypesBuilder.ToImmutableAndFree());
+
+                    return new BoundTupleLiteral(tuple.Syntax, elementsBuilder.ToImmutableAndFree(), tuple.ArgumentNamesOpt, tuple.InferredNamesOpt, naturalType)
                     {
                         WasCompilerGenerated = true
                     };
@@ -9475,9 +9506,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Visit the source tuple so that the semantic model can correctly report nullability for it
             // Disable diagnostics, as we don't want to duplicate any that are produced by visiting the converted literal below
             VisitWithoutDiagnostics(node.SourceTuple);
+            var sourceElementVisitResults = _visitResult.NestedVisitResults;
 
             this.SetState(savedState);
             VisitTupleExpression(node);
+
+            // Method type inference re-infers from the literal as written, so keep the visit results of its elements
+            // rather than those of the converted ones (see GetArgumentsForMethodTypeInference).
+            if (node.SourceTuple is not null && sourceElementVisitResults is not null)
+            {
+                _visitResult = new VisitResult(_visitResult.RValueType, _visitResult.LValueType, sourceElementVisitResults);
+            }
 
             return null;
         }
@@ -9485,12 +9524,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void VisitTupleExpression(BoundTupleExpression node)
         {
             var arguments = node.Arguments;
-            ImmutableArray<TypeWithState> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithState(a), this);
+            // Element visit results are kept for method type inference (see GetArgumentsForMethodTypeInference).
+            ImmutableArray<VisitResult> elementVisitResults = arguments.SelectAsArray(static (a, w) =>
+            {
+                w.VisitRvalue(a);
+                return w._visitResult;
+            }, this);
+            ImmutableArray<TypeWithState> elementTypes = elementVisitResults.SelectAsArray(static r => r.RValueType);
+            var nestedVisitResults = elementVisitResults.ToArray();
             ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations = elementTypes.SelectAsArray(a => a.ToTypeWithAnnotations(compilation));
             var tupleOpt = (NamedTypeSymbol?)node.Type;
             if (tupleOpt is null)
             {
-                SetResultType(node, TypeWithState.Create(null, NullableFlowState.NotNull));
+                setTupleResult(node, TypeWithState.Create(null, NullableFlowState.NotNull), nestedVisitResults);
             }
             else
             {
@@ -9515,7 +9561,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                 }
 
-                SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
+                setTupleResult(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull), nestedVisitResults);
+            }
+
+            void setTupleResult(BoundTupleExpression node, TypeWithState type, VisitResult[] nestedVisitResults)
+            {
+                SetResult(node, new VisitResult(type, type.ToTypeWithAnnotations(compilation), nestedVisitResults), updateAnalyzedNullability: true, isLvalue: null);
             }
         }
 

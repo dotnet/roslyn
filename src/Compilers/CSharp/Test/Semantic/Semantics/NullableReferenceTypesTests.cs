@@ -66668,6 +66668,162 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F").WithLocation(18, 13));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_NullElementInOtherArgument()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    void M()
+                    {
+                        object? o = new object();
+                        var a = Create((o, 0), (null, 0), (o, 0));
+                        Take(a);
+                    }
+                    static T[] Create<T>(T x, T y, T z) => [x, y, z];
+                    static void Take((object? o, int)[] a) { }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_NoNames()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, ("A", "A")), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_MatchingNames()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, (Name: "A", Value: "A")), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_DifferentNames()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, (N: "A", V: "A")), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,46): warning CS8123: The tuple element name 'N' is ignored because a different name or no name is specified by the target type '(string Name, object Value)'.
+                //         _ = ToDictionary(Append(parameters, (N: "A", V: "A")), t => t.Name, t => t.Value);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, @"N: ""A""").WithArguments("N", "(string Name, object Value)").WithLocation(8, 46),
+                // (8,54): warning CS8123: The tuple element name 'V' is ignored because a different name or no name is specified by the target type '(string Name, object Value)'.
+                //         _ = ToDictionary(Append(parameters, (N: "A", V: "A")), t => t.Name, t => t.Value);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, @"V: ""A""").WithArguments("V", "(string Name, object Value)").WithLocation(8, 54));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_NoNaturalType()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, ("A", null)), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            // A literal without a natural type keeps contributing its converted type, (string, object?), which has no
+            // names, so the names are lost as before.
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,59): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<(string, object?), ?>' (possibly because of nullability attributes).
+                //         _ = ToDictionary(Append(parameters, ("A", null)), t => t.Name, t => t.Value);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "t =>").WithArguments("lambda expression", "System.Func<(string, object?), ?>").WithLocation(8, 59),
+                // (8,72): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<(string, object?), ?>' (possibly because of nullability attributes).
+                //         _ = ToDictionary(Append(parameters, ("A", null)), t => t.Name, t => t.Value);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "t =>").WithArguments("lambda expression", "System.Func<(string, object?), ?>").WithLocation(8, 72));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_Nested()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M(((string Name, object? Value) Inner, int Count)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, (("A", "A"), 1)), t => t.Inner.Name, t => t.Inner.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleExpression_NotLiteral()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters, (string, string) none, (string Name, string Value) same, (string N, string V) other)
+                    {
+                        _ = ToDictionary(Append(parameters, none), t => t.Name, t => t.Value);
+                        _ = ToDictionary(Append(parameters, same), t => t.Name, t => t.Value);
+                        _ = ToDictionary(Append(parameters, other), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71419")]
         public void LocalFunction_Member_SetInOneFunction()
         {
