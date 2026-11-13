@@ -83,6 +83,78 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_AfterTargetDocumentEdit(
+        bool mutatingLspWorkspace, bool typeDefinition, bool insertNewLine,
+        [CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
+    {
+        var markups = languageName == LanguageNames.CSharp
+            ? new[]
+            {
+                typeDefinition ? "class {|definition:A|} { }" : "class A { public static void {|definition:M|}() { } }",
+                typeDefinition ? "class B { {|caret:|}A field; }" : "class B { void Use() { A.{|caret:|}M(); } }",
+            }
+            : typeDefinition
+                ? new[]
+                {
+                    """
+                    Class {|definition:A|}
+                    End Class
+                    """,
+                    """
+                    Class B
+                        Private field As {|caret:|}A
+                    End Class
+                    """,
+                }
+                : new[]
+                {
+                    """
+                    Class A
+                        Public Shared Sub {|definition:M|}()
+                        End Sub
+                    End Class
+                    """,
+                    """
+                    Class B
+                        Sub Use()
+                            A.{|caret:|}M()
+                        End Sub
+                    End Class
+                    """,
+                };
+        await using var testLspServer = await CreateTestLspServerAsync(markups, languageName, mutatingLspWorkspace, initializationOptions: null);
+        // Production workspaces enable partial semantics, but test workspaces disable them by default.
+        testLspServer.TestWorkspace.Services.GetRequiredService<IWorkspacePartialSolutionsTestHook>().IsPartialSolutionDisabled = false;
+        var definition = testLspServer.GetLocations("definition").Single();
+        var caret = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(definition.DocumentUri);
+        await testLspServer.OpenDocumentAsync(caret.DocumentUri);
+
+        // Seed a compilation so frozen partial semantics can reuse the target's old tree after an edit.
+        _ = await testLspServer.TestWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync();
+        var method = typeDefinition ? LSP.Methods.TextDocumentTypeDefinitionName : LSP.Methods.TextDocumentDefinitionName;
+        var initial = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(
+            method, CreateTextDocumentPositionParams(caret), CancellationToken.None);
+        AssertLocationsEqual([definition], initial);
+
+        await testLspServer.InsertTextAsync(definition.DocumentUri, version: 1,
+            (insertNewLine ? 0 : definition.Range.Start.Line, 0,
+                insertNewLine ? (languageName == LanguageNames.CSharp ? "// moved\n" : "' moved\n") : "  "));
+        var results = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(
+            method, CreateTextDocumentPositionParams(caret), CancellationToken.None);
+        var expected = new LSP.Location
+        {
+            DocumentUri = definition.DocumentUri,
+            Range = new LSP.Range
+            {
+                Start = new LSP.Position { Line = definition.Range.Start.Line + (insertNewLine ? 1 : 0), Character = definition.Range.Start.Character + (insertNewLine ? 0 : 2) },
+                End = new LSP.Position { Line = definition.Range.End.Line + (insertNewLine ? 1 : 0), Character = definition.Range.End.Character + (insertNewLine ? 0 : 2) },
+            },
+        };
+        AssertLocationsEqual([expected], results);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestGotoDefinitionAsync_MappedFile(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
