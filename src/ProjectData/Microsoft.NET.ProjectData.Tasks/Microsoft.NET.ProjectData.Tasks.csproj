@@ -6,6 +6,7 @@
     <!-- The SDK extracts this package and arranges its deployment layout; it is not intended for PackageReference consumption. -->
     <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- These members are used by source files that are intentionally not linked into this
          task assembly, so Roslyn's partial view reports them as unused. -->
     <NoWarn>$(NoWarn);IDE0051;IDE0060</NoWarn>
@@ -20,6 +21,7 @@
     <!-- MSBuild task base class and IBuildEngine. ExcludeAssets=runtime so the MSBuild
          assemblies are not copied to the output; MSBuild loads them from its own install. -->
     <PackageReference Include="Microsoft.Build.Utilities.Core" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.TaskAuthoring.Analyzer" PrivateAssets="All" />
     <PackageReference Include="NuGet.Versioning" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.IO.Pipelines" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
@@ -48,6 +50,7 @@
     <!-- Link the parts of Microsoft.NET.ProjectData that we are using; we could switch this over to consuming the
          library directly. -->
     <Compile Include="..\Microsoft.NET.ProjectData\UserFolderCachePath.cs" Link="Shared\UserFolderCachePath.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\ProjectDataEnvironment.cs" Link="Shared\ProjectDataEnvironment.cs" />
     <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorConfiguration.cs" Link="Shared\ProjectDataDonorConfiguration.cs" />
     <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorIndex.cs" Link="Shared\ProjectDataDonorIndex.cs" />
     <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorIndex.Serialization.cs" Link="Shared\ProjectDataDonorIndex.Serialization.cs" />

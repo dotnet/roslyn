@@ -12,7 +12,7 @@ namespace Microsoft.NET.ProjectData;
 /// Computes the user-folder location for a project's <c>.lscache</c> file.
 ///
 /// <para>This file is the single source of truth for the layout. The MSBuild
-/// task (writer/merger) and the runtime reader both call <see cref="Compute"/>
+/// task (writer/merger) and the runtime reader both call <see cref="Compute(string)"/>
 /// so the path the writer produces is exactly the path the reader looks for.
 /// The Tasks project links this source file into its own assembly via a
 /// <c>&lt;Compile Include=...&gt;</c> reference rather than taking a project
@@ -33,6 +33,9 @@ public static class UserFolderCachePath
 	/// filesystems (Windows / macOS) and the original casing on Linux.
 	/// </summary>
 	public static string Compute(string projectFilePath)
+		=> Compute(projectFilePath, ProjectDataEnvironment.Default);
+
+	internal static string Compute(string projectFilePath, ProjectDataEnvironment environment)
 	{
 		if (string.IsNullOrEmpty(projectFilePath))
 			throw new ArgumentException("Project file path must be non-empty.", nameof(projectFilePath));
@@ -52,7 +55,7 @@ public static class UserFolderCachePath
 #endif
 
 		string hex = HexEncoder.ToLowerHex(hashBytes);
-		string baseDir = GetCacheBaseDirectory();
+		string baseDir = GetCacheBaseDirectory(environment);
 		return Path.Combine(baseDir, hex.Substring(0, 2), hex.Substring(2));
 	}
 
@@ -71,15 +74,18 @@ public static class UserFolderCachePath
 	}
 
 	/// <summary>
-	/// Returns the cache root directory used by <see cref="Compute"/>.
+	/// Returns the cache root directory used by <see cref="Compute(string)"/>.
 	///
 	/// <para>Set <c>DOTNET_PROJECTDATA_CACHE_DIR</c> to override the cache root
 	/// exactly. Otherwise the cache is stored under the platform's user-local
 	/// cache directory.</para>
 	/// </summary>
 	public static string GetCacheBaseDirectory()
+		=> GetCacheBaseDirectory(ProjectDataEnvironment.Default);
+
+	internal static string GetCacheBaseDirectory(ProjectDataEnvironment environment)
 	{
-		string? envOverride = Environment.GetEnvironmentVariable(CacheBaseDirectoryEnvVar);
+		string? envOverride = environment.GetEnvironmentVariable(CacheBaseDirectoryEnvVar);
 		if (!string.IsNullOrWhiteSpace(envOverride))
 		{
 			return envOverride!;
@@ -87,7 +93,7 @@ public static class UserFolderCachePath
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+			string localAppData = environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 			if (!string.IsNullOrWhiteSpace(localAppData))
 			{
 				return Path.Combine(localAppData, "Microsoft", CacheDirectoryName);
@@ -95,7 +101,7 @@ public static class UserFolderCachePath
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
-			string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+			string home = environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 			if (!string.IsNullOrWhiteSpace(home))
 			{
 				return Path.Combine(home, "Library", "Caches", CacheDirectoryName);
@@ -103,13 +109,13 @@ public static class UserFolderCachePath
 		}
 		else
 		{
-			string? xdgCacheHome = Environment.GetEnvironmentVariable(XdgCacheHomeEnvVar);
+			string? xdgCacheHome = environment.GetEnvironmentVariable(XdgCacheHomeEnvVar);
 			if (!string.IsNullOrWhiteSpace(xdgCacheHome))
 			{
 				return Path.Combine(xdgCacheHome!, CacheDirectoryName);
 			}
 
-			string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+			string home = environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 			if (!string.IsNullOrWhiteSpace(home))
 			{
 				return Path.Combine(home, ".cache", CacheDirectoryName);

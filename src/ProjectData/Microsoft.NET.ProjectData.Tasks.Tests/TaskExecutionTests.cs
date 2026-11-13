@@ -7,7 +7,9 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Moq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.NET.ProjectData.Tasks.Tests;
@@ -19,8 +21,288 @@ namespace Microsoft.NET.ProjectData.Tasks.Tests;
 /// errors are not silently swallowed at ``MessageImportance.Low``, which the
 /// default ``dotnet build`` verbosity hides.
 /// </summary>
+[Collection(DotnetRootEnvCollection.Name)]
 public class TaskExecutionTests
 {
+	[Theory]
+	[InlineData("out.lscache")]
+	[InlineData("obj/../out.lscache")]
+	public void WriteTask_ResolvesRelativePathsAgainstTaskEnvironment(string outputPath)
+	{
+		using var tempRoot = new TempRoot();
+		string projectDirectory = tempRoot.CreateDirectory().Path;
+		string decoyDirectory = tempRoot.CreateDirectory().Path;
+		string originalDirectory = Directory.GetCurrentDirectory();
+		try
+		{
+			Directory.SetCurrentDirectory(decoyDirectory);
+			var engine = new BuildEngineStub();
+			var task = new WriteProjectDataSliceTask
+			{
+				BuildEngine = engine,
+				TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+					projectDirectory,
+					new Dictionary<string, string>
+					{
+						["DOTNET_PROJECTDATA_CACHE_DIR"] = Path.Combine(projectDirectory, "cache"),
+					}),
+				ProjectFilePath = "App.csproj",
+				OutputPath = outputPath,
+				IntermediateOutputPath = "obj",
+				CommandLineArguments = ["/noconfig"],
+				SourceFiles = [CreateItem("Program.cs")],
+			};
+
+			Assert.True(task.Execute());
+			Assert.True(task.Succeeded);
+			Assert.Equal(outputPath, task.ResolvedOutputPath);
+			Assert.Empty(engine.Warnings);
+			Assert.True(File.Exists(Path.Combine(projectDirectory, "out.lscache")));
+			Assert.Contains("project=App.csproj\n", File.ReadAllText(Path.Combine(projectDirectory, "out.lscache")));
+			Assert.Empty(Directory.EnumerateFileSystemEntries(decoyDirectory));
+			Assert.True(Directory.Exists(Path.Combine(projectDirectory, "obj")));
+			Assert.Empty(Directory.EnumerateFiles(projectDirectory, "*.tmp", SearchOption.AllDirectories));
+		}
+		finally
+		{
+			Directory.SetCurrentDirectory(originalDirectory);
+		}
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task WriteTask_IsolatesCacheRootsAndPortablePathsAcrossInstances(bool relativeRoots)
+	{
+		using var tempRoot = new TempRoot();
+		string decoyCacheDirectory = tempRoot.CreateDirectory().Path;
+		string? originalCacheDirectory = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		try
+		{
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", decoyCacheDirectory);
+			var tasks = new List<WriteProjectDataSliceTask>();
+			foreach (bool donorEnabled in new[] { false, true })
+			{
+				string projectDirectory = tempRoot.CreateDirectory().Path;
+				string dotnetRoot = Path.Combine(projectDirectory, "dotnet");
+				Directory.CreateDirectory(dotnetRoot);
+				tasks.Add(new WriteProjectDataSliceTask
+				{
+					BuildEngine = new BuildEngineStub(),
+					TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+						projectDirectory,
+						new Dictionary<string, string>
+						{
+							["DOTNET_PROJECTDATA_CACHE_DIR"] = relativeRoots ? "cache" : Path.Combine(projectDirectory, "cache"),
+							["NUGET_PACKAGES"] = relativeRoots ? "packages" : Path.Combine(projectDirectory, "packages"),
+							["DOTNET_ROOT"] = relativeRoots ? "dotnet" : dotnetRoot,
+							["DOTNET_PROJECTDATA_DONOR_ENABLED"] = donorEnabled.ToString(),
+						}),
+					ProjectFilePath = Path.Combine(projectDirectory, "App.csproj"),
+					DonorCacheIndexPath = relativeRoots ? "donor-index.json" : Path.Combine(projectDirectory, "donor-index.json"),
+					DonorCacheWorkspaceRoot = relativeRoots ? "." : projectDirectory,
+					WriteHeader = true,
+					IsPrimary = true,
+					CommandLineArguments = ["/noconfig"],
+					MetadataReferences = [CreateItem(Path.Combine(projectDirectory, "packages", "test", "1.0", "test.dll"))],
+					AnalyzerReferences = [CreateItem(Path.Combine(dotnetRoot, "sdk", "11.0.100", "analyzers", "Test.dll"))],
+				});
+			}
+
+			Assert.All(await Task.WhenAll(tasks.Select(task => Task.Run(task.Execute))), result => Assert.True(result));
+
+			foreach (WriteProjectDataSliceTask task in tasks)
+			{
+				string projectDirectory = Path.GetDirectoryName(task.ProjectFilePath)!;
+				Assert.True(task.Succeeded);
+				string cacheRoot = relativeRoots ? "cache" : Path.Combine(projectDirectory, "cache");
+				Assert.StartsWith(cacheRoot + Path.DirectorySeparatorChar, task.ResolvedOutputPath);
+				string content = File.ReadAllText(Path.Combine(projectDirectory, task.ResolvedOutputPath));
+				Assert.Contains("<NUGET>/test/1.0/test.dll", content);
+				Assert.Contains("<NETSDK>/analyzers/Test.dll", content);
+				Assert.Equal(
+					task.TaskEnvironment.GetEnvironmentVariable("DOTNET_PROJECTDATA_DONOR_ENABLED") == bool.TrueString,
+					File.Exists(Path.Combine(projectDirectory, "donor-index.json")));
+				Assert.Empty(((BuildEngineStub)task.BuildEngine).Warnings);
+			}
+
+			Assert.Empty(Directory.EnumerateFileSystemEntries(decoyCacheDirectory));
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCacheDirectory);
+		}
+	}
+
+	[Fact]
+	public void WriteTask_UsesTaskLocalPlatformCacheDirectory()
+	{
+		using var tempRoot = new TempRoot();
+		string projectDirectory = tempRoot.CreateDirectory().Path;
+		string profileDirectory = tempRoot.CreateDirectory().Path;
+		var task = new WriteProjectDataSliceTask
+		{
+			BuildEngine = new BuildEngineStub(),
+			TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+				projectDirectory,
+				new Dictionary<string, string>
+				{
+					["LOCALAPPDATA"] = profileDirectory,
+					["USERPROFILE"] = profileDirectory,
+					["HOME"] = profileDirectory,
+				}),
+			ProjectFilePath = Path.Combine(projectDirectory, "App.csproj"),
+			CommandLineArguments = ["/noconfig"],
+		};
+
+		Assert.True(task.Execute());
+		Assert.True(task.Succeeded);
+		string expectedRoot = OperatingSystem.IsWindows()
+			? Path.Combine(profileDirectory, "Microsoft", "dotnet-projectdata")
+			: OperatingSystem.IsMacOS()
+				? Path.Combine(profileDirectory, "Library", "Caches", "dotnet-projectdata")
+				: Path.Combine(profileDirectory, ".cache", "dotnet-projectdata");
+		Assert.StartsWith(expectedRoot + Path.DirectorySeparatorChar, task.ResolvedOutputPath);
+		Assert.True(File.Exists(task.ResolvedOutputPath));
+		Assert.Empty(((BuildEngineStub)task.BuildEngine).Warnings);
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void WriteTask_PreservesProjectCacheAndIsolatesUnsupportedMarker(bool coreCompileForced)
+	{
+		using var tempRoot = new TempRoot();
+		string projectDirectory = tempRoot.CreateDirectory().Path;
+		string decoyDirectory = tempRoot.CreateDirectory().Path;
+		File.WriteAllText(Path.Combine(projectDirectory, "App.csproj"), "<Project />");
+		string outputPath = Path.Combine(projectDirectory, "App.csproj.lscache");
+		File.WriteAllText(outputPath, "existing cache");
+		string originalDirectory = Directory.GetCurrentDirectory();
+		try
+		{
+			Directory.SetCurrentDirectory(decoyDirectory);
+			var engine = new BuildEngineStub();
+			var task = new WriteProjectDataSliceTask
+			{
+				BuildEngine = engine,
+				TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+					projectDirectory,
+					new Dictionary<string, string> { ["DOTNET_PROJECTDATA_CACHE_DIR"] = "cache" }),
+				ProjectFilePath = "App.csproj",
+				OutputPath = "App.csproj.lscache",
+				WriteHeader = true,
+				IsPrimary = true,
+				CoreCompileForced = coreCompileForced,
+			};
+
+			Assert.True(task.Execute());
+			Assert.False(task.Succeeded);
+			Assert.Equal("App.csproj.lscache", task.ResolvedOutputPath);
+			Assert.Equal("existing cache", File.ReadAllText(outputPath));
+			string cacheDirectory = Path.Combine(projectDirectory, "cache");
+			Assert.Equal(coreCompileForced, Directory.Exists(cacheDirectory));
+			if (coreCompileForced)
+			{
+				string marker = Assert.Single(Directory.EnumerateFiles(cacheDirectory, "*.unsupported", SearchOption.AllDirectories));
+				Assert.Contains("reason=CompilerCommandLineArgumentsEmpty\n", File.ReadAllText(marker));
+			}
+
+			Assert.Empty(engine.Warnings);
+			Assert.Empty(Directory.EnumerateFileSystemEntries(decoyDirectory));
+		}
+		finally
+		{
+			Directory.SetCurrentDirectory(originalDirectory);
+		}
+	}
+
+	[ConditionalTheory(typeof(UnixLikeOnly))]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void WriteTask_UsesOsProfileWhenTaskHomeIsUnset(bool isolatedEnvironment)
+	{
+		using var tempRoot = new TempRoot();
+		string projectDirectory = tempRoot.CreateDirectory().Path;
+		string decoyHome = tempRoot.CreateDirectory().Path;
+		string projectFilePath = Path.Combine(projectDirectory, "App.csproj");
+		string? originalHome = Environment.GetEnvironmentVariable("HOME");
+		string? originalCache = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		string? originalXdgCache = Environment.GetEnvironmentVariable("XDG_CACHE_HOME");
+		string? expectedOutputPath = null;
+		try
+		{
+			Environment.SetEnvironmentVariable("HOME", null);
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", null);
+			Environment.SetEnvironmentVariable("XDG_CACHE_HOME", null);
+			expectedOutputPath = UserFolderCachePath.Compute(projectFilePath);
+			if (isolatedEnvironment)
+			{
+				Environment.SetEnvironmentVariable("HOME", decoyHome);
+			}
+
+			var engine = new BuildEngineStub();
+			var task = new WriteProjectDataSliceTask
+			{
+				BuildEngine = engine,
+				TaskEnvironment = isolatedEnvironment
+					? TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory, new Dictionary<string, string>())
+					: TaskEnvironment.Fallback,
+				ProjectFilePath = projectFilePath,
+				CommandLineArguments = ["/noconfig"],
+			};
+
+			Assert.True(task.Execute());
+			Assert.True(task.Succeeded, string.Join(Environment.NewLine, engine.Warnings.Select(warning => warning.Message)));
+			Assert.Equal(expectedOutputPath, task.ResolvedOutputPath);
+			Assert.True(File.Exists(expectedOutputPath));
+			Assert.Empty(engine.Warnings);
+			Assert.Empty(Directory.EnumerateFileSystemEntries(decoyHome));
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("HOME", originalHome);
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCache);
+			Environment.SetEnvironmentVariable("XDG_CACHE_HOME", originalXdgCache);
+			if (expectedOutputPath is not null && File.Exists(expectedOutputPath))
+			{
+				File.Delete(expectedOutputPath);
+			}
+		}
+	}
+
+	[Theory]
+	[InlineData(null)]
+	[InlineData("")]
+	[InlineData("\0invalid")]
+	public void WriteTask_PreservesTemporaryDirectoryFallback(string? intermediateOutputPath)
+	{
+		using var tempRoot = new TempRoot();
+		string projectDirectory = tempRoot.CreateDirectory().Path;
+		var engine = new BuildEngineStub();
+		var task = new WriteProjectDataSliceTask
+		{
+			BuildEngine = engine,
+			TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+				projectDirectory,
+				new Dictionary<string, string>
+				{
+					["DOTNET_PROJECTDATA_CACHE_DIR"] = Path.Combine(projectDirectory, "cache"),
+					["DOTNET_ROOT"] = "\0invalid",
+				}),
+			ProjectFilePath = Path.Combine(projectDirectory, "App.csproj"),
+			OutputPath = "out.lscache",
+			IntermediateOutputPath = intermediateOutputPath!,
+			CommandLineArguments = ["/noconfig"],
+		};
+
+		Assert.True(task.Execute());
+		Assert.True(task.Succeeded);
+		Assert.True(File.Exists(Path.Combine(projectDirectory, "out.lscache")));
+		Assert.Empty(Directory.EnumerateFiles(projectDirectory, "*.tmp", SearchOption.AllDirectories));
+		Assert.Empty(engine.Warnings);
+	}
+
 	[Fact]
 	public void MergeTask_LogsError_AndReturnsFalse_WhenNeitherInputProvided()
 	{
@@ -126,6 +408,7 @@ public class TaskExecutionTests
 			var task = new WriteProjectDataSliceTask
 			{
 				BuildEngine = engine,
+				TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(root),
 				ProjectFilePath = Path.Combine(root, "App.csproj"),
 				OutputPath = outputPath,
 				CommandLineArguments = ["/noconfig"],

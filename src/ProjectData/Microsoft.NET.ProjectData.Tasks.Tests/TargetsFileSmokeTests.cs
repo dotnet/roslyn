@@ -62,6 +62,72 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Fact]
+	public async Task MultiThreadedBuild_WritesEachProjectFromItsOwnDirectory()
+	{
+		// Isolate the task under test from SDK-inbox ProjectData task registrations.
+		string taskAssembly = System.Security.SecurityElement.Escape(typeof(WriteProjectDataSliceTask).Assembly.Location)!;
+		foreach (string name in new[] { "First", "Second" })
+		{
+			string directory = Path.Combine(this.workDir, name);
+			Directory.CreateDirectory(directory);
+			File.WriteAllText(Path.Combine(directory, name + ".proj"),
+				$$"""
+				<Project>
+				  <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask" AssemblyFile="{{taskAssembly}}" />
+				  <ItemGroup>
+				    <Source Include="Program.cs" />
+				  </ItemGroup>
+				  <Target Name="Build">
+				    <Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask
+				      ProjectFilePath="$(MSBuildProjectFullPath)"
+				      OutputPath="obj/cache.lscache"
+				      IntermediateOutputPath="obj/staging"
+				      CommandLineArguments="/noconfig"
+				      SourceFiles="@(Source)"
+				      WriteHeader="true">
+				      <Output TaskParameter="Succeeded" PropertyName="_WriteSucceeded" />
+				    </Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask>
+				    <Error Condition="'$(_WriteSucceeded)' != 'true'" Text="ProjectData write did not succeed." />
+				  </Target>
+				</Project>
+				""");
+		}
+
+		string projectFile = Path.Combine(this.workDir, "Build.proj");
+		File.WriteAllText(projectFile,
+			"""
+			<Project>
+			  <Target Name="Build">
+			    <MSBuild Projects="First\First.proj;Second\Second.proj" Targets="Build" BuildInParallel="true" />
+			  </Target>
+			</Project>
+			""");
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:Build",
+				"/m:2",
+				"/mt",
+				"/nr:false",
+				"/warnaserror:MSB4286;MSB4287;MSB4288",
+				$"/bl:{Path.Combine(this.workDir, "multithreaded.binlog")}",
+			],
+			wireProjectDataTargets: false);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		foreach (string name in new[] { "First", "Second" })
+		{
+			string content = File.ReadAllText(Path.Combine(this.workDir, name, "obj", "cache.lscache"));
+			Assert.Contains($"project={name}.proj\n", content);
+			Assert.Contains("Program.cs", content);
+			Assert.DoesNotContain("MT-sentinel-CWD", content);
+		}
+
+		Assert.False(File.Exists(Path.Combine(this.workDir, "obj", "cache.lscache")));
+	}
+
+	[Fact]
 	public async Task SingleTfmProject_EvaluatesProjectDataPathNextToCsproj()
 	{
 		string projectFile = this.WriteProject("App.csproj", multiTargeting: false, writeAssetsFile: false);
