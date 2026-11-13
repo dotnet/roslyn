@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.DotNet.FileBasedPrograms;
@@ -24,4 +26,9 @@ internal interface IFileBasedProgramService : IWorkspaceService
         IProjectCollection projectCollection,
         string entryPointFilePath,
         Action<string> reportError);
+
+    /// <summary>
+    /// If 'document[position]' is within a file-based app directive such as '#:include', get the resolved (absolute) file paths which are referenced by the directive.
+    /// </summary>
+    Task<ImmutableArray<string>> GetFileLevelDirectiveTargetPathsAsync(Document document, int position, CancellationToken cancellationToken);
 }
