@@ -1676,7 +1676,7 @@ end class
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
@@ -1775,7 +1775,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
@@ -1813,7 +1813,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
@@ -1851,7 +1851,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
@@ -3822,7 +3822,7 @@ End Class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.DefinitelyAssignedOnExit))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
