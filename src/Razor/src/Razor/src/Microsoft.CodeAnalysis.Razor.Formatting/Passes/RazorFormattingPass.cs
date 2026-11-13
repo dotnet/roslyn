@@ -460,7 +460,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
             var closeBraceLine = source.Text.Lines[closeBraceRange.End.Line];
             var closeBraceEnd = source.Text.GetRequiredAbsoluteIndex(closeBraceRange.End);
             if (closeBraceLine.GetFirstNonWhitespaceOffset(closeBraceRange.End.Character).HasValue &&
-                !changes.Any(e => e.Span.Start == closeBraceEnd))
+                !changes.Any(closeBraceEnd, static (e, position) => e.Span.Start == position))
             {
                 // Insert a newline after the close brace
                 changes.Add(new TextChange(new TextSpan(closeBraceEnd, 0), context.NewLineString));
@@ -503,7 +503,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
         if (!endTag.Name.IsMissing &&
             hasEndTagCloseAngle &&
             text.GetLinePositionSpan(endTagNameEnd, endTagCloseAngleStart).SpansMultipleLines() &&
-            string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(endTagNameEnd, endTagCloseAngleStart))))
+            !text.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(endTagNameEnd, endTagCloseAngleStart), out _))
         {
             // This whitespace is inside the tag, not its content, so WebTools joins it even for whitespace-sensitive elements.
             changes.Add(new TextChange(TextSpan.FromBounds(endTagNameEnd, endTagCloseAngleStart), string.Empty));
@@ -528,7 +528,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
         // so compact markup like <span>text</span> stays compact. This matches the Html formatter, which also expands
         // content when only the attributes span lines. Empty elements are the exception, as the Html formatter leaves
         // the end tag hugging a multi-line start tag, eg <label\n class="a"></label>, so for them we only look at the content.
-        var hasContent = !string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(contentStart, contentEnd)));
+        var hasContent = text.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(contentStart, contentEnd), out _);
         var checkStart = hasContent ? element.SpanStart : contentStart;
         if (!HtmlFormattingFacts.IsStructuralElement(startTag) &&
             !text.GetLinePositionSpan(checkStart, contentEnd).SpansMultipleLines())
@@ -562,7 +562,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
         var nameEnd = startTag.Name.Span.End;
         var closeAngleStart = startTag.CloseAngle.SpanStart;
         if (text.GetLinePositionSpan(nameEnd, closeAngleStart).SpansMultipleLines() &&
-            string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(nameEnd, closeAngleStart))))
+            !text.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(nameEnd, closeAngleStart), out _))
         {
             // Line breaks inside a tag aren't significant whitespace in its content, including for <textarea> and <pre>.
             changes.Add(new TextChange(TextSpan.FromBounds(nameEnd, closeAngleStart), string.Empty));
