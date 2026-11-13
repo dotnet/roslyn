@@ -65,8 +65,11 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
     private async Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptionsOverride, CancellationToken cancellationToken)
     {
+        var clientSettings = _clientSettingsManager.GetClientSettings();
+        var options = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken);
+
         _logger.LogDebug($"Getting Html formatting changes for {razorDocument.FilePath}");
-        var htmlResult = await TryGetHtmlFormattingEditsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
+        var htmlResult = await TryGetHtmlFormattingEditsAsync(request, options, razorDocument, cancellationToken).ConfigureAwait(false);
 
         if (htmlResult is not { } htmlEdits)
         {
@@ -77,9 +80,6 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
         var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
-
-        var clientSettings = _clientSettingsManager.GetClientSettings();
-        var options = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken);
 
         // Formatting tests can supply explicit options, including settings captured in formatting logs.
         if (csharpSyntaxFormattingOptionsOverride is not null)
@@ -103,8 +103,18 @@ internal sealed class CohostDocumentFormattingEndpoint(
         return remoteResult.SelectAsPlainArray(sourceText.GetTextEdit);
     }
 
-    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentFormattingParams request, RazorFormattingOptions options, TextDocument razorDocument, CancellationToken cancellationToken)
     {
+        if (options.IndentSize != request.Options.TabSize)
+        {
+            request = new DocumentFormattingParams
+            {
+                TextDocument = request.TextDocument,
+                Options = options.GetHtmlFormattingOptions(request.Options),
+                WorkDoneToken = request.WorkDoneToken,
+            };
+        }
+
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<DocumentFormattingParams, TextEdit[]>(
             razorDocument,
             Methods.TextDocumentFormattingName,
