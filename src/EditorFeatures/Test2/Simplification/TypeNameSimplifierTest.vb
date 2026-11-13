@@ -3236,6 +3236,58 @@ class C
                 </text>
             Await TestAsync(input, expected, QualifyPropertyAccessOptionWithNotification(LanguageNames.CSharp, NotificationOption2.Error))
         End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86393")>
+        Public Async Function TestSimplifyTypeNamesInTargetTypedConditionalExpression_CSharp() As Task
+            Dim input =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            <![CDATA[
+using Policies;
+
+namespace Policies
+{
+    public class Policy { }
+    public class KeyPolicy : Policy { }
+    public class TokenPolicy : Policy { }
+}
+
+class C
+{
+    void M(bool useKey)
+    {
+        Policy policy = useKey ? new {|SimplifyParent:Policies.KeyPolicy|}() : new {|SimplifyParent:Policies.TokenPolicy|}();
+    }
+}
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Dim expected =
+                <text>
+                    <![CDATA[
+using Policies;
+
+namespace Policies
+{
+    public class Policy { }
+    public class KeyPolicy : Policy { }
+    public class TokenPolicy : Policy { }
+}
+
+class C
+{
+    void M(bool useKey)
+    {
+        Policy policy = useKey ? new KeyPolicy() : new TokenPolicy();
+    }
+}
+]]>
+                </text>
+            Await TestAsync(input, expected)
+        End Function
 #End Region
 
 #Region "Normal Visual Basic Tests"
