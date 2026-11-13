@@ -244,9 +244,7 @@ namespace N1
             Assert.Contains(c.GetMembers("ImpartialMethod2").Single(), declaredSymbols);
             var partialMethod = (IMethodSymbol)c.GetMembers("PartialMethod").Single();
             Assert.Contains(partialMethod, declaredSymbols);
-            Assert.Contains(partialMethod.PartialImplementationPart, declaredSymbols);
             var partialMethod2 = (IMethodSymbol)c.GetMembers("PartialMethod2").Single();
-            Assert.Contains(partialMethod2, declaredSymbols);
             Assert.Contains(partialMethod2.PartialImplementationPart, declaredSymbols);
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
@@ -319,13 +317,7 @@ namespace N1
             Assert.Contains(partialProp, declaredSymbols);
             Assert.Contains(partialProp.GetMethod, declaredSymbols);
             Assert.Contains(partialProp.SetMethod, declaredSymbols);
-            Assert.Contains(partialProp.PartialImplementationPart, declaredSymbols);
-            Assert.Contains(partialProp.PartialImplementationPart.GetMethod, declaredSymbols);
-            Assert.Contains(partialProp.PartialImplementationPart.SetMethod, declaredSymbols);
             var partialProp2 = (IPropertySymbol)c.GetMembers("PartialProp2").Single();
-            Assert.Contains(partialProp2, declaredSymbols);
-            Assert.Contains(partialProp2.GetMethod, declaredSymbols);
-            Assert.Contains(partialProp2.SetMethod, declaredSymbols);
             Assert.Contains(partialProp2.PartialImplementationPart, declaredSymbols);
             Assert.Contains(partialProp2.PartialImplementationPart.GetMethod, declaredSymbols);
             Assert.Contains(partialProp2.PartialImplementationPart.SetMethod, declaredSymbols);
@@ -390,17 +382,21 @@ namespace N1
             Assert.Contains(nonPartialEvent1.RemoveMethod, declaredSymbols);
             var defOnlyPartialEvent = (IEventSymbol)c.GetMembers("DefOnlyPartialEvent").Single();
             Assert.Contains(defOnlyPartialEvent, declaredSymbols);
+            Assert.True(defOnlyPartialEvent.AddMethod.IsImplicitlyDeclared);
+            Assert.DoesNotContain(defOnlyPartialEvent.AddMethod, declaredSymbols);
+            Assert.True(defOnlyPartialEvent.RemoveMethod.IsImplicitlyDeclared);
+            Assert.DoesNotContain(defOnlyPartialEvent.RemoveMethod, declaredSymbols);
             var implOnlyPartialEvent = (IEventSymbol)c.GetMembers("ImplOnlyPartialEvent").Single();
             Assert.Contains(implOnlyPartialEvent, declaredSymbols);
             Assert.Contains(implOnlyPartialEvent.AddMethod, declaredSymbols);
             Assert.Contains(implOnlyPartialEvent.RemoveMethod, declaredSymbols);
             var partialEvent1 = (IEventSymbol)c.GetMembers("PartialEvent1").Single();
             Assert.Contains(partialEvent1, declaredSymbols);
-            Assert.Contains(partialEvent1.PartialImplementationPart, declaredSymbols);
-            Assert.Contains(partialEvent1.PartialImplementationPart.AddMethod, declaredSymbols);
-            Assert.Contains(partialEvent1.PartialImplementationPart.RemoveMethod, declaredSymbols);
+            Assert.True(partialEvent1.AddMethod.IsImplicitlyDeclared);
+            Assert.DoesNotContain(partialEvent1.AddMethod, declaredSymbols);
+            Assert.True(partialEvent1.RemoveMethod.IsImplicitlyDeclared);
+            Assert.DoesNotContain(partialEvent1.RemoveMethod, declaredSymbols);
             var partialEvent2 = (IEventSymbol)c.GetMembers("PartialEvent2").Single();
-            Assert.Contains(partialEvent2, declaredSymbols);
             Assert.Contains(partialEvent2.PartialImplementationPart, declaredSymbols);
             Assert.Contains(partialEvent2.PartialImplementationPart.AddMethod, declaredSymbols);
             Assert.Contains(partialEvent2.PartialImplementationPart.RemoveMethod, declaredSymbols);
@@ -465,9 +461,7 @@ namespace N1
             Assert.Contains(ctors.Single(m => m.Parameters.Length == 3), declaredSymbols);
             var ctor4 = ctors.Single(m => m.Parameters.Length == 4);
             Assert.Contains(ctor4, declaredSymbols);
-            Assert.Contains(ctor4.PartialImplementationPart, declaredSymbols);
             var ctor5 = ctors.Single(m => m.Parameters.Length == 5);
-            Assert.Contains(ctor5, declaredSymbols);
             Assert.Contains(ctor5.PartialImplementationPart, declaredSymbols);
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
