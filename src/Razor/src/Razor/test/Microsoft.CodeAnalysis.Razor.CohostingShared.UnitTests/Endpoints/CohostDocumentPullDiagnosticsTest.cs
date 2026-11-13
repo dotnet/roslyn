@@ -321,6 +321,76 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
                      """)]);
 
     [Fact]
+    public Task DuplicateUsingAlias()
+        => VerifyDiagnosticsAsync("""
+            @using Alias = System.Text.StringBuilder
+            {|RZ0005:@using {|CS1537:Alias|} = System.Console|}
+
+            <div></div>
+
+            @code
+            {
+                public void M(Alias a)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task DuplicateUsingAlias_InImports()
+        => VerifyDiagnosticsAsync(
+            input: """
+                {|RZ0005:@using {|CS1537:Alias|} = System.Console|}
+
+                <div></div>
+
+                @code
+                {
+                    public void M(Alias a)
+                    {
+                    }
+                }
+                """,
+            additionalFiles: [
+                (FilePath("_Imports.razor"), """
+                    @using Alias = System.Text.StringBuilder
+                    """)],
+            // The default imports file lives at the same path, so we supply our own instead
+            addDefaultImports: false);
+
+    [Fact]
+    public Task DuplicateUsingNamespace()
+        => VerifyDiagnosticsAsync("""
+            @using System.Text
+            {|RZ0005:@using {|CS0105:System.Text|}|}
+
+            <div></div>
+
+            @code
+            {
+                public void M(StringBuilder b)
+                {
+                }
+            }
+            """);
+
+    [Fact]
+    public Task MultipleDiagnosticsAtSameRangeInDeclarationDocument()
+        => VerifyDiagnosticsAsync("""
+            @code
+            {
+                public class Test<T> where T : System.Enum, System.IDisposable
+                {
+                }
+
+                public void M()
+                {
+                    _ = new Test<{|CS0315:{|CS0315:int|}|}>();
+                }
+            }
+            """);
+
+    [Fact]
     public Task LegacyUnusedAddTagHelperDirective()
         => VerifyDiagnosticsAsync(
             input: """
@@ -408,9 +478,10 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
         bool taskListRequest = false,
         bool miscellaneousFile = false,
         (string fileName, string contents)[]? additionalFiles = null,
-        Action<RazorProjectBuilder>? projectConfigure = null)
+        Action<RazorProjectBuilder>? projectConfigure = null,
+        bool addDefaultImports = true)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles, projectConfigure: projectConfigure);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles, addDefaultImports: addDefaultImports, projectConfigure: projectConfigure);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlResult = htmlResponse is null
