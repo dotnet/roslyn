@@ -18,6 +18,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
     Public Class FormattingTest
         Inherits VisualBasicFormattingTestBase
 
+        <Theory>
+        <InlineData(vbLf, vbLf)>
+        <InlineData(vbLf, vbCrLf)>
+        <InlineData(vbCrLf, vbLf)>
+        <InlineData(vbCrLf, vbCrLf)>
+        Public Function PreserveCommentWhitespaceNewLines(sourceNewLine As String, preferredNewLine As String) As Task
+            Dim code = String.Join(sourceNewLine,
+                "Class C",
+                vbTab & "Sub M()",
+                vbTab & vbTab & "' comment",
+                vbTab & vbTab & "M()",
+                vbTab & "End Sub",
+                "End Class")
+            Dim options = New OptionsCollection(LanguageNames.VisualBasic) From {
+                {FormattingOptions2.UseTabs, True},
+                {FormattingOptions2.NewLine, preferredNewLine}
+            }
+
+            Return AssertFormatAsync(code, code, options, testWithTransformation:=True)
+        End Function
+
         <Fact>
         Public Async Function Format1() As Task
             Dim code = <Code>                   
