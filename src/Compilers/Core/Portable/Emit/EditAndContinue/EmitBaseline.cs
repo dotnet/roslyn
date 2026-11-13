@@ -232,6 +232,10 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         internal readonly IReadOnlyDictionary<Cci.IDefinition, int> GenerationOrdinals;
 
+        /// <summary>
+        /// Accumulates all symbols added since the initial baseline.
+        /// The value is the row id of the symbol assigned to it when it was created.
+        /// </summary>
         internal readonly IReadOnlyDictionary<Cci.ITypeDefinition, int> TypesAdded;
         internal readonly IReadOnlyDictionary<Cci.IEventDefinition, int> EventsAdded;
         internal readonly IReadOnlyDictionary<Cci.IFieldDefinition, int> FieldsAdded;

@@ -7,9 +7,14 @@ using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.Emit;
 
-internal readonly struct EncMappedMethod(IMethodSymbolInternal previousMethod, Func<SyntaxNode, SyntaxNode?>? syntaxMap, Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdit)
+internal readonly struct EncMappedMethod(IMethodSymbolInternal precedingCompilationMethod, Func<SyntaxNode, SyntaxNode?>? syntaxMap, Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdit)
 {
-    public readonly IMethodSymbolInternal PreviousMethod = previousMethod;
+    /// <summary>
+    /// The method from the immediately preceding compilation.
+    /// Used for syntax offset calculations.
+    /// </summary>
+    public readonly IMethodSymbolInternal PrecedingCompilationMethod = precedingCompilationMethod;
+
     public readonly Func<SyntaxNode, SyntaxNode?>? SyntaxMap = syntaxMap;
     public readonly Func<SyntaxNode, RuntimeRudeEdit?>? RuntimeRudeEdit = runtimeRudeEdit;
 }
