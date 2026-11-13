@@ -4,8 +4,8 @@
      Microsoft.NET.ProjectData.targets — emits per-project data used by .NET tooling and
      language services.
 
-     ProjectDataBuild is the canonical refresh entry point. Normal Build writes project data only when
-     <EnableProjectDataOnBuild>true</EnableProjectDataOnBuild> is also set.
+     ProjectDataBuild is the canonical refresh entry point. Normal Build writes project data and
+     unsupported-project markers only when <EnableProjectDataOnBuild>true</EnableProjectDataOnBuild> is also set.
    ===================================================================================================================
 -->
 <Project>
@@ -40,8 +40,8 @@
   -->
   <PropertyGroup>
     <!--
-      Public switch: allow ordinary Build/CoreCompile to write project data
-      opportunistically. ProjectDataBuild remains the canonical producer because
+      Public switch: allow ordinary Build/CoreCompile to write project data and
+      unsupported-project markers opportunistically. ProjectDataBuild remains the canonical producer because
       invoking it is already an explicit opt-in and it runs the curated
       design-time target list.
     -->
@@ -290,6 +290,15 @@
       ProjectFilePath="$(MSBuildProjectFullPath)"
       Reason="$(_ProjectDataUnsupportedReason)" />
   </Target>
+
+  <!-- The marker is project-wide, so inner cross-targeting builds don't write it.
+       Stale project data is deleted first because readers prefer an existing cache over the marker. -->
+  <Target Name="_WriteUnsupportedProjectDataMarkerOnBuild"
+          AfterTargets="CoreCompile;$(_ProjectDataMergeAfterTargets)"
+          DependsOnTargets="_DeleteUnsupportedProjectData;_WriteUnsupportedProjectDataMarker"
+          Condition="'$(EnableProjectDataOnBuild)' == 'true' and
+                     '$(_ProjectDataShouldWriteUnsupportedMarker)' == 'true' and
+                     ('$(TargetFrameworks)' == '' or '$(TargetFramework)' == '')" />
 
   <Target Name="_ValidateProjectDataAssetsFile"
           Condition="'$(_ProjectDataCanWriteOutput)' == 'true'">

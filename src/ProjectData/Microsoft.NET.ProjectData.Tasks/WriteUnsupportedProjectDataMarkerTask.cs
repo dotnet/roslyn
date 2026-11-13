@@ -28,7 +28,7 @@ public sealed class WriteUnsupportedProjectDataMarkerTask : Microsoft.Build.Util
 			this.MarkerPath = UnsupportedProjectDataMarker.Write(this.ProjectFilePath, this.Reason);
 			this.Log.LogMessage(
 				MessageImportance.Low,
-				"ProjectData: wrote unsupported marker for {0}: {1} ({2})",
+				"ProjectData: recorded unsupported marker for {0}: {1} ({2})",
 				this.ProjectFilePath,
 				this.MarkerPath,
 				this.Reason);

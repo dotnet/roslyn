@@ -698,6 +698,115 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		AssertNoUnsupportedMarker(projectFile);
 	}
 
+	[Theory]
+	[InlineData("NoTargets", false, false)]
+	[InlineData("NoTargets", false, true)]
+	[InlineData("NoTargets", true, true)]
+	[InlineData("VisualBasic", false, false)]
+	[InlineData("VisualBasic", false, true)]
+	[InlineData("VisualBasic", true, false)]
+	[InlineData("VisualBasic", true, true)]
+	[InlineData("Excluded", false, true)]
+	public async Task Build_UnsupportedProject_WritesMarkerOnlyWhenEnabled(string projectKind, bool multiTargeting, bool enabled)
+	{
+		string extension = projectKind == "VisualBasic" ? ".vbproj" : ".csproj";
+		string properties = projectKind switch
+		{
+			"NoTargets" => "<UsingMicrosoftNoTargetsSdk>true</UsingMicrosoftNoTargetsSdk><SkipCopyBuildProduct>true</SkipCopyBuildProduct>",
+			"Excluded" => "<ExcludeFromBuild>true</ExcludeFromBuild>",
+			_ => string.Empty,
+		};
+		// Match NoTargets' empty CoreCompile override without resolving an external SDK package.
+		string targets = projectKind == "NoTargets" ? """<Target Name="CoreCompile" />""" : string.Empty;
+		string projectFile = this.WriteBuildProject("App" + extension, multiTargeting, properties, targets);
+		string cacheFile = projectFile + ".lscache";
+		await File.WriteAllTextAsync(cacheFile, "stale", TestContext.Current.CancellationToken);
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/v:detailed",
+				$"/p:EnableProjectDataOnBuild={enabled.ToString().ToLowerInvariant()}",
+			],
+			useBuildCommand: true);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		if (enabled)
+		{
+			string expectedReason = projectKind switch
+			{
+				"NoTargets" => "MicrosoftBuildNoTargetsSdk",
+				"Excluded" => "ExcludeFromBuildTrue",
+				_ => multiTargeting ? "CannotWriteProjectData" : "LanguageNotCSharp",
+			};
+			AssertUnsupportedMarker(projectFile, expectedReason);
+			if (projectKind == "Excluded" && !OperatingSystem.IsWindows())
+			{
+				Assert.Equal("stale", File.ReadAllText(cacheFile));
+			}
+			else
+			{
+				Assert.False(File.Exists(cacheFile), result.Output);
+			}
+			Assert.Single(result.Output.Split('\n'), line => line.Contains("ProjectData: recorded unsupported marker for", StringComparison.Ordinal));
+		}
+		else
+		{
+			AssertNoUnsupportedMarker(projectFile);
+			Assert.Equal("stale", File.ReadAllText(cacheFile));
+		}
+	}
+
+	[Theory]
+	[InlineData(false, false)]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	[InlineData(true, true)]
+	public async Task Build_SupportedProject_WritesCacheWithoutMarker(bool multiTargeting, bool enabled)
+	{
+		string projectFile = this.WriteBuildProject("App.csproj", multiTargeting);
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/p:EnableProjectDataInProjectFolder=true",
+				$"/p:EnableProjectDataOnBuild={enabled.ToString().ToLowerInvariant()}",
+			],
+			useBuildCommand: true);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		Assert.Equal(enabled, File.Exists(projectFile + ".lscache"));
+		AssertNoUnsupportedMarker(projectFile);
+	}
+
+	[Theory]
+	[InlineData("App.csproj")]
+	[InlineData("App.vbproj")]
+	public async Task Build_FailureBeforeCoreCompile_WritesNeitherCacheNorMarker(string fileName)
+	{
+		string projectFile = this.WriteBuildProject(
+			fileName,
+			multiTargeting: false,
+			extraTargets:
+			"""
+			<Target Name="FailBeforeCompile" BeforeTargets="CoreCompile">
+			  <Error Text="Intentional failure before CoreCompile" />
+			</Target>
+			""");
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs: ["/p:EnableProjectDataOnBuild=true", "/p:EnableProjectDataInProjectFolder=true"],
+			useBuildCommand: true);
+
+		Assert.NotEqual(0, result.ExitCode);
+		Assert.Contains("Intentional failure before CoreCompile", result.Output);
+		Assert.False(File.Exists(projectFile + ".lscache"));
+		AssertNoUnsupportedMarker(projectFile);
+	}
+
 	[Fact]
 	public async Task ProjectDataBuild_NonSdkProject_IsNoOp()
 	{
@@ -3291,6 +3400,28 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		psi.UseShellExecute = false;
 		psi.CreateNoWindow = true;
 		return psi;
+	}
+
+	private string WriteBuildProject(string fileName, bool multiTargeting, string extraProperties = "", string extraTargets = "")
+	{
+		string projectFile = Path.Combine(this.workDir, fileName);
+		string framework = multiTargeting
+			? "<TargetFrameworks>net11.0;net11.0-windows</TargetFrameworks>"
+			: "<TargetFramework>net11.0</TargetFramework>";
+		File.WriteAllText(
+			projectFile,
+			$$"""
+			<Project>
+			  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+			  <PropertyGroup>
+			    {{framework}}
+			    {{extraProperties}}
+			  </PropertyGroup>
+			  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+			  {{extraTargets}}
+			</Project>
+			""");
+		return projectFile;
 	}
 
 	private string WriteProject(
