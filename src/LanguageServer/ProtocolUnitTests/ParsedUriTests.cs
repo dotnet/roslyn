@@ -25,6 +25,25 @@ public sealed class ParsedUriTests
     public void Parse_Cases(UriCase testCase)
         => AssertCase(ParsedUri.Parse(testCase.Input), testCase);
 
+    [Fact]
+    public void From_PreservesUnescapedComponents()
+    {
+        var uri = ParsedUri.From("test", authority: "host", path: "/Hint&Name.cs", query: "hintName=Hint%26Name.cs&path=C%3A%5CGenerator.dll", fragment: "a#b");
+
+        Assert.Equal("/Hint&Name.cs", uri.Path);
+        Assert.Equal("hintName=Hint%26Name.cs&path=C%3A%5CGenerator.dll", uri.Query);
+        Assert.Equal("test://host/Hint%26Name.cs?hintName%3DHint%2526Name.cs%26path%3DC%253A%255CGenerator.dll#a%23b", uri.ToString());
+        Assert.Equal("test://host/Hint&Name.cs?hintName=Hint%26Name.cs&path=C%3A%5CGenerator.dll#a#b", uri.ToString(skipEncoding: true));
+
+        var parsed = ParsedUri.Parse(uri.ToString());
+        Assert.Equal(uri, parsed);
+        Assert.Equal(uri.RawQuery, parsed.RawQuery);
+    }
+
+    [Fact]
+    public void From_ValidatesComponents()
+        => Assert.Throws<UriFormatException>(() => ParsedUri.From("test", path: "//path"));
+
     [Theory]
     [MemberData(nameof(FileCases))]
     public void File_Cases(UriCase testCase)
