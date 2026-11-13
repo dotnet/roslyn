@@ -813,7 +813,6 @@ internal sealed partial class InlineRenameSession : IInlineRenameSession, IFeatu
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                     "vs.csharp.refactoring.rename",
                     string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
-                    RenameInfo.FullDisplayName,
                     RenameInfo.Glyph,
                     newSolution,
                     TriggerDocument.Project.Solution);

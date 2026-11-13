@@ -28,7 +28,6 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
     private readonly IVsEditorAdaptersFactoryService _editorFactory;
     private readonly Solution _newSolution;
     private readonly Solution _oldSolution;
-    private readonly string _topLevelName;
     private readonly Glyph _topLevelGlyph;
     private readonly string _helpString;
     private readonly string _description;
@@ -42,8 +41,8 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
     public Solution FinalSolution { get; private set; }
     public bool ShowCheckBoxes { get; private set; }
 
-    public PreviewEngine(string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
-        : this(title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
+    public PreviewEngine(string title, string helpString, string description, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
+        : this(title, helpString, description, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
     {
     }
 
@@ -51,7 +50,6 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
         string title,
         string helpString,
         string description,
-        string topLevelItemName,
         Glyph topLevelGlyph,
         Solution newSolution,
         Solution oldSolution,
@@ -59,7 +57,6 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
         IVsImageService2 imageService,
         bool showCheckBoxes = true)
     {
-        _topLevelName = topLevelItemName;
         _topLevelGlyph = topLevelGlyph;
         _title = title ?? throw new ArgumentNullException(nameof(title));
         _helpString = helpString ?? throw new ArgumentNullException(nameof(helpString));
@@ -106,7 +103,7 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
         var changes = _newSolution.GetChanges(_oldSolution);
         var projectChanges = changes.GetProjectChanges();
 
-        _topLevelChange = new TopLevelChange(_topLevelName, _topLevelGlyph, _newSolution, this);
+        _topLevelChange = new TopLevelChange(_topLevelGlyph, _newSolution, this);
 
         var builder = ArrayBuilder<AbstractChange>.GetInstance();
 
@@ -142,14 +139,20 @@ internal sealed class PreviewEngine : IVsPreviewChangesEngine
         AppendFileChanges(allDocumentsWithChanges, builder);
 
         // References (metadata/project/analyzer)
-        ReferenceChange.AppendReferenceChanges(projectChanges, this, builder);
+        ReferenceChange.AppendReferenceChanges(projectChanges, _topLevelChange, this, builder);
 
         _topLevelChange.Children = builder.Count == 0 ? ChangeList.Empty : new ChangeList(builder.ToArray());
-        ppIUnknownPreviewChangesList = _topLevelChange.Children.Changes.Length == 0 ? new ChangeList(new[] { new NoChange(this) }) : new ChangeList(new[] { _topLevelChange });
 
         if (_topLevelChange.Children.Changes.Length == 0)
         {
+            ppIUnknownPreviewChangesList = new ChangeList(new[] { new NoChange(this) });
             this.ShowCheckBoxes = false;
+        }
+        else
+        {
+            ppIUnknownPreviewChangesList = !ShowCheckBoxes || _topLevelChange.Children.Changes.Length == 1
+                ? _topLevelChange.Children
+                : new ChangeList(new[] { _topLevelChange });
         }
 
         return VSConstants.S_OK;

@@ -132,7 +132,6 @@ internal sealed class SyncNamespacesCommandHandler
                     title: EditorFeaturesResources.Preview_Changes,
                     helpString: "vs.csharp.refactoring.preview",
                     description: ServicesVSResources.Sync_Namespaces,
-                    topLevelName: ServicesVSResources.Sync_namespaces_changes,
                     topLevelGlyph: Glyph.OpenFolder,
                     newSolution: solution,
                     oldSolution: _workspace.CurrentSolution,
