@@ -89,5 +89,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
         Protected Overrides Function ExpandToFieldPropertyAsync(document As Document, [property] As PropertyStatementSyntax, cancellationToken As CancellationToken) As Task(Of Document)
             Throw ExceptionUtilities.Unreachable()
         End Function
+
+        Protected Overrides Function NormalizeLineEndings(root As SyntaxNode, lineEnding As String) As SyntaxNode
+            Return root.ReplaceTrivia(
+                root.DescendantTrivia(descendIntoTrivia:=True),
+                Function(trivia, rewritten) If(trivia.IsKind(SyntaxKind.EndOfLineTrivia) AndAlso trivia.ToFullString() <> lineEnding,
+                    SyntaxFactory.EndOfLine(lineEnding),
+                    trivia))
+        End Function
     End Class
 End Namespace
