@@ -118,6 +118,18 @@ public class ChecksumTests
     }
 
     [Fact]
+    public void EmptyChecksumIsStable()
+    {
+        var expected = RazorChecksum.From(new byte[]
+        {
+            0x99, 0xaa, 0x06, 0xd3, 0x01, 0x47, 0x98, 0xd8,
+            0x60, 0x01, 0xc3, 0x24, 0x46, 0x8d, 0x49, 0x7f,
+        });
+
+        Assert.Equal(expected, s_empty());
+    }
+
+    [Fact]
     public void TestLargeString()
     {
         var largeString = new string('a', 100_000);

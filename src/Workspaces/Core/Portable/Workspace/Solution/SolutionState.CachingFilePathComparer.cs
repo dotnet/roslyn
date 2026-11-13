@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -96,8 +95,8 @@ internal sealed partial class SolutionState
                     }
 
                     length -= 4;
-                    hash1 = (RuntimeBitOperations.RotateLeft(hash1, 5) + hash1) ^ (p0 | NormalizeToLowercase);
-                    hash2 = (RuntimeBitOperations.RotateLeft(hash2, 5) + hash2) ^ (p1 | NormalizeToLowercase);
+                    hash1 = (RotateLeft5(hash1) + hash1) ^ (p0 | NormalizeToLowercase);
+                    hash2 = (RotateLeft5(hash2) + hash2) ^ (p1 | NormalizeToLowercase);
                     ptr += 2;
                 }
 
@@ -109,7 +108,7 @@ internal sealed partial class SolutionState
                         goto NotAscii;
                     }
 
-                    hash2 = (RuntimeBitOperations.RotateLeft(hash2, 5) + hash2) ^ (p0 | NormalizeToLowercase);
+                    hash2 = (RotateLeft5(hash2) + hash2) ^ (p0 | NormalizeToLowercase);
                 }
             }
 
@@ -117,6 +116,16 @@ internal sealed partial class SolutionState
 
 NotAscii:
             return s_comparer.GetHashCode(obj);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static uint RotateLeft5(uint value)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            return System.Numerics.BitOperations.RotateLeft(value, 5);
+#else
+            return (value << 5) | (value >> 27);
+#endif
         }
 
         // From https://github.com/dotnet/runtime/blob/5aa9687e110faa19d1165ba680e52585a822464d/src/libraries/System.Private.CoreLib/src/System/Text/Unicode/Utf16Utility.cs#L16.
