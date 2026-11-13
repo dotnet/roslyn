@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -763,6 +764,99 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
 ";
 
             AssertJsonCore(expected, array.ToString(Formatting.Indented));
+        }
+
+        [Fact]
+        public void AnalyzerConfigDefaultAndEmpty()
+        {
+            var compilation = CreateCompilation([]);
+            var key = compilation.GetDeterministicKey();
+
+            Assert.Equal(key, compilation.GetDeterministicKey(analyzerConfigFiles: []));
+            AssertJsonSection("""
+                "analyzerConfigs": []
+                """, key, "analyzerConfigs");
+            Assert.NotEqual(key, compilation.GetDeterministicKey(analyzerConfigFiles: [(".editorconfig", SourceText.From(""))]));
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigContent(bool globalConfig)
+        {
+            var content = globalConfig ? "is_global = true\ncache_value = 1" : "";
+            var changedContent = globalConfig ? "is_global = true\ncache_value = 2" : "root = true";
+            var compilation = CreateCompilation([]);
+            ImmutableArray<(string Path, SourceText Content)> configs = [(".globalconfig", SourceText.From(content))];
+            var key = compilation.GetDeterministicKey(analyzerConfigFiles: configs);
+
+            Assert.NotEqual(key, compilation.GetDeterministicKey(analyzerConfigFiles: [(".globalconfig", SourceText.From(changedContent))]));
+            Assert.Equal(key, compilation.GetDeterministicKey(analyzerConfigFiles: configs));
+            Assert.Equal(key, Compilation.GetDeterministicKey(
+                compilation.Options, [], compilation.References.ToImmutableArray(), ImmutableArray<byte>.Empty, analyzerConfigFiles: configs));
+            Assert.Equal(key, DeterministicKey.GetDeterministicKey(
+                compilation.Options, [], compilation.References.ToImmutableArray(), ImmutableArray<byte>.Empty, analyzerConfigFiles: configs));
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigPaths(bool pathMapped, bool ignorePaths)
+        {
+            var compilation = CreateCompilation([]);
+            var firstDirectory = Path.GetFullPath("config-root1") + Path.DirectorySeparatorChar;
+            var secondDirectory = Path.GetFullPath("config-root2") + Path.DirectorySeparatorChar;
+            ImmutableArray<KeyValuePair<string, string>> pathMap = pathMapped
+                ? [KeyValuePair.Create(firstDirectory, "/_/"), KeyValuePair.Create(secondDirectory, "/_/")]
+                : [];
+            var options = ignorePaths ? DeterministicKeyOptions.IgnorePaths : DeterministicKeyOptions.Default;
+            var key = compilation.GetDeterministicKey(
+                analyzerConfigFiles: [(firstDirectory + ".editorconfig", SourceText.From("root = true"))], pathMap: pathMap, options: options);
+            var otherKey = compilation.GetDeterministicKey(
+                analyzerConfigFiles: [(secondDirectory + ".editorconfig", SourceText.From("root = true"))], pathMap: pathMap, options: options);
+
+            if (pathMapped || ignorePaths)
+            {
+                Assert.Equal(key, otherKey);
+            }
+            else
+            {
+                Assert.NotEqual(key, otherKey);
+            }
+
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            Assert.Equal(ignorePaths ? ".editorconfig" : pathMapped ? "/_/.editorconfig" : firstDirectory + ".editorconfig", config.Value<string>("fileName"));
+        }
+
+        [Fact]
+        public void AnalyzerConfigMultipleFiles()
+        {
+            var compilation = CreateCompilation([]);
+            ImmutableArray<(string Path, SourceText Content)> configs =
+            [
+                (".globalconfig", SourceText.From("is_global = true")),
+                (".editorconfig", SourceText.From("root = true")),
+            ];
+            var key = compilation.GetDeterministicKey(analyzerConfigFiles: configs);
+            var array = (JArray)GetJsonProperty(key, "analyzerConfigs").Value;
+
+            Assert.Equal(new[] { ".globalconfig", ".editorconfig" }, array.Select(config => config.Value<string>("fileName")));
+            Assert.NotEqual(key, compilation.GetDeterministicKey(analyzerConfigFiles: [configs[0]]));
+            Assert.NotEqual(key, compilation.GetDeterministicKey(analyzerConfigFiles: [configs[1], configs[0]]));
+            Assert.NotEqual(key, compilation.GetDeterministicKey(analyzerConfigFiles: [configs[0], (configs[1].Path, SourceText.From("root = false"))]));
+        }
+
+        [Theory, CombinatorialData]
+        public void AnalyzerConfigSourceTextOptions(bool explicitEncoding, bool sha256)
+        {
+            var compilation = CreateCompilation([]);
+            var encoding = explicitEncoding ? Encoding.Unicode : null;
+            var algorithm = sha256 ? SourceHashAlgorithm.Sha256 : SourceHashAlgorithm.Sha1;
+            var text = SourceText.From("root = true", encoding, algorithm);
+
+            var key = compilation.GetDeterministicKey(analyzerConfigFiles: [(".editorconfig", text)]);
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            var textInfo = Assert.IsType<JObject>(config["text"]);
+
+            Assert.Equal(encoding?.EncodingName, textInfo.Value<string>("encodingName"));
+            Assert.Equal(algorithm.ToString(), textInfo.Value<string>("checksumAlgorithm"));
+            Assert.Equal(GetChecksum(text), textInfo.Value<string>("checksum"));
         }
 
         [Fact]

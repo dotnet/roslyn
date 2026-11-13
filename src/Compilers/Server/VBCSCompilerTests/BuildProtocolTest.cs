@@ -43,17 +43,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Empty(read.TelemetryEvents);
         }
 
-        [Fact]
-        public async Task ReadWriteCompleted_WithTelemetryEvents()
+        [Theory]
+        [InlineData("hit", null, "none")]
+        [InlineData("miss", "diagnosticcontextmismatch", "skippedexists")]
+        [InlineData("miss", "invaliddiagnostics", "replaced")]
+        public async Task ReadWriteCompleted_WithTelemetryEvents(string cacheStatus, string missReason, string storeResult)
         {
+            var properties = new Dictionary<string, string>
+            {
+                ["cachestatus"] = cacheStatus,
+                ["storeresult"] = storeResult,
+                ["language"] = "C#",
+                ["restorems"] = "12",
+            };
+            if (missReason is not null)
+            {
+                properties["missreason"] = missReason;
+            }
+
             var events = new[]
             {
-                new BuildTelemetryEvent("roslyn/compilercache", new Dictionary<string, string>
-                {
-                    ["cachestatus"] = "hit",
-                    ["language"] = "C#",
-                    ["restorems"] = "12",
-                }),
+                new BuildTelemetryEvent("roslyn/compilercache", properties),
                 new BuildTelemetryEvent("roslyn/other", new Dictionary<string, string>()),
             };
 
@@ -69,7 +79,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(2, read.TelemetryEvents.Count);
 
             Assert.Equal("roslyn/compilercache", read.TelemetryEvents[0].EventName);
-            Assert.Equal("hit", read.TelemetryEvents[0].Properties["cachestatus"]);
+            Assert.Equal(cacheStatus, read.TelemetryEvents[0].Properties["cachestatus"]);
+            Assert.Equal(storeResult, read.TelemetryEvents[0].Properties["storeresult"]);
+            if (missReason is null)
+            {
+                Assert.False(read.TelemetryEvents[0].Properties.ContainsKey("missreason"));
+            }
+            else
+            {
+                Assert.Equal(missReason, read.TelemetryEvents[0].Properties["missreason"]);
+            }
             Assert.Equal("C#", read.TelemetryEvents[0].Properties["language"]);
             Assert.Equal("12", read.TelemetryEvents[0].Properties["restorems"]);
 

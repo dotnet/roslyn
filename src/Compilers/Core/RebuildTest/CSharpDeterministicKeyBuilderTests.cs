@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ]
   },
   ""additionalTexts"": [],
+  ""analyzerConfigs"": [],
   ""analyzers"": [],
   ""generators"": [],
   ""emitOptions"": null,
@@ -262,6 +263,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     }}
   }},
   ""additionalTexts"": [],
+  ""analyzerConfigs"": [],
   ""analyzers"": [],
   ""generators"": [],
   ""emitOptions"": null,
@@ -518,8 +520,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void FeatureFlag()
         {
             Assert.Equal("debug-determinism", CodeAnalysis.Feature.DebugDeterminism);
-            var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", "-debug:portable", "-checksumalgorithm:sha256");
+            var compiler = TestableCompiler.CreateCSharpNetCoreApp("test.cs", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", "-debug:portable", "-checksumalgorithm:sha256", "-analyzerconfig:.globalconfig");
             var sourceFile = compiler.AddSourceFile("test.cs", @"// this is a test file");
+            var analyzerConfigFile = compiler.AddSourceFile(".globalconfig", "is_global = true");
             compiler.AddOutputFile("test.dll");
             var pdbFile = compiler.AddOutputFile("test.pdb");
             var keyFile = compiler.AddOutputFile("test.dll.key");
@@ -587,6 +590,16 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ]
   },
   "additionalTexts": [],
+  "analyzerConfigs": [
+    {
+      "fileName": "{{Roslyn.Utilities.JsonWriter.EscapeString(analyzerConfigFile.FilePath)}}",
+      "text": {
+        "checksum": "971e9b97adb72253428fee6cec91146774875fb0",
+        "checksumAlgorithm": "Sha1",
+        "encodingName": null
+      }
+    }
+  ],
   "analyzers": [],
   "generators": [],
   "emitOptions": {

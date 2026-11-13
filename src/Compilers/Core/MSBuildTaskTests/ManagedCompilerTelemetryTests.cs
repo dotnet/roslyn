@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -58,26 +58,42 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                 => throw new NotImplementedException();
         }
 
-        [Fact]
-        public void ReportTelemetry_ForwardsEvents()
+        [Theory]
+        [InlineData("hit", null, "none")]
+        [InlineData("miss", "diagnosticcontextmismatch", "skippedexists")]
+        [InlineData("miss", "invaliddiagnostics", "replaced")]
+        public void ReportTelemetry_ForwardsEvents(string cacheStatus, string? missReason, string storeResult)
         {
             var engine = new TelemetryMockEngine();
             var csc = new Csc { BuildEngine = engine };
 
-            var events = new[]
+            var properties = new Dictionary<string, string>
             {
-                new BuildTelemetryEvent("roslyn/compilercache", new Dictionary<string, string>
-                {
-                    ["cachestatus"] = "hit",
-                    ["language"] = "C#",
-                }),
+                ["cachestatus"] = cacheStatus,
+                ["storeresult"] = storeResult,
+                ["language"] = "C#",
             };
+            if (missReason is not null)
+            {
+                properties["missreason"] = missReason;
+            }
+
+            var events = new[] { new BuildTelemetryEvent("roslyn/compilercache", properties) };
 
             csc.ReportTelemetry(events, EmptyCompilerServerLogger.Instance);
 
             var reported = Assert.Single(engine.TelemetryEvents);
             Assert.Equal("roslyn/compilercache", reported.EventName);
-            Assert.Equal("hit", reported.Properties["cachestatus"]);
+            Assert.Equal(cacheStatus, reported.Properties["cachestatus"]);
+            Assert.Equal(storeResult, reported.Properties["storeresult"]);
+            if (missReason is null)
+            {
+                Assert.False(reported.Properties.ContainsKey("missreason"));
+            }
+            else
+            {
+                Assert.Equal(missReason, reported.Properties["missreason"]);
+            }
             Assert.Equal("C#", reported.Properties["language"]);
         }
 

@@ -130,6 +130,7 @@ The cache key is based on Roslyn's deterministic compilation key. For a given co
 - path mapping
 - emit options
 - manifest resources
+- supplied analyzer-configuration paths and content
 
 That deterministic key is then hashed with SHA-256 and used as the directory key for the cache entry.
 
@@ -153,6 +154,7 @@ The current layout is:
       pdb
       refassembly
       xmldoc
+      diagnostics
       <dll name>.key
       created
       last-used
@@ -164,6 +166,7 @@ Where:
 - `pdb` is the emitted PDB, when one exists
 - `refassembly` is the emitted reference assembly, when one exists
 - `xmldoc` is the emitted XML documentation file, when one exists
+- `diagnostics` contains two length-prefixed UTF-8 strings: the diagnostic-context hash and the formatted diagnostic output. It is required even when the diagnostic output is empty.
 - `<dll name>.key` contains the full deterministic key text
 - `created` contains a round-trip UTC timestamp (`O` format) recording when the entry was first stored
 - `last-used` contains a round-trip UTC timestamp updated on every cache hit and on initial store
@@ -177,9 +180,9 @@ For each eligible compilation request, the compiler server:
 1. Computes the deterministic key.
 2. Hashes that key.
 3. Looks for an existing entry under the cache root.
-4. If a valid cached assembly is present, copies the cached outputs to the requested output locations, stamps them with the UTC time captured immediately before input/key inspection began, and reports success.
+4. If a valid cached assembly and diagnostic data are present, validates the diagnostic context, copies the cached outputs to the requested output locations, stamps them with the UTC time captured immediately before input/key inspection began, replays the cached diagnostics, and reports compiler success.
 5. Otherwise performs a normal compilation.
-6. After a successful compilation, attempts to publish the outputs into the cache for future requests.
+6. After a successful compilation, attempts to publish the outputs and diagnostics into the cache for future requests.
 
 Any failure while reading from or writing to the cache is treated as a cache miss or skipped store, not as a build failure. The request falls back to normal compilation behavior.
 
@@ -191,7 +194,7 @@ Per-entry synchronization is used so that multiple writers racing on the same ke
 
 Cache-entry mutexes coordinate processes of the same user across sessions on the same machine. If different users share a cache directory, their writes can race. The default cache directory is per-user. If you override the cache directory location, use a separate directory for each user to avoid cross-user races.
 
-## Diagnostics
+## Logs
 
 While the experiment is active, the compiler server logs notable cache events, including:
 
@@ -220,7 +223,8 @@ The event carries these properties:
 | Property | Meaning |
 |----------|---------|
 | `cachestatus` | `hit` or `miss` (always present) |
-| `storeresult` | `none`, `stored`, `skippedrace`, `skippedexists`, or `failed` (always present) |
+| `missreason` | `notfound`, `missingoutputs`, `invaliddiagnostics`, `diagnosticcontextmismatch`, or `restorefailed`; omitted on hits or when no reason is available |
+| `storeresult` | `none`, `stored`, `replaced`, `skippedrace`, `skippedexists`, or `failed` (always present) |
 | `compileresult` | `succeeded` or `failed`; omitted on a cache hit |
 | `language` | the compiler language (`C#` / `Visual Basic`) (always present) |
 | `keycomputems` | milliseconds spent computing the deterministic key (always present) |
@@ -305,7 +309,8 @@ The experiment currently has several important limitations:
 
 - `PathMap` stability is effectively required for useful cache reuse. Differences in path mapping participate in the deterministic key, so builds that do not normalize machine-specific source paths are much less likely to hit the same cache entry across machines or worktrees.
 - `SourceLink` stability is also required for useful reuse. Differences in Source Link input participate in the deterministic key and will prevent matching builds from sharing cache entries. This likely means that Source Link needs to be disabled for the project.
-- Normal compiler behavior is not fully preserved on cache hits today. In particular, a restored cached result does not currently replay warnings and other compiler diagnostics that would normally be produced during a regular compilation.
+- Normal compiler behavior is not fully preserved on cache hits today. Although console diagnostics are replayed, other side effects such as touched-file logs, generated files, SARIF diagnostic logs, and analyzer timing reports are not restored.
+- Entries with nonempty diagnostics are only reused when the diagnostic-rendering context matches. A request in a different context recompiles but does not replace the existing entry.
 - Because the cache key is based on the current deterministic-key computation, the set of inputs that control cache reuse should be treated as an implementation detail of the experiment rather than a guaranteed contract.
 - The on-disk cache format is intentionally provisional and may change without compatibility support.
 
