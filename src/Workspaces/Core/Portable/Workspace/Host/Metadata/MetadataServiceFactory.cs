@@ -3,9 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -38,6 +42,39 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
             => _metadataReferenceCacheService.GetReference(
                 resolvedPath, properties, _createReference);
 
+        private static ModuleMetadata CreateModuleMetadata(string path, bool prefetchEntireImage)
+        {
+            var fileStream = FileUtilities.OpenRead(path);
+
+            var options = PEStreamOptions.PrefetchMetadata;
+            if (prefetchEntireImage)
+            {
+                options |= PEStreamOptions.PrefetchEntireImage;
+            }
+
+            return ModuleMetadata.CreateFromStream(fileStream, options);
+        }
+
+        private static ImmutableArray<ModuleMetadata> GetAllModules(ModuleMetadata manifestModule, string assemblyDir)
+        {
+            var moduleNames = manifestModule.GetModuleNames();
+            if (moduleNames is [])
+            {
+                return [manifestModule];
+            }
+
+            var moduleBuilder = ArrayBuilder<ModuleMetadata>.GetInstance(moduleNames.Length + 1);
+            moduleBuilder.Add(manifestModule);
+
+            foreach (var moduleName in moduleNames)
+            {
+                var module = CreateModuleMetadata(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!, prefetchEntireImage: false);
+                moduleBuilder.Add(module);
+            }
+
+            return moduleBuilder.ToImmutableAndFree();
+        }
+
         private PortableExecutableReference CreateReference(
             string path, MetadataReferenceProperties properties)
         {
@@ -45,16 +82,28 @@ internal sealed class MetadataServiceFactory() : IWorkspaceServiceFactory
 
             try
             {
-                return MetadataReference.CreateFromFile(path, properties, documentationProvider);
+                if (properties.Kind == MetadataImageKind.Module)
+                {
+                    var module = CreateModuleMetadata(path, prefetchEntireImage: true);
+                    return module.GetReference(documentationProvider, filePath: path, display: null).WithProperties(properties);
+                }
+
+                var primaryModule = CreateModuleMetadata(path, prefetchEntireImage: false);
+
+                // Get all the modules, and load them. Create an assembly metadata.
+                var allModules = GetAllModules(primaryModule, PathUtilities.GetDirectoryName(path));
+
+                var assembly = AssemblyMetadata.Create(allModules);
+                return assembly.GetReference(documentationProvider, filePath: path, display: null).WithProperties(properties);
             }
-            catch (IOException e)
+            catch (Exception e) when (e is IOException or BadImageFormatException)
             {
                 // Store failed references in the cache so that the behavior stays consistent once we observe the failure.
                 return new ThrowingExecutableReference(path, properties, documentationProvider, e);
             }
         }
 
-        private sealed class ThrowingExecutableReference(string resolvedPath, MetadataReferenceProperties properties, DocumentationProvider documentationProvider, IOException exception)
+        private sealed class ThrowingExecutableReference(string resolvedPath, MetadataReferenceProperties properties, DocumentationProvider documentationProvider, Exception exception)
             : PortableExecutableReference(properties, resolvedPath)
         {
             protected override DocumentationProvider CreateDocumentationProvider()
