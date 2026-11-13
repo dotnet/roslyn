@@ -36,30 +36,22 @@ namespace Microsoft.Cci
         internal struct EmitBuilders
         {
             internal BlobBuilder IlBlobBuilder;
-            internal PooledBlobBuilder? MappedFieldDataBlobBuilder;
-            internal PooledBlobBuilder? ManagedResourceBlobBuilder;
+            internal PooledBlobBuilder MappedFieldDataBlobBuilder;
+            internal PooledBlobBuilder ManagedResourceBlobBuilder;
             internal PooledBlobBuilder? PortableExecutableBlobBuilder;
             internal PooledBlobBuilder? PortablePdbBlobBuilder;
 
             public EmitBuilders()
             {
                 IlBlobBuilder = new BlobBuilder(32 * 1024);
-                MappedFieldDataBlobBuilder = null;
-                ManagedResourceBlobBuilder = null;
+                MappedFieldDataBlobBuilder = PooledBlobBuilder.GetInstance();
+                ManagedResourceBlobBuilder = PooledBlobBuilder.GetInstance();
                 PortableExecutableBlobBuilder = null;
                 PortablePdbBlobBuilder = null;
             }
 
             internal void Free()
             {
-                // There is a bug in LinkSuffix / LinkPrefix which causes the ownership to not
-                // transfer when these have Count of 0. To avoid this problem we should not be
-                // creating these builders unless we will actually put content into them.
-                //
-                // https://github.com/dotnet/runtime/issues/99266
-                Debug.Assert(ManagedResourceBlobBuilder == null || ManagedResourceBlobBuilder.Count > 0);
-                Debug.Assert(MappedFieldDataBlobBuilder == null || MappedFieldDataBlobBuilder.Count > 0);
-
                 if (PortableExecutableBlobBuilder is null)
                 {
                     MappedFieldDataBlobBuilder?.Free();
@@ -113,8 +105,8 @@ namespace Microsoft.Cci
                 mdWriter.BuildMetadataAndIL(
                     nativePdbWriterOpt,
                     emitBuilders.IlBlobBuilder,
-                    out emitBuilders.MappedFieldDataBlobBuilder,
-                    out emitBuilders.ManagedResourceBlobBuilder,
+                    emitBuilders.MappedFieldDataBlobBuilder,
+                    emitBuilders.ManagedResourceBlobBuilder,
                     out mvidFixup,
                     out mvidStringFixup);
 
