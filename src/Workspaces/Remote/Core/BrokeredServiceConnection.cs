@@ -210,6 +210,25 @@ internal sealed class BrokeredServiceConnection<TService> : RemoteServiceConnect
         }
     }
 
+    public override async ValueTask<Optional<TResult>> TryInvokeWithAnalyzerReferencesAsync<TResult>(
+        SolutionCompilationState compilationState,
+        ProjectId projectId,
+        Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var scope = _solutionAssetStorage.StoreAnalyzerReferences(compilationState, projectId, cancellationToken);
+            using var rental = await RentServiceAsync(cancellationToken).ConfigureAwait(false);
+            return await invocation(rental.Service, scope.SolutionChecksum, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
+        {
+            OnUnexpectedException(exception, cancellationToken);
+            return default;
+        }
+    }
+
     public override async ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
     {
         try
