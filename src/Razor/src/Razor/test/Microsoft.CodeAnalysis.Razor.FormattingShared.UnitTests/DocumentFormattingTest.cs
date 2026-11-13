@@ -4404,6 +4404,38 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             expected: "<div><span>Hello <b>there</b></span></div>");
 
     [Fact]
+    public Task KeepsInlineContentWithMultilineAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <a href="/"
+                   class="a">link</a>
+                """,
+            htmlFormatted: """
+                <a href="/"
+                   class="a">link</a>
+                """,
+            expected: """
+                <a href="/"
+                   class="a">link</a>
+                """);
+
+    [Fact]
+    public Task KeepsUnknownElementContentWithMultilineAttributes()
+        => RunFormattingTestAsync(
+            input: """
+                <custom-element class="a"
+                                id="b">text</custom-element>
+                """,
+            htmlFormatted: """
+                <custom-element class="a"
+                                id="b">text</custom-element>
+                """,
+            expected: """
+                <custom-element class="a"
+                                id="b">text</custom-element>
+                """);
+
+    [Fact]
     public Task SplitsSingleLineContentWithMultilineAttributes()
         => RunFormattingTestAsync(
             input: """
@@ -15096,13 +15128,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </div>
                 </div>
                 """,
-            dotNetFormatExpected: """
-                <div>
-                    <div @onclick="() => Show(1,
-                                              2)"
-                         class="x">y</div>
-                </div>
-                """,
             expected: """
                 <div>
                     <div @onclick="() => Show(1,
@@ -15134,13 +15159,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                          class="x">
                         y
                     </div>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <div @onclick="() => Show(1,
-                                              2)"
-                        class="x">y</div>
                 </div>
                 """,
             expected: """
@@ -15177,13 +15195,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </div>
                 </div>
                 """,
-            dotNetFormatExpected: """
-                <div>
-                    <div @onclick="() => Show(1,
-                                              2)"
-                            class="x">y</div>
-                </div>
-                """,
             expected: """
                 <div>
                     <div @onclick="() => Show(1,
@@ -15216,13 +15227,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             class="x">
                         y
                     </button>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="() => Show(1, @* c *@
-                                      2)"
-                            class="x">y</button>
                 </div>
                 """,
             expected: """
@@ -15260,14 +15264,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="() => Show(1,
-                                      @* c *@
-                                      2)"
-                            class="x">y</button>
-                </div>
-                """,
             expected: """
                 <div>
                     <button @onclick="() => Show(1,
@@ -15300,13 +15296,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             class="x">
                         y
                     </button>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="() => Show(1,
-                                      2) @* c *@"
-                            class="x">y</button>
                 </div>
                 """,
             expected: """
@@ -15342,13 +15331,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     </button>
                 </div>
                 """,
-            dotNetFormatExpected: """
-                <div>
-                    <button name="@(
-                            x)"
-                            class="x">y</button>
-                </div>
-                """,
             expected: """
                 <div>
                     <button name="@(
@@ -15380,13 +15362,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             class="x">
                         y
                     </button>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="@(
-                            x)"
-                            class="x">y</button>
                 </div>
                 """,
             expected: """
@@ -15549,15 +15524,6 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             class="x">
                         y
                     </button>
-                </div>
-                """,
-            dotNetFormatExpected: """
-                <div>
-                    <button @onclick="() =>
-                                      {
-                                          Show(1);
-                                      }"
-                            class="x">y</button>
                 </div>
                 """,
             expected: """

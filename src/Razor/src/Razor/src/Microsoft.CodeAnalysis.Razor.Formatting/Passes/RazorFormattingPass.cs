@@ -524,12 +524,12 @@ internal sealed class RazorFormattingPass : IFormattingPass
             return;
         }
 
-        // Structural elements are always expanded, but for anything else we only expand elements that already span lines,
-        // so compact markup like <span>text</span> stays compact. This matches the Html formatter, which also expands
-        // content when only the attributes span lines. Empty elements are the exception, as the Html formatter leaves
-        // the end tag hugging a multi-line start tag, eg <label\n class="a"></label>, so for them we only look at the content.
+        // Structural elements are always expanded. For other elements, keep compact markup like <span>text</span> together
+        // unless its content spans lines. Like the Html formatter, also expand block elements when only their attributes
+        // span lines. Empty elements are the exception: the Html formatter leaves the end tag hugging a multiline start tag,
+        // eg <label\n class="a"></label>, so for them we only look at the content.
         var hasContent = text.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(contentStart, contentEnd), out _);
-        var checkStart = hasContent ? element.SpanStart : contentStart;
+        var checkStart = hasContent && HtmlFormattingFacts.IsBlockElement(startTag) ? element.SpanStart : contentStart;
         if (!HtmlFormattingFacts.IsStructuralElement(startTag) &&
             !text.GetLinePositionSpan(checkStart, contentEnd).SpansMultipleLines())
         {
