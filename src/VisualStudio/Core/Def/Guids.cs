@@ -11,6 +11,7 @@ internal static class Guids
 {
     public const string CSharpPackageIdString = "13c3bbb4-f18f-4111-9f54-a0fb010d9194";
     public const string CSharpProjectIdString = "fae04ec0-301f-11d3-bf4b-00c04f79efbc";
+    public const string CSharpCpsProjectIdString = "9a19103f-16f7-4668-be54-9a1e7a4f7556";
     public const string CSharpLanguageServiceIdString = "694dd9b6-b865-4c5b-ad85-86356e9c88dc";
     public const string CSharpEditorFactoryIdString = "a6c744a8-0e4a-4fc6-886a-064283054674";
     public const string CSharpCodePageEditorFactoryIdString = "08467b34-b90f-4d91-bdca-eb8c8cf3033a";
@@ -63,6 +64,7 @@ internal static class Guids
     public const string VbCompilerProjectIdString = "12C8A7D2-4681-11D2-B48A-0000F87572EB";
 
     public const string VisualBasicProjectIdString = "F184B08F-C81C-45F6-A57F-5ABD9991F28F";
+    public const string VisualBasicCpsProjectIdString = "778DAE3C-4631-46EA-AA77-85C1314464D9";
 
     public const string VisualBasicCompilerServiceIdString = "019971d6-4685-11d2-b48a-0000f87572eb";
     public const string VisualBasicLanguageServiceIdString = "e34acdc0-baae-11d0-88bf-00a0c9110049";
