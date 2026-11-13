@@ -54,7 +54,11 @@ namespace Microsoft.CodeAnalysis
         /// Run generators and produce an updated <see cref="GeneratorDriver"/> containing the results.
         /// </summary>
         /// <param name="compilation">The compilation to run generators against</param>
-        /// <param name="generatorFilter">A filter that specifies which generators to run. If <c>null</c> all generators will run.</param>
+        /// <param name="generatorFilter">
+        /// A filter that specifies which generators execute their regular source, implementation, and host outputs.
+        /// Initialization, post-initialization outputs, and pre-compilation outputs are not filtered because their
+        /// sources are shared inputs to other generators. If <c>null</c>, all generators execute their regular outputs.
+        /// </param>
         /// <param name="cancellationToken">Used to cancel an in progress operation.</param>
         /// <returns>An updated driver that contains the results of the generators running.</returns>
         public GeneratorDriver RunGenerators(Compilation compilation, Func<GeneratorFilterContext, bool>? generatorFilter, CancellationToken cancellationToken = default)
@@ -79,7 +83,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     trees.AddRange(generatorState.PostInitTrees.Select(t => t.Tree));
                     trees.AddRange(generatorState.PreCompilationTrees.Select(t => t.Tree));
-                    trees.AddRange(generatorState.GeneratedTrees.Select(t => t.Tree));
+                    trees.AddRange(GetCurrentRegularTrees(generatorState).Select(t => t.Tree));
                 }
 
                 outputCompilation = compilation.AddSyntaxTrees(trees);
@@ -186,13 +190,13 @@ namespace Microsoft.CodeAnalysis
                             _state.GeneratorStates,
                             (generator, generatorState)
                                 => new GeneratorRunResult(generator,
-                                                          diagnostics: generatorState.Diagnostics,
+                                                          diagnostics: getCurrentDiagnostics(generatorState.Diagnostics),
                                                           exception: generatorState.Exception,
                                                           generatedSources: getGeneratorSources(generatorState),
                                                           elapsedTime: generatorState.ElapsedTime,
                                                           namedSteps: generatorState.ExecutedSteps,
                                                           outputSteps: generatorState.OutputSteps,
-                                                          hostOutputs: generatorState.HostOutputs));
+                                                          hostOutputs: generatorState.PreCompilationFailed ? ImmutableDictionary<string, object>.Empty : generatorState.HostOutputs));
             return new GeneratorDriverRunResult(results, _state.RunTime);
 
             static ImmutableArray<GeneratedSourceResult> getGeneratorSources(GeneratorState generatorState)
@@ -214,12 +218,52 @@ namespace Microsoft.CodeAnalysis
                 {
                     sources.Add(new GeneratedSourceResult(tree.Tree, tree.Text, tree.HintName));
                 }
-                foreach (var tree in generatorState.GeneratedTrees)
+                foreach (var tree in GetCurrentRegularTrees(generatorState))
                 {
                     sources.Add(new GeneratedSourceResult(tree.Tree, tree.Text, tree.HintName));
                 }
                 return sources.ToImmutableAndFree();
             }
+
+            ImmutableArray<Diagnostic> getCurrentDiagnostics(ImmutableArray<Diagnostic> diagnostics)
+            {
+                if (diagnostics.IsDefaultOrEmpty)
+                    return diagnostics;
+
+                using var _ = ArrayBuilder<Diagnostic>.GetInstance(diagnostics.Length, out var currentDiagnostics);
+                foreach (var diagnostic in diagnostics)
+                {
+                    bool current = isCurrentTree(diagnostic.Location.SourceTree);
+                    foreach (var location in diagnostic.AdditionalLocations)
+                        current &= isCurrentTree(location.SourceTree);
+                    if (current)
+                        currentDiagnostics.Add(diagnostic);
+                }
+                return currentDiagnostics.Count == diagnostics.Length ? diagnostics : currentDiagnostics.ToImmutable();
+            }
+
+            bool isCurrentTree(SyntaxTree? tree)
+                => tree is null || _state.CompilationCache.Compilation.ContainsSyntaxTree(tree);
+        }
+
+        private static ImmutableArray<GeneratedSyntaxTree> GetCurrentRegularTrees(GeneratorState generatorState)
+        {
+            if (generatorState.PreCompilationFailed || generatorState.GeneratedTrees.IsDefaultOrEmpty)
+                return ImmutableArray<GeneratedSyntaxTree>.Empty;
+            if (generatorState.PostInitTrees.IsEmpty && generatorState.PreCompilationTrees.IsEmpty)
+            {
+                return generatorState.GeneratedTrees;
+            }
+
+            // Shared sources take precedence without destroying the retained regular result.
+            var reserved = CollectHintNames(generatorState.PostInitTrees, generatorState.PreCompilationTrees);
+            using var _ = ArrayBuilder<GeneratedSyntaxTree>.GetInstance(generatorState.GeneratedTrees.Length, out var currentTrees);
+            foreach (var tree in generatorState.GeneratedTrees)
+            {
+                if (!reserved.Contains(tree.HintName))
+                    currentTrees.Add(tree);
+            }
+            return currentTrees.Count == generatorState.GeneratedTrees.Length ? generatorState.GeneratedTrees : currentTrees.ToImmutable();
         }
 
         public GeneratorDriverTimingInfo GetTimingInfo()
@@ -246,6 +290,7 @@ namespace Microsoft.CodeAnalysis
             var stateBuilder = ArrayBuilder<GeneratorState>.GetInstance(state.Generators.Length);
             var constantSourcesBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
             var syntaxInputNodes = ArrayBuilder<SyntaxInputNode>.GetInstance();
+            var runRegularOutputs = ArrayBuilder<bool>.GetInstance(state.Generators.Length);
 
             try
             {
@@ -254,12 +299,8 @@ namespace Microsoft.CodeAnalysis
                     var generator = state.IncrementalGenerators[i];
                     var generatorState = state.GeneratorStates[i];
                     var sourceGenerator = state.Generators[i];
-
-                    if (shouldSkipGenerator(sourceGenerator))
-                    {
-                        stateBuilder.Add(generatorState);
-                        continue;
-                    }
+                    bool runRegularOutput = generatorFilter?.Invoke(new GeneratorFilterContext(sourceGenerator, cancellationToken)) != false;
+                    runRegularOutputs.Add(runRegularOutput);
 
                     // initialize the generator if needed
                     if (!generatorState.Initialized)
@@ -301,24 +342,14 @@ namespace Microsoft.CodeAnalysis
                                          ? new GeneratorState(postInitSources, inputNodes, outputNodes)
                                          : SetGeneratorException(compilation, MessageProvider, GeneratorState.Empty, sourceGenerator, ex, diagnosticsBag, phase: GeneratorRunPhase.Init, runTime: null, cancellationToken);
                     }
-                    else if (generatorState.RequiresInputTreeReparse(state.ParseOptions))
+                    else if (generatorState.RequiresPostInitTreeReparse(state.ParseOptions))
                     {
                         // the generator is initialized, but we need to reparse constant trees as the parse options have changed
                         var reparsedInitSources = generatorState.PostInitTrees.Length > 0
                             ? ParseAdditionalSources(sourceGenerator, generatorState.PostInitTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken)
                             : generatorState.PostInitTrees;
 
-                        var reparsedPreCompilationSources = generatorState.PreCompilationTrees.Length > 0
-                            ? ParseAdditionalSources(sourceGenerator, generatorState.PreCompilationTrees.SelectAsArray(t => new GeneratedSourceText(t.HintName, t.Text)), cancellationToken)
-                            : generatorState.PreCompilationTrees;
-
-                        generatorState = new GeneratorState(reparsedInitSources, generatorState.InputNodes, generatorState.OutputNodes, reparsedPreCompilationSources);
-                    }
-
-                    // if the pipeline registered any syntax input nodes, record them
-                    if (!generatorState.InputNodes.IsEmpty)
-                    {
-                        syntaxInputNodes.AddRange(generatorState.InputNodes);
+                        generatorState = generatorState.WithReparsedPostInitTrees(reparsedInitSources);
                     }
 
                     // record any constant sources
@@ -338,8 +369,7 @@ namespace Microsoft.CodeAnalysis
                 constantSourcesBuilder.Free();
                 constantSourcesBuilder = null;
 
-                var driverStateBuilder = new DriverStateTable.Builder(_state, compilation, syntaxInputNodes.ToImmutableAndFree(), cancellationToken);
-                syntaxInputNodes = null;
+                var driverStateBuilder = new DriverStateTable.Builder(_state, compilation, ImmutableArray<SyntaxInputNode>.Empty, cancellationToken);
 
                 // Pre-compilation pass: evaluate pre-compilation output nodes for all generators
                 // and add their sources to the compilation before standard output nodes execute.
@@ -355,19 +385,19 @@ namespace Microsoft.CodeAnalysis
                 for (int i = 0; i < state.IncrementalGenerators.Length; i++)
                 {
                     var generatorState = stateBuilder[i];
-                    if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0)
+                    if (generatorState.OutputNodes.Length == 0)
                     {
                         continue;
                     }
 
                     try
                     {
-                        var preCompReserved = collectHintNames(generatorState.PostInitTrees);
+                        var preCompReserved = CollectHintNames(generatorState.PostInitTrees);
                         var preCompilationContext = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.PreCompilation, generatorRunStateBuilders[i], preCompReserved, cancellationToken, driverStateBuilder);
-                        var (sources, _, _, _) = preCompilationContext.ToImmutableAndFree();
+                        var (sources, _, executedSteps, _) = preCompilationContext.ToImmutableAndFree();
 
                         var parsedSources = ReuseOrParsePreCompilationSources(state.Generators[i], sources, generatorState.PreCompilationTrees, cancellationToken);
-                        stateBuilder[i] = generatorState.WithPreCompilationTrees(parsedSources);
+                        stateBuilder[i] = generatorState.WithPreCompilationTrees(parsedSources, executedSteps);
                     }
                     catch (UserFunctionException ufe) when (handleGeneratorException(compilation, MessageProvider, state.Generators[i], ufe.InnerException, isInit: false))
                     {
@@ -377,10 +407,8 @@ namespace Microsoft.CodeAnalysis
 
                 // Accumulate the inputs that determine the compilation seen by standard-phase
                 // generators, then ask the cache whether to reuse the previous run's compilation
-                // reference or build a new one. Filtered generators don't run their pre-comp
-                // callback this pass, but their state still carries the previously collected
-                // PreCompilationTrees -- feeding those (and the just-produced trees from unfiltered
-                // generators) into the cache keeps the resulting compilation stable across runs.
+                // reference or build a new one. Shared sources are up to date for every generator,
+                // independently of the regular-output filter.
                 var cacheBuilder = state.CompilationCache.ToBuilder(inputCompilation, compilation);
                 for (int i = 0; i < state.IncrementalGenerators.Length; i++)
                 {
@@ -396,7 +424,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         foreach (var tree in generatorState.PreCompilationTrees)
                         {
-                            cacheBuilder.AddPreCompTree(i, tree);
+                            cacheBuilder.AddPreCompTree(tree.Tree);
                         }
                     }
                 }
@@ -404,12 +432,20 @@ namespace Microsoft.CodeAnalysis
                 state = state.With(compilationCache: cacheBuilder.ToImmutableAndFree());
                 compilation = state.CompilationCache.Compilation;
 
-                driverStateBuilder.SetCompilation(compilation);
+                // The shared phase can fail after initialization; exclude those generators' regular syntax callbacks too.
+                for (int i = 0; i < state.IncrementalGenerators.Length; i++)
+                {
+                    var generatorState = stateBuilder[i];
+                    if (runRegularOutputs[i] && !generatorState.PreCompilationFailed)
+                        syntaxInputNodes.AddRange(generatorState.InputNodes);
+                }
+                driverStateBuilder.SetCompilation(compilation, syntaxInputNodes.ToImmutableAndFree());
+                syntaxInputNodes = null;
 
                 for (int i = 0; i < state.IncrementalGenerators.Length; i++)
                 {
                     var generatorState = stateBuilder[i];
-                    if (shouldSkipGenerator(state.Generators[i]) || generatorState.OutputNodes.Length == 0 || generatorState.PreCompilationFailed)
+                    if (!runRegularOutputs[i] || generatorState.OutputNodes.Length == 0 || generatorState.PreCompilationFailed)
                     {
                         continue;
                     }
@@ -420,7 +456,7 @@ namespace Microsoft.CodeAnalysis
                         // Reserve hint names from prior phases (PostInit and PreCompilation) so that
                         // standard-phase outputs cannot collide with them. Hint names must be unique
                         // across all phases for a single generator.
-                        var standardReserved = collectHintNames(generatorState.PostInitTrees, generatorState.PreCompilationTrees);
+                        var standardReserved = CollectHintNames(generatorState.PostInitTrees, generatorState.PreCompilationTrees);
                         // We do not support incremental step tracking for v1 generators, as the pipeline is implicitly defined.
                         var context = UpdateOutputs(generatorState.OutputNodes, IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host, generatorRunStateBuilders[i], standardReserved, cancellationToken, driverStateBuilder);
                         (var sources, var generatorDiagnostics, var generatorRunStateTable, var hostOutputs) = context.ToImmutableAndFree();
@@ -443,6 +479,7 @@ namespace Microsoft.CodeAnalysis
                 stateBuilder?.Free();
                 constantSourcesBuilder?.Free();
                 syntaxInputNodes?.Free();
+                runRegularOutputs.Free();
             }
 
             static bool handleGeneratorException(Compilation compilation, CommonMessageProvider messageProvider, ISourceGenerator sourceGenerator, Exception e, bool isInit)
@@ -457,29 +494,22 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            bool shouldSkipGenerator(ISourceGenerator generator) => generatorFilter?.Invoke(new GeneratorFilterContext(generator, cancellationToken)) == false;
+        }
 
-            static ImmutableHashSet<string> collectHintNames(ImmutableArray<GeneratedSyntaxTree> trees, ImmutableArray<GeneratedSyntaxTree> additionalTrees = default)
+        private static ImmutableHashSet<string> CollectHintNames(ImmutableArray<GeneratedSyntaxTree> trees, ImmutableArray<GeneratedSyntaxTree> additionalTrees = default)
+        {
+            if (trees.IsEmpty && additionalTrees.IsDefaultOrEmpty)
+                return ImmutableHashSet<string>.Empty;
+
+            var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var tree in trees)
+                builder.Add(tree.HintName);
+            if (!additionalTrees.IsDefaultOrEmpty)
             {
-                if (trees.IsEmpty && (additionalTrees.IsDefaultOrEmpty))
-                {
-                    return ImmutableHashSet<string>.Empty;
-                }
-
-                var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var tree in trees)
-                {
+                foreach (var tree in additionalTrees)
                     builder.Add(tree.HintName);
-                }
-                if (!additionalTrees.IsDefaultOrEmpty)
-                {
-                    foreach (var tree in additionalTrees)
-                    {
-                        builder.Add(tree.HintName);
-                    }
-                }
-                return builder.ToImmutable();
             }
+            return builder.ToImmutable();
         }
 
         private IncrementalExecutionContext UpdateOutputs(ImmutableArray<IIncrementalGeneratorOutputNode> outputNodes, IncrementalGeneratorOutputKind outputKind, GeneratorRunStateTable.Builder generatorRunStateBuilder, ImmutableHashSet<string> reservedHintNames, CancellationToken cancellationToken, DriverStateTable.Builder? driverStateBuilder = null)
@@ -555,7 +585,8 @@ namespace Microsoft.CodeAnalysis
                     if (!previousTrees.IsDefaultOrEmpty
                         && j < previousTrees.Length
                         && ReferenceEquals(source.Text, previousTrees[j].Text)
-                        && string.Equals(source.HintName, previousTrees[j].HintName, StringComparison.OrdinalIgnoreCase))
+                        && string.Equals(source.HintName, previousTrees[j].HintName, StringComparison.OrdinalIgnoreCase)
+                        && previousTrees[j].Tree.Options == _state.ParseOptions)
                     {
                         trees.Add(previousTrees[j]);
                     }

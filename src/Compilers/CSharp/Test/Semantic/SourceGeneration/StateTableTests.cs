@@ -912,6 +912,99 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     Assert.Equal(IncrementalStepRunReason.New, step.Inputs[0].Source.Outputs[step.Inputs[0].OutputIndex].Reason);
                     Assert.Collection(step.Outputs, output => Assert.Equal(((6, 0), IncrementalStepRunReason.New), output));
                 });
+
+            dstBuilder = GetBuilder(dstBuilder.ToImmutable(), true);
+            table = dstBuilder.GetLatestStateTableForNode(combineNode);
+            AssertTableEntries(table,
+                new[] { ((1, 0), EntryState.Cached, 0), ((4, 0), EntryState.Cached, 0), ((5, 0), EntryState.Cached, 0), ((6, 0), EntryState.Cached, 0) });
+            Assert.Equal(4, table.Steps.Length);
+            Assert.All(table.Steps, step =>
+                Assert.Equal(IncrementalStepRunReason.Cached, Assert.Single(step.Outputs).Reason));
+        }
+
+        [Theory, CombinatorialData]
+        public void CombineNode_Removal_Compacts_Current_Rows(
+            bool trackSteps, bool useSelectMany, [CombinatorialValues(0, 1, 2)] int previousExecution)
+        {
+            ImmutableArray<int> values = [1, 2, 3];
+            int right = 0;
+            IIncrementalGeneratorNode<int> left;
+            if (useSelectMany)
+            {
+                var input = new InputNode<ImmutableArray<int>>(_ => ImmutableArray.Create(values));
+                left = new TransformNode<ImmutableArray<int>, int>(input, static (items, _) => items);
+            }
+            else
+            {
+                left = new InputNode<int>(_ => values);
+            }
+
+            var rightInput = new InputNode<int>(_ => ImmutableArray.Create(right));
+            var combine = new CombineNode<int, int>(left, rightInput).WithTrackingName("Combine");
+            var builder = GetBuilder(DriverStateTable.Empty, trackSteps);
+            if (previousExecution != 0)
+                builder.GetLatestStateTableForNode(combine);
+            if (previousExecution != 1)
+            {
+                builder = GetBuilder(builder.ToImmutable(), trackSteps);
+                builder.GetLatestStateTableForNode(left);
+            }
+
+            ImmutableArray<ImmutableArray<int>> transitions = [[2, 3], [3], [], [1, 2, 3], [3, 2, 1], [3, 4, 1]];
+            foreach (var nextValues in transitions)
+            {
+                values = nextValues;
+                right++;
+                for (int pass = 0; pass < 3; pass++)
+                {
+                    builder = GetBuilder(builder.ToImmutable(), trackSteps);
+                    var table = builder.GetLatestStateTableForNode(combine);
+                    var current = new List<(int, int)>();
+                    foreach (var entry in table)
+                    {
+                        if (entry.State != EntryState.Removed)
+                            current.Add(entry.Item);
+                    }
+                    AssertEx.SetEqual(values.Select(value => (value, right)), current);
+                    Assert.Equal(values.Length, current.Count);
+                    Assert.Equal(values.Length, table.AsCached().Count);
+                    if (pass > 0)
+                        Assert.True(table.IsEmpty || table.IsCached);
+                }
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void CombineNode_Comparer_Keeps_Survivor_Aligned(
+            bool trackSteps, [CombinatorialValues(0, 1, 2)] int previousExecution)
+        {
+            ImmutableArray<int> values = [1, 2, 3];
+            int right = 0;
+            var left = new InputNode<int>(_ => values);
+            var rightInput = new InputNode<int>(_ => ImmutableArray.Create(right));
+            var combine = new CombineNode<int, int>(left, rightInput)
+                .WithComparer(new LambdaComparer<(int, int)>(static (_, _) => true))
+                .WithTrackingName("Combine");
+            var builder = GetBuilder(DriverStateTable.Empty, trackSteps);
+            if (previousExecution != 0)
+                builder.GetLatestStateTableForNode(combine);
+            if (previousExecution != 1)
+            {
+                builder = GetBuilder(builder.ToImmutable(), trackSteps);
+                builder.GetLatestStateTableForNode(left);
+            }
+
+            values = [2, 3];
+            builder = GetBuilder(builder.ToImmutable(), trackSteps);
+            builder.GetLatestStateTableForNode(combine);
+            right = 1;
+            for (int pass = 0; pass < 3; pass++)
+            {
+                builder = GetBuilder(builder.ToImmutable(), trackSteps);
+                var table = builder.GetLatestStateTableForNode(combine);
+                AssertTableEntries(table, [((2, 0), EntryState.Cached, 0), ((3, 0), EntryState.Cached, 0)]);
+                Assert.Equal(2, table.Count);
+            }
         }
 
         [Fact]
