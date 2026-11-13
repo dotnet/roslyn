@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseRecursivePatterns;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRecursivePatterns;
@@ -174,6 +175,84 @@ public sealed class UseRecursivePatternsRefactoringTests
         Task ValidateAsync(string initialMarkup, string expectedMarkup)
             => VerifyAsync(initialMarkup, expectedMarkup, skipCodeActionValidation);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84522")]
+    public Task TestVarPattern_VariableReadAfterStatement()
+        => VerifyMissingAsync("""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M<T>(IEnumerable<T> items)
+                {
+                    if (items.ToList() is var data [||]&& data.Count == 0)
+                    {
+                        return;
+                    }
+
+                    Console.WriteLine(data);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84522")]
+    public Task TestVarPattern_VariableReadInElse()
+        => VerifyMissingAsync("""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M<T>(IEnumerable<T> items)
+                {
+                    if (items.ToList() is var data [||]&& data.Count == 0)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        Console.WriteLine(data);
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84522")]
+    public Task TestVarPattern_VariableNotReadAfterStatement()
+        => VerifyAsync("""
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M<T>(IEnumerable<T> items)
+                {
+                    if (items.ToList() is var data [||]&& data.Count == 0)
+                    {
+                        Console.WriteLine(data);
+                    }
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class C
+            {
+                void M<T>(IEnumerable<T> items)
+                {
+                    if (items.ToList() is { Count: 0 } data)
+                    {
+                        Console.WriteLine(data);
+                    }
+                }
+            }
+            """);
 
     private static string WrapInIfStatement(string actual, string? entry = null)
     {
