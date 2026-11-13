@@ -14355,9 +14355,8 @@ class B
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            // Region analysis treats this as a receiver read, as it does for a ref initializer.
-            Assert.Equal("b", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("b", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
         }
@@ -14418,8 +14417,8 @@ class B
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("s, i", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("s, i", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("s", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside));
         }
@@ -14452,8 +14451,41 @@ class B
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Equal("b", GetSymbolNamesJoined(analysis.ReadInside));
-            Assert.Equal("b", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void InlineArrays_AddressOfUnassignedReceiverAndIndex()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        Buffer2 b;
+                        int i;
+                #line 100
+                        int* p = &b[i];
+                    }
+                }
+                """ + InlineArray2Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,21): error CS0165: Use of unassigned local variable 'i'
+                //         int* p = &b[i];
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "i").WithArguments("i").WithLocation(100, 21));
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
         }
