@@ -29339,7 +29339,7 @@ struct C<T> where T : allows ref struct
 }
 """;
         CompileAndVerify(src2, targetFramework: TargetFramework.Net90, verify: Verification.FailsPEVerify).VerifyTypeIL("C`1", """
-.class private sequential ansi sealed beforefieldinit C`1<byreflike T>
+.class private sequential ansi sealed beforefieldinit C`1<T>
     extends [System.Runtime]System.ValueType
 {
     .pack 0
