@@ -1580,12 +1580,14 @@ class Program
                     static void Unassigned()
                     {
                         int x;
+                #line 100
                         ref int r = ref x;
                     }
 
                     static void Assigned()
                     {
                         int x = 0;
+                #line 200
                         ref int r = ref x;
                     }
                 }
@@ -1593,9 +1595,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,25): error CS0165: Use of unassigned local variable 'x'
+                // (100,25): error CS0165: Use of unassigned local variable 'x'
                 //         ref int r = ref x;
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(100, 25));
 
             var tree = comp.SyntaxTrees.Single();
             var refExpressions = tree.GetRoot().DescendantNodes().OfType<RefExpressionSyntax>().ToArray();
@@ -1621,12 +1623,14 @@ class Program
                     static void Unassigned()
                     {
                         S s;
+                #line 100
                         ref int r = ref s.F;
                     }
 
                     static void Assigned()
                     {
                         S s = default;
+                #line 200
                         ref int r = ref s.F;
                     }
                 }
@@ -1640,9 +1644,9 @@ class Program
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,25): error CS0170: Use of possibly unassigned field 'F'
+                // (100,25): error CS0170: Use of possibly unassigned field 'F'
                 //         ref int r = ref s.F;
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.F").WithArguments("F").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.F").WithArguments("F").WithLocation(100, 25));
 
             var tree = comp.SyntaxTrees.Single();
             var refExpressions = tree.GetRoot().DescendantNodes().OfType<RefExpressionSyntax>().ToArray();
@@ -14194,12 +14198,14 @@ class B
                     static void Unassigned()
                     {
                         Buffer2 b;
+                #line 100
                         ref int r = ref b[0];
                     }
 
                     static void Assigned()
                     {
                         Buffer2 b = default;
+                #line 200
                         ref int r = ref b[0];
                     }
                 }
@@ -14207,9 +14213,9 @@ class B
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyDiagnostics(
-                // (6,25): error CS0165: Use of unassigned local variable 'b'
+                // (100,25): error CS0165: Use of unassigned local variable 'b'
                 //         ref int r = ref b[0];
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(100, 25));
 
             var tree = comp.SyntaxTrees.Single();
             var refExpressions = tree.GetRoot().DescendantNodes().OfType<RefExpressionSyntax>().ToArray();
@@ -14223,6 +14229,107 @@ class B
                 Assert.Equal("b", GetSymbolNamesJoined(analysis.ReadInside));
                 Assert.Equal("b", GetSymbolNamesJoined(analysis.DataFlowsIn));
                 Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void InlineArrays_RefReadonlyElementRead()
+        {
+            var source = """
+                class C
+                {
+                    static void Unassigned()
+                    {
+                        S s;
+                #line 100
+                        ref readonly int r = ref s.F[0];
+                    }
+
+                    static void Assigned()
+                    {
+                        S s = default;
+                #line 200
+                        ref readonly int r = ref s.F[0];
+                    }
+                }
+
+                public struct S
+                {
+                    public readonly Buffer2 F;
+                }
+                """ + InlineArray2Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (100,34): error CS0170: Use of possibly unassigned field 'F'
+                //         ref readonly int r = ref s.F[0];
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.F").WithArguments("F").WithLocation(100, 34));
+
+            var tree = comp.SyntaxTrees.Single();
+            var refExpressions = tree.GetRoot().DescendantNodes().OfType<RefExpressionSyntax>().ToArray();
+            Assert.Equal(2, refExpressions.Length);
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (var refExpression in refExpressions)
+            {
+                var analysis = model.AnalyzeDataFlow(refExpression.Expression);
+                Assert.True(analysis.Succeeded);
+                Assert.Equal("s", GetSymbolNamesJoined(analysis.ReadInside));
+                Assert.Equal("s", GetSymbolNamesJoined(analysis.DataFlowsIn));
+                Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            }
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        [InlineData("")]
+        [InlineData("readonly")]
+        public void InlineArrays_AddressOfSliceElement(string modifier)
+        {
+            var source = $$"""
+                unsafe class C
+                {
+                    static void Unassigned()
+                    {
+                        S s;
+                        int i = 0;
+                #line 100
+                        fixed (int* p = &s.F[..][i]) { }
+                    }
+
+                    static void Assigned()
+                    {
+                        S s = default;
+                        int i = 0;
+                #line 200
+                        fixed (int* p = &s.F[..][i]) { }
+                    }
+                }
+
+                public struct S
+                {
+                    public {{modifier}} Buffer2 F;
+                }
+                """ + InlineArray2Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,26): error CS0170: Use of possibly unassigned field 'F'
+                //         fixed (int* p = &s.F[..][i]) { }
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "s.F").WithArguments("F").WithLocation(100, 26));
+
+            var tree = comp.SyntaxTrees.Single();
+            var addresses = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().ToArray();
+            Assert.Equal(2, addresses.Length);
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (var address in addresses)
+            {
+                var analysis = model.AnalyzeDataFlow(address);
+                Assert.True(analysis.Succeeded);
+                Assert.Equal("s, i", GetSymbolNamesJoined(analysis.ReadInside));
+                Assert.Equal("s, i", GetSymbolNamesJoined(analysis.DataFlowsIn));
+                Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+                Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
             }
         }
 
