@@ -216,9 +216,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             dotNetFormatExpected: """
                 <div>
                   <script>
-                function f() {
-                return 1;
-                }
+                  function f() {
+                  return 1;
+                  }
                   </script>
                 </div>
                 """,
@@ -1992,11 +1992,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             dotNetFormatExpected: """
                 @section Scripts {
                     <script>
-                            function initialize() {
-                                if (ready) {
-                                    start();
-                                }
+                        function initialize() {
+                            if (ready) {
+                                start();
                             }
+                        }
                     </script>
                 }
                 """,
@@ -2044,11 +2044,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             dotNetFormatExpected: """
                 @section Scripts {
                     <script>
-                    function initialize() {
-                    if (ready) {
-                    start();
-                    }
-                    }
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
                     </script>
                 }
                 """,
@@ -2103,11 +2103,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @section Scripts {
                     <div>
                         <script>
-                                function initialize() {
-                                    if (ready) {
-                                        start();
-                                    }
+                            function initialize() {
+                                if (ready) {
+                                    start();
                                 }
+                            }
                         </script>
                     </div>
                 }
@@ -2163,11 +2163,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @section Scripts {
                     <div>
                         <script>
-                    function initialize() {
-                    if (ready) {
-                    start();
-                    }
-                    }
+                function initialize() {
+                if (ready) {
+                start();
+                }
+                }
                         </script>
                     </div>
                 }
@@ -2230,11 +2230,11 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <main>
                         <section>
                             <script>
-                                    function initialize() {
-                                        if (ready) {
-                                            start();
-                                        }
+                                function initialize() {
+                                    if (ready) {
+                                        start();
                                     }
+                                }
                             </script>
                         </section>
                     </main>
@@ -2366,9 +2366,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @section Styles {
                     <div>
                         <style>
-                                .card {
-                                    color: red;
-                                }
+                            .card {
+                                color: red;
+                            }
                         </style>
                     </div>
                 }
@@ -2418,9 +2418,9 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 @section Styles {
                     <div>
                         <style>
-                    .card {
-                    color: red;
-                    }
+                .card {
+                color: red;
+                }
                         </style>
                     </div>
                 }
@@ -2502,23 +2502,23 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
                     <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
                     <script>
-                        var data = null;
-                            var allocationMoveTemplateFn = null;
-                            var allocationTableTemplateFn = null;
-                                var manufactureOrderInfoTemplateFn = null;
-                            var selectionsJsonTemplateFn = null;
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
                 
-                            function getAllocationMoveTemplate() {
-                                if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
                 
-                                var sourceEl = document.getElementById('allocationMoveTemplate');
-                                if (!sourceEl || typeof Handlebars === 'undefined') {
-                                    return null;
-                                }
-                
-                                allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
-                                return allocationMoveTemplateFn;
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
                             }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
                 
                     </script>
                 }
@@ -2607,6 +2607,32 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                         }
                 
                 </script>
+                }
+                """,
+            dotNetFormatExpected: """
+                @section Scripts {
+                    <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js"></script>
+                    <script src="https://cdn.plot.ly/plotly-3.2.0.min.js"></script>
+                    <script>
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
+
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
+                            }
+
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
+
+                    </script>
                 }
                 """,
             expected: """
@@ -2706,23 +2732,23 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                     <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
                     </script>
                     <script>
-                        var data = null;
-                            var allocationMoveTemplateFn = null;
-                            var allocationTableTemplateFn = null;
-                                var manufactureOrderInfoTemplateFn = null;
-                            var selectionsJsonTemplateFn = null;
+                    var data = null;
+                        var allocationMoveTemplateFn = null;
+                        var allocationTableTemplateFn = null;
+                            var manufactureOrderInfoTemplateFn = null;
+                        var selectionsJsonTemplateFn = null;
                 
-                            function getAllocationMoveTemplate() {
-                                if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+                        function getAllocationMoveTemplate() {
+                            if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
                 
-                                var sourceEl = document.getElementById('allocationMoveTemplate');
-                                if (!sourceEl || typeof Handlebars === 'undefined') {
-                                    return null;
-                                }
-                
-                                allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
-                                return allocationMoveTemplateFn;
+                            var sourceEl = document.getElementById('allocationMoveTemplate');
+                            if (!sourceEl || typeof Handlebars === 'undefined') {
+                                return null;
                             }
+                
+                            allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                            return allocationMoveTemplateFn;
+                        }
                 
                     </script>
                 }
@@ -2813,6 +2839,32 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                             return allocationMoveTemplateFn;
                         }
                 
+                </script>
+                """,
+            dotNetFormatExpected: """
+                <script src="https://cdn.jsdelivr.net/npm/handlebars@4.7.8/dist/handlebars.min.js">
+                </script>
+                <script src="https://cdn.plot.ly/plotly-3.2.0.min.js">
+                </script>
+                <script>
+                var data = null;
+                    var allocationMoveTemplateFn = null;
+                    var allocationTableTemplateFn = null;
+                        var manufactureOrderInfoTemplateFn = null;
+                    var selectionsJsonTemplateFn = null;
+
+                    function getAllocationMoveTemplate() {
+                        if (allocationMoveTemplateFn) return allocationMoveTemplateFn;
+
+                        var sourceEl = document.getElementById('allocationMoveTemplate');
+                        if (!sourceEl || typeof Handlebars === 'undefined') {
+                            return null;
+                        }
+
+                        allocationMoveTemplateFn = Handlebars.compile(sourceEl.innerHTML);
+                        return allocationMoveTemplateFn;
+                    }
+
                 </script>
                 """,
             expected: """
@@ -18922,6 +18974,196 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
                 </div>
                 """,
             ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86429")]
+    public Task ScriptBodyInIfKeepsIndentation(bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <script>
+                        var x = 1;
+                        function f() {
+                        }
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <script>
+                    var x = 1;
+                    function f() {
+                    }
+                </script>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <script>
+                        var x = 1;
+                        function f() {
+                        }
+                    </script>
+                }
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86429")]
+    public Task StyleBodyInNestedBlocksKeepsIndentation(bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @foreach (var i in new[] { 1 })
+                {
+                    @if (true)
+                    {
+                        <style>
+                            .a {
+                                color: red;
+                            }
+                        </style>
+                    }
+                }
+                """,
+            htmlFormatted: """
+                @foreach (var i in new[] { 1 })
+                {
+                    @if (true)
+                    {
+                <style>
+                    .a {
+                        color: red;
+                    }
+                </style>
+                    }
+                }
+                """,
+            expected: """
+                @foreach (var i in new[] { 1 })
+                {
+                    @if (true)
+                    {
+                        <style>
+                            .a {
+                                color: red;
+                            }
+                        </style>
+                    }
+                }
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86429")]
+    public Task ScriptBodyInIfKeepsIndentation_Legacy(bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <script>
+                        var x = 1;
+                        function f() {
+                        }
+                    </script>
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <script>
+                    var x = 1;
+                    function f() {
+                    }
+                </script>
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <script>
+                        var x = 1;
+                        function f() {
+                        }
+                    </script>
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86429")]
+    public Task ScriptEndTagSharesBodyLineInIfDoesNotAffectFollowingContent(bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
+    {
+        return RunFormattingTestAsync(
+            input: """
+                @if (true)
+                {
+                    <script>
+                        var x = @Value;
+                        function f() {
+                        }</script>
+                    <div>
+                        <p>x</p>
+                    </div>
+                }
+                <div>
+                    <p>y</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            htmlFormatted: """
+                @if (true)
+                {
+                <script>
+                    var x = @Value;
+                    function f() {
+                    }</script>
+                <div>
+                    <p>x</p>
+                </div>
+                }
+                <div>
+                    <p>y</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            expected: """
+                @if (true)
+                {
+                    <script>
+                        var x = @Value;
+                        function f() {
+                        }</script>
+                    <div>
+                        <p>x</p>
+                    </div>
+                }
+                <div>
+                    <p>y</p>
+                </div>
+                @code {
+                    int Value = 1;
+                }
+                """,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
     }
 
     [Fact]
