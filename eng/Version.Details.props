@@ -50,7 +50,7 @@ This file should be imported by eng/Versions.props
     <MicrosoftNetCompilersToolsetPackageVersion>5.14.0-1.26557.1</MicrosoftNetCompilersToolsetPackageVersion>
     <RoslynDiagnosticsAnalyzersPackageVersion>5.14.0-1.26557.1</RoslynDiagnosticsAnalyzersPackageVersion>
     <!-- dotnet-symreader dependencies -->
-    <MicrosoftDiaSymReaderPackageVersion>2.2.10</MicrosoftDiaSymReaderPackageVersion>
+    <MicrosoftDiaSymReaderPackageVersion>12.0.0-alpha.1.26554.104</MicrosoftDiaSymReaderPackageVersion>
   </PropertyGroup>
   <!--Property group for alternate package version names-->
   <PropertyGroup>
