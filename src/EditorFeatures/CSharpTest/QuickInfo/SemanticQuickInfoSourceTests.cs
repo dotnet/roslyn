@@ -3291,7 +3291,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """,
-            MainDescription($"({FeaturesResources.discard}) int _"));
+            MainDescription($"({FeaturesResources.discard}) int _"),
+            item => Assert.Equal(TextTags.Keyword,
+                item.Sections.Single(section => section.Kind == QuickInfoSectionKinds.Description)
+                    .TaggedParts.Single(part => part.Text == "_").Tag));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16662")]
     public Task TestUnderscoreLocalInAssignment()
@@ -3305,7 +3308,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """,
-            MainDescription($"({FeaturesResources.local_variable}) int _"));
+            MainDescription($"({FeaturesResources.local_variable}) int _"),
+            item => Assert.Equal(TextTags.Local,
+                item.Sections.Single(section => section.Kind == QuickInfoSectionKinds.Description)
+                    .TaggedParts.Single(part => part.Text == "_").Tag));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16662")]
     public Task TestShortDiscardInOutVar()
@@ -3320,7 +3326,10 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """,
-            MainDescription($"({FeaturesResources.discard}) int _"));
+            MainDescription($"({FeaturesResources.discard}) int _"),
+            item => Assert.Equal(TextTags.Keyword,
+                item.Sections.Single(section => section.Kind == QuickInfoSectionKinds.Description)
+                    .TaggedParts.Single(part => part.Text == "_").Tag));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/16667")]
     public Task TestDiscardInOutVar()
@@ -3366,33 +3375,48 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             }
             """); // No quick info (see issue #16667)
 
-    [Fact]
-    public Task TestLambdaDiscardParameter_FirstDiscard()
+    [Theory]
+    [InlineData("($$_, _) => 1", true)]
+    [InlineData("(string $$_, int _) => 1", true)]
+    [InlineData("delegate(string $$_, int _) { return 1; }", true)]
+    [InlineData("($$_, value) => 1", false)]
+    [InlineData("(string $$_, int value) => 1", false)]
+    [InlineData("delegate(string $$_, int value) { return 1; }", false)]
+    public Task TestAnonymousFunctionDiscardParameter_FirstDiscard(string expression, bool isDiscard)
         => TestAsync(
-            """
+            $$"""
             class C
             {
                 void M()
                 {
-                    System.Func<string, int, int> f = ($$_, _) => 1;
+                    System.Func<string, int, int> f = {{expression}};
                 }
             }
             """,
-            MainDescription($"({FeaturesResources.discard}) string _"));
+            MainDescription($"({(isDiscard ? FeaturesResources.discard : FeaturesResources.parameter)}) string _"),
+            item => Assert.Equal(isDiscard ? TextTags.Keyword : TextTags.Parameter,
+                item.Sections.Single(section => section.Kind == QuickInfoSectionKinds.Description)
+                    .TaggedParts.Single(part => part.Text == "_").Tag));
 
-    [Fact]
-    public Task TestLambdaDiscardParameter_SecondDiscard()
+    [Theory]
+    [InlineData("(_, $$_) => 1")]
+    [InlineData("(string _, int $$_) => 1")]
+    [InlineData("delegate(string _, int $$_) { return 1; }")]
+    public Task TestAnonymousFunctionDiscardParameter_SecondDiscard(string expression)
         => TestAsync(
-            """
+            $$"""
             class C
             {
                 void M()
                 {
-                    System.Func<string, int, int> f = (_, $$_) => 1;
+                    System.Func<string, int, int> f = {{expression}};
                 }
             }
             """,
-            MainDescription($"({FeaturesResources.discard}) int _"));
+            MainDescription($"({FeaturesResources.discard}) int _"),
+            item => Assert.Equal(TextTags.Keyword,
+                item.Sections.Single(section => section.Kind == QuickInfoSectionKinds.Description)
+                    .TaggedParts.Single(part => part.Text == "_").Tag));
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540871")]
     public Task TestLiterals()

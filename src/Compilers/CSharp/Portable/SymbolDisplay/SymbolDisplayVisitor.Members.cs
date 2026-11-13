@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     AddSpace();
                 }
-                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
+                var kind = symbol.IsThis || symbol.IsDiscard ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
                 Builder.Add(CreatePart(kind, symbol, symbol.Name));
             }
 
