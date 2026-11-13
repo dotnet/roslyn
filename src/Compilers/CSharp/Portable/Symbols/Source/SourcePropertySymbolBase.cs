@@ -1878,7 +1878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else
                             {
                                 // StartPropertyParameters was completed by another thread. Wait for it to finish the parameters.
-                                _state.SpinWaitComplete(CompletionPart.FinishPropertyParameters, cancellationToken);
+                                _state.SpinWaitComplete(CompletionPart.FinishPropertyParameters, this, cancellationToken);
                             }
                         }
                         break;
@@ -1902,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             else
                             {
                                 // StartPropertyType was completed by another thread. Wait for it to finish the type.
-                                _state.SpinWaitComplete(CompletionPart.FinishPropertyType, cancellationToken);
+                                _state.SpinWaitComplete(CompletionPart.FinishPropertyType, this, cancellationToken);
                             }
                         }
                         break;
@@ -1916,7 +1916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                _state.SpinWaitComplete(incompletePart, cancellationToken);
+                _state.SpinWaitComplete(incompletePart, this, cancellationToken);
             }
         }
 #nullable disable

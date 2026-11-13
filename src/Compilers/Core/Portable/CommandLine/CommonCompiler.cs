@@ -1012,6 +1012,8 @@ namespace Microsoft.CodeAnalysis
 
                 OnCompilationCompleted(exitCode == Succeeded);
 
+                ReportCompilationStatistics(compilation, consoleOutput);
+
                 if (exitCode == Succeeded)
                 {
                     OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, cancellationToken);
@@ -1790,6 +1792,9 @@ namespace Microsoft.CodeAnalysis
         protected virtual void OnCompilationCompleted(bool succeeded)
         {
         }
+
+        protected virtual void ReportCompilationStatistics(Compilation compilation, TextWriter consoleOutput)
+            => compilation.ReportSymbolCompletionWaits(consoleOutput);
 
         /// <summary>
         /// Notifies the compiler that a compilation completed successfully. Override in server

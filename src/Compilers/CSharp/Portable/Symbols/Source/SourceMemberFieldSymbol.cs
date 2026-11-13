@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                state.SpinWaitComplete(incompletePart, cancellationToken);
+                state.SpinWaitComplete(incompletePart, this, cancellationToken);
             }
         }
 #nullable disable

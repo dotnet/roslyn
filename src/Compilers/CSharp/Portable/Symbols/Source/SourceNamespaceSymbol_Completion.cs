@@ -104,14 +104,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
 
-                _state.SpinWaitComplete(incompletePart, cancellationToken);
+                _state.SpinWaitComplete(incompletePart, this, cancellationToken);
             }
 
 done:
 // Don't return until we've seen all of the CompletionParts. This ensures all
 // diagnostics have been reported (not necessarily on this thread).
             CompletionPart allParts = (locationOpt == null && filter == null) ? CompletionPart.NamespaceSymbolAll : CompletionPart.NamespaceSymbolAll & ~CompletionPart.MembersCompleted;
-            _state.SpinWaitComplete(allParts, cancellationToken);
+            _state.SpinWaitComplete(allParts, this, cancellationToken);
         }
 
         internal override bool HasComplete(CompletionPart part)

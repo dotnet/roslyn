@@ -135,6 +135,9 @@ namespace Roslyn.Test.Utilities
 
         private sealed class CSharpCompilerImpl : CSharpCompiler
         {
+            protected override void ReportCompilationStatistics(Compilation compilation, TextWriter consoleOutput)
+                => base.ReportCompilationStatistics(compilation, TextWriter.Null);
+
             internal CSharpCompilerImpl(string[] args, BuildPaths buildPaths, TestableFileSystem? fileSystem)
                 : base(CSharpCommandLineParser.Default, responseFile: null, args, buildPaths, additionalReferenceDirectories: null, new AnalyzerAssemblyLoader(), fileSystem: fileSystem)
             {

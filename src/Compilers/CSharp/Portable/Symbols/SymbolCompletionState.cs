@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // whether this invariant is tied to correctness or not. The most compelling example though is 
                 // SourceEventSymbol which raises SymbolDeclaredEvent before CompletionPart.Attributes is noted as completed. 
                 // Many other implementations have this pattern but no apparent code which could depend on it.
-                SpinWaitComplete(CompletionPart.Attributes, cancellationToken);
+                SpinWaitComplete(CompletionPart.Attributes, symbol, cancellationToken);
             }
 
             // any other values are completion parts intended for other kinds of symbols
@@ -117,7 +118,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (bits & (bits - 1)) == 0;
         }
 
-        internal void SpinWaitComplete(CompletionPart part, CancellationToken cancellationToken)
+        internal void SpinWaitComplete(CompletionPart part, Symbol symbol, CancellationToken cancellationToken)
+        {
+            if (!HasComplete(part))
+            {
+                SpinWaitComplete(part, symbol.DeclaringCompilation, cancellationToken);
+            }
+        }
+
+        internal void SpinWaitComplete(CompletionPart part, CSharpCompilation compilation, CancellationToken cancellationToken)
+            // The timeout value is chosen based on an assumption that even a high load/low availability machine
+            // is very likely to complete the pending work within that time.
+            => SpinWaitCompleteCore(part, timeoutMilliseconds: 60_000, compilation, cancellationToken);
+
+        // Internal for testing only. A finite timeout is required.
+        internal void SpinWaitCompleteCore(CompletionPart part, uint timeoutMilliseconds, CSharpCompilation compilation, CancellationToken cancellationToken)
         {
             if (HasComplete(part))
             {
@@ -126,11 +141,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Don't return until we've seen all of the requested CompletionParts. This ensures all
             // diagnostics have been reported (not necessarily on this thread).
-            var spinWait = new SpinWait();
-            while (!HasComplete(part))
+            // Timeout handling follows SpinWait.SpinUntil, specialized for a finite timeout:
+            // https://github.com/dotnet/runtime/blob/c0c1c3382f34f5b9f489ddebc88eeb34a1f13a06/src/libraries/System.Private.CoreLib/src/System/Threading/SpinWait.cs#L305
+            uint startTime = unchecked((uint)Environment.TickCount);
+            var outcome = CSharpCompilation.SymbolCompletionWaitOutcome.Interrupted;
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                spinWait.SpinOnce();
+                var spinWait = new SpinWait();
+                while (!HasComplete(part))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    spinWait.SpinOnce();
+
+                    if (spinWait.NextSpinWillYield &&
+                        unchecked((uint)Environment.TickCount - startTime) >= timeoutMilliseconds &&
+                        !HasComplete(part))
+                    {
+                        outcome = CSharpCompilation.SymbolCompletionWaitOutcome.TimedOut;
+                        throw new InvalidOperationException("Symbol completion timed out.");
+                    }
+                }
+
+                outcome = CSharpCompilation.SymbolCompletionWaitOutcome.Completed;
+            }
+            catch (OperationCanceledException)
+            {
+                outcome = CSharpCompilation.SymbolCompletionWaitOutcome.Canceled;
+                throw;
+            }
+            finally
+            {
+                uint elapsedMilliseconds = unchecked((uint)Environment.TickCount - startTime);
+                compilation.RecordSymbolCompletionWait(elapsedMilliseconds, outcome);
             }
         }
 
