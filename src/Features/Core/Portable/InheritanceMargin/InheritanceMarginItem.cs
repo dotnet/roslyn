@@ -25,8 +25,8 @@ internal readonly struct InheritanceMarginItem(
     public readonly int LineNumber = lineNumber;
 
     /// <summary>
-    /// Special display text to show when showing the 'hover' tip for a margin item.  Used to override the default
-    /// text we show that says "'X' is inherited".  Used currently for showing information about top-level-imports.
+    /// Special display text to show instead of the default inheritance-navigation tooltip for a margin item.
+    /// Used currently for showing information about top-level-imports.
     /// </summary>
     [DataMember(Order = 1)]
     public readonly string? TopLevelDisplayText = topLevelDisplayText;

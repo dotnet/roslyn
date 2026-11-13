@@ -25,7 +25,8 @@ internal sealed class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewMo
         string displayContent,
         ImageMoniker imageMoniker,
         DetachedDefinitionItem definitionItem,
-        ImageMoniker languageMoniker) : base(displayContent, imageMoniker, definitionItem)
+        ImageMoniker languageMoniker,
+        bool isIndented = true) : base(displayContent, imageMoniker, definitionItem, isIndented)
     {
         LanguageMoniker = languageMoniker;
     }
@@ -37,6 +38,7 @@ internal sealed class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewMo
             target.DisplayName,
             target.Glyph.GetImageMoniker(),
             target.DefinitionItem,
-            target.LanguageGlyph.GetImageMoniker());
+            target.LanguageGlyph.GetImageMoniker(),
+            isIndented: target.RelationToMember != InheritanceRelationship.InheritedImport);
     }
 }
