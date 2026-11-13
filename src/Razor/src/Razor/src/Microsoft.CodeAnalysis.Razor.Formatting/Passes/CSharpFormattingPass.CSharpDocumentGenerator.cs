@@ -252,7 +252,8 @@ internal partial class CSharpFormattingPass
                         }
 
                         var lineInfo = Visit(_currentToken.Parent);
-                        _lineInfoBuilder.Add(EmitCloseBracesForEndTagsLaterInLine(lineInfo, line.LineNumber));
+                        lineInfo = EmitCloseBracesForEndTagsLaterInLine(lineInfo, line.LineNumber);
+                        _lineInfoBuilder.Add(EmitOpenBracesForStartTagsLaterInLine(lineInfo));
                         Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
                     }
                     else if (DocumentMappingHelper.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
@@ -819,6 +820,57 @@ internal partial class CSharpFormattingPass
                 }
 
                 return lineInfo with { SkipNextLines = lineInfo.SkipNextLines + closeBraceCount };
+            }
+
+            private LineInfo EmitOpenBracesForStartTagsLaterInLine(LineInfo lineInfo)
+            {
+                // The Visit methods only ever see the first node on a line, so a start tag that comes later in the line, eg:
+                //
+                // <div>
+                //     text <span>
+                //         a
+                //     </span>
+                // </div>
+                //
+                // won't be visited, and won't emit the open brace that its end tag will close. Without it, the contents of the
+                // element, and everything after it, would be indented one level too shallow. Lines that might be followed by an
+                // open brace, depending on how Roslyn formats them, are left alone for the same reason as close braces are, and so
+                // are lines we're not formatting.
+                if (lineInfo.SkipNextLineIfBrace ||
+                    _ignoreUntilLine is { } ignoreUntilLine && ignoreUntilLine > _currentLine.LineNumber)
+                {
+                    return lineInfo;
+                }
+
+                var openBraceCount = 0;
+                for (var token = _currentToken.GetNextToken();
+                    token.Kind != SyntaxKind.None && token.Position < _currentLine.End;
+                    token = token.GetNextToken())
+                {
+                    if (token.Parent is CSharpStatementLiteralSyntax or RazorMetaCodeSyntax or MarkupTransitionSyntax)
+                    {
+                        // Markup after C# code on the same line, or in a template, is handled by the C# formatting, so we stop.
+                        break;
+                    }
+
+                    if (token.Kind == SyntaxKind.OpenAngle &&
+                        token.Parent is BaseMarkupStartTagSyntax startTag &&
+                        !ElementHasSignificantWhitespace(startTag) &&
+                        ElementCausesIndentation(startTag))
+                    {
+                        openBraceCount++;
+                        RecordEndTagNotStartingALine(startTag);
+                    }
+                }
+
+                // We emit the open braces on lines after this one, which leaves this line indented as content of the element's
+                // parent, and skip those lines when mapping the formatted document back.
+                for (var i = 0; i < openBraceCount; i++)
+                {
+                    _builder.AppendLine("{");
+                }
+
+                return lineInfo with { SkipNextLines = lineInfo.SkipNextLines + openBraceCount };
             }
 
             private bool ElementCausesIndentation(BaseMarkupStartTagSyntax node)
