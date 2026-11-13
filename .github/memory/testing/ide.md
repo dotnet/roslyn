@@ -35,6 +35,9 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
+- Documentation-comment tests select the paste handler through `CreatePasteCommandHandler`.
+  Visual Basic exports a separate paste handler before line commit so XML adjustments
+  have their own Undo step; typing and Return continue using the normal documentation handler.
 - When a test needs a feature waiter, retrieve the concrete
   `AsynchronousOperationListenerProvider` from the export provider and call
   `GetWaiter`; do not retrieve the interface and cast the listener.
