@@ -251,6 +251,79 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
         return compilationUnitWithSeparatorLine.ReplaceNode(firstMember, firstMember.WithPrependedLeadingTrivia(orphanedTrivia));
     }
 
+    /// <summary>
+    /// Moves preprocessor directives (like #if/#endif) that surround using directives along with the usings.
+    /// If the first using has an #if directive, finds the corresponding #endif and attaches it to the last using.
+    /// </summary>
+    private static (ImmutableArray<UsingDirectiveSyntax> adjustedUsings, BaseNamespaceDeclarationSyntax adjustedContainer) MovePreprocessorDirectivesWithUsings(
+        ImmutableArray<UsingDirectiveSyntax> usings, BaseNamespaceDeclarationSyntax container)
+    {
+        if (usings.IsEmpty)
+            return (usings, container);
+
+        // Check if the first using has an #if directive in its leading trivia
+        var firstUsing = usings[0];
+        var leadingTrivia = firstUsing.GetLeadingTrivia();
+        var hasIfDirective = leadingTrivia.Any(t => t.IsKind(SyntaxKind.IfDirectiveTrivia));
+
+        if (!hasIfDirective)
+            return (usings, container);
+
+        // Find the #endif directive. It should be in the leading trivia of the first member after the usings.
+        var members = container.Members;
+        if (members.Count == 0)
+            return (usings, container);
+
+        var firstMember = members[0];
+        var firstMemberLeadingTrivia = firstMember.GetLeadingTrivia();
+
+        // Find the first #endif directive in the member's leading trivia
+        var endIfIndex = -1;
+        for (int i = 0; i < firstMemberLeadingTrivia.Count; i++)
+        {
+            if (firstMemberLeadingTrivia[i].IsKind(SyntaxKind.EndIfDirectiveTrivia))
+            {
+                endIfIndex = i;
+                break;
+            }
+        }
+
+        if (endIfIndex == -1)
+            return (usings, container);
+
+        // Extract the #endif and any trivia up to and including the first newline after it
+        var endIfTrivia = firstMemberLeadingTrivia[endIfIndex];
+        var triviaToMove = new List<SyntaxTrivia> { endIfTrivia };
+
+        // Include the newline after the #endif
+        if (endIfIndex + 1 < firstMemberLeadingTrivia.Count &&
+            firstMemberLeadingTrivia[endIfIndex + 1].IsKind(SyntaxKind.EndOfLineTrivia))
+        {
+            triviaToMove.Add(firstMemberLeadingTrivia[endIfIndex + 1]);
+        }
+
+        // Remove the #endif and its trailing newline from the first member
+        var newFirstMemberLeadingTrivia = firstMemberLeadingTrivia.ToList();
+        for (int i = triviaToMove.Count - 1; i >= 0; i--)
+        {
+            newFirstMemberLeadingTrivia.RemoveAt(endIfIndex);
+        }
+
+        var newFirstMember = firstMember.WithLeadingTrivia(newFirstMemberLeadingTrivia);
+        var newContainer = container.ReplaceNode(firstMember, newFirstMember);
+
+        // Attach the #endif to the last using's trailing trivia
+        var lastUsing = usings[^1];
+        var lastUsingTrailingTrivia = lastUsing.GetTrailingTrivia();
+        var newLastUsingTrailingTrivia = lastUsingTrailingTrivia.AddRange(triviaToMove);
+        var newLastUsing = lastUsing.WithTrailingTrivia(newLastUsingTrailingTrivia);
+
+        // Replace the last using in the array
+        var adjustedUsings = usings.SetItem(usings.Length - 1, newLastUsing);
+
+        return (adjustedUsings, newContainer);
+    }
+
     private static (BaseNamespaceDeclarationSyntax namespaceWithoutUsings, ImmutableArray<UsingDirectiveSyntax> usingsFromNamespace) RemoveUsingsFromNamespace(
         BaseNamespaceDeclarationSyntax usingContainer, bool ignoringAliases)
     {
@@ -261,19 +334,27 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
 
         // Get the using directives from the namespaces.
         var usingsFromNamespaces = namespaceDeclarationMap.Values.SelectMany(result => result.usingsFromNamespace);
-        var usings = ignoringAliases
+
+        // Get usings from the current container level only
+        var localUsings = ignoringAliases
             ? usingContainer.Usings.Where(u => u.Alias is null)
             : usingContainer.Usings;
-        var allUsings = usings.Concat(usingsFromNamespaces).ToImmutableArray();
 
         // Replace the namespace declarations in the compilation with the ones without using directives.
         var namespaceDeclarationWithReplacedNamespaces = usingContainer.ReplaceNodes(
             namespaceDeclarations, (node, _) => namespaceDeclarationMap[node].namespaceWithoutUsings);
 
+        // Handle preprocessor directives that surround the usings at this container level
+        var (adjustedLocalUsings, adjustedContainer) = MovePreprocessorDirectivesWithUsings(
+            localUsings.ToImmutableArray(), namespaceDeclarationWithReplacedNamespaces);
+
+        // Combine adjusted local usings with usings from nested namespaces
+        var allUsings = adjustedLocalUsings.Concat(usingsFromNamespaces).ToImmutableArray();
+
         // Remove usings and fix leading trivia for namespace declaration.
-        var namespaceDeclarationWithoutUsings = namespaceDeclarationWithReplacedNamespaces
+        var namespaceDeclarationWithoutUsings = adjustedContainer
             .WithUsings(ignoringAliases
-                ? List(namespaceDeclarationWithReplacedNamespaces.Usings.Where(u => u.Alias != null))
+                ? List(adjustedContainer.Usings.Where(u => u.Alias != null))
                 : default);
 
         var namespaceDeclarationWithoutBlankLine = namespaceDeclarationWithoutUsings.Usings.Count == 0
