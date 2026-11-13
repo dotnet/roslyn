@@ -13191,7 +13191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' or next keyword.
         ''' </summary>
         Public Shared Function NumericLabel() As LabelSyntax
-            Return SyntaxFactory.NumericLabel(SyntaxFactory.Token(SyntaxKind.IntegerLiteralToken))
+            Return SyntaxFactory.NumericLabel(SyntaxFactory.IntegerLiteralToken("0", LiteralBase.Decimal, TypeCharacter.None, 0UL))
         End Function
 
 
@@ -40336,7 +40336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' whitespace in an XML literal expression.
         ''' </summary>
         Public Shared Function XmlDeclarationOption(value As XmlStringSyntax) As XmlDeclarationOptionSyntax
-            Return SyntaxFactory.XmlDeclarationOption(SyntaxFactory.Token(SyntaxKind.XmlNameToken), SyntaxFactory.Token(SyntaxKind.EqualsToken), value)
+            Return SyntaxFactory.XmlDeclarationOption(SyntaxFactory.XmlNameToken(String.Empty, SyntaxKind.XmlNameToken), SyntaxFactory.Token(SyntaxKind.EqualsToken), value)
         End Function
 
 
@@ -40388,7 +40388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents Xml text.
         ''' </summary>
         Public Shared Function XmlText() As XmlTextSyntax
-            Return SyntaxFactory.XmlText(SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.XmlTextLiteralToken)))
+            Return SyntaxFactory.XmlText(SyntaxTokenList.Create(SyntaxFactory.XmlTextLiteralToken(String.Empty, String.Empty)))
         End Function
 
 
@@ -40598,7 +40598,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an XML name of the form 'name' appearing in GetXmlNamespace().
         ''' </summary>
         Public Shared Function XmlPrefixName() As XmlPrefixNameSyntax
-            Return SyntaxFactory.XmlPrefixName(SyntaxFactory.Token(SyntaxKind.XmlNameToken))
+            Return SyntaxFactory.XmlPrefixName(SyntaxFactory.XmlNameToken(String.Empty, SyntaxKind.XmlNameToken))
         End Function
 
 
@@ -40623,7 +40623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' namespace import clause.
         ''' </summary>
         Public Shared Function XmlName() As XmlNameSyntax
-            Return SyntaxFactory.XmlName(Nothing, SyntaxFactory.Token(SyntaxKind.XmlNameToken))
+            Return SyntaxFactory.XmlName(Nothing, SyntaxFactory.XmlNameToken(String.Empty, SyntaxKind.XmlNameToken))
         End Function
 
 
@@ -40687,7 +40687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an XML namespace prefix of the form 'prefix:' as in xml:ns="".
         ''' </summary>
         Public Shared Function XmlPrefix() As XmlPrefixSyntax
-            Return SyntaxFactory.XmlPrefix(SyntaxFactory.Token(SyntaxKind.XmlNameToken), SyntaxFactory.Token(SyntaxKind.ColonToken))
+            Return SyntaxFactory.XmlPrefix(SyntaxFactory.XmlNameToken(String.Empty, SyntaxKind.XmlNameToken), SyntaxFactory.Token(SyntaxKind.ColonToken))
         End Function
 
 
@@ -40715,7 +40715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' XML literal expression.
         ''' </summary>
         Public Shared Function XmlComment() As XmlCommentSyntax
-            Return SyntaxFactory.XmlComment(SyntaxFactory.Token(SyntaxKind.LessThanExclamationMinusMinusToken), SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.XmlTextLiteralToken)), SyntaxFactory.Token(SyntaxKind.MinusMinusGreaterThanToken))
+            Return SyntaxFactory.XmlComment(SyntaxFactory.Token(SyntaxKind.LessThanExclamationMinusMinusToken), SyntaxTokenList.Create(SyntaxFactory.XmlTextLiteralToken(String.Empty, String.Empty)), SyntaxFactory.Token(SyntaxKind.MinusMinusGreaterThanToken))
         End Function
 
 
@@ -40748,7 +40748,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' XMLProcessingValue ?&gt;'.
         ''' </summary>
         Public Shared Function XmlProcessingInstruction() As XmlProcessingInstructionSyntax
-            Return SyntaxFactory.XmlProcessingInstruction(SyntaxFactory.Token(SyntaxKind.LessThanQuestionToken), SyntaxFactory.Token(SyntaxKind.XmlNameToken), SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.XmlTextLiteralToken)), SyntaxFactory.Token(SyntaxKind.QuestionGreaterThanToken))
+            Return SyntaxFactory.XmlProcessingInstruction(SyntaxFactory.Token(SyntaxKind.LessThanQuestionToken), SyntaxFactory.XmlNameToken(String.Empty, SyntaxKind.XmlNameToken), SyntaxTokenList.Create(SyntaxFactory.XmlTextLiteralToken(String.Empty, String.Empty)), SyntaxFactory.Token(SyntaxKind.QuestionGreaterThanToken))
         End Function
 
 
@@ -40774,7 +40774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an XML CDATA section in an XML literal expression.
         ''' </summary>
         Public Shared Function XmlCDataSection() As XmlCDataSectionSyntax
-            Return SyntaxFactory.XmlCDataSection(SyntaxFactory.Token(SyntaxKind.BeginCDataToken), SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.XmlTextLiteralToken)), SyntaxFactory.Token(SyntaxKind.EndCDataToken))
+            Return SyntaxFactory.XmlCDataSection(SyntaxFactory.Token(SyntaxKind.BeginCDataToken), SyntaxTokenList.Create(SyntaxFactory.XmlTextLiteralToken(String.Empty, String.Empty)), SyntaxFactory.Token(SyntaxKind.EndCDataToken))
         End Function
 
 
@@ -43654,7 +43654,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents the beginning of a #Region directive appearing in source.
         ''' </summary>
         Public Shared Function RegionDirectiveTrivia() As RegionDirectiveTriviaSyntax
-            Return SyntaxFactory.RegionDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.RegionKeyword), SyntaxFactory.Token(SyntaxKind.StringLiteralToken))
+            Return SyntaxFactory.RegionDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.RegionKeyword), SyntaxFactory.StringLiteralToken("""""", String.Empty))
         End Function
 
 
@@ -43750,7 +43750,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' appearing in source.
         ''' </summary>
         Public Shared Function ExternalSourceDirectiveTrivia() As ExternalSourceDirectiveTriviaSyntax
-            Return SyntaxFactory.ExternalSourceDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), SyntaxFactory.Token(SyntaxKind.StringLiteralToken), SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.Token(SyntaxKind.IntegerLiteralToken), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+            Return SyntaxFactory.ExternalSourceDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), SyntaxFactory.StringLiteralToken("""""", String.Empty), SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.IntegerLiteralToken("0", LiteralBase.Decimal, TypeCharacter.None, 0UL), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
         End Function
 
 
@@ -43848,7 +43848,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an #ExternalChecksum pre-processing directive appearing in source.
         ''' </summary>
         Public Shared Function ExternalChecksumDirectiveTrivia() As ExternalChecksumDirectiveTriviaSyntax
-            Return SyntaxFactory.ExternalChecksumDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExternalChecksumKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), SyntaxFactory.Token(SyntaxKind.StringLiteralToken), SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.Token(SyntaxKind.StringLiteralToken), SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.Token(SyntaxKind.StringLiteralToken), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+            Return SyntaxFactory.ExternalChecksumDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExternalChecksumKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), SyntaxFactory.StringLiteralToken("""""", String.Empty), SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.StringLiteralToken("""""", String.Empty), SyntaxFactory.Token(SyntaxKind.CommaToken), SyntaxFactory.StringLiteralToken("""""", String.Empty), SyntaxFactory.Token(SyntaxKind.CloseParenToken))
         End Function
 
 
@@ -43966,7 +43966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Represents an #r directive appearing in scripts.
         ''' </summary>
         Public Shared Function ReferenceDirectiveTrivia() As ReferenceDirectiveTriviaSyntax
-            Return SyntaxFactory.ReferenceDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ReferenceKeyword), SyntaxFactory.Token(SyntaxKind.StringLiteralToken))
+            Return SyntaxFactory.ReferenceDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ReferenceKeyword), SyntaxFactory.StringLiteralToken("""""", String.Empty))
         End Function
 
 

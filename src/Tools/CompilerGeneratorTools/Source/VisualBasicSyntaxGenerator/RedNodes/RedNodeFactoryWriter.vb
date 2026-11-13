@@ -608,7 +608,7 @@ Friend Class RedNodeFactoryWriter
 
         If IsAutoCreatableToken(nodeStructure, nodeKind, child) Then
             Dim childNodeKind = GetChildNodeKind(nodeKind, child)
-            Dim result = String.Format("SyntaxFactory.Token(SyntaxKind.{0})", childNodeKind.Name)
+            Dim result = GetDefaultTokenExpression(childNodeKind)
             If child.IsList Then
                 result = "SyntaxTokenList.Create(" & result & ")"
             End If
@@ -624,6 +624,23 @@ Friend Class RedNodeFactoryWriter
             End If
         End If
         Throw New InvalidOperationException("Badness")
+    End Function
+
+    ' SyntaxFactory.Token only accepts keyword and punctuation kinds, so tokens that carry a value
+    ' (literals, XML names and text) need their own factory to get a default.
+    Private Shared Function GetDefaultTokenExpression(tokenKind As ParseNodeKind) As String
+        Select Case tokenKind.Name
+            Case "StringLiteralToken"
+                Return "SyntaxFactory.StringLiteralToken("""""""""""", String.Empty)"
+            Case "IntegerLiteralToken"
+                Return "SyntaxFactory.IntegerLiteralToken(""0"", LiteralBase.Decimal, TypeCharacter.None, 0UL)"
+            Case "XmlNameToken"
+                Return "SyntaxFactory.XmlNameToken(String.Empty, SyntaxKind.XmlNameToken)"
+            Case "XmlTextLiteralToken"
+                Return "SyntaxFactory.XmlTextLiteralToken(String.Empty, String.Empty)"
+            Case Else
+                Return String.Format("SyntaxFactory.Token(SyntaxKind.{0})", tokenKind.Name)
+        End Select
     End Function
 
     Private Function IsRequiredFactoryChild(node As ParseNodeStructure, nodeKind As ParseNodeKind, child As ParseNodeChild) As Boolean
