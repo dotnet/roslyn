@@ -57,10 +57,14 @@ namespace RunTests
 
         public string Configuration { get; set; }
 
+        private static TestRuntime DefaultTestRuntime => RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? TestRuntime.Core | TestRuntime.Framework
+            : TestRuntime.Core;
+
         /// <summary>
         /// The set of target frameworks that should be probed for test assemblies.
         /// </summary>
-        public TestRuntime TestRuntime { get; set; } = TestRuntime.Core | TestRuntime.Framework;
+        public TestRuntime TestRuntime { get; set; } = DefaultTestRuntime;
 
         public List<string> IncludeFilter { get; set; } = new List<string>();
 
@@ -158,7 +162,7 @@ namespace RunTests
             var platform = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
             bool? includeHtml = null;
             var ci = false;
-            var testRuntime = TestRuntime.Core | TestRuntime.Framework;
+            var testRuntime = DefaultTestRuntime;
             var configuration = "Debug";
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
