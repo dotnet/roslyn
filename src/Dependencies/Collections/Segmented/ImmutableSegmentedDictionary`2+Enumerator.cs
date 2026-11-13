@@ -44,9 +44,23 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public readonly KeyValuePair<TKey, TValue> Current => _enumerator.Current;
 
-            readonly object IEnumerator.Current => _returnType == ReturnType.DictionaryEntry ? ((IDictionaryEnumerator)this).Entry : Current;
+            readonly object IEnumerator.Current
+            {
+                get
+                {
+                    var self = this;
+                    return self._returnType == ReturnType.DictionaryEntry ? ((IDictionaryEnumerator)self).Entry : self.Current;
+                }
+            }
 
-            readonly DictionaryEntry IDictionaryEnumerator.Entry => new(Current.Key, Current.Value);
+            readonly DictionaryEntry IDictionaryEnumerator.Entry
+            {
+                get
+                {
+                    var current = Current;
+                    return new(current.Key, current.Value);
+                }
+            }
 
             readonly object IDictionaryEnumerator.Key => Current.Key;
 
@@ -60,7 +74,9 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public void Reset()
             {
-                _enumerator = _dictionary.GetEnumerator();
+                var self = this;
+                self._enumerator = self._dictionary.GetEnumerator();
+                this = self;
             }
         }
     }
