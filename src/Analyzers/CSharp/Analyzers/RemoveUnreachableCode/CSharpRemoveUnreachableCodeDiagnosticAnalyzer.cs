@@ -54,8 +54,11 @@ internal sealed class CSharpRemoveUnreachableCodeDiagnosticAnalyzer : AbstractBu
         // recompile things to determine the diagnostics.  It will have already stashed the
         // binding diagnostics directly on the SourceMethodSymbol containing this block, and
         // so it can retrieve the diagnostics at practically no cost.
+        // Note that we call GetMethodBodyDiagnostics rather than GetDiagnostics as it's cheaper, and will contain CS0162, if exists.
+        // Measuring showed that GetDiagnostics can spend a good amount of time in GetClsComplianceDiagnostics for example.
+        // GetMethodBodyDiagnostics will not go through that code path. See comments in https://github.com/dotnet/roslyn/pull/70455 for reference. 
         var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
-        var diagnostics = semanticModel.GetDiagnostics(context.FilterSpan, cancellationToken);
+        var diagnostics = semanticModel.GetMethodBodyDiagnostics(context.FilterSpan, cancellationToken);
         foreach (var diagnostic in diagnostics)
         {
             cancellationToken.ThrowIfCancellationRequested();
