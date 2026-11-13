@@ -4,7 +4,7 @@
 
 #nullable disable
 
-#pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib 
+#pragma warning disable 436 // SuppressUnmanagedCodeSecurityAttribute defined in source and mscorlib
 
 using System;
 using System.Runtime.InteropServices;
@@ -12,9 +12,11 @@ using System.Security;
 
 namespace Microsoft.DiaSymReader
 {
-    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("B01FAFEB-C450-3A4D-BEEC-B4CEEC01E006"), SuppressUnmanagedCodeSecurity]
-    internal unsafe interface ISymUnmanagedDocumentWriter
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("B01FAFEB-C450-3A4D-BEEC-B4CEEC01E006"), SuppressUnmanagedCodeSecurity]
+    [GeneratedWhenPossibleComInterface]
+    internal unsafe partial interface ISymUnmanagedDocumentWriter
     {
+        // Roslyn uses byte* instead of byte[] (upstream) to avoid allocations when passing ReadOnlySpan<byte>.
         void SetSource(uint sourceSize, byte* source);
         void SetCheckSum(Guid algorithmId, uint checkSumSize, byte* checkSum);
     }
