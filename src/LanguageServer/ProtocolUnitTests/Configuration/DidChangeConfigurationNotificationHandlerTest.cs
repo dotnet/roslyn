@@ -154,6 +154,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
             "projects.dotnet_enable_file_based_programs_when_ambiguous",
             "navigation.dotnet_navigate_to_source_link_and_embedded_sources",
             "formatting.dotnet_organize_imports_on_format",
+            "code_action.dotnet_fix_all_minimum_severity",
         };
 
         AssertEx.EqualOrDiff(

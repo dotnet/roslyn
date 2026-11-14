@@ -64,5 +64,6 @@ internal sealed partial class DidChangeConfigurationNotificationHandler
         LanguageServerProjectSystemOptionsStorage.EnableSemanticErrorsInMiscellaneousFiles,
         MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,
         LspOptionsStorage.LspOrganizeImportsOnFormat,
+        LspOptionsStorage.FixAllMinimumSeverity,
     ];
 }
