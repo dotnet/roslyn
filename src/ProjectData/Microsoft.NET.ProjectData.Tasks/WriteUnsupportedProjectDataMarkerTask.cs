@@ -9,7 +9,7 @@ using Microsoft.NET.ProjectData;
 namespace Microsoft.NET.ProjectData.Tasks;
 
 /// <summary>
-/// Writes the user-cache marker that records a project as intentionally unsupported by ProjectData.
+/// Removes stale user-cache data and writes the marker that records a project as intentionally unsupported by ProjectData.
 /// </summary>
 public sealed class WriteUnsupportedProjectDataMarkerTask : Microsoft.Build.Utilities.Task
 {
@@ -25,6 +25,11 @@ public sealed class WriteUnsupportedProjectDataMarkerTask : Microsoft.Build.Util
 	{
 		try
 		{
+			string cachePath = UserFolderCachePath.Compute(this.ProjectFilePath);
+			if (File.Exists(cachePath))
+			{
+				File.Delete(cachePath);
+			}
 			this.MarkerPath = UnsupportedProjectDataMarker.Write(this.ProjectFilePath, this.Reason);
 			this.Log.LogMessage(
 				MessageImportance.Low,

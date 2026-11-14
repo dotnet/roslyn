@@ -297,8 +297,7 @@
           AfterTargets="CoreCompile;$(_ProjectDataMergeAfterTargets)"
           DependsOnTargets="_DeleteUnsupportedProjectData;_WriteUnsupportedProjectDataMarker"
           Condition="'$(EnableProjectDataOnBuild)' == 'true' and
-                     '$(_ProjectDataShouldWriteUnsupportedMarker)' == 'true' and
-                     ('$(TargetFrameworks)' == '' or '$(TargetFramework)' == '')" />
+                     '$(_ProjectDataShouldWriteUnsupportedMarker)' == 'true'" />
 
   <Target Name="_ValidateProjectDataAssetsFile"
           Condition="'$(_ProjectDataCanWriteOutput)' == 'true'">

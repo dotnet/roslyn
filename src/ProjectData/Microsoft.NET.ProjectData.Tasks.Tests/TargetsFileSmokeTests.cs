@@ -272,6 +272,77 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task Build_ProjectBecomesUnsupported_DeletesUserFolderCache(bool multiTargeting)
+	{
+		string projectFile = this.WriteBuildProject("App.csproj", multiTargeting);
+		ProcessResult first = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs: ["/p:EnableProjectDataOnBuild=true"],
+			useBuildCommand: true);
+		Assert.True(first.ExitCode == 0, first.Output);
+		string cacheFile = GetCachePath(projectFile, unsupportedMarker: false);
+		Assert.True(File.Exists(cacheFile), first.Output);
+		Assert.False(File.Exists(projectFile + ".lscache"));
+		AssertNoUnsupportedMarker(projectFile);
+
+		ProcessResult second = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs: ["/p:EnableProjectDataOnBuild=true", "/p:ExcludeFromBuild=true"],
+			useBuildCommand: true);
+
+		Assert.True(second.ExitCode == 0, second.Output);
+		Assert.False(File.Exists(cacheFile), second.Output);
+		AssertUnsupportedMarker(projectFile, "ExcludeFromBuildTrue");
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task Build_InnerFrameworkBecomesUnsupported_DeletesStaleSlice(bool projectFolder)
+	{
+		string projectFile = this.WriteBuildProject(
+			"App.csproj",
+			multiTargeting: true,
+			extraProperties:
+			"""
+			<ExcludeFromBuild Condition="'$(TargetFramework)' == 'net11.0-windows'">$(ExcludeWindowsTarget)</ExcludeFromBuild>
+			""");
+		string[] arguments =
+		[
+			"/p:EnableProjectDataOnBuild=true",
+			$"/p:EnableProjectDataInProjectFolder={projectFolder.ToString().ToLowerInvariant()}",
+		];
+		ProcessResult first = await RunDotnetMsbuildAsync(projectFile, arguments, useBuildCommand: true);
+		Assert.True(first.ExitCode == 0, first.Output);
+		string sliceFile = Path.Combine(this.workDir, "obj", "Debug", "net11.0-windows", "App.csproj.slice");
+		string cacheFile = projectFolder ? projectFile + ".lscache" : GetCachePath(projectFile, unsupportedMarker: false);
+		Assert.True(File.Exists(sliceFile), first.Output);
+		Assert.Contains("TargetFramework=net11.0-windows", File.ReadAllText(cacheFile));
+
+		ProcessResult second = await RunDotnetMsbuildAsync(
+			projectFile,
+			[.. arguments, "/p:ExcludeWindowsTarget=true"],
+			useBuildCommand: true);
+
+		Assert.True(second.ExitCode == 0, second.Output);
+		Assert.False(File.Exists(sliceFile), second.Output);
+		string content = File.ReadAllText(cacheFile);
+		Assert.Contains("TargetFramework=net11.0", content);
+		if (projectFolder && !OperatingSystem.IsWindows())
+		{
+			// Project-adjacent caches intentionally retain slices not regenerated on this platform.
+			Assert.Contains("TargetFramework=net11.0-windows", content);
+		}
+		else
+		{
+			Assert.DoesNotContain("TargetFramework=net11.0-windows", content);
+		}
+		AssertNoUnsupportedMarker(projectFile);
+	}
+
+	[Theory]
 	[InlineData(false, false)]
 	[InlineData(false, true)]
 	[InlineData(true, false)]
@@ -4000,6 +4071,8 @@ $@"<Project Sdk=""Microsoft.NET.Sdk"">
 	{
 		string markerPath = GetMarkerPath(projectFile);
 		Assert.True(File.Exists(markerPath), $"Expected unsupported marker at {markerPath}.");
+		Assert.False(File.Exists(projectFile + ".unsupported"));
+		Assert.False(File.Exists(projectFile + ".lscache.unsupported"));
 		string content = File.ReadAllText(markerPath);
 		Assert.Contains($"reason={expectedReason}", content);
 	}
@@ -4011,12 +4084,17 @@ $@"<Project Sdk=""Microsoft.NET.Sdk"">
 	}
 
 	private static string GetMarkerPath(string projectFile)
+		=> GetCachePath(projectFile, unsupportedMarker: true);
+
+	private static string GetCachePath(string projectFile, bool unsupportedMarker)
 	{
 		string? previous = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
 		try
 		{
 			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", GetTestCacheRoot(projectFile));
-			return UnsupportedProjectDataMarker.GetMarkerFilePath(projectFile);
+			return unsupportedMarker
+				? UnsupportedProjectDataMarker.GetMarkerFilePath(projectFile)
+				: UserFolderCachePath.Compute(projectFile);
 		}
 		finally
 		{
