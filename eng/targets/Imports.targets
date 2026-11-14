@@ -274,6 +274,27 @@ End Namespace
     </PropertyGroup>
   </Target>
 
+  <!--
+    When GeneratePackageOnBuild is true, NuGet's Pack target doesn't depend on Build (to avoid a cycle with
+    _PackAsBuildAfterTarget), so packing a project that hasn't been built fails with NU5026.
+    Build the project in a separate instance with GeneratePackageOnBuild=false unless Pack is already running after Build.
+    https://github.com/dotnet/sdk/issues/10335
+  -->
+  <PropertyGroup Condition="'$(GeneratePackageOnBuild)' == 'true'">
+    <BeforePack>$(BeforePack);_BuildBeforePackWhenGeneratePackageOnBuild</BeforePack>
+  </PropertyGroup>
+
+  <Target Name="_MarkBuiltBeforePack" BeforeTargets="Build" Condition="'$(GeneratePackageOnBuild)' == 'true'">
+    <PropertyGroup>
+      <_BuiltBeforePack>true</_BuiltBeforePack>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_BuildBeforePackWhenGeneratePackageOnBuild"
+          Condition="'$(NoBuild)' != 'true' and '$(IsPackable)' == 'true' and '$(_BuiltBeforePack)' != 'true'">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="GeneratePackageOnBuild=false" />
+  </Target>
+
   <!-- Make sure additional files show up in Solution Explorer -->
   <ItemGroup>
     <!--
