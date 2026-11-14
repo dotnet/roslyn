@@ -57,7 +57,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         var renderMethod = documentNode.FindPrimaryMethod();
         var primaryNamespace = documentNode.FindPrimaryNamespace();
 
-        // Fallback discovery is keyed by the component's type name, so it needs a classified primary class.
+        // Fallback discovery is marked by the component's type name, so it needs a classified primary class.
         // Classification creates one unconditionally for a component file; without it there is no component
         // type to discover or split, so leave the document untouched rather than dereference a null name.
         if (primaryClass is null)
@@ -66,8 +66,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         }
 
         // A component whose primary method body is suppressed, or that lacks a render method or namespace,
-        // can't be split here; it routes to fallback discovery keyed by its type name and builds no
-        // pre-compilation shell.
+        // can't be split here; it routes to fallback discovery and builds no pre-compilation shell.
         if (codeDocument.CodeGenerationOptions.SuppressPrimaryMethodBody ||
             renderMethod is null || primaryNamespace is null)
         {
@@ -100,12 +99,11 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
 
         return codeDocument.WithDocumentNode(documentNode);
 
-        // Routes the document to fallback discovery: records its namespace-qualified type name -- the
-        // discovery key the source generator matches against tag-helper descriptor names -- and stashes the
+        // Routes the document to fallback discovery: records its namespace-qualified type name -- which marks
+        // the document as a fallback for the source generator and the decl lowering phase -- and stashes the
         // type-shell decl (null when there is no referenceable type to build one for). A document only
         // routes here after classification, which creates the primary class unconditionally, so a class
-        // name is always present; the name carries no generic arity (type parameters are held separately),
-        // matching the descriptor form after arity is stripped.
+        // name is always present; the name carries no generic arity (type parameters are held separately).
         RazorCodeDocument RouteToFallbackDiscovery(DocumentIntermediateNode? shellDecl)
         {
             Debug.Assert(primaryClass?.Name is not null, "A fallback component is missing its classified primary class.");

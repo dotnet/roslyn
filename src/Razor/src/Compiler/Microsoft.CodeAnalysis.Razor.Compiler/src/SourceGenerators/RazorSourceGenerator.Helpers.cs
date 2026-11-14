@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 using System.Threading;
@@ -11,7 +10,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -26,39 +24,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             builder.Append(".g.cs");
 
             return builder.ToString();
-        }
-
-        /// <summary>
-        /// A tag helper descriptor's <see cref="TagHelperDescriptor.TypeName"/> with any generic type
-        /// arguments removed -- e.g. <c>MyApp.Counter&lt;T&gt;</c> becomes <c>MyApp.Counter</c> -- so it
-        /// can be matched against the fallback components' type names, which carry no arity.
-        /// </summary>
-        internal static string StripGenericArity(string typeName)
-        {
-            var baseName = TypeNameHelper.GetNonGenericTypeName(typeName, out _);
-            return baseName.Length == typeName.Length ? typeName : baseName.ToString();
-        }
-
-        /// <summary>
-        /// Returns the name of the component type a descriptor belongs to. A component descriptor's owning
-        /// type is itself, but descriptors derived from a component -- child content and bind, for example --
-        /// carry the owning component's namespace and identifier while their own <see cref="TagHelperDescriptor.TypeName"/>
-        /// is suffixed (e.g. <c>Ns.Card.Header</c> for the <c>Header</c> child content of <c>Ns.Card</c>).
-        /// Reconstructing the owning name from the namespace and identifier lets ownership filtering keep or
-        /// exclude a fallback component and all its derived descriptors together, rather than only the
-        /// component descriptor whose <see cref="TagHelperDescriptor.TypeName"/> matches exactly.
-        /// </summary>
-        internal static string GetOwningTypeName(TagHelperDescriptor descriptor)
-        {
-            var identifier = descriptor.TypeNameIdentifier;
-            if (identifier is null)
-            {
-                return descriptor.TypeName;
-            }
-
-            return descriptor.TypeNamespace is { Length: > 0 } typeNamespace
-                ? typeNamespace + "." + identifier
-                : identifier;
         }
 
         /// <summary>
@@ -188,44 +153,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             });
 
             return tagHelperFeature;
-        }
-
-        /// <summary>
-        ///  Resolves the fallback component type symbols so the slow discovery path can target just those
-        ///  types instead of walking the whole augmented assembly. Uses the compilation's declaration table
-        ///  (no semantic models): a fallback type name is namespace-qualified, so the fast predicate keys off
-        ///  its final segment and over-selects; the caller's descriptor-name filter trims any collisions.
-        /// </summary>
-        private static ImmutableArray<INamedTypeSymbol> ResolveFallbackTypes(
-            Compilation compilation,
-            ImmutableHashSet<string> fallbackTypeNames,
-            CancellationToken cancellationToken)
-        {
-            if (fallbackTypeNames.IsEmpty)
-            {
-                return [];
-            }
-
-            var shortNames = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var name in fallbackTypeNames)
-            {
-                var lastDot = name.LastIndexOf('.');
-                shortNames.Add(lastDot >= 0 ? name.Substring(lastDot + 1) : name);
-            }
-
-            using var builder = new PooledArrayBuilder<INamedTypeSymbol>();
-
-            foreach (var symbol in compilation.GetSymbolsWithName(shortNames.Contains, SymbolFilter.Type, cancellationToken))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (symbol is INamedTypeSymbol typeSymbol)
-                {
-                    builder.Add(typeSymbol);
-                }
-            }
-
-            return builder.ToImmutable();
         }
 
         private static SourceGeneratorProjectEngine GetGenerationProjectEngine(
