@@ -157,8 +157,10 @@ internal interface ISyntaxFacts
     bool IsContextualKeyword(SyntaxToken token);
 
     /// <summary>
-    /// The set of identifiers that have special meaning directly after the `#` token in a
-    /// preprocessor directive.  For example `if` or `pragma`.
+    /// The set of keywords that have special meaning in a preprocessor directive.  This includes the
+    /// keywords that name a directive and directly follow the `#` token (for example `if` or `pragma`),
+    /// as well as keywords that appear later in a directive (for example `disable` in
+    /// `#pragma warning disable`, or `hidden` in `#line hidden`).
     /// </summary>
     bool IsPreprocessorKeyword(SyntaxToken token);
     bool IsPreProcessorDirectiveContext(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
