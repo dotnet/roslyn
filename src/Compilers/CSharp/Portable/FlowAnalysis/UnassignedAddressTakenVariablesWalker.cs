@@ -59,6 +59,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
+            // Inline array reads report unassigned receivers using the receiver's syntax (e.g., `b` in `&b[0]`),
+            // unlike field reads which use the field's syntax (e.g., `s.F` in `&s.F`),
+            // due to the difference between VisitInlineArrayAccess and VisitFieldAccess,
+            // even though both scenarios should be equivalent for the purposes of this analysis.
+            // So here we pass the whole address operand's syntax to CheckAssigned (e.g., `b[0]`),
+            // so that ReportUnassigned sees the enclosing address-of expression correctly.
+            if (node.Syntax is PrefixUnaryExpressionSyntax syntax &&
+                node.Operand is BoundInlineArrayAccess
+                {
+                    GetItemOrSliceHelper: WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item
+                })
+            {
+                CheckAssigned(node.Operand, syntax.Operand);
+            }
+
             // Pretend address-of is a pure read (i.e. no write) - would we see an 
             // unassigned diagnostic?
             VisitRvalue(node.Operand);
