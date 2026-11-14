@@ -44,7 +44,7 @@ namespace IdeBenchmarks
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _useExportProviderAttribute.Before(null);
+            _useExportProviderAttribute.Before(null, null!);
 
             if (_workspace != null)
             {
@@ -86,7 +86,7 @@ namespace IdeBenchmarks
             _workspace.Dispose();
             _workspace = null!;
 
-            _useExportProviderAttribute.After(null);
+            _useExportProviderAttribute.After(null, null!);
         }
 
         private static readonly byte[] s_bytes = new byte[1000];

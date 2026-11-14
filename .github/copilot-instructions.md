@@ -64,8 +64,10 @@ Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerat
 
 ## Code Style
 
-- 4-space indent for code; 2-space for project/XML/JSON. Never tabs. UTF-8-BOM, final newline for `*.cs`/`*.vb`.
+- 4-space indent for code; 2-space for project/XML/JSON. Never tabs. UTF-8-BOM, final newline for new `*.cs`/`*.vb` files.
+- **Preserve each existing file's BOM state when editing.** Many editing tools silently drop the UTF-8 BOM on rewrite; keep it on files that have one (most `*.cs`/`*.vb` and many `*.csproj`/`*.vbproj`) and do not add one to files that lack it. Check with `git diff` (a first-line change showing only a leading `U+FEFF` is a BOM change). CI does not enforce this for hand-written sources.
 - **Blank lines must be completely empty** (no spaces/tabs); no trailing whitespace — both are hard lint failures.
+- Comments describe current code and its rationale; don't narrate a previous implementation or how code used to work. Put history in commit messages or PR descriptions.
 - Private fields `_camelCase`; namespaces `Microsoft.CodeAnalysis.[Language].[Area]`.
 - Always thread `CancellationToken` through async operations. (Null-checking style is layer-specific — see the area's instruction file: `Contract.ThrowIfNull` in IDE, `Debug.Assert` in the compiler.)
 - Language services are exported **per-language** (`[ExportLanguageService(..., LanguageNames.CSharp), Shared]`), never shared across C#/VB.

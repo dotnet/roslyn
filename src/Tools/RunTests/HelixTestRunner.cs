@@ -48,13 +48,6 @@ internal sealed class HelixTestRunner
     internal static TimeSpan WorkItemScheduleTime { get; } = TimeSpan.FromMinutes(10);
 
     /// <summary>
-    /// In xUnit v2, IAsyncLifetime.InitializeAsync and DisposeAsync are not included in the
-    /// reported test duration (DurationInMs). This is the per-theory-instance overhead adjustment
-    /// applied to tests whose class implements IAsyncLifetime.
-    /// </summary>
-    internal static TimeSpan AsyncLifetimeInstanceOverhead { get; } = TimeSpan.FromMilliseconds(700);
-
-    /// <summary>
     /// This is the maximum time a Helix work item is allowed to execute. This value is passed to Helix
     /// as the work item timeout.
     /// </summary>
@@ -282,7 +275,26 @@ internal sealed class HelixTestRunner
             </Project>
             """);
 
+        // Copied into each x86 work item payload so we don't depend on tools installed on the Helix machine.
+        const string CorFlagsExeFileName = "CorFlags.exe";
+
         return builder.ToString();
+
+        static string FindCorFlagsExe()
+        {
+            var sdkBinDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                "Microsoft SDKs", "Windows", "v10.0A", "bin");
+            var corFlags = Directory.Exists(sdkBinDir)
+                ? Directory.GetDirectories(sdkBinDir, "NETFX* Tools")
+                    .OrderByDescending(x => x, StringComparer.OrdinalIgnoreCase)
+                    .Select(x => Path.Combine(x, CorFlagsExeFileName))
+                    .FirstOrDefault(File.Exists)
+                : null;
+
+            return corFlags ?? throw new InvalidOperationException(
+                $"{CorFlagsExeFileName} was not found under '{sdkBinDir}'. The .NET Framework SDK tools are needed to run x86 tests.");
+        }
 
         static void AppendHelixWorkItemProject(
             StringBuilder builder,
@@ -331,7 +343,12 @@ internal sealed class HelixTestRunner
                 path: Path.Combine(workItemPayloadDir, "NuGet.config"),
                 pathToTarget: Path.Combine(artifactsDir, "..", "NuGet.config"));
 
-            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS, environmentVariables);
+            if (!isUnix && platform == "x86")
+            {
+                File.Copy(FindCorFlagsExe(), Path.Combine(workItemPayloadDir, CorFlagsExeFileName), overwrite: true);
+            }
+
+            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS, platform, environmentVariables);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
 
             var (postCommandFileName, postCommandContent) = GetHelixPostCommandContent(testOS);
@@ -353,6 +370,7 @@ internal sealed class HelixTestRunner
             IEnumerable<string> assemblyRelativeFilePaths,
             string vstestRspFileName,
             TestOS testOS,
+            string platform,
             Dictionary<string, string> environmentVariables)
         {
             var isUnix = testOS != TestOS.Windows;
@@ -404,6 +422,16 @@ internal sealed class HelixTestRunner
 
                 command.AppendLine(isUnix ? $"./{directoryName}/rehydrate.sh" : $@"call {directoryName}\rehydrate.cmd");
                 command.AppendLine(isUnix ? $"ls -l {directoryName}" : $"dir {directoryName}");
+
+                // Only net472 test assemblies are discovered as .exe files (see Program.cs).
+                // xUnit v3 launches those directly, independently of VSTest's /Platform.
+                if (!isUnix && platform == "x86" &&
+                    Path.GetExtension(assemblyRelativeFilePath) == ".exe")
+                {
+                    // /Force is needed because the executable is strong-name signed.
+                    command.AppendLine($@"{CorFlagsExeFileName} ""{assemblyRelativeFilePath}"" /32BIT+ /Force");
+                    command.AppendLine("if errorlevel 1 exit /b 1");
+                }
             }
 
             // Build the command to run the rsp file. dotnet test does not pass rsp files correctly the vs test 

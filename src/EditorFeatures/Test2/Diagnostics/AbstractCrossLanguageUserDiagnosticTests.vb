@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UnitTests
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
 Imports Roslyn.Utilities
-Imports Xunit.Abstractions
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     <[UseExportProvider]>

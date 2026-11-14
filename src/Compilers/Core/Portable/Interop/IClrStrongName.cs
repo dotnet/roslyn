@@ -77,7 +77,8 @@ namespace Microsoft.CodeAnalysis.Interop
             [Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] byte[] pbBlob,
             [In, Out, MarshalAs(UnmanagedType.U4)] ref int pcbBlob);
 
-        void StrongNameGetPublicKey(
+        [PreserveSig]
+        int StrongNameGetPublicKey(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
             [In] IntPtr pbKeyBlob,
             [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob,
@@ -109,7 +110,8 @@ namespace Microsoft.CodeAnalysis.Interop
             [In] IntPtr pbKeyBlob,
             [In, MarshalAs(UnmanagedType.U4)] int cbKeyBlob);
 
-        void StrongNameSignatureGeneration(
+        [PreserveSig]
+        int StrongNameSignatureGeneration(
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzFilePath,
             [In, MarshalAs(UnmanagedType.LPWStr)] string pwzKeyContainer,
             [In] IntPtr pbKeyBlob,

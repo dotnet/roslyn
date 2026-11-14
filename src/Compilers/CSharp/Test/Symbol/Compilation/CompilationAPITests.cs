@@ -358,7 +358,7 @@ namespace A.B {
             // Create Compilation with Option is not null
             var comp = CSharpCompilation.Create("Compilation", listSyntaxTree, listRef, ops);
             Assert.Equal(ops, comp.Options);
-            Assert.NotEqual(default, comp.SyntaxTrees);
+            Assert.False(comp.SyntaxTrees.IsDefault);
             Assert.NotNull(comp.References);
             Assert.Equal(1, comp.SyntaxTrees.Length);
             Assert.Equal(1, comp.ExternalReferences.Length);

@@ -5,16 +5,7 @@
 namespace Xunit.InProcess
 {
     using System;
-    using System.Diagnostics;
-    using System.Reflection;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using System.Windows;
-    using System.Windows.Threading;
-    using Xunit.Abstractions;
     using Xunit.Harness;
-    using Xunit.Sdk;
-    using Xunit.Threading;
 
     internal class TestInvoker_InProc : InProcComponent
     {
@@ -27,9 +18,9 @@ namespace Xunit.InProcess
         public static TestInvoker_InProc Create()
             => new TestInvoker_InProc();
 
-        public InProcessIdeTestAssemblyRunner CreateTestAssemblyRunner(ITestAssembly testAssembly, IXunitTestCase[] testCases, IMessageSink diagnosticMessageSink, IMessageSink executionMessageSink, ITestFrameworkExecutionOptions executionOptions)
+        public InProcessIdeTestAssemblyRunner CreateTestAssemblyRunner()
         {
-            return new InProcessIdeTestAssemblyRunner(testAssembly, testCases, diagnosticMessageSink, executionMessageSink, executionOptions);
+            return new InProcessIdeTestAssemblyRunner();
         }
     }
 }

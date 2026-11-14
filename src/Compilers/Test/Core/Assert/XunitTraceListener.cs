@@ -4,7 +4,7 @@
 
 using System.Diagnostics;
 using System.Text;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Roslyn.Test.Utilities
 {

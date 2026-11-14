@@ -2,9 +2,6 @@
 <Project>
   <PropertyGroup>
     <NoWarn>$(NoWarn);NU5125;NU3005</NoWarn>
-    <!-- These imported tests do not reference Roslyn.Test.Utilities, which is required by
-         the repository's InstallTraceListener.cs module initializer. -->
-    <SkipRoslynTestTraceListener>true</SkipRoslynTestTraceListener>
 
     <!-- Opt-out repo features -->
     <UsingToolXliff>false</UsingToolXliff>

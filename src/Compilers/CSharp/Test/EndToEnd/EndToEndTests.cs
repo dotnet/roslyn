@@ -25,7 +25,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
-    [TestCaseOrderer("XUnit.Project.Orderers.AlphabeticalOrderer", "XUnit.Project")]
     public class EndToEndTests : EmitMetadataTestBase
     {
         /// <summary>
@@ -130,9 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
-            // <path>\xunit.console.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests"
-            // <path>\xunit.console.x86.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests"
-            // Un-comment loop below and use above commands to figure out the new limits
+            // dotnet test <path>\Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests.csproj --filter "FullyQualifiedName~EndToEndTests"
             //for (int i = 0; i < numberFluentCalls; i = i + 10)
             //{
             //    Console.WriteLine($"Depth: {i}");

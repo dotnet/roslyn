@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Xunit.Abstractions
+Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
     Partial Public MustInherit Class AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor

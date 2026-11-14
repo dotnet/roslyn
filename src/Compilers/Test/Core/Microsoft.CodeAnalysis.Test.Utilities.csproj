@@ -90,7 +90,6 @@
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ControlFlowRegionExtensions.cs" Link="Compilation\FlowAnalysis\ControlFlowRegionExtensions.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\FlowAnalysis\CustomDataFlowAnalysis.cs" Link="Compilation\FlowAnalysis\CustomDataFlowAnalysis.cs" />
     <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\FlowAnalysis\DataFlowAnalyzer.cs" Link="Compilation\FlowAnalysis\DataFlowAnalyzer.cs" />
-    <Compile Include="..\..\..\Compilers\Shared\ThrowingTraceListener.cs" Link="ThrowingTraceListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="TestResource.resx" GenerateSource="true" />
@@ -102,8 +101,8 @@
     <PackageReference Include="Microsoft.Metadata.Visualizer" />
     <PackageReference Include="Microsoft.NETCore.Platforms" />
     <PackageReference Include="Moq" />
-    <PackageReference Include="xunit.assert" />
-    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.v3.assert" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
     <PackageReference Include="Xunit.Combinatorial" />
     <PackageReference Include="ICSharpCode.Decompiler" />
     <PackageReference Include="Newtonsoft.Json" />

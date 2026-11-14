@@ -29,7 +29,7 @@ internal sealed partial class MessageBoxInProcess
     private static ImmutableList<MessageBoxHandler> s_handlers = [];
     private static ImmutableList<HotReloadHandler> s_hotReloadHandlers = [];
 
-    protected override async Task InitializeCoreAsync()
+    protected override async ValueTask InitializeCoreAsync()
     {
         await base.InitializeCoreAsync();
 

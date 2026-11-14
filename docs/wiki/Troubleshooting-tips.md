@@ -47,7 +47,9 @@ For trying various Roslyn versions, you can create a new project with your code,
 To run all Core tests on Windows, you can use `Build.cmd -testCoreClr`.
 
 To run a specific test, here's an example of command that can be used and adjusted: 
-`"C:\Program Files\dotnet\dotnet.exe" exec --depsfile D:\repos\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests\Debug\netcoreapp3.0\\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.deps.json --runtimeconfig D:\repos\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests\Debug\netcoreapp3.0\\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.runtimeconfig.json C:\Users\jcouv\.nuget\packages\dotnet-xunit\2.3.0-beta4-build3742\tools\netcoreapp2.0\xunit.console.dll D:\repos\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests\Debug\netcoreapp3.0\\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll -xml D:\repos\roslyn\artifacts\TestResults\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.xml -method "*.MyTestMethod"`.
+`dotnet test D:\repos\roslyn\src\Compilers\CSharp\Test\Symbol\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj -f net10.0 --filter "FullyQualifiedName~MyTestMethod"`.
+
+Test projects are also executables, so you can run the built test assembly directly with xUnit's command-line options, for example `dotnet exec D:\repos\roslyn\artifacts\bin\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests\Debug\net10.0\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.dll -method "*.MyTestMethod"`.
 
 Such test can be debugged by opening `C:\Program Files\dotnet\dotnet.exe` as a project in Visual Studio, then configuring the debug arguments and engine (pick CoreCLR).
 
