@@ -45,8 +45,9 @@ internal static class DocumentFixAllHelper
             .Where(d => !d.IsSuppressed && d.Severity >= minimumSeverity)
             .Select(d => d.Id).Distinct().OrderBy(id => id, StringComparer.Ordinal).ToImmutableArray();
 
-        // Different keys may be competing ways to fix one diagnostic. Recompute the same ID after each accepted fix
-        // instead of applying all original actions. IDs introduced by those edits are left for a later invocation.
+        // One ID may have fixes with different equivalence keys, and each pass applies only the first fix's key.
+        // Recompute the same ID after each accepted fix until no fix remains rather than applying all original actions.
+        // IDs introduced by those edits are left for a later invocation.
         foreach (var diagnosticId in diagnosticIds)
         {
             int? previousDiagnosticCount = null;
@@ -175,7 +176,7 @@ internal static class DocumentFixAllHelper
             }
         }
 
-        // Keep every physical file's contexts consistent before computing diagnostics for the next ID.
+        // Keep every physical file's contexts consistent before computing diagnostics for the next fix.
         foreach (var pair in textsById)
             changedSolution = changedSolution.WithTextDocumentText(pair.Key, pair.Value);
 
