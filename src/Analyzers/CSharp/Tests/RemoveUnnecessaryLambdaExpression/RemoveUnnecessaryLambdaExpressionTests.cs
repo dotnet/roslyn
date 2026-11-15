@@ -2221,4 +2221,68 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 string? Quux(object o) => null;
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73259")]
+    public Task TestWithWriteToPrivateFieldInOtherMethod()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            public class C
+            {
+                private List<int> _list = new() { 1 };
+
+                public bool N()
+                {
+                    var func = M();
+                    _list = new() { 2 };
+                    return func(2);
+                }
+
+                private Func<int, bool> M()
+                {
+                    return x => _list.Contains(x);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73259")]
+    public Task TestWithWriteToPrivateFieldInConstructor()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            public class C
+            {
+                private List<int> _list;
+
+                public C(List<int> list)
+                {
+                    _list = list;
+                }
+
+                private Func<int, bool> M()
+                {
+                    return [|x => |]_list.Contains(x);
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+
+            public class C
+            {
+                private List<int> _list;
+
+                public C(List<int> list)
+                {
+                    _list = list;
+                }
+
+                private Func<int, bool> M()
+                {
+                    return _list.Contains;
+                }
+            }
+            """);
 }

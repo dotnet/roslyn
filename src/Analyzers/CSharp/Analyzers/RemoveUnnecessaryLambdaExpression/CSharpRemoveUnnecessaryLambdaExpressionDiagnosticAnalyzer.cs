@@ -189,8 +189,25 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
             if (outermostBody is null or GlobalStatementSyntax)
                 outermostBody = syntaxTree.GetRoot(cancellationToken);
 
+            // A private field can also be written by any other member of its type, so search the whole type.
+            var accessedSymbol = semanticModel.GetSymbolInfo(accessedExpression, cancellationToken).Symbol;
+            var typeDeclaration = accessedSymbol is IFieldSymbol { DeclaredAccessibility: Accessibility.Private, IsReadOnly: false }
+                ? invokedExpression.GetAncestor<TypeDeclarationSyntax>()
+                : null;
+            if (typeDeclaration != null)
+                outermostBody = typeDeclaration;
+
+            var lambdaConstructor = anonymousFunction.GetAncestor<ConstructorDeclarationSyntax>();
             foreach (var candidate in outermostBody.DescendantNodes().OfType<ExpressionSyntax>())
             {
+                // A write in another constructor happens before the lambda exists.
+                if (typeDeclaration != null &&
+                    candidate.GetAncestor<ConstructorDeclarationSyntax>() is { } constructor &&
+                    constructor != lambdaConstructor)
+                {
+                    continue;
+                }
+
                 if (candidate != accessedExpression &&
                     SemanticEquivalence.AreEquivalent(semanticModel, candidate, accessedExpression) &&
                     candidate.IsWrittenTo(semanticModel, cancellationToken))
