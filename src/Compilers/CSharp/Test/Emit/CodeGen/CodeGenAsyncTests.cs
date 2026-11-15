@@ -9333,6 +9333,11 @@ class MyTaskBuilder
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            // CS8204 is reported while lowering the async method, so it must be a build-only diagnostic
+            compilation.VerifyDiagnostics();
+            Assert.True(ErrorFacts.IsBuildOnlyDiagnostic(ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty));
+
             compilation.VerifyEmitDiagnostics(
                 // (7,29): error CS8204: For type 'MyTaskBuilder' to be used as an AsyncMethodBuilder for type 'MyTask', its Task property should return type 'MyTask' instead of type 'int'.
                 //     static async MyTask M() { await Task.Delay(5); throw null; }

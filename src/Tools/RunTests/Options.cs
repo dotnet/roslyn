@@ -33,6 +33,7 @@ namespace RunTests
             @"^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp16\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$",
@@ -104,9 +105,14 @@ namespace RunTests
         public string DotnetFilePath { get; set; }
 
         /// <summary>
-        /// Directory to hold all of the xml files created as test results.
+        /// Directory to hold all of the files created as test results.
         /// </summary>
         public string TestResultsDirectory { get; set; }
+
+        /// <summary>
+        /// VSTest logger format used for test results.
+        /// </summary>
+        public string TestResultsFormat { get; set; } = "xunit";
 
         /// <summary>
         /// Directory to hold dump files and other log files created while running tests.
@@ -164,6 +170,7 @@ namespace RunTests
             int? timeout = null;
             string? resultFileDirectory = null;
             string? logFileDirectory = null;
+            var testResultsFormat = "xunit";
             var collectDumps = false;
             string? artifactsPath = null;
             var testFrameworks = new List<string>();
@@ -194,6 +201,7 @@ namespace RunTests
                 { "timeout=", "Minute timeout to limit the tests to (default: 90, not supported with --helix)", (int i) => timeout = i },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
+                { "testResultsFormat=", "Test result format: xunit or trx (default: xunit)", s => testResultsFormat = s },
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
                 { "collectdumps", "Enable additional Windows WER crash dumps when elevated (local only; timeout dumps are always attempted)", o => collectDumps = o is object },
                 { "testFramework=", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
@@ -330,6 +338,13 @@ namespace RunTests
                 includeFilter.Add(".*UnitTests.*");
             }
 
+            if (!string.Equals(testResultsFormat, "xunit", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(testResultsFormat, "trx", StringComparison.OrdinalIgnoreCase))
+            {
+                ConsoleUtil.Error("--testResultsFormat must be xunit or trx.");
+                return null;
+            }
+
             artifactsPath ??= TryGetArtifactsPath();
             if (artifactsPath is null || !Directory.Exists(artifactsPath))
             {
@@ -424,6 +439,7 @@ namespace RunTests
                 HelixApiAccessToken = helixApiAccessToken,
                 IncludeHtml = includeHtml ?? (!ci && !helix),
                 TestFilter = testFilter,
+                TestResultsFormat = testResultsFormat.ToLowerInvariant(),
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 EnvironmentVariables = environmentVariables,
                 AccessToken = accessToken,

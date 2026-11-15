@@ -15,6 +15,9 @@ their original sub-tree layout
   The bug is more likely in existing logic than a missing feature.
 - **Helpers**: Review existing helpers (`UsingDirectiveHelper`, `AddUsingsHelper`, etc.)
   before writing new utility methods. Don't duplicate.
+- **Language versions**: When adding or changing a version-gated Razor language feature, update
+  the corresponding entry in [`docs/razor/language-versions.md`](../../docs/razor/language-versions.md),
+  including any minimum C# language version the feature requires.
 - **Warning levels**: Track warnings with non-zero `RazorWarningLevel` values in
   [`docs/razor/warning-levels.md`](../../docs/razor/warning-levels.md), including the diagnostic
   ID, warning level, exact message, and trigger condition.

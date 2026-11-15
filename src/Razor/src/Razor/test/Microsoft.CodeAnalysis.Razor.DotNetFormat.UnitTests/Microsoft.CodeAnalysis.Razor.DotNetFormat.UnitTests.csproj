@@ -11,4 +11,6 @@
     <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
   </ItemGroup>
 
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.FormattingShared.UnitTests\Microsoft.CodeAnalysis.Razor.FormattingShared.UnitTests.projitems" Label="Shared" />
+
 </Project>

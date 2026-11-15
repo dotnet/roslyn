@@ -2296,6 +2296,98 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
     }
 
     [Fact]
+    public async Task EmptyLayoutFilteredInCodeBlock()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @layout null
+                @code {
+                    private int __helper;
+                    private void M()
+                    {
+                        $$
+                    }
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked,
+            },
+            expectedItemLabels: ["char", "DateTime", "Exception"],
+            unexpectedItemLabels: ["__EmptyLayout", "__helper"]);
+    }
+
+    [Fact]
+    public async Task EmptyLayoutFilteredInCodeBlockIfTyping()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @layout null
+                @code {
+                    private class __UserType { }
+                    private void M()
+                    {
+                        var type = typeof(__$$);
+                    }
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked,
+            },
+            expectedItemLabels: ["char", "DateTime", "Exception"],
+            unexpectedItemLabels: ["__EmptyLayout"]);
+    }
+
+    [Fact]
+    public async Task EmptyLayoutFilteredInExpressionIfTyping()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @layout null
+                @__$$
+                @code {
+                    private int __helper;
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked,
+            },
+            expectedItemLabels: ["__helper"],
+            unexpectedItemLabels: ["__EmptyLayout", "__builder"]);
+    }
+
+    [Fact]
+    public async Task EmptyLayoutFilteredInUnsplitExpressionIfTyping()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @layout null
+                @__$$
+                @code {
+                    private int __helper;
+                    #if DEBUG
+                    #endif
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked,
+            },
+            expectedItemLabels: ["__helper"],
+            unexpectedItemLabels: ["__EmptyLayout", "__builder"]);
+    }
+
+    [Fact]
     public async Task IndexerAttributes1()
     {
         await VerifyCompletionListAsync(

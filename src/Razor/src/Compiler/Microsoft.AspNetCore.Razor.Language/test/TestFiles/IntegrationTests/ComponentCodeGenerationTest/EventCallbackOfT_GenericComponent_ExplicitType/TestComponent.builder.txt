@@ -7,4 +7,4 @@ MyType
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<MyType>. OnClick ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<MyType>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<MyType>(this, (MyType arg) => counter++ )))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< MyType >. OnClick ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<MyType>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<MyType>(this, (MyType arg) => counter++ )))

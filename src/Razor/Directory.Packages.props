@@ -7,7 +7,6 @@
   -->
   <PropertyGroup>
     <_MicrosoftWebToolsPackageVersion>17.11.11-preview-0001</_MicrosoftWebToolsPackageVersion>
-    <_VisualStudioLanguageServerProtocolVersion>18.12.5</_VisualStudioLanguageServerProtocolVersion>
     <_MicrosoftExtensionsPackageVersion>10.0.1</_MicrosoftExtensionsPackageVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -17,9 +16,6 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(_MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="18.11.573" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" Version="$(MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(VisualStudioEditorPackagesVersion)" NoWarn="NU1701" />

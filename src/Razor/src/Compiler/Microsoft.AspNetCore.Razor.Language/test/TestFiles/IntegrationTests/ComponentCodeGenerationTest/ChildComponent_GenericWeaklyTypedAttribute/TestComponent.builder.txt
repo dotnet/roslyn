@@ -7,5 +7,5 @@ string
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<string>. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>( "hi" ))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< string >. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>( "hi" ))
 [0002] AddComponentParameter("Other", 17)

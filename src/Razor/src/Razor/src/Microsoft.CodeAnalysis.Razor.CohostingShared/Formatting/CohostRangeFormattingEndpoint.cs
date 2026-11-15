@@ -70,8 +70,14 @@ internal sealed class CohostRangeFormattingEndpoint(
             }
         }
 
+        var clientSettings = _clientSettingsManager.GetClientSettings();
+        var options = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken) with
+        {
+            FromPaste = fromPaste,
+        };
+
         _logger.LogDebug($"Getting Html formatting changes for {razorDocument.FilePath}");
-        var htmlResult = await TryGetHtmlFormattingEditsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
+        var htmlResult = await TryGetHtmlFormattingEditsAsync(request, options, razorDocument, cancellationToken).ConfigureAwait(false);
 
         if (htmlResult is not { } htmlEdits)
         {
@@ -82,12 +88,6 @@ internal sealed class CohostRangeFormattingEndpoint(
 
         var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
-
-        var clientSettings = _clientSettingsManager.GetClientSettings();
-        var options = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken) with
-        {
-            FromPaste = fromPaste,
-        };
 
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");
         var remoteResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteFormattingService, ImmutableArray<TextChange>>(
@@ -105,7 +105,7 @@ internal sealed class CohostRangeFormattingEndpoint(
         return remoteResult.SelectAsPlainArray(sourceText.GetTextEdit);
     }
 
-    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentRangeFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentRangeFormattingParams request, RazorFormattingOptions options, TextDocument razorDocument, CancellationToken cancellationToken)
     {
         // We don't actually request range formatting results from Html, because our formatting engine can't deal with
         // relative formatting results. Instead we request full document formatting, and filter the edits inside the
@@ -113,7 +113,9 @@ internal sealed class CohostRangeFormattingEndpoint(
         var formattingRequest = new DocumentFormattingParams
         {
             TextDocument = request.TextDocument,
-            Options = request.Options
+            Options = options.IndentSize == request.Options.TabSize
+                ? request.Options
+                : options.GetHtmlFormattingOptions(request.Options)
         };
 
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<DocumentFormattingParams, TextEdit[]>(

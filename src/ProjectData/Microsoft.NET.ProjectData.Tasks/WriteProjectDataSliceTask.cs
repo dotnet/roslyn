@@ -24,9 +24,11 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 	public string OutputPath { get; set; } = string.Empty;
 
 	/// <summary>
-	/// Project intermediate output directory (<c>$(IntermediateOutputPath)</c>). Transient
-	/// <c>.tmp</c> side-files for the atomic write are placed here (when on the same volume as the
-	/// output) so they never appear next to committed source. Optional; falls back to the output
+	/// Project intermediate output directory (<c>$(IntermediateOutputPath)</c>). Supplied only when
+	/// writing a project-folder <c>.lscache</c> file so transient <c>.tmp</c> side-files for the
+	/// atomic write are placed under <c>obj/</c> (when on the same volume) instead of next to
+	/// committed source. Omitted for <c>obj/</c> slice writes and user-folder cache writes, which
+	/// already live outside the source tree and stage <c>.tmp</c> files directly in the output
 	/// directory.
 	/// </summary>
 	public string IntermediateOutputPath { get; set; } = string.Empty;
@@ -185,9 +187,10 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 			// ``KeyNotFoundException`` from a missing slice property) to fail the
 			// build instead of degrading to a stale-cache warning.
 			this.Log.LogWarning(
-				"ProjectData: failed to write project-data file for {0}: {1}",
+				"ProjectData: failed to write project-data file '{0}' for '{1}': {2}",
+				this.ResolvedOutputPath,
 				this.ProjectFilePath,
-				ex.Message);
+				ex);
 		}
 		return true;
 	}
