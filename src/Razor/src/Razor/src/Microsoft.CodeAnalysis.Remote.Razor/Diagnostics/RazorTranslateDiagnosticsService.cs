@@ -32,7 +32,21 @@ using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 [method: ImportingConstructor]
 internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
 {
-    private readonly record struct DiagnosticKey(object? Code, int? StartLine, int? StartCharacter, int? EndLine, int? EndCharacter);
+    private static readonly HashSetPool<LspDiagnostic> s_diagnosticPool = HashSetPool<LspDiagnostic>.Create(new DiagnosticComparer());
+
+    private sealed class DiagnosticComparer : IEqualityComparer<LspDiagnostic>
+    {
+        // Different errors can share a code and location, so include the message when comparing diagnostics.
+        public bool Equals(LspDiagnostic? x, LspDiagnostic? y)
+            => ReferenceEquals(x, y) ||
+                (x is not null && y is not null &&
+                 x.Code == y.Code &&
+                 x.Range == y.Range &&
+                 string.Equals(x.Message, y.Message, StringComparison.Ordinal));
+
+        public int GetHashCode(LspDiagnostic diagnostic)
+            => (diagnostic.Code, diagnostic.Range, diagnostic.Message).GetHashCode();
+    }
 
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsService>();
@@ -163,7 +177,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     private static LspDiagnostic[] FilterUnusedUsingDirectiveDiagnostics(LspDiagnostic[] implDiagnostics, LspDiagnostic[] declDiagnostics)
     {
         using var filteredDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
-        using var seenDiagnosticKeys = new PooledHashSet<DiagnosticKey>();
+        using var implDiagnosticSet = new PooledHashSet<LspDiagnostic>(s_diagnosticPool);
 
         foreach (var diagnostic in implDiagnostics)
         {
@@ -171,7 +185,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
                 ContainsMatchingGeneratedRemoveUnnecessaryImportsDiagnostic(declDiagnostics, diagnostic))
             {
                 filteredDiagnostics.Add(diagnostic);
-                seenDiagnosticKeys.Add(GetDiagnosticKey(diagnostic));
+                implDiagnosticSet.Add(diagnostic);
             }
         }
 
@@ -182,7 +196,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
         foreach (var diagnostic in declDiagnostics)
         {
             if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen } &&
-                !seenDiagnosticKeys.Contains(GetDiagnosticKey(diagnostic)))
+                !implDiagnosticSet.Contains(diagnostic))
             {
                 filteredDiagnostics.Add(diagnostic);
             }
@@ -205,9 +219,6 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
 
             return false;
         }
-
-        static DiagnosticKey GetDiagnosticKey(LspDiagnostic diagnostic)
-            => new(diagnostic.Code, diagnostic.Range?.Start.Line, diagnostic.Range?.Start.Character, diagnostic.Range?.End.Line, diagnostic.Range?.End.Character);
 
         static bool IsSameDiagnosticSpan(LspDiagnostic diagnostic, LspDiagnostic otherDiagnostic)
             => diagnostic.Range?.Start.Line == otherDiagnostic.Range?.Start.Line &&
