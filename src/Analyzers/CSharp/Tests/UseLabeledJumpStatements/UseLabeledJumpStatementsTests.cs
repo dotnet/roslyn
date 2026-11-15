@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -623,17 +623,37 @@ public sealed class UseLabeledJumpStatementsTests
                 """,
         }.RunAsync();
 
-    [Fact]
-    public Task TestFlag_MultiLevelChainBreak()
+    [Theory]
+    [InlineData(false, "flag")]
+    [InlineData(false, "flag == true")]
+    [InlineData(false, "true == flag")]
+    [InlineData(false, "flag != false")]
+    [InlineData(false, "false != flag")]
+    [InlineData(false, "flag is true")]
+    [InlineData(false, "flag is not false")]
+    [InlineData(false, "(flag) is (true)")]
+    [InlineData(false, "flag is not (false)")]
+    [InlineData(true, "!flag")]
+    [InlineData(true, "flag == false")]
+    [InlineData(true, "false == flag")]
+    [InlineData(true, "flag != true")]
+    [InlineData(true, "true != flag")]
+    [InlineData(true, "flag is false")]
+    [InlineData(true, "flag is not true")]
+    [InlineData(true, "(flag) is (false)")]
+    [InlineData(true, "flag is not (true)")]
+    [InlineData(true, "!((flag))")]
+    [InlineData(true, "((flag) == (false))")]
+    public Task TestFlag_MultiLevelChainBreak(bool initialValue, string condition)
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp15,
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M(bool c)
                     {
-                        bool flag = false;
+                        bool flag = {{(initialValue ? "true" : "false")}};
                         for (int i = 0; i < 2; i++)
                         {
                             for (int j = 0; j < 2; j++)
@@ -642,16 +662,16 @@ public sealed class UseLabeledJumpStatementsTests
                                 {
                                     if (c)
                                     {
-                                        flag = true;
+                                        flag = {{(initialValue ? "false" : "true")}};
                                         {|IDE0410:break|};
                                     }
                                 }
 
-                                if (flag)
+                                if ({{condition}})
                                     break;
                             }
 
-                            if (flag)
+                            if ({{condition}})
                                 break;
                         }
                     }
@@ -680,35 +700,55 @@ public sealed class UseLabeledJumpStatementsTests
                 """,
         }.RunAsync();
 
-    [Fact]
-    public Task TestFlag_MultiLevelChainContinue()
+    [Theory]
+    [InlineData(false, "flag")]
+    [InlineData(false, "flag == true")]
+    [InlineData(false, "true == flag")]
+    [InlineData(false, "flag != false")]
+    [InlineData(false, "false != flag")]
+    [InlineData(false, "flag is true")]
+    [InlineData(false, "flag is not false")]
+    [InlineData(false, "(flag) is (true)")]
+    [InlineData(false, "flag is not (false)")]
+    [InlineData(true, "!flag")]
+    [InlineData(true, "flag == false")]
+    [InlineData(true, "false == flag")]
+    [InlineData(true, "flag != true")]
+    [InlineData(true, "true != flag")]
+    [InlineData(true, "flag is false")]
+    [InlineData(true, "flag is not true")]
+    [InlineData(true, "(flag) is (false)")]
+    [InlineData(true, "flag is not (true)")]
+    [InlineData(true, "!((flag))")]
+    [InlineData(true, "((flag) == (false))")]
+    public Task TestFlag_MultiLevelChainContinue(bool initialValue, string condition)
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp15,
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M(bool c)
                     {
                         for (int i = 0; i < 2; i++)
                         {
-                            bool flag = false;
+                            bool flag = {{(initialValue ? "true" : "false")}};
                             for (int j = 0; j < 2; j++)
                             {
                                 for (int k = 0; k < 2; k++)
                                 {
                                     if (c)
                                     {
-                                        flag = true;
+                                        flag = {{(initialValue ? "false" : "true")}};
                                         {|IDE0410:break|};
                                     }
                                 }
 
-                                if (flag)
+                                if ({{condition}})
                                     break;
                             }
 
-                            if (flag)
+                            if ({{condition}})
                                 continue;
                         }
                     }
@@ -731,6 +771,77 @@ public sealed class UseLabeledJumpStatementsTests
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+                """,
+        }.RunAsync();
+
+    [Theory]
+    [InlineData(false, "flag == TriggerValue")]
+    [InlineData(false, "TriggerValue == flag")]
+    [InlineData(false, "flag != InitialValue")]
+    [InlineData(false, "InitialValue != flag")]
+    [InlineData(false, "flag is TriggerValue")]
+    [InlineData(false, "flag is (TriggerValue)")]
+    [InlineData(false, "flag is not InitialValue")]
+    [InlineData(true, "flag == TriggerValue")]
+    [InlineData(true, "TriggerValue == flag")]
+    [InlineData(true, "flag != InitialValue")]
+    [InlineData(true, "InitialValue != flag")]
+    [InlineData(true, "flag is TriggerValue")]
+    [InlineData(true, "flag is (TriggerValue)")]
+    [InlineData(true, "flag is not InitialValue")]
+    public Task TestFlagContinue_ConstantBooleanValues(bool initialValue, string condition)
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp15,
+            TestCode = $$"""
+                class C
+                {
+                    void M(bool c)
+                    {
+                        const bool InitialValue = {{(initialValue ? "true" : "false")}};
+                        const bool TriggerValue = !InitialValue;
+                        bool flag = InitialValue;
+                        for (int i = 0; i < 2; i++)
+                        {
+                            flag = !TriggerValue;
+                            for (int j = 0; j < 2; j++)
+                            {
+                                if (c)
+                                {
+                                    flag = TriggerValue;
+                                    {|IDE0410:break|};
+                                }
+                            }
+
+                            if ({{condition}})
+                                continue;
+
+                            System.Console.WriteLine();
+                        }
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                class C
+                {
+                    void M(bool c)
+                    {
+                        const bool InitialValue = {{(initialValue ? "true" : "false")}};
+                        const bool TriggerValue = !InitialValue;
+                    loop_i: for (int i = 0; i < 2; i++)
+                        {
+                            for (int j = 0; j < 2; j++)
+                            {
+                                if (c)
+                                {
+                                    continue loop_i;
+                                }
+                            }
+
+                            System.Console.WriteLine();
                         }
                     }
                 }
@@ -1319,29 +1430,35 @@ public sealed class UseLabeledJumpStatementsTests
                 """,
         }.RunAsync();
 
-    [Fact]
-    public Task TestNotOffered_FlagInitializedToTrue()
+    [Theory]
+    [InlineData("c", "true", "flag")]
+    [InlineData("c", "false", "!flag")]
+    [InlineData("false", "c", "flag")]
+    [InlineData("true", "c", "!flag")]
+    [InlineData("false", "false", "flag")]
+    [InlineData("true", "true", "!flag")]
+    public Task TestNotOffered_FlagValues(string initializer, string assignment, string condition)
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp15,
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M(bool c)
                     {
-                        bool flag = true;
+                        bool flag = {{initializer}};
                         for (int i = 0; i < 10; i++)
                         {
                             for (int j = 0; j < 10; j++)
                             {
                                 if (c)
                                 {
-                                    flag = true;
+                                    flag = {{assignment}};
                                     break;
                                 }
                             }
 
-                            if (flag)
+                            if ({{condition}})
                                 break;
                         }
                     }
@@ -1566,32 +1683,32 @@ public sealed class UseLabeledJumpStatementsTests
                 """,
         }.RunAsync();
 
-    // Not offered: 'skip' is declared outside the loop being continued, so once set it stays true and the original
+    // Not offered: 'skip' is declared outside the loop being continued, so once changed it keeps its jump value and the original
     // skips 'count++' on every later iteration -- whereas a labeled 'continue' would only skip the i==0 iteration.
-    [Fact]
-    public Task TestNotOffered_FlagContinue_DeclaredOutsideLoop()
+    [Theory, CombinatorialData]
+    public Task TestNotOffered_FlagContinue_DeclaredOutsideLoop(bool initialValue)
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp15,
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M()
                     {
                         int count = 0;
-                        bool skip = false;
+                        bool skip = {{(initialValue ? "true" : "false")}};
                         for (int i = 0; i < 3; i++)
                         {
                             for (int j = 0; j < 1; j++)
                             {
                                 if (i == 0)
                                 {
-                                    skip = true;
+                                    skip = {{(initialValue ? "false" : "true")}};
                                     break;
                                 }
                             }
 
-                            if (skip)
+                            if ({{(initialValue ? "!skip" : "skip")}})
                                 continue;
 
                             count++;
@@ -2487,29 +2604,41 @@ public sealed class UseLabeledJumpStatementsTests
                 """,
         }.RunAsync();
 
-    [Fact]
-    public Task TestNotOffered_FlagGuardNegated()
+    [Theory]
+    [InlineData(false, "!found")]
+    [InlineData(false, "found == false")]
+    [InlineData(false, "found != true")]
+    [InlineData(false, "found is false")]
+    [InlineData(false, "found is not true")]
+    [InlineData(false, "found == c")]
+    [InlineData(true, "found")]
+    [InlineData(true, "found == true")]
+    [InlineData(true, "found != false")]
+    [InlineData(true, "found is true")]
+    [InlineData(true, "found is not false")]
+    [InlineData(true, "found != c")]
+    public Task TestNotOffered_FlagGuardWrongValue(bool initialValue, string condition)
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp15,
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M(bool c)
                     {
-                        bool found = false;
+                        bool found = {{(initialValue ? "true" : "false")}};
                         for (int i = 0; i < 10; i++)
                         {
                             for (int j = 0; j < 10; j++)
                             {
                                 if (c)
                                 {
-                                    found = true;
+                                    found = {{(initialValue ? "false" : "true")}};
                                     break;
                                 }
                             }
 
-                            if (!found)
+                            if ({{condition}})
                                 break;
                         }
                     }
@@ -2609,18 +2738,18 @@ public sealed class UseLabeledJumpStatementsTests
         }.RunAsync();
 
     // Not offered: the target loop (i) is re-entered by the outer 'a' loop, and 'found' (declared outside both) keeps
-    // its stale 'true', so the original breaks the i-loop immediately on later 'a' iterations.
-    [Fact]
-    public Task TestNotOffered_FlagBreak_TargetLoopReenteredByOuterLoop()
+    // its stale jump value, so the original breaks the i-loop immediately on later 'a' iterations.
+    [Theory, CombinatorialData]
+    public Task TestNotOffered_FlagBreak_TargetLoopReenteredByOuterLoop(bool initialValue)
         => new VerifyCS.Test
         {
             LanguageVersion = LanguageVersion.CSharp15,
-            TestCode = """
+            TestCode = $$"""
                 class C
                 {
                     void M(bool c)
                     {
-                        bool found = false;
+                        bool found = {{(initialValue ? "true" : "false")}};
                         for (int a = 0; a < 3; a++)
                         {
                             for (int i = 0; i < 3; i++)
@@ -2629,12 +2758,12 @@ public sealed class UseLabeledJumpStatementsTests
                                 {
                                     if (c)
                                     {
-                                        found = true;
+                                        found = {{(initialValue ? "false" : "true")}};
                                         break;
                                     }
                                 }
 
-                                if (found)
+                                if ({{(initialValue ? "!found" : "found")}})
                                     break;
                             }
                         }
