@@ -191,6 +191,11 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
 
             // A private field can also be written by any other member of its type, so search the whole type.
             var accessedSymbol = semanticModel.GetSymbolInfo(accessedExpression, cancellationToken).Symbol;
+
+            // The other parts of a partial type can't be searched here, so they may hold a write.
+            if (accessedSymbol is IFieldSymbol { DeclaredAccessibility: Accessibility.Private, IsReadOnly: false, ContainingType.DeclaringSyntaxReferences.Length: > 1 })
+                return;
+
             var typeDeclaration = accessedSymbol is IFieldSymbol { DeclaredAccessibility: Accessibility.Private, IsReadOnly: false }
                 ? invokedExpression.GetAncestor<TypeDeclarationSyntax>()
                 : null;

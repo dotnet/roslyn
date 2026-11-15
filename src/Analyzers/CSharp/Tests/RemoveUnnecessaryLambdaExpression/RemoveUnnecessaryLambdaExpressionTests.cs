@@ -2285,4 +2285,29 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73259")]
+    public Task TestWithWriteToPrivateFieldInOtherPartialPart()
+        => TestMissingInRegularAndScriptAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            public partial class C
+            {
+                private List<int> _list = new() { 1 };
+
+                private Func<int, bool> M()
+                {
+                    return x => _list.Contains(x);
+                }
+            }
+
+            public partial class C
+            {
+                public void N()
+                {
+                    _list = new() { 2 };
+                }
+            }
+            """);
 }
