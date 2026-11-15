@@ -2310,4 +2310,80 @@ public sealed class RemoveUnnecessaryLambdaExpressionTests
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73259")]
+    public Task TestWithPrivateFieldInPartialTypeNotWritten()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            public partial class C
+            {
+                private List<int> _list = new() { 1 };
+
+                private Func<int, bool> M()
+                {
+                    return [|x => |]_list.Contains(x);
+                }
+            }
+
+            public partial class C
+            {
+                public int N() => _list.Count;
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+
+            public partial class C
+            {
+                private List<int> _list = new() { 1 };
+
+                private Func<int, bool> M()
+                {
+                    return _list.Contains;
+                }
+            }
+
+            public partial class C
+            {
+                public int N() => _list.Count;
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73259")]
+    public Task TestWithOuterPrivateFieldInNestedType()
+        => TestInRegularAndScriptAsync("""
+            using System;
+            using System.Collections.Generic;
+
+            public class C
+            {
+                private List<int> _list = new() { 1 };
+
+                private class D
+                {
+                    private Func<int, bool> M(C c)
+                    {
+                        return [|x => |]c._list.Contains(x);
+                    }
+                }
+            }
+            """, """
+            using System;
+            using System.Collections.Generic;
+
+            public class C
+            {
+                private List<int> _list = new() { 1 };
+
+                private class D
+                {
+                    private Func<int, bool> M(C c)
+                    {
+                        return c._list.Contains;
+                    }
+                }
+            }
+            """);
 }
