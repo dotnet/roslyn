@@ -3376,45 +3376,87 @@ class C
     void M1(C x)
     {
         ref var y = ref x;
-        y = null;
+        y = null; // 1
         x.ToString();
-        y.ToString(); // 1
+        y.ToString(); // 2
     }
 
     void M2(C? x)
     {
         ref var y = ref x;
         y = null;
-        x.ToString(); // 2
-        y.ToString(); // 3
+        x.ToString(); // 3
+        y.ToString(); // 4
     }
 
     void M3(C? x)
     {
         ref var y = ref x;
-        x.ToString(); // 4
-        y.ToString(); // 5
+        x.ToString(); // 5
+        y.ToString(); // 6
     }
 }";
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
+                // (7,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         y = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 13),
                 // (9,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.ToString(); // 1
+                //         y.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9),
                 // (16,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.ToString(); // 2
+                //         x.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(16, 9),
                 // (17,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.ToString(); // 3
+                //         y.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 9),
                 // (23,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.ToString(); // 4
+                //         x.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(23, 9),
                 // (24,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.ToString(); // 5
+                //         y.ToString(); // 6
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(24, 9)
                 );
+        }
+
+        [Fact, WorkItem(42018, "https://github.com/dotnet/roslyn/issues/42018")]
+        public void RefAssignment_Inferred_TakesTargetNullability()
+        {
+            var source = @"
+class C
+{
+    string _field = """";
+    string? _nullableField;
+
+    void M1()
+    {
+        ref var local = ref _field;
+        local = null; // 1
+        local = ref _field;
+        local = ref _nullableField; // 2
+    }
+
+    void M2()
+    {
+        ref var local = ref _nullableField;
+        local = null;
+        local = ref _nullableField;
+        local = ref _field; // 3
+    }
+}";
+
+            var comp = CreateCompilation(source, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (10,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         local = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 17),
+                // (12,21): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
+                //         local = ref _nullableField; // 2
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_nullableField").WithArguments("string?", "string").WithLocation(12, 21),
+                // (20,21): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
+                //         local = ref _field; // 3
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_field").WithArguments("string", "string?").WithLocation(20, 21));
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
@@ -159102,11 +159144,7 @@ class C<T> {constraint}
 }}
 ";
             var comp = CreateCompilation(src);
-            comp.VerifyDiagnostics(
-                // (9,20): warning CS8619: Nullability of reference types in value of type 'T?' doesn't match target type 'T'.
-                //         return ref value2;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "value2").WithArguments("T?", "T").WithLocation(9, 20)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(55227, "https://github.com/dotnet/roslyn/issues/55227")]
