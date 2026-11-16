@@ -184,22 +184,27 @@ public sealed class SdkIntegrationTests : IDisposable
         ArtifactUploadUtil.SetSucceeded();
     }
 
-    [ConditionalFact(typeof(DotNetSdkAvailable), typeof(CoreClrOnly))]
-    public async Task CompilerCache_ReusesAcrossWorktrees()
+    [ConditionalTheory(typeof(DotNetSdkAvailable), typeof(CoreClrOnly)), CombinatorialData]
+    public async Task CompilerCache_ReusesAcrossWorktrees(bool razor)
     {
         var firstWorktree = ProjectDir.CreateDirectory("first");
         var secondWorktree = Path.Combine(ProjectDir.Path, "second");
         var cachePath = ProjectDir.CreateDirectory("cache").Path;
         var pipeName = Guid.NewGuid().ToString("N");
         firstWorktree.CreateFile("test.csproj").WriteAllText($"""
-            <Project Sdk="Microsoft.NET.Sdk">
+            <Project Sdk="Microsoft.NET.Sdk{(razor ? ".Razor" : "")}">
               <PropertyGroup>
                 <TargetFramework>{NetCoreTfm}</TargetFramework>
                 <UseRoslynCompilerCache>true</UseRoslynCompilerCache>
               </PropertyGroup>
+              {(razor ? """<ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>""" : "")}
             </Project>
             """);
         firstWorktree.CreateFile("C.cs").WriteAllText("public class C { }");
+        if (razor)
+        {
+            firstWorktree.CreateFile("Component.razor").WriteAllText("<h1>Hello from Razor</h1>");
+        }
         firstWorktree.CreateFile(".gitignore").WriteAllText("bin/\nobj/\nmsbuild.binlog\n");
 
         runGit("init");

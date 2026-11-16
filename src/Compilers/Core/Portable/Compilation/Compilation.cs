@@ -205,7 +205,9 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
-            ImmutableArray<(string Path, SourceText Content)> analyzerConfigFiles = default,
+            ImmutableArray<AnalyzerConfig> analyzerConfigFiles = default,
+            AnalyzerConfigSet? analyzerConfigSet = null,
+            string? generatedSourceBaseDirectory = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
         {
@@ -222,6 +224,8 @@ namespace Microsoft.CodeAnalysis
                 sourceLinkStream,
                 resources,
                 analyzerConfigFiles,
+                analyzerConfigSet,
+                generatedSourceBaseDirectory,
                 options,
                 cancellationToken);
         }
@@ -234,7 +238,9 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
-            ImmutableArray<(string Path, SourceText Content)> analyzerConfigFiles = default,
+            ImmutableArray<AnalyzerConfig> analyzerConfigFiles = default,
+            AnalyzerConfigSet? analyzerConfigSet = null,
+            string? generatedSourceBaseDirectory = null,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
         {
@@ -251,6 +257,8 @@ namespace Microsoft.CodeAnalysis
                 sourceLinkStream,
                 resources,
                 analyzerConfigFiles,
+                analyzerConfigSet,
+                generatedSourceBaseDirectory,
                 options,
                 cancellationToken);
         }

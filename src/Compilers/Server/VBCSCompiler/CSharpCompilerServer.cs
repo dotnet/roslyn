@@ -43,11 +43,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
+            AnalyzerConfigSet? analyzerConfigSet,
             TextWriter consoleOutput,
             CancellationToken cancellationToken,
             out object? cacheState)
         {
-            var result = CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, AnalyzerConfigFiles, Culture, consoleOutput, _cacheTelemetry, cancellationToken, out var innerCacheState);
+            var result = CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, AnalyzerConfigFiles, Culture, consoleOutput, _cacheTelemetry, cancellationToken, out var innerCacheState, analyzerConfigSet);
             cacheState = innerCacheState;
             return result;
         }

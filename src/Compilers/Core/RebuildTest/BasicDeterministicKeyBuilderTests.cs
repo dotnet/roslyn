@@ -417,12 +417,14 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
   ""additionalTexts"": [],
   ""analyzerConfigs"": [
     {{
-      ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(analyzerConfigFile.FilePath)}"",
-      ""text"": {{
-        ""checksum"": ""971e9b97adb72253428fee6cec91146774875fb0"",
-        ""checksumAlgorithm"": ""Sha1"",
-        ""encodingName"": null
-      }}
+      ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(Roslyn.Utilities.PathUtilities.NormalizeDriveLetter(analyzerConfigFile.FilePath))}"",
+      ""isGlobal"": true,
+      ""globalLevel"": 100,
+      ""properties"": {{
+        ""is_global"": ""true""
+      }},
+      ""sections"": [],
+      ""generatedSourceDirectory"": null
     }}
   ],
   ""analyzers"": [],

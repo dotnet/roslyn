@@ -130,7 +130,7 @@ The cache key is based on Roslyn's deterministic compilation key. For a given co
 - path mapping
 - emit options
 - manifest resources
-- supplied analyzer-configuration paths and content
+- supplied analyzer-configuration paths, parsed properties/sections, and their ordered bindings to source and additional files
 
 That deterministic key is then hashed with SHA-256 and used as the directory key for the cache entry.
 
