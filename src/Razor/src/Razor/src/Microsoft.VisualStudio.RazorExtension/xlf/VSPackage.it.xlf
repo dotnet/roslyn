@@ -48,13 +48,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDescription">
-        <source>Defines how Html and component tag attributes should be indented</source>
-        <target state="translated">Definisce come devono essere indentati gli attributi dei tag HTML e dei componenti</target>
+        <source>Defines how HTML and component tag attributes should be indented</source>
+        <target state="needs-review-translation">Definisce come devono essere indentati gli attributi dei tag HTML e dei componenti</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDisplayName">
-        <source>Attribute Indent Style</source>
-        <target state="translated">Stile rientro attributi</target>
+        <source>Attribute indent style</source>
+        <target state="needs-review-translation">Stile rientro attributi</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleIndentByOne">
@@ -158,13 +158,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDescription">
-        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
-        <target state="translated">Imposta il livello di registrazione da mostrare nella categoria di output logger Razor della finestra di output.</target>
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output window.</source>
+        <target state="needs-review-translation">Imposta il livello di registrazione da mostrare nella categoria di output logger Razor della finestra di output.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDisplayName">
-        <source>Output Window Log Level</source>
-        <target state="translated">Livello di registrazione finestra di output</target>
+        <source>Output window log level</source>
+        <target state="needs-review-translation">Livello di registrazione finestra di output</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelError">
@@ -213,13 +213,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDescription">
-        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
-        <target state="translated">Quali frammenti includere in un file Razor. Se impostato su Personalizzato, verranno visualizzati solo i frammenti non inclusi in Visual Studio. </target>
+        <source>What snippets to include in a Razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="needs-review-translation">Quali frammenti includere in un file Razor. Se impostato su Personalizzato, verranno visualizzati solo i frammenti non inclusi in Visual Studio. </target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDisplayName">
-        <source>Included Snippets</source>
-        <target state="translated">Frammenti inclusi</target>
+        <source>Included snippets</source>
+        <target state="needs-review-translation">Frammenti inclusi</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsNone">
