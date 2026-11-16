@@ -100,6 +100,7 @@ internal partial class DefaultTagHelperResolutionPhase
             in ResolutionContext context)
         {
             var renderedBoundAttributeNames = new PooledHashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var hasMultipleComponents = binding.TagHelpers.Count(static tagHelper => tagHelper.Kind == TagHelperKind.Component) > 1;
             try
             {
                 tagHelperNode.Children.Add(bodyNode);
@@ -108,11 +109,11 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     if (child is UnresolvedAttributeIntermediateNode unresolvedAttr)
                     {
-                        ConvertUnresolvedAttributeToTagHelper(tagHelperNode, bodyNode, unresolvedAttr, binding, ref renderedBoundAttributeNames, sourceDocument, in context);
+                        ConvertUnresolvedAttributeToTagHelper(tagHelperNode, bodyNode, unresolvedAttr, binding, ref renderedBoundAttributeNames, sourceDocument, hasMultipleComponents, in context);
                     }
                     else if (child is HtmlAttributeIntermediateNode htmlAttr)
                     {
-                        ConvertComponentAttributeToTagHelper(tagHelperNode, htmlAttr, binding);
+                        ConvertComponentAttributeToTagHelper(tagHelperNode, htmlAttr, binding, hasMultipleComponents);
                     }
                     else if (child is ComponentAttributeIntermediateNode or
                         SplatIntermediateNode or
@@ -147,6 +148,7 @@ internal partial class DefaultTagHelperResolutionPhase
             TagHelperBinding binding,
             ref PooledHashSet<string> renderedBoundAttributeNames,
             RazorSourceDocument sourceDocument,
+            bool hasMultipleComponents,
             in ResolutionContext context)
         {
             var attributeName = unresolvedAttr.AttributeName;
@@ -159,6 +161,7 @@ internal partial class DefaultTagHelperResolutionPhase
             if (hasMatches && !isDuplicateBound)
             {
                 var hasDirectiveMatch = matches.Any(static m => m.Attribute.IsDirectiveAttribute);
+                TagHelperHtmlAttributeIntermediateNode? unboundAttribute = null;
 
                 foreach (var match in matches)
                 {
@@ -173,7 +176,14 @@ internal partial class DefaultTagHelperResolutionPhase
                     }
                     else
                     {
-                        ConvertToUnresolvedBoundProperty(tagHelperNode, unresolvedAttr, match, attributeName, sourceDocument);
+                        if (hasMultipleComponents && match.Attribute.Parent.Kind == TagHelperKind.Component)
+                        {
+                            // Keep the original value once per source attribute, before it is lowered
+                            // according to any individual candidate's parameter type.
+                            unboundAttribute ??= CreateUnresolvedUnboundAttribute(unresolvedAttr, attributeName, isDuplicateBound: false);
+                        }
+
+                        ConvertToUnresolvedBoundProperty(tagHelperNode, unresolvedAttr, match, attributeName, sourceDocument, unboundAttribute);
                     }
                 }
             }
@@ -184,7 +194,7 @@ internal partial class DefaultTagHelperResolutionPhase
                     AddUnboundDirectiveAttributeDiagnostic(context.DocumentNode, unresolvedAttr);
                 }
 
-                ConvertToUnresolvedUnboundAttribute(tagHelperNode, unresolvedAttr, attributeName, isDuplicateBound);
+                tagHelperNode.Children.Add(CreateUnresolvedUnboundAttribute(unresolvedAttr, attributeName, isDuplicateBound));
             }
         }
 
@@ -333,7 +343,8 @@ internal partial class DefaultTagHelperResolutionPhase
             UnresolvedAttributeIntermediateNode unresolvedAttr,
             TagHelperAttributeMatch match,
             string attributeName,
-            RazorSourceDocument sourceDocument)
+            RazorSourceDocument sourceDocument,
+            TagHelperHtmlAttributeIntermediateNode? unboundAttribute)
         {
             var attrStructure = unresolvedAttr.AttributeStructure;
             var nameSpan = unresolvedAttr.AttributeNameSpan;
@@ -342,6 +353,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 AttributeName = attributeName,
                 AttributeStructure = attrStructure,
                 OriginalAttributeSpan = nameSpan,
+                UnboundAttribute = unboundAttribute,
             };
 
             if (!unresolvedAttr.IsMinimized)
@@ -381,8 +393,7 @@ internal partial class DefaultTagHelperResolutionPhase
         /// <see cref="UnresolvedAttributeIntermediateNode.AsTagHelperAttribute"/>. For duplicate
         /// bound directive attributes, wraps expression values in <see cref="CSharpExpressionIntermediateNode"/>.
         /// </summary>
-        private static void ConvertToUnresolvedUnboundAttribute(
-            TagHelperIntermediateNode tagHelperNode,
+        private static TagHelperHtmlAttributeIntermediateNode CreateUnresolvedUnboundAttribute(
             UnresolvedAttributeIntermediateNode unresolvedAttr,
             string attributeName,
             bool isDuplicateBound)
@@ -419,7 +430,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 htmlAttrNode.Children.Add(CreateEmptyHtmlContent(null));
             }
 
-            tagHelperNode.Children.Add(htmlAttrNode);
+            return htmlAttrNode;
         }
 
         /// <summary>
@@ -858,7 +869,8 @@ internal partial class DefaultTagHelperResolutionPhase
         private static void ConvertComponentAttributeToTagHelper(
             TagHelperIntermediateNode tagHelperNode,
             HtmlAttributeIntermediateNode htmlAttr,
-            TagHelperBinding binding)
+            TagHelperBinding binding,
+            bool hasMultipleComponents)
         {
             var attributeName = htmlAttr.AttributeName;
             using var matches = new PooledArrayBuilder<TagHelperAttributeMatch>();
@@ -871,6 +883,7 @@ internal partial class DefaultTagHelperResolutionPhase
 
             if (matches.Any())
             {
+                TagHelperHtmlAttributeIntermediateNode? unboundAttribute = null;
                 foreach (var match in matches)
                 {
                     if (match.Attribute.IsDirectiveAttribute)
@@ -918,12 +931,25 @@ internal partial class DefaultTagHelperResolutionPhase
                     }
                     else
                     {
+                        if (hasMultipleComponents && match.Attribute.Parent.Kind == TagHelperKind.Component && unboundAttribute is null)
+                        {
+                            unboundAttribute = new TagHelperHtmlAttributeIntermediateNode()
+                            {
+                                AttributeName = attributeName,
+                                AttributeStructure = InferAttributeStructure(htmlAttr),
+                                AttributeNameSpan = attributeNameSpan,
+                            };
+                            unboundAttribute.Children.AddRange(htmlAttr.Children);
+                            ConvertExpressionAttributeValuesToCSharpExpression(unboundAttribute);
+                        }
+
                         var prop = new TagHelperPropertyIntermediateNode(match)
                         {
                             AttributeName = attributeName,
                             AttributeStructure = InferAttributeStructure(htmlAttr),
                             Source = attributeValueSpan,
                             OriginalAttributeSpan = attributeNameSpan,
+                            UnboundAttribute = unboundAttribute,
                         };
 
                         CopyAsTagHelperAttributeValues(htmlAttr, prop);

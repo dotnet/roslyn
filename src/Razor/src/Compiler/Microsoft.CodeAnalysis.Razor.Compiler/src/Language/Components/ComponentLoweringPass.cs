@@ -461,6 +461,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
     {
         private readonly ComponentIntermediateNode _component;
         private readonly IntermediateNodeCollection _children;
+        private HashSet<TagHelperHtmlAttributeIntermediateNode> _unboundAttributes;
 
         public ComponentRewriteVisitor(ComponentIntermediateNode component)
         {
@@ -730,16 +731,17 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                     return;
                 }
 
-                var unboundAttribute = new TagHelperHtmlAttributeIntermediateNode
+                // Multiple rejected candidates can bind the same source attribute. The shared
+                // fallback identifies that occurrence without hiding actual duplicate attributes.
+                var unboundAttribute = node.UnboundAttribute ?? throw new InvalidOperationException("The original unbound attribute is missing.");
+                _unboundAttributes ??= new();
+                if (_unboundAttributes.Add(unboundAttribute))
                 {
-                    AttributeName = node.AttributeName,
-                    AttributeStructure = node.AttributeStructure,
-                    AttributeNameSpan = node.OriginalAttributeSpan,
-                    Source = node.Source,
-                };
-                unboundAttribute.Children.AddRange(node.Children);
-                unboundAttribute.AddDiagnosticsFromNode(node);
-                VisitTagHelperHtmlAttribute(unboundAttribute);
+                    // This fallback wasn't part of the tree when complex content was checked.
+                    ComponentComplexAttributeContentPass.ProcessAttribute(unboundAttribute, node.AttributeName);
+                    VisitTagHelperHtmlAttribute(unboundAttribute);
+                }
+
                 return;
             }
 

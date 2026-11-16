@@ -409,12 +409,161 @@ namespace Test.AnotherNamespace
             cshtmlContent: """
                 @using Test
 
-                <Foo T1="int" T2="string" First="42" Second="600" Extra="extra" />
+                <Foo T1="int" T2="int" First="42" Second="600" Extra="extra" />
                 """,
             configuration: Configuration with { RazorWarningLevel = 11 });
 
         var diagnostic = Assert.Single(result.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.UnknownComponentParameter.Id, diagnostic.Id);
+        CompileToAssembly(result);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86373")]
+    public void ComponentDiscovery_GenericComponentInheritance_CapturesUnmatchedAttributeValues()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System.Collections.Generic;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class Foo<T1, T2> : ComponentBase
+                {
+                    [Parameter(CaptureUnmatchedValues = true)]
+                    public Dictionary<string, object> Attributes { get; set; }
+                }
+
+                public class Foo<T> : Foo<T, T>
+                {
+                    [Parameter] public int Extra { get; set; }
+                    [Parameter] public int Number { get; set; }
+                    [Parameter] public int Empty { get; set; }
+                    [Parameter] public bool Flag { get; set; }
+                }
+            }
+            """));
+
+        var result = CompileToCSharp("""
+            @using Test
+
+            <Foo T1="int" T2="string" Extra="hello" Number="@answer" Empty="" Flag />
+
+            @code {
+                private int answer = 42;
+            }
+            """);
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("\"hello\"", result.Code);
+        CompileToAssembly(result);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86373")]
+    public void ComponentDiscovery_GenericComponentInheritance_CapturesAttributeMatchedByMultipleCandidates()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System.Collections.Generic;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class Foo<T1, T2, T3> : ComponentBase
+                {
+                    [Parameter(CaptureUnmatchedValues = true)]
+                    public Dictionary<string, object> Attributes { get; set; }
+                }
+
+                public class Foo<T1, T2> : Foo<T1, T2, T2>
+                {
+                    [Parameter] public string Extra { get; set; }
+                }
+
+                public class Foo<T> : Foo<T, T>
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp("""
+            @using Test
+
+            <Foo T1="int" T2="string" T3="bool" Extra="hello" />
+            """);
+
+        Assert.Empty(result.RazorDiagnostics);
+        CompileToAssembly(result);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86373")]
+    public void ComponentDiscovery_GenericComponentInheritance_ReportsRepeatedUnmatchedAttribute()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System.Collections.Generic;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class Foo<T1, T2, T3> : ComponentBase
+                {
+                    [Parameter(CaptureUnmatchedValues = true)]
+                    public Dictionary<string, object> Attributes { get; set; }
+                }
+
+                public class Foo<T1, T2> : Foo<T1, T2, T2>
+                {
+                    [Parameter] public string Extra { get; set; }
+                }
+
+                public class Foo<T> : Foo<T, T>
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp("""
+            @using Test
+
+            <Foo T1="int" T2="string" T3="bool" Extra="hello" Extra="again" />
+            """);
+
+        var diagnostic = Assert.Single(result.RazorDiagnostics);
+        Assert.Same(ComponentDiagnosticFactory.DuplicateComponentParameter.Id, diagnostic.Id);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86373")]
+    public void ComponentDiscovery_GenericComponentInheritance_ReportsComplexUnmatchedAttribute()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System.Collections.Generic;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class Foo<T1, T2> : ComponentBase
+                {
+                    [Parameter(CaptureUnmatchedValues = true)]
+                    public Dictionary<string, object> Attributes { get; set; }
+                }
+
+                public class Foo<T> : Foo<T, T>
+                {
+                    [Parameter] public string Extra { get; set; }
+                }
+            }
+            """));
+
+        var result = CompileToCSharp("""
+            @using Test
+
+            <Foo T1="int" T2="string" Extra="prefix @answer" />
+
+            @code {
+                private int answer = 42;
+            }
+            """);
+
+        var diagnostic = Assert.Single(result.RazorDiagnostics);
+        Assert.Same(ComponentDiagnosticFactory.UnsupportedComplexContent.Id, diagnostic.Id);
     }
 
     [Fact]
