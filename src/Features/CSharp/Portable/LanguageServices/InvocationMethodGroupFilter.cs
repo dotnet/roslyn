@@ -19,8 +19,8 @@ internal static class InvocationMethodGroupFilter
     /// receiver) of <paramref name="invocationExpression"/>.
     /// </summary>
     public static IEnumerable<IMethodSymbol> FilterByStaticness(
-        InvocationExpressionSyntax invocationExpression,
         SemanticModel semanticModel,
+        InvocationExpressionSyntax invocationExpression,
         IEnumerable<IMethodSymbol> methodGroup,
         out ITypeSymbol? throughType,
         CancellationToken cancellationToken)

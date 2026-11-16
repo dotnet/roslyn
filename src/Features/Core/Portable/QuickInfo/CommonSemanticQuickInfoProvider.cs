@@ -185,7 +185,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
     /// methods when accessed through a type), so they are not counted as overloads.
     /// </summary>
     protected virtual ImmutableArray<ISymbol> FilterMemberGroup(
-        SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, SemanticModel semanticModel, CancellationToken cancellationToken)
+        SemanticModel semanticModel, SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, CancellationToken cancellationToken)
         => memberGroup;
 
     protected virtual string? GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => null;
@@ -321,7 +321,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         if (bindableParent != null)
         {
             var memberGroup = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
-            var filtered = FilterMemberGroup(bindableParent, memberGroup, semanticModel, cancellationToken);
+            var filtered = FilterMemberGroup(semanticModel, bindableParent, memberGroup, cancellationToken);
 
             // If nothing remains (e.g. invalid code like calling an instance method through a type), still show something.
             AddSymbols(filtered.IsEmpty ? memberGroup : filtered, checkAccessibility: false);

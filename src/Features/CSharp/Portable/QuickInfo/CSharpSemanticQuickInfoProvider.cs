@@ -88,7 +88,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
 
     protected override ImmutableArray<ISymbol> FilterMemberGroup(
-        SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, SemanticModel semanticModel, CancellationToken cancellationToken)
+        SemanticModel semanticModel, SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, CancellationToken cancellationToken)
     {
         var invokedExpression = bindableParent as ExpressionSyntax;
         if (invokedExpression?.Parent is MemberAccessExpressionSyntax parentAccess && parentAccess.Name == invokedExpression)
@@ -103,7 +103,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
             return memberGroup;
 
         return [.. InvocationMethodGroupFilter.FilterByStaticness(
-            invocation, semanticModel, memberGroup.Cast<IMethodSymbol>(), out _, cancellationToken)];
+            semanticModel, invocation, memberGroup.Cast<IMethodSymbol>(), out _, cancellationToken)];
     }
 
     protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(

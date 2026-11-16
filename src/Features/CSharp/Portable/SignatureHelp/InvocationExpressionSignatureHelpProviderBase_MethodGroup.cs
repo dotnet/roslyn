@@ -40,7 +40,7 @@ internal abstract partial class InvocationExpressionSignatureHelpProviderBase
         IEnumerable<IMethodSymbol> methodGroup,
         CancellationToken cancellationToken)
     {
-        methodGroup = InvocationMethodGroupFilter.FilterByStaticness(invocationExpression, semanticModel, methodGroup, out var throughType, cancellationToken);
+        methodGroup = InvocationMethodGroupFilter.FilterByStaticness(semanticModel, invocationExpression, methodGroup, out var throughType, cancellationToken);
         var accessibleMethods = methodGroup.Where(m => m.IsAccessibleWithin(within, throughType: throughType)).ToImmutableArrayOrEmpty();
         if (accessibleMethods.Length == 0)
         {

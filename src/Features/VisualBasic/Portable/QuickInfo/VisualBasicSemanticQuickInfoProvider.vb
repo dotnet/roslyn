@@ -11,7 +11,6 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.QuickInfo
-Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities.IntrinsicOperators
 
@@ -151,16 +150,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
         End Function
 
         Protected Overrides Function FilterMemberGroup(
+                semanticModel As SemanticModel,
                 bindableParent As SyntaxNode,
                 memberGroup As ImmutableArray(Of ISymbol),
-                semanticModel As SemanticModel,
                 cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
             Dim expression = If(TryCast(bindableParent, InvocationExpressionSyntax)?.Expression, bindableParent)
 
             If TypeOf expression Is SimpleNameSyntax AndAlso
                Not TypeOf expression.Parent Is MemberAccessExpressionSyntax AndAlso
                Not TypeOf expression.Parent Is QualifiedNameSyntax AndAlso
-               VisualBasicSyntaxFacts.Instance.IsInStaticContext(expression) Then
+               expression.IsInStaticContext() Then
                 Return memberGroup.WhereAsArray(Function(m) m.IsStatic)
             End If
 
