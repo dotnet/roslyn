@@ -760,17 +760,32 @@ internal partial class CSharpFormattingPass
 
             private LineInfo VisitEndTag(BaseMarkupEndTagSyntax node)
             {
-                // End tags are emited as close braces, to remove the indent their start tag caused. We don't need to worry
-                // about single-line elements here, because these Visit methods only ever see the first node on a line.
-                _builder.Append('}');
+                var closesTemplate = TryGetMultilineTemplateClosure(node, out var appendSemicolon);
 
-                // Close multiline template lambdas when the template ends on this line.
-                if (TryGetMultilineTemplateClosure(node, out var appendSemicolon) && appendSemicolon)
+                // Some start tags, like <html>, don't emit an open brace, so their end tag mustn't emit a close brace either,
+                // or it would close whatever C# block the element is in. If the end tag finishes a template though, we still
+                // need the close brace for the synthetic lambda body.
+                if (!closesTemplate &&
+                    node.GetStartTag() is { } startTag &&
+                    !ElementCausesIndentation(startTag))
                 {
-                    _builder.Append(';');
+                    _builder.AppendLine("//");
+                }
+                else
+                {
+                    // End tags are emited as close braces, to remove the indent their start tag caused. We don't need to worry
+                    // about single-line elements here, because these Visit methods only ever see the first node on a line.
+                    _builder.Append('}');
+
+                    // Close multiline template lambdas when the template ends on this line.
+                    if (closesTemplate && appendSemicolon)
+                    {
+                        _builder.Append(';');
+                    }
+
+                    _builder.AppendLine();
                 }
 
-                _builder.AppendLine();
                 return TryVisitSiblingStartTagOnSameLine(node) ?? CreateLineInfo();
             }
 
