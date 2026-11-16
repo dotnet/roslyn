@@ -102,7 +102,7 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
                     return;
 
                 // Check if this is a field write outside constructor and field initializer, and update field state accordingly.
-                if (!fieldReference.IsFieldWrite(operationContext.ContainingSymbol))
+                if (!IsFieldWrite(fieldReference, operationContext.ContainingSymbol))
                     return;
 
                 var field = fieldReference.Field;
@@ -233,6 +233,77 @@ internal abstract class AbstractMakeFieldReadonlyDiagnosticAnalyzer<TSyntaxKind,
 
     private static Location GetDiagnosticLocation(IFieldSymbol field)
         => field.Locations[0];
+
+    private static bool IsWrittenTo(IOperation? operation, ISymbol owningSymbol)
+    {
+        if (operation is null)
+            return false;
+
+        var result = operation.GetValueUsageInfo(owningSymbol);
+        if (result.IsWrittenTo())
+            return true;
+
+        // Accessing an indexer/property off of a value type will read/write the value type depending on how the
+        // indexer/property itself is used.
+        return operation is { Type.IsValueType: true, Parent: IPropertyReferenceOperation }
+            ? IsWrittenTo(operation.Parent, owningSymbol)
+            : false;
+    }
+
+    private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
+    {
+        // Check if the underlying member is being written or a writable reference to the member is taken.
+        if (!IsWrittenTo(fieldReference, owningSymbol))
+            return false;
+
+        // Writes to fields inside constructor are ignored, except for the below cases:
+        //  1. Instance reference of an instance field being written is not the instance being initialized by the constructor.
+        //  2. Field is being written inside a lambda or local function.
+
+        // Check if we are in the constructor of the containing type of the written field.
+        var isInInstanceConstructor = owningSymbol.IsConstructor();
+        var isInStaticConstructor = owningSymbol.IsStaticConstructor();
+
+        // If we're not in a constructor, this is definitely a write to the field that would prevent it from
+        // becoming readonly.
+        if (!isInInstanceConstructor && !isInStaticConstructor)
+            return true;
+
+        var field = fieldReference.Field;
+
+        // Follow 'strict' C#/VB behavior. Has to be opted into by user with feature-flag "strict", but is
+        // actually what the languages specify as correct.  Specifically the actual types of the containing
+        // type and field-reference-containing type must be the same (not just their OriginalDefinition
+        // types).
+        //
+        // https://github.com/dotnet/roslyn/blob/8770fb62a36157ed4ca38a16a0283d27321a01a7/src/Compilers/CSharp/Portable/Binder/Binder.ValueChecks.cs#L1201-L1203
+        // https//github.com/dotnet/roslyn/blob/93d3aa1a2cf1790b1a0fe2d120f00987d50445c0/src/Compilers/VisualBasic/Portable/Binding/Binder_Expressions.vb#L1868-L1871
+        if (!field.ContainingType.Equals(owningSymbol.ContainingType))
+            return true;
+
+        if (isInStaticConstructor)
+        {
+            // For static fields, ensure that we are in the static constructor.
+            if (!field.IsStatic)
+                return true;
+        }
+        else
+        {
+            // For instance fields, ensure that the instance reference is being initialized by the constructor.
+            Debug.Assert(isInInstanceConstructor);
+            if (fieldReference.Instance?.Kind != OperationKind.InstanceReference ||
+                fieldReference.IsTargetOfObjectMemberInitializer())
+            {
+                return true;
+            }
+        }
+
+        // Finally, ensure that the write is not inside a lambda or local function.
+        if (fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is not null)
+            return true;
+
+        return false;
+    }
 
     private static CodeStyleOption2<bool> GetCodeStyleOption(IFieldSymbol field, AnalyzerOptions options, out Location diagnosticLocation)
     {

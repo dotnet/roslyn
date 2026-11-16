@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -47,7 +48,10 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
                 var expressionType = context.Compilation.ExpressionOfTType();
                 var conditionalAttributeType = context.Compilation.ConditionalAttribute();
 
-                // Top level statements have no declared type to start from.
+                // Lambdas in top level statements live in the compiler generated Program type. The symbol start action
+                // below skips implicitly declared types, as no user code can be found for them to write to a field, so
+                // those lambdas are analyzed here directly instead. A null containing type is handled the same way, so
+                // a lambda never falls through both registrations without being analyzed.
                 context.RegisterSyntaxNodeAction(
                     context =>
                     {
@@ -74,7 +78,7 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
                     context.RegisterOperationAction(context =>
                     {
                         var fieldReference = (IFieldReferenceOperation)context.Operation;
-                        if (fieldReference.IsFieldWrite(context.ContainingSymbol))
+                        if (IsFieldWrite(fieldReference, context.ContainingSymbol))
                             writtenFields.Add(fieldReference.Field.OriginalDefinition);
                     }, OperationKind.FieldReference);
 
@@ -411,5 +415,58 @@ internal sealed class CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer(
 
         invocation = expression as InvocationExpressionSyntax;
         return invocation != null;
+    }
+
+    private static bool IsWrittenTo(IOperation? operation, ISymbol owningSymbol)
+    {
+        if (operation is null)
+            return false;
+
+        var result = operation.GetValueUsageInfo(owningSymbol);
+        if (result.IsWrittenTo())
+            return true;
+
+        // Accessing an indexer/property off of a value type will read/write the value type depending on how the
+        // indexer/property itself is used.
+        return operation is { Type.IsValueType: true, Parent: IPropertyReferenceOperation }
+            ? IsWrittenTo(operation.Parent, owningSymbol)
+            : false;
+    }
+
+    /// <summary>
+    /// Whether this is a write to the field that can happen after a lambda calling through it was created. Writes that
+    /// initialize the field in a constructor of its own type are not, so they don't stop the lambda being simplified.
+    /// </summary>
+    private static bool IsFieldWrite(IFieldReferenceOperation fieldReference, ISymbol owningSymbol)
+    {
+        if (!IsWrittenTo(fieldReference, owningSymbol))
+            return false;
+
+        var isInInstanceConstructor = owningSymbol.IsConstructor();
+        var isInStaticConstructor = owningSymbol.IsStaticConstructor();
+        if (!isInInstanceConstructor && !isInStaticConstructor)
+            return true;
+
+        var field = fieldReference.Field;
+        if (!field.ContainingType.Equals(owningSymbol.ContainingType))
+            return true;
+
+        if (isInStaticConstructor)
+        {
+            if (!field.IsStatic)
+                return true;
+        }
+        else
+        {
+            Debug.Assert(isInInstanceConstructor);
+            if (fieldReference.Instance?.Kind != OperationKind.InstanceReference ||
+                fieldReference.IsTargetOfObjectMemberInitializer())
+            {
+                return true;
+            }
+        }
+
+        // A write inside a lambda or local function in the constructor can run at any later time.
+        return fieldReference.TryGetContainingAnonymousFunctionOrLocalFunction() is not null;
     }
 }
