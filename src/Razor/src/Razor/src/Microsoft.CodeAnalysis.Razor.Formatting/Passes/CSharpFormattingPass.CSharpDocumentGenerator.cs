@@ -777,7 +777,13 @@ internal partial class CSharpFormattingPass
             private LineInfo? TryVisitSiblingStartTagOnSameLine(BaseMarkupEndTagSyntax endTag)
             {
                 // The Html formatter can leave sibling elements on the same line as this end tag. Skip any single-line
-                // siblings, then visit the first multiline start tag so its contents get the right indentation.
+                // siblings, then visit the first multiline start tag so its contents get the right indentation. eg:
+                //
+                // </section><span>hi</span><section>
+                //    ^         ^               ^
+                //    |         |               The multiline start tag we visit
+                //    |         A single-line sibling we skip
+                //    The end tag we're looking at
                 var nextToken = endTag.CloseAngle.GetNextToken();
                 while (nextToken != default && nextToken.SpanStart < _currentLine.End)
                 {
