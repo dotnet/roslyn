@@ -272,35 +272,59 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Theory]
-	[InlineData(false)]
-	[InlineData(true)]
-	public async Task Build_ProjectBecomesUnsupported_DeletesUserFolderCache(bool multiTargeting)
+	[InlineData(false, false)]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	[InlineData(true, true)]
+	public async Task Build_ProjectBecomesUnsupported_CleansCacheAndRecovers(bool multiTargeting, bool projectFolder)
 	{
 		string projectFile = this.WriteBuildProject("App.csproj", multiTargeting);
+		string[] arguments =
+		[
+			"/p:EnableProjectDataOnBuild=true",
+			$"/p:EnableProjectDataInProjectFolder={projectFolder.ToString().ToLowerInvariant()}",
+		];
 		ProcessResult first = await RunDotnetMsbuildAsync(
 			projectFile,
-			extraArgs: ["/p:EnableProjectDataOnBuild=true"],
+			extraArgs: arguments,
 			useBuildCommand: true);
 		Assert.True(first.ExitCode == 0, first.Output);
-		string cacheFile = GetCachePath(projectFile, unsupportedMarker: false);
+		string cacheFile = projectFolder ? projectFile + ".lscache" : GetCachePath(projectFile, unsupportedMarker: false);
 		Assert.True(File.Exists(cacheFile), first.Output);
-		Assert.False(File.Exists(projectFile + ".lscache"));
 		AssertNoUnsupportedMarker(projectFile);
 
 		ProcessResult second = await RunDotnetMsbuildAsync(
 			projectFile,
-			extraArgs: ["/p:EnableProjectDataOnBuild=true", "/p:ExcludeFromBuild=true"],
+			extraArgs: [.. arguments, "/p:ExcludeFromBuild=true"],
 			useBuildCommand: true);
 
 		Assert.True(second.ExitCode == 0, second.Output);
-		Assert.False(File.Exists(cacheFile), second.Output);
+		Assert.Equal(projectFolder && !OperatingSystem.IsWindows(), File.Exists(cacheFile));
 		AssertUnsupportedMarker(projectFile, "ExcludeFromBuildTrue");
+
+		for (int build = 0; build < 2; build++)
+		{
+			ProcessResult supported = await RunDotnetMsbuildAsync(
+				projectFile,
+				extraArgs: build == 0 ? arguments : [.. arguments, "/v:diag"],
+				useBuildCommand: true);
+
+			Assert.True(supported.ExitCode == 0, supported.Output);
+			Assert.True(File.Exists(cacheFile), supported.Output);
+			Assert.Contains("[commandLineArguments]", File.ReadAllText(cacheFile));
+			AssertNoUnsupportedMarker(projectFile);
+			if (build == 1)
+			{
+				Assert.Contains("Skipping target \"CoreCompile\" because all output files are up-to-date", supported.Output);
+				Assert.DoesNotContain("Task \"Csc\"", supported.Output);
+			}
+		}
 	}
 
 	[Theory]
 	[InlineData(false)]
 	[InlineData(true)]
-	public async Task Build_InnerFrameworkBecomesUnsupported_DeletesStaleSlice(bool projectFolder)
+	public async Task Build_InnerFrameworkBecomesUnsupported_DeletesStaleSliceAndRecovers(bool projectFolder)
 	{
 		string projectFile = this.WriteBuildProject(
 			"App.csproj",
@@ -340,6 +364,24 @@ public sealed class TargetsFileSmokeTests : IDisposable
 			Assert.DoesNotContain("TargetFramework=net11.0-windows", content);
 		}
 		AssertNoUnsupportedMarker(projectFile);
+
+		for (int build = 0; build < 2; build++)
+		{
+			ProcessResult supported = await RunDotnetMsbuildAsync(
+				projectFile,
+				build == 0 ? arguments : [.. arguments, "/v:diag"],
+				useBuildCommand: true);
+
+			Assert.True(supported.ExitCode == 0, supported.Output);
+			Assert.True(File.Exists(sliceFile), supported.Output);
+			Assert.Contains("TargetFramework=net11.0-windows", File.ReadAllText(cacheFile));
+			AssertNoUnsupportedMarker(projectFile);
+			if (build == 1)
+			{
+				Assert.Contains("Skipping target \"CoreCompile\" because all output files are up-to-date", supported.Output);
+				Assert.DoesNotContain("Task \"Csc\"", supported.Output);
+			}
+		}
 	}
 
 	[Theory]
