@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Components;
@@ -552,7 +553,7 @@ namespace Test.AnotherNamespace
             }
             """));
 
-        var result = CompileToCSharp("""
+        var content = """
             @using Test
 
             <Foo T1="int" T2="string" Extra="prefix @answer" />
@@ -560,10 +561,50 @@ namespace Test.AnotherNamespace
             @code {
                 private int answer = 42;
             }
-            """);
+            """;
+        var result = CompileToCSharp(content);
 
         var diagnostic = Assert.Single(result.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.UnsupportedComplexContent.Id, diagnostic.Id);
+        Assert.NotNull(diagnostic.Span.FilePath);
+        Assert.Equal(content.IndexOf("prefix @answer", StringComparison.Ordinal), diagnostic.Span.AbsoluteIndex);
+        Assert.Equal("prefix @answer".Length, diagnostic.Span.Length);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86373")]
+    public void ComponentDiscovery_GenericComponentInheritance_ReportsCodeBlockInUnmatchedAttribute()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using System.Collections.Generic;
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class Foo<T1, T2> : ComponentBase
+                {
+                    [Parameter(CaptureUnmatchedValues = true)]
+                    public Dictionary<string, object> Attributes { get; set; }
+                }
+
+                public class Foo<T> : Foo<T, T>
+                {
+                    [Parameter] public string Extra { get; set; }
+                }
+            }
+            """));
+
+        var content = """
+            @using Test
+
+            <Foo T1="int" T2="string" Extra="@{ var x = 1; }" />
+            """;
+        var result = CompileToCSharp(content);
+
+        var diagnostic = Assert.Single(result.RazorDiagnostics);
+        Assert.Same(ComponentDiagnosticFactory.UnsupportedComplexContent.Id, diagnostic.Id);
+        Assert.NotNull(diagnostic.Span.FilePath);
+        Assert.Equal(content.IndexOf("@{ var x = 1; }", StringComparison.Ordinal), diagnostic.Span.AbsoluteIndex);
+        Assert.Equal("@{ var x = 1; }".Length, diagnostic.Span.Length);
     }
 
     [Fact]

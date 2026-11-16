@@ -176,11 +176,16 @@ internal partial class DefaultTagHelperResolutionPhase
                     }
                     else
                     {
-                        if (hasMultipleComponents && match.Attribute.Parent.Kind == TagHelperKind.Component)
+                        if (hasMultipleComponents && match.Attribute.Parent.Kind == TagHelperKind.Component && unboundAttribute is null)
                         {
                             // Keep the original value once per source attribute, before it is lowered
                             // according to any individual candidate's parameter type.
-                            unboundAttribute ??= CreateUnresolvedUnboundAttribute(unresolvedAttr, attributeName, isDuplicateBound: false);
+                            unboundAttribute = CreateUnresolvedUnboundAttribute(unresolvedAttr, attributeName, isDuplicateBound: false);
+                            // Diagnostics on the restored attribute need a source location.
+                            unboundAttribute.Source = unresolvedAttr.ValueSourceSpan ?? unresolvedAttr.Source;
+
+                            // The complex-content check needs the same node shapes as an HTML attribute.
+                            ConvertExpressionAttributeValuesToCSharpExpression(unboundAttribute);
                         }
 
                         ConvertToUnresolvedBoundProperty(tagHelperNode, unresolvedAttr, match, attributeName, sourceDocument, unboundAttribute);
@@ -938,6 +943,7 @@ internal partial class DefaultTagHelperResolutionPhase
                                 AttributeName = attributeName,
                                 AttributeStructure = InferAttributeStructure(htmlAttr),
                                 AttributeNameSpan = attributeNameSpan,
+                                Source = attributeValueSpan ?? htmlAttr.Source,
                             };
                             unboundAttribute.Children.AddRange(htmlAttr.Children);
                             ConvertExpressionAttributeValuesToCSharpExpression(unboundAttribute);
