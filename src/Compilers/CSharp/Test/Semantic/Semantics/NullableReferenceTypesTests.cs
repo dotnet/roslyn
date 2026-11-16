@@ -3376,46 +3376,46 @@ class C
     void M1(C x)
     {
         ref var y = ref x;
-        y = null; // 1
+        y = null; // 0
         x.ToString();
-        y.ToString(); // 2
+        y.ToString(); // 1
     }
 
     void M2(C? x)
     {
         ref var y = ref x;
         y = null;
-        x.ToString(); // 3
-        y.ToString(); // 4
+        x.ToString(); // 2
+        y.ToString(); // 3
     }
 
     void M3(C? x)
     {
         ref var y = ref x;
-        x.ToString(); // 5
-        y.ToString(); // 6
+        x.ToString(); // 4
+        y.ToString(); // 5
     }
 }";
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
                 // (7,13): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         y = null; // 1
+                //         y = null; // 0
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 13),
                 // (9,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.ToString(); // 2
+                //         y.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(9, 9),
                 // (16,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.ToString(); // 3
+                //         x.ToString(); // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(16, 9),
                 // (17,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.ToString(); // 4
+                //         y.ToString(); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(17, 9),
                 // (23,9): warning CS8602: Dereference of a possibly null reference.
-                //         x.ToString(); // 5
+                //         x.ToString(); // 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(23, 9),
                 // (24,9): warning CS8602: Dereference of a possibly null reference.
-                //         y.ToString(); // 6
+                //         y.ToString(); // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(24, 9)
                 );
         }
@@ -3432,31 +3432,85 @@ class C
     void M1()
     {
         ref var local = ref _field;
-        local = null; // 1
+#line 100
+        local = null;
         local = ref _field;
-        local = ref _nullableField; // 2
+#line 200
+        local = ref _nullableField;
     }
 
     void M2()
     {
+        ref var local = ref _field;
+#line 300
+        local = ref _nullableField;
+    }
+
+    void M3()
+    {
+        _nullableField = """";
+        ref var local = ref _field;
+#line 400
+        local = ref _nullableField;
+    }
+
+    void M4()
+    {
         ref var local = ref _nullableField;
         local = null;
         local = ref _nullableField;
-        local = ref _field; // 3
+#line 500
+        local = ref _field;
+    }
+
+    void M5()
+    {
+        ref var local = ref _nullableField;
+#line 600
+        local = ref _field;
+    }
+
+    void M6(C x)
+    {
+#line 700
+        x = null;
+        ref var y = ref x;
+#line 800
+        x.ToString();
+#line 900
+        y.ToString();
     }
 }";
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (10,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
-                //         local = null; // 1
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 17),
-                // (12,21): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
-                //         local = ref _nullableField; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_nullableField").WithArguments("string?", "string").WithLocation(12, 21),
-                // (20,21): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
-                //         local = ref _field; // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_field").WithArguments("string", "string?").WithLocation(20, 21));
+                // (100,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         local = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(100, 17),
+                // (200,21): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
+                //         local = ref _nullableField;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_nullableField").WithArguments("string?", "string").WithLocation(200, 21),
+                // (300,21): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
+                //         local = ref _nullableField;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_nullableField").WithArguments("string?", "string").WithLocation(300, 21),
+                // (400,21): warning CS8619: Nullability of reference types in value of type 'string?' doesn't match target type 'string'.
+                //         local = ref _nullableField;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_nullableField").WithArguments("string?", "string").WithLocation(400, 21),
+                // (500,21): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
+                //         local = ref _field;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_field").WithArguments("string", "string?").WithLocation(500, 21),
+                // (600,21): warning CS8619: Nullability of reference types in value of type 'string' doesn't match target type 'string?'.
+                //         local = ref _field;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "_field").WithArguments("string", "string?").WithLocation(600, 21),
+                // (700,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         x = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(700, 13),
+                // (800,9): warning CS8602: Dereference of a possibly null reference.
+                //         x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(800, 9),
+                // (900,9): warning CS8602: Dereference of a possibly null reference.
+                //         y.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(900, 9));
         }
 
         [Fact, WorkItem(31370, "https://github.com/dotnet/roslyn/issues/31370")]
