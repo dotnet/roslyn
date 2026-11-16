@@ -7,6 +7,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
+using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -50,5 +51,31 @@ public sealed class OutputPathTests
         Assert.NotNull(workspaceProject.OutputFilePath);
         Assert.Equal(workspaceProject.OutputFilePath, workspaceProject.CompilationOutputInfo.AssemblyPath);
         Assert.True(workspaceProject.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+    }
+
+    [WpfFact]
+    public void CompilationOutputInfoFollowsOutputPathWhenCompilerOutputPathIsUnavailable()
+    {
+        using var environment = new TestEnvironment();
+
+        var hierarchy = environment.CreateHierarchy("Test", @"Z:\bin\Debug", projectRefPath: null, "CSharp");
+        var project = CSharpHelpers.CreateCSharpProject(environment, "Test", hierarchy);
+
+        string getCompilationOutputAssemblyPath()
+            => environment.Workspace.CurrentSolution.Projects.Single().CompilationOutputInfo.AssemblyPath;
+
+        Assert.Equal(@"Z:\bin\Debug\Test.dll", getCompilationOutputAssemblyPath());
+
+        ((IVsBuildPropertyStorage)hierarchy).SetPropertyValue("OutDir", null, (uint)_PersistStorageType.PST_PROJECT_FILE, @"Z:\bin\Release");
+        project.SetOutputFileName("Test.dll");
+
+        Assert.Equal(@"Z:\bin\Release\Test.dll", getCompilationOutputAssemblyPath());
+
+        // An explicitly provided compiler output path is not replaced by the bin output path.
+        project.SetOutputFileName(@"Z:\obj\Test.dll");
+        ((IVsBuildPropertyStorage)hierarchy).SetPropertyValue("OutDir", null, (uint)_PersistStorageType.PST_PROJECT_FILE, @"Z:\bin\Debug");
+        project.SetOutputFileName("Test.dll");
+
+        Assert.Equal(@"Z:\obj\Test.dll", getCompilationOutputAssemblyPath());
     }
 }

@@ -52,6 +52,12 @@ internal abstract partial class AbstractLegacyProject
     /// </summary>
     private readonly bool _ignoreOutputPath;
 
+    /// <summary>
+    /// True if the compilation output assembly path was derived from the bin output path
+    /// because the project system has not provided an absolute compiler output path.
+    /// </summary>
+    private bool _compilationOutputAssemblyFilePathFromBinOutput;
+
     private static readonly char[] PathSeparatorCharacters = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
 
     private readonly SolutionEventsBatchScopeCreator _batchScopeCreator;
@@ -161,6 +167,16 @@ internal abstract partial class AbstractLegacyProject
 
     public string GetOutputFileName()
         => ProjectSystemProject.CompilationOutputAssemblyFilePath;
+
+    /// <summary>
+    /// Sets the compiler output assembly path provided by the project system.
+    /// If <paramref name="filePath"/> is null the path will be derived from the bin output path.
+    /// </summary>
+    protected void SetCompilationOutputAssemblyFilePath(string filePath)
+    {
+        ProjectSystemProject.CompilationOutputAssemblyFilePath = filePath;
+        _compilationOutputAssemblyFilePathFromBinOutput = false;
+    }
 
     public virtual void Disconnect()
     {
@@ -281,8 +297,13 @@ internal abstract partial class AbstractLegacyProject
 
         var outputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
         ProjectSystemProject.OutputFilePath = outputFilePath;
+
         // Legacy project systems may provide only a file name as the compiler output.
-        ProjectSystemProject.CompilationOutputAssemblyFilePath ??= outputFilePath;
+        if (ProjectSystemProject.CompilationOutputAssemblyFilePath == null || _compilationOutputAssemblyFilePathFromBinOutput)
+        {
+            ProjectSystemProject.CompilationOutputAssemblyFilePath = outputFilePath;
+            _compilationOutputAssemblyFilePathFromBinOutput = true;
+        }
 
         if (ErrorHandler.Succeeded(storage.GetPropertyValue("TargetRefPath", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var targetRefPath)) && !string.IsNullOrEmpty(targetRefPath))
         {

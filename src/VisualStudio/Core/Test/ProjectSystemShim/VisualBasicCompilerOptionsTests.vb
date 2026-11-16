@@ -242,13 +242,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
                 Assert.Equal("C:\NewFolder3\test3.dll", project.Test_ProjectSystemProject.CompilationOutputAssemblyFilePath)
 
-                ' Relative path - set by VBIntelliProj in VB Web App project
+                ' Relative path - set by VBIntelliProj in VB Web App project.
+                ' The compiler output path is unavailable, so the bin output path is used instead.
                 compilerOptions = CreateMinimalCompilerOptions(project)
                 compilerOptions.wszOutputPath = "\"
                 compilerOptions.wszExeName = "test3.dll"
                 project.SetCompilerOptions(compilerOptions)
-                Assert.Equal(Nothing, project.GetOutputFileName())
-                Assert.Equal(Nothing, project.Test_ProjectSystemProject.CompilationOutputAssemblyFilePath)
+                Dim binOutputPath = environment.Workspace.CurrentSolution.GetProject(project.Test_ProjectSystemProject.Id).OutputFilePath
+                Assert.NotNull(binOutputPath)
+                Assert.Equal(binOutputPath, project.GetOutputFileName())
+                Assert.Equal(binOutputPath, project.Test_ProjectSystemProject.CompilationOutputAssemblyFilePath)
             End Using
         End Sub
     End Class

@@ -319,9 +319,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 ' Ignore paths that are not absolute.
                 If Not String.IsNullOrEmpty(pCompilerOptions.wszOutputPath) Then
                     If PathUtilities.IsAbsolute(pCompilerOptions.wszOutputPath) Then
-                        ProjectSystemProject.CompilationOutputAssemblyFilePath = Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName)
+                        SetCompilationOutputAssemblyFilePath(Path.Combine(pCompilerOptions.wszOutputPath, pCompilerOptions.wszExeName))
                     Else
-                        ProjectSystemProject.CompilationOutputAssemblyFilePath = Nothing
+                        SetCompilationOutputAssemblyFilePath(Nothing)
                     End If
                 End If
             End If

@@ -45,7 +45,7 @@ internal partial class CSharpProjectShim : ICSInputSet
         // Some projects like web projects give us just a filename; those aren't really useful (they're just filler) so we'll ignore them for purposes of tracking the path
         if (PathUtilities.IsAbsolute(filename))
         {
-            ProjectSystemProject.CompilationOutputAssemblyFilePath = filename;
+            SetCompilationOutputAssemblyFilePath(filename);
         }
 
         if (filename != null)
