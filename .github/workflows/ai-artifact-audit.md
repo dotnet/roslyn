@@ -15,7 +15,10 @@ network:
   allowed: [defaults]
 
 engine: copilot
-model: gpt-5-mini
+model: router/economy
+
+models:
+  allowed: ["gpt-*"]
 
 safe-outputs:
   mentions: false
