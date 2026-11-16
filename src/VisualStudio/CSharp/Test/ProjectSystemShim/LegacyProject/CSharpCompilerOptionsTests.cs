@@ -145,12 +145,12 @@ public sealed class CSharpCompilerOptionsTests
         string getCurrentCompilationOutputAssemblyPath()
             => environment.Workspace.CurrentSolution.GetRequiredProject(project.Test_ProjectSystemProject.Id).CompilationOutputInfo.AssemblyPath;
 
-        Assert.Null(getCurrentCompilationOutputAssemblyPath());
+        var projectOutputPath = environment.Workspace.CurrentSolution.Projects.Single().OutputFilePath;
+        Assert.Equal(projectOutputPath, getCurrentCompilationOutputAssemblyPath());
 
         Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/pdb:C:\a\1.pdb /debug+", out _));
 
-        // Compilation doesn't have output file, so we don't expect any build outputs either.
-        Assert.Null(getCurrentCompilationOutputAssemblyPath());
+        Assert.Equal(projectOutputPath, getCurrentCompilationOutputAssemblyPath());
 
         Assert.Equal(0, ((ICompilerOptionsHostObject)project).SetCompilerOptions(@"/out:C:\a\2.dll /debug+", out _));
 

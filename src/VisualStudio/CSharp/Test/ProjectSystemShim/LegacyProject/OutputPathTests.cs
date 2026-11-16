@@ -35,4 +35,20 @@ public sealed class OutputPathTests
 
         Assert.Equal(expectedRefPath, workspaceProject.OutputRefFilePath);
     }
+
+    [WpfFact]
+    public void OutputPathPassedToCompilationOutputInfoWhenCompilerOutputPathIsUnavailable()
+    {
+        using var environment = new TestEnvironment();
+
+        const string projectBinPath = @"Z:\bin";
+        var hierarchy = environment.CreateHierarchy("WithRefPath", projectBinPath, projectRefPath: null, "CSharp");
+
+        _ = CSharpHelpers.CreateCSharpProject(environment, "WithRefPath", hierarchy);
+
+        var workspaceProject = environment.Workspace.CurrentSolution.Projects.Single();
+        Assert.NotNull(workspaceProject.OutputFilePath);
+        Assert.Equal(workspaceProject.OutputFilePath, workspaceProject.CompilationOutputInfo.AssemblyPath);
+        Assert.True(workspaceProject.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory);
+    }
 }

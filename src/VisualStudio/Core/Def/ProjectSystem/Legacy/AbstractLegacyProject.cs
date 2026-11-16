@@ -279,7 +279,10 @@ internal abstract partial class AbstractLegacyProject
             return;
         }
 
-        ProjectSystemProject.OutputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
+        var outputFilePath = FileUtilities.NormalizeAbsolutePath(Path.Combine(outputDirectory, targetFileName));
+        ProjectSystemProject.OutputFilePath = outputFilePath;
+        // Legacy project systems may provide only a file name as the compiler output.
+        ProjectSystemProject.CompilationOutputAssemblyFilePath ??= outputFilePath;
 
         if (ErrorHandler.Succeeded(storage.GetPropertyValue("TargetRefPath", null, (uint)_PersistStorageType.PST_PROJECT_FILE, out var targetRefPath)) && !string.IsNullOrEmpty(targetRefPath))
         {
