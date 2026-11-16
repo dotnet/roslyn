@@ -335,7 +335,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Obsolete alias targets are reported in UnwrapAlias, but if it was a type (not an
                     // alias to a type) we report the obsolete type here.
                     symbol.TypeWithAnnotations.ReportDiagnosticsIfObsolete(this, syntax, diagnostics);
-                    if (symbol.TypeWithAnnotations.IsResolved) ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol.TypeWithAnnotations.Type, syntax, InUnsafeRegion);
+                    if (symbol.TypeWithAnnotations.IsResolved)
+                    {
+                        ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol.TypeWithAnnotations.Type, syntax, InUnsafeRegion);
+                    }
+                    else
+                    {
+                        // An unresolved T? can only become T or Nullable<T>. Neither requires an unsafe context,
+                        // and the type argument T of Nullable<T> cannot have an unsafe constructor.
+                        Debug.Assert(symbol.TypeWithAnnotations.DefaultType is TypeParameterSymbol);
+                    }
                 }
 
                 return symbol;

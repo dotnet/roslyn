@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Text;
 using RazorRazorSyntaxNodeList = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxList<Microsoft.AspNetCore.Razor.Language.Syntax.RazorSyntaxNode>;
@@ -64,6 +65,8 @@ internal sealed class RazorFormattingPass : IFormattingPass
             TryFormatCSharpBlockStructure(context, ref changes.AsRef(), source, node);
             TryFormatSingleLineDirective(ref changes.AsRef(), node);
             TryFormatBlocks(context, ref changes.AsRef(), source, node);
+            TryFormatHtmlStartTag(ref changes.AsRef(), source, node);
+            TryFormatHtmlElement(context, ref changes.AsRef(), source, node);
         }
 
         return changes.ToImmutable();
@@ -452,11 +455,15 @@ internal sealed class RazorFormattingPass : IFormattingPass
 
             // If there is code after the close brace, then we want to add a newline after it and push the code to the next
             // line. In other words, we expect only whitespace characters after the close brace, on this line.
+            // An Html end tag straight after the brace will have already been moved to its own line by TryFormatHtmlElement,
+            // since elements are visited before their contents, so we check for that to avoid adding a blank line.
             var closeBraceLine = source.Text.Lines[closeBraceRange.End.Line];
-            if (closeBraceLine.GetFirstNonWhitespaceOffset(closeBraceRange.End.Character).HasValue)
+            var closeBraceEnd = source.Text.GetRequiredAbsoluteIndex(closeBraceRange.End);
+            if (closeBraceLine.GetFirstNonWhitespaceOffset(closeBraceRange.End.Character).HasValue &&
+                !changes.Any(closeBraceEnd, static (e, position) => e.Span.Start == position))
             {
                 // Insert a newline after the close brace
-                changes.Add(new TextChange(source.Text.GetTextSpan(closeBraceRange.End, closeBraceRange.End), context.NewLineString));
+                changes.Add(new TextChange(new TextSpan(closeBraceEnd, 0), context.NewLineString));
             }
         }
 
@@ -471,6 +478,142 @@ internal sealed class RazorFormattingPass : IFormattingPass
 
             return hasBeenModified;
         }
+    }
+
+    private static void TryFormatHtmlElement(FormattingContext context, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    {
+        // The C# formatting pass works out Html indentation line by line, so tags that share a line with other tags can't be
+        // indented properly. When the Html formatter runs it usually splits these already, making this a no-op, but without it
+        // (ie, dotnet format) we need to move element content onto its own lines ourselves.
+        if (node is not BaseMarkupElementSyntax { StartTag: { } startTag, EndTag: { } endTag } element ||
+            startTag.CloseAngle.IsMissing ||
+            endTag.OpenAngle.IsMissing)
+        {
+            return;
+        }
+
+        var text = source.Text;
+        var hasEndTagCloseAngle = TryGetEndTagCloseAngleStart(text, endTag, out var endTagCloseAngleStart);
+        if (endTag.CloseAngle.IsMissing && !hasEndTagCloseAngle)
+        {
+            return;
+        }
+
+        var endTagNameEnd = endTag.Name.Span.End;
+        if (!endTag.Name.IsMissing &&
+            hasEndTagCloseAngle &&
+            text.GetLinePositionSpan(endTagNameEnd, endTagCloseAngleStart).SpansMultipleLines() &&
+            !text.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(endTagNameEnd, endTagCloseAngleStart), out _))
+        {
+            // This whitespace is inside the tag, not its content, so WebTools joins it even for whitespace-sensitive elements.
+            changes.Add(new TextChange(TextSpan.FromBounds(endTagNameEnd, endTagCloseAngleStart), string.Empty));
+        }
+
+        // Whitespace is significant in things like <pre>, and <script> and <style> contents aren't Html, so leave them alone.
+        if (element.AncestorsAndSelf().OfType<BaseMarkupElementSyntax>().Any(static e =>
+            RazorSyntaxFacts.IsScriptOrStyleBlock(e) ||
+            (e.StartTag is { } tag && HtmlFormattingFacts.HasSignificantWhitespace(tag))))
+        {
+            return;
+        }
+
+        var contentStart = startTag.CloseAngle.Span.End;
+        var contentEnd = endTag.OpenAngle.SpanStart;
+        if (contentStart > contentEnd)
+        {
+            return;
+        }
+
+        // Structural elements are always expanded. For other elements, keep compact markup like <span>text</span> together
+        // unless its content spans lines. Like the Html formatter, also expand block elements when only their attributes
+        // span lines. Empty elements are the exception: the Html formatter leaves the end tag hugging a multiline start tag,
+        // eg <label\n class="a"></label>, so for them we only look at the content.
+        var hasContent = text.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(contentStart, contentEnd), out _);
+        var checkStart = hasContent && HtmlFormattingFacts.IsBlockElement(startTag) ? element.SpanStart : contentStart;
+        if (!HtmlFormattingFacts.IsStructuralElement(startTag) &&
+            !text.GetLinePositionSpan(checkStart, contentEnd).SpansMultipleLines())
+        {
+            return;
+        }
+
+        var hasStartBreak = TryGetHtmlLineBreakSpan(text, contentStart, out var startBreak);
+        if (hasStartBreak)
+        {
+            changes.Add(new TextChange(startBreak, context.NewLineString));
+        }
+
+        // If the content is empty or only whitespace, both boundaries resolve to the same span, and one new line is enough.
+        if (TryGetHtmlLineBreakSpan(text, contentEnd, out var endBreak) &&
+            (!hasStartBreak || endBreak != startBreak))
+        {
+            changes.Add(new TextChange(endBreak, context.NewLineString));
+        }
+    }
+
+    private static void TryFormatHtmlStartTag(ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, RazorSyntaxNode node)
+    {
+        if (node is not BaseMarkupStartTagSyntax { CloseAngle.IsMissing: false } startTag ||
+            startTag.Name.IsMissing)
+        {
+            return;
+        }
+
+        var text = source.Text;
+        var nameEnd = startTag.Name.Span.End;
+        var closeAngleStart = startTag.CloseAngle.SpanStart;
+        if (text.GetLinePositionSpan(nameEnd, closeAngleStart).SpansMultipleLines() &&
+            !text.TryGetFirstNonWhitespaceOffset(TextSpan.FromBounds(nameEnd, closeAngleStart), out _))
+        {
+            // Line breaks inside a tag aren't significant whitespace in its content, including for <textarea> and <pre>.
+            changes.Add(new TextChange(TextSpan.FromBounds(nameEnd, closeAngleStart), string.Empty));
+        }
+    }
+
+    private static bool TryGetEndTagCloseAngleStart(SourceText text, BaseMarkupEndTagSyntax endTag, out int position)
+    {
+        position = endTag.CloseAngle.SpanStart;
+        if (!endTag.CloseAngle.IsMissing)
+        {
+            return true;
+        }
+
+        // In whitespace-sensitive elements, Razor can parse a split '>' as markup text instead of part of the end tag.
+        position = endTag.Name.Span.End;
+        while (position < text.Length && char.IsWhiteSpace(text[position]))
+        {
+            position++;
+        }
+
+        return position < text.Length && text[position] == '>';
+    }
+
+    /// <summary>
+    /// Gets the whitespace around <paramref name="position"/> to replace with a new line. Returns false if the position is
+    /// already at the start or end of a line.
+    /// </summary>
+    private static bool TryGetHtmlLineBreakSpan(SourceText text, int position, out TextSpan span)
+    {
+        span = default;
+        var line = text.Lines.GetLineFromPosition(position);
+        var start = position;
+        var end = position;
+        while (start > line.Start && text[start - 1] is ' ' or '\t')
+        {
+            start--;
+        }
+
+        while (end < line.End && text[end] is ' ' or '\t')
+        {
+            end++;
+        }
+
+        if (start == line.Start || end == line.End)
+        {
+            return false;
+        }
+
+        span = TextSpan.FromBounds(start, end);
+        return true;
     }
 
     private static bool IsCodeOrFunctionsBlock(RazorSyntaxNode keyword)

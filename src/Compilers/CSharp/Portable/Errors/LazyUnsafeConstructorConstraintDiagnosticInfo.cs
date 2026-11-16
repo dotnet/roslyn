@@ -10,11 +10,11 @@ internal sealed class LazyUnsafeConstructorConstraintDiagnosticInfo : LazyDiagno
 {
     private readonly Binder _binder;
     private readonly TypeParameterSymbol _typeParameter;
-    private readonly NamedTypeSymbol _typeArgument;
+    private readonly TypeWithAnnotations _typeArgument;
     private readonly Symbol _targetSymbol;
     private readonly bool _isInUnsafeRegion;
 
-    internal LazyUnsafeConstructorConstraintDiagnosticInfo(Binder binder, TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol, bool isInUnsafeRegion)
+    internal LazyUnsafeConstructorConstraintDiagnosticInfo(Binder binder, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, Symbol targetSymbol, bool isInUnsafeRegion)
     {
         _binder = binder;
         _typeParameter = typeParameter;

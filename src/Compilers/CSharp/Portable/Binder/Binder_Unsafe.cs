@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     : methodSymbol.TypeArgumentsWithAnnotations;
                                 for (int i = 0; i < arity; i++)
                                 {
-                                    checkTypeArgumentWithConstructorConstraint(this, typeParameters[i], typeArguments[i].Type, symbol, arg, location, diagnostics, isInUnsafeRegion);
+                                    checkTypeArgumentWithConstructorConstraint(this, typeParameters[i], typeArguments[i], symbol, arg, location, diagnostics, isInUnsafeRegion);
                                 }
                             }
                         }
@@ -85,21 +85,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var arity = typeSymbol.TypeParameters.Length;
                             for (int i = 0; i < arity; i++)
                             {
-                                checkTypeArgumentWithConstructorConstraint(this, typeSymbol.TypeParameters[i], typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type, symbol, arg, location, diagnostics, isInUnsafeRegion);
+                                checkTypeArgumentWithConstructorConstraint(this, typeSymbol.TypeParameters[i], typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i], symbol, arg, location, diagnostics, isInUnsafeRegion);
                             }
                         }
                         break;
                 }
             }
 
-            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics, bool isInUnsafeRegion)
+            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics, bool isInUnsafeRegion)
             {
-                if (typeArgument is NamedTypeSymbol namedTypeArgument)
+                if (!typeArgument.IsResolved || typeArgument.Type is NamedTypeSymbol)
                 {
-                    // Resolving constraints or constructors while binding declarations can reenter binding or member synthesis.
+                    // Resolving nullable type arguments, constraints, or constructors while binding declarations can reenter binding or member synthesis.
                     DiagnosticInfo? diagnosticInfo = @this.ShouldCheckConstraints
-                        ? @this.GetUnsafeConstructorConstraintDiagnosticInfo(typeParameter, namedTypeArgument, targetSymbol, isInUnsafeRegion)
-                        : new LazyUnsafeConstructorConstraintDiagnosticInfo(@this, typeParameter, namedTypeArgument, targetSymbol, isInUnsafeRegion);
+                        ? @this.GetUnsafeConstructorConstraintDiagnosticInfo(typeParameter, typeArgument, targetSymbol, isInUnsafeRegion)
+                        : new LazyUnsafeConstructorConstraintDiagnosticInfo(@this, typeParameter, typeArgument, targetSymbol, isInUnsafeRegion);
 
                     if (diagnosticInfo is not null)
                     {
@@ -109,14 +109,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol, bool isInUnsafeRegion)
+        internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, Symbol targetSymbol, bool isInUnsafeRegion)
         {
-            if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
+            Debug.Assert(typeArgument.IsResolved);
+
+            if (typeArgument.Type is not NamedTypeSymbol namedTypeArgument ||
+                (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType))
             {
                 return null;
             }
 
-            foreach (var constructor in typeArgument.InstanceConstructors)
+            foreach (var constructor in namedTypeArgument.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
                 {

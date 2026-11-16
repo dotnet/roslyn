@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
@@ -186,6 +187,30 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         {
             Assert.True(telemetrySession.TryGetCommonPropertyValue(LanguageServerTelemetry.ClientNamePropertyName, out var clientName));
             return Assert.IsType<string>(clientName);
+        }
+    }
+
+    [Fact]
+    public async Task Daemon_EachServerHasItsOwnCopilotSessionId()
+    {
+        var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "error" };
+        await using var daemon = await CreateDaemonServerAsync(serverConfiguration: configuration);
+        var firstId = Guid.NewGuid().ToString();
+        var secondId = Guid.NewGuid().ToString();
+
+        await using var first = await daemon.CreateClientAsync(copilotSessionId: firstId);
+        await using var second = await daemon.CreateClientAsync(copilotSessionId: secondId);
+
+        AssertCopilotSessionId(first, firstId);
+        AssertCopilotSessionId(second, secondId);
+        var daemonSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(daemon.DaemonTelemetry));
+        Assert.False(daemonSession.TryGetCommonPropertyValue(LanguageServerTelemetry.CopilotSessionIdPropertyName, out _));
+
+        static void AssertCopilotSessionId(TestLspServer client, string expectedId)
+        {
+            var session = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(client.GetRequiredLspService<RoslynTelemetry>()));
+            Assert.True(session.TryGetCommonPropertyValue(LanguageServerTelemetry.CopilotSessionIdPropertyName, out var actualId));
+            Assert.Equal(expectedId, Assert.IsType<string>(actualId));
         }
     }
 
@@ -471,6 +496,34 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
     }
 
     [Fact]
+    public async Task Daemon_StalledHandshake_DoesNotBlockOtherClients()
+    {
+        await using var daemon = await CreateDaemonServerAsync();
+        var daemonEvents = new RecordingEventSink();
+        using var eventRegistration = daemon.DaemonTelemetry.AddEventSink(daemonEvents);
+        var connectionAccepted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var sourceAccessor = daemon.GetConnectionSourceTestAccessor();
+        sourceAccessor.OnConnectionAccepted = () => connectionAccepted.TrySetResult();
+
+        using var stalledClient = NamedPipeUtil.CreateClient(
+            serverName: ".",
+            daemon.PipeName,
+            PipeDirection.InOut,
+            PipeOptions.Asynchronous);
+
+        await stalledClient.ConnectAsync();
+        await connectionAccepted.Task;
+        sourceAccessor.OnConnectionAccepted = null;
+
+        // Declare a one-byte session ID but leave its payload unwritten.
+        await stalledClient.WriteAsync(new byte[] { 1, 0, 0, 0 }, CancellationToken.None);
+        await using var client = await daemon.CreateClientAsync();
+        Assert.NotNull(client.ServerCapabilities);
+        Assert.Single(daemon.GetStartedServers());
+        Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, daemonEvents.Events);
+    }
+
+    [Fact]
     public async Task Daemon_SlowServerStartup_DoesNotBlockAcceptingNextConnection()
     {
         await using var daemon = await CreateDaemonServerAsync();
@@ -496,6 +549,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         try
         {
             await firstClient.ConnectAsync(timeout: 30_000);
+            DaemonHandshake.Write(firstClient, copilotSessionId: null);
             Assert.True(firstStartEntered.Wait(TimeSpan.FromSeconds(30)));
 
             await using var secondClient = await daemon.CreateClientAsync().WaitAsync(TimeSpan.FromSeconds(30));

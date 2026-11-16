@@ -24,7 +24,6 @@ internal sealed partial class VsReleaseTagger(ILogger logger)
     private readonly ImmutableDictionary<string, string> _vsVersionMap = new Dictionary<string, string>
     {
         { "16.11.", "2019" },
-        { "17.12.", "2022" },
         { "17.14.", "2022" },
         { "18.", "2026" },
     }.ToImmutableDictionary();
