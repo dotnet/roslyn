@@ -567,7 +567,7 @@ namespace Test.AnotherNamespace
         var diagnostic = Assert.Single(result.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.UnsupportedComplexContent.Id, diagnostic.Id);
         Assert.NotNull(diagnostic.Span.FilePath);
-        Assert.Equal(content.IndexOf("prefix @answer", StringComparison.Ordinal), diagnostic.Span.AbsoluteIndex);
+        Assert.Equal(result.CodeDocument.Source.Text.ToString().IndexOf("prefix @answer", StringComparison.Ordinal), diagnostic.Span.AbsoluteIndex);
         Assert.Equal("prefix @answer".Length, diagnostic.Span.Length);
     }
 
@@ -603,7 +603,7 @@ namespace Test.AnotherNamespace
         var diagnostic = Assert.Single(result.RazorDiagnostics);
         Assert.Same(ComponentDiagnosticFactory.UnsupportedComplexContent.Id, diagnostic.Id);
         Assert.NotNull(diagnostic.Span.FilePath);
-        Assert.Equal(content.IndexOf("@{ var x = 1; }", StringComparison.Ordinal), diagnostic.Span.AbsoluteIndex);
+        Assert.Equal(result.CodeDocument.Source.Text.ToString().IndexOf("@{ var x = 1; }", StringComparison.Ordinal), diagnostic.Span.AbsoluteIndex);
         Assert.Equal("@{ var x = 1; }".Length, diagnostic.Span.Length);
     }
 
