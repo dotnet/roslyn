@@ -32,6 +32,22 @@ using SyntaxNode = AspNetCore.Razor.Language.Syntax.SyntaxNode;
 [method: ImportingConstructor]
 internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService documentMappingService, ILoggerFactory loggerFactory)
 {
+    private static readonly HashSetPool<LspDiagnostic> s_diagnosticPool = HashSetPool<LspDiagnostic>.Create(new DiagnosticComparer());
+
+    private sealed class DiagnosticComparer : IEqualityComparer<LspDiagnostic>
+    {
+        // Different errors can share a code and location, so include the message when comparing diagnostics.
+        public bool Equals(LspDiagnostic? x, LspDiagnostic? y)
+            => ReferenceEquals(x, y) ||
+                (x is not null && y is not null &&
+                 x.Code == y.Code &&
+                 x.Range == y.Range &&
+                 string.Equals(x.Message, y.Message, StringComparison.Ordinal));
+
+        public int GetHashCode(LspDiagnostic diagnostic)
+            => (diagnostic.Code, diagnostic.Range, diagnostic.Message).GetHashCode();
+    }
+
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<RazorTranslateDiagnosticsService>();
 
@@ -161,6 +177,7 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
     private static LspDiagnostic[] FilterUnusedUsingDirectiveDiagnostics(LspDiagnostic[] implDiagnostics, LspDiagnostic[] declDiagnostics)
     {
         using var filteredDiagnostics = new PooledArrayBuilder<LspDiagnostic>();
+        using var implDiagnosticSet = new PooledHashSet<LspDiagnostic>(s_diagnosticPool);
 
         foreach (var diagnostic in implDiagnostics)
         {
@@ -168,14 +185,18 @@ internal sealed class RazorTranslateDiagnosticsService(IDocumentMappingService d
                 ContainsMatchingGeneratedRemoveUnnecessaryImportsDiagnostic(declDiagnostics, diagnostic))
             {
                 filteredDiagnostics.Add(diagnostic);
+                implDiagnosticSet.Add(diagnostic);
             }
         }
 
         // By definition any diagnostics in decl that we want to keep will be kept because they will have a matching diagnostic in impl,
         // so we just need to filter decl diagnostics to ignore all unused using directives.
+        // Using directives are emitted into both documents at the same spot, so things like CS0105 and CS1537 come back from
+        // both. We skip anything impl already reported, otherwise the user sees the same error twice.
         foreach (var diagnostic in declDiagnostics)
         {
-            if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen })
+            if (diagnostic.Code is not { Value: RemoveUnnecessaryImportsConstants.IDE0005_gen } &&
+                !implDiagnosticSet.Contains(diagnostic))
             {
                 filteredDiagnostics.Add(diagnostic);
             }
