@@ -407,6 +407,61 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
     }
 
     [Fact]
+    public void Await_RefStruct_Across_RuntimeAsync()
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int> Foreach(int[] data)
+                {
+                    int sum = 0;
+                    foreach (var x in new ReadOnlySpan<int>(data))
+                    {
+                        await Task.Yield();
+                        sum += x;
+                    }
+                    return sum;
+                }
+
+                async Task<int> Local()
+                {
+                    Span<int> s = stackalloc int[3];
+                    int sum = 0;
+                    for (int i = 0; i < s.Length; i++)
+                    {
+                        await Task.Yield();
+                        sum += s[i];
+                    }
+                    return sum;
+                }
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,9): error CS4007: Instance of type 'System.ReadOnlySpan<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //         foreach (var x in new ReadOnlySpan<int>(data))
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var x in new ReadOnlySpan<int>(data))
+        {
+            await Task.Yield();
+            sum += x;
+        }").WithArguments("System.ReadOnlySpan<int>").WithLocation(8, 9),
+            // (20,29): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //         for (int i = 0; i < s.Length; i++)
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s").WithArguments("System.Span<int>").WithLocation(20, 29),
+            // (23,20): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //             sum += s[i];
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s").WithArguments("System.Span<int>").WithLocation(23, 20)
+        };
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateRuntimeAsyncCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
     public void Await_RefStruct_Across_Unsafe()
     {
         var source = """
