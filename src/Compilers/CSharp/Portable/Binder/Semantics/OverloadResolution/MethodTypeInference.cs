@@ -3434,9 +3434,14 @@ OuterBreak:
                         }
                     }
                 }
-            }
 
-            DeduceAllDependencies();
+                DeduceAllDependencies();
+            }
+            else
+            {
+                // No need to deduce transitive dependencies since none are established.
+                SetUnknownsToNotDependent();
+            }
 
             while (true)
             {

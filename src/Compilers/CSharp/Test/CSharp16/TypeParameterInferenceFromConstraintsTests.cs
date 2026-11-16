@@ -1775,5 +1775,45 @@ public interface IB
             Assert.Equal("TB1!", m.TypeArguments[0].ToTestDisplayString(includeNonNullable: true));
             Assert.Equal("TB1?", m.TypeArguments[1].ToTestDisplayString(includeNonNullable: true));
         }
+
+        [Fact]
+        public void ChangeAroundSelfDependencyTracking()
+        {
+            var source = """
+using System;
+
+M(
+    t: 0,
+    u: new B(),
+    f: x => x,
+    g: x => (I<A>)null,
+    h: y => y);
+
+void M<T,U>(
+    T t,
+    U u,
+    Func<T,T> f,
+    Func<T,I<U>> g,
+    Func<U,U> h)
+{
+    Console.WriteLine(typeof(T)); // Prints "int"
+    Console.WriteLine(typeof(U)); // Used to print "B", prints "A" after the change
+}
+
+
+interface I<in T> { }
+class A { }
+class B : A { }
+""";
+
+            string expected = """
+System.Int32
+A
+""";
+
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
+        }
     }
 }
