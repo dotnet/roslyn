@@ -14,8 +14,11 @@ permissions:
 network:
   allowed: [defaults]
 
-engine: copilot
-model: router/economy
+engine:
+  id: copilot
+  model-routing:
+    goal: cost
+    mode: economy
 
 models:
   allowed: ["gpt-*"]
