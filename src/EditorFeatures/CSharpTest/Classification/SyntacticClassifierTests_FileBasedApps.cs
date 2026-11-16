@@ -211,6 +211,135 @@ public partial class SyntacticClassifierTests
             String("13.0.3"));
 
     [Theory, CombinatorialData]
+    public Task FileBasedApps_Package_Metadata(TestHost testHost)
+        => TestAsync("""
+            #:package Microsoft.Build@18.0.2 ExcludeAssets=runtime PrivateAssets=all
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Microsoft"),
+            Punctuation.Text("."),
+            Identifier("Build"),
+            Punctuation.Text("@"),
+            String("18.0.2"),
+            Identifier("ExcludeAssets"),
+            Punctuation.Text("="),
+            String("runtime"),
+            Identifier("PrivateAssets"),
+            Punctuation.Text("="),
+            String("all"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Package_MetadataWithoutVersion(TestHost testHost)
+        => TestAsync("""
+            #:package Pkg PrivateAssets=all Note=
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Identifier("PrivateAssets"),
+            Punctuation.Text("="),
+            String("all"),
+            Identifier("Note"),
+            Punctuation.Text("="));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Package_MetadataWithEmptyVersion(TestHost testHost)
+        => TestAsync("""
+            #:package Pkg@ PrivateAssets=all
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Punctuation.Text("@"),
+            Identifier("PrivateAssets"),
+            Punctuation.Text("="),
+            String("all"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Path_Metadata(
+        TestHost testHost,
+        [CombinatorialValues("project", "ref", "include")] string kind)
+        => TestAsync($$"""
+            // Header
+              #:  {{kind}} "../my path" Aliases=Lib
+            """,
+            testHost,
+            Comment("// Header"),
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword(kind),
+            String("\"../my path\""),
+            Identifier("Aliases"),
+            Punctuation.Text("="),
+            String("Lib"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_QuotedNameAndValue(
+        TestHost testHost,
+        [CombinatorialValues("sdk", "package", "property")] string kind)
+        => TestAsync($$"""
+            #:{{kind}} "My.Name" {{(kind == "property" ? "=" : "@")}} "a\tb c"
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword(kind),
+            String("\"My.Name\""),
+            Punctuation.Text(kind == "property" ? "=" : "@"),
+            String("""
+                "a\tb c"
+                """));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Metadata_QuotedValue(TestHost testHost)
+        => TestAsync("""
+            #:package Pkg@"1.0" Note = "a\"b=c" "Other" = ""
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Punctuation.Text("@"),
+            String("\"1.0\""),
+            Identifier("Note"),
+            Punctuation.Text("="),
+            String("""
+                "a\"b=c"
+                """),
+            String("\"Other\""),
+            Punctuation.Text("="),
+            String("\"\""));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Metadata_PartialSpan(TestHost testHost)
+        => TestAsync("""
+            #:package Pkg@1.0 [|PrivateAssets=all|]
+            """,
+            testHost,
+            Identifier("PrivateAssets"),
+            Punctuation.Text("="),
+            String("all"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_InvalidQuote(
+        TestHost testHost,
+        [CombinatorialValues("Pkg@1.0 Note=\"unterminated", "Pkg@1.0 Note=\"x\"y")] string content)
+        => TestAsync($"#:package {content} \t",
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            String(content));
+
+    [Theory, CombinatorialData]
     public Task FileBasedApps_Property_01(TestHost testHost)
         => TestAsync("""
             #:property LangVersion=preview
@@ -350,6 +479,15 @@ public partial class SyntacticClassifierTests
             PPKeyword("property"));
 
     [Theory, CombinatorialData]
+    public Task FileBasedApps_NoKind(
+        TestHost testHost,
+        [CombinatorialValues("", " ", "\t")] string content)
+        => TestAsync($"#:{content}",
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"));
+
+    [Theory, CombinatorialData]
     public Task FileBasedApps_Unknown_01(TestHost testHost)
         => TestAsync("""
             #:unknown // comment
@@ -384,6 +522,19 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             Punctuation.Semicolon);
 
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Unknown_Metadata(
+        TestHost testHost,
+        [CombinatorialValues("unknown", "Package")] string kind)
+        => TestAsync($$"""
+            #:{{kind}} Pkg@1.0 PrivateAssets=all
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword(kind),
+            String("Pkg@1.0 PrivateAssets=all"));
+
     // Space between `#` and `:` causes the directive to not be treated as an ignored/FBA directive.
     [Theory, CombinatorialData]
     public Task FileBasedApps_Spaces_01(TestHost testHost)
@@ -404,7 +555,7 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword(":"),
             PPKeyword("property"),
-            Identifier("name "),
+            Identifier("name"),
             PunctuationText("="),
-            String(" value"));
+            String("value"));
 }

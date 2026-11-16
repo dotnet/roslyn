@@ -28,6 +28,29 @@ internal static class FileLevelDirectiveHelpers
             CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]));
     }
 
+    /// <summary>
+    /// Tokenizes one directive without directive-specific validation, for example for syntax highlighting.
+    /// Token spans refer to the original source, including quotes and escape sequences.
+    /// On a tokenization error, reports the error and returns a null token array.
+    /// </summary>
+    public static (TextSpan KindSpan, CSharpDirective.DirectiveArgumentKind ArgumentKind, ImmutableArray<CSharpDirective.DirectiveToken>? Tokens) TokenizeDirective(
+        SourceFile sourceFile,
+        IgnoredDirectiveTriviaSyntax directive,
+        ErrorReporter errorReporter)
+    {
+        using var valueLexer = new DirectiveValueLexer(sourceFile.Text, parser: null);
+        var info = new CSharpDirective.ParseInfo
+        {
+            SourceFile = sourceFile,
+            Span = directive.FullSpan,
+            LeadingWhiteSpace = default,
+            TrailingWhiteSpace = default,
+        };
+        var context = CreateParseContext(info, directive.Content, errorReporter, valueLexer, out var kindSpan);
+        var tokens = CSharpDirective.Tokenize(context, out var argumentKind);
+        return (kindSpan, argumentKind, tokens);
+    }
+
     /// <param name="reportAllErrors">
     /// If <see langword="true"/>, the whole <paramref name="sourceFile"/> is parsed to find diagnostics about every app directive.
     /// Otherwise, only directives up to the first C# token is checked.
@@ -129,42 +152,16 @@ internal static class FileLevelDirectiveHelpers
             {
                 TextSpan span = GetFullSpan(previousWhiteSpaceSpan, trivia);
 
-                ReadOnlySpan<char> message;
-                int messageStart;
-                if (trivia.GetStructure() is IgnoredDirectiveTriviaSyntax { Content: { RawKind: (int)SyntaxKind.StringLiteralToken } content })
-                {
-                    var contentText = content.Text.AsSpan();
-                    var trimmedStart = contentText.TrimStart();
-                    message = trimmedStart.TrimEnd();
-                    messageStart = content.SpanStart + (contentText.Length - trimmedStart.Length);
-                }
-                else
-                {
-                    message = default;
-                    messageStart = 0;
-                }
-
-                var parts = Patterns.Whitespace.Split(message.ToString(), 2);
-                var name = parts.Length > 0 ? parts[0] : "";
-                var value = parts.Length > 1 ? parts[1] : "";
-                Debug.Assert(!(parts.Length > 2));
-
                 var whiteSpace = GetWhiteSpaceInfo(triviaList, index, span);
-                var context = new CSharpDirective.ParseContext
+                var info = new CSharpDirective.ParseInfo
                 {
-                    Info = new()
-                    {
-                        SourceFile = sourceFile,
-                        Span = span,
-                        LeadingWhiteSpace = whiteSpace.Leading,
-                        TrailingWhiteSpace = whiteSpace.Trailing,
-                    },
-                    ErrorReporter = errorReporter,
-                    DirectiveKind = name,
-                    DirectiveText = value,
-                    DirectiveTextStart = messageStart + (message.Length - value.Length),
-                    ValueLexer = valueLexer,
+                    SourceFile = sourceFile,
+                    Span = span,
+                    LeadingWhiteSpace = whiteSpace.Leading,
+                    TrailingWhiteSpace = whiteSpace.Trailing,
                 };
+                var content = ((IgnoredDirectiveTriviaSyntax)trivia.GetStructure()!).Content;
+                var context = CreateParseContext(info, content, errorReporter, valueLexer, out _);
 
                 if (CSharpDirective.Parse(context) is { } directive)
                 {
@@ -230,6 +227,44 @@ internal static class FileLevelDirectiveHelpers
                 return false;
             }
         }
+    }
+
+    private static CSharpDirective.ParseContext CreateParseContext(
+        in CSharpDirective.ParseInfo info,
+        SyntaxToken content,
+        ErrorReporter errorReporter,
+        DirectiveValueLexer valueLexer,
+        out TextSpan kindSpan)
+    {
+        ReadOnlySpan<char> message;
+        int messageStart;
+        if (content.IsKind(SyntaxKind.StringLiteralToken))
+        {
+            var contentText = content.Text.AsSpan();
+            var trimmedStart = contentText.TrimStart();
+            message = trimmedStart.TrimEnd();
+            messageStart = content.SpanStart + (contentText.Length - trimmedStart.Length);
+        }
+        else
+        {
+            message = default;
+            messageStart = 0;
+        }
+
+        var parts = Patterns.Whitespace.Split(message.ToString(), 2);
+        var name = parts.Length > 0 ? parts[0] : "";
+        var value = parts.Length > 1 ? parts[1] : "";
+        kindSpan = new TextSpan(messageStart, name.Length);
+
+        return new CSharpDirective.ParseContext
+        {
+            Info = info,
+            ErrorReporter = errorReporter,
+            DirectiveKind = name,
+            DirectiveText = value,
+            DirectiveTextStart = messageStart + (message.Length - value.Length),
+            ValueLexer = valueLexer,
+        };
     }
 }
 
@@ -373,18 +408,35 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
     public static Named? Parse(in ParseContext context)
     {
-        switch (context.DirectiveKind)
+        if (GetDirectiveInfo(context.DirectiveKind).Parser is { } parser)
         {
-            case "sdk": return Sdk.Parse(context);
-            case "property": return Property.Parse(context);
-            case "package": return Package.Parse(context);
-            case "project": return Project.Parse(context);
-            case "ref": return Ref.Parse(context);
-            case "include" or "exclude": return IncludeOrExclude.Parse(context);
-            default:
-                context.ReportError(string.Format(FileBasedProgramsResources.UnrecognizedDirective, context.DirectiveKind));
-                return null;
+            return parser(context);
         }
+
+        context.ReportError(string.Format(FileBasedProgramsResources.UnrecognizedDirective, context.DirectiveKind));
+        return null;
+    }
+
+    private delegate Named? DirectiveParser(in ParseContext context);
+
+    private static (DirectiveParser? Parser, char? NameSeparator) GetDirectiveInfo(string directiveKind)
+        => directiveKind switch
+        {
+            "sdk" => (Sdk.Parse, '@'),
+            "property" => (Property.Parse, '='),
+            "package" => (Package.Parse, '@'),
+            "project" => (Project.Parse, null),
+            "ref" => (Ref.Parse, null),
+            "include" or "exclude" => (IncludeOrExclude.Parse, null),
+            _ => (null, null),
+        };
+
+    /// <summary>The role of the first token, independent of whether the directive's arguments are valid.</summary>
+    public enum DirectiveArgumentKind
+    {
+        Unknown,
+        Name,
+        Value,
     }
 
     /// <summary>
@@ -397,15 +449,57 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
     /// Index within <paramref name="Text"/> of the separator that splits the token into its name and value,
     /// or <c>-1</c> if the token has no separator.
     /// </param>
-    private readonly record struct DirectiveToken(string Text, int SeparatorIndex)
+    public readonly record struct DirectiveToken(string Text, int SeparatorIndex)
     {
         /// <summary>
-        /// Creates a token whose separator is located by searching <paramref name="text"/>,
-        /// used for the legacy (unquoted) form where the tokenizer did not track the separator position.
+        /// Span of the name, or of the whole token when there is no separator.
+        /// Includes surrounding quotes, but not whitespace around the separator.
         /// </summary>
-        public static DirectiveToken Create(string text, char? separator)
-            => new(text, separator is { } s ? text.IndexOf(s) : -1);
+        public TextSpan NameSpan { get; init; }
+
+        /// <summary>Span of the separator, or an empty span at the end of the token if absent.</summary>
+        public TextSpan SeparatorSpan { get; init; }
+
+        /// <summary>Span of the value, including surrounding quotes but not whitespace around the separator.</summary>
+        public TextSpan ValueSpan { get; init; }
+
+        public static DirectiveToken Create(string text, char? separator, int sourceStart)
+        {
+            var separatorIndex = separator is { } s ? text.IndexOf(s) : -1;
+            return new DirectiveToken(text, separatorIndex).WithSourceSpans(text.AsSpan(), sourceStart, separatorIndex);
+        }
+
+        public DirectiveToken WithSourceSpans(ReadOnlySpan<char> source, int sourceStart, int separatorIndex)
+        {
+            if (separatorIndex < 0)
+            {
+                var end = new TextSpan(sourceStart + source.Length, 0);
+                return this with { NameSpan = new TextSpan(sourceStart, source.Length), SeparatorSpan = end, ValueSpan = end };
+            }
+
+            var nameLength = source[..separatorIndex].TrimEnd().Length;
+            var value = source[(separatorIndex + 1)..].TrimStart();
+            return this with
+            {
+                NameSpan = new TextSpan(sourceStart, nameLength),
+                SeparatorSpan = new TextSpan(sourceStart + separatorIndex, 1),
+                ValueSpan = new TextSpan(sourceStart + source.Length - value.Length, value.Length),
+            };
+        }
     }
+
+    /// <summary>Tokenizes a directive without performing directive-specific semantic validation.</summary>
+    public static ImmutableArray<DirectiveToken>? Tokenize(in ParseContext context, out DirectiveArgumentKind argumentKind)
+    {
+        var (parser, nameSeparator) = GetDirectiveInfo(context.DirectiveKind);
+        argumentKind = parser is null ? DirectiveArgumentKind.Unknown
+            : nameSeparator.HasValue ? DirectiveArgumentKind.Name
+            : DirectiveArgumentKind.Value;
+        return TokenizeWithLegacyFallback(context, out _);
+    }
+
+    private static char? GetNameSeparator(string directiveKind)
+        => GetDirectiveInfo(directiveKind).NameSeparator;
 
     /// <summary>
     /// Splits <see cref="ParseContext.DirectiveText"/> into whitespace-separated tokens.
@@ -434,10 +528,18 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
         var quoteClosed = false;
         var separatorIndex = -1;
         var afterSeparator = false;
+        var sourceStart = context.DirectiveTextStart;
+        var tokenStart = 0;
+        var tokenEnd = 0;
+        var sourceSeparatorIndex = -1;
 
         for (var i = 0; i < text.Length; i++)
         {
             var c = text[i];
+            if (!tokenStarted && !char.IsWhiteSpace(c))
+            {
+                tokenStart = i;
+            }
 
             var separator = tokens.Count == 0 ? nameSeparator : '=';
 
@@ -489,6 +591,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                 quoteClosed = true;
                 afterSeparator = false;
                 i += token.Text.Length - 1;
+                tokenEnd = i + 1;
                 continue;
             }
 
@@ -506,12 +609,13 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
                 if (tokenStarted)
                 {
-                    tokens.Add(new DirectiveToken(current.ToString(), separatorIndex));
+                    AddToken();
                     current.Clear();
                     tokenStarted = false;
                     quoteClosed = false;
                     separatorIndex = -1;
                     afterSeparator = false;
+                    sourceSeparatorIndex = -1;
                 }
 
                 continue;
@@ -522,10 +626,12 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
             if (separator is { } s && c == s && separatorIndex < 0)
             {
                 separatorIndex = current.Length;
+                sourceSeparatorIndex = i;
                 current.Append(c);
                 tokenStarted = true;
                 quoteClosed = false;
                 afterSeparator = true;
+                tokenEnd = i + 1;
                 continue;
             }
 
@@ -538,14 +644,23 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
             current.Append(c);
             tokenStarted = true;
             afterSeparator = false;
+            tokenEnd = i + 1;
         }
 
         if (tokenStarted)
         {
-            tokens.Add(new DirectiveToken(current.ToString(), separatorIndex));
+            AddToken();
         }
 
         return tokens.ToImmutable();
+
+        void AddToken()
+        {
+            tokens.Add(new DirectiveToken(current.ToString(), separatorIndex).WithSourceSpans(
+                text.AsSpan(tokenStart, tokenEnd - tokenStart),
+                sourceStart + tokenStart,
+                sourceSeparatorIndex < 0 ? -1 : sourceSeparatorIndex - tokenStart));
+        }
 
         // Returns whether the next non-whitespace character is a separator that the current token has not consumed yet,
         // i.e., whether the whitespace at 'index' merely precedes the separator.
@@ -600,14 +715,14 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
     }
 
     /// <summary>
-    /// Tokenizes <see cref="ParseContext.DirectiveText"/> like <see cref="Tokenize"/> for the "new" form
+    /// Tokenizes <see cref="ParseContext.DirectiveText"/> like <see cref="Tokenize(in ParseContext, char?, bool)"/> for the "new" form
     /// (which may use double quotes and/or trailing <c>Name=Value</c> metadata),
     /// but falls back to the pre-quoting "legacy" behavior to avoid a breaking change:
     /// before quoting and metadata were supported, a directive value could contain unquoted whitespace and was taken verbatim.
     /// <para>
     /// Rules (double quotes were previously disallowed, so their presence unambiguously means the new form):
     /// <list type="bullet">
-    /// <item>If the text contains a double quote, it is parsed strictly via <see cref="Tokenize"/>.</item>
+    /// <item>If the text contains a double quote, it is parsed strictly via <see cref="Tokenize(in ParseContext, char?, bool)"/>.</item>
     /// <item>Otherwise, if there is at most one whitespace-separated token, it is returned as-is.</item>
     /// <item>Otherwise, the trailing tokens are treated as metadata
     /// only when the directive supports metadata and every trailing token is a valid <c>Name=Value</c> pair;
@@ -623,11 +738,11 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
     /// </summary>
     private static ImmutableArray<DirectiveToken>? TokenizeWithLegacyFallback(
         in ParseContext context,
-        char? nameSeparator,
         out bool isLegacy)
     {
         isLegacy = false;
         var text = context.DirectiveText;
+        var nameSeparator = GetNameSeparator(context.DirectiveKind);
         var allowMetadata = AllowsMetadata(context.DirectiveKind);
 
         // Quoting is the "new" form; parse strictly with full validation once a quote is present.
@@ -646,26 +761,33 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
         // A single token (no internal whitespace) is unambiguous.
         if (rawTokens.Length <= 1)
         {
-            return ToLegacyTokens(rawTokens, nameSeparator);
+            return ToLegacyTokens(rawTokens, nameSeparator, text, context.DirectiveTextStart);
         }
 
         // Multiple unquoted whitespace-separated tokens.
         // Interpret the trailing ones as item metadata only when metadata is supported and every trailing token is a valid 'Name=Value' pair.
         if (allowMetadata && AllValidMetadata(rawTokens, start: 1))
         {
-            return ToLegacyTokens(rawTokens, nameSeparator);
+            return ToLegacyTokens(rawTokens, nameSeparator, text, context.DirectiveTextStart);
         }
 
         // Legacy: the whole remainder is a single value (preserves pre-quoting behavior).
         isLegacy = true;
-        return ImmutableArray.Create(DirectiveToken.Create(text, nameSeparator));
+        return ImmutableArray.Create(DirectiveToken.Create(text, nameSeparator, context.DirectiveTextStart));
 
-        static ImmutableArray<DirectiveToken> ToLegacyTokens(ImmutableArray<string> rawTokens, char? nameSeparator)
+        static ImmutableArray<DirectiveToken> ToLegacyTokens(ImmutableArray<string> rawTokens, char? nameSeparator, string text, int sourceStart)
         {
             var builder = ImmutableArray.CreateBuilder<DirectiveToken>(rawTokens.Length);
+            var tokenStart = 0;
             for (var i = 0; i < rawTokens.Length; i++)
             {
-                builder.Add(DirectiveToken.Create(rawTokens[i], i == 0 ? nameSeparator : '='));
+                while (tokenStart < text.Length && char.IsWhiteSpace(text[tokenStart]))
+                {
+                    tokenStart++;
+                }
+
+                builder.Add(DirectiveToken.Create(rawTokens[i], i == 0 ? nameSeparator : '=', sourceStart + tokenStart));
+                tokenStart += rawTokens[i].Length;
             }
 
             return builder.MoveToImmutable();
@@ -674,12 +796,12 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
     /// <summary>
     /// Splits the first of <paramref name="tokens"/> into a required name and optional value
-    /// on the first occurrence of <paramref name="separator"/> (e.g., <c>Name@Version</c>), validating the name.
+    /// at the separator identified during tokenization (e.g., <c>Name@Version</c>), validating the name.
     /// Used by <c>#:sdk</c>, <c>#:property</c>, and <c>#:package</c>.
     /// When <paramref name="trimAroundSeparator"/> is set (legacy form, where the token may contain unquoted whitespace),
     /// whitespace adjacent to the separator is trimmed to match the pre-quoting behavior.
     /// </summary>
-    private static (string Name, string? Value)? ParseNameAndValue(in ParseContext context, ImmutableArray<DirectiveToken> tokens, char separator, bool trimAroundSeparator = false)
+    private static (string Name, string? Value)? ParseNameAndValue(in ParseContext context, ImmutableArray<DirectiveToken> tokens, bool trimAroundSeparator = false)
     {
         if (tokens.Length == 0)
         {
@@ -703,7 +825,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
         // If the name contains characters that resemble separators, report an error to avoid any confusion.
         if (ContainsDisallowedNameCharacter(name))
         {
-            context.ReportError(string.Format(FileBasedProgramsResources.InvalidDirectiveName, context.DirectiveKind, separator));
+            context.ReportError(string.Format(FileBasedProgramsResources.InvalidDirectiveName, context.DirectiveKind, GetNameSeparator(context.DirectiveKind)));
             return null;
         }
 
@@ -781,7 +903,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
         out ImmutableArray<(string Name, string Value)> metadata)
     {
         metadata = default;
-        if (TokenizeWithLegacyFallback(context, nameSeparator: null, out _) is not { } tokens)
+        if (TokenizeWithLegacyFallback(context, out _) is not { } tokens)
         {
             return null;
         }
@@ -846,7 +968,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Sdk? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: '@', out var isLegacy) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, out var isLegacy) is not { } tokens)
             {
                 return null;
             }
@@ -857,7 +979,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                 return null;
             }
 
-            if (ParseNameAndValue(context, tokens, separator: '@', trimAroundSeparator: isLegacy) is not var (sdkName, sdkVersion))
+            if (ParseNameAndValue(context, tokens, trimAroundSeparator: isLegacy) is not var (sdkName, sdkVersion))
             {
                 return null;
             }
@@ -881,7 +1003,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Property? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: '=', out var isLegacy) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, out var isLegacy) is not { } tokens)
             {
                 return null;
             }
@@ -892,7 +1014,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                 return null;
             }
 
-            if (ParseNameAndValue(context, tokens, separator: '=', trimAroundSeparator: isLegacy) is not var (propertyName, propertyValue))
+            if (ParseNameAndValue(context, tokens, trimAroundSeparator: isLegacy) is not var (propertyName, propertyValue))
             {
                 return null;
             }
@@ -940,12 +1062,12 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Package? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: '@', out var isLegacy) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, out var isLegacy) is not { } tokens)
             {
                 return null;
             }
 
-            if (ParseNameAndValue(context, tokens, separator: '@', trimAroundSeparator: isLegacy) is not var (packageName, packageVersion))
+            if (ParseNameAndValue(context, tokens, trimAroundSeparator: isLegacy) is not var (packageName, packageVersion))
             {
                 return null;
             }
@@ -1015,7 +1137,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Project? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: null, out _) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, out _) is not { } tokens)
             {
                 return null;
             }
@@ -1147,7 +1269,7 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
 
         public static new Ref? Parse(in ParseContext context)
         {
-            if (TokenizeWithLegacyFallback(context, nameSeparator: null, out _) is not { } tokens)
+            if (TokenizeWithLegacyFallback(context, out _) is not { } tokens)
             {
                 return null;
             }
