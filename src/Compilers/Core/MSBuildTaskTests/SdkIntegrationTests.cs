@@ -188,62 +188,44 @@ public sealed class SdkIntegrationTests : IDisposable
     public async Task CompilerCache_ReusesAcrossWorktrees(bool razor)
     {
         var firstWorktree = ProjectDir.CreateDirectory("first");
-        var secondWorktree = Path.Combine(ProjectDir.Path, "second");
+        var secondWorktree = ProjectDir.CreateDirectory("second");
         var cachePath = ProjectDir.CreateDirectory("cache").Path;
         var pipeName = Guid.NewGuid().ToString("N");
-        firstWorktree.CreateFile("test.csproj").WriteAllText($"""
-            <Project Sdk="Microsoft.NET.Sdk{(razor ? ".Razor" : "")}">
-              <PropertyGroup>
-                <TargetFramework>{NetCoreTfm}</TargetFramework>
-                <UseRoslynCompilerCache>true</UseRoslynCompilerCache>
-              </PropertyGroup>
-              {(razor ? """<ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>""" : "")}
-            </Project>
-            """);
-        firstWorktree.CreateFile("C.cs").WriteAllText("public class C { }");
-        if (razor)
+        foreach (var worktree in new[] { firstWorktree, secondWorktree })
         {
-            firstWorktree.CreateFile("Component.razor").WriteAllText("<h1>Hello from Razor</h1>");
+            worktree.CreateFile("test.csproj").WriteAllText($"""
+                <Project Sdk="Microsoft.NET.Sdk{(razor ? ".Razor" : "")}">
+                  <PropertyGroup>
+                    <TargetFramework>{NetCoreTfm}</TargetFramework>
+                    <UseRoslynCompilerCache>true</UseRoslynCompilerCache>
+                    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+                  </PropertyGroup>
+                  <ItemGroup>
+                    <SourceRoot Include="$(MSBuildProjectDirectory){Path.DirectorySeparatorChar}" SourceControl="git" SourceLinkUrl="https://example.invalid/sources/*" />
+                  </ItemGroup>
+                  {(razor ? """<ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>""" : "")}
+                </Project>
+                """);
+            worktree.CreateFile("C.cs").WriteAllText("public class C { }");
+            if (razor)
+            {
+                worktree.CreateFile("Component.razor").WriteAllText("<h1>Hello from Razor</h1>");
+            }
         }
-        firstWorktree.CreateFile(".gitignore").WriteAllText("bin/\nobj/\nmsbuild.binlog\n");
-
-        runGit("init");
-        runGit("remote add origin https://github.com/dotnet/roslyn-cache-test.git");
-        runGit("add .");
-        runGit("-c user.name=RoslynTests -c user.email=roslyn-tests@example.invalid commit -m \"Initial project\"");
-        runGit($"worktree add --detach \"{secondWorktree}\" HEAD");
 
         try
         {
             build(firstWorktree.Path, expectCacheHit: false);
             build(firstWorktree.Path, expectCacheHit: true);
-            build(secondWorktree, expectCacheHit: true);
+            build(secondWorktree.Path, expectCacheHit: true);
         }
         finally
         {
-            try
-            {
-                Assert.True(await BuildServerConnection.RunServerShutdownRequestAsync(
-                    pipeName, timeoutOverride: null, waitForProcess: true, EmptyCompilerServerLogger.Instance, CancellationToken.None));
-            }
-            finally
-            {
-                // Read-only Git objects would prevent TempRoot from removing the repository on Windows.
-                foreach (var file in Directory.EnumerateFiles(Path.Combine(firstWorktree.Path, ".git"), "*", SearchOption.AllDirectories))
-                {
-                    File.SetAttributes(file, File.GetAttributes(file) & ~FileAttributes.ReadOnly);
-                }
-            }
+            Assert.True(await BuildServerConnection.RunServerShutdownRequestAsync(
+                pipeName, timeoutOverride: null, waitForProcess: true, EmptyCompilerServerLogger.Instance, CancellationToken.None));
         }
 
         ArtifactUploadUtil.SetSucceeded();
-
-        void runGit(string arguments)
-        {
-            var result = ProcessUtilities.Run(
-                "git", "-c core.hooksPath= -c core.autocrlf=false -c commit.gpgSign=false " + arguments, firstWorktree.Path);
-            Assert.True(result.ExitCode == 0, $"git {arguments} failed: {result.Output}");
-        }
 
         void build(string worktree, bool expectCacheHit)
         {
@@ -265,14 +247,14 @@ public sealed class SdkIntegrationTests : IDisposable
                 TestOutputHelper.WriteLine(line);
             }
 
-            if (worktree == secondWorktree)
+            if (worktree == secondWorktree.Path)
             {
                 foreach (var extension in new[] { ".dll", ".pdb" })
                 {
                     var relativePath = Path.Combine("bin", "Debug", NetCoreTfm, "test" + extension);
                     Assert.Equal(
                         File.ReadAllBytes(Path.Combine(firstWorktree.Path, relativePath)),
-                        File.ReadAllBytes(Path.Combine(secondWorktree, relativePath)));
+                        File.ReadAllBytes(Path.Combine(secondWorktree.Path, relativePath)));
                 }
             }
 
