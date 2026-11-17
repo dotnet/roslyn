@@ -383,7 +383,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Built-in fixes remove both warning kinds in one text edit without changing the open document.
         var resolved = await ResolveAsync(server, action);
-        Assert.Equal(expected, ApplySingleDocumentEdit(resolved, SourceText.From(source), uri).ReplaceLineEndings("\n"));
+        Assert.Equal(expected.ReplaceLineEndings("\n"), ApplySingleDocumentEdit(resolved, SourceText.From(source), uri).ReplaceLineEndings("\n"));
         Assert.Equal(source, Assert.Single(server.GetTrackedTexts()).ToString());
     }
 
