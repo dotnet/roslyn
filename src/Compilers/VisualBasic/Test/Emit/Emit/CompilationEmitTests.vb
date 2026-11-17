@@ -1406,21 +1406,21 @@ End Class
         <Fact>
         Public Sub RefAssembly_IgnoresSomeDiagnostics()
 
-            RefAssembly_IgnoresSomeDiagnostics(
+            VerifyRefAssemblyIgnoresSomeDiagnostics(
 "Public Function M() As Integer
 End Function", True)
 
-            RefAssembly_IgnoresSomeDiagnostics(
+            VerifyRefAssemblyIgnoresSomeDiagnostics(
 "Public Function M() As Integer
     Error(
 End Function", False) ' Should be true. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
 
-            RefAssembly_IgnoresSomeDiagnostics(
+            VerifyRefAssemblyIgnoresSomeDiagnostics(
 "Public Function M() As Error
 End Function", False) ' This may get relaxed. See follow-up issue https://github.com/dotnet/roslyn/issues/17612
         End Sub
 
-        Private Sub RefAssembly_IgnoresSomeDiagnostics(change As String, expectSuccess As Boolean)
+        Private Sub VerifyRefAssemblyIgnoresSomeDiagnostics(change As String, expectSuccess As Boolean)
             Dim sourceTemplate As String = "
 Public Class C
     CHANGE
