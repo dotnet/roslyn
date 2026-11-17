@@ -40,7 +40,6 @@
     <ExpectedDependency Include="ICSharpCode.Decompiler"/>
     <ExpectedDependency Include="Microsoft.DiaSymReader"/>
     <ExpectedDependency Include="Microsoft.CodeAnalysis.Elfie"/>
-    <ExpectedDependency Include="System.IO.Hashing"/>
   </ItemGroup>
 
   <Target Name="_CalculateDependenciesToInsert" DependsOnTargets="ResolveAssemblyReferences;GetAssemblyVersion">
@@ -140,6 +139,7 @@
       <_Dependency Remove="System.Diagnostics.DiagnosticSource"/>
       <_Dependency Remove="System.Drawing.Common"/>
       <_Dependency Remove="System.Formats.Nrbf" />
+      <_Dependency Remove="System.IO.Hashing"/>
       <_Dependency Remove="System.IO.Packaging"/>
       <_Dependency Remove="System.IO.Pipelines"/>
       <_Dependency Remove="System.Memory"/>
