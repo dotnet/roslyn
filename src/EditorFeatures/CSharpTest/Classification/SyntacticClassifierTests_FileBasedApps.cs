@@ -2,9 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Classification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
@@ -13,6 +19,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 [Trait(Traits.Feature, Traits.Features.Classification)]
 public partial class SyntacticClassifierTests
 {
+    [Theory, CombinatorialData]
+    public void FileBasedApps_Lexical_QuotedDirective(bool classifyEntireFile)
+    {
+        const string header = "// A header that is longer than the entire quoted directive below.\n";
+        var text = SourceText.From(header + """
+            #:package Pkg@"1.0" Note="x"
+            """);
+        var offset = header.Length;
+        var textSpan = TextSpan.FromBounds(classifyEntireFile ? 0 : offset, text.Length);
+        var actual = new SegmentedList<ClassifiedSpan>();
+
+        ClassificationHelpers.AddLexicalClassifications(text, textSpan, actual, CancellationToken.None);
+
+        ClassifiedSpan[] expected =
+        [
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(offset, 1)),
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(offset + 1, 1)),
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(offset + 2, 7)),
+            new(ClassificationTypeNames.Identifier, new TextSpan(offset + 10, 3)),
+            new(ClassificationTypeNames.Punctuation, new TextSpan(offset + 13, 1)),
+            new(ClassificationTypeNames.StringLiteral, new TextSpan(offset + 14, 5)),
+            new(ClassificationTypeNames.Identifier, new TextSpan(offset + 20, 4)),
+            new(ClassificationTypeNames.Punctuation, new TextSpan(offset + 24, 1)),
+            new(ClassificationTypeNames.StringLiteral, new TextSpan(offset + 25, 3)),
+        ];
+
+        if (classifyEntireFile)
+        {
+            expected = [new(ClassificationTypeNames.Comment, new TextSpan(0, header.Length - 1)), .. expected];
+        }
+
+        AssertEx.Equal(expected, actual, itemInspector: span => $"{span.ClassificationType} {span.TextSpan}: {text.ToString(span.TextSpan)}");
+    }
+
     [Theory, CombinatorialData]
     public Task FileBasedApps_Sdk_01(TestHost testHost)
         => TestAsync("""

@@ -335,7 +335,7 @@ internal ref partial struct Worker
         AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
         AddClassification(node.ColonToken, ClassificationTypeNames.PreprocessorKeyword);
 
-        var sourceFile = new SourceFile(node.SyntaxTree.FilePath, node.SyntaxTree.GetText(_cancellationToken));
+        var sourceFile = new SourceFile(node.SyntaxTree.FilePath, _sourceText ?? node.SyntaxTree.GetText(_cancellationToken));
         var (kindSpan, argumentKind, tokens) = FileLevelDirectiveHelpers.TokenizeDirective(sourceFile, node, ErrorReporters.IgnoringReporter);
         AddClassification(kindSpan, ClassificationTypeNames.PreprocessorKeyword);
 
