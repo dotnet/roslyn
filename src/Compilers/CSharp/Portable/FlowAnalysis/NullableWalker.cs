@@ -441,6 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Placeholder locals, e.g. for objects being constructed.
         /// </summary>
         private PooledDictionary<object, PlaceholderLocal>? _placeholderLocalsOpt;
+        private PooledDictionary<object, BoundValueForNullableAnalysis>? _boundValuesForNullableAnalysisOpt;
 
         /// <summary>
         /// For methods with annotations, we'll need to visit the arguments twice.
@@ -478,6 +479,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _resultForPlaceholdersOpt?.Free();
             _methodGroupReceiverMapOpt?.Free();
             _placeholderLocalsOpt?.Free();
+            _boundValuesForNullableAnalysisOpt?.Free();
 
             // Free _variables and its Container chain. The chain exists when _variables
             // was created from a snapshot (e.g., in AnalyzeLambdaBody) which recursively
@@ -9686,19 +9688,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
 
-                            var conversionOperand = new BoundValueForNullableAnalysis(convertedNode.Syntax, originalExpression: null, valueFieldType.Type);
+                            BoundValueForNullableAnalysis? conversionOperand;
                             int conversionOperandSlot = -1;
 
                             if (targetFieldSlot > 0 || valueFieldSlot > 0)
                             {
+                                _boundValuesForNullableAnalysisOpt ??= PooledDictionary<object, BoundValueForNullableAnalysis>.GetInstance();
+
+                                object key = (convertedNode, targetFieldSlot, valueFieldSlot);
+                                if (!_boundValuesForNullableAnalysisOpt.TryGetValue(key, out conversionOperand))
+                                {
+                                    conversionOperand = allocateNewBoundValueForNullableAnalysis(convertedNode, valueFieldType);
+                                    _boundValuesForNullableAnalysisOpt.Add(key, conversionOperand);
+                                }
+
                                 conversionOperandSlot = GetOrCreatePlaceholderSlot(conversionOperand);
                                 Debug.Assert(conversionOperandSlot > 0);
+
+                                if (conversionOperandSlot > 0)
+                                {
+                                    SetState(ref this.State, conversionOperandSlot, valueFieldType.State);
+                                }
+                            }
+                            else
+                            {
+                                conversionOperand = allocateNewBoundValueForNullableAnalysis(convertedNode, valueFieldType);
                             }
 
-                            if (conversionOperandSlot > 0)
-                            {
-                                SetState(ref this.State, conversionOperandSlot, valueFieldType.State);
-                            }
+                            Debug.Assert(TypeSymbol.Equals(conversionOperand.Type, valueFieldType.Type, TypeCompareKind.AllIgnoreOptions));
 
                             TypeWithState convertedType = VisitUnionConversion(
                                 conversionOpt: null,
@@ -9729,6 +9746,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         break;
                 }
+            }
+
+            static BoundValueForNullableAnalysis allocateNewBoundValueForNullableAnalysis(BoundExpression convertedNode, TypeWithState valueFieldType)
+            {
+                return new BoundValueForNullableAnalysis(convertedNode.Syntax, originalExpression: null, valueFieldType.Type);
             }
         }
 
@@ -10763,7 +10785,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // toType -> target type
-            var unionInstance = new BoundValueForNullableAnalysis((unionConstructionConversion ?? conversionOperand).Syntax, unionConstructionConversion, toType);
+            BoundValueForNullableAnalysis? unionInstance;
+            if (trackMembers && (conversionOpt is { } || targetInstanceSlotOpt > 0) &&
+                toType is NamedTypeSymbol { IsUnionType: true } unionType &&
+                unionType.UnionValuePropertyNoUseSiteDiagnostics() is { } valueProperty)
+            {
+                // When a union constructor is called through a union conversion, the new union's Value gets the null state of the incoming value.
+                Debug.Assert(conversionOperand != null);
+
+                _boundValuesForNullableAnalysisOpt ??= PooledDictionary<object, BoundValueForNullableAnalysis>.GetInstance();
+
+                object key = (conversionOperand, conversionOpt, targetInstanceSlotOpt);
+                if (!_boundValuesForNullableAnalysisOpt.TryGetValue(key, out unionInstance))
+                {
+                    unionInstance = allocateNewBoundValueForNullableAnalysis(conversionOperand, unionConstructionConversion, toType);
+                    _boundValuesForNullableAnalysisOpt.Add(key, unionInstance);
+                }
+
+                int containingSlot = GetOrCreatePlaceholderSlot(unionInstance);
+                Debug.Assert(containingSlot > 0);
+
+                SetUnionValueStateFromConstructorArgument(conversionOperand, operandType, containingSlot, valueProperty);
+            }
+            else
+            {
+                unionInstance = allocateNewBoundValueForNullableAnalysis(conversionOperand, unionConstructionConversion, toType);
+            }
+
+            Debug.Assert(TypeSymbol.Equals(unionInstance.Type, toType, TypeCompareKind.AllIgnoreOptions));
+
             TypeWithState unionTypeWithState;
 
             if (factory.ReturnsVoid)
@@ -10780,18 +10830,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (unionConstructionConversion is { })
             {
                 SetAnalyzedNullability(unionConstructionConversion, new VisitResult(unionTypeWithState, unionTypeWithState.ToTypeWithAnnotations(compilation)));
-            }
-
-            if (trackMembers && (conversionOpt is { } || targetInstanceSlotOpt > 0) &&
-                targetTypeWithNullability.Type.StrippedType() is NamedTypeSymbol { IsUnionType: true } unionType &&
-                unionType.UnionValuePropertyNoUseSiteDiagnostics() is { } valueProperty)
-            {
-                // When a union constructor is called through a union conversion, the new union's Value gets the null state of the incoming value.
-                Debug.Assert(conversionOperand != null);
-                int containingSlot = GetOrCreatePlaceholderSlot(unionInstance);
-                Debug.Assert(containingSlot > 0);
-
-                SetUnionValueStateFromConstructorArgument(conversionOperand, operandType, containingSlot, valueProperty);
             }
 
             operandType = VisitConversion(
@@ -10814,6 +10852,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Update constructor symbol in the tree: see https://github.com/dotnet/roslyn/issues/29605.
 
             return operandType;
+
+            static BoundValueForNullableAnalysis allocateNewBoundValueForNullableAnalysis(BoundExpression conversionOperand, BoundConversion? unionConstructionConversion, NamedTypeSymbol toType)
+            {
+                return new BoundValueForNullableAnalysis((unionConstructionConversion ?? conversionOperand).Syntax, unionConstructionConversion, toType);
+            }
         }
 
         private void SnapshotWalkerThroughConversionGroup(BoundExpression conversionExpression, BoundExpression convertedNode)

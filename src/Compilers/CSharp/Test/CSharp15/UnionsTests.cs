@@ -21650,6 +21650,62 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_90_Conversion()
+        {
+            var src = @"
+#nullable enable
+
+public union U(string, int);
+
+public class C
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+#line 100
+            U value = (string?)null;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,23): warning CS8604: Possible null reference argument for parameter 'value' in 'U.U(string value)'.
+                //             U value = (string?)null;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("value", "U.U(string value)").WithLocation(100, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_91_Conversion()
+        {
+            var src = @"
+#nullable enable
+
+public union U(string?, int);
+
+public class C
+{
+    static void M((string?, int) input)
+    {
+        for (int i = 0; i < 1; i++)
+        {
+#line 100
+            (U, int) value = input;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void NullableAnalysis_MemberProvider_01_State_From_Default()
         {
             var src = @"
