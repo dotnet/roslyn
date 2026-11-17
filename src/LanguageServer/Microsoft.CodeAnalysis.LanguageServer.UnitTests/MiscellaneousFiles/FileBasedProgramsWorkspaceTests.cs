@@ -504,6 +504,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
             [projectInfo],
+            evaluationDiagnostics: [],
             isMiscellaneousFile: true,
             hasAllInformation: false,
             projectFactory,

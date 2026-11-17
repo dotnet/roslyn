@@ -137,12 +137,34 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         var previousResults = GetPreviousResults(diagnosticsParams) ?? [];
         context.TraceDebug($"previousResults.Length={previousResults.Length}");
 
+        // Captured before the sources are created, so that a source that reads its diagnostics when it's created is never cached
+        // under a newer version than the diagnostics it read
+        var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
+
+        // Determine the sources to process in priority order. This is done before looking at the previous results, since
+        // a previous result for a file is matched to a source identified by that file's path.
+        var orderedSources = await GetOrderedDiagnosticSourcesAsync(
+            diagnosticsParams, category, context, cancellationToken).ConfigureAwait(false);
+
+        context.TraceDebug($"Processing {orderedSources.Length} documents");
+
+        Dictionary<string, DiagnosticScope>? filePathToScope = null;
+        foreach (var diagnosticSource in orderedSources)
+        {
+            var scope = diagnosticSource.GetScope();
+            if (scope.FilePath is { } filePath)
+            {
+                filePathToScope ??= new(PathUtilities.Comparer);
+                filePathToScope[filePath] = scope;
+            }
+        }
+
         // Create a mapping from documents to the previous results the client says it has for them.  That way as we
         // process documents we know if we should tell the client it should stay the same, or we can tell it what
         // the updated diagnostics are.
-        using var _1 = PooledDictionary<ProjectOrDocumentId, PreviousPullResult>.GetInstance(out var documentIdToPreviousDiagnosticParams);
+        using var _1 = PooledDictionary<DiagnosticScope, PreviousPullResult>.GetInstance(out var scopeToPreviousDiagnosticParams);
         using var _2 = PooledHashSet<PreviousPullResult>.GetInstance(out var removedDocuments);
-        await ProcessPreviousResultsAsync(solution, previousResults, documentIdToPreviousDiagnosticParams, removedDocuments, cancellationToken).ConfigureAwait(false);
+        await ProcessPreviousResultsAsync(solution, previousResults, filePathToScope, scopeToPreviousDiagnosticParams, removedDocuments, cancellationToken).ConfigureAwait(false);
 
         // First, let the client know if any workspace documents have gone away.  That way it can remove those for
         // the user from squiggles or error-list.
@@ -150,26 +172,21 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
         // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
         // last time we notified the client.  Report back either to the client so they can update accordingly.
-        var orderedSources = await GetOrderedDiagnosticSourcesAsync(
-            diagnosticsParams, category, context, cancellationToken).ConfigureAwait(false);
-
-        context.TraceDebug($"Processing {orderedSources.Length} documents");
 
         // Keep track of what diagnostic sources we see this time around.  For any we do not see this time
         // around, we'll notify the client that the diagnostics for it have been removed.
-        using var _3 = PooledHashSet<ProjectOrDocumentId>.GetInstance(out var seenDiagnosticSourceIds);
+        using var _3 = PooledHashSet<DiagnosticScope>.GetInstance(out var seenScopes);
 
         foreach (var diagnosticSource in orderedSources)
         {
-            seenDiagnosticSourceIds.Add(diagnosticSource.GetId());
-            var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
+            seenScopes.Add(diagnosticSource.GetScope());
 
             var project = diagnosticSource.GetProject();
             var cacheState = new DiagnosticsRequestState(project, globalStateVersion, context, diagnosticSource);
 
             var newResult = await versionedCache.GetOrComputeNewDataAsync(
-                documentIdToPreviousDiagnosticParams,
-                diagnosticSource.GetId(),
+                scopeToPreviousDiagnosticParams,
+                diagnosticSource.GetScope(),
                 project,
                 cacheState,
                 cancellationToken).ConfigureAwait(false);
@@ -188,7 +205,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
                 //
                 // Note: if this is a workspace request, we can do nothing, as that will be interpreted by the
                 // client as nothing having been changed for that document.
-                var previousParams = documentIdToPreviousDiagnosticParams[diagnosticSource.GetId()];
+                var previousParams = scopeToPreviousDiagnosticParams[diagnosticSource.GetScope()];
                 if (TryCreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId, out var report))
                     progress.Report(report);
             }
@@ -203,9 +220,9 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         // Note: we are intentionally notifying the client that this is not a remove (vs an empty set of
         // results). As far as we and the client are concerned, this document no longer exists at this point
         // for the purposes of diagnostics.
-        foreach (var (projectOrDocumentId, previousDiagnosticParams) in documentIdToPreviousDiagnosticParams)
+        foreach (var (scope, previousDiagnosticParams) in scopeToPreviousDiagnosticParams)
         {
-            if (!seenDiagnosticSourceIds.Contains(projectOrDocumentId) &&
+            if (!seenScopes.Contains(scope) &&
                 !removedDocuments.Contains(previousDiagnosticParams))
             {
                 progress.Report(CreateRemovedReport(previousDiagnosticParams.TextDocument, clientCapabilities));
@@ -217,7 +234,8 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         static async Task ProcessPreviousResultsAsync(
             Solution solution,
             ImmutableArray<PreviousPullResult> previousResults,
-            Dictionary<ProjectOrDocumentId, PreviousPullResult> idToPreviousDiagnosticParams,
+            Dictionary<string, DiagnosticScope>? filePathToScope,
+            Dictionary<DiagnosticScope, PreviousPullResult> scopeToPreviousDiagnosticParams,
             HashSet<PreviousPullResult> removedResults,
             CancellationToken cancellationToken)
         {
@@ -225,10 +243,10 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             {
                 if (diagnosticParams.TextDocument != null)
                 {
-                    var id = await GetIdForPreviousResultAsync(diagnosticParams.TextDocument, solution, cancellationToken).ConfigureAwait(false);
-                    if (id != null)
+                    var scope = await GetScopeForPreviousResultAsync(diagnosticParams.TextDocument, solution, filePathToScope, cancellationToken).ConfigureAwait(false);
+                    if (scope != null)
                     {
-                        idToPreviousDiagnosticParams[id.Value] = diagnosticParams;
+                        scopeToPreviousDiagnosticParams[scope.Value] = diagnosticParams;
                     }
                     else
                     {
@@ -240,24 +258,33 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             }
         }
 
-        static async Task<ProjectOrDocumentId?> GetIdForPreviousResultAsync(TextDocumentIdentifier textDocumentIdentifier, Solution solution, CancellationToken cancellationToken)
+        static async Task<DiagnosticScope?> GetScopeForPreviousResultAsync(
+            TextDocumentIdentifier textDocumentIdentifier, Solution solution, Dictionary<string, DiagnosticScope>? filePathToScope, CancellationToken cancellationToken)
         {
+            // A source identified by a file's path reports for that file even if it's also a project or document in the solution,
+            // so it has to win over the lookups below
+            if (filePathToScope != null &&
+                filePathToScope.TryGetValue(textDocumentIdentifier.DocumentUri.GetDocumentFilePathFromUri(), out var scope))
+            {
+                return scope;
+            }
+
             var document = await solution.GetTextDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
             if (document != null)
             {
-                return new ProjectOrDocumentId(document.Id);
+                return new DiagnosticScope(document.Id);
             }
 
             var project = solution.GetProject(textDocumentIdentifier);
             if (project != null)
             {
-                return new ProjectOrDocumentId(project.Id);
+                return new DiagnosticScope(project.Id);
             }
 
             var additionalDocument = solution.GetAdditionalDocument(textDocumentIdentifier);
             if (additionalDocument != null)
             {
-                return new ProjectOrDocumentId(additionalDocument.Id);
+                return new DiagnosticScope(additionalDocument.Id);
             }
 
             return null;

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 internal sealed class XamlDiagnosticSource(IXamlDiagnosticSource xamlDiagnosticSource, TextDocument document) : IDiagnosticSource
 {
     Project IDiagnosticSource.GetProject() => document.Project;
-    ProjectOrDocumentId IDiagnosticSource.GetId() => new(document.Id);
+    DiagnosticScope IDiagnosticSource.GetScope() => new(document.Id);
     TextDocumentIdentifier? IDiagnosticSource.GetDocumentIdentifier() => new() { DocumentUri = document.GetURI() };
     string IDiagnosticSource.ToDisplayString() => $"{this.GetType().Name}: {document.FilePath ?? document.Name} in {document.Project.Name}";
 

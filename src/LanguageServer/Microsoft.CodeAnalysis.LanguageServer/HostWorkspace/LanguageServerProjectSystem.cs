@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LanguageServerProjectSystemServiceFactory(
     IGlobalOptionService globalOptionService,
+    IDiagnosticsRefresher diagnosticsRefresher,
     IAsynchronousOperationListenerProvider listenerProvider,
     ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
 {
@@ -37,6 +39,7 @@ internal sealed class LanguageServerProjectSystemServiceFactory(
         => new LanguageServerProjectSystem(
             lspServices,
             globalOptionService,
+            diagnosticsRefresher,
             lspServices.GetRequiredService<ILoggerFactory>(),
             listenerProvider,
             serverConfigurationFactory,
@@ -55,6 +58,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     public LanguageServerProjectSystem(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,
+        IDiagnosticsRefresher diagnosticsRefresher,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
         ServerConfigurationFactory serverConfigurationFactory,
@@ -63,6 +67,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             : base(
                 lspServices,
                 globalOptionService,
+                diagnosticsRefresher,
                 loggerFactory,
                 listenerProvider,
                 serverConfigurationFactory,
@@ -211,6 +216,12 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     private bool TryGetSupportedLanguage(string projectPath, [NotNullWhen(true)] out string? languageName)
         => _projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Ignore, out languageName) && _supportedLanguages.Contains(languageName);
 
+    protected override string GetLanguageForFailedProject(string projectPath)
+    {
+        Contract.ThrowIfFalse(TryGetSupportedLanguage(projectPath, out var languageName));
+        return languageName;
+    }
+
     private bool IsSupportedProjectLoggingIfNot(string projectPath)
     {
         if (TryGetSupportedLanguage(projectPath, out _))
@@ -234,11 +245,10 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         var (buildHost, actualBuildHostKind) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken);
 
         await using var loadedFile = await buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken);
-        var projectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
         return new RemoteProjectLoadResult
         {
-            ProjectFileInfos = projectFileInfos,
-            DiagnosticLogItems = [.. await loadedFile.GetEvaluationDiagnosticLogItemsAsync(cancellationToken), .. projectFileInfos.SelectMany(static info => info.Diagnostics)],
+            ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
+            EvaluationDiagnosticLogItems = await loadedFile.GetEvaluationDiagnosticLogItemsAsync(cancellationToken),
             ProjectRestorePath = projectPath,
             ProjectFactory = _hostProjectFactory,
             IsFileBasedProgram = false,

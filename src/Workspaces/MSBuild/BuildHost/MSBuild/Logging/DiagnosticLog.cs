@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -37,5 +38,22 @@ internal readonly struct DiagnosticLog() : IEnumerable<DiagnosticLogItem>
         => Add(new DiagnosticLogItem(kind, message, projectFilePath));
 
     public void Add(Exception exception, string projectFilePath, DiagnosticLogItemKind kind = DiagnosticLogItemKind.Error)
-        => Add(new DiagnosticLogItem(kind, exception.Message, projectFilePath));
+    {
+        if (exception is MSB.Exceptions.InvalidProjectFileException invalidProjectFile)
+        {
+            // MSBuild reports an empty file, an empty code and a position of 0 when they're unknown.
+            Add(new DiagnosticLogItem(
+                kind,
+                exception.Message,
+                projectFilePath,
+                string.IsNullOrEmpty(invalidProjectFile.ProjectFile) ? null : invalidProjectFile.ProjectFile,
+                invalidProjectFile.LineNumber > 0 ? invalidProjectFile.LineNumber : null,
+                invalidProjectFile.ColumnNumber > 0 ? invalidProjectFile.ColumnNumber : null,
+                string.IsNullOrEmpty(invalidProjectFile.ErrorCode) ? null : invalidProjectFile.ErrorCode));
+        }
+        else
+        {
+            Add(new DiagnosticLogItem(kind, exception.Message, projectFilePath));
+        }
+    }
 }

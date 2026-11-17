@@ -146,11 +146,11 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
         }
         else
         {
-            // We ASSUME that all sources with the same ProjectOrDocumentID and IsLiveSource
+            // We ASSUME that all sources with the same DiagnosticScope and IsLiveSource
             // will have same value for GetDocumentIdentifier and GetProject(). Thus can be
             // aggregated in a single source which will return same values. See
             // AggregatedDocumentDiagnosticSource implementation for more details.
-            sources = [.. sources.GroupBy(s => s.GetId(), s => s).SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))];
+            sources = [.. sources.GroupBy(s => s.GetScope(), s => s).SelectMany(g => AggregatedDocumentDiagnosticSource.AggregateIfNeeded(g))];
         }
 
         return sources;
@@ -177,7 +177,7 @@ internal sealed class DiagnosticSourceManager : IDiagnosticSourceManager
         }
 
         public Project GetProject() => sources[0].GetProject();
-        public ProjectOrDocumentId GetId() => sources[0].GetId();
+        public DiagnosticScope GetScope() => sources[0].GetScope();
         public TextDocumentIdentifier? GetDocumentIdentifier() => sources[0].GetDocumentIdentifier();
         public string ToDisplayString() => $"{this.GetType().Name}: count={sources.Length}";
 

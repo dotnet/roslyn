@@ -7,6 +7,7 @@ extern alias MSBuildWorkspacesContracts;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -19,9 +20,12 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
+using DiagnosticLogItem = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DiagnosticLogItem;
+using DiagnosticLogItemKind = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DiagnosticLogItemKind;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 using ProjectFileReference = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileReference;
 
@@ -405,6 +409,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class TestProjectLoaderFactory(
         IGlobalOptionService globalOptionService,
+        IDiagnosticsRefresher diagnosticsRefresher,
         IAsynchronousOperationListenerProvider listenerProvider,
         ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
     {
@@ -412,6 +417,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             => new TestProjectLoader(
                 lspServices,
                 globalOptionService,
+                diagnosticsRefresher,
                 lspServices.GetRequiredService<ILoggerFactory>(),
                 listenerProvider,
                 serverConfigurationFactory,
@@ -435,15 +441,18 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         // must not fall back to one on machines with fewer processors.
         protected override int MaxNodeCount => 2;
 
+        protected override string GetLanguageForFailedProject(string projectPath) => LanguageNames.CSharp;
+
         public TestProjectLoader(
             ILspServices lspServices,
             IGlobalOptionService globalOptionService,
+            IDiagnosticsRefresher diagnosticsRefresher,
             ILoggerFactory loggerFactory,
             IAsynchronousOperationListenerProvider listenerProvider,
             ServerConfigurationFactory serverConfigurationFactory,
             IBinLogPathProvider binLogPathProvider,
             DotnetCliHelper dotnetCliHelper)
-            : base(lspServices, globalOptionService, loggerFactory, listenerProvider, serverConfigurationFactory, binLogPathProvider, dotnetCliHelper)
+            : base(lspServices, globalOptionService, diagnosticsRefresher, loggerFactory, listenerProvider, serverConfigurationFactory, binLogPathProvider, dotnetCliHelper)
         {
         }
 
@@ -516,7 +525,23 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
                     TargetFramework = targetFramework,
                     ProjectReferences = projectReferences is null ? [] : [.. projectReferences.Select(path => new ProjectFileReference(path, [], referenceOutputAssembly: true))],
                 }],
-                DiagnosticLogItems = [],
+                EvaluationDiagnosticLogItems = [],
+                ProjectRestorePath = projectPath,
+                ProjectFactory = projectFactory,
+                IsFileBasedProgram = false,
+                IsMiscellaneousFile = false,
+                HasFileBasedAppDirectives = false,
+                HasAllInformation = true,
+                PreferredBuildHostKind = BuildHostProcessKind.NetCore,
+                ActualBuildHostKind = BuildHostProcessKind.NetCore,
+            });
+
+        public void Complete(
+            ProjectSystemProjectFactory projectFactory, string projectPath, ImmutableArray<ProjectFileInfo> projectFileInfos, ImmutableArray<DiagnosticLogItem> evaluationDiagnostics)
+            => Result.SetResult(new()
+            {
+                ProjectFileInfos = projectFileInfos,
+                EvaluationDiagnosticLogItems = evaluationDiagnostics,
                 ProjectRestorePath = projectPath,
                 ProjectFactory = projectFactory,
                 IsFileBasedProgram = false,
@@ -529,6 +554,21 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         public void CompleteAsUnsupported()
             => Result.SetResult(null);
+
+        public void CompleteWithError(ProjectSystemProjectFactory projectFactory, DiagnosticLogItem error)
+            => Result.SetResult(new()
+            {
+                ProjectFileInfos = [],
+                EvaluationDiagnosticLogItems = [error],
+                ProjectRestorePath = null,
+                ProjectFactory = projectFactory,
+                IsFileBasedProgram = false,
+                IsMiscellaneousFile = false,
+                HasFileBasedAppDirectives = false,
+                HasAllInformation = true,
+                PreferredBuildHostKind = BuildHostProcessKind.NetCore,
+                ActualBuildHostKind = BuildHostProcessKind.NetCore,
+            });
 
         public void Fail(Exception exception)
             => Result.SetException(exception);

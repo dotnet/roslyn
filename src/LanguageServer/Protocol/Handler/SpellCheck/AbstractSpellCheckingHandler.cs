@@ -97,10 +97,10 @@ internal abstract class AbstractSpellCheckHandler<TParams, TReport>
                 continue;
             }
 
-            var documentToPreviousDiagnosticParams = documentToPreviousParams.ToDictionary(kvp => new ProjectOrDocumentId(kvp.Key.Id), kvp => kvp.Value);
+            var documentToPreviousDiagnosticParams = documentToPreviousParams.ToDictionary(kvp => new DiagnosticScope(kvp.Key.Id), kvp => kvp.Value);
             var newResult = await _versionedCache.GetOrComputeNewDataAsync(
                 documentToPreviousDiagnosticParams,
-                new ProjectOrDocumentId(document.Id),
+                new DiagnosticScope(document.Id),
                 document.Project,
                 new SpellCheckState(languageService, document),
                 cancellationToken).ConfigureAwait(false);

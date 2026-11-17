@@ -226,6 +226,26 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestEvaluationErrorIsReportedAtItsPosition()
+    {
+        await using var buildHostProcessManager = new BuildHostProcessManager(knownCommandLineParserLanguages: [LanguageNames.CSharp]);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+
+        var projectFilePath = GetSolutionFileName("Project.csproj");
+        await using var project = await buildHost.LoadProjectAsync(
+            projectFilePath, physicalFilePath: null,
+            "<Project>\r\n  <PropertyGroup />\r\n  <Bogus />\r\n</Project>",
+            LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
+
+        var diagnostic = Assert.Single(await project.GetEvaluationDiagnosticLogItemsAsync(CancellationToken.None));
+        Assert.Equal(DiagnosticLogItemKind.Error, diagnostic.Kind);
+        Assert.Equal(3, diagnostic.LineNumber);
+        Assert.Equal("MSB4067", diagnostic.Code);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
     public async Task TestEvaluationFailureForOneTargetFrameworkIsReportedForJustThatTarget()
     {
         // The property function is only evaluated once a target framework is chosen, so loading the project itself succeeds.
@@ -257,6 +277,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
         Assert.Equal("net9.0", projectFileInfos[1].TargetFramework);
         var diagnostic = Assert.Single(projectFileInfos[1].Diagnostics);
         Assert.Equal(DiagnosticLogItemKind.Error, diagnostic.Kind);
+        Assert.Equal("MSB4184", diagnostic.Code);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

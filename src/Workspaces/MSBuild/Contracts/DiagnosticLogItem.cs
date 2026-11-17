@@ -22,13 +22,17 @@ internal record DiagnosticLogItem(
     [property: DataMember(Order = 2)] string ProjectFilePath,
     [property: DataMember(Order = 3)] string? FileName = null,
     [property: DataMember(Order = 4)] int? LineNumber = null,
-    [property: DataMember(Order = 5)] int? ColumnNumber = null)
+    [property: DataMember(Order = 5)] int? ColumnNumber = null,
+    [property: DataMember(Order = 6)] string? Code = null)
 {
-    // LineNumber and ColumnNumber are either both present or both absent.
     public override string ToString()
-        => FileName is null
-            ? Message
+    {
+        var message = Code is null ? Message : $"{Code}: {Message}";
+
+        return FileName is null
+            ? message
             : LineNumber is { } line
-                ? $"{FileName}: ({line}, {ColumnNumber}): {Message}"
-                : $"{FileName}: {Message}";
+                ? $"{FileName}: ({line}, {ColumnNumber}): {message}"
+                : $"{FileName}: {message}";
+    }
 }

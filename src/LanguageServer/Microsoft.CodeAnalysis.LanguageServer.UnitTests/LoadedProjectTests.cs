@@ -125,6 +125,7 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
         var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
         Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
             [projectInfo],
+            evaluationDiagnostics: [],
             isMiscellaneousFile: false,
             hasAllInformation: true,
             workspaceFactory.HostProjectFactory,
