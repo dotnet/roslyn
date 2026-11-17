@@ -105,6 +105,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider
             Diagnostic diagnostic,
             AbstractSuppressionCodeFixProvider fixer,
             Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode,
+            string newLine,
             bool isRemoveSuppression,
             CancellationToken cancellationToken)
         {
@@ -127,8 +128,8 @@ internal abstract partial class AbstractSuppressionCodeFixProvider
             }
 
             var pragmaTrivia = !isRemoveSuppression
-                ? fixer.CreatePragmaDisableDirectiveTrivia(diagnostic, formatNode, needsLeadingEOL, needsTrailingEndOfLine: true, cancellationToken)
-                : fixer.CreatePragmaRestoreDirectiveTrivia(diagnostic, formatNode, needsLeadingEOL, needsTrailingEndOfLine: true, cancellationToken);
+                ? fixer.CreatePragmaDisableDirectiveTrivia(diagnostic, formatNode, newLine, needsLeadingEOL, needsTrailingEndOfLine: true, cancellationToken)
+                : fixer.CreatePragmaRestoreDirectiveTrivia(diagnostic, formatNode, newLine, needsLeadingEOL, needsTrailingEndOfLine: true, cancellationToken);
 
             return startToken.WithLeadingTrivia(trivia.InsertRange(index, pragmaTrivia));
         }
@@ -157,6 +158,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider
             Diagnostic diagnostic,
             AbstractSuppressionCodeFixProvider fixer,
             Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode,
+            string newLine,
             bool isRemoveSuppression,
             CancellationToken cancellationToken)
         {
@@ -188,8 +190,8 @@ internal abstract partial class AbstractSuppressionCodeFixProvider
             }
 
             var pragmaTrivia = !isRemoveSuppression
-                ? fixer.CreatePragmaRestoreDirectiveTrivia(diagnostic, formatNode, needsLeadingEndOfLine: true, needsTrailingEndOfLine: needsTrailingEOL, cancellationToken)
-                : fixer.CreatePragmaDisableDirectiveTrivia(diagnostic, formatNode, needsLeadingEndOfLine: true, needsTrailingEndOfLine: needsTrailingEOL, cancellationToken);
+                ? fixer.CreatePragmaRestoreDirectiveTrivia(diagnostic, formatNode, newLine, needsLeadingEndOfLine: true, needsTrailingEndOfLine: needsTrailingEOL, cancellationToken)
+                : fixer.CreatePragmaDisableDirectiveTrivia(diagnostic, formatNode, newLine, needsLeadingEndOfLine: true, needsTrailingEndOfLine: needsTrailingEOL, cancellationToken);
 
             if (isEOF)
             {

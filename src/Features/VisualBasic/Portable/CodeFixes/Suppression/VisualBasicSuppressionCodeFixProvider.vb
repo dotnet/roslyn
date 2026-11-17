@@ -24,18 +24,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
         Public Sub New()
         End Sub
 
-        Protected Overrides Function CreatePragmaRestoreDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean, cancellationToken As CancellationToken) As SyntaxTriviaList
+        Protected Overrides Function CreatePragmaRestoreDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode), newLine As String, needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean, cancellationToken As CancellationToken) As SyntaxTriviaList
             Dim includeTitle As Boolean
             Dim errorCodes = GetErrorCodes(diagnostic, includeTitle)
             Dim pragmaDirective = SyntaxFactory.EnableWarningDirectiveTrivia(errorCodes)
-            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken)
+            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, newLine, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken)
         End Function
 
-        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode), needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean, cancellationToken As CancellationToken) As SyntaxTriviaList
+        Protected Overrides Function CreatePragmaDisableDirectiveTrivia(diagnostic As Diagnostic, formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode), newLine As String, needsLeadingEndOfLine As Boolean, needsTrailingEndOfLine As Boolean, cancellationToken As CancellationToken) As SyntaxTriviaList
             Dim includeTitle As Boolean
             Dim errorCodes = GetErrorCodes(diagnostic, includeTitle)
             Dim pragmaDirective = SyntaxFactory.DisableWarningDirectiveTrivia(errorCodes)
-            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken)
+            Return CreatePragmaDirectiveTrivia(pragmaDirective, includeTitle, diagnostic, formatNode, newLine, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken)
         End Function
 
         Private Shared Function GetErrorCodes(diagnostic As Diagnostic, ByRef includeTitle As Boolean) As SeparatedSyntaxList(Of IdentifierNameSyntax)
@@ -52,13 +52,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
                 includeTitle As Boolean,
                 diagnostic As Diagnostic,
                 formatNode As Func(Of SyntaxNode, CancellationToken, SyntaxNode),
+                newLine As String,
                 needsLeadingEndOfLine As Boolean,
                 needsTrailingEndOfLine As Boolean,
                 cancellationToken As CancellationToken) As SyntaxTriviaList
 
             enableOrDisablePragmaDirective = CType(formatNode(enableOrDisablePragmaDirective, cancellationToken), StructuredTriviaSyntax)
             Dim pragmaDirectiveTrivia = SyntaxFactory.Trivia(enableOrDisablePragmaDirective)
-            Dim endOfLineTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
+            Dim endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(newLine)
             Dim triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia)
 
             Dim title = If(includeTitle, diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture), Nothing)

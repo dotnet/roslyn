@@ -21,7 +21,9 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -757,8 +759,11 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     new UserDiagnosticAnalyzer(), new CSharpSuppressionCodeFixProvider());
             }
 
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
-            public Task TestInfoDiagnosticSuppressed()
+            [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsSuppression)]
+            [WorkItem("https://github.com/dotnet/roslyn/issues/69358")]
+            [InlineData("\n")]
+            [InlineData("\r\n")]
+            public Task TestInfoDiagnosticSuppressed(string endOfLine)
                 => TestAsync(
         """
 
@@ -771,7 +776,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 int x = 0;
             }
         }
-        """,
+        """.ReplaceLineEndings(endOfLine),
         """
 
         using System;
@@ -785,7 +790,8 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                 int x = 0;
             }
         }
-        """);
+        """.ReplaceLineEndings(endOfLine),
+        options: new OptionsCollection(LanguageNames.CSharp) { { FormattingOptions2.NewLine, endOfLine } });
         }
 
         public sealed partial class FormattingDiagnosticSuppressionTests : CSharpPragmaWarningDisableSuppressionTests

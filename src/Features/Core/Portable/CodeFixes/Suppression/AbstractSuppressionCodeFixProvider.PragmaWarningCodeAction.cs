@@ -66,13 +66,13 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 (startToken, currentDiagnosticSpan) =>
                 {
                     return includeStartTokenChange
-                        ? PragmaHelpers.GetNewStartTokenWithAddedPragma(startToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: false, cancellationToken)
+                        ? PragmaHelpers.GetNewStartTokenWithAddedPragma(startToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, _options.NewLine, isRemoveSuppression: false, cancellationToken)
                         : startToken;
                 },
                 (endToken, currentDiagnosticSpan) =>
                 {
                     return includeEndTokenChange
-                        ? PragmaHelpers.GetNewEndTokenWithAddedPragma(endToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: false, cancellationToken)
+                        ? PragmaHelpers.GetNewEndTokenWithAddedPragma(endToken, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, _options.NewLine, isRemoveSuppression: false, cancellationToken)
                         : endToken;
                 },
                 cancellationToken).ConfigureAwait(false);
