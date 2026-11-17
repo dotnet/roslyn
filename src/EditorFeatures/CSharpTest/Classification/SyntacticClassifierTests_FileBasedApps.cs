@@ -54,6 +54,59 @@ public partial class SyntacticClassifierTests
     }
 
     [Theory, CombinatorialData]
+    public void FileBasedApps_Lexical_TruncatedQuotedDirective([CombinatorialValues(16, 27)] int length)
+    {
+        var text = SourceText.From("""
+            #:package Pkg@"1.0" Note="x"
+            """);
+        var actual = new SegmentedList<ClassifiedSpan>();
+
+        ClassificationHelpers.AddLexicalClassifications(text, new TextSpan(0, length), actual, CancellationToken.None);
+
+        ClassifiedSpan[] expected =
+        [
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(0, 1)),
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(1, 1)),
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(2, 7)),
+            new(ClassificationTypeNames.StringLiteral, new TextSpan(10, length - 10)),
+        ];
+
+        AssertEx.Equal(expected, actual, itemInspector: span => $"{span.ClassificationType} {span.TextSpan}: {text.ToString(span.TextSpan)}");
+    }
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Conflict_QuotedDirective(TestHost testHost)
+        => TestAsync("""
+            <<<<<<< Current
+            #:package Pkg@"1.0" Note="current"
+            =======
+            #:package Pkg@"2.0" Note="incoming"
+            >>>>>>> Incoming
+            """,
+            testHost,
+            Comment("<<<<<<< Current"),
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Punctuation.Text("@"),
+            String("\"1.0\""),
+            Identifier("Note"),
+            Punctuation.Text("="),
+            String("\"current\""),
+            Comment("======="),
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Punctuation.Text("@"),
+            String("\"2.0\""),
+            Identifier("Note"),
+            Punctuation.Text("="),
+            String("\"incoming\""),
+            Comment(">>>>>>> Incoming"));
+
+    [Theory, CombinatorialData]
     public Task FileBasedApps_Sdk_01(TestHost testHost)
         => TestAsync("""
             #:sdk Microsoft.Net.SDK

@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification;
 internal readonly ref partial struct Worker
 {
     /// <summary>
-    /// Original document text for lexical classification.
-    /// <see langword="null"/> for syntactic classification, where text is retrieved lazily from the owning syntax tree.
+    /// Original document text when classifying detached tokens.
+    /// <see langword="null"/> when traversing an owning syntax tree, whose text is retrieved lazily.
     /// </summary>
     private readonly SourceText? _sourceText;
     private readonly TextSpan _textSpan;
@@ -287,10 +287,9 @@ internal readonly ref partial struct Worker
         {
             // for the ======== add a comment for the first line, and then lex all
             // subsequent lines up until the end of the conflict marker.
-            foreach (var token in SyntaxFactory.ParseTokens(text: trivia.ToFullString(), initialTokenPosition: trivia.SpanStart))
-            {
-                ClassifyToken(token);
-            }
+            var tokens = SyntaxFactory.ParseTokens(text: trivia.ToFullString(), initialTokenPosition: trivia.SpanStart);
+            var sourceText = _sourceText ?? trivia.Token.GetRequiredParent().SyntaxTree.GetText(_cancellationToken);
+            CollectClassifiedSpans(sourceText, tokens, _textSpan, _result, _cancellationToken);
         }
         else
         {

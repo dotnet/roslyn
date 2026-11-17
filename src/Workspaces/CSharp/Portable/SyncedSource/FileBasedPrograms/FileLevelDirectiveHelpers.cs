@@ -557,6 +557,14 @@ internal abstract class CSharpDirective(in CSharpDirective.ParseInfo info)
                 // Verbatim (@"...") literals can't start here (the '@' would precede the quote and fail the check above),
                 // and raw ("""...""") literals lex to a different token kind and are rejected below.
                 var token = context.ValueLexer.LexStringLiteral(context.DirectiveTextStart + i);
+
+                // IDE consumers may supply a directive truncated before the end of the source literal.
+                if (token.Text.Length > text.Length - i)
+                {
+                    context.ReportError(FileBasedProgramsResources.UnterminatedQuoteInDirective);
+                    return null;
+                }
+
                 var errors = token.GetDiagnostics().Where(static d => d.Severity == DiagnosticSeverity.Error).ToList();
                 if (errors.Count > 0)
                 {
