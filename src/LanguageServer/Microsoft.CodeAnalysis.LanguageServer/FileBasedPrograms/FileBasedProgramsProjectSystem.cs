@@ -382,10 +382,11 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
             (error) => _logger.LogError(error),
             cancellationToken);
 
+        var projectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken);
         return new RemoteProjectLoadResult
         {
-            ProjectFileInfos = await loadedFile.GetProjectFileInfosAsync(cancellationToken),
-            DiagnosticLogItems = await loadedFile.GetDiagnosticLogItemsAsync(cancellationToken),
+            ProjectFileInfos = projectFileInfos,
+            DiagnosticLogItems = [.. await loadedFile.GetEvaluationDiagnosticLogItemsAsync(cancellationToken), .. projectFileInfos.SelectMany(static info => info.Diagnostics)],
             ProjectRestorePath = documentPath,
             ProjectFactory = _workspaceFactory.HostProjectFactory,
             IsFileBasedProgram = true,

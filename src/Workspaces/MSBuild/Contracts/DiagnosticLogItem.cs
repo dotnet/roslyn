@@ -16,16 +16,19 @@ internal enum DiagnosticLogItemKind
 #if NETFRAMEWORK
 [System.Serializable] // We need to this to be able to serialize across the AppDomain boundary
 #endif
-internal class DiagnosticLogItem(DiagnosticLogItemKind kind, string message, string projectFilePath)
+internal record DiagnosticLogItem(
+    [property: DataMember(Order = 0)] DiagnosticLogItemKind Kind,
+    [property: DataMember(Order = 1)] string Message,
+    [property: DataMember(Order = 2)] string ProjectFilePath,
+    [property: DataMember(Order = 3)] string? FileName = null,
+    [property: DataMember(Order = 4)] int? LineNumber = null,
+    [property: DataMember(Order = 5)] int? ColumnNumber = null)
 {
-    [DataMember(Order = 0)]
-    public DiagnosticLogItemKind Kind { get; } = kind;
-
-    [DataMember(Order = 1)]
-    public string Message { get; } = message;
-
-    [DataMember(Order = 2)]
-    public string ProjectFilePath { get; } = projectFilePath;
-
-    public override string ToString() => Message;
+    // LineNumber and ColumnNumber are either both present or both absent.
+    public override string ToString()
+        => FileName is null
+            ? Message
+            : LineNumber is { } line
+                ? $"{FileName}: ({line}, {ColumnNumber}): {Message}"
+                : $"{FileName}: {Message}";
 }

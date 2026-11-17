@@ -21,9 +21,9 @@ internal sealed class RemoteProjectFile : IAsyncDisposable
         _remoteProjectFileTargetObject = remoteProjectFileTargetObject;
     }
 
-    public async Task<ImmutableArray<DiagnosticLogItem>> GetDiagnosticLogItemsAsync(CancellationToken cancellationToken)
+    public async Task<ImmutableArray<DiagnosticLogItem>> GetEvaluationDiagnosticLogItemsAsync(CancellationToken cancellationToken)
     {
-        var diagnostics = await _client.InvokeAsync<DiagnosticLogItem[]>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetDiagnosticLogItems), parameters: [], cancellationToken).ConfigureAwait(false);
+        var diagnostics = await _client.InvokeAsync<DiagnosticLogItem[]>(_remoteProjectFileTargetObject, nameof(IProjectFile.GetEvaluationDiagnosticLogItems), parameters: [], cancellationToken).ConfigureAwait(false);
         return diagnostics.ToImmutableArray();
     }
 

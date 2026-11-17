@@ -58,7 +58,14 @@ internal sealed class MSBuildDiagnosticLogger : MSB.Framework.ILogger
             return;
         }
 
-        log.Add(new MSBuildDiagnosticLogItem(kind, projectFile ?? "", message ?? "", file ?? "", lineNumber, columnNumber));
+        // MSBuild reports an empty file and a position of 0 when they're unknown.
+        log.Add(new DiagnosticLogItem(
+            kind,
+            message ?? "",
+            projectFile ?? "",
+            string.IsNullOrEmpty(file) ? null : file,
+            lineNumber > 0 ? lineNumber : null,
+            lineNumber > 0 ? columnNumber : null));
     }
 
     public void Initialize(MSB.Framework.IEventSource eventSource)

@@ -12,9 +12,9 @@ internal readonly struct DiagnosticLog() : IEnumerable<DiagnosticLogItem>
 {
     private readonly List<DiagnosticLogItem> _items = [];
 
-    // The reads below are intentionally not locked: a given DiagnosticLog is only read (e.g. via
-    // GetDiagnosticLogItems) once its build has completed, so no Add can be in flight concurrently
-    // with a read.
+    // The reads below are intentionally not locked: a given DiagnosticLog is only read once the evaluation or
+    // build it records has completed (e.g. via GetEvaluationDiagnosticLogItems, or when the results of building
+    // a target are returned), so no Add can be in flight concurrently with a read.
     public int Count => _items.Count;
     public DiagnosticLogItem this[int index] => _items[index];
     public bool IsEmpty => _items.Count == 0;
