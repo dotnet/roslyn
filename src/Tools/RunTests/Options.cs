@@ -33,6 +33,7 @@ namespace RunTests
             @"^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp16\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$",

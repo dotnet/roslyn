@@ -247,7 +247,7 @@ public sealed partial class MetadataAsSourceTests
 
                         if (!(other is ValueTuple))
                         {
-                            throw new ArgumentException(System.SR.ArgumentException_ValueTupleIncorrectType, "other");
+                            throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, "other");
                         }
 
                         return 0;
@@ -267,7 +267,7 @@ public sealed partial class MetadataAsSourceTests
 
                         if (!(other is ValueTuple))
                         {
-                            throw new ArgumentException(System.SR.ArgumentException_ValueTupleIncorrectType, "other");
+                            throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, "other");
                         }
 
                         return 0;
@@ -300,7 +300,7 @@ public sealed partial class MetadataAsSourceTests
 
                     public static ValueTuple Create()
                     {
-                        return default(ValueTuple);
+                        return default;
                     }
 
                     public static ValueTuple<T1> Create<T1>(T1 item1)

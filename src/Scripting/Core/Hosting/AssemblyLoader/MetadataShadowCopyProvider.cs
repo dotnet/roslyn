@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             else
             {
-                _baseDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+                _baseDirectory = Path.Combine(TempPathUtilities.GetTempPath(), Guid.NewGuid().ToString());
             }
 
             if (noShadowCopyDirectories != null)

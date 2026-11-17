@@ -34,7 +34,23 @@ string
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<IComposedInterface, string>.
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,38)-(1,56) "x:\dir\subdir\Test\TestComponent.cshtml"
+IComposedInterface
+
+#line default
+#line hidden
+#nullable disable
+            , 
+#nullable restore
+#line (1,20)-(1,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (1,64)-(1,69) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value
@@ -51,7 +67,23 @@ _componentValue
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent<IComposedInterface, string>.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<string>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<string>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => _componentValue = __value, _componentValue))));
+            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,38)-(1,56) "x:\dir\subdir\Test\TestComponent.cshtml"
+IComposedInterface
+
+#line default
+#line hidden
+#nullable disable
+            , 
+#nullable restore
+#line (1,20)-(1,26) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
+
+#line default
+#line hidden
+#nullable disable
+            >.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<string>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<string>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => _componentValue = __value, _componentValue))));
             __builder.CloseComponent();
             __builder.AddMarkupContent(3, "\r\n");
             __builder.OpenComponent<global::Test.MyComponent<
@@ -71,7 +103,23 @@ string
 #line hidden
 #nullable disable
             >>(4);
-            __builder.AddComponentParameter(5, nameof(global::Test.MyComponent<IComposedInterface, string>.
+            __builder.AddComponentParameter(5, nameof(global::Test.MyComponent<
+#nullable restore
+#line (2,24)-(2,42) "x:\dir\subdir\Test\TestComponent.cshtml"
+IComposedInterface
+
+#line default
+#line hidden
+#nullable disable
+            , 
+#nullable restore
+#line (2,50)-(2,56) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (2,64)-(2,69) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value
@@ -88,7 +136,23 @@ _componentValue
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(6, nameof(global::Test.MyComponent<IComposedInterface, string>.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<string>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<string>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => _componentValue = __value, _componentValue))));
+            __builder.AddComponentParameter(6, nameof(global::Test.MyComponent<
+#nullable restore
+#line (2,24)-(2,42) "x:\dir\subdir\Test\TestComponent.cshtml"
+IComposedInterface
+
+#line default
+#line hidden
+#nullable disable
+            , 
+#nullable restore
+#line (2,50)-(2,56) "x:\dir\subdir\Test\TestComponent.cshtml"
+string
+
+#line default
+#line hidden
+#nullable disable
+            >.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<string>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<string>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => _componentValue = __value, _componentValue))));
             __builder.CloseComponent();
         }
         #pragma warning restore 1998

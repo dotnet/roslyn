@@ -646,6 +646,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EncReferenceToAddedMember
                 or ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
                 or ErrorCode.ERR_AbstractBaseRecordImplementation
+                or ErrorCode.ERR_WrongArityAsyncReturn
+                or ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -1817,7 +1819,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_VarInvocationLvalueReserved
                 or ErrorCode.ERR_PublicSignNetModule
                 or ErrorCode.ERR_BadAssemblyName
-                or ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty
                 or ErrorCode.ERR_TypeForwardedToMultipleAssemblies
                 or ErrorCode.ERR_ExpressionTreeContainsDiscard
                 or ErrorCode.ERR_PatternDynamicType
@@ -2196,7 +2197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SimpleProgramIsEmpty
                 or ErrorCode.ERR_LineSpanDirectiveInvalidValue
                 or ErrorCode.ERR_LineSpanDirectiveEndLessThanStart
-                or ErrorCode.ERR_WrongArityAsyncReturn
                 or ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed
                 or ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent
                 or ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName

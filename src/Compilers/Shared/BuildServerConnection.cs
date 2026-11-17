@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetMutexDirectory()
         {
-            var tempPath = Path.GetTempPath();
+            var tempPath = TempPathUtilities.GetTempPath();
             var result = Path.Combine(tempPath, ".roslyn");
             Directory.CreateDirectory(result);
             return result;

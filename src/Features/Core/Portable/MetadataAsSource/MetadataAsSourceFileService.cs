@@ -51,7 +51,7 @@ internal sealed class MetadataAsSourceFileService : IMetadataAsSourceFileService
     private readonly Mutex _mutex;
 #pragma warning restore IDE0052 // Remove unread private members
     private readonly string _rootTemporaryPathWithGuid;
-    private readonly string _rootTemporaryPath = Path.Combine(Path.GetTempPath(), MetadataAsSource);
+    private readonly string _rootTemporaryPath = Path.Combine(TempPathUtilities.GetTempPath(), MetadataAsSource);
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

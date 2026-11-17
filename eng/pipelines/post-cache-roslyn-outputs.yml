@@ -19,9 +19,18 @@ steps:
           exit 0
         }
 
-        $compilerServerPath = [System.IO.Path]::Combine("$(Build.SourcesDirectory)", "artifacts", "bin", "VBCSCompiler", "${{ parameters.configuration }}", "net10.0", "VBCSCompiler.dll")
-        if (-not (Test-Path -LiteralPath $compilerServerPath)) {
-          Write-AzureDevOpsWarning "VBCSCompiler was not found at '$compilerServerPath'. Skipping cache stats and purge."
+        # Some jobs (such as the Windows integration test build) only produce the net472 compiler server.
+        $compilerServerDirectory = [System.IO.Path]::Combine("$(Build.SourcesDirectory)", "artifacts", "bin", "VBCSCompiler", "${{ parameters.configuration }}")
+        $coreCompilerServerPath = [System.IO.Path]::Combine($compilerServerDirectory, "net10.0", "VBCSCompiler.dll")
+        $frameworkCompilerServerPath = [System.IO.Path]::Combine($compilerServerDirectory, "net472", "VBCSCompiler.exe")
+        if (Test-Path -LiteralPath $coreCompilerServerPath) {
+          $compilerServerExecutable = "dotnet"
+          $compilerServerArguments = @("exec", $coreCompilerServerPath)
+        } elseif (Test-Path -LiteralPath $frameworkCompilerServerPath) {
+          $compilerServerExecutable = $frameworkCompilerServerPath
+          $compilerServerArguments = @()
+        } else {
+          Write-AzureDevOpsWarning "VBCSCompiler was not found at '$coreCompilerServerPath' or '$frameworkCompilerServerPath'. Skipping cache stats and purge."
           exit 0
         }
 
@@ -37,13 +46,13 @@ steps:
         }
 
         Write-Host "Roslyn compiler cache stats since build start ($buildStart):"
-        dotnet exec $compilerServerPath "-cachepath:$cachePath" "-cachestats:$buildStart" "-cachestatsverbosity:1"
+        & $compilerServerExecutable @compilerServerArguments "-cachepath:$cachePath" "-cachestats:$buildStart" "-cachestatsverbosity:1"
         if ($LASTEXITCODE -ne 0) {
           Write-AzureDevOpsWarning "Failed to show Roslyn compiler cache stats. Exit code: $LASTEXITCODE"
         }
 
         Write-Host "Purging Roslyn compiler cache entries unused since build start ($buildStart):"
-        dotnet exec $compilerServerPath "-cachepath:$cachePath" "-purgecache:$buildStart"
+        & $compilerServerExecutable @compilerServerArguments "-cachepath:$cachePath" "-purgecache:$buildStart"
         if ($LASTEXITCODE -ne 0) {
           Write-AzureDevOpsWarning "Failed to purge Roslyn compiler cache. Exit code: $LASTEXITCODE"
         }

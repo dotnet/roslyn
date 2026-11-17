@@ -14,6 +14,7 @@ internal readonly record struct FormattingEngineOptions
 {
     public bool InsertSpaces { get; init; } = true;
     public int TabSize { get; init; } = 4;
+    public int IndentSize { get; init; } = 4;
     public string NewLine { get; init; } = Environment.NewLine;
     public bool CodeBlockBraceOnNextLine { get; init; }
     public AttributeIndentStyle AttributeIndentStyle { get; init; } = AttributeIndentStyle.AlignWithFirst;
@@ -25,5 +26,5 @@ internal readonly record struct FormattingEngineOptions
     }
 
     public CSharpSyntaxFormattingOptions GetResolvedCSharpSyntaxFormattingOptions()
-        => CSharpSyntaxFormattingOptions.GetResolvedCSharpSyntaxFormattingOptions(InsertSpaces, TabSize, NewLine);
+        => CSharpSyntaxFormattingOptions.GetResolvedCSharpSyntaxFormattingOptions(InsertSpaces, TabSize, IndentSize, NewLine);
 }
