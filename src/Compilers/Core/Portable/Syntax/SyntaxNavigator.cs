@@ -546,7 +546,9 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(token.Parent != null);
 
             // A token knows its index in its parent's children. Tokens compare equal only when their indices match,
-            // so if the child at that index is not this token, no other child is.
+            // so if the child at that index is not this token, no other child is. Verify the child matches
+            // because synthetic tokens with a Parent (for example, ShebangDirectiveTriviaSyntax.Content) are not
+            // present in ChildNodesAndTokens even though their Index falls within CountNodes(parent.Green).
             var parent = token.Parent;
             var index = token.Index;
             if (index >= 0 && index < ChildSyntaxList.CountNodes(parent.Green))

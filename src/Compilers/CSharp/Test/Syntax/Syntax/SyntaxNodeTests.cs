@@ -1453,6 +1453,44 @@ using goo.bar;
             Assert.Equal(expectedCount, count);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")]
+        public void TestGetNextAndPreviousTokenOnShebangContent()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                #!xyz
+                class C { }
+                """);
+            var shebang = (ShebangDirectiveTriviaSyntax)tree.GetCompilationUnitRoot()
+                .DescendantTrivia()
+                .Single(t => t.IsKind(SyntaxKind.ShebangDirectiveTrivia))
+                .GetStructure();
+
+            // ShebangDirectiveTriviaSyntax.Content creates a synthetic token whose Parent and Index point at
+            // EndOfDirectiveToken even though the token is not actually in ChildNodesAndTokens.
+            var content = shebang.Content;
+            Assert.Same(shebang, content.Parent);
+            Assert.DoesNotContain((SyntaxNodeOrToken)content, shebang.ChildNodesAndTokens());
+
+            // Cannot trust content.Index blindly: GetPreviousToken must walk out of the directive
+            // rather than stepping to ExclamationToken inside shebang.
+            Assert.Equal(default, content.GetPreviousToken(includeZeroWidth: true, includeDirectives: true));
+            Assert.Equal(SyntaxKind.ClassKeyword, content.GetNextToken(includeDirectives: true).Kind());
+
+            var disabledTree = SyntaxFactory.ParseSyntaxTree("""
+                #if false
+                #!xyz
+                #endif
+                """);
+            var disabledShebang = (ShebangDirectiveTriviaSyntax)disabledTree.GetCompilationUnitRoot()
+                .DescendantTrivia()
+                .Single(t => t.IsKind(SyntaxKind.ShebangDirectiveTrivia))
+                .GetStructure();
+            var disabledContent = disabledShebang.Content;
+
+            Assert.Equal(SyntaxKind.FalseKeyword, disabledContent.GetPreviousToken(includeDirectives: true).Kind());
+            Assert.Equal(SyntaxKind.HashToken, disabledContent.GetNextToken(includeDirectives: true).Kind());
+        }
+
         private static void VerifyNextAndPreviousTokens(List<SyntaxToken> tokens, bool includeZeroWidth)
         {
             for (int i = 0; i < tokens.Count; i++)
