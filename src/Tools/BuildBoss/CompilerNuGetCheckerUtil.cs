@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
+using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
 
 namespace BuildBoss
@@ -73,6 +74,9 @@ namespace BuildBoss
                 var allGood = true;
                 allGood &= CheckPublishData(textWriter);
                 allGood &= CheckPackages(textWriter);
+                allGood &= VerifyExternalAccessDependencies(
+                    textWriter,
+                    SharedUtil.FindNuGetPackage(Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping"), "Microsoft.VisualStudio.LanguageServices.ExternalAccess"));
                 allGood &= CheckExternalApis(textWriter);
                 return allGood;
             }
@@ -205,6 +209,24 @@ namespace BuildBoss
             }
 
             return allGood;
+        }
+
+        private static bool VerifyExternalAccessDependencies(TextWriter textWriter, string packageFilePath)
+        {
+            using var package = Package.Open(packageFilePath, FileMode.Open, FileAccess.Read);
+            var manifest = package.GetPart(new Uri("/Microsoft.VisualStudio.LanguageServices.ExternalAccess.nuspec", UriKind.Relative));
+            using var stream = manifest.GetStream(FileMode.Open, FileAccess.Read);
+            var hasSdkDependency = XDocument.Load(stream).Descendants().Any(element =>
+                element.Name.LocalName == "dependency" &&
+                string.Equals((string)element.Attribute("id"), "Microsoft.VisualStudio.SDK", StringComparison.OrdinalIgnoreCase));
+
+            if (hasSdkDependency)
+            {
+                textWriter.WriteLine($"Unexpected Microsoft.VisualStudio.SDK dependency in {packageFilePath}");
+                return false;
+            }
+
+            return true;
         }
 
         private string GetProjectOutputDirectory(string projectName, string tfm)

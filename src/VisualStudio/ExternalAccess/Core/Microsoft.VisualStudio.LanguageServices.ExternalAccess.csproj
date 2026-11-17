@@ -54,6 +54,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Override the transitive SDK dependency so it isn't included in this package. -->
+    <PackageReference Include="Microsoft.VisualStudio.Sdk" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="FSharp\ExternalAccessFSharpResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
