@@ -826,10 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:       type parameter Xj,
             // SPEC:   then an output type inference is made from all such Ei to Ti.
 
-            //if (!debug.TrueBits().Any())
-            {
-                MakeOutputTypeInferences(binder, ref useSiteInfo);
-            }
+            MakeOutputTypeInferences(binder, ref useSiteInfo);
 
             return DoSecondPhaseFixingSteps(ref useSiteInfo);
         }
@@ -1224,6 +1221,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly bool DependsDirectlyOnThroughConstraints(int iParam, int jParam)
         {
+            Debug.Assert(iParam != jParam);
+
             if (_methodTypeParameters[jParam].ConstraintTypesNoUseSiteDiagnostics is { Length: not 0 } constraintTypes)
             {
                 TypeParameterSymbol possiblyDependent = _methodTypeParameters[iParam];
