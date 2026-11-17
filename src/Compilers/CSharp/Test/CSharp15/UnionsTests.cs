@@ -21705,6 +21705,82 @@ public class C
             comp.VerifyEmitDiagnostics();
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_92_Conversion_ValueState(bool assignNull)
+        {
+            var src = $$"""
+ #nullable enable
+ public union U(string?, int);
+ public class C
+ {
+     static void M()
+     {
+         string? source = "";
+         (string?, int) input = ("", 0);
+         for (int i = 0; i < 2; i++)
+         {
+             U direct = source;
+             (U, int) tuple = input;
+ #line 100
+             direct.Value.ToString();
+ #line 200
+             tuple.Item1.Value.ToString();
+             source = {{(assignNull ? "null" : "\"\"")}};
+             input.Item1 = source;
+         }
+     }
+ }
+ """;
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+            if (assignNull)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (100,13): warning CS8602: Dereference of a possibly null reference.
+                    //             direct.Value.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "direct.Value").WithLocation(100, 13),
+                    // (200,13): warning CS8602: Dereference of a possibly null reference.
+                    //             tuple.Item1.Value.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple.Item1.Value").WithLocation(200, 13)
+                    );
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_93_Conversion_TuplePostCondition()
+        {
+            var src = @"
+ #nullable enable
+ [System.Runtime.CompilerServices.Union]
+ struct U
+ {
+     public U(int value) => throw null!;
+     public U([System.Diagnostics.CodeAnalysis.NotNull] string? value) => throw null!;
+     public object? Value => throw null!;
+ }
+ class C
+ {
+     static void M((string?, int) input)
+     {
+         for (int i = 0; i < 2; i++)
+         {
+             (U, int) value = input;
+             input.Item1.ToString();
+             input.Item1 = null;
+         }
+     }
+ }
+ ";
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
         [Fact]
         public void NullableAnalysis_MemberProvider_01_State_From_Default()
         {
