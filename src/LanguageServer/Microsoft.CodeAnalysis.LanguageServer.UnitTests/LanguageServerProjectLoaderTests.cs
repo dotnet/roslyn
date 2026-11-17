@@ -287,7 +287,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         var projectPath = Path.Combine(TempRoot.Root, "Cached.csproj");
-        loader.CachedProjects.Add(projectPath, [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library", "/define:CACHED_PROJECT"] }]);
+        loader.CachedProjects.Add(projectPath, [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/define:CACHED_PROJECT"] }]);
 
         var (loadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
         await designTimeBuild.Started.Task;
@@ -513,7 +513,6 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             {
                 ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
                 {
-                    CommandLineArgs = ["/target:library"],
                     TargetFramework = targetFramework,
                     ProjectReferences = projectReferences is null ? [] : [.. projectReferences.Select(path => new ProjectFileReference(path, [], referenceOutputAssembly: true))],
                 }],

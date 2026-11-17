@@ -47,11 +47,10 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         _commandLineParserService = workspaceServices.GetLanguageServices(project.Language).GetRequiredService<ICommandLineParserService>();
 
         // Set up _commandLineArgumentsForCommandLine to a default. No lock taken since we're in
-        // the constructor so nothing can race.
-
-        // Silence NRT warning.  This will be initialized by the call below to ReparseCommandLineIfChanged_NoLock.
-        _commandLineArgumentsForCommandLine = null!;
-        ReparseCommandLineIfChanged_NoLock(arguments: []);
+        // the constructor so nothing can race. We won't set _commandLineChecksum here so the first real call to
+        // SetCommandLine consider it changed and thus always apply.
+        _commandLineArgumentsForCommandLine = _commandLineParserService.Parse([], Path.GetDirectoryName(project.FilePath), isInteractive: false, sdkDirectory: null);
+        _commandLine = [];
     }
 
     /// <returns><see langword="true"/> if the command line was updated.</returns>
