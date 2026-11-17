@@ -1986,5 +1986,123 @@ static void M<T, U>(T t, Func<T, U>[] fs)
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
             CreateCompilation(source).VerifyDiagnostics(expected);
         }
+
+        [Fact]
+        public void AddMethod_Generic_01()
+        {
+            string source = """
+using System.Collections;
+class MyCollection<T> : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+    public void Add<U, V>(U t) where U : System.IComparable<V>
+    {
+        System.Console.WriteLine(typeof(V));
+    }
+}
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+#line 100
+        MyCollection<object> z = [x];
+    }
+}
+""";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
+                // (100,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<object> z = [x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x]").WithArguments("MyCollection<object>").WithLocation(100, 34)
+                );
+
+            string expected = "System.Int32";
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AddMethod_Generic_02()
+        {
+            string source = """
+using System.Collections;
+public class MyCollection<T> : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+public static class Ext
+{
+    public static void Add<U, V>(this MyCollection<object> c, U t) where U : System.IComparable<V>
+    {
+        System.Console.WriteLine(typeof(V));
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+#line 100
+        MyCollection<object> z = [x];
+    }
+}
+""";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
+                // (100,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<object> z = [x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x]").WithArguments("MyCollection<object>").WithLocation(100, 34)
+                );
+
+            string expected = "System.Int32";
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AddMethod_Generic_03()
+        {
+            string source = """
+using System.Collections;
+public class MyCollection<T> : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => throw null;
+}
+
+public static class Ext
+{
+    extension(MyCollection<object> c)
+    {
+        public void Add<U, V>(U t) where U : System.IComparable<V>
+        {
+            System.Console.WriteLine(typeof(V));
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        int x = 1;
+#line 100
+        MyCollection<object> z = [x];
+    }
+}
+""";
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
+                // (100,34): error CS9215: Collection expression type 'MyCollection<object>' must have an instance or extension method 'Add' that can be called with a single argument.
+                //         MyCollection<object> z = [x];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionMissingAdd, "[x]").WithArguments("MyCollection<object>").WithLocation(100, 34)
+                );
+
+            string expected = "System.Int32";
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
+        }
     }
 }
