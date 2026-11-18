@@ -9,14 +9,14 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        function Write-AzureDevOpsWarning([string] $message) {
-          Write-Host "##vso[task.logissue type=warning]$message"
+        function Write-AzureDevOpsError([string] $message) {
+          Write-Host "##vso[task.logissue type=error]$message"
         }
 
         $buildStart = "$(RoslynCompilerCacheBuildStartTime)"
         if ([string]::IsNullOrWhiteSpace($buildStart)) {
-          Write-AzureDevOpsWarning "Roslyn compiler cache build start time was not recorded. Skipping cache stats and purge."
-          exit 0
+          Write-AzureDevOpsError "Roslyn compiler cache build start time was not recorded. Cannot print cache stats and purge."
+          exit 1
         }
 
         # Some jobs (such as the Windows integration test build) only produce the net472 compiler server.
@@ -30,33 +30,33 @@ steps:
           $compilerServerExecutable = $frameworkCompilerServerPath
           $compilerServerArguments = @()
         } else {
-          Write-AzureDevOpsWarning "VBCSCompiler was not found at '$coreCompilerServerPath' or '$frameworkCompilerServerPath'. Skipping cache stats and purge."
-          exit 0
+          Write-AzureDevOpsError "VBCSCompiler was not found at '$coreCompilerServerPath' or '$frameworkCompilerServerPath'. Cannot print cache stats and purge."
+          exit 1
         }
 
         $cachePath = "$(ROSLYN_CACHE_PATH)"
         if ([string]::IsNullOrWhiteSpace($cachePath)) {
-          Write-AzureDevOpsWarning "Roslyn compiler cache path was not set. Skipping cache stats and purge."
-          exit 0
+          Write-AzureDevOpsError "Roslyn compiler cache path was not set. Cannot print cache stats and purge."
+          exit 1
         }
 
         if (-not (Test-Path -LiteralPath $cachePath)) {
-          Write-AzureDevOpsWarning "Roslyn compiler cache path does not exist: $cachePath"
-          exit 0
+          Write-AzureDevOpsError "Roslyn compiler cache path does not exist: $cachePath"
+          exit 1
         }
 
         Write-Host "Roslyn compiler cache stats since build start ($buildStart):"
         & $compilerServerExecutable @compilerServerArguments "-cachepath:$cachePath" "-cachestats:$buildStart" "-cachestatsverbosity:1"
         if ($LASTEXITCODE -ne 0) {
-          Write-AzureDevOpsWarning "Failed to show Roslyn compiler cache stats. Exit code: $LASTEXITCODE"
+          Write-Host "##vso[task.logissue type=warning]Failed to show Roslyn compiler cache stats. Exit code: $LASTEXITCODE"
         }
 
         Write-Host "Purging Roslyn compiler cache entries unused since build start ($buildStart):"
         & $compilerServerExecutable @compilerServerArguments "-cachepath:$cachePath" "-purgecache:$buildStart"
         if ($LASTEXITCODE -ne 0) {
-          Write-AzureDevOpsWarning "Failed to purge Roslyn compiler cache. Exit code: $LASTEXITCODE"
+          Write-AzureDevOpsError "Failed to purge Roslyn compiler cache. Exit code: $LASTEXITCODE"
+          exit 1
         }
 
         exit 0
-    continueOnError: true
     condition: succeededOrFailed()
