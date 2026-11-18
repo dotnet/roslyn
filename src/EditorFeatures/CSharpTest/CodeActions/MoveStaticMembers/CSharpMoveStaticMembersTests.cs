@@ -54,6 +54,67 @@ public sealed class CSharpMoveStaticMembersTests
             """, "Class1Helpers.cs", selectedMembers, "Class1Helpers").ConfigureAwait(false);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61471")]
+    public async Task TestMoveFieldNewTypeFileAlreadyExists()
+    {
+        // Moving members to a new type whose suggested file name already exists must
+        // pick a file name that isn't in use instead of overwriting the existing file.
+        var selectedMembers = ImmutableArray.Create("TestField");
+        var test = new Test("Class1Helpers", selectedMembers, "Class1Helpers.cs")
+        {
+            TestCode = """
+                namespace TestNs1
+                {
+                    public class Class1
+                    {
+                        public static int Test[||]Field = 1;
+                    }
+                }
+                """,
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    namespace TestNs1
+                    {
+                        public class Class1
+                        {
+                        }
+                    }
+                    """,
+                    ("Class1Helpers.cs", """
+                    namespace TestNs1
+                    {
+                        public class ExistingClass
+                        {
+                        }
+                    }
+                    """),
+                    ("Class1Helpers1.cs", """
+                    namespace TestNs1
+                    {
+                        internal static class Class1Helpers
+                        {
+                            public static int TestField = 1;
+                        }
+                    }
+                    """),
+                },
+            },
+        };
+        test.TestState.Sources.Add(("Class1Helpers.cs", """
+            namespace TestNs1
+            {
+                public class ExistingClass
+                {
+                }
+            }
+            """));
+
+        await test.RunAsync().ConfigureAwait(false);
+    }
+
     [Fact]
     public async Task TestMoveProperty()
     {

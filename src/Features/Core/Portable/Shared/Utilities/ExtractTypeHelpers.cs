@@ -58,10 +58,18 @@ internal static class ExtractTypeHelpers
         CancellationToken cancellationToken)
     {
         var newDocumentId = DocumentId.CreateNewId(projectId, debugName: fileName);
+
+        // The file name suggested for the new type may already exist in the project
+        // (for example, the user previously created a file with that name). Adding a
+        // second document with the same path would silently overwrite the existing
+        // file's contents when the refactoring is applied, so pick a file name that
+        // isn't in use instead. See https://github.com/dotnet/roslyn/issues/61471.
+        fileName = GetUniqueFileName(solution, projectId, hintDocument.FilePath, fileName);
         var newDocumentPath = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(hintDocument.FilePath), fileName);
 
-        var solutionWithInterfaceDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
-        var newDocument = solutionWithInterfaceDocument.GetRequiredDocument(newDocumentId);
+        var solutionWithNewDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
+        var newDocument = solutionWithNewDocument.GetRequiredDocument(newDocumentId);
+
         var newSemanticModel = await newDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var context = new CodeGenerationContext(
@@ -111,6 +119,39 @@ internal static class ExtractTypeHelpers
 
         return (formattedDocument, typeAnnotation);
     }
+
+    /// <summary>
+    /// Returns <paramref name="fileName"/> when no document in the project already uses
+    /// that file name in the directory of <paramref name="hintFilePath"/>; otherwise
+    /// returns the first unused name of the form <c>Name1.cs</c>, <c>Name2.cs</c>, ...
+    /// </summary>
+    private static string GetUniqueFileName(Solution solution, ProjectId projectId, string hintFilePath, string fileName)
+    {
+        var directoryName = PathUtilities.GetDirectoryName(hintFilePath);
+        var candidateFileName = fileName;
+
+        if (!IsFilePathInUse(solution, projectId, PathUtilities.CombinePaths(directoryName, candidateFileName)))
+        {
+            return candidateFileName;
+        }
+
+        var extensionIndex = fileName.LastIndexOf('.');
+        var nameWithoutExtension = extensionIndex >= 0 ? fileName[..extensionIndex] : fileName;
+        var extension = extensionIndex >= 0 ? fileName[extensionIndex..] : string.Empty;
+
+        var suffix = 1;
+        do
+        {
+            candidateFileName = $"{nameWithoutExtension}{suffix}{extension}";
+            suffix++;
+        }
+        while (IsFilePathInUse(solution, projectId, PathUtilities.CombinePaths(directoryName, candidateFileName)));
+
+        return candidateFileName;
+    }
+
+    private static bool IsFilePathInUse(Solution solution, ProjectId projectId, string filePath)
+        => solution.GetDocumentIdsWithFilePath(filePath).Any(id => id.ProjectId == projectId);
 
     public static string GetTypeParameterSuffix(
         Document document, SyntaxFormattingOptions formattingOptions, INamedTypeSymbol type, ImmutableArray<ISymbol> extractableMembers, CancellationToken cancellationToken)
