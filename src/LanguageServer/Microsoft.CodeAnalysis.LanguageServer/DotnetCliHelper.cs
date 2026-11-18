@@ -118,6 +118,7 @@ internal sealed class DotnetCliHelper : ILspService
         // However want to use the user specified dotnet version to run the tests, so we need to unset these.
         startInfo.Environment.Remove("MSBUILD_EXE_PATH");
         startInfo.Environment.Remove("MSBuildExtensionsPath");
+        startInfo.Environment.Remove("MSBuildSDKsPath");
 
         startInfo.RemoveInheritedDotNetDiagnosticPorts();
 

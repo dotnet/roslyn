@@ -1,4 +1,8 @@
 #nullable enable
+*REMOVED*Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultFormattingOptionsProvider
+*REMOVED*Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultFormattingOptionsProvider.DefaultFormattingOptionsProvider(Microsoft.VisualStudio.LanguageServer.ContainedLanguage.LSPDocumentManager! documentManager, Microsoft.VisualStudio.Text.Editor.IIndentationManagerService! indentationManagerService) -> void
+*REMOVED*Microsoft.VisualStudio.LanguageServer.ContainedLanguage.VisualStudioTextChange.VisualStudioTextChange(Microsoft.VisualStudio.LanguageServer.Protocol.TextEdit! textEdit, Microsoft.VisualStudio.Text.ITextSnapshot! textSnapshot) -> void
+*REMOVED*override Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultFormattingOptionsProvider.GetOptions(System.Uri! uri) -> Microsoft.VisualStudio.LanguageServer.Protocol.FormattingOptions?
 Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPDocumentSynchronizer.SynchronizedResult<TVirtualDocumentSnapshot>.Deconstruct(out bool Synchronized, out TVirtualDocumentSnapshot? VirtualSnapshot) -> void
 Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPDocumentSynchronizer.TryReturnPossiblyFutureSnapshot<TVirtualDocumentSnapshot>(int requiredHostDocumentVersion, System.Uri! hostDocumentUri, System.Uri? specificVirtualDocumentUri) -> Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPDocumentSynchronizer.SynchronizedResult<TVirtualDocumentSnapshot!>?
 Microsoft.VisualStudio.LanguageServer.ContainedLanguage.DefaultLSPRequestInvoker.DefaultLSPRequestInvoker(Microsoft.VisualStudio.LanguageServer.Client.ILanguageServiceBroker2! languageServiceBroker) -> void

@@ -1,5 +1,5 @@
 # Async Task Main
-## [dotnet/csharplang proposal](https://github.com/dotnet/csharplang/blob/main/proposals/async-main.md)
+## [dotnet/csharplang proposal](https://github.com/dotnet/csharplang/blob/main/proposals/csharp-7.1/async-main.md)
 
 ## Technical Details
 

@@ -14,6 +14,17 @@
       { "name": "TargetPath", "description": "Full path to the primary build output assembly." }
     ],
     "optional": [
+      { "name": "EnableHotReloadInRuntimeConfigDevFile", "description": "Whether to enable Hot Reload in the development runtime configuration." },
+      { "name": "HotReloadAutoRestart", "description": "Whether the project opts into automatic Hot Reload restarts." },
+      { "name": "MetadataUpdaterSupport", "description": "Whether the runtime supports metadata updates." },
+      { "name": "PublishAot", "description": "Whether the project publishes with NativeAOT." },
+      { "name": "PublishTrimmed", "description": "Whether the project publishes trimmed output." },
+      { "name": "StartupHookSupport", "description": "Whether the runtime supports startup hooks." },
+      { "name": "Optimize", "description": "Whether compilation optimizes the output." },
+      { "name": "DebugSymbols", "description": "Whether compilation produces debug symbols." },
+      { "name": "IntermediateOutputPath", "description": "Intermediate-output directory for the active project slice." },
+      { "name": "HotReloadBrowserToolsEnabled", "description": "Whether Hot Reload browser tools are enabled." },
+      { "name": "WebAssemblyHotReloadCapabilities", "description": "Semicolon-delimited runtime update capabilities of a WebAssembly project." },
       { "name": "RootNamespace", "description": "Root namespace for the project." },
       { "name": "IsTestProject", "description": "Whether the project should be included in test discovery. An explicit false value opts a project out even when it has the TestContainer capability." },
       { "name": "TargetFrameworkVersion", "description": "Framework version (e.g., v10.0)." },

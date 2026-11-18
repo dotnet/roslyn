@@ -14,6 +14,6 @@
     <None Include="source.extension.vsixmanifest" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Analyzers.Implementation\Analyzers.CSharp.csproj" Name="Analyzers" />
+    <ProjectReference Include="..\Analyzers.Implementation\Analyzers.CSharp.csproj" />
   </ItemGroup>
 </Project>

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell;
@@ -134,7 +135,7 @@ internal partial class EditorInProcess
 
         var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
         var solution = dte.Solution;
-        Assumes.Present(solution);
+        Contract.ThrowIfNull(solution);
 
         var project = solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
         var projectPath = Path.GetDirectoryName(project.FullName);

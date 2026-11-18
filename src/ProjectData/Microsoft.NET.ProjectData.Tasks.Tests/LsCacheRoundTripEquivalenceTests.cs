@@ -71,6 +71,38 @@ public class LsCacheRoundTripEquivalenceTests
 			Environment.SetEnvironmentVariable("DOTNET_ROOT", previous);
 		}
 	}
+	
+	[Theory]
+	[InlineData("EnableHotReloadInRuntimeConfigDevFile", "false")]
+	[InlineData("HotReloadAutoRestart", "true")]
+	[InlineData("MetadataUpdaterSupport", "false")]
+	[InlineData("PublishAot", "true")]
+	[InlineData("PublishTrimmed", "true")]
+	[InlineData("StartupHookSupport", "false")]
+	[InlineData("Optimize", "true")]
+	[InlineData("DebugSymbols", "false")]
+	[InlineData("IntermediateOutputPath", "obj/Debug/net10.0/")]
+	[InlineData("HotReloadBrowserToolsEnabled", "true")]
+	[InlineData("HotReloadBrowserToolsEnabled", "false")]
+	[InlineData("WebAssemblyHotReloadCapabilities", "Baseline;AddMethodToExistingType")]
+	public async Task FullRoundTrip_PreservesHotReloadProperties(string name, string value)
+	{
+		Assert.Contains(name, ProjectProperties.All);
+		string projectFile = Path.GetFullPath("App.csproj");
+		string content = ProjectDataWriter.BuildContent(
+			projectFile, writeHeader: true, isPrimary: true, lastDtbSucceeded: true,
+			sliceDimensions: null, properties: [MakeKvp(name, value)],
+			commandLineArguments: null, sourceFiles: null, metadataReferences: null,
+			analyzerReferences: null, analyzerConfigFiles: null, additionalFiles: null, projectReferences: null);
+
+		using StringReader reader = new(content);
+		var slices = await ProductDataFromProjectDataAssembly.CacheFileReader.ReadFromAsync(
+			reader, new ProductDataFromProjectDataAssembly.CachePathResolver(),
+			Path.GetDirectoryName(projectFile)!, projectFile, expectedProjectFilePath: null,
+			stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
+
+		Assert.Equal(value, Assert.Single(slices).Properties[name]);
+	}
 
 	[Fact]
 	public async Task FullRoundTrip_FrameworkPackEntries_AreReconstructedAfterRead()

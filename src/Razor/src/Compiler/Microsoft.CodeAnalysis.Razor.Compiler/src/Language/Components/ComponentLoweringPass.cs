@@ -70,7 +70,8 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                 var tagHelper = GetTagHelperOrAddDiagnostic(node, usings);
                 if (tagHelper == null)
                 {
-                    break;
+                    // An ambiguous tag must not prevent unrelated components from being lowered.
+                    continue;
                 }
 
                 reference.Replace(RewriteAsComponent(node, tagHelper));
