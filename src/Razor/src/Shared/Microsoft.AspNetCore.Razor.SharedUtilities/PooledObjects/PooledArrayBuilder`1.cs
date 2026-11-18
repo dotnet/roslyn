@@ -200,19 +200,43 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         set => this[index.GetOffset(Count)] = value;
     }
 
+    // Note: The inline element accessors in this type intentionally use if-statements rather than switches.
+    //
+    // These methods are aggressively inlined, so the index often becomes a constant, e.g., when the builder is
+    // used in a loop with a constant trip count that the JIT unrolls, such as TokenizerBackedParser.Lookahead(1).
+    // Some .NET 10 and .NET 11 runtimes miscompile a switch over a constant value when tiered PGO has identified
+    // a dominant case: every unrolled copy dispatches to the dominant case (typically element 0). In long-lived
+    // processes, such as the compiler server, this corrupted the Razor parser's lookahead and produced spurious
+    // RZ1021 errors and broken generated code. If-statements are not affected.
+    //
+    // See https://github.com/dotnet/runtime/issues/132370 and https://github.com/dotnet/roslyn/issues/85656.
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private readonly T GetInlineElement(int index)
     {
         Debug.Assert(_inlineCount <= InlineCapacity);
 
-        return index switch
+        if (index == 0)
         {
-            0 => _element0,
-            1 => _element1,
-            2 => _element2,
-            3 => _element3,
-            _ => Assumed.Unreachable<T>()
-        };
+            return _element0;
+        }
+
+        if (index == 1)
+        {
+            return _element1;
+        }
+
+        if (index == 2)
+        {
+            return _element2;
+        }
+
+        if (index == 3)
+        {
+            return _element3;
+        }
+
+        return Assumed.Unreachable<T>();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -220,27 +244,25 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     {
         Debug.Assert(_inlineCount <= InlineCapacity);
 
-        switch (index)
+        if (index == 0)
         {
-            case 0:
-                _element0 = value;
-                break;
-
-            case 1:
-                _element1 = value;
-                break;
-
-            case 2:
-                _element2 = value;
-                break;
-
-            case 3:
-                _element3 = value;
-                break;
-
-            default:
-                Assumed.Unreachable();
-                break;
+            _element0 = value;
+        }
+        else if (index == 1)
+        {
+            _element1 = value;
+        }
+        else if (index == 2)
+        {
+            _element2 = value;
+        }
+        else if (index == 3)
+        {
+            _element3 = value;
+        }
+        else
+        {
+            Assumed.Unreachable();
         }
     }
 
@@ -573,36 +595,33 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
         }
 
         // Copy inline elements depending on the index to be removed.
-        switch (index)
+        // Note: This intentionally doesn't use a switch. See the comment above GetInlineElement.
+        if (index == 0)
         {
-            case 0:
-                _element0 = _element1;
+            _element0 = _element1;
 
-                if (_inlineCount > 1)
-                {
-                    _element1 = _element2;
-                }
-
-                if (_inlineCount > 2)
-                {
-                    _element2 = _element3;
-                }
-
-                break;
-
-            case 1:
+            if (_inlineCount > 1)
+            {
                 _element1 = _element2;
+            }
 
-                if (_inlineCount > 2)
-                {
-                    _element2 = _element3;
-                }
-
-                break;
-
-            case 2:
+            if (_inlineCount > 2)
+            {
                 _element2 = _element3;
-                break;
+            }
+        }
+        else if (index == 1)
+        {
+            _element1 = _element2;
+
+            if (_inlineCount > 2)
+            {
+                _element2 = _element3;
+            }
+        }
+        else if (index == 2)
+        {
+            _element2 = _element3;
         }
 
         // Clear the last element if necessary.
@@ -659,14 +678,28 @@ internal partial struct PooledArrayBuilder<T> : IDisposable
     {
         Debug.Assert(_inlineCount <= InlineCapacity);
 
-        return _inlineCount switch
+        // Note: This intentionally doesn't use a switch. See the comment above GetInlineElement.
+        if (_inlineCount == 0)
         {
-            0 => [],
-            1 => [_element0],
-            2 => [_element0, _element1],
-            3 => [_element0, _element1, _element2],
-            _ => [_element0, _element1, _element2, _element3]
-        };
+            return [];
+        }
+
+        if (_inlineCount == 1)
+        {
+            return [_element0];
+        }
+
+        if (_inlineCount == 2)
+        {
+            return [_element0, _element1];
+        }
+
+        if (_inlineCount == 3)
+        {
+            return [_element0, _element1, _element2];
+        }
+
+        return [_element0, _element1, _element2, _element3];
     }
 
     public readonly T[] ToArray()

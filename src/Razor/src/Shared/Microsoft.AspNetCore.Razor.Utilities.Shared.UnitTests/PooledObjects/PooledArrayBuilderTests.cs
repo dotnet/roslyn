@@ -5,7 +5,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Xunit;
 using SR = Microsoft.AspNetCore.Razor.Utilities.Shared.Resources.SR;
@@ -1912,6 +1914,75 @@ public class PooledArrayBuilderTests
             Assert.Equal(0, t.InlineItemCount);
             Assert.NotNull(t.InnerArrayBuilder);
         });
+    }
+
+    // Regression test for https://github.com/dotnet/roslyn/issues/85656.
+    //
+    // This mirrors TokenizerBackedParser.Lookahead(1), which adds tokens to a PooledArrayBuilder and then
+    // puts them back by reading the indexer in a loop with a constant trip count. On runtimes affected by
+    // https://github.com/dotnet/runtime/issues/132370, once that code is rejitted at Tier1 with PGO, the
+    // unrolled reads dispatched every constant index to the dominant case, so builder[1] returned builder[0].
+    // That caused the Razor parser to rewind to the wrong position and report spurious RZ1021 errors.
+    //
+    // On unaffected runtimes this test always passes. On affected runtimes it fails as soon as the code is
+    // promoted to Tier1 (a few hundred milliseconds) unless PooledArrayBuilder avoids switch statements over
+    // the inline elements.
+    [Fact]
+    public void Indexer_ConstantIndexInUnrolledLoop()
+    {
+        var tokens = new string[256];
+        for (var i = 0; i < tokens.Length; i++)
+        {
+            tokens[i] = i % 2 == 0 ? "<" : new string('x', 1 + (i % 12));
+        }
+
+        // Run long enough for tiered compilation to rejit the lookahead code at Tier1 with PGO.
+        var stopwatch = Stopwatch.StartNew();
+        while (stopwatch.Elapsed < TimeSpan.FromSeconds(1))
+        {
+            Assert.Equal(0, CountLookaheadMismatches(tokens));
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static int CountLookaheadMismatches(string[] tokens)
+    {
+        var mismatches = 0;
+
+        for (var start = 0; start < tokens.Length - 1; start++)
+        {
+            var position = 0;
+            var next = Lookahead(tokens, start, count: 1, ref position);
+
+            if (position != 0 || !ReferenceEquals(next, tokens[start + 1]))
+            {
+                mismatches++;
+            }
+        }
+
+        return mismatches;
+    }
+
+    private static string Lookahead(string[] tokens, int start, int count, ref int position)
+    {
+        using var builder = new PooledArrayBuilder<string>(count + 1);
+
+        builder.Add(tokens[start]);
+        position += tokens[start].Length;
+
+        for (var i = 1; i <= count; i++)
+        {
+            builder.Add(tokens[start + i]);
+            position += tokens[start + i].Length;
+        }
+
+        // Rewind by the length of each token, in reverse order.
+        for (var i = count; i >= 0; i--)
+        {
+            position -= builder[i].Length;
+        }
+
+        return builder[count];
     }
 
     // Helper struct that implements IReadOnlyList<T>
