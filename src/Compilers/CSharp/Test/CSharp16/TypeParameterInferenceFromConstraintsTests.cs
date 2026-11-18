@@ -852,7 +852,7 @@ static class Extensions
         }
 
         [Fact]
-        public void NullableReferenceType_AnnotationFlows()
+        public void NullableReferenceType_AnnotationFlows_01()
         {
             var source = """
 #nullable enable
@@ -878,6 +878,41 @@ class C
             var element = method.TypeArguments[1];
             Assert.Equal(SpecialType.System_String, element.SpecialType);
             Assert.Equal(CodeAnalysis.NullableAnnotation.Annotated, element.NullableAnnotation);
+            AssertEx.Equal("System.Collections.Generic.List<System.String?>!", method.TypeArguments[0].ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Fact]
+        public void NullableReferenceType_AnnotationFlows_02()
+        {
+            var source = """
+#nullable enable
+using System.Collections.Generic;
+
+class C
+{
+    static TEnumerable M1<TEnumerable, TElement>(TEnumerable t) where TEnumerable : IEnumerable<TElement> => throw null!; 
+    static TElement M2<TEnumerable, TElement>(TEnumerable t) where TEnumerable : IEnumerable<TElement> => throw null!; 
+
+    static void Main()
+    {
+        var m1 = M1(new List<string?>());
+        m1.ToString();
+        m1[0].ToString();
+
+        M2(new List<string?>()).ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (13,9): warning CS8602: Dereference of a possibly null reference.
+                //         m1[0].ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "m1[0]").WithLocation(13, 9),
+                // (15,9): warning CS8602: Dereference of a possibly null reference.
+                //         M2(new List<string?>()).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M2(new List<string?>())").WithLocation(15, 9)
+                );
         }
 
         [Fact]
@@ -1033,9 +1068,7 @@ class D
         [Fact]
         public void OverloadResolution_GenericWithConstraintBeatsObject_WithLambda()
         {
-            // The user's flagged risk area: overload resolution involving a lambda whose delegate
-            // parameter type is the constraint-inferred type parameter. With the feature, the generic
-            // overload becomes applicable (and is more specific than the object overload).
+            // With the feature, the generic overload becomes applicable (and is more specific than the object overload).
             var source = """
 using System;
 using System.Collections.Generic;
@@ -1177,7 +1210,9 @@ class C
             comp.VerifyDiagnostics();
 
             var method = GetInferredMethod(comp);
-            Assert.Equal("System.Object", method.TypeArguments[2].ToTestDisplayString());
+            AssertEx.Equal("System.Collections.Generic.List<System.String>", method.TypeArguments[0].ToTestDisplayString());
+            AssertEx.Equal("System.Collections.Generic.List<System.Object>", method.TypeArguments[1].ToTestDisplayString());
+            AssertEx.Equal("System.Object", method.TypeArguments[2].ToTestDisplayString());
 
             // Without the feature TElement is not inferable at all (it only appears in constraints).
             CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
@@ -1531,8 +1566,7 @@ class C
         public void AsyncLambda_ReturnConflictsWithConstraint_01()
         {
             // The async lambda's Task<int> return fixes TElement as int. Constraint inference does
-            // not replace that ordinary bound, so both language versions report the same constraint
-            // failure for List<object>.
+            // not replace that ordinary bound.
             var source = """
 using System;
 using System.Collections.Generic;
