@@ -133,4 +133,4 @@ To preserve the previous behavior, specify the type arguments explicitly:
 Console.WriteLine(M<Holder, B, int>(new Holder(), 0, x => new B()).Name); // "B"
 ```
 
-See [the type parameter inference from constraints proposal](https://github.com/dotnet/csharplang/issues/9453) and [the Roslyn implementation](https://github.com/dotnet/roslyn/pull/84655).
+See [the type parameter inference from constraints proposal](https://github.com/dotnet/csharplang/issues/9453).
