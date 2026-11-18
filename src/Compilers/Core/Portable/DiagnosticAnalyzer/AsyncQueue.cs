@@ -30,6 +30,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private bool _completed;
         private bool _disallowEnqueue;
 
+        private readonly bool _discardElements;
+
+        public AsyncQueue()
+            : this(discardElements: false)
+        {
+        }
+
+        private AsyncQueue(bool discardElements)
+        {
+            _discardElements = discardElements;
+        }
+
+        /// <summary>
+        /// Creates a queue that discards all enqueued elements, for producers that require a queue nobody consumes.
+        /// </summary>
+        public static AsyncQueue<TElement> CreateDiscarding()
+            => new AsyncQueue<TElement>(discardElements: true);
+
         private object SyncObject
         {
             get { return _data; }
@@ -87,6 +105,11 @@ retry:
                 if (_completed)
                 {
                     return false;
+                }
+
+                if (_discardElements)
+                {
+                    return true;
                 }
 
                 if (_waiters == null || _waiters.Count == 0)

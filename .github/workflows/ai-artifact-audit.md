@@ -14,8 +14,14 @@ permissions:
 network:
   allowed: [defaults]
 
-engine: copilot
-model: gpt-5-mini
+engine:
+  id: copilot
+  model-routing:
+    goal: cost
+    mode: economy
+
+models:
+  allowed: ["gpt-*"]
 
 safe-outputs:
   mentions: false

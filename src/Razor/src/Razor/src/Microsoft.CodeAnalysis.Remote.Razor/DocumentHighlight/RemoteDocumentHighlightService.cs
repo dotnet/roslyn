@@ -146,6 +146,7 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
         }
 
         using var result = new PooledArrayBuilder<RemoteDocumentHighlight>();
+        using var _ = HashSetPool<LinePositionSpan>.GetPooledObject(out var seenRanges);
         foreach (var highlight in highlights)
         {
             RazorCSharpDocument mappedCSharpDocument;
@@ -167,6 +168,12 @@ internal sealed partial class RemoteDocumentHighlightService(in ServiceArgs args
             {
                 if (DocumentMappingService.TryMapToRazorDocumentRange(mappedCSharpDocument, mappedCSharpDocument.Text.GetLinePositionSpan(span.TextSpan), out var mappedRange))
                 {
+                    // Both generated documents and repeated type arguments can map to the same Razor span.
+                    if (!seenRanges.Add(mappedRange))
+                    {
+                        continue;
+                    }
+
                     result.Add(new RemoteDocumentHighlight(mappedRange, ProtocolConversions.HighlightSpanKindToDocumentHighlightKind(span.Kind)));
                 }
             }

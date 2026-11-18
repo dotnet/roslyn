@@ -7,5 +7,5 @@ string
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<string>. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>( Value ))
-[0002] AddComponentParameter(nameof(global::Test.MyComponent<string>.ItemChanged), (global::System.Action<string>)(__value => Value = __value))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< string >. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<string>( Value ))
+[0002] AddComponentParameter(nameof(global::Test.MyComponent< string >.ItemChanged), (global::System.Action<string>)(__value => Value = __value))

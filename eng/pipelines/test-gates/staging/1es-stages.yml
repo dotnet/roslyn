@@ -1,5 +1,4 @@
-# Staging test gate registration file for Roslyn validation stages.
-# This file is referenced by the Visual Studio repository's official test gate registration.
+# Staging test gate registration file for Roslyn CloudTest validation stages.
 
 parameters:
 - name: prNumber
@@ -26,12 +25,18 @@ parameters:
 - name: testsCommitFromVisualStudioBuild
   type: boolean
   default: false
-- name: testMachineCleanUpStrategy
+- name: testMachineLab
   type: string
-  default: delete
-- name: testMachineRetention
+  default: Roslyn-AMD64
+- name: testMachineHoldStrategy
   type: string
-  default: 1:0:0:0
+  default: None
+  values:
+  - None
+  - Completion
+  - Execution
+  - Failure
+  - Timeout
 - name: dartLabTemplatesRepositoryAlias
   type: string
   default: DartLabTemplates
@@ -43,7 +48,7 @@ parameters:
   default: ''
 
 stages:
-- template: /eng/pipelines/test-gates/roslyn-vs-integration/stage.yml@${{parameters.roslynRepositoryAlias}}
+- template: /eng/pipelines/test-gates/roslyn-vs-integration/1es-stage.yml@${{parameters.roslynRepositoryAlias}}
   parameters:
     testStageFilter: ${{ parameters.testStageFilter }}
     prNumber: ${{ parameters.prNumber }}
@@ -54,7 +59,7 @@ stages:
     skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
     testsCommitHash: ${{ parameters.testsCommitHash }}
     testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
-    testMachineCleanUpStrategy: ${{ parameters.testMachineCleanUpStrategy }}
-    testMachineRetention: ${{ parameters.testMachineRetention }}
+    testMachineLab: ${{ parameters.testMachineLab }}
+    testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
     dartLabTemplatesRepositoryAlias: ${{ parameters.dartLabTemplatesRepositoryAlias }}
     roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}

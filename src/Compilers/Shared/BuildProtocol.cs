@@ -76,7 +76,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public static BuildRequest Create(RequestLanguage language,
                                           IList<string> args,
                                           string workingDirectory,
-                                          string? tempDirectory,
                                           string compilerHash,
                                           string? requestId = null,
                                           string? keepAlive = null,
@@ -88,7 +87,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var requestArgs = new List<Argument>(requestLength);
 
             requestArgs.Add(new Argument(ArgumentId.CurrentDirectory, 0, workingDirectory));
-            requestArgs.Add(new Argument(ArgumentId.TempDirectory, 0, tempDirectory));
 
             if (keepAlive != null)
             {
@@ -615,9 +613,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Request a server shutdown from the client
             Shutdown,
-
-            // The directory to use for temporary operations.
-            TempDirectory,
         }
 
         /// <summary>

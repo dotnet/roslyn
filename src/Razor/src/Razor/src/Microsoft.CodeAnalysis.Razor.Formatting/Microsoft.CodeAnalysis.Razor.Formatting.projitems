@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Passes\RazorFormattingPass.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FormattedDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FormattingUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)HtmlFormattingFacts.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IFormattingLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IFormattingLoggerFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)IFormattingPass.cs" />

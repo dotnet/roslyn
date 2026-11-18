@@ -102,6 +102,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal("file", read.Arguments[1].Value);
         }
 
+        [Theory, CombinatorialData]
+        public async Task ReadWriteCreatedRequest(bool isCSharp, bool includeOptionalArguments)
+        {
+            var language = isCSharp ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
+            var request = BuildServerConnection.CreateBuildRequest(
+                requestId: "request-id",
+                language,
+                arguments: new List<string> { "/nologo", "file" },
+                workingDirectory: "directory",
+                keepAlive: includeOptionalArguments ? "42" : null,
+                libDirectory: includeOptionalArguments ? "library-directory" : null,
+                compilerHash: "HashValue");
+            var expectedArguments = new List<BuildRequest.Argument>
+            {
+                new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CurrentDirectory, 0, "directory")
+            };
+            if (includeOptionalArguments)
+            {
+                expectedArguments.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.KeepAlive, 0, "42"));
+                expectedArguments.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.LibEnvVariable, 0, "library-directory"));
+            }
+
+            expectedArguments.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, 0, "/nologo"));
+            expectedArguments.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.CommandLineArgument, 1, "file"));
+
+            using var memoryStream = new MemoryStream();
+            await request.WriteAsync(memoryStream, CancellationToken.None);
+            memoryStream.Position = 0;
+            var read = await BuildRequest.ReadAsync(memoryStream, CancellationToken.None);
+            Assert.Equal("request-id", read.RequestId);
+            Assert.Equal(language, read.Language);
+            Assert.Equal("HashValue", read.CompilerHash);
+            AssertEx.Equal(expectedArguments, read.Arguments, itemInspector: argument => $"{argument.ArgumentId}({argument.ArgumentIndex}): {argument.Value}");
+        }
+
         [Fact]
         public void ShutdownMessage()
         {
