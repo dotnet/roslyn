@@ -121,7 +121,7 @@ class Holder : I<A> { }
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M1").WithArguments("M1<T, U>(T, U)", "B", "U", "A").WithLocation(4, 15);
 
             // This behavior change is documented as breaking.
-            // However it feels like the problem is actually in how infernce through variant interfaces is designed.
+            // However it feels like the problem is actually in how inference through variant interfaces is designed.
             // It adds type argument as a lower bound, that automatically makes more specific bound to lose. But in case of 'in' type parameter,
             // a more specific bound is probably a better choice.
             CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.DebugExe).
