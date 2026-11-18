@@ -230,6 +230,64 @@ public sealed class RemoveRedundantEqualityTests
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86479")]
+    public Task TestUserDefinedImplicitConversionToBool_NoDiagnostics()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            public record Flag(bool IsSet)
+            {
+                public static Flag Off => new(false);
+
+                public static implicit operator bool(Flag flag)
+                    => flag.IsSet;
+            }
+
+            public static class FlagUse
+            {
+                // "== true" converts the record to bool: the comparison is what
+                // performs the conversion, so it is not redundant.
+                public static int CompareSet(Flag flag)
+                    => (flag == true).CompareTo(false);
+
+                public static int CompareOff()
+                    => (Flag.Off == false).CompareTo(false);
+
+                public static int CompareSetReversed(Flag flag)
+                    => (true == flag).CompareTo(false);
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86479")]
+    public Task TestExplicitCastToBool()
+        => VerifyCS.VerifyCodeFixAsync("""
+            public record Flag(bool IsSet)
+            {
+                public static implicit operator bool(Flag flag)
+                    => flag.IsSet;
+            }
+
+            public static class FlagUse
+            {
+                public static bool CompareSet(Flag flag)
+                {
+                    return (bool)flag [|==|] true;
+                }
+            }
+            """, """
+            public record Flag(bool IsSet)
+            {
+                public static implicit operator bool(Flag flag)
+                    => flag.IsSet;
+            }
+
+            public static class FlagUse
+            {
+                public static bool CompareSet(Flag flag)
+                {
+                    return (bool)flag;
+                }
+            }
+            """);
+
     [Fact]
     public Task TestSimpleCaseForIsFalse()
         => VerifyCS.VerifyCodeFixAsync("""
