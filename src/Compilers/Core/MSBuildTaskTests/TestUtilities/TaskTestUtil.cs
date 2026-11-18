@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -47,51 +46,5 @@ internal static class TaskTestUtil
             Assert.Equal("/noconfig", compilerTask.GenerateToolArguments());
         }
 #endif
-    }
-
-    public static void AssertCompilerServerLogging(
-        ManagedCompiler compilerTask,
-        MockEngine engine,
-        params string[] expectedArguments)
-    {
-        AssertCommandLine(compilerTask, engine, expectedArguments);
-
-        compilerTask.SkipCompilerExecution = false;
-        compilerTask.UseSharedCompilation = true;
-
-        var messages = new List<(CompilerServerLogKind Kind, string Message)>();
-        var innerLogger = new TestableCompilerServerLogger
-        {
-            LogFunc = (kind, message) => messages.Add((kind, message)),
-        };
-        var logger = new TaskCompilerServerLogger(new Microsoft.Build.Utilities.TaskLoggingHelper(compilerTask), innerLogger);
-        var responseFileCommands = compilerTask.GenerateResponseFileContents();
-        var commandLineCommands = compilerTask.GenerateCommandLineContents();
-        var serverCalls = 0;
-
-        var exitCode = compilerTask.ExecuteTool(
-            compilerTask.GeneratePathToTool(),
-            responseFileCommands,
-            commandLineCommands,
-            logger,
-            (_, _, _) =>
-            {
-                serverCalls++;
-                return Task.FromResult<BuildResponse>(new CompletedBuildResponse(0, utf8output: false, output: ""));
-            },
-            (_, _, _) => throw new InvalidOperationException("The server response should not fall back to the command-line tool."));
-
-        Assert.Equal(0, exitCode);
-        Assert.Equal(1, serverCalls);
-        Assert.Contains((CompilerServerLogKind.Trace, $"CommandLine = '{commandLineCommands}'"), messages);
-        Assert.Contains((CompilerServerLogKind.Trace, $"BuildResponseFile = '{responseFileCommands}'"), messages);
-        Assert.Contains(messages, static message =>
-            message.Kind == CompilerServerLogKind.Operational &&
-            message.Message.StartsWith("CompilerServer: server - server processed compilation - ", StringComparison.Ordinal));
-
-        Assert.DoesNotContain(engine.BuildMessages, message => message.Message?.Contains("CommandLine = '", StringComparison.Ordinal) == true);
-        Assert.DoesNotContain(engine.BuildMessages, message => message.Message?.Contains("BuildResponseFile = '", StringComparison.Ordinal) == true);
-        Assert.Contains(engine.BuildMessages, message =>
-            message.Message?.StartsWith("CompilerServer: server - server processed compilation - ", StringComparison.Ordinal) == true);
     }
 }

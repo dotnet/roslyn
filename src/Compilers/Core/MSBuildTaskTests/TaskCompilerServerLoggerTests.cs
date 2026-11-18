@@ -62,8 +62,9 @@ public sealed class TaskCompilerServerLoggerTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/85244")]
     public void ResponseClassification()
     {
-        var cases = new (BuildResponse Response, string Category, string Diagnostic, bool IsFatal)[]
+        var cases = new (BuildResponse? Response, string Category, string Diagnostic, bool IsFatal)[]
         {
+            (null, "server failed", "could not launch server", false),
             (new CannotConnectResponse(), "server failed", "cannot connect to the server", false),
             (new RejectedBuildResponse("reason"), "server failed", "server rejected the request 'reason'", false),
             (new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(["first", "second"])), "server failed", "server rejected the request due to analyzer / generator issues 'first, second'", false),
@@ -74,42 +75,18 @@ public sealed class TaskCompilerServerLoggerTests
         foreach (var (response, category, diagnostic, isFatal) in cases)
         {
             var engine = new MockEngine();
-            var task = new Csc
-            {
-                BuildEngine = engine,
-                ProjectName = "TestProject",
-                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
-                UseSharedCompilation = true,
-            };
+            var task = new Csc { BuildEngine = engine };
             var innerMessages = new List<(CompilerServerLogKind Kind, string Message)>();
             var inner = new TestableCompilerServerLogger
             {
                 LogFunc = (kind, message) => innerMessages.Add((kind, message)),
             };
             var logger = new TaskCompilerServerLogger(new TaskLoggingHelper(task), inner);
-            var serverCalls = 0;
-            var fallbackCalls = 0;
 
-            var exitCode = task.ExecuteTool(
-                task.GeneratePathToTool(),
-                task.GenerateResponseFileContents(),
-                task.GenerateCommandLineContents(),
-                logger,
-                (_, _, _) =>
-                {
-                    serverCalls++;
-                    return System.Threading.Tasks.Task.FromResult(response);
-                },
-                (_, _, _) =>
-                {
-                    fallbackCalls++;
-                    return 0;
-                });
+            var exitCode = task.HandleResponse("TestProject", response, logger);
 
             var expected = $"CompilerServer: {category} - {diagnostic} - TestProject";
-            Assert.Equal(0, exitCode);
-            Assert.Equal(1, serverCalls);
-            Assert.Equal(1, fallbackCalls);
+            Assert.Null(exitCode);
             if (isFatal)
             {
                 Assert.Contains((CompilerServerLogKind.Trace, $"Error: {expected}"), innerMessages);
