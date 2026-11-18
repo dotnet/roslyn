@@ -26,9 +26,15 @@ internal
 #endif
 sealed class VirtualProjectBuilder
 {
-    internal readonly record struct ExplicitProjectItem(string ItemType, string Include);
+    internal readonly record struct ExplicitProjectItem(string ItemType, string Include)
+    {
+        public bool IsUpdate { get; init; }
+        public ImmutableArray<(string Name, string Value)> Metadata { get; init; }
+    }
 
     internal const string FromIncludeDirectiveMetadataName = "FileBasedProgramsFromIncludeDirective";
+
+    internal const string IncludeDirectiveMetadataNames = "FileBasedProgramsIncludeDirectiveMetadataNames";
 
     internal const string FromRefDirectiveMetadataName = "FileBasedProgramsFromRefDirective";
 
@@ -822,9 +828,13 @@ sealed class VirtualProjectBuilder
 
                 if (includeOrExclude.Kind == CSharpDirective.IncludeOrExcludeKind.Include)
                 {
-                    writer.WriteLine($"""
-                        <{itemType} Include="{EscapeValue(includeOrExclude.Name)}" {FromIncludeDirectiveMetadataName}="true" />
-                    """);
+                    var attributes = $"Include=\"{EscapeValue(includeOrExclude.Name)}\" {FromIncludeDirectiveMetadataName}=\"true\"";
+                    if (!includeOrExclude.Metadata.IsDefaultOrEmpty)
+                    {
+                        attributes += $" {IncludeDirectiveMetadataNames}=\"{EscapeValue(string.Join(";", includeOrExclude.Metadata.Select(static m => m.Name)))}\"";
+                    }
+
+                    WriteItem(writer, itemType, attributes, includeOrExclude.Metadata);
                 }
                 else
                 {
@@ -846,11 +856,10 @@ sealed class VirtualProjectBuilder
                   <ItemGroup>
                 """);
 
-            foreach (var (itemType, include) in explicitProjectItems)
+            foreach (var item in explicitProjectItems)
             {
-                writer.WriteLine($"""
-                        <{itemType} Include="{EscapeValue(include)}" />
-                    """);
+                var operation = item.IsUpdate ? "Update" : "Include";
+                WriteItem(writer, item.ItemType, $"{operation}=\"{EscapeValue(item.Include)}\"", item.Metadata);
             }
 
             writer.WriteLine("""
@@ -965,6 +974,11 @@ sealed class VirtualProjectBuilder
 
         static void WriteItem(TextWriter writer, string itemType, string attributes, ImmutableArray<(string Name, string Value)> metadata)
         {
+            if (!FileBasedProgramDirectiveValueHelpers.IsValidMSBuildName(itemType, out var errorMessage))
+            {
+                throw new ArgumentException($"Invalid MSBuild item type name '{itemType}': {errorMessage}", paramName: nameof(itemType));
+            }
+
             if (metadata.IsDefaultOrEmpty)
             {
                 writer.WriteLine($"    <{itemType} {attributes} />");
