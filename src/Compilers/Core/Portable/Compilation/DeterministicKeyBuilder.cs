@@ -147,11 +147,14 @@ namespace Microsoft.CodeAnalysis
             analyzerConfigFiles = analyzerConfigFiles.NullToEmpty();
 
             Debug.Assert(analyzerConfigFiles.IsEmpty || analyzerConfigSet is not null);
-            var configPathMap = analyzerConfigSet is null || pathMap.IsDefaultOrEmpty
+            var configFilePathMap = analyzerConfigSet is null || pathMap.IsDefaultOrEmpty
                 ? ImmutableArray<KeyValuePair<string, string>>.Empty
                 : pathMap.SelectAsArray(static pair => KeyValuePair.Create(
-                    PathUtilities.NormalizeWithForwardSlash(pair.Key),
-                    PathUtilities.NormalizeWithForwardSlash(pair.Value)));
+                    PathUtilities.NormalizeDriveLetter(pair.Key),
+                    pair.Value));
+            var configPathMap = configFilePathMap.SelectAsArray(static pair => KeyValuePair.Create(
+                PathUtilities.NormalizeWithForwardSlash(pair.Key),
+                PathUtilities.NormalizeWithForwardSlash(pair.Value)));
             var generatedDirectory = generatedSourceBaseDirectory is null
                 ? null
                 : PathUtilities.NormalizeDriveLetter(
@@ -230,7 +233,7 @@ namespace Microsoft.CodeAnalysis
                              PathUtilities.IsSameDirectoryOrChildOf(config.NormalizedDirectory, generatedDirectory, StringComparison.Ordinal));
 
                         writer.WriteObjectStart();
-                        WriteFilePath(writer, "fileName", config.PathToFile, pathMap, options);
+                        WriteFilePath(writer, "fileName", config.PathToFile, configFilePathMap, options);
                         writer.Write("isGlobal", config.IsGlobal);
                         writer.Write("globalLevel", config.GlobalLevel);
                         writer.WriteKey("properties");
@@ -466,7 +469,7 @@ namespace Microsoft.CodeAnalysis
         private static string NormalizeAnalyzerConfigPath(
             string path, ImmutableArray<KeyValuePair<string, string>> pathMap, DeterministicKeyOptions options, bool directory = false)
         {
-            path = PathUtilities.NormalizeWithForwardSlash(path);
+            path = PathUtilities.NormalizeWithForwardSlash(PathUtilities.NormalizeDriveLetter(path));
             if ((options & DeterministicKeyOptions.IgnorePaths) != 0)
             {
                 return Path.GetFileName(PathUtilities.TrimTrailingSeparators(path));

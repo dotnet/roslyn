@@ -971,6 +971,37 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
             Assert.Equal(ignorePaths ? ".editorconfig" : pathMapped ? "/_/.editorconfig" : firstDirectory + ".editorconfig", config.Value<string>("fileName"));
         }
 
+        [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
+        public void AnalyzerConfigPathMapDriveLetter(bool lowerCaseInputDrive, bool lowerCaseMapDrive, bool differentDirectoryCase)
+        {
+            var directory = $@"{(lowerCaseInputDrive ? "q" : "Q")}:\ConfigRoot\";
+            var mappedDirectory = $@"{(lowerCaseMapDrive ? "q" : "Q")}:\{(differentDirectoryCase ? "configroot" : "ConfigRoot")}\";
+            ImmutableArray<AnalyzerConfig> configs =
+            [
+                ParseAnalyzerConfig(directory + ".globalconfig", $"""
+                    is_global = true
+                    build_property.ProjectDir = {directory}
+                    build_property.MSBuildProjectDirectory = {directory.TrimEnd('\\')}
+                    [{directory.Replace('\\', '/')}generated/Output.g.cs]
+                    cache_value = 1
+                    """),
+            ];
+            var key = CreateCompilation([]).GetDeterministicKey(
+                pathMap: [KeyValuePair.Create(mappedDirectory, "/_/")],
+                generators: [new Generator()],
+                analyzerConfigFiles: configs,
+                analyzerConfigSet: AnalyzerConfigSet.Create(configs),
+                generatedSourceBaseDirectory: directory + "generated");
+            var config = Assert.Single((JArray)GetJsonProperty(key, "analyzerConfigs").Value);
+            var properties = Assert.IsType<JObject>(config["properties"]);
+            var section = Assert.Single(Assert.IsType<JArray>(config["sections"]));
+
+            Assert.Equal(differentDirectoryCase ? @"Q:\ConfigRoot\.globalconfig" : "/_/.globalconfig", config.Value<string>("fileName"));
+            Assert.Equal(differentDirectoryCase ? "Q:/ConfigRoot/" : "/_/", properties.Value<string>("build_property.projectdir"));
+            Assert.Equal(differentDirectoryCase ? "Q:/ConfigRoot" : "/_", properties.Value<string>("build_property.msbuildprojectdirectory"));
+            Assert.Equal(differentDirectoryCase ? "Q:/ConfigRoot/generated/Output.g.cs" : "/_/generated/Output.g.cs", section.Value<string>("name"));
+        }
+
         [Theory, CombinatorialData]
         public void AnalyzerConfigSectionBindings(bool additionalFile, bool differentOptions)
         {
