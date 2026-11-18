@@ -16,6 +16,22 @@ namespace RunTests
 {
     internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
     {
+        /// <summary>
+        /// A vstest filter expression that selects the subset of the assembly tests this work item runs.
+        /// This is combined with the method filters and the user filter using a logical and.
+        /// </summary>
+        internal string? TestFilter { get; init; }
+
+        /// <summary>
+        /// Name of the local partition of the assembly, if it was split into several work items.
+        /// </summary>
+        internal string? PartitionName { get; init; }
+
+        /// <summary>
+        /// Estimated duration used to order local work items.
+        /// </summary>
+        internal double EstimatedMinutes { get; init; }
+
         internal readonly string DisplayName
         {
             get
@@ -26,7 +42,9 @@ namespace RunTests
                 // Until that is fixed we manually truncate the name ourselves to a reasonable limit.
                 // https://github.com/dotnet/arcade/issues/11079
                 assembliesString = assembliesString.Length > 150 ? $"{assembliesString[..150]}..." : assembliesString;
-                return $"{assembliesString}_{PartitionIndex}";
+                return PartitionName is null
+                    ? $"{assembliesString}_{PartitionIndex}"
+                    : $"{assembliesString}_{PartitionName}_{PartitionIndex}";
             }
         }
     }
@@ -56,25 +74,32 @@ namespace RunTests
             _options = options;
         }
 
-        private static ImmutableArray<WorkItemInfo> CreateWorkItemsForFullAssemblies(ImmutableArray<AssemblyInfo> assemblies)
+        private ImmutableArray<WorkItemInfo> CreateWorkItems(ImmutableArray<AssemblyInfo> assemblies)
         {
-            var workItems = new List<WorkItemInfo>();
-            var partitionIndex = 0;
-            foreach (var assembly in assemblies)
-            {
-                var currentWorkItem = ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>>.Empty.Add(assembly, ImmutableArray<TestMethodInfo>.Empty);
-                workItems.Add(new WorkItemInfo(currentWorkItem, partitionIndex++));
-            }
+            var config = _options.NoPartition
+                ? null
+                : LocalPartitionConfig.TryLoad(_options.PartitionConfigFilePath ?? LocalPartitionConfig.GetDefaultPath(_options.ArtifactsDirectory));
 
-            return workItems.ToImmutableArray();
+            // Partitioning would change what a user supplied filter selects and doesn't help a sequential run.
+            var allowPartitioning = !_options.Sequential && _options.TestFilter is null;
+            return LocalTestPartitioner.CreateWorkItems(
+                assemblies,
+                config,
+                allowPartitioning,
+                static assembly => AssemblyScheduler.ShouldPartitionInSingleWorkItem(assembly.AssemblyPath));
         }
 
         internal async Task<RunAllResult> RunAllAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
         {
             // Limit concurrency to one only when sequential execution is explicitly requested.
             var max = _options.Sequential ? 1 : (int)(Environment.ProcessorCount * 1.5);
-            var workItems = CreateWorkItemsForFullAssemblies(assemblies);
-            var waiting = new Stack<WorkItemInfo>(workItems);
+            var workItems = CreateWorkItems(assemblies);
+            if (workItems.Any(w => w.PartitionName is not null))
+            {
+                ConsoleUtil.WriteLine($"Running {workItems.Length} work items for {assemblies.Length} assemblies");
+            }
+
+            var waiting = new Queue<WorkItemInfo>(workItems);
             var running = new List<Task<TestResult>>();
             var completed = new List<TestResult>();
             var failures = 0;
@@ -135,7 +160,7 @@ namespace RunTests
 
                 while (running.Count < max && waiting.Count > 0)
                 {
-                    var task = _testExecutor.RunTestAsync(waiting.Pop(), _options, cancellationToken);
+                    var task = _testExecutor.RunTestAsync(waiting.Dequeue(), _options, cancellationToken);
                     running.Add(task);
                 }
 

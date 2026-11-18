@@ -84,6 +84,16 @@ namespace RunTests
         public bool Sequential { get; set; }
 
         /// <summary>
+        /// Run each test assembly in a single work item, ignoring the local partition configuration.
+        /// </summary>
+        public bool NoPartition { get; set; }
+
+        /// <summary>
+        /// Path to the local partition configuration. Defaults to eng/config/test-partitions.json next to the artifacts directory.
+        /// </summary>
+        public string? PartitionConfigFilePath { get; set; }
+
+        /// <summary>
         /// Whether to submit test partitions as Helix work items for the external job monitor.
         /// </summary>
         public bool UseHelix { get; set; }
@@ -164,6 +174,8 @@ namespace RunTests
             var excludeFilter = new List<string>();
             var helix = false;
             var sequential = false;
+            var noPartition = false;
+            string? partitionConfigFilePath = null;
             string? helixQueueName = null;
             string? helixApiAccessToken = null;
             string? testFilter = null;
@@ -194,6 +206,8 @@ namespace RunTests
                 { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => platform = s },
                 { "html", "Include HTML output and open failed results in the browser (default: on locally, off with --ci or --helix; --html- disables)", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
+                { "noPartition", "Run each test assembly in a single process instead of using the local partition configuration", o => noPartition = o is object },
+                { "partitionConfig=", "Path to the local partition configuration (default: eng/config/test-partitions.json)", s => partitionConfigFilePath = s },
                 { "helix", "Submit tests to Helix for the external job monitor", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
@@ -434,6 +448,8 @@ namespace RunTests
 
                 CollectDumps = collectDumps,
                 Sequential = sequential,
+                NoPartition = noPartition,
+                PartitionConfigFilePath = partitionConfigFilePath,
                 UseHelix = helix,
                 HelixQueueName = helixQueueName,
                 HelixApiAccessToken = helixApiAccessToken,
