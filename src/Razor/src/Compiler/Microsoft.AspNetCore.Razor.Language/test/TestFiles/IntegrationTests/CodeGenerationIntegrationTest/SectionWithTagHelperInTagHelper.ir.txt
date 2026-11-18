@@ -1,0 +1,42 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_SectionWithTagHelperInTagHelper - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            PreallocatedTagHelperPropertyValue -  - __tagHelperAttribute_0 - value - from-section - HtmlAttributeValueStyle.DoubleQuotes
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::DivTagHelper - __DivTagHelper
+            FieldDeclaration -  - private - global::InputTagHelper - __InputTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                TagHelper - (31:1,0 [81] SectionWithTagHelperInTagHelper.cshtml) - div - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (36:1,5 [2] SectionWithTagHelperInTagHelper.cshtml)
+                            LazyIntermediateToken - (36:1,5 [2] SectionWithTagHelperInTagHelper.cshtml) - Html - \n
+                        Section -  - head
+                            HtmlContent - (57:2,19 [10] SectionWithTagHelperInTagHelper.cshtml)
+                                LazyIntermediateToken - (57:2,19 [10] SectionWithTagHelperInTagHelper.cshtml) - Html - \n        
+                            TagHelper - (67:3,8 [30] SectionWithTagHelperInTagHelper.cshtml) - input - TagMode.SelfClosing
+                                DefaultTagHelperBody - 
+                                DefaultTagHelperCreate -  - InputTagHelper
+                                PreallocatedTagHelperProperty - (81:3,22 [12] SectionWithTagHelperInTagHelper.cshtml) - __tagHelperAttribute_0 - value - FooProp
+                                DefaultTagHelperExecute - 
+                            HtmlContent - (97:3,38 [6] SectionWithTagHelperInTagHelper.cshtml)
+                                LazyIntermediateToken - (97:3,38 [6] SectionWithTagHelperInTagHelper.cshtml) - Html - \n    
+                    DefaultTagHelperCreate -  - DivTagHelper
+                    DefaultTagHelperExecute - 
+                HtmlContent - (112:5,6 [2] SectionWithTagHelperInTagHelper.cshtml)
+                    LazyIntermediateToken - (112:5,6 [2] SectionWithTagHelperInTagHelper.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
