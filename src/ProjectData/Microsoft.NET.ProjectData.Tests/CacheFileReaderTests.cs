@@ -2940,6 +2940,76 @@ public class CacheFileReaderTests : IDisposable
 	}
 
 	[Fact]
+	public async Task FrameworkPacks_InSharedBlock_ExplicitSharedReferenceStillWinsInMergedSnapshot()
+	{
+		// The pack is resolved per slice, but an explicit reference hoisted into the shared block must
+		// still suppress the pack's same-named assembly, or the merged snapshot would carry both.
+		using TempPack pack = TempPack.Create("Test.Fake.Ref", "10.0.7", managed: ["System.Text.Json.dll", "System.Sample.dll"], analyzers: []);
+
+		string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[frameworkPacks]
+			Test.Fake.Ref
+
+			[metadataReferences]
+			<NUGET>/system.text.json/9.0.0/lib/net10.0/System.Text.Json.dll
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net10.0
+			""";
+
+		ImmutableArray<CachedSliceData> slices = await ParseWithDotNetRoot(content, pack.DotNetRoot);
+		ProjectDataSnapshot snapshot = Assert.Single(ProjectDataSnapshotFactory.CreateSnapshots(slices));
+
+		ImmutableArray<string> references = [.. snapshot.ItemsByType[ProjectItems.MetadataReference.ItemType].Select(i => i.ItemSpec)];
+		Assert.Equal(2, references.Length);
+		Assert.Contains("system.text.json", Assert.Single(references, r => Path.GetFileName(r) == "System.Text.Json.dll"), StringComparison.OrdinalIgnoreCase);
+		Assert.Single(references, r => Path.GetFileName(r) == "System.Sample.dll");
+	}
+
+	[Fact]
+	public async Task FrameworkPacks_InSharedBlock_ExplicitSharedAnalyzerStillWinsInMergedSnapshot()
+	{
+		using TempPack pack = TempPack.Create("Test.Fake.Ref", "10.0.7", managed: [], analyzers: ["Sample.Generator.dll", "Other.Analyzer.dll"]);
+
+		string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[frameworkPacks]
+			Test.Fake.Ref
+
+			[analyzerReferences]
+			packages/Sample.Generator.dll
+
+			---
+
+			[project]
+
+			[sliceDimensions]
+			TargetFramework=net10.0
+			""";
+
+		ImmutableArray<CachedSliceData> slices = await ParseWithDotNetRoot(content, pack.DotNetRoot);
+		ProjectDataSnapshot snapshot = Assert.Single(ProjectDataSnapshotFactory.CreateSnapshots(slices));
+
+		ImmutableArray<string> analyzers = [.. snapshot.ItemsByType[ProjectItems.AnalyzerReference].Select(i => i.ItemSpec)];
+		Assert.Equal(2, analyzers.Length);
+		Assert.Contains("packages", Assert.Single(analyzers, a => Path.GetFileName(a) == "Sample.Generator.dll"), StringComparison.Ordinal);
+		Assert.Single(analyzers, a => Path.GetFileName(a) == "Other.Analyzer.dll");
+	}
+
+	[Fact]
 	public async Task FrameworkPacks_Expand_PrereleasePackVersion_ForPreviewTfm()
 	{
 		using TempPack pack = TempPack.Create(

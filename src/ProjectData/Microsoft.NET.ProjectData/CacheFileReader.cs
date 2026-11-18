@@ -451,10 +451,22 @@ public static class CacheFileReader
 					// multi-target cache (ProjectDataMerger writes it as the common prefix of every slice).
 					if (slices.Count == 0 && currentSlice.SliceDimensions.Count == 0)
 					{
-						inheritedSections = currentSlice.TakeTargetFrameworkResolvedSections();
-					}
+						TargetFrameworkResolvedSections taken = currentSlice.TakeTargetFrameworkResolvedSections();
+						CachedSliceData shared = currentSlice.Build(declaredProjectFilePath ?? projectFilePath);
 
-					slices.Add(currentSlice.Build(declaredProjectFilePath ?? projectFilePath));
+						// With the packs taken out, the shared slice holds only explicit references. They
+						// still take precedence over same-named pack entries, which each slice now resolves.
+						inheritedSections = taken with
+						{
+							ExplicitMetadataReferenceNames = BuildBasenameSet(shared.MetadataReferences.Select(static r => r.FilePath)),
+							ExplicitAnalyzerReferenceNames = BuildBasenameSet(shared.AnalyzerReferences),
+						};
+						slices.Add(shared);
+					}
+					else
+					{
+						slices.Add(currentSlice.Build(declaredProjectFilePath ?? projectFilePath));
+					}
 				}
 				currentSlice = null;
 				currentSection = null;
@@ -736,7 +748,24 @@ public static class CacheFileReader
 	private sealed record TargetFrameworkResolvedSections(
 		List<string> FrameworkPacks,
 		List<string> SdkAnalyzerPacks,
-		List<string> SdkAnalyzerConfigPolicy);
+		List<string> SdkAnalyzerConfigPolicy)
+	{
+		/// <summary>File names of the shared block's explicit metadata references.</summary>
+		public HashSet<string> ExplicitMetadataReferenceNames { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+
+		/// <summary>File names of the shared block's explicit analyzer references.</summary>
+		public HashSet<string> ExplicitAnalyzerReferenceNames { get; init; } = new(StringComparer.OrdinalIgnoreCase);
+	}
+
+	private static HashSet<string> BuildBasenameSet(IEnumerable<string> paths)
+	{
+		HashSet<string> set = new(StringComparer.OrdinalIgnoreCase);
+		foreach (string p in paths)
+		{
+			set.Add(Path.GetFileName(p));
+		}
+		return set;
+	}
 
 	private sealed class SliceBuilder
 	{
@@ -745,6 +774,11 @@ public static class CacheFileReader
 		private readonly StringPool? stringPool;
 		private readonly bool hasAuthoritativeProjectReferenceDefaults;
 		private readonly CancellationToken cancellationToken;
+
+		// Explicit references of the shared block. Its merged snapshot carries them alongside this
+		// slice's, so they suppress same-named pack entries here just as this slice's own do.
+		private IReadOnlySet<string>? inheritedExplicitMetadataReferenceNames;
+		private IReadOnlySet<string>? inheritedExplicitAnalyzerReferenceNames;
 
 		public SliceBuilder(
 			CachePathResolver resolver,
@@ -827,6 +861,8 @@ public static class CacheFileReader
 			this.FrameworkPacks.AddRange(inherited.FrameworkPacks);
 			this.SdkAnalyzerPacks.AddRange(inherited.SdkAnalyzerPacks);
 			this.SdkAnalyzerConfigPolicy.AddRange(inherited.SdkAnalyzerConfigPolicy);
+			this.inheritedExplicitMetadataReferenceNames = inherited.ExplicitMetadataReferenceNames;
+			this.inheritedExplicitAnalyzerReferenceNames = inherited.ExplicitAnalyzerReferenceNames;
 		}
 
 		public CachedSliceData Build(string projectFilePath)
@@ -1060,7 +1096,7 @@ public static class CacheFileReader
 			foreach (string packRef in packAnalyzerRefs)
 			{
 				string filename = Path.GetFileName(packRef);
-				if (explicitBasenames.Contains(filename)) continue;
+				if (explicitBasenames.Contains(filename) || this.inheritedExplicitAnalyzerReferenceNames?.Contains(filename) == true) continue;
 				result.Add(this.Pool(packRef));
 			}
 			return result.ToImmutable();
@@ -1239,7 +1275,7 @@ public static class CacheFileReader
 			foreach (string packRef in packManagedRefs)
 			{
 				string filename = Path.GetFileName(packRef);
-				if (explicitBasenames.Contains(filename)) continue;
+				if (explicitBasenames.Contains(filename) || this.inheritedExplicitMetadataReferenceNames?.Contains(filename) == true) continue;
 				result.Add(new CachedMetadataReference
 				{
 					FilePath = this.Pool(packRef),
@@ -1248,16 +1284,6 @@ public static class CacheFileReader
 				});
 			}
 			return result.ToImmutable();
-		}
-
-		private static HashSet<string> BuildBasenameSet(ImmutableArray<string> paths)
-		{
-			HashSet<string> set = new(StringComparer.OrdinalIgnoreCase);
-			foreach (string p in paths)
-			{
-				set.Add(Path.GetFileName(p));
-			}
-			return set;
 		}
 
 		private ImmutableArray<CachedEmbeddedResource> BuildEmbeddedResources()
