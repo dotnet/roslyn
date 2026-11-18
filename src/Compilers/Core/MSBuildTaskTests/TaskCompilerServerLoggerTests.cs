@@ -87,17 +87,29 @@ public sealed class TaskCompilerServerLoggerTests
                 LogFunc = (kind, message) => innerMessages.Add((kind, message)),
             };
             var logger = new TaskCompilerServerLogger(new TaskLoggingHelper(task), inner);
+            var serverCalls = 0;
+            var fallbackCalls = 0;
 
             var exitCode = task.ExecuteTool(
                 task.GeneratePathToTool(),
                 task.GenerateResponseFileContents(),
                 task.GenerateCommandLineContents(),
                 logger,
-                (_, _, _) => System.Threading.Tasks.Task.FromResult(response),
-                (_, _, _) => 0);
+                (_, _, _) =>
+                {
+                    serverCalls++;
+                    return System.Threading.Tasks.Task.FromResult(response);
+                },
+                (_, _, _) =>
+                {
+                    fallbackCalls++;
+                    return 0;
+                });
 
             var expected = $"CompilerServer: {category} - {diagnostic} - TestProject";
             Assert.Equal(0, exitCode);
+            Assert.Equal(1, serverCalls);
+            Assert.Equal(1, fallbackCalls);
             if (isFatal)
             {
                 Assert.Contains((CompilerServerLogKind.Trace, $"Error: {expected}"), innerMessages);

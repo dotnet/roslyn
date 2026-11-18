@@ -67,15 +67,22 @@ internal static class TaskTestUtil
         var logger = new TaskCompilerServerLogger(new Microsoft.Build.Utilities.TaskLoggingHelper(compilerTask), innerLogger);
         var responseFileCommands = compilerTask.GenerateResponseFileContents();
         var commandLineCommands = compilerTask.GenerateCommandLineContents();
+        var serverCalls = 0;
 
         var exitCode = compilerTask.ExecuteTool(
             compilerTask.GeneratePathToTool(),
             responseFileCommands,
             commandLineCommands,
             logger,
-            (_, _, _) => Task.FromResult<BuildResponse>(new CompletedBuildResponse(0, utf8output: false, output: "")));
+            (_, _, _) =>
+            {
+                serverCalls++;
+                return Task.FromResult<BuildResponse>(new CompletedBuildResponse(0, utf8output: false, output: ""));
+            },
+            (_, _, _) => throw new InvalidOperationException("The server response should not fall back to the command-line tool."));
 
         Assert.Equal(0, exitCode);
+        Assert.Equal(1, serverCalls);
         Assert.Contains((CompilerServerLogKind.Trace, $"CommandLine = '{commandLineCommands}'"), messages);
         Assert.Contains((CompilerServerLogKind.Trace, $"BuildResponseFile = '{responseFileCommands}'"), messages);
         Assert.Contains(messages, static message =>

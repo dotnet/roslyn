@@ -14,16 +14,22 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.CommandLine
 {
+    /// <summary>
+    /// Classifies a compiler server log message by meaning. Each <see cref="ICompilerServerLogger"/>
+    /// implementation decides which sinks receive each kind.
+    /// </summary>
     internal enum CompilerServerLogKind
     {
         /// <summary>
         /// Detailed tracing intended for diagnosing compiler client and server implementation behavior.
+        /// The MSBuild task adapter routes these only to the optional compiler server log file.
         /// </summary>
         Trace,
 
         /// <summary>
         /// Client-side lifecycle and failure information useful for diagnosing compiler selection and fallback.
-        /// This classification indicates operational significance, not error severity.
+        /// This classification indicates operational significance, not error severity. The MSBuild task
+        /// adapter routes these to the task log and to the optional compiler server log file.
         /// </summary>
         Operational,
     }
@@ -37,7 +43,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
     /// </remarks>
     internal interface ICompilerServerLogger
     {
+        /// <summary>
+        /// Returns whether messages of <paramref name="kind"/> are recorded by any sink.
+        /// </summary>
         bool IsEnabled(CompilerServerLogKind kind);
+
+        /// <summary>
+        /// Logs <paramref name="message"/>. Callers must first check <see cref="IsEnabled"/> for
+        /// <paramref name="kind"/>; the extension methods do this and avoid formatting disabled messages.
+        /// </summary>
         void Log(CompilerServerLogKind kind, string message);
     }
 
@@ -51,6 +65,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+        /// <summary>
+        /// Logs a trace message, formatting it only when tracing is enabled. Prefer this overload for
+        /// potentially large values such as command lines.
+        /// </summary>
         internal static void Log(this ICompilerServerLogger logger, string format, params object?[] arguments)
         {
             if (logger.IsEnabled(CompilerServerLogKind.Trace))

@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     return serverResult.Value;
                 }
 
-                _logger.Log("Server build failed, falling back to local build");
+                _logger.LogOperational("Server build failed, falling back to local build");
             }
 
             // It's okay, and expected, for the server compilation to fail.  In that case just fall 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var requestId = Guid.NewGuid().ToString();
                 var buildRequestArguments = new List<string>(arguments);
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, Environment.GetEnvironmentVariable, _logger.Log);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, Environment.GetEnvironmentVariable, message => _logger.LogOperational(message));
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     _language,
@@ -244,11 +244,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception ex)
             {
-                _logger.LogException(ex, "Server compilation failed");
+                _logger.LogOperationalException(ex, "Server compilation failed");
                 return null;
             }
 
-            _logger.Log($"Server compilation completed: {buildResponse.Type}");
+            _logger.LogOperational($"Server compilation completed: {buildResponse.Type}");
             switch (buildResponse.Type)
             {
                 case BuildResponse.ResponseType.Completed:
