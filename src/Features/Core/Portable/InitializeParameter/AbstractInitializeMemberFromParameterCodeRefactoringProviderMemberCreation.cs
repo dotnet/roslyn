@@ -654,7 +654,9 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
                     // properties with ease.
                     if (await initializeParameterService.IsThrowNotImplementedPropertyAsync(
                         document.Project.Solution, property, cancellationToken).ConfigureAwait(false))
+                    {
                         return (property, isThrowNotImplementedProperty: true);
+                    }
 
                     if (property.IsWritableInConstructor())
                         return (property, isThrowNotImplementedProperty: false);
