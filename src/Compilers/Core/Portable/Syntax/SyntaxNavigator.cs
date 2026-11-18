@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis
             while (node.Parent != null)
             {
                 // look at the children of my parent that come after me
-                var token = GetFirstTokenAfterChild(node.Parent, ChildSyntaxList.IndexOf(node.Parent, node), predicate, stepInto);
+                SyntaxToken token = GetFirstTokenAfterChild(node.Parent, ChildSyntaxList.IndexOf(node.Parent, node), predicate, stepInto);
                 if (token.RawKind != None)
                 {
                     return token;
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis
             while (node.Parent != null)
             {
                 // look at the children of my parent that come before me
-                var token = GetLastTokenBeforeChild(node.Parent, ChildSyntaxList.IndexOf(node.Parent, node), predicate, stepInto);
+                SyntaxToken token = GetLastTokenBeforeChild(node.Parent, ChildSyntaxList.IndexOf(node.Parent, node), predicate, stepInto);
                 if (token.RawKind != None)
                 {
                     return token;
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // look at the children of my parent that come after me
-                var token = GetFirstTokenAfterChild(current.Parent, IndexOfChild(current), predicate, stepInto);
+                SyntaxToken token = GetFirstTokenAfterChild(current.Parent, IndexOfChild(current), predicate, stepInto);
                 if (token.RawKind != None)
                 {
                     return token;
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // look at the children of my parent that come before me
-                var token = GetLastTokenBeforeChild(current.Parent, IndexOfChild(current), predicate, stepInto);
+                SyntaxToken token = GetLastTokenBeforeChild(current.Parent, IndexOfChild(current), predicate, stepInto);
                 if (token.RawKind != None)
                 {
                     return token;
@@ -549,11 +549,11 @@ namespace Microsoft.CodeAnalysis
             // so if the child at that index is not this token, no other child is. Verify the child matches
             // because synthetic tokens with a Parent (for example, ShebangDirectiveTriviaSyntax.Content) are not
             // present in ChildNodesAndTokens even though their Index falls within CountNodes(parent.Green).
-            var parent = token.Parent;
-            var index = token.Index;
+            SyntaxNode parent = token.Parent;
+            int index = token.Index;
             if (index >= 0 && index < ChildSyntaxList.CountNodes(parent.Green))
             {
-                var child = ChildSyntaxList.ItemInternal(parent, index);
+                SyntaxNodeOrToken child = ChildSyntaxList.ItemInternal(parent, index);
                 if (child.IsToken && child.AsToken() == token)
                 {
                     return index;
@@ -570,12 +570,12 @@ namespace Microsoft.CodeAnalysis
                 return default;
             }
 
-            var count = ChildSyntaxList.CountNodes(parent.Green);
-            var slotData = new ChildSyntaxList.SlotData(parent);
-            for (var i = childIndex + 1; i < count; i++)
+            int count = ChildSyntaxList.CountNodes(parent.Green);
+            ChildSyntaxList.SlotData slotData = new ChildSyntaxList.SlotData(parent);
+            for (int i = childIndex + 1; i < count; i++)
             {
-                var child = ChildSyntaxList.ItemInternal(parent, i, ref slotData);
-                var token = child.IsToken
+                SyntaxNodeOrToken child = ChildSyntaxList.ItemInternal(parent, i, ref slotData);
+                SyntaxToken token = child.IsToken
                     ? GetFirstToken(child.AsToken(), predicate, stepInto)
                     : GetFirstToken(child.AsNode()!, predicate, stepInto);
                 if (token.RawKind != None)
@@ -589,10 +589,10 @@ namespace Microsoft.CodeAnalysis
 
         private SyntaxToken GetLastTokenBeforeChild(SyntaxNode parent, int childIndex, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto)
         {
-            for (var i = childIndex - 1; i >= 0; i--)
+            for (int i = childIndex - 1; i >= 0; i--)
             {
-                var child = ChildSyntaxList.ItemInternal(parent, i);
-                var token = child.IsToken
+                SyntaxNodeOrToken child = ChildSyntaxList.ItemInternal(parent, i);
+                SyntaxToken token = child.IsToken
                     ? GetLastToken(child.AsToken(), predicate, stepInto)
                     : GetLastToken(child.AsNode()!, predicate, stepInto);
                 if (token.RawKind != None)

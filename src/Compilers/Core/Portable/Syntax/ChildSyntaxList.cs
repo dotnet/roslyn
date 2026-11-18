@@ -336,14 +336,14 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal static int IndexOf(SyntaxNode parent, SyntaxNode child)
         {
-            var green = parent.Green;
-            var targetPosition = child.Position;
-            var position = parent.Position;
-            var index = 0;
+            GreenNode green = parent.Green;
+            int targetPosition = child.Position;
+            int position = parent.Position;
+            int index = 0;
 
             for (int slot = 0, slotCount = green.SlotCount; slot < slotCount; slot++)
             {
-                var greenChild = green.GetSlot(slot);
+                GreenNode? greenChild = green.GetSlot(slot);
                 if (greenChild == null)
                 {
                     continue;
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // A zero-width child can sit at the end of one slot or at the start of the next one, so both get checked.
-                var endPosition = position + greenChild.FullWidth;
+                int endPosition = position + greenChild.FullWidth;
                 if (targetPosition <= endPosition)
                 {
                     if (!greenChild.IsList)
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis
                     }
                     else if (greenChild.SlotCount > 0 && parent.GetNodeSlot(slot) is { } redList)
                     {
-                        var indexInList = indexOfInList(greenChild, redList, targetPosition - position, child);
+                        int indexInList = indexOfInList(greenChild, redList, targetPosition - position, child);
                         if (indexInList >= 0)
                         {
                             return index + indexInList;
@@ -385,13 +385,13 @@ namespace Microsoft.CodeAnalysis
             {
                 // Start with the element that contains the offset (or the last one, when the child is a zero-width element
                 // at the end of the list). Zero-width elements just before it start at the same offset, so look at those too.
-                var elementIndex = offset < greenList.FullWidth
+                int elementIndex = offset < greenList.FullWidth
                     ? greenList.FindSlotIndexContainingOffset(offset)
                     : greenList.SlotCount - 1;
 
                 for (; elementIndex >= 0; elementIndex--)
                 {
-                    var greenElement = greenList.GetSlot(elementIndex);
+                    GreenNode? greenElement = greenList.GetSlot(elementIndex);
                     if (greenElement == child.Green && redList.GetNodeSlot(elementIndex) == child)
                     {
                         return elementIndex;
