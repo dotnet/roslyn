@@ -84,8 +84,7 @@ Key options:
 | `--ci` | Apply CI behavior, including disabling HTML reports by default |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
-| `--noPartition` | Run each assembly in a single process for local runs, ignoring `eng/config/test-partitions.json` |
-| `--partitionConfig` | Path to the local partition configuration (default: `eng/config/test-partitions.json` next to the artifacts directory) |
+| `--partition[:<path>]` | For local runs, split large assemblies into several processes using `eng/config/test-partitions.json`, or the given configuration file |
 
 `--testSet:compiler` selects compiler test assemblies when used alone. With
 `--include`, assemblies matching either the compiler patterns or any supplied
@@ -110,7 +109,9 @@ these use the corresponding Azure Pipelines environment variables.
 
 ## Local partitioning
 
-Local (non-Helix) runs read `eng/config/test-partitions.json` to schedule work items:
+By default, local (non-Helix) runs execute each assembly in its own process in name order.
+With `--partition`, they read `eng/config/test-partitions.json` (or the file passed as
+`--partition:<path>`) to schedule work items:
 
 - Work items run longest estimated duration first, so long assemblies don't form a
   tail at the end of the run.
@@ -119,7 +120,7 @@ Local (non-Helix) runs read `eng/config/test-partitions.json` to schedule work i
   `prefixes`. A final remainder process runs every other test, including tests added after
   the configuration was generated.
 
-Partitioning is skipped with `--noPartition`, `--sequential`, or `--testfilter`, for desktop
+Even with `--partition`, partitioning is skipped with `--sequential` or `--testfilter`, for desktop
 assemblies, and for assemblies with a `doNotPartitionReason` (for example, tests that mostly
 wait on child processes). When the file is missing, assemblies run in a single process in
 name order.

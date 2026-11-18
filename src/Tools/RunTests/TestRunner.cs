@@ -76,9 +76,9 @@ namespace RunTests
 
         private ImmutableArray<WorkItemInfo> CreateWorkItems(ImmutableArray<AssemblyInfo> assemblies)
         {
-            var config = _options.NoPartition
-                ? null
-                : LocalPartitionConfig.TryLoad(_options.PartitionConfigFilePath ?? LocalPartitionConfig.GetDefaultPath(_options.ArtifactsDirectory));
+            var config = _options.Partition
+                ? LocalPartitionConfig.TryLoad(_options.PartitionConfigFilePath ?? LocalPartitionConfig.GetDefaultPath(_options.ArtifactsDirectory))
+                : null;
 
             // Partitioning would change what a user supplied filter selects and doesn't help a sequential run.
             var allowPartitioning = !_options.Sequential && _options.TestFilter is null;

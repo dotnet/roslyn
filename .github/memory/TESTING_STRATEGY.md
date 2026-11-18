@@ -67,9 +67,9 @@ These entry points invoke `src/Tools/RunTests` to run already-built assemblies
 efficiently; build the test projects first. See the tool's
 [`README.md`](../../src/Tools/RunTests/README.md) for assembly filters, test
 framework selection, and environment-variable options. Use `dotnet test` directly
-for a single project. Local (non-Helix) runs split large .NET Core assemblies into
-several processes using `eng/config/test-partitions.json` (disable with
-`--noPartition`); refresh that file with the `rebalance-test-partitions` skill.
+for a single project. Passing `--partition` to RunTests splits large .NET Core assemblies
+into several processes for local (non-Helix) runs using `eng/config/test-partitions.json`;
+refresh that file with the `rebalance-test-partitions` skill.
 
 The build scripts also accept `-test`, `-testSet:<name>`, `-testKind:<name>`, or
 `-testFramework:<name>` (also with `--` on Unix) to invoke RunTests after successful

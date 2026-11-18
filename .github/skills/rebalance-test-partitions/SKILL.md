@@ -38,11 +38,11 @@ from the **Test Windows CoreClr Debug Single Machine** job of the Roslyn CI pipe
      That's acceptable, but mention it in the PR.
    - Estimate changes of less than about a minute per assembly are noise. Skip the PR when the
      partitions did not otherwise change.
-4. Optionally validate locally. Build, then compare a partitioned run with `--noPartition`. Pin both
+4. Optionally validate locally. Build, then compare a run with `--partition` against one without it. Pin both
    runs to 4 CPUs (`start /affinity F ...` on Windows) to emulate the CI agents:
 
    ```
-   dotnet exec artifacts/bin/RunTests/Debug/net10.0/RunTests.dll --testConfiguration Debug --testFramework:core --ci
+   dotnet exec artifacts/bin/RunTests/Debug/net10.0/RunTests.dll --testConfiguration Debug --testFramework:core --ci --partition
    ```
 
 5. Open a PR with only the regenerated `eng/config/test-partitions.json` and paste the summary into
