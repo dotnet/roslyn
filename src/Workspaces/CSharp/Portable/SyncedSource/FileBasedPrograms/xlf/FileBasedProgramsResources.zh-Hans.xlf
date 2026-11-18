@@ -57,11 +57,6 @@
         <target state="translated">指令值中应为简单字符串字面量。指令值中不支持原始字符串和逐字字符串字面量。找到: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">这是一项实验性功能，将 MSBuild 属性 '{0}' 设置为 'true' 以启用它。</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">'{0}' 指令中的文件扩展名无法识别。当前仅识别以下扩展名: {1}</target>
@@ -93,8 +88,8 @@
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'.'"}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingItemType">
-        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
-        <target state="translated">'FileBasedProgramsItemMapping' MSBuild 属性中的每个条目必须映射到非空项类型。条目 '{1}' 中的项类型 '{0}' 无效。</target>
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a valid MSBuild item type name. The item type '{0}' in entry '{1}' is invalid.</source>
+        <target state="needs-review-translation">'FileBasedProgramsItemMapping' MSBuild 属性中的每个条目必须映射到非空项类型。条目 '{1}' 中的项类型 '{0}' 无效。</target>
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</note>
       </trans-unit>
       <trans-unit id="InvalidProjectDirective">

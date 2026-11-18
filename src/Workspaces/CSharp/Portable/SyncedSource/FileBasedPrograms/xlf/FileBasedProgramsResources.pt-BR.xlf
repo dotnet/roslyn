@@ -57,11 +57,6 @@
         <target state="translated">Esperava-se um literal de cadeia de caracteres simples no valor da diretiva. Literais de cadeia de caracteres brutos e literais de cadeia de caracteres textuais não são suportados nos valores das diretivas. Encontrado: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">Esse é um recurso experimental, defina a propriedade "{0}" do MSBuild como "true" para habilitá-lo.</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">Extensão de arquivo não reconhecida na diretiva '{0}'. Somente estas extensões são reconhecidas atualmente: {1}</target>
@@ -93,8 +88,8 @@
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'.'"}</note>
       </trans-unit>
       <trans-unit id="InvalidIncludeExcludeMappingItemType">
-        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</source>
-        <target state="translated">Cada entrada na propriedade MSBuild 'FileBasedProgramsItemMapping' deve mapear para um tipo de item não vazio. O tipo de item '{0}' na entrada '{1}' é inválido.</target>
+        <source>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a valid MSBuild item type name. The item type '{0}' in entry '{1}' is invalid.</source>
+        <target state="needs-review-translation">Cada entrada na propriedade MSBuild 'FileBasedProgramsItemMapping' deve mapear para um tipo de item não vazio. O tipo de item '{0}' na entrada '{1}' é inválido.</target>
         <note>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</note>
       </trans-unit>
       <trans-unit id="InvalidProjectDirective">

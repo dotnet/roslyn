@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Extensions.Logging;
@@ -24,9 +25,14 @@ internal sealed class DotnetCliHelper : ILspService
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DotnetCliHelper(LspService<ILoggerFactory> loggerFactory)
+        : this(loggerFactory.Value)
     {
-        var loggerFactoryValue = loggerFactory.Value;
-        _logger = loggerFactoryValue.CreateLogger(".NET CLI Helper");
+    }
+
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used directly by tests")]
+    public DotnetCliHelper(ILoggerFactory loggerFactory)
+    {
+        _logger = loggerFactory.CreateLogger(".NET CLI Helper");
         _dotnetExecutablePath = new Lazy<string>(() => GetDotNetPathOrDefault());
     }
 
@@ -112,6 +118,7 @@ internal sealed class DotnetCliHelper : ILspService
         // However want to use the user specified dotnet version to run the tests, so we need to unset these.
         startInfo.Environment.Remove("MSBUILD_EXE_PATH");
         startInfo.Environment.Remove("MSBuildExtensionsPath");
+        startInfo.Environment.Remove("MSBuildSDKsPath");
 
         startInfo.RemoveInheritedDotNetDiagnosticPorts();
 

@@ -33,6 +33,7 @@ namespace RunTests
             @"^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$",
+            @"^Microsoft\.CodeAnalysis\.CSharp\.CSharp16\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$",
             @"^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$",
@@ -73,7 +74,7 @@ namespace RunTests
         public TimeSpan? Timeout { get; set; }
 
         /// <summary>
-        /// Whether or not to collect dumps on crashes and timeouts.
+        /// Enable additional Windows WER crash collection. Timeout collection is always enabled.
         /// </summary>
         public bool CollectDumps { get; set; }
 
@@ -104,9 +105,14 @@ namespace RunTests
         public string DotnetFilePath { get; set; }
 
         /// <summary>
-        /// Directory to hold all of the xml files created as test results.
+        /// Directory to hold all of the files created as test results.
         /// </summary>
         public string TestResultsDirectory { get; set; }
+
+        /// <summary>
+        /// VSTest logger format used for test results.
+        /// </summary>
+        public string TestResultsFormat { get; set; } = "xunit";
 
         /// <summary>
         /// Directory to hold dump files and other log files created while running tests.
@@ -164,6 +170,7 @@ namespace RunTests
             int? timeout = null;
             string? resultFileDirectory = null;
             string? logFileDirectory = null;
+            var testResultsFormat = "xunit";
             var collectDumps = false;
             string? artifactsPath = null;
             var testFrameworks = new List<string>();
@@ -194,8 +201,9 @@ namespace RunTests
                 { "timeout=", "Minute timeout to limit the tests to (default: 90, not supported with --helix)", (int i) => timeout = i },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
+                { "testResultsFormat=", "Test result format: xunit or trx (default: xunit)", s => testResultsFormat = s },
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
-                { "collectdumps", "Gather dumps on timeouts and crashes (process executor only, not supported with --helix)", o => collectDumps = o is object },
+                { "collectdumps", "Enable additional Windows WER crash dumps when elevated (local only; timeout dumps are always attempted)", o => collectDumps = o is object },
                 { "testFramework=", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
                 { "testSet=", "Test set to include: compiler (adds compiler test assembly patterns to any --include patterns)", s => testSet = s },
                 { "testKind=", "Test kind to run: ioperation, runtimeasync, usedassemblies. runtimeasync requires --testFramework:core.", s => testKind = s },
@@ -268,6 +276,12 @@ namespace RunTests
                 }
             }
 
+            if (timeout <= 0)
+            {
+                ConsoleUtil.Error("Timeouts must be positive.");
+                return null;
+            }
+
             var testDesktop = (testRuntime & TestRuntime.Framework) != 0;
 
             var testCompilerOnly = string.Equals(testSet, "compiler", StringComparison.OrdinalIgnoreCase);
@@ -322,6 +336,13 @@ namespace RunTests
             if (includeFilter.Count == 0)
             {
                 includeFilter.Add(".*UnitTests.*");
+            }
+
+            if (!string.Equals(testResultsFormat, "xunit", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(testResultsFormat, "trx", StringComparison.OrdinalIgnoreCase))
+            {
+                ConsoleUtil.Error("--testResultsFormat must be xunit or trx.");
+                return null;
             }
 
             artifactsPath ??= TryGetArtifactsPath();
@@ -418,6 +439,7 @@ namespace RunTests
                 HelixApiAccessToken = helixApiAccessToken,
                 IncludeHtml = includeHtml ?? (!ci && !helix),
                 TestFilter = testFilter,
+                TestResultsFormat = testResultsFormat.ToLowerInvariant(),
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 EnvironmentVariables = environmentVariables,
                 AccessToken = accessToken,

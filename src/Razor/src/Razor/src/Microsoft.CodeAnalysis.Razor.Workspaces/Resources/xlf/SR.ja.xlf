@@ -54,19 +54,9 @@
         <target state="translated">Razor エディターは Razor ソース ジェネレーターを利用します。これには、*.razor および *.cshtml ファイルがプロジェクトの AddedFiles である必要があります。{0} は、'{1}' から取得されたようですが、このファイルには Razor ドキュメントが含まれていますが、このファイルは AddedFile ではないため、編集エクスペリエンスが制限されます。このプロジェクトのメッセージはこれ以上ログに記録されません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">無効なオフセットです。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">{0} キーワード</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Razor 言語サービスが正しく構成されていません。言語サービス '{0}' がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">

@@ -41,7 +41,7 @@ internal static class DaemonClient
         ServerExecutable executable,
         ThinClientArguments arguments)
     {
-        var telemetryLevel = TelemetryLevelResolver.Resolve(arguments.TelemetryLevel);
+        var telemetryLevel = arguments.TelemetryLevel;
         var pipeName = GetDaemonPipeName(executable, telemetryLevel);
 
         if (!DaemonClientMutex.TryAcquire(pipeName, s_daemonMutexTimeout, out var clientMutex))
@@ -64,6 +64,7 @@ internal static class DaemonClient
             {
                 var connectTimeout = launchedDaemon ? s_newDaemonConnectTimeout : s_existingDaemonConnectTimeout;
                 pipeClient.Connect(connectTimeout);
+                DaemonHandshake.Write(pipeClient, Environment.GetEnvironmentVariable(DaemonHandshake.CopilotSessionIdEnvironmentVariable));
                 return Task.FromResult(DaemonConnectResult.Connected(pipeClient));
             }
             catch

@@ -4080,7 +4080,7 @@ class C
             Assert.Equal(1, diags.Length);
             Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, diags[0].Code);
 
-            CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (1,31): error CS1026: ) expected
                 // class c { void m() { fixed(t v; } }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(1, 31),

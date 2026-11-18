@@ -12,9 +12,15 @@ namespace Roslyn.Utilities
 {
     /// <summary>
     /// This class provides simple properties for determining whether the current platform is Windows or Unix-based.
-    /// We intentionally do not use System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(...) because
-    /// it incorrectly reports 'true' for 'Windows' in desktop builds running on Unix-based platforms via Mono.
     /// </summary>
+    /// <remarks>
+    /// When running on Mono 5.8 or older runtime on non-Windows, it is possible to deploy a Windows version of the DLL containing class RuntimeInformation.
+    /// This can cause a Windows-specific result to be reported, even if, for example, the program is running on Linux.
+    /// i.e.: 'RuntimeInformation.IsOSPlatform(OSPlatform.Windows) == true' and 'RuntimeInformation.IsOSPlatform(OSPlatform.Linux) == false'.
+    /// Such a runtime+package configuration has been superseded since February 2018. It is unlikely that new code needs to use
+    /// <see cref="IsWindows"/> and <see cref="IsUnix"/> helpers in this type instead of 'RuntimeInformation.IsOSPlatform'.
+    /// At some point, we may wish to consider replacing these APIs accordingly.
+    /// </remarks>
     internal static class PlatformInformation
     {
 #if NET5_0_OR_GREATER

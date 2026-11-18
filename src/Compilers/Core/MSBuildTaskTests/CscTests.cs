@@ -633,6 +633,13 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void MemorySafetyRules_Default()
+        {
+            var csc = new Csc();
+            Assert.Equal((int)MemorySafetyRulesVersion.Version1, csc.MemorySafetyRulesVersion);
+        }
+
+        [Fact]
         [WorkItem(52467, "https://github.com/dotnet/roslyn/issues/52467")]
         public void UnexpectedExceptionLogsMessage()
         {

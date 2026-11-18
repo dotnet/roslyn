@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         goto default;
                     }
 
-                    EmitArrayElementAddress((BoundArrayAccess)expression, addressKind);
-                    EmitPopIfUnused(used);
+                    EmitArrayElementAddress((BoundArrayAccess)expression, addressKind, used);
                     break;
 
                 case BoundKind.ThisReference:
@@ -176,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.RefAccess:
                     var right = (BoundRefAccess)expression;
                     Debug.Assert(HasHome(right, addressKind));
-                    Debug.Assert(used);
                     EmitRefAssignmentValue(right.RefKind, right.Expression, used);
                     break;
 
@@ -203,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private LocalDefinition EmitPassByCopyAddress(BoundPassByCopy passByCopyExpr, AddressKind addressKind, bool used)
         {
-            Debug.Assert(used);
             // Normally we can just defer PassByCopy to the `default`,
             // but in some cases the value inside is already a temp that is local to that node.
             // In such case we can skip extra store/reload
@@ -330,6 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
+                if (!dup.IsAlive)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
                 _builder.EmitOpCode(ILOpCode.Dup);
             }
 
@@ -360,7 +362,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitAddressOfTempClone(BoundExpression expression, bool used)
         {
-            Debug.Assert(used);
             EmitExpression(expression, used);
 
             if (used)
@@ -395,7 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Local:
                     var local = (BoundLocal)value;
                     var symbol = local.LocalSymbol;
-                    if (topSequence.Locals.Contains(symbol))
+                    Debug.Assert(symbol.RefKind == RefKind.None, "No test coverage for the scenario.");
+                    if (symbol.RefKind == RefKind.None && topSequence.Locals.Contains(symbol))
                     {
                         return symbol;
                     }
@@ -430,8 +432,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitArrayElementAddress(BoundArrayAccess arrayAccess, AddressKind addressKind)
+        private void EmitArrayElementAddress(BoundArrayAccess arrayAccess, AddressKind addressKind, bool used)
         {
+            if (!used && !arrayAccess.Type.IsTypeParameter() &&
+                (LocalRewriter.IsInvariantArray(arrayAccess.Expression.Type) || IsAnyReadOnly(addressKind)))
+            {
+                // Side-effects of loading an element value should be the same as side-effects of loading an element reference,
+                // but IL is smaller, and might be faster.
+                EmitArrayElementLoad(arrayAccess, used: false);
+                return;
+            }
+
             EmitExpression(arrayAccess.Expression, used: true);
             EmitArrayIndices(arrayAccess.Indices);
 
@@ -451,6 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.EmitArrayElementAddress(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type),
                                                 arrayAccess.Syntax);
             }
+
+            EmitPopIfUnused(used);
         }
 
         private bool ShouldEmitReadOnlyPrefix(BoundArrayAccess arrayAccess, AddressKind addressKind)
@@ -543,12 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// 
         /// May introduce a temp which it will return. (otherwise returns null)
         /// </summary>
-        private LocalDefinition EmitReceiverRef(BoundExpression receiver, AddressKind addressKind)
+        private LocalDefinition EmitReceiverRef(BoundExpression receiver, AddressKind addressKind, bool used)
         {
             var receiverType = receiver.Type;
             if (receiverType.IsVerifierReference())
             {
-                EmitExpression(receiver, used: true);
+                EmitExpression(receiver, used);
                 return null;
             }
 
@@ -561,9 +574,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 //via the generic parameter unless it is first boxed (see Partition III) or 
                 //the callvirt instruction is prefixed with the constrained. prefix instruction 
                 //(see Partition III). end note]
-                EmitExpression(receiver, used: true);
+                EmitExpression(receiver, used);
                 // conditional receivers are already boxed if needed when pushed
-                if (receiver.Kind != BoundKind.ConditionalReceiver)
+                if (used && receiver.Kind != BoundKind.ConditionalReceiver)
                 {
                     EmitBox(receiver.Type, receiver.Syntax);
                 }
@@ -572,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             Debug.Assert(receiverType.TypeKind == TypeKind.TypeParameter || receiverType.IsValueType);
-            return EmitAddress(receiver, addressKind, used: true);
+            return EmitAddress(receiver, addressKind, used);
         }
 
         private static bool BoxNonVerifierReferenceReceiver(TypeSymbol receiverType, AddressKind addressKind)
@@ -593,11 +606,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // taking field addresses, so we have to turn Constrained into writeable.
             // For ref fields, we only require a readonly address for the receiver
             // since we are loading the field value.
-            var tempOpt = EmitReceiverRef(
-                fieldAccess.ReceiverOpt,
-                field.RefKind == RefKind.None ?
+            AddressKind receiverAddressKind = field.RefKind == RefKind.None ?
                     (addressKind == AddressKind.Constrained ? AddressKind.Writeable : addressKind) :
-                    (addressKind != AddressKind.ReadOnlyStrict ? AddressKind.ReadOnly : addressKind));
+                    (addressKind != AddressKind.ReadOnlyStrict ? AddressKind.ReadOnly : addressKind);
+
+            BoundExpression receiver = fieldAccess.ReceiverOpt;
+            if (!used && receiver.Type.IsValueType)
+            {
+                if (receiver is BoundThisReference && receiver.Type.IsDisplayClassType())
+                {
+                    // Receiver cannot be a null ref
+                    return null;
+                }
+
+                if (!IsRef(receiver) && receiver is not BoundPointerIndirectionOperator)
+                {
+                    // It is enough to get side-effects of getting the receiver
+                    return EmitReceiverRef(
+                        receiver,
+                        receiverAddressKind,
+                        used: false);
+                }
+            }
+
+            var tempOpt = EmitReceiverRef(
+                receiver,
+                receiverAddressKind,
+                used: true);
 
             _builder.EmitOpCode(field.RefKind == RefKind.None ? ILOpCode.Ldflda : ILOpCode.Ldfld);
             EmitSymbolToken(field, fieldAccess.Syntax);

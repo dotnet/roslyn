@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentSymbols;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor;
 
@@ -35,24 +36,28 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
         var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         var implementationDocument = codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
-        var implementationSymbols = await GetCSharpSymbolsAsync(implementationDocument, cancellationToken).ConfigureAwait(false);
+        var (implementationSymbols, implementationSyntaxRoot) = await GetCSharpSymbolsAsync(implementationDocument, cancellationToken).ConfigureAwait(false);
 
         var declarationDocument = codeDocument.GetCSharpDocument(declarationDocument: true);
         SumType<DocumentSymbol[], SymbolInformation[]>? declarationSymbols = null;
+        SyntaxNode? declarationSyntaxRoot = null;
         if (declarationDocument is not null)
         {
-            declarationSymbols = await GetCSharpSymbolsAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
+            (declarationSymbols, declarationSyntaxRoot) = await GetCSharpSymbolsAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
         }
 
         return _documentSymbolService.GetDocumentSymbols(
             snapshot.FileKind,
             snapshot.Uri,
             implementationDocument,
+            implementationSyntaxRoot,
             implementationSymbols,
             declarationDocument,
-            declarationSymbols);
+            declarationSyntaxRoot,
+            declarationSymbols,
+            cancellationToken);
 
-        async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>> GetCSharpSymbolsAsync(
+        async ValueTask<(SumType<DocumentSymbol[], SymbolInformation[]> Symbols, SyntaxNode SyntaxRoot)> GetCSharpSymbolsAsync(
             RazorCSharpDocument csharpDocument,
             CancellationToken cancellationToken)
         {
@@ -70,23 +75,29 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
             // convert things back to DocumentSymbol before remapping it.
             if (csharpSymbols.TryGetFirst(out var roslynDocumentSymbols))
             {
-                csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols);
+                csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols, cancellationToken);
             }
 
-            return csharpSymbols;
+            var syntaxRoot = await generatedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            return (csharpSymbols, syntaxRoot);
         }
     }
 
-    private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols)
+    private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols, CancellationToken cancellationToken)
     {
+        // Avoid copying the rest of the symbol tree once its request has been canceled.
+        cancellationToken.ThrowIfCancellationRequested();
+
         var converted = new DocumentSymbol[roslynDocumentSymbols.Length];
         for (var i = 0; i < roslynDocumentSymbols.Length; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var symbol = roslynDocumentSymbols[i];
             converted[i] = new DocumentSymbol
             {
                 Children = symbol.Children is { } children
-                    ? ConvertDocumentSymbols(children)
+                    ? ConvertDocumentSymbols(children, cancellationToken)
                     : null,
 #pragma warning disable CS0618 // Type or member is obsolete
                 Deprecated = symbol.Deprecated,

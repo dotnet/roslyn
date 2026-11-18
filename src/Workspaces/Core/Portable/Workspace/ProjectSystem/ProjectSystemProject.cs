@@ -824,23 +824,25 @@ internal sealed partial class ProjectSystemProject
         => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
     /// <summary>
-    /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer)
+    /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer or LSP virtual file)
     /// </summary>
     /// <param name="textContainer">The text container that contains this file.</param>
     /// <param name="fullPath">The file path of the document.</param>
+    /// <param name="openDocument">Whether to open the document in the editor if applicable.</param>
     /// <param name="sourceCodeKind">The kind of the source code.</param>
     /// <param name="folders">The names of the logical nested folders the document is contained in.</param>
     /// <param name="designTimeOnly">Whether the document is used only for design time (eg. completion) or also included in a compilation.</param>
     /// <param name="documentServiceProvider">A <see cref="IDocumentServiceProvider"/> associated with this document</param>
-    public DocumentId AddSourceTextContainer(
+    public DocumentId AddVirtualDocument(
         SourceTextContainer textContainer,
         string fullPath,
+        bool openDocument,
         SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
         ImmutableArray<string> folders = default,
         bool designTimeOnly = false,
         IDocumentServiceProvider? documentServiceProvider = null)
     {
-        return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
+        return _sourceFiles.AddVirtualDocument(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, openDocument, documentServiceProvider);
     }
 
     public bool ContainsSourceFile(string fullPath)
@@ -849,8 +851,8 @@ internal sealed partial class ProjectSystemProject
     public void RemoveSourceFile(string fullPath)
         => _sourceFiles.RemoveFile(fullPath);
 
-    public void RemoveSourceTextContainer(SourceTextContainer textContainer)
-        => _sourceFiles.RemoveTextContainer(textContainer);
+    public void RemoveVirtualDocument(DocumentId documentId)
+        => _sourceFiles.RemoveVirtualDocument(documentId);
 
     #endregion
 

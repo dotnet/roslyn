@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var dup = new BoundDup(
                 method.GetNonNullSyntaxNode(),
                 RefKindExtensions.StrictIn,
+                isAlive: true,
                 method.ReturnType);
 
             Assert.True(CodeGenerator.HasHome(

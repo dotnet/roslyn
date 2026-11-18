@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public ServerTests(ITestOutputHelper testOutputHelper)
             {
                 _buildPaths = ServerUtil.CreateBuildPaths(
-                    workingDir: Temp.CreateDirectory().Path,
-                    tempDir: Temp.CreateDirectory().Path);
+                    workingDir: Temp.CreateDirectory().Path);
                 _logger = new XunitCompilerServerLogger(testOutputHelper);
             }
 

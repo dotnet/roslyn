@@ -1348,20 +1348,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 calls.Push(node);
 
+                // The receiver calls are not visited through VisitAlways, so their region boundaries are tracked here.
                 node = receiver1;
+                EnterRegionIfNeeded(node);
                 while (node.ReceiverOpt is BoundCall receiver2)
                 {
                     calls.Push(node);
                     node = receiver2;
+                    EnterRegionIfNeeded(node);
                 }
 
                 VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
 
-                do
+                while (true)
                 {
                     visitArgumentsAndCompleteAnalysis(node);
+
+                    if (!calls.Any())
+                    {
+                        break;
+                    }
+
+                    LeaveRegionIfNeeded(node);
+                    node = calls.Pop();
                 }
-                while (calls.TryPop(out node));
 
                 calls.Free();
             }
@@ -3512,7 +3522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand)
+        private void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand)
         {
             if (shouldReadOperand)
             {

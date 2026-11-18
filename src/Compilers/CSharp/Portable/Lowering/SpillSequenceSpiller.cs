@@ -822,7 +822,7 @@ doesNotMatch:
         {
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(expr, node.IsManaged, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.IsManaged, node.RequiresAssignedOperand, node.Type));
         }
 
         public override BoundNode VisitRefAccess(BoundRefAccess node)
@@ -1519,14 +1519,14 @@ doesNotMatch:
                 builder = expressionBuilder;
             }
 
-            return UpdateExpression(builder, node.Update(expression, index, node.Checked, node.RefersToLocation, node.Type));
+            return UpdateExpression(builder, node.Update(expression, index, node.Checked, node.Type));
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
             BoundSpillSequenceBuilder builder = null;
             var operand = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(operand, node.RefersToLocation, node.Type));
+            return UpdateExpression(builder, node.Update(operand, node.Type));
         }
 
         public override BoundNode VisitSequence(BoundSequence node)

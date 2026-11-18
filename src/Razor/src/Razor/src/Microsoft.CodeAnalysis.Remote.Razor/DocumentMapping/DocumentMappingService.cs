@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
@@ -166,37 +165,7 @@ internal sealed class DocumentMappingService(
     }
 
     public bool TryMapToCSharpDocumentPosition(RazorCSharpDocument csharpDocument, int hostDocumentIndex, out LinePosition generatedPosition, out int generatedIndex)
-        => TryMapToCSharpDocumentPositionInternal(csharpDocument, hostDocumentIndex, out generatedPosition, out generatedIndex);
-
-    private static bool TryMapToCSharpDocumentPositionInternal(RazorCSharpDocument csharpDocument, int razorIndex, out LinePosition csharpPosition, out int csharpIndex)
-    {
-        foreach (var mapping in csharpDocument.SourceMappingsSortedByOriginal)
-        {
-            var originalSpan = mapping.OriginalSpan;
-            var originalAbsoluteIndex = originalSpan.AbsoluteIndex;
-            if (originalAbsoluteIndex <= razorIndex)
-            {
-                // Treat the mapping as owning the edge at its end (hence <= originalSpan.Length),
-                // otherwise we wouldn't handle the cursor being right after the final C# char
-                var distanceIntoOriginalSpan = razorIndex - originalAbsoluteIndex;
-                if (distanceIntoOriginalSpan <= originalSpan.Length)
-                {
-                    csharpIndex = mapping.GeneratedSpan.AbsoluteIndex + distanceIntoOriginalSpan;
-                    csharpPosition = csharpDocument.Text.GetLinePosition(csharpIndex);
-                    return true;
-                }
-            }
-            else
-            {
-                // This span (and all following) are after the area we're interested in
-                break;
-            }
-        }
-
-        csharpPosition = default;
-        csharpIndex = default;
-        return false;
-    }
+        => DocumentMappingHelper.TryMapToCSharpDocumentPosition(csharpDocument, hostDocumentIndex, out generatedPosition, out generatedIndex);
 
     private bool TryMapToRazorDocumentRangeStrict(RazorCSharpDocument csharpDocument, LinePositionSpan csharpRange, out LinePositionSpan razorRange)
     {

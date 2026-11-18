@@ -8,13 +8,18 @@ Source Location: (7:0,7 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (788:22,0 [6] )
 |string|
 
+Source Location: (7:0,7 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (1018:31,0 [6] )
+|string|
+
 Source Location: (15:0,15 [4] x:\dir\subdir\Test\TestComponent.cshtml)
 |Item|
-Generated Location: (1027:31,0 [4] )
+Generated Location: (1174:39,0 [4] )
 |Item|
 
 Source Location: (21:0,21 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 |1|
-Generated Location: (1286:39,0 [1] )
+Generated Location: (1433:47,0 [1] )
 |1|
 

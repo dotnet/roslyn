@@ -251,6 +251,8 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         string IDiagnosticSourceProvider.Name => DiagnosticSourceProviderName;
 
+        bool IDiagnosticSourceProvider.HasInterFileDependencies => true;
+
         bool IDiagnosticSourceProvider.IsEnabled(LSP.ClientCapabilities clientCapabilities) => true;
 
         async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)

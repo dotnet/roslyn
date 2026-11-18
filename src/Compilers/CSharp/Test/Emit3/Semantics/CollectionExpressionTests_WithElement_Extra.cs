@@ -567,45 +567,11 @@ public sealed class CollectionExpressionTests_WithElement_Extra : CSharpTestBase
             default:
                 expectedIL = """
                         {
-                          // Code size       69 (0x45)
-                          .maxstack  5
-                          .locals init (T[] V_0,
-                                        int V_1,
-                                        System.Span<T> V_2,
-                                        int V_3,
-                                        System.ReadOnlySpan<T> V_4)
+                          // Code size        7 (0x7)
+                          .maxstack  1
                           IL_0000:  ldarg.0
-                          IL_0001:  stloc.0
-                          IL_0002:  ldloc.0
-                          IL_0003:  ldlen
-                          IL_0004:  conv.i4
-                          IL_0005:  stloc.1
-                          IL_0006:  ldloc.1
-                          IL_0007:  newobj     "System.Collections.Generic.List<T>..ctor(int)"
-                          IL_000c:  dup
-                          IL_000d:  ldloc.1
-                          IL_000e:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<T>(System.Collections.Generic.List<T>, int)"
-                          IL_0013:  dup
-                          IL_0014:  call       "System.Span<T> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<T>(System.Collections.Generic.List<T>)"
-                          IL_0019:  stloc.2
-                          IL_001a:  ldc.i4.0
-                          IL_001b:  stloc.3
-                          IL_001c:  ldloca.s   V_4
-                          IL_001e:  ldloc.0
-                          IL_001f:  call       "System.ReadOnlySpan<T>..ctor(T[])"
-                          IL_0024:  ldloca.s   V_4
-                          IL_0026:  ldloca.s   V_2
-                          IL_0028:  ldloc.3
-                          IL_0029:  ldloca.s   V_4
-                          IL_002b:  call       "int System.ReadOnlySpan<T>.Length.get"
-                          IL_0030:  call       "System.Span<T> System.Span<T>.Slice(int, int)"
-                          IL_0035:  call       "void System.ReadOnlySpan<T>.CopyTo(System.Span<T>)"
-                          IL_003a:  ldloc.3
-                          IL_003b:  ldloca.s   V_4
-                          IL_003d:  call       "int System.ReadOnlySpan<T>.Length.get"
-                          IL_0042:  add
-                          IL_0043:  stloc.3
-                          IL_0044:  ret
+                          IL_0001:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
+                          IL_0006:  ret
                         }
                         """;
                 break;

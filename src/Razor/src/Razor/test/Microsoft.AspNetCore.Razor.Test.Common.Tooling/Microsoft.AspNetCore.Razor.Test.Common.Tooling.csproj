@@ -54,7 +54,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit.analyzers" />
     <PackageReference Include="xunit.extensibility.execution" />
@@ -71,6 +70,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
     <InternalsVisibleTo Include="Microsoft.AspNetCore.Razor.Test.Common.Cohosting" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.DotNetFormat.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.UnitTests" Key="$(RazorKey)" />

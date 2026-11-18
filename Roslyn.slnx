@@ -109,6 +109,7 @@
     <Project Path="src/Compilers/CSharp/Test/Symbol/Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/Syntax/Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/CSharp15/Microsoft.CodeAnalysis.CSharp.CSharp15.UnitTests.csproj" />
+    <Project Path="src/Compilers/CSharp/Test/CSharp16/Microsoft.CodeAnalysis.CSharp.CSharp16.UnitTests.csproj" />
     <Project Path="src/Compilers/CSharp/Test/WinRT/Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.csproj" />
     <Project Path="src/Compilers/Test/Utilities/CSharp/Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
   </Folder>
@@ -595,6 +596,8 @@
     <Project Path="src/Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Cohosting/Microsoft.AspNetCore.Razor.Test.Common.Cohosting.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling/Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests/Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests.shproj" Id="4369f151-7b14-4973-ada4-ba6b8e26f847" />
+    <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.FormattingShared.UnitTests/Microsoft.CodeAnalysis.Razor.FormattingShared.UnitTests.shproj" Id="F1848157-F22D-493A-B866-0E6D35A612F0" />
+    <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.DotNetFormat.UnitTests/Microsoft.CodeAnalysis.Razor.DotNetFormat.UnitTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests/Microsoft.CodeAnalysis.Razor.Workspaces.UnitTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.CodeAnalysis.Remote.Razor.UnitTests/Microsoft.CodeAnalysis.Remote.Razor.UnitTests.csproj" />
     <Project Path="src/Razor/src/Razor/test/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests/Microsoft.VisualStudio.LanguageServer.ContainedLanguage.UnitTests.csproj" />
@@ -605,6 +608,9 @@
   <Folder Name="/Razor/Tooling/">
     <File Path="src/Razor/src/Razor/src/Directory.Build.props" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.CohostingShared/Microsoft.CodeAnalysis.Razor.CohostingShared.shproj" />
+    <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.DotNetFormat/Microsoft.CodeAnalysis.Razor.DotNetFormat.csproj" />
+    <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Formatting/Microsoft.CodeAnalysis.Razor.Formatting.shproj" />
+    <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces.Shared/Microsoft.CodeAnalysis.Razor.Workspaces.Shared.shproj" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Razor.Workspaces/Microsoft.CodeAnalysis.Razor.Workspaces.csproj" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor.CoreComponents/arm64/Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.arm64.csproj" />
     <Project Path="src/Razor/src/Razor/src/Microsoft.CodeAnalysis.Remote.Razor.CoreComponents/x64/Microsoft.CodeAnalysis.Remote.Razor.CoreComponents.x64.csproj" />

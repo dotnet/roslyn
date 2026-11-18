@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(containingType, syntax.GetReference(), GetSymbolLocation(syntax, out Location location), isIterator: SyntaxFacts.HasYieldOperations(syntax.Body),
                  MakeModifiersAndFlags(containingType, syntax, isNullableAnalysisEnabled, location, diagnostics, out bool modifierErrors))
         {
-            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(DeclarationModifiers, diagnostics, syntax.Modifiers);
 
             bool hasBlockBody = syntax.Body != null;
             bool isExpressionBodied = IsExpressionBodied;
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
         internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
-        internal sealed override bool CanBeCallerUnsafe => false;
+        internal sealed override bool CanRequireUnsafe => false;
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {

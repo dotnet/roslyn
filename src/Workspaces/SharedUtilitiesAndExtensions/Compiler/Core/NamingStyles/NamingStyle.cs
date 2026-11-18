@@ -60,8 +60,9 @@ internal readonly partial record struct NamingStyle
 
     public string CreateName(ImmutableArray<string> words)
     {
-        var wordsWithCasing = ApplyCapitalization(words);
-        var combinedWordsWithCasing = string.Join(WordSeparator, wordsWithCasing);
+        var wordSeparator = WordSeparator;
+        var wordsWithCasing = ApplyCapitalization(words.Where(word => word != wordSeparator));
+        var combinedWordsWithCasing = string.Join(wordSeparator, wordsWithCasing);
         return Prefix + combinedWordsWithCasing + Suffix;
     }
 

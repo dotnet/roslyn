@@ -3,16 +3,21 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 
-public class ComponentDiscoveryIntegrationTest : RazorIntegrationTestBase
+public class ComponentDiscoveryIntegrationTest()
+    : RazorBaselineIntegrationTestBase(layer: TestProject.Layer.Compiler)
 {
     internal override RazorFileKind? FileKind => RazorFileKind.Component;
 
     internal override bool UseTwoPhaseCompilation => true;
+
+    protected override string GetDirectoryPath(string testName)
+        => $"TestFiles/IntegrationTests/{GetType().Name}/{testName}";
 
     [Fact]
     public void ComponentDiscovery_CanFindComponent_DefinedinCSharp()
@@ -169,6 +174,168 @@ namespace Test.AnotherNamespace
     }
 
     [Fact]
+    public void ComponentDiscovery_ImportPrecedence_OverExactDocumentNamespace()
+    {
+        AddImportPrecedenceComponents();
+
+        // Razor prefers an imported component over one in the document's namespace.
+        var result = CompileToCSharp("""
+            @namespace Test
+            @using OtherLibrary
+
+            <MyButton />
+            """);
+
+        Assert.Empty(result.RazorDiagnostics);
+        AssertCSharpDocumentMatchesBaseline(result.CodeDocument);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    public void ComponentDiscovery_ImportPrecedence_OverEnclosingNamespace()
+    {
+        AddImportPrecedenceComponents();
+
+        // Razor prefers an imported component over one in an enclosing namespace.
+        var result = CompileToCSharp("""
+            @namespace Test.Nested
+            @using OtherLibrary
+
+            <MyButton />
+            """);
+
+        Assert.Empty(result.RazorDiagnostics);
+        AssertCSharpDocumentMatchesBaseline(result.CodeDocument);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    public void ComponentDiscovery_ImportPrecedence_BeforeGenericDisambiguation()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class GenericButton : ComponentBase
+                {
+                }
+            }
+
+            namespace OtherLibrary
+            {
+                public class GenericButton<TItem> : ComponentBase
+                {
+                    [Parameter]
+                    public TItem Item { get; set; }
+                }
+            }
+            """));
+
+        // Razor applies namespace import precedence before generic/non-generic disambiguation.
+        var result = CompileToCSharp("""
+            @namespace Test
+            @using OtherLibrary
+
+            <GenericButton Item="@("Hello")" />
+            """);
+
+        Assert.Empty(result.RazorDiagnostics);
+        AssertCSharpDocumentMatchesBaseline(result.CodeDocument);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
+    public void ComponentDiscovery_ImportPrecedence_MultipleImportsRemainAmbiguous()
+    {
+        AddImportPrecedenceComponents();
+
+        // Razor reports ambiguity between imports even when the document's namespace has a matching component.
+        var result = CompileToCSharp("""
+            @namespace Test
+            @using OtherLibrary
+            @using AnotherLibrary
+
+            <MyButton />
+            """);
+
+        var diagnostic = Assert.Single(result.RazorDiagnostics);
+        Assert.Equal(ComponentDiagnosticFactory.MultipleComponents.Id, diagnostic.Id);
+        AssertCSharpDocumentMatchesBaseline(result.CodeDocument);
+    }
+
+    [Fact]
+    public void ComponentDiscovery_AmbiguousGenericArity_DoesNotStopLowering()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget<TItem> : ComponentBase
+                {
+                }
+
+                public class Widget<TItem, TOther> : ComponentBase
+                {
+                }
+
+                public class Subsequent : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp("""
+            @using Components.Library
+
+            <Widget />
+            <Subsequent />
+            """);
+
+        var diagnostic = Assert.Single(result.RazorDiagnostics);
+        Assert.Equal(ComponentDiagnosticFactory.MultipleComponents.Id, diagnostic.Id);
+
+        // An ambiguous tag must not prevent unrelated components from being lowered.
+        Assert.Contains("OpenComponent<global::Components.Library.Subsequent>", result.Code);
+    }
+
+    [Fact]
+    public void ComponentDiscovery_DisambiguatedGenericArity_LowersSubsequentComponent()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget<TItem> : ComponentBase
+                {
+                }
+
+                public class Widget<TItem, TOther> : ComponentBase
+                {
+                }
+
+                public class Subsequent : ComponentBase
+                {
+                }
+            }
+            """));
+
+        // Explicit type parameters provide a valid control for the ambiguous component case.
+        var result = CompileToCSharp("""
+            @using Components.Library
+
+            <Widget TItem="string" TOther="int" />
+            <Subsequent />
+            """);
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("OpenComponent<global::Components.Library.Subsequent>", result.Code);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
     public void UnusedUsingDirectives_IsDirectiveUsed_ReturnsFalseForUnusedUsing()
     {
         // Arrange
@@ -270,4 +437,31 @@ namespace Test.AnotherNamespace
         Assert.False(result.CodeDocument.IsDirectiveUsed(directives[1]));
     }
 
+    private void AddImportPrecedenceComponents()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Test
+            {
+                public class MyButton : ComponentBase
+                {
+                }
+            }
+
+            namespace OtherLibrary
+            {
+                public class MyButton : ComponentBase
+                {
+                }
+            }
+
+            namespace AnotherLibrary
+            {
+                public class MyButton : ComponentBase
+                {
+                }
+            }
+            """));
+    }
 }

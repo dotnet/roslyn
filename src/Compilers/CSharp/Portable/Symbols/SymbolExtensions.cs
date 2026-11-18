@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -276,22 +277,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return symbol.DeclaringCompilation.Options.AllowUnsafe;
         }
 
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, BindingDiagnosticBag diagnostics)
+        internal static void CheckUnsafeOptionForModifiers(
+            this Symbol symbol,
+            DeclarationModifiers modifiers,
+            BindingDiagnosticBag diagnostics,
+            SyntaxTokenList? modifierTokens = null,
+            Location? errorLocation = null)
         {
-            symbol.CheckUnsafeModifier(modifiers, symbol.GetFirstLocation(), diagnostics);
-        }
-
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, BindingDiagnosticBag diagnostics)
-            => CheckUnsafeModifier(symbol, modifiers, errorLocation, diagnostics.DiagnosticBag);
-
-        internal static void CheckUnsafeModifier(this Symbol symbol, DeclarationModifiers modifiers, Location errorLocation, DiagnosticBag? diagnostics)
-        {
-            if (diagnostics != null &&
-                (modifiers & DeclarationModifiers.Unsafe) == DeclarationModifiers.Unsafe &&
+            if (diagnostics.AccumulatesDiagnostics &&
+                (modifiers & (DeclarationModifiers.Unsafe | DeclarationModifiers.Safe)) != 0 &&
                 !symbol.CompilationAllowsUnsafe())
             {
-                RoslynDebug.Assert(errorLocation != null);
-                diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, errorLocation);
+                var kind = (modifiers & DeclarationModifiers.Unsafe) != 0 ? SyntaxKind.UnsafeKeyword : SyntaxKind.SafeKeyword;
+                var keyword = modifierTokens?.FirstOrDefault(kind) ?? default;
+
+                if (modifierTokens is null)
+                {
+                    // A partial type's modifier may be on a declaration other than its first.
+                    foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+                    {
+                        if (syntaxReference.GetSyntax() is MemberDeclarationSyntax declaration)
+                        {
+                            keyword = declaration.Modifiers.FirstOrDefault(kind);
+                            if (keyword != default && !keyword.IsMissing)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                diagnostics.Add(ErrorCode.ERR_IllegalUnsafeModifier,
+                    keyword != default && !keyword.IsMissing ? keyword.GetLocation() : (errorLocation ?? symbol.GetFirstLocation()));
             }
         }
 

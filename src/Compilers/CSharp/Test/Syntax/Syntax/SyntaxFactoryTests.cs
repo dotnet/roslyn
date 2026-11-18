@@ -685,9 +685,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             type = "unsafe class C { delegate*<void> x; }";
 
             CreateCompilation(type, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (1,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class C { delegate*<void> x; }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(1, 1),
                 // (1,18): error CS8400: Feature 'function pointers' is not available in C# 8.0. Please use language version 9.0 or greater.
                 // unsafe class C { delegate*<void> x; }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion8, "delegate").WithArguments("function pointers", "9.0").WithLocation(1, 18),
@@ -696,9 +696,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));
 
             CreateCompilation(type, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
-                // (1,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (1,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class C { delegate*<void> x; }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(1, 1),
                 // (1,34): warning CS0169: The field 'C.x' is never used
                 // unsafe class C { delegate*<void> x; }
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "x").WithArguments("C.x").WithLocation(1, 34));

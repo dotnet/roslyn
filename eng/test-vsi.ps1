@@ -18,6 +18,9 @@ param (
   [switch]$lspEditor = $false,
   [string][Alias('testArch')][ValidateSet('x86', 'x64')]$testPlatform = "x64",
   [string]$testFilter = "",
+  [string]$testResultsDirectory = "",
+  [ValidateSet('xunit', 'trx')]
+  [string]$testResultsFormat = "xunit",
   [switch]$help,
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
@@ -38,6 +41,8 @@ function Print-Usage() {
   Write-Host "  -lspEditor                Use LSP editor (default: false)"
   Write-Host "  -testPlatform             Test host architecture: x86 or x64 (default: x64; independent of -oop64bit)"
   Write-Host "  -testFilter               Filter tests to run (maps to --filter parameter of xunit)"
+  Write-Host "  -testResultsDirectory     Directory where test result files are written"
+  Write-Host "  -testResultsFormat        Test result format: xunit or trx (default: xunit)"
   Write-Host "  -help                     Print help and exit"
 }
 
@@ -264,6 +269,10 @@ function TestUsingRunTests() {
   $args += " --logs `"$LogDir`""
   $args += " --testConfiguration $configuration"
   $args += " --testPlatform $testPlatform"
+  $args += " --testResultsFormat $testResultsFormat"
+  if ($testResultsDirectory -ne "") {
+    $args += " --out `"$testResultsDirectory`""
+  }
   $testFilters = @()
 
   $args += " --testFramework:core --testFramework:desktop"
@@ -299,6 +308,14 @@ function TestUsingRunTests() {
   try {
     Write-Host "$runTests $args"
     Exec-Command $dotnetExe "$runTests $args"
+  } catch {
+    try {
+      New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
+      Capture-Screenshot (Join-Path $LogDir "TestFailure.png")
+    } catch {
+      Write-LogIssue -Type "warning" -Message "Unable to capture test failure screenshot: $_"
+    }
+    throw
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($ci) {

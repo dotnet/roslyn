@@ -42,6 +42,7 @@ param (
   [switch][Alias('a')]$runAnalyzers,
   [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
+  [string][Alias('hive')]$rootSuffix = "",
   [switch]$prepareMachine,
   [bool][Alias('mt')]$msbuildMultiThreaded = $false,
   [bool]$nodeReuse = $true,
@@ -75,6 +76,7 @@ function Print-Usage() {
   Write-Host "  -configuration <value>    Build configuration: 'Debug' or 'Release' (short: -c)"
   Write-Host "  -verbosity <value>        Msbuild verbosity: q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]"
   Write-Host "  -deployExtensions         Deploy built vsixes (short: -d)"
+  Write-Host "  -rootSuffix <value>       Visual Studio root suffix for deployment and launch (alias: -hive)"
   Write-Host "  -binaryLog                Create MSBuild binary log (short: -bl)"
   Write-Host "  -binaryLogName            Name of the binary log (default Build.binlog)"
   Write-Host ""
@@ -237,6 +239,7 @@ function BuildSolution() {
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
+  $rootSuffixArg = if ($rootSuffix -ne "") { "/p:VSSDKTargetPlatformRegRootSuffix=$rootSuffix" } else { "" }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -266,6 +269,7 @@ function BuildSolution() {
       $msbuildWarnNotAsError `
       $generateDocumentationFile `
       $roslynUseHardLinks `
+      $rootSuffixArg `
       @properties
   }
   finally {
@@ -340,7 +344,13 @@ try {
 
   Push-Location $RepoRoot
 
-  Subst-TempDir
+  # Substituting T: as the temp directory is process-wide state that outlives this build.
+  # In the VMR, MSBuild nodes are reused across concurrently building repos, so a node that
+  # picks up T: here keeps using it after this build removes the substitution, which then
+  # fails with MSB6003 for whichever repo reuses that node.
+  if (-not $fromVMR) {
+    Subst-TempDir
+  }
 
   if ($ci) {
     List-Processes
@@ -391,7 +401,8 @@ try {
     }
 
     $devenvExe = Join-Path $env:VSINSTALLDIR 'Common7\IDE\devenv.exe'
-    &$devenvExe /rootSuffix RoslynDev
+    $launchRootSuffix = if ($rootSuffix -ne "") { $rootSuffix } else { "RoslynDev" }
+    &$devenvExe /rootSuffix $launchRootSuffix
   }
 
   ExitWithExitCode 0
@@ -403,7 +414,7 @@ catch {
   ExitWithExitCode 1
 }
 finally {
-  if (Test-Path Function:\Unsubst-TempDir) {
+  if (-not $fromVMR -and (Test-Path Function:\Unsubst-TempDir)) {
     Unsubst-TempDir
   }
   Pop-Location

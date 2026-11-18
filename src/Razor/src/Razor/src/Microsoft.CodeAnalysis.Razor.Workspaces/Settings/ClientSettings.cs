@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Internal;
 
@@ -26,15 +25,6 @@ internal record ClientSettings(
     [property: JsonPropertyName("advancedSettings")] ClientAdvancedSettings AdvancedSettings)
 {
     public static readonly ClientSettings Default = new(ClientSpaceSettings.Default, ClientCompletionSettings.Default, ClientAdvancedSettings.Default);
-
-    public RazorFormattingOptions ToRazorFormattingOptions()
-        => new()
-        {
-            InsertSpaces = !ClientSpaceSettings.IndentWithTabs,
-            TabSize = ClientSpaceSettings.IndentSize,
-            CodeBlockBraceOnNextLine = AdvancedSettings.CodeBlockBraceOnNextLine,
-            AttributeIndentStyle = AdvancedSettings.AttributeIndentStyle,
-        };
 }
 
 internal sealed record ClientCompletionSettings(
@@ -58,6 +48,7 @@ internal sealed record ClientAdvancedSettings(
     [property: JsonPropertyName("colorBackground")] bool ColorBackground,
     [property: JsonPropertyName("codeBlockBraceOnNextLine")] bool CodeBlockBraceOnNextLine,
     [property: JsonPropertyName("attributeIndentStyle")] AttributeIndentStyle AttributeIndentStyle,
+    [property: JsonPropertyName("ignoreIndentationInScriptOrStyleBlocksWithComplexRazor")] bool IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
     [property: JsonPropertyName("commitElementsWithSpace")] bool CommitElementsWithSpace,
     [property: JsonPropertyName("snippetSetting")] SnippetSetting SnippetSetting,
     [property: JsonPropertyName("logLevel")] LogLevel LogLevel,
@@ -71,6 +62,7 @@ internal sealed record ClientAdvancedSettings(
                                                                 ColorBackground: false,
                                                                 CodeBlockBraceOnNextLine: false,
                                                                 AttributeIndentStyle: AttributeIndentStyle.AlignWithFirst,
+                                                                IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor: true,
                                                                 CommitElementsWithSpace: true,
                                                                 SnippetSetting.All,
                                                                 LogLevel.Warning,
@@ -87,6 +79,7 @@ internal sealed record ClientAdvancedSettings(
             ColorBackground == other.ColorBackground &&
             CodeBlockBraceOnNextLine == other.CodeBlockBraceOnNextLine &&
             AttributeIndentStyle == other.AttributeIndentStyle &&
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor == other.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor &&
             CommitElementsWithSpace == other.CommitElementsWithSpace &&
             SnippetSetting == other.SnippetSetting &&
             LogLevel == other.LogLevel &&
@@ -104,6 +97,7 @@ internal sealed record ClientAdvancedSettings(
         hash.Add(ColorBackground);
         hash.Add(CodeBlockBraceOnNextLine);
         hash.Add(AttributeIndentStyle);
+        hash.Add(IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
         hash.Add(CommitElementsWithSpace);
         hash.Add(SnippetSetting);
         hash.Add(LogLevel);

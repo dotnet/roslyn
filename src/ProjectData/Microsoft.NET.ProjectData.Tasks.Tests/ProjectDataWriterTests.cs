@@ -5,6 +5,7 @@
 using System.Text;
 using Microsoft.Build.Framework;
 using Moq;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.NET.ProjectData.Tasks.Tests;
@@ -162,7 +163,7 @@ public class ProjectDataWriterTests
 	{
 		string content = Build();
 
-		Assert.StartsWith("version=2.2", content);
+		Assert.StartsWith("version=2.3", content);
 		Assert.Contains("aka.ms/lscache", content);
 		Assert.Contains("dotnet.projectsystem.cacheInProjectFolder", content);
 	}
@@ -742,6 +743,154 @@ public class ProjectDataWriterTests
 		finally
 		{
 			Directory.Delete(dir, recursive: true);
+		}
+	}
+
+	[ConditionalTheory(typeof(CrossVolumeSymbolicLinksAvailable))]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void AtomicWrite_ReplacesFileThroughCrossVolumeDirectoryLink(bool streamed)
+	{
+		string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+		string target = Path.Combine(CrossVolumeSymbolicLinksAvailable.OtherDriveRoot!, Guid.NewGuid().ToString("N"));
+		string link = Path.Combine(root, "link");
+		string tempDir = Path.Combine(root, "obj");
+		Directory.CreateDirectory(root);
+		Directory.CreateDirectory(target);
+		try
+		{
+			Directory.CreateSymbolicLink(link, target);
+			string outputPath = Path.Combine(link, "test.lscache");
+			Assert.Equal(Path.GetPathRoot(root), Path.GetPathRoot(outputPath));
+
+			Write("old");
+			Write("new");
+
+			Assert.Equal("new", File.ReadAllText(Path.Combine(target, "test.lscache")));
+			Assert.Empty(Directory.GetFiles(target, "*.tmp"));
+			Assert.Empty(Directory.GetFiles(tempDir, "*.tmp"));
+			DateTime lastWriteTime = File.GetLastWriteTimeUtc(outputPath);
+			Write("new");
+			Assert.Equal(lastWriteTime, File.GetLastWriteTimeUtc(outputPath));
+
+			void Write(string content)
+			{
+				if (streamed)
+					ProjectDataWriter.AtomicWriteStreamed(outputPath, writer => writer.Write(content), tempDir);
+				else
+					ProjectDataWriter.AtomicWrite(outputPath, content, tempDir);
+			}
+		}
+		finally
+		{
+			if (Directory.Exists(link))
+				Directory.Delete(link);
+			Directory.Delete(root, recursive: true);
+			Directory.Delete(target, recursive: true);
+		}
+	}
+
+	public sealed class CrossVolumeSymbolicLinksAvailable : ExecutionCondition
+	{
+		public static string? OtherDriveRoot { get; private set; }
+
+		private string? _skipReason;
+
+		public override string SkipReason => _skipReason!;
+
+		public override bool ShouldSkip
+		{
+			get
+			{
+				string tempRoot = Path.GetFullPath(Path.GetTempPath());
+				StringComparison comparison = OperatingSystem.IsWindows()
+					? StringComparison.OrdinalIgnoreCase
+					: StringComparison.Ordinal;
+				string? tempDriveName = DriveInfo.GetDrives()
+					.Where(drive => drive.IsReady && tempRoot.StartsWith(drive.Name, comparison))
+					.OrderByDescending(drive => drive.Name.Length)
+					.FirstOrDefault()?.Name ?? Path.GetPathRoot(tempRoot);
+
+				foreach (DriveInfo drive in DriveInfo.GetDrives())
+				{
+					if (!drive.IsReady ||
+						drive.DriveType is not (DriveType.Fixed or DriveType.Removable or DriveType.Ram) ||
+						string.Equals(drive.Name, tempDriveName, comparison))
+					{
+						continue;
+					}
+
+					string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+					string target = Path.Combine(drive.Name, Guid.NewGuid().ToString("N"));
+					string link = Path.Combine(root, "link");
+					try
+					{
+						Directory.CreateDirectory(root);
+						Directory.CreateDirectory(target);
+						Directory.CreateSymbolicLink(link, target);
+
+						// Verify that root and target are genuinely on different volumes/devices
+						// (on macOS, /System/Volumes/Data shares the same underlying device as /tmp).
+						string probeSource = Path.Combine(root, "probe.tmp");
+						string probeDest = Path.Combine(target, "probe.txt");
+						File.WriteAllText(probeSource, "source");
+						File.WriteAllText(probeDest, "dest");
+						try
+						{
+							File.Replace(probeSource, probeDest, destinationBackupFileName: null);
+							continue;
+						}
+						catch (IOException)
+						{
+							OtherDriveRoot = drive.Name;
+							return false;
+						}
+					}
+					catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+					{
+						_skipReason = $"Cross-volume directory symbolic links are unavailable: {ex.Message}";
+					}
+					finally
+					{
+						if (Directory.Exists(link))
+							Directory.Delete(link);
+						if (Directory.Exists(root))
+							Directory.Delete(root, recursive: true);
+						if (Directory.Exists(target))
+							Directory.Delete(target, recursive: true);
+					}
+				}
+
+				_skipReason ??= "Requires a second writable volume.";
+				return true;
+			}
+		}
+	}
+
+	// Holding outputPath open with FileShare.None only blocks File.Move from replacing the
+	// destination on Windows; Unix rename(2) replaces the directory entry regardless of open
+	// file descriptors.
+	[ConditionalFact(typeof(WindowsOnly))]
+	public void AtomicWrite_CleansUpAndPreservesOutput_WhenReplacementFails()
+	{
+		string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+		string outputDir = Path.Combine(root, "src");
+		string tempDir = Path.Combine(root, "obj");
+		string outputPath = Path.Combine(outputDir, "test.lscache");
+		Directory.CreateDirectory(outputDir);
+		File.WriteAllText(outputPath, "old");
+		try
+		{
+			using (File.Open(outputPath, FileMode.Open, FileAccess.Read, FileShare.None))
+				Assert.Throws<IOException>(() => ProjectDataWriter.AtomicWrite(outputPath, "new", tempDir));
+
+			Assert.Equal("old", File.ReadAllText(outputPath));
+			Assert.Empty(Directory.GetFiles(outputDir, "*.tmp"));
+			Assert.Empty(Directory.GetFiles(tempDir, "*.tmp"));
+		}
+		finally
+		{
+			Directory.Delete(root, recursive: true);
 		}
 	}
 

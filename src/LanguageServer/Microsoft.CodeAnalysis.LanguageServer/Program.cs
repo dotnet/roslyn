@@ -53,11 +53,6 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server must be started with either --stdio or --pipe option.");
     }
 
-    serverConfiguration = serverConfiguration with
-    {
-        TelemetryLevel = TelemetryLevelResolver.Resolve(serverConfiguration.TelemetryLevel),
-    };
-
     if (serverConfiguration.UseStdIo)
     {
         // Redirect Console.Out to try prevent the standard output stream from being corrupted.
@@ -145,7 +140,10 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         loggerFactory,
         RoslynLog.RoslynTelemetry.Current,
         serverConfiguration.SessionId,
-        isDefaultSession: true);
+        isDefaultSession: true,
+        copilotSessionId: serverConfiguration.IsDaemon
+            ? null
+            : Environment.GetEnvironmentVariable(DaemonHandshake.CopilotSessionIdEnvironmentVariable));
 
     // Memory is sampled on the process-level session: in daemon mode every server shares this process's memory.
     using var memoryTelemetry = telemetryService is null

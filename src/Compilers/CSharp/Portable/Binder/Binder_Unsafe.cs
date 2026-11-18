@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var useUpdatedMemorySafetyRules = this.Compilation.SourceModule.UseUpdatedMemorySafetyRules;
-            var callerUnsafeMode = symbol.GetCallerUnsafeMode(this.FieldsBeingBound);
-            if (!useUpdatedMemorySafetyRules && callerUnsafeMode != CallerUnsafeMode.Implicit)
+            var requiresUnsafeMode = symbol.GetRequiresUnsafeMode(this.FieldsBeingBound);
+            if (!useUpdatedMemorySafetyRules && requiresUnsafeMode != RequiresUnsafeMode.Implicit)
             {
                 return;
             }
 
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, callerUnsafeMode, arg, location);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, requiresUnsafeMode, arg, location);
 
             if (useUpdatedMemorySafetyRules)
             {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     : methodSymbol.TypeArgumentsWithAnnotations;
                                 for (int i = 0; i < arity; i++)
                                 {
-                                    checkTypeArgumentWithConstructorConstraint(this, typeParameters[i], typeArguments[i].Type, symbol, arg, location, diagnostics);
+                                    checkTypeArgumentWithConstructorConstraint(this, typeParameters[i], typeArguments[i], symbol, arg, location, diagnostics);
                                 }
                             }
                         }
@@ -79,22 +79,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var arity = typeSymbol.TypeParameters.Length;
                             for (int i = 0; i < arity; i++)
                             {
-                                checkTypeArgumentWithConstructorConstraint(this, typeSymbol.TypeParameters[i], typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i].Type, symbol, arg, location, diagnostics);
+                                checkTypeArgumentWithConstructorConstraint(this, typeSymbol.TypeParameters[i], typeSymbol.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[i], symbol, arg, location, diagnostics);
                             }
                         }
                         break;
                 }
             }
 
-            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
+            static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
             {
-                if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
-                    typeArgument is NamedTypeSymbol namedTypeArgument)
+                if (!typeArgument.IsResolved || typeArgument.Type is NamedTypeSymbol)
                 {
-                    // Looking up constructors while binding declarations can reenter member synthesis.
+                    // Resolving nullable type arguments, constraints, or constructors while binding declarations can reenter binding or member synthesis.
                     DiagnosticInfo? diagnosticInfo = @this.ShouldCheckConstraints
-                        ? @this.GetUnsafeConstructorConstraintDiagnosticInfo(typeParameter, namedTypeArgument, targetSymbol)
-                        : new LazyUnsafeConstructorConstraintDiagnosticInfo(@this, typeParameter, namedTypeArgument, targetSymbol);
+                        ? @this.GetUnsafeConstructorConstraintDiagnosticInfo(typeParameter, typeArgument, targetSymbol)
+                        : new LazyUnsafeConstructorConstraintDiagnosticInfo(@this, typeParameter, typeArgument, targetSymbol);
 
                     if (diagnosticInfo is not null)
                     {
@@ -104,13 +103,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol)
+        internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, Symbol targetSymbol)
         {
-            foreach (var constructor in typeArgument.InstanceConstructors)
+            Debug.Assert(typeArgument.IsResolved);
+
+            if (typeArgument.Type is not NamedTypeSymbol namedTypeArgument ||
+                (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType))
+            {
+                return null;
+            }
+
+            foreach (var constructor in namedTypeArgument.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
                 {
-                    return constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit
+                    return constructor.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit
                         ? GetUnsafeDiagnosticInfo(
                             disallowedUnder: MemorySafetyRulesVersion.Version2,
                             ignoreUnsafeDiagnosticsSuppression: true,
@@ -124,18 +131,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, CallerUnsafeMode callerUnsafeMode, T arg, Func<T, Location?> location)
+        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, RequiresUnsafeMode requiresUnsafeMode, T arg, Func<T, Location?> location)
         {
-            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || callerUnsafeMode == CallerUnsafeMode.Implicit);
+            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || requiresUnsafeMode == RequiresUnsafeMode.Implicit);
 
-            if (callerUnsafeMode != CallerUnsafeMode.None)
+            if (requiresUnsafeMode != RequiresUnsafeMode.None)
             {
                 ReportUnsafeIfNotAllowed(arg, location, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version2,
-                    customErrorCode: callerUnsafeMode switch
+                    customErrorCode: requiresUnsafeMode switch
                     {
-                        CallerUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
-                        CallerUnsafeMode.Implicit => ErrorCode.ERR_UnsafeMemberOperationCompat,
-                        _ => throw ExceptionUtilities.UnexpectedValue(callerUnsafeMode),
+                        RequiresUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
+                        RequiresUnsafeMode.Implicit => ErrorCode.ERR_UnsafeMemberOperationCompat,
+                        _ => throw ExceptionUtilities.UnexpectedValue(requiresUnsafeMode),
                     },
                     customArgs: [symbol]);
             }
@@ -158,10 +165,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and `Debug.Assert` on .NET Framework evaluates all interpolated values eagerly,
             // so avoid evaluating that unless we are going to fail anyway.
 
-            var callerUnsafeMode = symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty);
-            if (callerUnsafeMode is not CallerUnsafeMode.None)
+            var requiresUnsafeMode = symbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty);
+            if (requiresUnsafeMode is not RequiresUnsafeMode.None)
             {
-                Debug.Fail($"Symbol {symbol} has {nameof(CallerUnsafeMode)}={callerUnsafeMode}.");
+                Debug.Fail($"Symbol {symbol} has {nameof(RequiresUnsafeMode)}={requiresUnsafeMode}.");
             }
 
             if (symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)

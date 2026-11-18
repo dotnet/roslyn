@@ -411,6 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
+                case ErrorCode.WRN_DeprecatedFeatureFlag:
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
@@ -645,6 +646,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EncReferenceToAddedMember
                 or ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
                 or ErrorCode.ERR_AbstractBaseRecordImplementation
+                or ErrorCode.ERR_WrongArityAsyncReturn
+                or ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -1816,7 +1819,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_VarInvocationLvalueReserved
                 or ErrorCode.ERR_PublicSignNetModule
                 or ErrorCode.ERR_BadAssemblyName
-                or ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty
                 or ErrorCode.ERR_TypeForwardedToMultipleAssemblies
                 or ErrorCode.ERR_ExpressionTreeContainsDiscard
                 or ErrorCode.ERR_PatternDynamicType
@@ -2195,7 +2197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SimpleProgramIsEmpty
                 or ErrorCode.ERR_LineSpanDirectiveInvalidValue
                 or ErrorCode.ERR_LineSpanDirectiveEndLessThanStart
-                or ErrorCode.ERR_WrongArityAsyncReturn
                 or ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed
                 or ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent
                 or ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName
@@ -2571,12 +2572,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                 or ErrorCode.ERR_NoAwaitOnAsyncEnumerable
                 or ErrorCode.ERR_UnsafeOperation
+                or ErrorCode.ERR_UnsafeUnassignedAddressOf
                 or ErrorCode.ERR_UnsafeUninitializedStackAlloc
                 or ErrorCode.ERR_UnsafeMemberOperation
                 or ErrorCode.ERR_UnsafeMemberOperationCompat
-                or ErrorCode.ERR_CallerUnsafeOverridingSafe
-                or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
-                or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeOverridingSafe
+                or ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe
                 or ErrorCode.ERR_ExpressionTreeContainsUnionConversion
                 or ErrorCode.ERR_UnionDeclarationNeedsCaseTypes
                 or ErrorCode.ERR_NoImplicitConversionToObject
@@ -2598,11 +2600,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                 or ErrorCode.ERR_PartialMemberSafeDifference
-                or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe
+                or ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe
                 or ErrorCode.ERR_NoBreakId
                 or ErrorCode.ERR_NoContinueId
                 or ErrorCode.ERR_ClosedBadDerivedTypesProperty
                 or ErrorCode.ERR_BadCompilationOptionValueAccepted
+                or ErrorCode.ERR_IllegalUnsafeModifier
+                or ErrorCode.WRN_DeprecatedFeatureFlag
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

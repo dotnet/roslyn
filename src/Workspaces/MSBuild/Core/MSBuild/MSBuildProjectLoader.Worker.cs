@@ -202,12 +202,17 @@ public partial class MSBuildProjectLoader
             var projectDirectory = Path.GetDirectoryName(projectPath);
             var metadataService = _solutionServices.GetRequiredService<IMetadataService>();
 
-            IEnumerable<MetadataReference> resolvedMetadataReferences;
+            IEnumerable<MetadataReference> resolvedMetadataReferences = projectFileInfo.MetadataReferences is { } metadataReferences
+                ? metadataReferences.Select(r => metadataService.GetReference(
+                    r.Path, new MetadataReferenceProperties(aliases: [.. r.Aliases], embedInteropTypes: r.EmbedInteropTypes)))
+                : [];
             string? assemblyName;
             SourceHashAlgorithm checksumAlgorithm;
             ParseOptions? parseOptions;
             CompilationOptions? compilationOptions;
-            IEnumerable<AnalyzerReference> analyzerReferences;
+            var analyzerReferences = projectFileInfo.AnalyzerReferences is { } analyzerPaths
+                ? ResolveAnalyzerReferences(analyzerPaths)
+                : [];
             Encoding? encoding;
 
             var commandLineParser = _solutionServices.GetLanguageServices(projectFileInfo.Language).GetService<ICommandLineParserService>();
@@ -239,12 +244,18 @@ public partial class MSBuildProjectLoader
 
                 encoding = commandLineArgs.Encoding;
 
-                analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
+                if (projectFileInfo.AnalyzerReferences is null)
+                {
+                    analyzerReferences = ResolveAnalyzerReferences(commandLineArgs);
+                }
 
-                resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
-                    new WorkspaceMetadataFileReferenceResolver(
-                        metadataService,
-                        new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
+                if (projectFileInfo.MetadataReferences is null)
+                {
+                    resolvedMetadataReferences = commandLineArgs.ResolveMetadataReferences(
+                        new WorkspaceMetadataFileReferenceResolver(
+                            metadataService,
+                            new RelativePathResolver(commandLineArgs.ReferencePaths, commandLineArgs.BaseDirectory)));
+                }
 
                 checksumAlgorithm = commandLineArgs.ChecksumAlgorithm;
             }
@@ -253,15 +264,11 @@ public partial class MSBuildProjectLoader
                 assemblyName = null;
                 parseOptions = null;
                 compilationOptions = null;
-                analyzerReferences = [];
 
                 encoding = EncodedStringText.TryGetCodePageEncoding(projectFileInfo.CodePage);
 
                 checksumAlgorithm = !string.IsNullOrEmpty(projectFileInfo.ChecksumAlgorithm) && SourceHashAlgorithms.TryParseAlgorithmName(projectFileInfo.ChecksumAlgorithm, out var algorithm)
                     ? algorithm : SourceHashAlgorithms.Default;
-
-                resolvedMetadataReferences = projectFileInfo.MetadataReferences
-                    .Select(r => metadataService.GetReference(r.Path, new MetadataReferenceProperties(aliases: [.. r.Aliases])));
             }
 
             var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, encoding);
@@ -315,6 +322,20 @@ public partial class MSBuildProjectLoader
         }
 
         private IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(CommandLineArguments commandLineArgs)
+            => commandLineArgs.ResolveAnalyzerReferences(
+                GetAnalyzerAssemblyLoader(commandLineArgs.AnalyzerReferences.Select(r => r.FilePath)))
+                .Distinct(AnalyzerReferencePathComparer.Instance);
+
+        private IEnumerable<AnalyzerReference> ResolveAnalyzerReferences(string[] analyzerPaths)
+        {
+            var analyzerLoader = GetAnalyzerAssemblyLoader(analyzerPaths);
+            return analyzerPaths.Select(path => File.Exists(path)
+                ? (AnalyzerReference)new AnalyzerFileReference(path, analyzerLoader)
+                : new UnresolvedAnalyzerReference(path))
+                .Distinct(AnalyzerReferencePathComparer.Instance);
+        }
+
+        private IAnalyzerAssemblyLoader GetAnalyzerAssemblyLoader(IEnumerable<string> analyzerPaths)
         {
             var analyzerService = GetWorkspaceService<IAnalyzerService>();
             if (analyzerService is null)
@@ -325,7 +346,7 @@ public partial class MSBuildProjectLoader
 
             var analyzerLoader = analyzerService.GetLoader();
 
-            foreach (var path in commandLineArgs.AnalyzerReferences.Select(r => r.FilePath))
+            foreach (var path in analyzerPaths)
             {
                 string? fullPath;
 
@@ -340,7 +361,7 @@ public partial class MSBuildProjectLoader
                 }
             }
 
-            return commandLineArgs.ResolveAnalyzerReferences(analyzerLoader).Distinct(AnalyzerReferencePathComparer.Instance);
+            return analyzerLoader;
         }
 
         private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)

@@ -36,7 +36,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     public void TestVSTelemetryLoadedIntoDefaultAlc()
     {
         using var service = CreateReporter(DefaultServerConfiguration);
-        service.InitializeSession("off", "test-session", isDefaultSession: false);
+        service.InitializeSession("off", "test-session", isDefaultSession: false, copilotSessionId: null);
 
         var assembly = Assembly.GetAssembly(service.GetType());
         Assert.Contains(AssemblyLoadContext.Default.Assemblies, a => a == assembly);
@@ -50,7 +50,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     {
         var serverConfiguration = useDevKitTelemetry ? DefaultServerConfiguration : ServerConfigurationWithoutDevKit;
         using var service = CreateReporter(serverConfiguration);
-        service.InitializeSession("off", "test-session", isDefaultSession: false);
+        service.InitializeSession("off", "test-session", isDefaultSession: false, copilotSessionId: null);
 
         var session = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(service.Telemetry));
         Assert.True(session.TryGetCommonPropertyValue(LanguageServerTelemetry.ServerVersionPropertyName, out var serverVersion));
@@ -109,7 +109,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     public void TestRazorBridgePostsThroughTheHostSession()
     {
         using var service = CreateReporter(DefaultServerConfiguration);
-        service.InitializeSession("off", "test-session", isDefaultSession: false);
+        service.InitializeSession("off", "test-session", isDefaultSession: false, copilotSessionId: null);
 
         // The MEF importing constructor is obsolete-as-error, so construct through Activator.
         var wrapper = (TelemetryReporterWrapper?)Activator.CreateInstance(typeof(TelemetryReporterWrapper));
@@ -135,9 +135,27 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     [InlineData(" ", false)]
     [InlineData("invalid", false)]
     [InlineData(null, false)]
-    public void TestCopilotCliTelemetryLevelFailsClosed(string? telemetryLevel, bool expected)
+    public void TestStandaloneTelemetryLevelFailsClosed(string? telemetryLevel, bool expected)
     {
-        Assert.Equal(expected, LanguageServerTelemetry.IsCopilotCliTelemetryEnabled(telemetryLevel));
+        Assert.Equal(expected, LanguageServerTelemetry.IsStandaloneTelemetryEnabled(telemetryLevel));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TestCreateSessionReturnsNullWhenTelemetryIsOff(bool isDefaultSession)
+    {
+        var serverConfiguration = ServerConfigurationWithoutDevKit with { TelemetryLevel = "off" };
+
+        using var service = LanguageServerTelemetry.CreateSession(
+            serverConfiguration,
+            LoggerFactory,
+            new RoslynTelemetry(),
+            sessionId: null,
+            isDefaultSession,
+            copilotSessionId: null);
+
+        Assert.Null(service);
     }
 
     [Fact]

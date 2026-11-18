@@ -23,30 +23,32 @@ internal readonly record struct RazorFormattingOptions
     public CSharpSyntaxFormattingOptions CSharpSyntaxFormattingOptions { get; init; } = CSharpSyntaxFormattingOptions.Default;
     [DataMember(Order = 5)]
     public bool FromPaste { get; init; } = false;
+    [DataMember(Order = 6)]
+    public bool IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor { get; init; } = true;
+    [DataMember(Order = 7)]
+    public int IndentSize { get; init; } = 4;
 
     public RazorFormattingOptions()
     {
     }
 
-    public static RazorFormattingOptions From(LspFormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
-        => new()
-        {
-            InsertSpaces = options.InsertSpaces,
-            TabSize = options.TabSize,
-            CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
-            AttributeIndentStyle = attributeIndentStyle,
-            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
-        };
+    public CSharpSyntaxFormattingOptions GetResolvedCSharpSyntaxFormattingOptions()
+        => CSharpSyntaxFormattingOptions.GetResolvedCSharpSyntaxFormattingOptions(
+            InsertSpaces, TabSize, IndentSize, CSharpSyntaxFormattingOptions.Default.NewLine);
 
-    public static RazorFormattingOptions From(LspFormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, bool fromPaste)
+    /// <summary>
+    /// Returns the options to send the Html formatter. It indents by the LSP tab size, so it is given
+    /// <see cref="IndentSize"/> to indent like the rest of the document.
+    /// </summary>
+    public LspFormattingOptions GetHtmlFormattingOptions(LspFormattingOptions requestOptions)
         => new()
         {
-            InsertSpaces = options.InsertSpaces,
-            TabSize = options.TabSize,
-            CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
-            AttributeIndentStyle = attributeIndentStyle,
-            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
-            FromPaste = fromPaste
+            InsertSpaces = requestOptions.InsertSpaces,
+            TabSize = IndentSize,
+            TrimTrailingWhitespace = requestOptions.TrimTrailingWhitespace,
+            InsertFinalNewline = requestOptions.InsertFinalNewline,
+            TrimFinalNewlines = requestOptions.TrimFinalNewlines,
+            OtherOptions = requestOptions.OtherOptions,
         };
 
     public LspFormattingOptions ToLspFormattingOptions()

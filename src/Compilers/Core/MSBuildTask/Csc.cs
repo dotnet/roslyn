@@ -93,6 +93,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
         }
 
+        public int MemorySafetyRulesVersion
+        {
+            set { _store[nameof(MemorySafetyRulesVersion)] = value; }
+            get { return _store.GetOrDefault(nameof(MemorySafetyRulesVersion), 1); }
+        }
+
         public string? ModuleAssemblyName
         {
             set { _store[nameof(ModuleAssemblyName)] = value; }
@@ -249,6 +255,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/highentropyva", _store, nameof(HighEntropyVA));
             commandLine.AppendSwitchIfNotNull("/nullable:", Nullable);
             commandLine.AppendWhenTrue("/nosdkpath", _store, nameof(DisableSdkPath));
+            commandLine.AppendSwitchWithInteger("/memorysafetyrulesversion:", _store, nameof(MemorySafetyRulesVersion));
 
             // If not design time build and the globalSessionGuid property was set then add a -globalsessionguid:<guid>
             bool designTime = false;

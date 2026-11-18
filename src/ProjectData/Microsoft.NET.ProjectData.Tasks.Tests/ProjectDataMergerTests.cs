@@ -66,7 +66,7 @@ public class ProjectDataMergerTests
 			Assert.True(File.Exists(outPath));
 			string content = File.ReadAllText(outPath).Replace("\r\n", "\n");
 			string[] lines = content.Split('\n');
-			Assert.Equal("version=2.2", lines[0]);
+			Assert.Equal("version=2.3", lines[0]);
 			Assert.DoesNotContain("hash=", content);
 			Assert.Contains("# This file caches", content);
 			Assert.DoesNotContain("TargetFramework=net8.0", content);

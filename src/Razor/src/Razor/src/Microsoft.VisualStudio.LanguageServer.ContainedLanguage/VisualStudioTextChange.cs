@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
@@ -13,17 +12,6 @@ internal class VisualStudioTextChange : ITextChange
     {
         OldSpan = new Span(oldStart, oldLength);
         NewText = newText;
-    }
-
-    public VisualStudioTextChange(TextEdit textEdit, ITextSnapshot textSnapshot)
-        : this(
-            textEdit.Range.Start.Line,
-            textEdit.Range.Start.Character,
-            textEdit.Range.End.Line,
-            textEdit.Range.End.Character,
-            textSnapshot,
-            textEdit.NewText)
-    {
     }
 
     public VisualStudioTextChange(int startLineNumber, int startCharacter, int endLineNumber, int endCharacter, ITextSnapshot textSnapshot, string newText)

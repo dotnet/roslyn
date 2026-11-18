@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
             return BuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run, BuildClient.GetCompileOnServerFunc(logger), logger);
         }
 
-        public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, string? tempDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
-            => Csc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir), textWriter, analyzerLoader);
+        public static int Run(string[] args, string clientDir, string workingDir, string sdkDir, TextWriter textWriter, IAnalyzerAssemblyLoader analyzerLoader)
+            => Csc.Run(args, new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir), textWriter, analyzerLoader);
     }
 }

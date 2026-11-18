@@ -2025,7 +2025,7 @@ End Class
 System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA1)
 System.Reflection.AssemblyCultureAttribute("en-US")
 System.Reflection.AssemblyDelaySignAttribute(True)
-System.Reflection.AssemblyFlagsAttribute(System.Reflection.AssemblyNameFlags.None Or System.Reflection.AssemblyNameFlags.EnableJITcompileOptimizer Or System.Reflection.AssemblyNameFlags.EnableJITcompileTracking Or System.Reflection.AssemblyNameFlags.Retargetable)
+System.Reflection.AssemblyFlagsAttribute(System.Reflection.AssemblyNameFlags.EnableJITcompileOptimizer Or System.Reflection.AssemblyNameFlags.EnableJITcompileTracking Or System.Reflection.AssemblyNameFlags.Retargetable)
 System.Reflection.AssemblyVersionAttribute("1.2.3.4")
 System.Reflection.AssemblyFileVersionAttribute("4.3.2.1")
 System.Reflection.AssemblyTitleAttribute("HELLO")

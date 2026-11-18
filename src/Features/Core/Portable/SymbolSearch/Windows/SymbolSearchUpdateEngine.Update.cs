@@ -182,7 +182,8 @@ internal sealed partial class SymbolSearchUpdateEngine
                 var databaseFileInfo = new FileInfo(
                     Path.Combine(_cacheDirectoryInfo.FullName, ConvertToFileName(_source) + ".txt"));
 
-                if (_service._ioService.Exists(databaseFileInfo))
+                if (_service._ioService.Exists(GetBinaryFileInfo(databaseFileInfo)) ||
+                    _service._ioService.Exists(databaseFileInfo))
                 {
                     LogInfo("Local database file exists. Patching local database");
                     return await PatchLocalDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
@@ -287,14 +288,10 @@ internal sealed partial class SymbolSearchUpdateEngine
                 return (succeeded: false, failureDelay);
             }
 
-            // Write the file out to disk so we'll have it the next time we launch VS.  Do this
-            // after we set the in-memory instance so we at least have something to search while
-            // we're waiting to write. It's ok if either of these writes don't succeed. If the txt
-            // file fails to persist, a subsequent VS session will redownload the index and again try
-            // to persist. If the binary file fails to persist, a subsequent VS session will just load
-            // the index from the txt file and again try to persist the binary file.
-            await WriteDatabaseTextFileAsync(databaseFileInfo, bytes, cancellationToken).ConfigureAwait(false);
+            // Persist after publishing the in-memory instance so searches don't wait for disk writes.
+            // Publish binary first so a shutdown between writes leaves a directly loadable cache.
             await WriteDatabaseBinaryFileAsync(database, databaseFileInfo, cancellationToken).ConfigureAwait(false);
+            await WriteDatabaseTextFileAsync(databaseFileInfo, bytes, cancellationToken).ConfigureAwait(false);
 
             var delay = _service._delayService.UpdateSucceededDelay;
             LogInfo($"Processing full database element completed. Update again in {delay}");
@@ -410,6 +407,10 @@ internal sealed partial class SymbolSearchUpdateEngine
                 LogException(e, "Error creating database from local copy. Downloading full database");
                 return await DownloadFullDatabaseAsync(databaseFileInfo, cancellationToken).ConfigureAwait(false);
             }
+
+            // Repair an interrupted cache write without depending on an online update completing.
+            if (!isBinary)
+                await WriteDatabaseBinaryFileAsync(database, databaseFileInfo, cancellationToken).ConfigureAwait(false);
 
             // Now attempt to download and apply patch file.
             //
@@ -527,12 +528,9 @@ internal sealed partial class SymbolSearchUpdateEngine
             using var stream = new MemoryStream(finalBytes);
             database = CreateAndSetInMemoryDatabase(stream, isBinary: false);
 
-            // Attempt to persist the txt and binary forms of the index. It's ok if either of these writes
-            // don't succeed. If the txt file fails to persist, a subsequent VS session will redownload the
-            // index and again try to persist. If the binary file fails to persist, a subsequent VS session
-            // will just load the index from the txt file and again try to persist the binary file.
-            await WriteDatabaseTextFileAsync(databaseFileInfo, finalBytes, cancellationToken).ConfigureAwait(false);
+            // Keep the directly loadable cache available if shutdown interrupts publication.
             await WriteDatabaseBinaryFileAsync(database, databaseFileInfo, cancellationToken).ConfigureAwait(false);
+            await WriteDatabaseTextFileAsync(databaseFileInfo, finalBytes, cancellationToken).ConfigureAwait(false);
 
             return _service._delayService.UpdateSucceededDelay;
         }

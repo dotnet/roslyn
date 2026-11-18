@@ -53,6 +53,12 @@ jobs:
         targetType: inline
         script: |
           set -e
+          # Mirror the Helix dump environment so tests that collect dumps or binlogs into HELIX_DUMP_FOLDER,
+          # and runtime crash dumps, end up in the published logs.
+          export HELIX_DUMP_FOLDER="$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/dumps"
+          mkdir -p "$HELIX_DUMP_FOLDER"
+          export DOTNET_DbgEnableMiniDump=1
+          export DOTNET_DbgMiniDumpName="$HELIX_DUMP_FOLDER/crash.%d.%e.dmp"
           dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" ${{ parameters.testArguments }}
       displayName: Test
 

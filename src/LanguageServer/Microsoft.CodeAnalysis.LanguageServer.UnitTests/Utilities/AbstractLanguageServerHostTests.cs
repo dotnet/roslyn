@@ -77,9 +77,19 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         ClientCapabilities? clientCapabilities = null,
         ServerConfiguration? serverConfiguration = null,
         ClientInfo? clientInfo = null,
-        LanguageServerTelemetry? processTelemetry = null)
+        LanguageServerTelemetry? processTelemetry = null,
+        IReadOnlyList<string>? workspaceFolderPaths = null)
     {
-        var initializeParams = new InitializeParams { Capabilities = clientCapabilities ?? new ClientCapabilities(), ClientInfo = clientInfo };
+        var initializeParams = new InitializeParams
+        {
+            Capabilities = clientCapabilities ?? new ClientCapabilities(),
+            ClientInfo = clientInfo,
+            WorkspaceFolders = workspaceFolderPaths?.Select(static path => new WorkspaceFolder
+            {
+                DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
+                Name = path,
+            }).ToArray(),
+        };
         return SingleServerTestLspServer.CreateAsync(initializeParams, LoggerFactory, serverConfiguration ?? DefaultServerConfiguration, this, processTelemetry);
     }
 
@@ -380,12 +390,14 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             string pipeName,
             ExportProvider exportProvider,
             InitializeParams initializeParams,
-            ITestOutputHelper testOutputHelper)
+            ITestOutputHelper testOutputHelper,
+            string? copilotSessionId)
         {
             var clientStream = NamedPipeUtil.CreateClient(serverName: ".", pipeName, PipeDirection.InOut, System.IO.Pipes.PipeOptions.Asynchronous);
             try
             {
                 await clientStream.ConnectAsync();
+                DaemonHandshake.Write(clientStream, copilotSessionId);
             }
             catch
             {
@@ -470,7 +482,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 loggerFactory,
                 daemonTelemetry,
                 serverConfiguration.SessionId,
-                isDefaultSession: false);
+                isDefaultSession: false,
+                copilotSessionId: null);
 
             var connectionManager = new LanguageServerConnectionManager();
             var cts = new CancellationTokenSource();
@@ -567,11 +580,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         /// </summary>
         internal async Task<DaemonClientTestLspServer> CreateClientAsync(
             ClientCapabilities? clientCapabilities = null,
-            ClientInfo? clientInfo = null)
+            ClientInfo? clientInfo = null,
+            string? copilotSessionId = null)
         {
             var serversBefore = _connectionManager.GetStartedServers();
             var initializeParams = new InitializeParams { Capabilities = clientCapabilities ?? new ClientCapabilities(), ClientInfo = clientInfo };
-            var client = await DaemonClientTestLspServer.CreateAsync(_pipeName, _exportProvider, initializeParams, _testOutputHelper);
+            var client = await DaemonClientTestLspServer.CreateAsync(_pipeName, _exportProvider, initializeParams, _testOutputHelper, copilotSessionId);
 
             LanguageServerHost? newServer = null;
             await WaitForConditionAsync(() =>

@@ -1670,19 +1670,19 @@ Position GetName for item '-2'
             verifier.VerifyIL("Program.<Call1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
-  // Code size      235 (0xeb)
+  // Code size      233 (0xe9)
   .maxstack  3
   .locals init (int V_0,
-                int V_1,
-                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
-                System.Exception V_3)
+            int V_1,
+            System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+            System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<Call1>d__1<T>.<>1__state""
   IL_0006:  stloc.0
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0074
+    IL_0008:  brfalse.s  IL_0072
     IL_000a:  ldarg.0
     IL_000b:  ldarg.0
     IL_000c:  ldfld      ""T[] Program.<Call1>d__1<T>.item""
@@ -1694,79 +1694,78 @@ Position GetName for item '-2'
     IL_0022:  ldfld      ""T[] Program.<Call1>d__1<T>.<>7__wrap1""
     IL_0027:  ldarg.0
     IL_0028:  ldfld      ""int Program.<Call1>d__1<T>.<>7__wrap2""
-    IL_002d:  readonly.
-    IL_002f:  ldelema    ""T""
-    IL_0034:  pop
-    IL_0035:  ldarg.0
-    IL_0036:  ldflda     ""T[] Program.<Call1>d__1<T>.item""
-    IL_003b:  call       ""int Program.GetOffset<T>(ref T[])""
-    IL_0040:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
-    IL_0045:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_004a:  stloc.2
-    IL_004b:  ldloca.s   V_2
-    IL_004d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0052:  brtrue.s   IL_0090
-    IL_0054:  ldarg.0
-    IL_0055:  ldc.i4.0
-    IL_0056:  dup
-    IL_0057:  stloc.0
-    IL_0058:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
-    IL_005d:  ldarg.0
-    IL_005e:  ldloc.2
-    IL_005f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
-    IL_0064:  ldarg.0
-    IL_0065:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
-    IL_006a:  ldloca.s   V_2
-    IL_006c:  ldarg.0
-    IL_006d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Call1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Call1>d__1<T>)""
-    IL_0072:  leave.s    IL_00ea
-    IL_0074:  ldarg.0
-    IL_0075:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
-    IL_007a:  stloc.2
-    IL_007b:  ldarg.0
-    IL_007c:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
-    IL_0081:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_0087:  ldarg.0
-    IL_0088:  ldc.i4.m1
-    IL_0089:  dup
-    IL_008a:  stloc.0
-    IL_008b:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
-    IL_0090:  ldloca.s   V_2
-    IL_0092:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_0097:  stloc.1
-    IL_0098:  ldarg.0
-    IL_0099:  ldfld      ""T[] Program.<Call1>d__1<T>.<>7__wrap1""
-    IL_009e:  ldarg.0
-    IL_009f:  ldfld      ""int Program.<Call1>d__1<T>.<>7__wrap2""
-    IL_00a4:  readonly.
-    IL_00a6:  ldelema    ""T""
-    IL_00ab:  ldloc.1
-    IL_00ac:  constrained. ""T""
-    IL_00b2:  callvirt   ""void IMoveable.GetName(int)""
-    IL_00b7:  ldarg.0
-    IL_00b8:  ldnull
-    IL_00b9:  stfld      ""T[] Program.<Call1>d__1<T>.<>7__wrap1""
-    IL_00be:  leave.s    IL_00d7
+    IL_002d:  ldelema    ""T""
+    IL_0032:  pop
+    IL_0033:  ldarg.0
+    IL_0034:  ldflda     ""T[] Program.<Call1>d__1<T>.item""
+    IL_0039:  call       ""int Program.GetOffset<T>(ref T[])""
+    IL_003e:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_0043:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0048:  stloc.2
+    IL_0049:  ldloca.s   V_2
+    IL_004b:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0050:  brtrue.s   IL_008e
+    IL_0052:  ldarg.0
+    IL_0053:  ldc.i4.0
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
+    IL_005b:  ldarg.0
+    IL_005c:  ldloc.2
+    IL_005d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
+    IL_0062:  ldarg.0
+    IL_0063:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
+    IL_0068:  ldloca.s   V_2
+    IL_006a:  ldarg.0
+    IL_006b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Call1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Call1>d__1<T>)""
+    IL_0070:  leave.s    IL_00e8
+    IL_0072:  ldarg.0
+    IL_0073:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
+    IL_0078:  stloc.2
+    IL_0079:  ldarg.0
+    IL_007a:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Call1>d__1<T>.<>u__1""
+    IL_007f:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0085:  ldarg.0
+    IL_0086:  ldc.i4.m1
+    IL_0087:  dup
+    IL_0088:  stloc.0
+    IL_0089:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
+    IL_008e:  ldloca.s   V_2
+    IL_0090:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0095:  stloc.1
+    IL_0096:  ldarg.0
+    IL_0097:  ldfld      ""T[] Program.<Call1>d__1<T>.<>7__wrap1""
+    IL_009c:  ldarg.0
+    IL_009d:  ldfld      ""int Program.<Call1>d__1<T>.<>7__wrap2""
+    IL_00a2:  readonly.
+    IL_00a4:  ldelema    ""T""
+    IL_00a9:  ldloc.1
+    IL_00aa:  constrained. ""T""
+    IL_00b0:  callvirt   ""void IMoveable.GetName(int)""
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldnull
+    IL_00b7:  stfld      ""T[] Program.<Call1>d__1<T>.<>7__wrap1""
+    IL_00bc:  leave.s    IL_00d5
   }
   catch System.Exception
   {
-    IL_00c0:  stloc.3
-    IL_00c1:  ldarg.0
-    IL_00c2:  ldc.i4.s   -2
-    IL_00c4:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
-    IL_00c9:  ldarg.0
-    IL_00ca:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
-    IL_00cf:  ldloc.3
-    IL_00d0:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00d5:  leave.s    IL_00ea
+    IL_00be:  stloc.3
+    IL_00bf:  ldarg.0
+    IL_00c0:  ldc.i4.s   -2
+    IL_00c2:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
+    IL_00c7:  ldarg.0
+    IL_00c8:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
+    IL_00cd:  ldloc.3
+    IL_00ce:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00d3:  leave.s    IL_00e8
   }
-  IL_00d7:  ldarg.0
-  IL_00d8:  ldc.i4.s   -2
-  IL_00da:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
-  IL_00df:  ldarg.0
-  IL_00e0:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
-  IL_00e5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_00ea:  ret
+  IL_00d5:  ldarg.0
+  IL_00d6:  ldc.i4.s   -2
+  IL_00d8:  stfld      ""int Program.<Call1>d__1<T>.<>1__state""
+  IL_00dd:  ldarg.0
+  IL_00de:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Call1>d__1<T>.<>t__builder""
+  IL_00e3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_00e8:  ret
 }
 ");
 
@@ -11054,19 +11053,19 @@ Position set for item '-2'
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
-  // Code size      271 (0x10f)
+  // Code size      269 (0x10d)
   .maxstack  4
   .locals init (int V_0,
-                int V_1,
-                System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
-                System.Exception V_3)
+            int V_1,
+            System.Runtime.CompilerServices.TaskAwaiter<int> V_2,
+            System.Exception V_3)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<Shift1>d__1<T>.<>1__state""
   IL_0006:  stloc.0
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0077
+    IL_0008:  brfalse.s  IL_0075
     IL_000a:  ldarg.0
     IL_000b:  ldarg.0
     IL_000c:  ldfld      ""T[] Program.<Shift1>d__1<T>.item""
@@ -11078,90 +11077,89 @@ Position set for item '-2'
     IL_0022:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
     IL_0027:  ldarg.0
     IL_0028:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
-    IL_002d:  readonly.
-    IL_002f:  ldelema    ""T""
-    IL_0034:  pop
-    IL_0035:  ldarg.0
-    IL_0036:  ldflda     ""T[] Program.<Shift1>d__1<T>.item""
-    IL_003b:  call       ""int Program.GetOffset<T>(ref T[])""
-    IL_0040:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
-    IL_0045:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_004a:  stloc.2
-    IL_004b:  ldloca.s   V_2
-    IL_004d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0052:  brtrue.s   IL_0093
-    IL_0054:  ldarg.0
-    IL_0055:  ldc.i4.0
-    IL_0056:  dup
-    IL_0057:  stloc.0
-    IL_0058:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
-    IL_005d:  ldarg.0
-    IL_005e:  ldloc.2
-    IL_005f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
-    IL_0064:  ldarg.0
-    IL_0065:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
-    IL_006a:  ldloca.s   V_2
-    IL_006c:  ldarg.0
-    IL_006d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift1>d__1<T>)""
-    IL_0072:  leave      IL_010e
-    IL_0077:  ldarg.0
-    IL_0078:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
-    IL_007d:  stloc.2
-    IL_007e:  ldarg.0
-    IL_007f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
-    IL_0084:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_008a:  ldarg.0
-    IL_008b:  ldc.i4.m1
-    IL_008c:  dup
-    IL_008d:  stloc.0
-    IL_008e:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
-    IL_0093:  ldloca.s   V_2
-    IL_0095:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_009a:  stloc.1
-    IL_009b:  ldarg.0
-    IL_009c:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
-    IL_00a7:  readonly.
-    IL_00a9:  ldelema    ""T""
-    IL_00ae:  ldloc.1
-    IL_00af:  ldarg.0
-    IL_00b0:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
-    IL_00b5:  ldarg.0
-    IL_00b6:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
-    IL_00bb:  readonly.
-    IL_00bd:  ldelema    ""T""
-    IL_00c2:  ldloc.1
-    IL_00c3:  constrained. ""T""
-    IL_00c9:  callvirt   ""int IMoveable.this[int].get""
-    IL_00ce:  ldc.i4.1
-    IL_00cf:  add
-    IL_00d0:  constrained. ""T""
-    IL_00d6:  callvirt   ""void IMoveable.this[int].set""
-    IL_00db:  ldarg.0
-    IL_00dc:  ldnull
-    IL_00dd:  stfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
-    IL_00e2:  leave.s    IL_00fb
+    IL_002d:  ldelema    ""T""
+    IL_0032:  pop
+    IL_0033:  ldarg.0
+    IL_0034:  ldflda     ""T[] Program.<Shift1>d__1<T>.item""
+    IL_0039:  call       ""int Program.GetOffset<T>(ref T[])""
+    IL_003e:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_0043:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0048:  stloc.2
+    IL_0049:  ldloca.s   V_2
+    IL_004b:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0050:  brtrue.s   IL_0091
+    IL_0052:  ldarg.0
+    IL_0053:  ldc.i4.0
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_005b:  ldarg.0
+    IL_005c:  ldloc.2
+    IL_005d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_0062:  ldarg.0
+    IL_0063:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_0068:  ldloca.s   V_2
+    IL_006a:  ldarg.0
+    IL_006b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift1>d__1<T>)""
+    IL_0070:  leave      IL_010c
+    IL_0075:  ldarg.0
+    IL_0076:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_007b:  stloc.2
+    IL_007c:  ldarg.0
+    IL_007d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_0082:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0088:  ldarg.0
+    IL_0089:  ldc.i4.m1
+    IL_008a:  dup
+    IL_008b:  stloc.0
+    IL_008c:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0091:  ldloca.s   V_2
+    IL_0093:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0098:  stloc.1
+    IL_0099:  ldarg.0
+    IL_009a:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
+    IL_00a5:  readonly.
+    IL_00a7:  ldelema    ""T""
+    IL_00ac:  ldloc.1
+    IL_00ad:  ldarg.0
+    IL_00ae:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
+    IL_00b3:  ldarg.0
+    IL_00b4:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
+    IL_00b9:  readonly.
+    IL_00bb:  ldelema    ""T""
+    IL_00c0:  ldloc.1
+    IL_00c1:  constrained. ""T""
+    IL_00c7:  callvirt   ""int IMoveable.this[int].get""
+    IL_00cc:  ldc.i4.1
+    IL_00cd:  add
+    IL_00ce:  constrained. ""T""
+    IL_00d4:  callvirt   ""void IMoveable.this[int].set""
+    IL_00d9:  ldarg.0
+    IL_00da:  ldnull
+    IL_00db:  stfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
+    IL_00e0:  leave.s    IL_00f9
   }
   catch System.Exception
   {
-    IL_00e4:  stloc.3
-    IL_00e5:  ldarg.0
-    IL_00e6:  ldc.i4.s   -2
-    IL_00e8:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
-    IL_00ed:  ldarg.0
-    IL_00ee:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
-    IL_00f3:  ldloc.3
-    IL_00f4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00f9:  leave.s    IL_010e
+    IL_00e2:  stloc.3
+    IL_00e3:  ldarg.0
+    IL_00e4:  ldc.i4.s   -2
+    IL_00e6:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_00eb:  ldarg.0
+    IL_00ec:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_00f1:  ldloc.3
+    IL_00f2:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00f7:  leave.s    IL_010c
   }
-  IL_00fb:  ldarg.0
-  IL_00fc:  ldc.i4.s   -2
-  IL_00fe:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
-  IL_0103:  ldarg.0
-  IL_0104:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
-  IL_0109:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_010e:  ret
+  IL_00f9:  ldarg.0
+  IL_00fa:  ldc.i4.s   -2
+  IL_00fc:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_0101:  ldarg.0
+  IL_0102:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+  IL_0107:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_010c:  ret
 }
 ");
 
@@ -11983,20 +11981,20 @@ Position set for item '-2'
             verifier.VerifyIL("Program.<Shift1>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext",
 @"
 {
-  // Code size      275 (0x113)
+  // Code size      273 (0x111)
   .maxstack  4
   .locals init (int V_0,
-                int V_1,
-                int V_2,
-                System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
-                System.Exception V_4)
+            int V_1,
+            int V_2,
+            System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
+            System.Exception V_4)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""int Program.<Shift1>d__1<T>.<>1__state""
   IL_0006:  stloc.0
   .try
   {
     IL_0007:  ldloc.0
-    IL_0008:  brfalse.s  IL_0077
+    IL_0008:  brfalse.s  IL_0075
     IL_000a:  ldarg.0
     IL_000b:  ldarg.0
     IL_000c:  ldfld      ""T[] Program.<Shift1>d__1<T>.item""
@@ -12008,92 +12006,91 @@ Position set for item '-2'
     IL_0022:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
     IL_0027:  ldarg.0
     IL_0028:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
-    IL_002d:  readonly.
-    IL_002f:  ldelema    ""T""
-    IL_0034:  pop
-    IL_0035:  ldarg.0
-    IL_0036:  ldflda     ""T[] Program.<Shift1>d__1<T>.item""
-    IL_003b:  call       ""int Program.GetOffset<T>(ref T[])""
-    IL_0040:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
-    IL_0045:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
-    IL_004a:  stloc.3
-    IL_004b:  ldloca.s   V_3
-    IL_004d:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
-    IL_0052:  brtrue.s   IL_0093
-    IL_0054:  ldarg.0
-    IL_0055:  ldc.i4.0
-    IL_0056:  dup
-    IL_0057:  stloc.0
-    IL_0058:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
-    IL_005d:  ldarg.0
-    IL_005e:  ldloc.3
-    IL_005f:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
-    IL_0064:  ldarg.0
-    IL_0065:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
-    IL_006a:  ldloca.s   V_3
-    IL_006c:  ldarg.0
-    IL_006d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift1>d__1<T>)""
-    IL_0072:  leave      IL_0112
-    IL_0077:  ldarg.0
-    IL_0078:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
-    IL_007d:  stloc.3
-    IL_007e:  ldarg.0
-    IL_007f:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
-    IL_0084:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
-    IL_008a:  ldarg.0
-    IL_008b:  ldc.i4.m1
-    IL_008c:  dup
-    IL_008d:  stloc.0
-    IL_008e:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
-    IL_0093:  ldloca.s   V_3
-    IL_0095:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
-    IL_009a:  stloc.1
-    IL_009b:  ldarg.0
-    IL_009c:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
-    IL_00a7:  readonly.
-    IL_00a9:  ldelema    ""T""
-    IL_00ae:  ldloc.1
-    IL_00af:  constrained. ""T""
-    IL_00b5:  callvirt   ""int IMoveable.this[int].get""
-    IL_00ba:  stloc.2
-    IL_00bb:  ldarg.0
-    IL_00bc:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
-    IL_00c1:  ldarg.0
-    IL_00c2:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
-    IL_00c7:  readonly.
-    IL_00c9:  ldelema    ""T""
-    IL_00ce:  ldloc.1
-    IL_00cf:  ldloc.2
-    IL_00d0:  ldc.i4.1
-    IL_00d1:  add
-    IL_00d2:  constrained. ""T""
-    IL_00d8:  callvirt   ""void IMoveable.this[int].set""
-    IL_00dd:  ldarg.0
-    IL_00de:  ldnull
-    IL_00df:  stfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
-    IL_00e4:  leave.s    IL_00ff
+    IL_002d:  ldelema    ""T""
+    IL_0032:  pop
+    IL_0033:  ldarg.0
+    IL_0034:  ldflda     ""T[] Program.<Shift1>d__1<T>.item""
+    IL_0039:  call       ""int Program.GetOffset<T>(ref T[])""
+    IL_003e:  call       ""System.Threading.Tasks.Task<int> Program.GetOffsetAsync(int)""
+    IL_0043:  callvirt   ""System.Runtime.CompilerServices.TaskAwaiter<int> System.Threading.Tasks.Task<int>.GetAwaiter()""
+    IL_0048:  stloc.3
+    IL_0049:  ldloca.s   V_3
+    IL_004b:  call       ""bool System.Runtime.CompilerServices.TaskAwaiter<int>.IsCompleted.get""
+    IL_0050:  brtrue.s   IL_0091
+    IL_0052:  ldarg.0
+    IL_0053:  ldc.i4.0
+    IL_0054:  dup
+    IL_0055:  stloc.0
+    IL_0056:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_005b:  ldarg.0
+    IL_005c:  ldloc.3
+    IL_005d:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_0062:  ldarg.0
+    IL_0063:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_0068:  ldloca.s   V_3
+    IL_006a:  ldarg.0
+    IL_006b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, Program.<Shift1>d__1<T>>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref Program.<Shift1>d__1<T>)""
+    IL_0070:  leave      IL_0110
+    IL_0075:  ldarg.0
+    IL_0076:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_007b:  stloc.3
+    IL_007c:  ldarg.0
+    IL_007d:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> Program.<Shift1>d__1<T>.<>u__1""
+    IL_0082:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
+    IL_0088:  ldarg.0
+    IL_0089:  ldc.i4.m1
+    IL_008a:  dup
+    IL_008b:  stloc.0
+    IL_008c:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_0091:  ldloca.s   V_3
+    IL_0093:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
+    IL_0098:  stloc.1
+    IL_0099:  ldarg.0
+    IL_009a:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
+    IL_009f:  ldarg.0
+    IL_00a0:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
+    IL_00a5:  readonly.
+    IL_00a7:  ldelema    ""T""
+    IL_00ac:  ldloc.1
+    IL_00ad:  constrained. ""T""
+    IL_00b3:  callvirt   ""int IMoveable.this[int].get""
+    IL_00b8:  stloc.2
+    IL_00b9:  ldarg.0
+    IL_00ba:  ldfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
+    IL_00bf:  ldarg.0
+    IL_00c0:  ldfld      ""int Program.<Shift1>d__1<T>.<>7__wrap2""
+    IL_00c5:  readonly.
+    IL_00c7:  ldelema    ""T""
+    IL_00cc:  ldloc.1
+    IL_00cd:  ldloc.2
+    IL_00ce:  ldc.i4.1
+    IL_00cf:  add
+    IL_00d0:  constrained. ""T""
+    IL_00d6:  callvirt   ""void IMoveable.this[int].set""
+    IL_00db:  ldarg.0
+    IL_00dc:  ldnull
+    IL_00dd:  stfld      ""T[] Program.<Shift1>d__1<T>.<>7__wrap1""
+    IL_00e2:  leave.s    IL_00fd
   }
   catch System.Exception
   {
-    IL_00e6:  stloc.s    V_4
-    IL_00e8:  ldarg.0
-    IL_00e9:  ldc.i4.s   -2
-    IL_00eb:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
-    IL_00f0:  ldarg.0
-    IL_00f1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
-    IL_00f6:  ldloc.s    V_4
-    IL_00f8:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_00fd:  leave.s    IL_0112
+    IL_00e4:  stloc.s    V_4
+    IL_00e6:  ldarg.0
+    IL_00e7:  ldc.i4.s   -2
+    IL_00e9:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+    IL_00ee:  ldarg.0
+    IL_00ef:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+    IL_00f4:  ldloc.s    V_4
+    IL_00f6:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_00fb:  leave.s    IL_0110
   }
-  IL_00ff:  ldarg.0
-  IL_0100:  ldc.i4.s   -2
-  IL_0102:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
-  IL_0107:  ldarg.0
-  IL_0108:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
-  IL_010d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_0112:  ret
+  IL_00fd:  ldarg.0
+  IL_00fe:  ldc.i4.s   -2
+  IL_0100:  stfld      ""int Program.<Shift1>d__1<T>.<>1__state""
+  IL_0105:  ldarg.0
+  IL_0106:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<Shift1>d__1<T>.<>t__builder""
+  IL_010b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0110:  ret
 }
 ");
 
@@ -21550,6 +21547,288 @@ Position get for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_ThroughArray_03()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int this[int i] {get;set;}
+    int Length {get;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int this[int i]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 0;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item2[] {};
+
+        try
+        {
+            Shift2((Item[])item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : class, IMoveable
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem     ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldloc.0
+  IL_0017:  box        ""T""
+  IL_001c:  callvirt   ""int IMoveable.Length.get""
+  IL_0021:  ldloc.1
+  IL_0022:  sub
+  IL_0023:  callvirt   ""int IMoveable.this[int].get""
+  IL_0028:  pop
+  IL_0029:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T& V_2,
+                T V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       ""int Program.GetArrayIndex()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_5
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.s    V_5
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldelem     ""T""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""T""
+  IL_002c:  stloc.2
+  IL_002d:  ldc.i4.1
+  IL_002e:  ldarg.1
+  IL_002f:  div
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.2
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""int IMoveable.Length.get""
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  sub
+  IL_0042:  constrained. ""T""
+  IL_0048:  callvirt   ""int IMoveable.this[int].get""
+  IL_004d:  pop
+  IL_004e:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_ThroughArray_03()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int this[int i] {get;set;}
+    int Length {get;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int this[int i]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item[] {};
+
+        try
+        {
+            Shift2(item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : struct, IMoveable
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""T""
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldarg.1
+  IL_000d:  div
+  IL_000e:  stloc.0
+  IL_000f:  dup
+  IL_0010:  constrained. ""T""
+  IL_0016:  callvirt   ""int IMoveable.Length.get""
+  IL_001b:  ldloc.0
+  IL_001c:  sub
+  IL_001d:  constrained. ""T""
+  IL_0023:  callvirt   ""int IMoveable.this[int].get""
+  IL_0028:  pop
+  IL_0029:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Ref()
         {
@@ -22271,6 +22550,1441 @@ Position get for item '-2'
   IL_00be:  ret
 }
 ");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Length_01(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string this[int x] {get;}
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string this[int index] => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  constrained. ""T""
+  IL_0027:  callvirt   ""int I1.Length.get""
+  IL_002c:  ldc.i4.1
+  IL_002d:  sub
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""string I1.this[int].get""
+  IL_0039:  ret
+}
+" :
+@"
+{
+  // Code size       75 (0x4b)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldloc.0
+  IL_0029:  ldobj      ""T""
+  IL_002e:  stloc.s    V_4
+  IL_0030:  ldloca.s   V_4
+  IL_0032:  constrained. ""T""
+  IL_0038:  callvirt   ""int I1.Length.get""
+  IL_003d:  ldc.i4.1
+  IL_003e:  sub
+  IL_003f:  constrained. ""T""
+  IL_0045:  callvirt   ""string I1.this[int].get""
+  IL_004a:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_01(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string this[int x] {get;}
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string this[int index] => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Length_02_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string this[int index] => receiver.ToString();
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.2
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""int I1.Length.get""
+  IL_002a:  ldc.i4.1
+  IL_002b:  sub
+  IL_002c:  stloc.3
+  IL_002d:  ldobj      ""T""
+  IL_0032:  ldloc.3
+  IL_0033:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0038:  ret
+}
+" :
+@"
+{
+  // Code size       65 (0x41)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.2
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_2
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""int I1.Length.get""
+  IL_0032:  ldc.i4.1
+  IL_0033:  sub
+  IL_0034:  stloc.3
+  IL_0035:  ldobj      ""T""
+  IL_003a:  ldloc.3
+  IL_003b:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0040:  ret
+}
+"
+);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_02_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string this[int index] => receiver.ToString();
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Length_03_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string this[int index] => receiver.ToString();
+    }
+}
+
+sealed class Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) => value[^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                T V_2,
+                int V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.2
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
+  IL_002b:  stloc.3
+  IL_002c:  ldobj      ""T""
+  IL_0031:  ldloc.3
+  IL_0032:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0037:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_03_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string this[int index] => receiver.ToString();
+    }
+}
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) => value[^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Length_04_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string this[int x] {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string this[int index] => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (T& V_0,
+            T V_1,
+            T& V_2,
+            T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  ldobj      ""T""
+  IL_0026:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string I1.this[int].get""
+  IL_0038:  ret
+}
+" :
+@"
+{
+  // Code size       65 (0x41)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldloc.0
+  IL_0029:  ldobj      ""T""
+  IL_002e:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0033:  ldc.i4.1
+  IL_0034:  sub
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""string I1.this[int].get""
+  IL_0040:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_04_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string this[int x] {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string this[int index] => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Length_05(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string this[int x] {get;}
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string this[int index] => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldarga.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  constrained. ""T""
+  IL_0029:  callvirt   ""int I1.Length.get""
+  IL_002e:  call       ""int System.Index.GetOffset(int)""
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""string I1.this[int].get""
+  IL_003e:  ret
+}
+" :
+@"
+{
+  // Code size       80 (0x50)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldarga.s   V_1
+  IL_002a:  ldloc.0
+  IL_002b:  ldobj      ""T""
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloca.s   V_4
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""int I1.Length.get""
+  IL_003f:  call       ""int System.Index.GetOffset(int)""
+  IL_0044:  constrained. ""T""
+  IL_004a:  callvirt   ""string I1.this[int].get""
+  IL_004f:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_05(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string this[int x] {get;}
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string this[int index] => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Length_06_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string this[int index] => receiver.ToString();
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  2
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                int V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldarga.s   V_1
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  stloc.s    V_4
+  IL_0034:  ldloc.0
+  IL_0035:  ldobj      ""T""
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0041:  ret
+}
+" :
+@"
+{
+  // Code size       74 (0x4a)
+  .maxstack  2
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                int V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldarga.s   V_1
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.3
+  IL_0028:  ldloca.s   V_3
+  IL_002a:  constrained. ""T""
+  IL_0030:  callvirt   ""int I1.Length.get""
+  IL_0035:  call       ""int System.Index.GetOffset(int)""
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloc.0
+  IL_003d:  ldobj      ""T""
+  IL_0042:  ldloc.s    V_4
+  IL_0044:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0049:  ret
+}
+"
+);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_06_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string this[int index] => receiver.ToString();
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Length_07_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string this[int index] => receiver.ToString();
+    }
+}
+
+sealed class Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>",
+@"
+{
+  // Code size       65 (0x41)
+  .maxstack  2
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                int V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldarga.s   V_1
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  call       ""int System.Index.GetOffset(int)""
+  IL_0031:  stloc.s    V_4
+  IL_0033:  ldloc.0
+  IL_0034:  ldobj      ""T""
+  IL_0039:  ldloc.s    V_4
+  IL_003b:  call       ""string Extensions.get_Item<T>(T, int)""
+  IL_0040:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_07_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string this[int index] => receiver.ToString();
+    }
+}
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Length_08_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string this[int x] {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string this[int index] => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldarga.s   V_1
+  IL_0022:  ldloc.0
+  IL_0023:  ldobj      ""T""
+  IL_0028:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  constrained. ""T""
+  IL_0038:  callvirt   ""string I1.this[int].get""
+  IL_003d:  ret
+}
+" :
+@"
+{
+  // Code size       70 (0x46)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldarga.s   V_1
+  IL_002a:  ldloc.0
+  IL_002b:  ldobj      ""T""
+  IL_0030:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0035:  call       ""int System.Index.GetOffset(int)""
+  IL_003a:  constrained. ""T""
+  IL_0040:  callvirt   ""string I1.this[int].get""
+  IL_0045:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_Length_08_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string this[int x] {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string this[int index] => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
@@ -33286,6 +35000,876 @@ Position Slice for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_03()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item2[] {};
+
+        try
+        {
+            Shift2((Item[])item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : class, IMoveable
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem     ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""T""
+  IL_001d:  callvirt   ""int IMoveable.Length.get""
+  IL_0022:  ldloc.1
+  IL_0023:  sub
+  IL_0024:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_0029:  pop
+  IL_002a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (T[] V_0,
+                int V_1,
+                T& V_2,
+                T V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       ""int Program.GetArrayIndex()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_5
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.s    V_5
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldelem     ""T""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""T""
+  IL_002c:  stloc.2
+  IL_002d:  ldc.i4.1
+  IL_002e:  ldarg.1
+  IL_002f:  div
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloc.2
+  IL_0033:  ldc.i4.0
+  IL_0034:  ldloc.2
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""int IMoveable.Length.get""
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  sub
+  IL_0043:  constrained. ""T""
+  IL_0049:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_004e:  pop
+  IL_004f:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_03()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item[] {};
+
+        try
+        {
+            Shift2(item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : struct, IMoveable
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.0
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""int IMoveable.Length.get""
+  IL_001e:  ldloc.1
+  IL_001f:  sub
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_002b:  pop
+  IL_002c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_04()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item2[] {};
+
+        try
+        {
+            Shift2((Item[])item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : class, IMoveable
+    {
+        _ = item[GetArrayIndex()][(1 / zero)..];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][(1 / zero)..];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem     ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldloc.1
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""T""
+  IL_001d:  callvirt   ""int IMoveable.Length.get""
+  IL_0022:  ldloc.1
+  IL_0023:  sub
+  IL_0024:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_0029:  pop
+  IL_002a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size       81 (0x51)
+  .maxstack  4
+  .locals init (T[] V_0,
+                int V_1,
+                T& V_2,
+                T V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       ""int Program.GetArrayIndex()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_5
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.s    V_5
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldelem     ""T""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""T""
+  IL_002c:  stloc.2
+  IL_002d:  ldc.i4.1
+  IL_002e:  ldarg.1
+  IL_002f:  div
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.s    V_4
+  IL_0035:  ldloc.2
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""int IMoveable.Length.get""
+  IL_0041:  ldloc.s    V_4
+  IL_0043:  sub
+  IL_0044:  constrained. ""T""
+  IL_004a:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_004f:  pop
+  IL_0050:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_04()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item[] {};
+
+        try
+        {
+            Shift2(item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : struct, IMoveable
+    {
+        _ = item[GetArrayIndex()][(1 / zero)..];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][(1 / zero)..];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  ldloc.1
+  IL_0012:  ldloc.0
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""int IMoveable.Length.get""
+  IL_001e:  ldloc.1
+  IL_001f:  sub
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_002b:  pop
+  IL_002c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_05()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, ref System.Runtime.CompilerServices.Unsafe.NullRef<System.Range>());
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item2[] {};
+
+        try
+        {
+            Shift2((Item[])item2, ref System.Runtime.CompilerServices.Unsafe.NullRef<System.Range>());
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, ref System.Range r) where T : class, IMoveable
+    {
+        _ = item[GetArrayIndex()][r];
+    }
+
+    static void Shift2<T>(T[] item, ref System.Range r) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][r];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       82 (0x52)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem     ""T""
+  IL_000b:  ldarg.1
+  IL_000c:  ldobj      ""System.Range""
+  IL_0011:  stloc.0
+  IL_0012:  dup
+  IL_0013:  box        ""T""
+  IL_0018:  callvirt   ""int IMoveable.Length.get""
+  IL_001d:  stloc.1
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""System.Index System.Range.Start.get""
+  IL_0025:  stloc.s    V_4
+  IL_0027:  ldloca.s   V_4
+  IL_0029:  ldloc.1
+  IL_002a:  call       ""int System.Index.GetOffset(int)""
+  IL_002f:  stloc.2
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  call       ""System.Index System.Range.End.get""
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloca.s   V_4
+  IL_003b:  ldloc.1
+  IL_003c:  call       ""int System.Index.GetOffset(int)""
+  IL_0041:  ldloc.2
+  IL_0042:  sub
+  IL_0043:  stloc.3
+  IL_0044:  box        ""T""
+  IL_0049:  ldloc.2
+  IL_004a:  ldloc.3
+  IL_004b:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_0050:  pop
+  IL_0051:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size      125 (0x7d)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2,
+                System.Range V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                T V_7,
+                System.Index V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       ""int Program.GetArrayIndex()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_7
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.s    V_7
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldelem     ""T""
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""T""
+  IL_002c:  ldarg.1
+  IL_002d:  ldobj      ""System.Range""
+  IL_0032:  stloc.3
+  IL_0033:  dup
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""int IMoveable.Length.get""
+  IL_003f:  stloc.s    V_4
+  IL_0041:  ldloca.s   V_3
+  IL_0043:  call       ""System.Index System.Range.Start.get""
+  IL_0048:  stloc.s    V_8
+  IL_004a:  ldloca.s   V_8
+  IL_004c:  ldloc.s    V_4
+  IL_004e:  call       ""int System.Index.GetOffset(int)""
+  IL_0053:  stloc.s    V_5
+  IL_0055:  ldloca.s   V_3
+  IL_0057:  call       ""System.Index System.Range.End.get""
+  IL_005c:  stloc.s    V_8
+  IL_005e:  ldloca.s   V_8
+  IL_0060:  ldloc.s    V_4
+  IL_0062:  call       ""int System.Index.GetOffset(int)""
+  IL_0067:  ldloc.s    V_5
+  IL_0069:  sub
+  IL_006a:  stloc.s    V_6
+  IL_006c:  ldloc.s    V_5
+  IL_006e:  ldloc.s    V_6
+  IL_0070:  constrained. ""T""
+  IL_0076:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_007b:  pop
+  IL_007c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_05()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, ref System.Runtime.CompilerServices.Unsafe.NullRef<System.Range>());
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item[] {};
+
+        try
+        {
+            Shift2(item2, ref System.Runtime.CompilerServices.Unsafe.NullRef<System.Range>());
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, ref System.Range r) where T : struct, IMoveable
+    {
+        _ = item[GetArrayIndex()][r];
+    }
+
+    static void Shift2<T>(T[] item, ref System.Range r) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][r];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       84 (0x54)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""T""
+  IL_000b:  ldarg.1
+  IL_000c:  ldobj      ""System.Range""
+  IL_0011:  stloc.0
+  IL_0012:  dup
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""int IMoveable.Length.get""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""System.Index System.Range.Start.get""
+  IL_0026:  stloc.s    V_4
+  IL_0028:  ldloca.s   V_4
+  IL_002a:  ldloc.1
+  IL_002b:  call       ""int System.Index.GetOffset(int)""
+  IL_0030:  stloc.2
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  call       ""System.Index System.Range.End.get""
+  IL_0038:  stloc.s    V_4
+  IL_003a:  ldloca.s   V_4
+  IL_003c:  ldloc.1
+  IL_003d:  call       ""int System.Index.GetOffset(int)""
+  IL_0042:  ldloc.2
+  IL_0043:  sub
+  IL_0044:  stloc.3
+  IL_0045:  ldloc.2
+  IL_0046:  ldloc.3
+  IL_0047:  constrained. ""T""
+  IL_004d:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_0052:  pop
+  IL_0053:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_Ref()
         {
@@ -35102,6 +37686,4569 @@ Position Slice for item '-2'
             CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_01(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""int I1.Length.get""
+  IL_002a:  ldc.i4.1
+  IL_002b:  sub
+  IL_002c:  stloc.2
+  IL_002d:  ldloc.2
+  IL_002e:  ldc.i4.3
+  IL_002f:  ldloc.2
+  IL_0030:  sub
+  IL_0031:  constrained. ""T""
+  IL_0037:  callvirt   ""string I1.Slice(int, int)""
+  IL_003c:  ret
+}
+" :
+@"
+{
+  // Code size       77 (0x4d)
+  .maxstack  4
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  stloc.3
+  IL_0025:  ldloca.s   V_3
+  IL_0027:  constrained. ""T""
+  IL_002d:  callvirt   ""int I1.Length.get""
+  IL_0032:  ldc.i4.1
+  IL_0033:  sub
+  IL_0034:  stloc.2
+  IL_0035:  ldobj      ""T""
+  IL_003a:  stloc.3
+  IL_003b:  ldloca.s   V_3
+  IL_003d:  ldloc.2
+  IL_003e:  ldc.i4.3
+  IL_003f:  ldloc.2
+  IL_0040:  sub
+  IL_0041:  constrained. ""T""
+  IL_0047:  callvirt   ""string I1.Slice(int, int)""
+  IL_004c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_01(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_02_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       67 (0x43)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""int I1.Length.get""
+  IL_002b:  ldc.i4.1
+  IL_002c:  sub
+  IL_002d:  stloc.2
+  IL_002e:  ldloc.2
+  IL_002f:  stloc.3
+  IL_0030:  ldc.i4.3
+  IL_0031:  ldloc.2
+  IL_0032:  sub
+  IL_0033:  stloc.s    V_4
+  IL_0035:  ldobj      ""T""
+  IL_003a:  ldloc.3
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0042:  ret
+}
+" :
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.s    V_5
+  IL_0027:  ldloca.s   V_5
+  IL_0029:  constrained. ""T""
+  IL_002f:  callvirt   ""int I1.Length.get""
+  IL_0034:  ldc.i4.1
+  IL_0035:  sub
+  IL_0036:  stloc.2
+  IL_0037:  ldloc.2
+  IL_0038:  stloc.3
+  IL_0039:  ldc.i4.3
+  IL_003a:  ldloc.2
+  IL_003b:  sub
+  IL_003c:  stloc.s    V_4
+  IL_003e:  ldobj      ""T""
+  IL_0043:  ldloc.3
+  IL_0044:  ldloc.s    V_4
+  IL_0046:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_004b:  ret
+}
+"
+);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_02_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_03_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) => value[^1..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>",
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  dup
+  IL_0020:  ldobj      ""T""
+  IL_0025:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002a:  ldc.i4.1
+  IL_002b:  sub
+  IL_002c:  stloc.2
+  IL_002d:  ldloc.2
+  IL_002e:  stloc.3
+  IL_002f:  ldc.i4.3
+  IL_0030:  ldloc.2
+  IL_0031:  sub
+  IL_0032:  stloc.s    V_4
+  IL_0034:  ldobj      ""T""
+  IL_0039:  ldloc.3
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0041:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_03_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) => value[^1..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_04_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  4
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
+  IL_002b:  stloc.2
+  IL_002c:  ldloc.2
+  IL_002d:  ldc.i4.3
+  IL_002e:  ldloc.2
+  IL_002f:  sub
+  IL_0030:  constrained. ""T""
+  IL_0036:  callvirt   ""string I1.Slice(int, int)""
+  IL_003b:  ret
+}
+" :
+@"
+{
+  // Code size       68 (0x44)
+  .maxstack  4
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.1
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.0
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.1
+  IL_001e:  dup
+  IL_001f:  ldobj      ""T""
+  IL_0024:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0029:  ldc.i4.1
+  IL_002a:  sub
+  IL_002b:  stloc.2
+  IL_002c:  ldobj      ""T""
+  IL_0031:  stloc.3
+  IL_0032:  ldloca.s   V_3
+  IL_0034:  ldloc.2
+  IL_0035:  ldc.i4.3
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  constrained. ""T""
+  IL_003e:  callvirt   ""string I1.Slice(int, int)""
+  IL_0043:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_04_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[^1..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_05(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       74 (0x4a)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  constrained. ""T""
+  IL_002b:  callvirt   ""int I1.Length.get""
+  IL_0030:  call       ""int System.Index.GetOffset(int)""
+  IL_0035:  stloc.s    V_4
+  IL_0037:  ldloc.0
+  IL_0038:  ldloc.s    V_4
+  IL_003a:  ldc.i4.3
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  sub
+  IL_003e:  constrained. ""T""
+  IL_0044:  callvirt   ""string I1.Slice(int, int)""
+  IL_0049:  ret
+}
+" :
+@"
+{
+  // Code size       92 (0x5c)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  stloc.s    V_5
+  IL_002c:  ldloca.s   V_5
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""int I1.Length.get""
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloc.0
+  IL_0041:  ldobj      ""T""
+  IL_0046:  stloc.s    V_5
+  IL_0048:  ldloca.s   V_5
+  IL_004a:  ldloc.s    V_4
+  IL_004c:  ldc.i4.3
+  IL_004d:  ldloc.s    V_4
+  IL_004f:  sub
+  IL_0050:  constrained. ""T""
+  IL_0056:  callvirt   ""string I1.Slice(int, int)""
+  IL_005b:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_05(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_06_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       81 (0x51)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                T V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_7
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_7
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  constrained. ""T""
+  IL_002b:  callvirt   ""int I1.Length.get""
+  IL_0030:  call       ""int System.Index.GetOffset(int)""
+  IL_0035:  stloc.s    V_4
+  IL_0037:  ldloc.s    V_4
+  IL_0039:  stloc.s    V_5
+  IL_003b:  ldc.i4.3
+  IL_003c:  ldloc.s    V_4
+  IL_003e:  sub
+  IL_003f:  stloc.s    V_6
+  IL_0041:  ldloc.0
+  IL_0042:  ldobj      ""T""
+  IL_0047:  ldloc.s    V_5
+  IL_0049:  ldloc.s    V_6
+  IL_004b:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0050:  ret
+}
+" :
+@"
+{
+  // Code size       90 (0x5a)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                T V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_7
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_7
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  stloc.s    V_7
+  IL_002c:  ldloca.s   V_7
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""int I1.Length.get""
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  stloc.s    V_5
+  IL_0044:  ldc.i4.3
+  IL_0045:  ldloc.s    V_4
+  IL_0047:  sub
+  IL_0048:  stloc.s    V_6
+  IL_004a:  ldloc.0
+  IL_004b:  ldobj      ""T""
+  IL_0050:  ldloc.s    V_5
+  IL_0052:  ldloc.s    V_6
+  IL_0054:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0059:  ret
+}
+"
+);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_06_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_07_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) => value[i..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>",
+@"
+{
+  // Code size       80 (0x50)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                T V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_7
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_7
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloc.s    V_4
+  IL_0038:  stloc.s    V_5
+  IL_003a:  ldc.i4.3
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  sub
+  IL_003e:  stloc.s    V_6
+  IL_0040:  ldloc.0
+  IL_0041:  ldobj      ""T""
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  ldloc.s    V_6
+  IL_004a:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_004f:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_07_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) => value[i..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_08_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       73 (0x49)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                System.Index V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloc.0
+  IL_0037:  ldloc.s    V_4
+  IL_0039:  ldc.i4.3
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  sub
+  IL_003d:  constrained. ""T""
+  IL_0043:  callvirt   ""string I1.Slice(int, int)""
+  IL_0048:  ret
+}
+" :
+@"
+{
+  // Code size       82 (0x52)
+  .maxstack  4
+  .locals init (T& V_0,
+            T V_1,
+            T& V_2,
+            System.Index V_3,
+            int V_4,
+            T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldarg.1
+  IL_0021:  stloc.3
+  IL_0022:  ldloca.s   V_3
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  stloc.s    V_4
+  IL_0036:  ldloc.0
+  IL_0037:  ldobj      ""T""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  ldloca.s   V_5
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  ldc.i4.3
+  IL_0043:  ldloc.s    V_4
+  IL_0045:  sub
+  IL_0046:  constrained. ""T""
+  IL_004c:  callvirt   ""string I1.Slice(int, int)""
+  IL_0051:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_08_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[i..3];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_09(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       59 (0x3b)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  ldc.i4.1
+  IL_002e:  sub
+  IL_002f:  constrained. ""T""
+  IL_0035:  callvirt   ""string I1.Slice(int, int)""
+  IL_003a:  ret
+}
+" :
+@"
+{
+  // Code size       76 (0x4c)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  stloc.s    V_4
+  IL_0031:  ldloca.s   V_4
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""int I1.Length.get""
+  IL_003e:  ldc.i4.1
+  IL_003f:  sub
+  IL_0040:  constrained. ""T""
+  IL_0046:  callvirt   ""string I1.Slice(int, int)""
+  IL_004b:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_09(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_10_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  ldc.i4.1
+  IL_002e:  sub
+  IL_002f:  stloc.3
+  IL_0030:  ldobj      ""T""
+  IL_0035:  ldloc.2
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_003c:  ret
+}
+" :
+@"
+{
+  // Code size       70 (0x46)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.s    V_4
+  IL_0029:  ldloca.s   V_4
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""int I1.Length.get""
+  IL_0036:  ldc.i4.1
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldobj      ""T""
+  IL_003e:  ldloc.2
+  IL_003f:  ldloc.3
+  IL_0040:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0045:  ret
+}
+"
+);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_10_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_11_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) => value[0..^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>",
+@"
+{
+  // Code size       60 (0x3c)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  ldc.i4.1
+  IL_002d:  sub
+  IL_002e:  stloc.3
+  IL_002f:  ldobj      ""T""
+  IL_0034:  ldloc.2
+  IL_0035:  ldloc.3
+  IL_0036:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_003b:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_11_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) => value[0..^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_12_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       58 (0x3a)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  ldc.i4.1
+  IL_002d:  sub
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""string I1.Slice(int, int)""
+  IL_0039:  ret
+}
+" :
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0034:  ldc.i4.1
+  IL_0035:  sub
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""string I1.Slice(int, int)""
+  IL_0041:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_12_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..^1];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_13(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[3..i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       66 (0x42)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  ldarga.s   V_1
+  IL_0023:  ldloc.0
+  IL_0024:  constrained. ""T""
+  IL_002a:  callvirt   ""int I1.Length.get""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  ldc.i4.3
+  IL_0035:  sub
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""string I1.Slice(int, int)""
+  IL_0041:  ret
+}
+" :
+@"
+{
+  // Code size       83 (0x53)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.3
+  IL_0029:  ldarga.s   V_1
+  IL_002b:  ldloc.0
+  IL_002c:  ldobj      ""T""
+  IL_0031:  stloc.s    V_4
+  IL_0033:  ldloca.s   V_4
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""int I1.Length.get""
+  IL_0040:  call       ""int System.Index.GetOffset(int)""
+  IL_0045:  ldc.i4.3
+  IL_0046:  sub
+  IL_0047:  constrained. ""T""
+  IL_004d:  callvirt   ""string I1.Slice(int, int)""
+  IL_0052:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_13(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[3..i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_14_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[3..i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (T& V_0,
+            T V_1,
+            T& V_2,
+            int V_3,
+            int V_4,
+            T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  stloc.3
+  IL_0022:  ldarga.s   V_1
+  IL_0024:  ldloc.0
+  IL_0025:  constrained. ""T""
+  IL_002b:  callvirt   ""int I1.Length.get""
+  IL_0030:  call       ""int System.Index.GetOffset(int)""
+  IL_0035:  ldc.i4.3
+  IL_0036:  sub
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloc.0
+  IL_003a:  ldobj      ""T""
+  IL_003f:  ldloc.3
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0047:  ret
+}
+" :
+@"
+{
+  // Code size       81 (0x51)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                int V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  stloc.3
+  IL_0022:  ldarga.s   V_1
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  stloc.s    V_5
+  IL_002c:  ldloca.s   V_5
+  IL_002e:  constrained. ""T""
+  IL_0034:  callvirt   ""int I1.Length.get""
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  ldc.i4.3
+  IL_003f:  sub
+  IL_0040:  stloc.s    V_4
+  IL_0042:  ldloc.0
+  IL_0043:  ldobj      ""T""
+  IL_0048:  ldloc.3
+  IL_0049:  ldloc.s    V_4
+  IL_004b:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0050:  ret
+}
+"
+);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_14_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[3..i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_15_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) => value[3..i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>",
+@"
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                int V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_5
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.2
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.2
+  IL_001f:  stloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  stloc.3
+  IL_0022:  ldarga.s   V_1
+  IL_0024:  ldloc.0
+  IL_0025:  ldobj      ""T""
+  IL_002a:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002f:  call       ""int System.Index.GetOffset(int)""
+  IL_0034:  ldc.i4.3
+  IL_0035:  sub
+  IL_0036:  stloc.s    V_4
+  IL_0038:  ldloc.0
+  IL_0039:  ldobj      ""T""
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0046:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_15_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) => value[3..i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_16_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[3..i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       65 (0x41)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.3
+  IL_0021:  ldarga.s   V_1
+  IL_0023:  ldloc.0
+  IL_0024:  ldobj      ""T""
+  IL_0029:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002e:  call       ""int System.Index.GetOffset(int)""
+  IL_0033:  ldc.i4.3
+  IL_0034:  sub
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""string I1.Slice(int, int)""
+  IL_0040:  ret
+}
+" :
+@"
+{
+  // Code size       73 (0x49)
+  .maxstack  4
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.3
+  IL_0029:  ldarga.s   V_1
+  IL_002b:  ldloc.0
+  IL_002c:  ldobj      ""T""
+  IL_0031:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0036:  call       ""int System.Index.GetOffset(int)""
+  IL_003b:  ldc.i4.3
+  IL_003c:  sub
+  IL_003d:  constrained. ""T""
+  IL_0043:  callvirt   ""string I1.Slice(int, int)""
+  IL_0048:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_16_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Index i) where T : I1 => value[3..i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, ^1)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_17(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.0
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  constrained. ""T""
+  IL_0033:  callvirt   ""string I1.Slice(int, int)""
+  IL_0038:  ret
+}
+" :
+@"
+{
+  // Code size       74 (0x4a)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  stloc.s    V_4
+  IL_0031:  ldloca.s   V_4
+  IL_0033:  constrained. ""T""
+  IL_0039:  callvirt   ""int I1.Length.get""
+  IL_003e:  constrained. ""T""
+  IL_0044:  callvirt   ""string I1.Slice(int, int)""
+  IL_0049:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_17(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_18_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       59 (0x3b)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  stloc.3
+  IL_002e:  ldobj      ""T""
+  IL_0033:  ldloc.2
+  IL_0034:  ldloc.3
+  IL_0035:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_003a:  ret
+}
+" :
+@"
+{
+  // Code size       68 (0x44)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.s    V_4
+  IL_0029:  ldloca.s   V_4
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""int I1.Length.get""
+  IL_0036:  stloc.3
+  IL_0037:  ldobj      ""T""
+  IL_003c:  ldloc.2
+  IL_003d:  ldloc.3
+  IL_003e:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0043:  ret
+}
+"
+);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_18_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_19_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) => value[0..];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>",
+@"
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                int V_2,
+                int V_3,
+                T V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_4
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_4
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldobj      ""T""
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.3
+  IL_0034:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0039:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_19_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) => value[0..];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_20_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldloc.0
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  constrained. ""T""
+  IL_0032:  callvirt   ""string I1.Slice(int, int)""
+  IL_0037:  ret
+}
+" :
+@"
+{
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (T& V_0,
+                T V_1,
+                T& V_2,
+                T V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_3
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.3
+  IL_000b:  box        ""T""
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloc.2
+  IL_0013:  ldobj      ""T""
+  IL_0018:  stloc.1
+  IL_0019:  ldloca.s   V_1
+  IL_001b:  br.s       IL_001e
+  IL_001d:  ldloc.2
+  IL_001e:  stloc.0
+  IL_001f:  ldloc.0
+  IL_0020:  ldobj      ""T""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldloc.0
+  IL_002a:  ldobj      ""T""
+  IL_002f:  call       ""int Extensions.get_Length<T>(T)""
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""string I1.Slice(int, int)""
+  IL_003f:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_20_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value) where T : I1 => value[0..];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ?
+@"
+index: result=replacement, current=replacement
+" :
+// This output is unexpected, see https://github.com/dotnet/roslyn/issues/86329 
+@"
+index: result=original, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_21(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Range i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, 0..)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size      103 (0x67)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  stloc.3
+  IL_002e:  ldloca.s   V_2
+  IL_0030:  call       ""System.Index System.Range.Start.get""
+  IL_0035:  stloc.s    V_7
+  IL_0037:  ldloca.s   V_7
+  IL_0039:  ldloc.3
+  IL_003a:  call       ""int System.Index.GetOffset(int)""
+  IL_003f:  stloc.s    V_4
+  IL_0041:  ldloca.s   V_2
+  IL_0043:  call       ""System.Index System.Range.End.get""
+  IL_0048:  stloc.s    V_7
+  IL_004a:  ldloca.s   V_7
+  IL_004c:  ldloc.3
+  IL_004d:  call       ""int System.Index.GetOffset(int)""
+  IL_0052:  ldloc.s    V_4
+  IL_0054:  sub
+  IL_0055:  stloc.s    V_5
+  IL_0057:  ldloc.s    V_4
+  IL_0059:  ldloc.s    V_5
+  IL_005b:  constrained. ""T""
+  IL_0061:  callvirt   ""string I1.Slice(int, int)""
+  IL_0066:  ret
+}
+" :
+@"
+{
+  // Code size      121 (0x79)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.s    V_6
+  IL_0029:  ldloca.s   V_6
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""int I1.Length.get""
+  IL_0036:  stloc.3
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""System.Index System.Range.Start.get""
+  IL_003e:  stloc.s    V_7
+  IL_0040:  ldloca.s   V_7
+  IL_0042:  ldloc.3
+  IL_0043:  call       ""int System.Index.GetOffset(int)""
+  IL_0048:  stloc.s    V_4
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  call       ""System.Index System.Range.End.get""
+  IL_0051:  stloc.s    V_7
+  IL_0053:  ldloca.s   V_7
+  IL_0055:  ldloc.3
+  IL_0056:  call       ""int System.Index.GetOffset(int)""
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  sub
+  IL_005e:  stloc.s    V_5
+  IL_0060:  ldobj      ""T""
+  IL_0065:  stloc.s    V_6
+  IL_0067:  ldloca.s   V_6
+  IL_0069:  ldloc.s    V_4
+  IL_006b:  ldloc.s    V_5
+  IL_006d:  constrained. ""T""
+  IL_0073:  callvirt   ""string I1.Slice(int, int)""
+  IL_0078:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_21(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+    string Slice(int start, int length);
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Range i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, 0..)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_22_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Range i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, 0..)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size      102 (0x66)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""int I1.Length.get""
+  IL_002d:  stloc.3
+  IL_002e:  ldloca.s   V_2
+  IL_0030:  call       ""System.Index System.Range.Start.get""
+  IL_0035:  stloc.s    V_7
+  IL_0037:  ldloca.s   V_7
+  IL_0039:  ldloc.3
+  IL_003a:  call       ""int System.Index.GetOffset(int)""
+  IL_003f:  stloc.s    V_4
+  IL_0041:  ldloca.s   V_2
+  IL_0043:  call       ""System.Index System.Range.End.get""
+  IL_0048:  stloc.s    V_7
+  IL_004a:  ldloca.s   V_7
+  IL_004c:  ldloc.3
+  IL_004d:  call       ""int System.Index.GetOffset(int)""
+  IL_0052:  ldloc.s    V_4
+  IL_0054:  sub
+  IL_0055:  stloc.s    V_5
+  IL_0057:  ldobj      ""T""
+  IL_005c:  ldloc.s    V_4
+  IL_005e:  ldloc.s    V_5
+  IL_0060:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0065:  ret
+}
+" :
+@"
+{
+  // Code size      111 (0x6f)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  stloc.s    V_6
+  IL_0029:  ldloca.s   V_6
+  IL_002b:  constrained. ""T""
+  IL_0031:  callvirt   ""int I1.Length.get""
+  IL_0036:  stloc.3
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""System.Index System.Range.Start.get""
+  IL_003e:  stloc.s    V_7
+  IL_0040:  ldloca.s   V_7
+  IL_0042:  ldloc.3
+  IL_0043:  call       ""int System.Index.GetOffset(int)""
+  IL_0048:  stloc.s    V_4
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  call       ""System.Index System.Range.End.get""
+  IL_0051:  stloc.s    V_7
+  IL_0053:  ldloca.s   V_7
+  IL_0055:  ldloc.3
+  IL_0056:  call       ""int System.Index.GetOffset(int)""
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  sub
+  IL_005e:  stloc.s    V_5
+  IL_0060:  ldobj      ""T""
+  IL_0065:  ldloc.s    V_4
+  IL_0067:  ldloc.s    V_5
+  IL_0069:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_006e:  ret
+}
+"
+);
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_22_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int Length {get;}
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int Length
+    {
+        get
+        {
+            // Replaces the variable passed by readonly reference.
+            Program.Current = new Item(""replacement"");
+            return 1;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Range i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, 0..)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_23_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+sealed class Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Range i) => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, 0..)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>",
+@"
+{
+  // Code size      101 (0x65)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""System.Index System.Range.Start.get""
+  IL_0034:  stloc.s    V_7
+  IL_0036:  ldloca.s   V_7
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  call       ""System.Index System.Range.End.get""
+  IL_0047:  stloc.s    V_7
+  IL_0049:  ldloca.s   V_7
+  IL_004b:  ldloc.3
+  IL_004c:  call       ""int System.Index.GetOffset(int)""
+  IL_0051:  ldloc.s    V_4
+  IL_0053:  sub
+  IL_0054:  stloc.s    V_5
+  IL_0056:  ldobj      ""T""
+  IL_005b:  ldloc.s    V_4
+  IL_005d:  ldloc.s    V_5
+  IL_005f:  call       ""string Extensions.Slice<T>(T, int, int)""
+  IL_0064:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_23_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+
+        public string Slice(int start, int length) => receiver.ToString();
+    }
+}
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Range i) => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, 0..)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Class_Length_24_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+sealed class Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current;
+
+    static string Index<T>(" + parameterModifier + @" T value, Range i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, 0..)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=original, current=replacement
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Index<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size      102 (0x66)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""System.Index System.Range.Start.get""
+  IL_0034:  stloc.s    V_7
+  IL_0036:  ldloca.s   V_7
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  call       ""System.Index System.Range.End.get""
+  IL_0047:  stloc.s    V_7
+  IL_0049:  ldloca.s   V_7
+  IL_004b:  ldloc.3
+  IL_004c:  call       ""int System.Index.GetOffset(int)""
+  IL_0051:  ldloc.s    V_4
+  IL_0053:  sub
+  IL_0054:  stloc.s    V_5
+  IL_0056:  ldloc.s    V_4
+  IL_0058:  ldloc.s    V_5
+  IL_005a:  constrained. ""T""
+  IL_0060:  callvirt   ""string I1.Slice(int, int)""
+  IL_0065:  ret
+}
+" :
+@"
+{
+  // Code size      111 (0x6f)
+  .maxstack  3
+  .locals init (T V_0,
+                T& V_1,
+                System.Range V_2,
+                int V_3,
+                int V_4,
+                int V_5,
+                T V_6,
+                System.Index V_7)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.1
+  IL_0002:  ldloca.s   V_6
+  IL_0004:  initobj    ""T""
+  IL_000a:  ldloc.s    V_6
+  IL_000c:  box        ""T""
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloc.1
+  IL_0014:  ldobj      ""T""
+  IL_0019:  stloc.0
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  br.s       IL_001f
+  IL_001e:  ldloc.1
+  IL_001f:  ldarg.1
+  IL_0020:  stloc.2
+  IL_0021:  dup
+  IL_0022:  ldobj      ""T""
+  IL_0027:  call       ""int Extensions.get_Length<T>(T)""
+  IL_002c:  stloc.3
+  IL_002d:  ldloca.s   V_2
+  IL_002f:  call       ""System.Index System.Range.Start.get""
+  IL_0034:  stloc.s    V_7
+  IL_0036:  ldloca.s   V_7
+  IL_0038:  ldloc.3
+  IL_0039:  call       ""int System.Index.GetOffset(int)""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldloca.s   V_2
+  IL_0042:  call       ""System.Index System.Range.End.get""
+  IL_0047:  stloc.s    V_7
+  IL_0049:  ldloca.s   V_7
+  IL_004b:  ldloc.3
+  IL_004c:  call       ""int System.Index.GetOffset(int)""
+  IL_0051:  ldloc.s    V_4
+  IL_0053:  sub
+  IL_0054:  stloc.s    V_5
+  IL_0056:  ldobj      ""T""
+  IL_005b:  stloc.s    V_6
+  IL_005d:  ldloca.s   V_6
+  IL_005f:  ldloc.s    V_4
+  IL_0061:  ldloc.s    V_5
+  IL_0063:  constrained. ""T""
+  IL_0069:  callvirt   ""string I1.Slice(int, int)""
+  IL_006e:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalTheory(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86219")]
+        [CombinatorialData]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_Struct_Length_24_Extension(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    string Slice(int start, int length);
+}
+
+static class Extensions
+{
+    extension<T>(T receiver)
+    {
+        public int Length
+        {
+            get
+            {
+                // Replaces the variable passed by readonly reference.
+                Program.Current = new Item(""replacement"");
+                return 1;
+            }
+        }
+    }
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+
+    public string Slice(int start, int length) => ToString();
+}
+
+class Program
+{
+    public static Item Current = default;
+
+    static string Index<T>(" + parameterModifier + @" T value, Range i) where T : I1 => value[i];
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Console.WriteLine($""index: result={Index<Item>(" + (parameterModifier == "in" ? "in" : "ref") + @" Current, 0..)}, current={Current}"");
+    }
+}
+";
+
+            var expectedOutput = @"
+index: result=replacement, current=replacement
+";
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
         [Fact]
         [WorkItem(66162, "https://github.com/dotnet/roslyn/issues/66162")]
         public void GenericTypeParameterAsReceiver_Call_Nullable()
@@ -35876,6 +43023,76 @@ class Program
   IL_0019:  ldc.i4.1
   IL_001a:  add
   IL_001b:  callvirt   ""void I1.P1.set""
+  IL_0020:  nop
+  IL_0021:  ret
+}
+");
+        }
+
+        [Fact]
+        public void GenericTypeParameterAsReceiver_PropertyAccess_PostfixIncrementAssignment_03()
+        {
+            var src = """
+#nullable disable
+
+using System;
+
+interface I { int P { get; set; } }
+
+class C : I
+{
+    public static C Current;
+    public int Value;
+
+    public int P
+    {
+        get
+        {
+            Current = new C { Value = 100 };
+            return Value;
+        }
+        set { Value = value; }
+    }
+}
+
+class Program
+{
+    static void Increment<T>(in T x) where T : class, I
+    {
+        x.P++;
+    }
+
+    static void Main()
+    {
+        var original = new C { Value = 10 };
+        C.Current = original;
+        Increment(in C.Current);
+        Console.WriteLine($"original={original.Value}, current={C.Current.Value}");
+    }
+}
+""";
+
+            var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: "original=11, current=100").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Increment<T>",
+@"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      ""T""
+  IL_0007:  dup
+  IL_0008:  box        ""T""
+  IL_000d:  callvirt   ""int I.P.get""
+  IL_0012:  stloc.0
+  IL_0013:  box        ""T""
+  IL_0018:  ldloc.0
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  callvirt   ""void I.P.set""
   IL_0020:  nop
   IL_0021:  ret
 }
@@ -40069,7 +47286,7 @@ Position set for item '-1'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void Receiver_ImplicitIndexIndexer_Class_ThroughArray()
+        public void Receiver_ImplicitIndexIndexer_Class_ThroughArray_01()
         {
             var source = @"
 using System;
@@ -40159,7 +47376,7 @@ Position get for item '1'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void Receiver_ImplicitIndexIndexer_Struct_ThroughArray()
+        public void Receiver_ImplicitIndexIndexer_Struct_ThroughArray_01()
         {
             var source = @"
 using System;
@@ -40247,7 +47464,181 @@ Position get for item '-1'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void Receiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray()
+        public void Receiver_ImplicitIndexIndexer_Class_ThroughArray_02()
+        {
+            var source = @"
+using System;
+
+class Item
+{
+    public string Name {get; set;}
+
+    public int this[int i]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 0;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed"");
+        }
+    }
+
+    static void Shift1(Item[] item, int zero)
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"Passed";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem.ref
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldarg.1
+  IL_0009:  div
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  callvirt   ""int Item.Length.get""
+  IL_0011:  ldloc.0
+  IL_0012:  sub
+  IL_0013:  callvirt   ""int Item.this[int].get""
+  IL_0018:  pop
+  IL_0019:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Receiver_ImplicitIndexIndexer_Struct_ThroughArray_02()
+        {
+            var source = @"
+using System;
+
+struct Item
+{
+    public string Name {get; set;}
+
+    public int this[int i]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed"");
+        }
+    }
+
+    static void Shift1(Item[] item, int zero)
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"Passed";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""Item""
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldarg.1
+  IL_000d:  div
+  IL_000e:  stloc.0
+  IL_000f:  dup
+  IL_0010:  call       ""int Item.Length.get""
+  IL_0015:  ldloc.0
+  IL_0016:  sub
+  IL_0017:  call       ""int Item.this[int].get""
+  IL_001c:  pop
+  IL_001d:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Receiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_01()
         {
             var source = @"
 using System;
@@ -40334,7 +47725,7 @@ Position Slice for item '1'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void Receiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray()
+        public void Receiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_01()
         {
             var source = @"
 using System;
@@ -40416,6 +47807,726 @@ Position Slice for item '-1'
 ");
 
             CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Receiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_02()
+        {
+            var source = @"
+using System;
+
+class Item
+{
+    public string Name {get; set;}
+
+    public Item Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed"");
+        }
+    }
+
+    static void Shift1(Item[] item, int zero)
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"Passed";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  4
+  .locals init (Item V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem.ref
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldarg.1
+  IL_000a:  div
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldloc.0
+  IL_000f:  callvirt   ""int Item.Length.get""
+  IL_0014:  ldloc.1
+  IL_0015:  sub
+  IL_0016:  callvirt   ""Item Item.Slice(int, int)""
+  IL_001b:  pop
+  IL_001c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Receiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_02()
+        {
+            var source = @"
+using System;
+
+struct Item
+{
+    public string Name {get; set;}
+
+    public Item Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed"");
+        }
+    }
+
+    static void Shift1(Item[] item, int zero)
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"Passed";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  4
+  .locals init (Item& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""Item""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""int Item.Length.get""
+  IL_0018:  ldloc.1
+  IL_0019:  sub
+  IL_001a:  call       ""Item Item.Slice(int, int)""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_01(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+interface I1
+{
+    int P {set;}
+}
+
+struct Item(string name) : I1
+{
+    public override string ToString() => name;
+    public int P
+    {
+        set
+        {
+            Console.Write(ToString());
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test<T>(" + parameterModifier + @" T value) where T : I1
+    {
+        value.P = GetVal();
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ? "replacement" : "original";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test<T>", parameterModifier == "ref" ?
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    ""T""
+  IL_0009:  ldloc.0
+  IL_000a:  box        ""T""
+  IL_000f:  brtrue.s   IL_0019
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.GetVal()""
+  IL_001e:  constrained. ""T""
+  IL_0024:  callvirt   ""void I1.P.set""
+  IL_0029:  ret
+}
+" :
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (T V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""T""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.GetVal()""
+  IL_000e:  constrained. ""T""
+  IL_0014:  callvirt   ""void I1.P.set""
+  IL_0019:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_02(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+    public int this[int i]
+    {
+        get
+        {
+            Console.Write(ToString());
+            return i;
+        }
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test(" + parameterModifier + @" Item value)
+    {
+        _ = value[GetVal()];
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ? "replacement" : "original";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test", parameterModifier == "ref" ?
+@"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetVal()""
+  IL_0006:  call       ""int Item.this[int].get""
+  IL_000b:  pop
+  IL_000c:  ret
+}
+" :
+@"
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (Item V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.GetVal()""
+  IL_000e:  call       ""int Item.this[int].get""
+  IL_0013:  pop
+  IL_0014:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_03(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+    public void M(int i)
+    {
+        Console.Write(ToString());
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test(" + parameterModifier + @" Item value)
+    {
+        value.M(GetVal());
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            var expectedOutput = parameterModifier == "ref" ? "replacement" : "original";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test", parameterModifier == "ref" ?
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetVal()""
+  IL_0006:  call       ""void Item.M(int)""
+  IL_000b:  ret
+}
+" :
+@"
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (Item V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""int Program.GetVal()""
+  IL_000e:  call       ""void Item.M(int)""
+  IL_0013:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_04()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+    public void M(int i)
+    {
+        Console.Write(ToString());
+    }
+}
+
+struct Container(Item item)
+{
+    public readonly Item Item = item;
+}
+
+class Program
+{
+    public static Container Current;
+
+    static void Test1()
+    {
+        Current.Item.M(GetVal());
+    } 
+
+    static async Task Test2()
+    {
+        Current.Item.M(await GetValAsync());
+    } 
+
+    static async Task Main()
+    {
+        Current = new Container(new Item(""Original1""));
+        Test1();
+
+        Current = new Container(new Item(""Original2""));
+        await Test2();
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Container(new Item(""Replacement""));
+        return 1;
+    }
+
+    static async Task<int> GetValAsync()
+    {
+        await Task.Yield();
+        return GetVal();
+    }
+
+}
+";
+
+            var expectedOutput = "Original1Replacement";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (Item V_0)
+  IL_0000:  ldsflda    ""Container Program.Current""
+  IL_0005:  ldfld      ""Item Container.Item""
+  IL_000a:  stloc.0
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int Program.GetVal()""
+  IL_0012:  call       ""void Item.M(int)""
+  IL_0017:  ret
+}
+");
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_05(
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+static class Extension
+{
+    extension (Item x)
+    {
+        public void M1(int i)
+        {
+            Console.Write(x.ToString());
+        }
+    }
+
+    public static void M2(this Item x, int i)
+    {
+        Console.Write(x.ToString());
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test1(" + parameterModifier + @" Item value)
+    {
+        value.M1(GetVal());
+    } 
+
+    static void Test2(" + parameterModifier + @" Item value)
+    {
+        value.M2(GetVal());
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test1(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+
+        Current = new Item(""original"");
+        Test2(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            // This output is expected. For consistency with legacy extension methods, receiver for extension block methods is
+            // treated as a regular parameter for the purpose of lowering and IL generation. Therefore, it is expected to be dereferenced
+            // before arguments are evaluated. 
+            // Receivers of extension properties and indexers are expected to be treated more like true receivers
+            // since there was no legacy behavior to maintain.
+            var expectedOutput = "originaloriginal";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1", parameterModifier == "ref" ?
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  call       ""int Program.GetVal()""
+  IL_000b:  call       ""void Extension.M1(Item, int)""
+  IL_0010:  ret
+}
+" :
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  call       ""int Program.GetVal()""
+  IL_000b:  call       ""void Extension.M1(Item, int)""
+  IL_0010:  ret
+}
+"
+);
+
+            verifier.VerifyIL("Program.Test2", parameterModifier == "ref" ?
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  call       ""int Program.GetVal()""
+  IL_000b:  call       ""void Extension.M2(Item, int)""
+  IL_0010:  ret
+}
+" :
+@"
+{
+  // Code size       17 (0x11)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Item""
+  IL_0006:  call       ""int Program.GetVal()""
+  IL_000b:  call       ""void Extension.M2(Item, int)""
+  IL_0010:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86329")]
+        public void Receiver_Dereference_Order_06(
+            [CombinatorialValues("ref readonly", "in")] string receiverModifier,
+            [CombinatorialValues("ref", "ref readonly", "in")] string parameterModifier)
+        {
+            var source = @"
+using System;
+
+struct Item(string name)
+{
+    public override string ToString() => name;
+}
+
+static class Extension
+{
+    extension (" + receiverModifier + @" Item x)
+    {
+        public void M1(int i)
+        {
+            Console.Write(x.ToString());
+        }
+    }
+
+    public static void M2(this " + receiverModifier + @" Item x, int i)
+    {
+        Console.Write(x.ToString());
+    }
+}
+
+class Program
+{
+    public static Item Current;
+
+    static void Test1(" + parameterModifier + @" Item value)
+    {
+        value.M1(GetVal());
+    } 
+
+    static void Test2(" + parameterModifier + @" Item value)
+    {
+        value.M2(GetVal());
+    } 
+
+    static void Main()
+    {
+        Current = new Item(""original"");
+        Test1(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+        Current = new Item(""original"");
+        Test2(" + (parameterModifier == "in" ? "in" : "ref") + @" Current);
+    }
+
+    static int GetVal()
+    {
+        // Replaces the variable passed by reference.
+        Program.Current = new Item(""replacement"");
+        return 1;
+    }
+}
+";
+
+            var expectedOutput = "replacementreplacement";
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetVal()""
+  IL_0006:  call       ""void Extension.M1(" + receiverModifier + @" Item, int)""
+  IL_000b:  ret
+}
+"
+);
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetVal()""
+  IL_0006:  call       ""void Extension.M2(" + receiverModifier + @" Item, int)""
+  IL_000b:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
     }
 }

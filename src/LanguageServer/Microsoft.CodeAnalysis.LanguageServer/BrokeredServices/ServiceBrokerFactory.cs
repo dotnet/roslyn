@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
@@ -21,8 +22,9 @@ internal sealed class ServiceBrokerFactory : ILspService
     private readonly ExportProvider _exportProvider;
     private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
-    private readonly ImmutableArray<IServiceBrokerInitializer> _serviceBrokerInitializers;
-    private readonly ILoggerFactory _loggerFactory;
+    private readonly ImmutableArray<IServiceBrokerInitializer> _initializers;
+    private readonly ILogger _logger;
+    private readonly TraceSource _traceSource;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -34,49 +36,53 @@ internal sealed class ServiceBrokerFactory : ILspService
         var serviceBrokerInitializers = lspServices.Value.GetRequiredServices<IServiceBrokerInitializer>();
         var loggerFactoryValue = loggerFactory.Value;
         _exportProvider = exportProvider;
-        _loggerFactory = loggerFactoryValue;
+        _logger = loggerFactoryValue.CreateLogger<ServiceBrokerFactory>();
+        _traceSource = BrokeredServiceTraceListener.CreateTraceSource(loggerFactoryValue);
         _bridgeCompletionTask = Task.CompletedTask;
-        _serviceBrokerInitializers = [.. serviceBrokerInitializers];
+        _initializers = [.. serviceBrokerInitializers];
     }
 
     /// <summary>
     /// Creates a service broker instance without connecting via a pipe to another process.
     /// </summary>
-    public async Task<BrokeredServiceContainer> CreateAsync(Workspace workspace)
+    internal async Task<BrokeredServiceContainer> CreateAsync(Workspace workspace)
     {
-        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _serviceBrokerInitializers, _loggerFactory, _cancellationTokenSource.Token);
+        var cancellationToken = _cancellationTokenSource.Token;
+
+        var container = await BrokeredServiceContainer.CreateAsync(_exportProvider, _traceSource, cancellationToken);
+
+        // Register and proffer all services that come from service broker manual initialization
+        var servicesToRegister = _initializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
+        container.RegisterServices(servicesToRegister);
 
         // Proffer the manifest service that describes the services proffered by this process across the bridge, so the other side can know what services to expect.
-        ProfferBridgeManifest(container, _loggerFactory);
+        ProfferBridgeManifest(container, _logger);
 
         // Make the container available to workspace services.
         var provider = (ServiceBrokerProvider)workspace.Services.GetRequiredService<IServiceBrokerProvider>();
         provider.SetContainer(container);
 
-        foreach (var onInitialized in _serviceBrokerInitializers)
+        // Proffer might request dependent remote services from the container,
+        // so we need to proffer after the container is set up and services registered.
+        foreach (var initializer in _initializers)
         {
-            try
-            {
-                onInitialized.OnServiceBrokerInitialized(container.GetFullAccessServiceBroker(), _cancellationTokenSource.Token);
-            }
-            catch (Exception)
-            {
-            }
+            initializer.Proffer(container);
         }
 
         return container;
 
-        static void ProfferBridgeManifest(BrokeredServiceContainer container, ILoggerFactory loggerFactory)
+        static void ProfferBridgeManifest(BrokeredServiceContainer container, ILogger logger)
         {
             container.RegisterServices(new Dictionary<ServiceMoniker, ServiceRegistration>
             {
                 { BrokeredServiceBridgeManifest.ServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
             });
+
             container.Proffer(
                 BrokeredServiceBridgeManifest.ServiceDescriptor,
                 (moniker, options, innerServiceBroker, cancellationToken) =>
                 {
-                    var bridgeManifestService = new BrokeredServiceBridgeManifest(container, loggerFactory);
+                    var bridgeManifestService = new BrokeredServiceBridgeManifest(container, logger);
                     return new ValueTask<object?>(bridgeManifestService);
                 });
         }
@@ -85,9 +91,29 @@ internal sealed class ServiceBrokerFactory : ILspService
     public async Task CreateAndConnectAsync(string brokeredServicePipeName, Workspace workspace)
     {
         var container = await CreateAsync(workspace);
-
+        var serviceBroker = container.GetFullAccessServiceBroker();
         var bridgeProvider = _exportProvider.GetExportedValue<BrokeredServiceBridgeProvider>();
-        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(brokeredServicePipeName, container, _loggerFactory, _cancellationTokenSource.Token);
+
+        _bridgeCompletionTask = bridgeProvider.SetupBrokeredServicesBridgeAsync(
+            brokeredServicePipeName,
+            container,
+            _logger,
+            _traceSource,
+            onServicesAvailable: async cancellationToken =>
+            {
+                foreach (var initializer in _initializers)
+                {
+                    try
+                    {
+                        await initializer.OnServiceBrokerInitializedAsync(serviceBroker, cancellationToken);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError($"Unexpected exception while initializing brokered services: {e}");
+                    }
+                }
+            },
+            _cancellationTokenSource.Token);
     }
 
     public async Task ShutdownAndWaitForCompletionAsync()
@@ -104,5 +130,7 @@ internal sealed class ServiceBrokerFactory : ILspService
         {
             // Expected during shutdown, swallow.
         }
+
+        _cancellationTokenSource.Dispose();
     }
 }

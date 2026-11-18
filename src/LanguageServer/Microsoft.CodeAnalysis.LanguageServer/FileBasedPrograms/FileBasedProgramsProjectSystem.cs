@@ -342,7 +342,7 @@ internal sealed class FileBasedProgramsProjectSystem : LanguageServerProjectLoad
         {
             // This might happen due to a race involving changes to option values.
             // Just don't proceed with the reload and assume the option change handler will unload this project if needed.
-            _logger.LogWarning("A document classified as {documentKind} should not be design-time built.", documentKind);
+            _logger.LogWarning("Not loading '{documentPath}': a document classified as {documentKind} should not be design-time built.", documentPath, documentKind);
             return null;
         }
 

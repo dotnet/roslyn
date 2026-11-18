@@ -727,25 +727,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        if (rewrittenReceiver.Type.IsReferenceType)
-                        {
-                            refKind = RefKind.None;
-                        }
-                        else
-                        {
-                            refKind = rewrittenReceiver.GetRefKind();
-
-                            if (refKind == RefKind.None &&
-                                CodeGenerator.HasHome(rewrittenReceiver,
-                                               CodeGenerator.AddressKind.Constrained,
-                                               _factory.CurrentFunction,
-                                               peVerifyCompatEnabled: false,
-                                               stackLocalsOpt: null))
-                            {
-                                refKind = RefKind.Ref;
-                            }
-                        }
+                        refKind = rewrittenReceiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref;
                     }
+
+                    refKind = AdjustReadonlyReceiverCaptureRefKind(rewrittenReceiver, refKind);
                 }
 
                 tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
@@ -994,6 +979,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return false;
             }
+        }
+
+        private RefKind AdjustReadonlyReceiverCaptureRefKind(BoundExpression rewrittenReceiver, RefKind refKind)
+        {
+            Debug.Assert(rewrittenReceiver is not BoundArrayAccess ||
+                (CodeGenerator.HasHome(rewrittenReceiver,
+                                        CodeGenerator.AddressKind.Writeable,
+                                        _factory.CurrentFunction,
+                                        peVerifyCompatEnabled: true,
+                                        stackLocalsOpt: null) &&
+                 CodeGenerator.HasHome(rewrittenReceiver,
+                                        CodeGenerator.AddressKind.Writeable,
+                                        _factory.CurrentFunction,
+                                        peVerifyCompatEnabled: false,
+                                        stackLocalsOpt: null)
+                                        ));
+
+            if (refKind == RefKind.Ref && rewrittenReceiver is not BoundArrayAccess &&
+                !CodeGenerator.HasHome(rewrittenReceiver,
+                                        CodeGenerator.AddressKind.Writeable,
+                                        _factory.CurrentFunction,
+                                        peVerifyCompatEnabled: _factory.Compilation.IsPeVerifyCompatEnabled,
+                                        stackLocalsOpt: null))
+            {
+                if (CodeGenerator.HasHome(rewrittenReceiver,
+                                    CodeGenerator.AddressKind.ReadOnly,
+                                    _factory.CurrentFunction,
+                                    peVerifyCompatEnabled: false,
+                                    stackLocalsOpt: null))
+                {
+                    refKind = RefKindExtensions.StrictIn;
+                }
+                else
+                {
+                    refKind = RefKind.None;
+                }
+            }
+
+            return refKind;
         }
 
         private RefKind GetExtensionBlockMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)

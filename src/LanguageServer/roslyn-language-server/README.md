@@ -19,6 +19,9 @@ This tool implements the LSP specification, enabling features such as:
 - Document formatting
 - And more
 
+> [!WARNING]
+> Use `roslyn-language-server` only with files or projects that you fully trust. Files you load in the language server may be executed. See also [Secure MSBuild usage best practices](https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-security-best-practices?view=visualstudio#run-build-only-on-sources-you-know-and-reviewed).
+
 ## Installation
 
 Install the language server as a .NET tool:
@@ -45,7 +48,7 @@ All options are optional. One of `--stdio` or `--pipe` should typically be speci
 - `--extensionLogDirectory <path>` - Directory for log files
 - `--extension <path>` - Load extension assemblies (can be specified multiple times)
 - `--debug` - Launch the debugger on startup (default: false)
-- `--telemetryLevel <level>` - Set telemetry level: all, crash, error, or off (default: off)
+- `--telemetryLevel <level>` - Set telemetry level: all, crash, error, or off (default: all). Pass `--telemetryLevel off` to disable telemetry.
 - And other specialized options for advanced scenarios
 
 ### Daemon mode

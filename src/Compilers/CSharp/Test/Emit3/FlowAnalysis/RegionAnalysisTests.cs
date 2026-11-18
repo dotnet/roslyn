@@ -1679,6 +1679,455 @@ class Program
             Assert.Equal("px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfUnassignedParenthesizedLocal()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        int x;
+                        int* p = &(x);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfAssignedParenthesizedLocal()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        int x = 1;
+                        int* p = &(x);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfUnassignedParenthesizedStructField()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        S s;
+                        int* p = &(s.F);
+                    }
+                }
+
+                public struct S
+                {
+                    public int F;
+                    public int G;
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfUnassignedCheckedLocal()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        int x;
+                        int* p = &checked(x);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfUnassignedUncheckedLocal()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        int x;
+                        int* p = &unchecked(x);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfUnassignedUnsafeLocal()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        int x;
+                        int* p = &unsafe(x);
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfUnassignedSuppressedLocal()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        int x;
+                        int* p = &x!;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (6,19): error CS8598: The suppression operator is not allowed in this context
+                //         int* p = &x!;
+                Diagnostic(ErrorCode.ERR_IllegalSuppression, "x").WithLocation(6, 19));
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("x", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfAssignedParenthesizedStructField()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        S s = default;
+                        int* p = &(s.F);
+                    }
+                }
+
+                public struct S
+                {
+                    public int F;
+                    public int G;
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfPointerMember()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M(S* p)
+                    {
+                        int* q = &(p->F);
+                    }
+                }
+
+                public struct S
+                {
+                    public int F;
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("p", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("p", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfUnassignedPointerMember()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        S* p;
+                        int* q = &(p->F);
+                    }
+                }
+
+                public struct S
+                {
+                    public int F;
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (6,20): error CS0165: Use of unassigned local variable 'p'
+                //         int* q = &(p->F);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "p").WithArguments("p").WithLocation(6, 20));
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("p", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("p", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfArrayElement()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        int[] array = new int[1];
+                        int index = 0;
+                        fixed (int* p = &(array[index]))
+                        {
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("array, index", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("array, index", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfArrayElementWithUnassignedReceiverAndIndex()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        int[] array;
+                        int index;
+                        fixed (int* p = &(array[index]))
+                        {
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (7,27): error CS0165: Use of unassigned local variable 'array'
+                //         fixed (int* p = &(array[index]))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "array").WithArguments("array").WithLocation(7, 27),
+                // (7,33): error CS0165: Use of unassigned local variable 'index'
+                //         fixed (int* p = &(array[index]))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "index").WithArguments("index").WithLocation(7, 33));
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("array, index", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("array, index", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfRefReturningIndexer()
+        {
+            var source = """
+                unsafe class C
+                {
+                    private int _value = 1;
+                    public ref int this[int index] => ref _value;
+
+                    static void M()
+                    {
+                        C c = new C();
+                        int index = 0;
+                        fixed (int* p = &(c[index]))
+                        {
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("c, index", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("c, index", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86374")]
+        public void TestAddressOfRefReturningIndexerWithUnassignedReceiverAndIndex()
+        {
+            var source = """
+                unsafe class C
+                {
+                    private int _value = 1;
+                    public ref int this[int index] => ref _value;
+
+                    static void M()
+                    {
+                        C c;
+                        int index;
+                        fixed (int* p = &(c[index]))
+                        {
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyEmitDiagnostics(
+                // (10,27): error CS0165: Use of unassigned local variable 'c'
+                //         fixed (int* p = &(c[index]))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "c").WithArguments("c").WithLocation(10, 27),
+                // (10,29): error CS0165: Use of unassigned local variable 'index'
+                //         fixed (int* p = &(c[index]))
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "index").WithArguments("index").WithLocation(10, 29));
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("c, index", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("c, index", GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
         [WorkItem(543987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
         [Fact]
         public void TestAddressOfAssignedStructField()
@@ -14269,6 +14718,99 @@ class B
             flowAnalysis = model.AnalyzeDataFlow(binOp);
             Assert.Equal("c, y", GetSymbolNamesJoined(flowAnalysis.ReadInside));
             Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86099")]
+        public void Repro_86099()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    string M(int x) => Get(x).ToString();
+                    static int Get(int x) => x;
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "Get(x)");
+            var flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86099")]
+        public void CallChainReceivers()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    C M(int x) => this;
+
+                    private static void Repro(C c)
+                    {
+                        int i = 1, j = 2, k = 3;
+                        _ = c.M(i).M(j).M(k);
+                    }
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var calls = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(3, calls.Length);
+
+            var call = calls[0];
+            Assert.Equal("c.M(i).M(j).M(k)", call.ToString());
+            var flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("c, i, j, k", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+
+            call = calls[1];
+            Assert.Equal("c.M(i).M(j)", call.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("c, i, j", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+
+            call = calls[2];
+            Assert.Equal("c.M(i)", call.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("c, i", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86099")]
+        public void CallChainReceiverWithOutArgument()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    C M(out int x) { x = 0; return this; }
+                    C N(int x) => this;
+
+                    private static void Repro(C c)
+                    {
+                        int x;
+                        _ = c.M(out x).N(x);
+                    }
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "c.M(out x)");
+            var flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("c", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.DataFlowsOut));
         }
     }
 }

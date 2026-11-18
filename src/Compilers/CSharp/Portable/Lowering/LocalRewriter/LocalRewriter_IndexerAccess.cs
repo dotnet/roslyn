@@ -568,6 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                     RefKind refKind = receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref;
 
+                    refKind = AdjustReadonlyReceiverCaptureRefKind(receiver, refKind);
+
                     if (refKind == RefKind.Ref &&
                         receiver is BoundArrayAccess arrayAccess &&
                         !IsInvariantArray(arrayAccess.Expression.Type))
@@ -576,6 +578,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(!receiver.Type.IsValueType);
                         Debug.Assert(receiver.Type.IsTypeParameter());
                         capturedReceiver = SpillArrayElementAccess(arrayAccess.Expression, arrayAccess.Indices, sideeffects, locals);
+                        Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
+                        Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
+                        Debug.Assert(IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, capturedReceiver));
+                        Debug.Assert(IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, capturedReceiver));
+                        Debug.Assert(!CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver));
                     }
                     else
                     {
@@ -597,14 +604,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
                         Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
 
-                        bool isPossibleReferenceTypeReceiver =
-                            IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, capturedReceiver)
-                            || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, capturedReceiver);
-
-                        if (isPossibleReferenceTypeReceiver &&
-                            !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver) &&
-                            ((isLeftOfAssignment && !isRegularAssignment) ||
-                                 !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput))))
+                        // Ensure indexing side effects are observed in the right order.
+                        if ((capturedReceiver is BoundArrayAccess && !IsSafeForReordering(makeOffsetInput, RefKind.None)) ||
+                            ((IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, capturedReceiver)
+                             || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, capturedReceiver)) &&
+                             !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver) &&
+                             ((isLeftOfAssignment && !isRegularAssignment) ||
+                                  strategy is PatternIndexOffsetLoweringStrategy.SubtractFromLength or PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI ||
+                                  !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(ImmutableArray.Create(makeOffsetInput)))))
                         {
                             Debug.Assert(capturedReceiver.Type is { IsReferenceType: false, IsValueType: false });
 
@@ -911,6 +918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                 RefKind refKind = receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref;
 
+                refKind = AdjustReadonlyReceiverCaptureRefKind(receiver, refKind);
+
                 if (refKind == RefKind.Ref &&
                     receiver is BoundArrayAccess arrayAccess &&
                     !IsInvariantArray(arrayAccess.Expression.Type))
@@ -919,6 +928,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!receiver.Type.IsValueType);
                     Debug.Assert(receiver.Type.IsTypeParameter());
                     capturedReceiver = SpillArrayElementAccess(arrayAccess.Expression, arrayAccess.Indices, sideEffectsBuilder, localsBuilder);
+                    Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
+                    Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
+                    Debug.Assert(IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, capturedReceiver));
+                    Debug.Assert(IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, capturedReceiver));
+                    Debug.Assert(!CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver));
                 }
                 else
                 {
@@ -940,36 +954,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(node.LengthOrCountAccess.ExpressionSymbol is not null);
                     Debug.Assert(node.IndexerOrSliceAccess.ExpressionSymbol is not null);
 
-                    bool isPossibleReferenceTypeReceiver =
-                        IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, capturedReceiver)
-                        || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, capturedReceiver);
-
-                    if (isPossibleReferenceTypeReceiver &&
-                        !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver))
+                    // Ensure indexing side effects are observed in the right order.
+                    if ((capturedReceiver is BoundArrayAccess && !isSafeToIndexAfterEvaluatingArguments(startMakeOffsetInput, endMakeOffsetInput, rewrittenRangeArg)) ||
+                        ((IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.LengthOrCountAccess.ExpressionSymbol, capturedReceiver)
+                             || IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(node.IndexerOrSliceAccess.ExpressionSymbol, capturedReceiver)) &&
+                         !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver) &&
+                         (lengthIsUsed(rangeExpr, startStrategy, endStrategy) ||
+                          !isSafeToDereferenceReceiverRefAfterEvaluatingArguments(startMakeOffsetInput, endMakeOffsetInput, rewrittenRangeArg))))
                     {
-                        var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(2);
+                        Debug.Assert(capturedReceiver.Type is { IsReferenceType: false, IsValueType: false });
 
-                        if (startMakeOffsetInput is not null)
-                        {
-                            argumentsBuilder.Add(startMakeOffsetInput);
-                        }
-
-                        if (endMakeOffsetInput is not null)
-                        {
-                            argumentsBuilder.Add(endMakeOffsetInput);
-                        }
-
-                        if (rewrittenRangeArg is not null)
-                        {
-                            argumentsBuilder.Add(rewrittenRangeArg);
-                        }
-
-                        if (!CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsBuilder.ToImmutableAndFree()))
-                        {
-                            Debug.Assert(capturedReceiver.Type is { IsReferenceType: false, IsValueType: false });
-
-                            capturedReceiver = ReferToTempIfReferenceTypeReceiver(capturedReceiver, ref assignmentToTemp, sideEffectsBuilder, localsBuilder);
-                        }
+                        capturedReceiver = ReferToTempIfReferenceTypeReceiver(capturedReceiver, ref assignmentToTemp, sideEffectsBuilder, localsBuilder);
                     }
                 }
 
@@ -1106,6 +1101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     storeExpressionIfNotConstant(ref endMakeOffsetInput, localsBuilder, sideEffectsBuilder);
                 }
 
+                Debug.Assert(lengthIsUsed(rangeExpr, startStrategy, endStrategy) == ((rewriteFlags & useLength) != 0));
                 if ((rewriteFlags & useLength) != 0)
                 {
                     lengthAccess = VisitExpression(node.LengthOrCountAccess);
@@ -1140,6 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(rewrittenRangeArg is not null);
+                Debug.Assert(lengthIsUsed(rangeExpr, startStrategy, endStrategy));
                 (startExpr, rangeSizeExpr) = DeconstructRangeIntoLocals(rewrittenRangeArg, VisitExpression(node.LengthOrCountAccess), localsBuilder, sideEffectsBuilder);
             }
 
@@ -1155,6 +1152,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return rewrittenIndexerAccess;
 
+            static bool lengthIsUsed(BoundRangeExpression? rangeExpr, PatternIndexOffsetLoweringStrategy startStrategy, PatternIndexOffsetLoweringStrategy endStrategy)
+            {
+                if (rangeExpr is null)
+                {
+                    return true;
+                }
+                else
+                {
+                    switch (startStrategy)
+                    {
+                        case PatternIndexOffsetLoweringStrategy.SubtractFromLength:
+                        case PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI:
+                            return true;
+                    }
+
+                    switch (endStrategy)
+                    {
+                        case PatternIndexOffsetLoweringStrategy.Length:
+                        case PatternIndexOffsetLoweringStrategy.SubtractFromLength:
+                        case PatternIndexOffsetLoweringStrategy.UseGetOffsetAPI:
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+
             void storeExpressionIfNotConstant([DisallowNull] ref BoundExpression? expression, ArrayBuilder<LocalSymbol> localsBuilder, ArrayBuilder<BoundExpression> sideEffectsBuilder)
             {
                 if (expression.ConstantValueOpt is null)
@@ -1163,6 +1187,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     localsBuilder.Add(((BoundLocal)expression).LocalSymbol);
                     sideEffectsBuilder.Add(store);
                 }
+            }
+
+            static bool isSafeToDereferenceReceiverRefAfterEvaluatingArguments(BoundExpression? startMakeOffsetInput, BoundExpression? endMakeOffsetInput, BoundExpression? rewrittenRangeArg)
+            {
+                var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(2);
+
+                if (startMakeOffsetInput is not null)
+                {
+                    argumentsBuilder.Add(startMakeOffsetInput);
+                }
+
+                if (endMakeOffsetInput is not null)
+                {
+                    argumentsBuilder.Add(endMakeOffsetInput);
+                }
+
+                if (rewrittenRangeArg is not null)
+                {
+                    argumentsBuilder.Add(rewrittenRangeArg);
+                }
+
+                return CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(argumentsBuilder.ToImmutableAndFree());
+            }
+
+            static bool isSafeToIndexAfterEvaluatingArguments(BoundExpression? startMakeOffsetInput, BoundExpression? endMakeOffsetInput, BoundExpression? rewrittenRangeArg)
+            {
+                if (startMakeOffsetInput is not null && !IsSafeForReordering(startMakeOffsetInput, RefKind.None))
+                {
+                    return false;
+                }
+
+                if (endMakeOffsetInput is not null && !IsSafeForReordering(endMakeOffsetInput, RefKind.None))
+                {
+                    return false;
+                }
+
+                if (rewrittenRangeArg is not null && !IsSafeForReordering(rewrittenRangeArg, RefKind.None))
+                {
+                    return false;
+                }
+
+                return true;
             }
         }
 

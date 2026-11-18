@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Editor;
@@ -21,19 +22,6 @@ using IServiceProvider = System.IServiceProvider;
 
 namespace Microsoft.VisualStudio.Razor;
 
-// The entire purpose of this class is to workaround quirks in Visual Studio's core editor handling. In Razor scenarios
-// we can have a multitude of content types that represents a Razor file:
-//
-// ** Content Type Mappings **
-// RazorCSharp = .NET Framework Razor editor
-// RazorCoreCSharp = .NET Core Legacy Razor editor
-// Razor = .NET Core Razor editor (LSP / new)
-//
-// Because we have these content types that are applied based on what project the user is operating in we have to workaround
-// quirks on the core editor side to ensure that language services for our "Razor" content type properly get applied. For
-// instance we need to set a language service ID, we need to update options and we need to hookup data tip filters for
-// debugging. Typically all of this would be handled for us but due to bugs on the platform front we need to manually do this.
-// That is what this classes purpose is.
 [Export(typeof(ITextViewConnectionListener))]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
@@ -87,19 +75,19 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
             throw new ArgumentNullException(nameof(textView));
         }
 
-        var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
-
-        Assumes.NotNull(vsTextView);
-
         // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.
         // Because of this we don't want to break that experience so we ensure not to "set" a language service for remote clients.
-        if (!_editorFeatureDetector.IsRemoteClient())
+        if (!_editorFeatureDetector.IsRemoteClient() &&
+            _editorAdaptersFactory.GetBufferAdapter(textView.TextViewModel.DataBuffer) is { } vsBuffer)
         {
-            vsTextView.GetBuffer(out var vsBuffer);
             vsBuffer.SetLanguageServiceID(RazorConstants.RazorLanguageServiceGuid);
         }
 
-        RazorLSPTextViewFilter.CreateAndRegister(vsTextView, textView, _joinableTaskContext.Factory, _interceptedCommands);
+        // Multi-diff views don't have a view adapter, but still need the managed editor setup below.
+        if (_editorAdaptersFactory.GetViewAdapter(textView) is { } vsTextView)
+        {
+            RazorLSPTextViewFilter.CreateAndRegister(vsTextView, textView, _joinableTaskContext.Factory, _interceptedCommands);
+        }
 
         if (!textView.TextBuffer.IsRazorLSPBuffer())
         {
@@ -129,8 +117,8 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
                 var bufferOptions = _editorOptionsFactory.GetOptions(_textBuffer);
                 var viewOptions = _editorOptionsFactory.GetOptions(textView);
 
-                Assumes.Present(bufferOptions);
-                Assumes.Present(viewOptions);
+                Contract.ThrowIfNull(bufferOptions);
+                Contract.ThrowIfNull(viewOptions);
 
                 // All TextViews share the same options, so we only need to listen to changes for one.
                 // We need to keep track of and update both the TextView and TextBuffer options. Updating
@@ -142,7 +130,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
 
                 // Initialize TextView options. We only need to do this once per TextView, as the options should
                 // automatically update and they aren't options we care about keeping track of.
-                Assumes.Present(TextManager);
+                Contract.ThrowIfNull(TextManager);
                 InitializeRazorTextViewOptions(TextManager, optionsTracker);
 
                 // A change in Tools->Options settings only kicks off an options changed event in the view
@@ -166,7 +154,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
         // However, we do need to detach from listening for option changes to avoid leaking.
         // We should switch to listening to a different TextView if the one we're listening
         // to is disconnected.
-        Assumes.NotNull(_textBuffer);
+        Contract.ThrowIfNull(_textBuffer);
 
         lock (_lock)
         {
@@ -186,7 +174,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
                 {
                     var newTrackedView = _activeTextViews[0];
                     var newViewOptions = _editorOptionsFactory.GetOptions(newTrackedView);
-                    Assumes.Present(newViewOptions);
+                    Contract.ThrowIfNull(newViewOptions);
 
                     // We assume the TextViews all have the same TextBuffer, so we can reuse the
                     // buffer options from the old TextView.
@@ -202,7 +190,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
 
     private void RazorOptions_OptionChanged(object? sender, EditorOptionChangedEventArgs? e)
     {
-        Assumes.NotNull(_textBuffer);
+        Contract.ThrowIfNull(_textBuffer);
 
         if (!_textBuffer.Properties.TryGetProperty(typeof(RazorEditorOptionsTracker), out RazorEditorOptionsTracker optionsTracker))
         {

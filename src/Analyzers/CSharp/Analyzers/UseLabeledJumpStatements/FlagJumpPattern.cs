@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -12,22 +12,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UseLabeledJumpStatements;
 /// </summary>
 internal sealed class FlagJumpPattern
 {
-    /// <summary>The <c>bool flag = false;</c> declaration to delete.</summary>
+    /// <summary>The flag declaration to delete.</summary>
     public required LocalDeclarationStatementSyntax LocalDeclarationStatement { get; init; }
 
     /// <summary>The outermost loop (the final guard's target) to label and break/continue.</summary>
     public required StatementSyntax LoopStatement { get; init; }
 
-    /// <summary>The chain of <c>if (flag) break;</c>/<c>if (flag) continue;</c> guards to delete (one per level).</summary>
+    /// <summary>The chain of guards that test the jump value and break/continue (one per level).</summary>
     public required ImmutableArray<IfStatementSyntax> GuardStatements { get; init; }
 
-    /// <summary>The inner <c>flag = true; break;</c> sites; each break becomes the labeled jump.</summary>
+    /// <summary>The sites that assign the jump value and break; each break becomes the labeled jump.</summary>
     public required ImmutableArray<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)> AssignmentAndBreakSites { get; init; }
 
-    /// <summary>Any <c>flag = false;</c> resets at the top of the target loop to delete (empty when the flag relies on
+    /// <summary>Any resets to the initial value at the top of the target loop to delete (empty when the flag relies on
     /// its declaration being re-initialized each iteration instead).</summary>
     public required ImmutableArray<ExpressionStatementSyntax> ResetStatements { get; init; }
 
     /// <summary>Whether the final guard is a <c>break</c> (otherwise a <c>continue</c>).</summary>
     public required bool IsBreak { get; init; }
+
+    /// <summary>The initial value of the flag, before it changes to signal a jump.</summary>
+    public required bool InitialValue { get; init; }
 }
