@@ -52,7 +52,7 @@ This creates an additional output file (e.g., `MyAssembly.dll.key`) in the outpu
 - Parse options
 - Emit options
 - Analyzer and generator information
-- Analyzer-configuration file paths, parsed sections, and properties; absolute global-section filenames and the known `build_property.ProjectDir` / `build_property.MSBuildProjectDirectory` values are path-mapped
+- Analyzer-configuration file paths, parsed sections, and properties; absolute global-section filenames and well-known path-valued build properties are path-mapped
 - Ordered section bindings to source and additional files, and relative generated-file matching context; unused sections are omitted unless they could apply to generated files
 
 Compare the `.key` files from two supposedly identical builds to identify which inputs differ:

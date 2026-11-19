@@ -500,9 +500,14 @@ namespace Microsoft.CodeAnalysis
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var value = properties[key];
-                if (key is "build_property.projectdir" or "build_property.msbuildprojectdirectory")
+                if (key is "build_property.projectdir" or "build_property.msbuildprojectdirectory" or
+                    "build_property.intermediateoutputpath" or "build_property.outdir")
                 {
                     value = NormalizeAnalyzerConfigPath(value, pathMap, options, directory: true);
+                }
+                else if (key == "build_property.applicationmanifest")
+                {
+                    value = NormalizeAnalyzerConfigPath(value, pathMap, options);
                 }
 
                 writer.Write(key, value);
