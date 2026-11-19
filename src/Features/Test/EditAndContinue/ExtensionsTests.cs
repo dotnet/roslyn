@@ -118,7 +118,7 @@ public sealed class ExtensionsTests
         var venusLog = new TraceLog("Venus");
         Assert.True(venus.IgnoreForEditAndContinue(venusLog));
         Assert.Equal(
-            "Project Default.aspx ignored for EnC: changes applied by ASP.NET runtime on save",
+            "'Default.aspx' ignored for EnC: changes applied by ASP.NET runtime on save",
             Assert.Single(venusLog.GetTestAccessor().Entries, static entry => entry is not null));
 
         var ordinaryLog = new TraceLog("Ordinary");
