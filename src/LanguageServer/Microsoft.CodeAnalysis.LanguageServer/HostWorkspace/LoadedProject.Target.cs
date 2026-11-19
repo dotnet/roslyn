@@ -344,6 +344,9 @@ internal sealed partial class LoadedProject
             if (matchers is null)
                 return false;
 
+            var projectDirectory = _project._projectDirectory;
+            var relativeFilePath = PathUtilities.GetRelativePath(projectDirectory, filePath);
+
             // Check if the file path matches any of the globs in the project file.
             foreach (var matcher in matchers)
             {
@@ -351,9 +354,6 @@ internal sealed partial class LoadedProject
                 // CPS does not use MSBuildGlob.FixedDirectoryPart.
                 // Match the file relative to the project directory to preserve that behavior.
                 // See https://devdiv.visualstudio.com/DevDiv/_git/CPS?path=/src/Microsoft.VisualStudio.ProjectSystem/Build/MsBuildGlobFactory.cs
-                var projectDirectory = _project._projectDirectory;
-                var relativeFilePath = PathUtilities.GetRelativePath(projectDirectory, filePath);
-
                 var matches = matcher.Match(projectDirectory, relativeFilePath);
                 if (matches.HasMatches)
                     return true;
