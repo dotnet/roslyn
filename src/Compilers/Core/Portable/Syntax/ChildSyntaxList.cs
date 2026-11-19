@@ -339,19 +339,18 @@ namespace Microsoft.CodeAnalysis
             GreenNode green = parent.Green;
             int targetPosition = child.Position;
             int position = parent.Position;
-            int index = 0;
+            if (targetPosition < position)
+            {
+                return -1;
+            }
 
+            int index = 0;
             for (int slot = 0, slotCount = green.SlotCount; slot < slotCount; slot++)
             {
                 GreenNode? greenChild = green.GetSlot(slot);
                 if (greenChild == null)
                 {
                     continue;
-                }
-
-                if (targetPosition < position)
-                {
-                    break;
                 }
 
                 // A zero-width child can sit at the end of one slot or at the start of the next one, so both get checked.
@@ -376,6 +375,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 position = endPosition;
+                if (targetPosition < position)
+                {
+                    // This slot covers the child's position but does not hold the child, and later slots start after
+                    // it, so the child is not one of the parent's children.
+                    break;
+                }
+
                 index += Occupancy(greenChild);
             }
 
