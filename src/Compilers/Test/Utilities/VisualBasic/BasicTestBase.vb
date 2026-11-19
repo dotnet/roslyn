@@ -378,7 +378,8 @@ End Namespace
     Friend Function CompileWithCustomILSource(source As XElement, ilSource As String,
                                               Optional options As VisualBasicCompilationOptions = Nothing,
                                               Optional compilationVerifier As Action(Of VisualBasicCompilation) = Nothing,
-                                              Optional expectedOutput As String = Nothing) As CompilationVerifier
+                                              Optional expectedOutput As String = Nothing,
+                                              Optional tolerateErrors As Boolean = False) As CompilationVerifier
         If expectedOutput IsNot Nothing Then
             options = options.WithOutputKind(OutputKind.ConsoleApplication)
         End If
@@ -388,7 +389,7 @@ End Namespace
         End If
 
         Dim reference As MetadataReference = Nothing
-        Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
+        Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource, tolerateErrors:=tolerateErrors)
             reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
         End Using
 

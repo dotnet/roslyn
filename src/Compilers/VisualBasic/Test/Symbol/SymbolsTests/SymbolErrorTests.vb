@@ -24027,7 +24027,7 @@ Friend MustOverride ReadOnly Property P
             IL_0007:  ret
         }
 }"
-            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:=False)
+            Dim ilReference = CompileIL(forwardingIL, prependDefaultHeader:=False, tolerateErrors:=True)
 
             Dim code =
     <compilation>
@@ -24087,7 +24087,7 @@ End Namespace
 {
 	.assembly extern Destination2
 }"
-            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False)
+            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False, tolerateErrors:=True)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
@@ -24155,7 +24155,7 @@ End Namespace
 	.assembly extern Destination2
 }"
 
-            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False)
+            Dim compilation = CreateCompilationWithCustomILSource(userCode, forwardingIL, appendDefaultHeader:=False, tolerateErrors:=True)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
 BC30002: Type 'Destination.TestClass' is not defined.
@@ -24237,7 +24237,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False, tolerateErrors:=True)
 
             compilation = CreateCompilationWithMscorlib40(
                 source:=codeA,
@@ -24321,7 +24321,7 @@ End Namespace
 	.assembly extern D
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False, tolerateErrors:=True)
 
             Dim compilation = CreateCompilationWithMscorlib40(codeA, references:={referenceB, referenceC2})
 
@@ -24376,7 +24376,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim ilModule = GetILModuleReference(ilSource, prependDefaultHeader:=False)
+            Dim ilModule = GetILModuleReference(ilSource, prependDefaultHeader:=False, tolerateErrors:=True)
             Dim compilation = CreateCompilationWithMscorlib40(
                 source:=String.Empty,
                 references:={ilModule},
@@ -24402,7 +24402,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D
 }"
 
-            Dim ilModule = GetILModuleReference(ilSource, prependDefaultHeader:=False)
+            Dim ilModule = GetILModuleReference(ilSource, prependDefaultHeader:=False, tolerateErrors:=True)
             Dim compilation = CreateCompilationWithMscorlib40(String.Empty, references:={ilModule}, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors><![CDATA[
@@ -24444,7 +24444,7 @@ End Namespace"
 	.assembly extern D2
 }"
 
-            Dim ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader:=False)
+            Dim ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader:=False, tolerateErrors:=True)
             Dim forwarderCompilation = CreateEmptyCompilation(
                 source:=String.Empty,
                 references:={ilModuleReference},
@@ -24491,7 +24491,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D2
 }"
 
-            Dim module1Reference = GetILModuleReference(module1IL, prependDefaultHeader:=False)
+            Dim module1Reference = GetILModuleReference(module1IL, prependDefaultHeader:=False, tolerateErrors:=True)
 
             Dim module2IL = "
 .module module12L.dll
@@ -24506,7 +24506,7 @@ BC37208: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, C
 	.assembly extern D4
 }"
 
-            Dim module2Reference = GetILModuleReference(module2IL, prependDefaultHeader:=False)
+            Dim module2Reference = GetILModuleReference(module2IL, prependDefaultHeader:=False, tolerateErrors:=True)
 
             Dim forwarderCompilation = CreateEmptyCompilation(
                 source:=String.Empty,
@@ -24585,7 +24585,7 @@ End Namespace"
 	.assembly extern E
 }"
 
-            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False)
+            Dim referenceC2 = CompileIL(codeC2, prependDefaultHeader:=False, tolerateErrors:=True)
 
             Dim codeD = "
 .assembly D { }

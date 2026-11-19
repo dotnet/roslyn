@@ -215,9 +215,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool includePdb,
             out ImmutableArray<byte> assemblyBytes,
             out ImmutableArray<byte> pdbBytes,
-            bool autoInherit = true)
+            bool autoInherit = true,
+            bool tolerateErrors = false)
         {
-            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, autoInherit, out var assemblyPath, out var pdbPath);
+            IlasmUtilities.IlasmTempAssembly(ilSource, appendDefaultHeader, includePdb, autoInherit, out var assemblyPath, out var pdbPath, tolerateErrors);
 
             Assert.NotNull(assemblyPath);
             Assert.Equal(pdbPath != null, includePdb);
@@ -240,15 +241,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false, bool autoInherit = true)
+        internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false, bool autoInherit = true, bool tolerateErrors = false)
         {
-            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes, autoInherit: autoInherit);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes, autoInherit: autoInherit, tolerateErrors: tolerateErrors);
             return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
         }
 
-        internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true)
+        internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true, bool tolerateErrors = false)
         {
-            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes, tolerateErrors: tolerateErrors);
             return ModuleMetadata.CreateFromImage(assemblyBytes).GetReference();
         }
 

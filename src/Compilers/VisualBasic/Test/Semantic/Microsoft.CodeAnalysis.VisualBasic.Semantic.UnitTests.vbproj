@@ -81,5 +81,4 @@
     <Compile Remove="Semantics\OverloadResolutionTestSource.vb" />
     <Compile Remove="Semantics\PrintResultTestSource.vb" />
   </ItemGroup>
-  <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
 </Project>

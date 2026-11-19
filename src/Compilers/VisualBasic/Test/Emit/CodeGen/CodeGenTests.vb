@@ -9848,7 +9848,7 @@ End Class
     </file>
 </compilation>
 
-            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll).
+            CompileWithCustomILSource(vbSource, ilSource.Value, TestOptions.ReleaseDll, tolerateErrors:=True).
                 VerifyIL("C.Main",
             <![CDATA[
 {

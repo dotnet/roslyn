@@ -2250,7 +2250,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     [Fact]
     public void AttributeAppliedTwiceMethod_Metadata()
     {
-        // Equivalent to:
+        // Equivalent to the IL below. ILAssembler preserves the .custom order (1, then 2);
+        // desktop native ILAsm could reverse equal-parent CustomAttribute rows.
         // public class C
         // {
         //     [OverloadResolutionPriority(1)]
@@ -2316,7 +2317,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         Assert.Equal("void C.M(System.Object o)", symbol.ToTestDisplayString());
         var underlyingSymbol = symbol.GetSymbol<MethodSymbol>();
 
-        Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+        Assert.Equal(1, underlyingSymbol!.OverloadResolutionPriority);
     }
 
     [Fact]
@@ -2357,7 +2358,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     [Fact]
     public void AttributeAppliedTwiceConstructor_Metadata()
     {
-        // Equivalent to:
+        // Equivalent to the IL below. ILAssembler preserves the .custom order (1, then 2);
+        // desktop native ILAsm could reverse equal-parent CustomAttribute rows.
         // public class C
         // {
         //     [OverloadResolutionPriority(1)]
@@ -2414,7 +2416,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
         Assert.Equal("C..ctor(System.Object o)", symbol.ToTestDisplayString());
         var underlyingSymbol = symbol.GetSymbol<MethodSymbol>();
 
-        Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+        Assert.Equal(1, underlyingSymbol!.OverloadResolutionPriority);
     }
 
     [Fact]
@@ -2472,7 +2474,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     [Fact]
     public void AttributeAppliedTwiceIndexer_Metadata()
     {
-        // Equivalent to:
+        // Equivalent to the IL below. ILAssembler preserves the .custom order (1, then 2);
+        // desktop native ILAsm could reverse equal-parent CustomAttribute rows.
         // public class C
         // {
         //     [OverloadResolutionPriority(1)]
@@ -2592,7 +2595,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             AssertEx.Equal("System.Int32 C.this[System.Object o] { get; set; }", s.ToTestDisplayString());
             var underlyingSymbol = s.GetSymbol<PropertySymbol>();
 
-            Assert.Equal(2, underlyingSymbol!.OverloadResolutionPriority);
+            Assert.Equal(1, underlyingSymbol!.OverloadResolutionPriority);
         });
     }
 

@@ -6,18 +6,21 @@
 
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using ILAssembler = Microsoft.DotNet.ILAssembler;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class IlasmUtilities
     {
-        public static DisposableFile CreateTempAssembly(string declarations, bool prependDefaultHeader = true)
+        public static DisposableFile CreateTempAssembly(string declarations, bool prependDefaultHeader = true, bool tolerateErrors = false)
         {
-            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, autoInherit: true, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath);
+            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, autoInherit: true, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath, tolerateErrors: tolerateErrors);
             Assert.NotNull(assemblyPath);
             Assert.Null(pdbPath);
             return new DisposableFile(assemblyPath);
@@ -34,43 +37,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static readonly string Architecture = GetArchitecture();
 
-        private static string GetIlasmPath()
-        {
-            if (ExecutionConditionUtil.IsWindowsDesktop)
-            {
-                // The desktop ilasm is still necessary because a number of our tests depend on being able to 
-                // emit PDB files for net modules. That feature is not available on coreclr ilasm.
-                return Path.Combine(
-                    Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(object))),
-                    "ilasm.exe");
-            }
-
-            var ilasmExeName = PlatformInformation.IsWindows ? "ilasm.exe" : "ilasm";
-            var directory = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(RuntimeUtilities)));
-            string ridName;
-            if (ExecutionConditionUtil.IsWindows)
-            {
-                ridName = "win-x64";
-            }
-            else if (ExecutionConditionUtil.IsMacOS)
-            {
-                ridName = "osx-x64";
-            }
-            else if (ExecutionConditionUtil.IsLinux)
-            {
-                ridName = $"linux-{GetArchitecture()}";
-            }
-            else
-            {
-                throw new PlatformNotSupportedException("Runtime platform not supported for testing");
-            }
-
-            return Path.Combine(directory, "runtimes", ridName, "native", ilasmExeName);
-        }
-
-        private static readonly string IlasmPath = GetIlasmPath();
-
-        public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, bool autoInherit, out string assemblyPath, out string pdbPath)
+        public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, bool autoInherit, out string assemblyPath, out string pdbPath, bool tolerateErrors = false)
         {
             if (declarations == null)
                 throw new ArgumentNullException(nameof(declarations));
@@ -106,29 +73,56 @@ $@".assembly '{sourceFileName}' {{}}
                     completeIL = declarations.Replace("<<GeneratedFileName>>", sourceFileName);
                 }
 
-                sourceFile.WriteAllText(completeIL);
-
-                var arguments = $"\"{sourceFile.Path}\" -DLL {(autoInherit ? "" : "-noautoinherit")} -out=\"{assemblyPath}\"";
+                var options = new ILAssembler.Options
+                {
+                    Dll = true,
+                    NoAutoInherit = !autoInherit,
+                    ErrorTolerant = tolerateErrors,
+                    OutputFileName = Path.GetFileName(assemblyPath),
+                };
 
                 if (includePdb && !MonoHelpers.IsRunningOnMono())
                 {
                     pdbPath = Path.ChangeExtension(assemblyPath, "pdb");
-                    arguments += string.Format(" -PDB=\"{0}\"", pdbPath);
+                    options.Pdb = true;
+                    options.PdbFilePath = pdbPath;
                 }
                 else
                 {
                     pdbPath = null;
                 }
 
-                var result = ProcessUtilities.Run(IlasmPath, arguments);
+                var sourceText = new ILAssembler.SourceText(completeIL, sourceFile.Path);
+                var (diagnostics, result) = new ILAssembler.DocumentCompiler().Compile(
+                    sourceText,
+                    path => new ILAssembler.SourceText(File.ReadAllText(path), path),
+                    path => File.Exists(path) ? File.ReadAllBytes(path) : null,
+                    options);
 
-                if (result.ContainsErrors)
+                if (result == null || (!tolerateErrors && diagnostics.Any(diagnostic => diagnostic.Severity == ILAssembler.DiagnosticSeverity.Error)))
                 {
+                    var diagnosticText = string.Join(Environment.NewLine, diagnostics.Select(diagnostic => $"{diagnostic.Location}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}"));
                     throw new ArgumentException(
                         "The provided IL cannot be compiled." + Environment.NewLine +
-                        IlasmPath + " " + arguments + Environment.NewLine +
-                        result,
+                        (diagnosticText.Length > 0 ? diagnosticText : "No compilation result was produced."),
                         nameof(declarations));
+                }
+
+                var imageBuilder = new BlobBuilder();
+                result.Serialize(imageBuilder);
+                using (var stream = File.Create(assemblyPath))
+                {
+                    imageBuilder.WriteContentTo(stream);
+                }
+
+                if (pdbPath != null)
+                {
+                    if (!result.PortablePdb.HasValue)
+                    {
+                        throw new InvalidOperationException("The IL assembler did not produce the requested PDB.");
+                    }
+
+                    File.WriteAllBytes(pdbPath, result.PortablePdb.Value.ToArray());
                 }
             }
         }

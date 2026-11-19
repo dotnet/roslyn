@@ -10,8 +10,8 @@
     <!-- CodeStyleAnalyzerVersion should be updated together with version of SDK in global.json -->
     <CodeStyleAnalyzerVersion>5.9.0</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>18.12.46</VisualStudioEditorPackagesVersion>
-    <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
-    <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
+    <ILAssemblerPackageVersion>12.0.0-alpha.1.26569.107</ILAssemblerPackageVersion>
+    <ILDAsmPackageVersion>11.0.0</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
     <!--
       VS .NET Runtime
@@ -334,10 +334,7 @@
     <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
-    <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
-    <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
-    <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
-    <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+    <PackageVersion Include="Microsoft.DotNet.ILAssembler" Version="$(ILAssemblerPackageVersion)" />
     <PackageVersion Include="Basic.CompilerLog.Util" Version="0.9.19" />
     <!-- Update Microsoft.Bcl.Memory used by Basic.CompilerLog.Util & BenchmarkDotNet to a non-vulnerable version. -->
     <PackageVersion Include="Microsoft.Bcl.Memory" Version="10.0.10" />

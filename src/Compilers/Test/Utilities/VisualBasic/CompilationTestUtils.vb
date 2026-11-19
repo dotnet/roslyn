@@ -379,7 +379,8 @@ Friend Module CompilationUtils
                                                         Optional parseOptions As VisualBasicParseOptions = Nothing,
                                                         Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
                                                         <Out> Optional ByRef ilReference As MetadataReference = Nothing,
-                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
+                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing,
+                                                        Optional tolerateErrors As Boolean = False
     ) As VisualBasicCompilation
         Dim references = If(additionalReferences IsNot Nothing, New List(Of MetadataReference)(additionalReferences), New List(Of MetadataReference))
         If includeVbRuntime Then
@@ -393,14 +394,14 @@ Friend Module CompilationUtils
             Return CreateCompilationWithMscorlib40AndReferences(sources, references, options, parseOptions)
         End If
 
-        ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage)
+        ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage, tolerateErrors)
         references.Add(ilReference)
 
         Return CreateCompilationWithMscorlib40AndReferences(sources, references, options, parseOptions)
     End Function
 
-    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataReference
-        Using reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader)
+    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing, Optional tolerateErrors As Boolean = False) As MetadataReference
+        Using reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader, tolerateErrors)
             ilImage = ImmutableArray.Create(File.ReadAllBytes(reference.Path))
         End Using
         Return MetadataReference.CreateFromImage(ilImage)
