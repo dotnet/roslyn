@@ -1154,7 +1154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
-            For Each member In GetMembersUnordered()
+            ' Iterate over members of the original definition to avoid realizing GetMembersUnordered() for
+            ' substituted symbols. Substituted symbols are only realized for uncommon cases where they are
+            ' necessary for checks against members from the base type.
+            For Each member In OriginalDefinition.GetMembersUnordered()
                 ' Indexed properties cannot be required.
                 Dim [property] = TryCast(member, PropertySymbol)
                 If [property] IsNot Nothing AndAlso [property].ParameterCount > 0 Then
@@ -1165,14 +1168,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
                 End If
 
+                If member.IsRequired() Then
+                    ' On the success path (which we want to optimize for), this member will need to be added to
+                    ' requiredMembersBuilder. Add it before all checks are complete to ensure we only need to call
+                    ' AsMember once.
+                    If requiredMembersBuilder Is Nothing Then
+                        requiredMembersBuilder = baseAllRequiredMembers.ToBuilder()
+                    End If
+
+                    requiredMembersBuilder(member.Name) = member.AsMember(Me)
+                End If
+
                 Dim existingMember As Symbol = Nothing
                 ' Need to make sure that members from a base type weren't hidden by members from the current type. That is an error scenario
                 If baseAllRequiredMembers.TryGetValue(member.Name, existingMember) Then
                     ' This is only permitted if the member is an override of a required member from a base type, and is required itself
-                    Dim overriddenMember = TryCast(member, PropertySymbol)?.OverriddenProperty
+                    If Not member.IsRequired() Then
+                        Return False
+                    End If
 
-                    If (Not member.IsRequired()) OrElse
-                       overriddenMember Is Nothing OrElse
+                    Dim overriddenMember = TryCast(requiredMembersBuilder(member.Name), PropertySymbol)?.OverriddenProperty
+                    If overriddenMember Is Nothing OrElse
                        (Not overriddenMember.Equals(existingMember, TypeCompareKind.IgnoreTupleNames)) Then
                         Return False
                     End If
@@ -1186,12 +1202,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' Bad metadata. Type claimed it didn't declare any required members, but we found one.
                     Return False
                 End If
-
-                If requiredMembersBuilder Is Nothing Then
-                    requiredMembersBuilder = baseAllRequiredMembers.ToBuilder()
-                End If
-
-                requiredMembersBuilder(member.Name) = member
             Next
 
             Return True
