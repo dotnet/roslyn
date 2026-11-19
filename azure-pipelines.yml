@@ -260,7 +260,7 @@ stages:
         testArtifactName: $(testArtifactName)
         configuration: Debug
         poolParameters: ${{ parameters.vs2026PreviewPool }}
-        testArguments: --testFramework:core
+        testArguments: --testFramework:core --partition
 
   - template: /eng/common/core-templates/job/helix-job-monitor.yml
     parameters:
@@ -319,7 +319,7 @@ stages:
       jobName: Test_Linux_Debug
       testArtifactName: $(testArtifactName)
       configuration: Debug
-      testArguments: --testFramework:core
+      testArguments: --testFramework:core --partition
       poolParameters: ${{ parameters.ubuntuPool }}
 
   - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -328,7 +328,7 @@ stages:
       jobName: Test_Linux_Debug_Spanish_Single_Machine
       testArtifactName: $(testArtifactName)
       configuration: Debug
-      testArguments: --testFramework:core
+      testArguments: --testFramework:core --partition
       poolParameters: ${{ parameters.ubuntuPool }}
       locale: es_ES.UTF-8
 
