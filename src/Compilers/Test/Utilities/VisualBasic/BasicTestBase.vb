@@ -388,10 +388,7 @@ End Namespace
             Return CompileAndVerify(source)
         End If
 
-        Dim reference As MetadataReference = Nothing
-        Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource, tolerateErrors:=tolerateErrors)
-            reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-        End Using
+        Dim reference = CompilationUtils.CreateReferenceFromIlCode(ilSource, tolerateErrors:=tolerateErrors)
 
         Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef, MsvbRef, reference}, options)
 

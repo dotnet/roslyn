@@ -401,9 +401,8 @@ Friend Module CompilationUtils
     End Function
 
     Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing, Optional tolerateErrors As Boolean = False) As MetadataReference
-        Using reference = IlasmUtilities.CreateTempAssembly(ilSource, appendDefaultHeader, tolerateErrors)
-            ilImage = ImmutableArray.Create(File.ReadAllBytes(reference.Path))
-        End Using
+        Dim pdbImage As ImmutableArray(Of Byte) = Nothing
+        CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader, includePdb:=False, assemblyBytes:=ilImage, pdbBytes:=pdbImage, tolerateErrors:=tolerateErrors)
         Return MetadataReference.CreateFromImage(ilImage)
     End Function
 

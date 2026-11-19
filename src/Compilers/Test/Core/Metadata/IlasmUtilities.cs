@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -39,92 +40,87 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, bool autoInherit, out string assemblyPath, out string pdbPath, bool tolerateErrors = false)
         {
+            assemblyPath = GetAssemblyPath();
+            var (assemblyBytes, pdbBytes) = Assemble(declarations, appendDefaultHeader, includePdb, autoInherit, tolerateErrors, assemblyPath);
+            assemblyBytes.WriteToFile(assemblyPath);
+
+            pdbPath = pdbBytes.IsDefault ? null : Path.ChangeExtension(assemblyPath, "pdb");
+            if (pdbPath != null)
+            {
+                pdbBytes.WriteToFile(pdbPath);
+            }
+        }
+
+        private static string GetAssemblyPath()
+            => Path.Combine(TempRoot.Root, $"_{Guid.NewGuid()}.dll");
+
+        internal static (ImmutableArray<byte> Assembly, ImmutableArray<byte> Pdb) Assemble(string declarations, bool appendDefaultHeader, bool includePdb, bool autoInherit, bool tolerateErrors)
+            => Assemble(declarations, appendDefaultHeader, includePdb, autoInherit, tolerateErrors, GetAssemblyPath());
+
+        private static (ImmutableArray<byte> Assembly, ImmutableArray<byte> Pdb) Assemble(string declarations, bool appendDefaultHeader, bool includePdb, bool autoInherit, bool tolerateErrors, string assemblyPath)
+        {
             if (declarations == null)
                 throw new ArgumentNullException(nameof(declarations));
 
-            using (var sourceFile = new DisposableFile(extension: ".il"))
+            var sourceFileName = Path.GetFileNameWithoutExtension(assemblyPath);
+            string completeIL;
+            if (appendDefaultHeader)
             {
-                string sourceFileName = Path.GetFileNameWithoutExtension(sourceFile.Path);
+                const string corLibName = "mscorlib";
+                const string corLibVersion = "4:0:0:0";
+                const string corLibKey = "B7 7A 5C 56 19 34 E0 89";
 
-                assemblyPath = Path.Combine(
-                    TempRoot.Root,
-                    Path.ChangeExtension(Path.GetFileName(sourceFile.Path), "dll"));
+                completeIL =
+$@".assembly '{sourceFileName}' {{}}
 
-                string completeIL;
-                if (appendDefaultHeader)
-                {
-                    const string corLibName = "mscorlib";
-                    const string corLibVersion = "4:0:0:0";
-                    const string corLibKey = "B7 7A 5C 56 19 34 E0 89";
-
-                    completeIL =
-$@".assembly '{sourceFileName}' {{}} 
-
-.assembly extern {corLibName} 
+.assembly extern {corLibName}
 {{
   .publickeytoken = ({corLibKey})
   .ver {corLibVersion}
-}} 
+}}
 
 {declarations}";
-                }
-                else
-                {
-                    completeIL = declarations.Replace("<<GeneratedFileName>>", sourceFileName);
-                }
-
-                var options = new ILAssembler.Options
-                {
-                    Dll = true,
-                    NoAutoInherit = !autoInherit,
-                    ErrorTolerant = tolerateErrors,
-                    OutputFileName = Path.GetFileName(assemblyPath),
-                };
-
-                if (includePdb && !MonoHelpers.IsRunningOnMono())
-                {
-                    pdbPath = Path.ChangeExtension(assemblyPath, "pdb");
-                    options.Pdb = true;
-                    options.PdbFilePath = pdbPath;
-                }
-                else
-                {
-                    pdbPath = null;
-                }
-
-                var sourceText = new ILAssembler.SourceText(completeIL, sourceFile.Path);
-                var (diagnostics, result) = new ILAssembler.DocumentCompiler().Compile(
-                    sourceText,
-                    path => new ILAssembler.SourceText(File.ReadAllText(path), path),
-                    path => File.Exists(path) ? File.ReadAllBytes(path) : null,
-                    options);
-
-                if (result == null || (!tolerateErrors && diagnostics.Any(diagnostic => diagnostic.Severity == ILAssembler.DiagnosticSeverity.Error)))
-                {
-                    var diagnosticText = string.Join(Environment.NewLine, diagnostics.Select(diagnostic => $"{diagnostic.Location}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}"));
-                    throw new ArgumentException(
-                        "The provided IL cannot be compiled." + Environment.NewLine +
-                        (diagnosticText.Length > 0 ? diagnosticText : "No compilation result was produced."),
-                        nameof(declarations));
-                }
-
-                var imageBuilder = new BlobBuilder();
-                result.Serialize(imageBuilder);
-                using (var stream = File.Create(assemblyPath))
-                {
-                    imageBuilder.WriteContentTo(stream);
-                }
-
-                if (pdbPath != null)
-                {
-                    if (!result.PortablePdb.HasValue)
-                    {
-                        throw new InvalidOperationException("The IL assembler did not produce the requested PDB.");
-                    }
-
-                    File.WriteAllBytes(pdbPath, result.PortablePdb.Value.ToArray());
-                }
             }
+            else
+            {
+                completeIL = declarations.Replace("<<GeneratedFileName>>", sourceFileName);
+            }
+
+            var emitPdb = includePdb && !MonoHelpers.IsRunningOnMono();
+            var options = new ILAssembler.Options
+            {
+                Dll = true,
+                NoAutoInherit = !autoInherit,
+                ErrorTolerant = tolerateErrors,
+                OutputFileName = Path.GetFileName(assemblyPath),
+                Pdb = emitPdb,
+                PdbFilePath = emitPdb ? Path.ChangeExtension(assemblyPath, "pdb") : null,
+            };
+
+            var sourceText = new ILAssembler.SourceText(completeIL, Path.ChangeExtension(assemblyPath, "il"));
+            var (diagnostics, result) = new ILAssembler.DocumentCompiler().Compile(
+                sourceText,
+                path => new ILAssembler.SourceText(File.ReadAllText(path), path),
+                path => File.Exists(path) ? File.ReadAllBytes(path) : null,
+                options);
+
+            if (result == null || (!tolerateErrors && diagnostics.Any(diagnostic => diagnostic.Severity == ILAssembler.DiagnosticSeverity.Error)))
+            {
+                var diagnosticText = string.Join(Environment.NewLine, diagnostics.Select(diagnostic => $"{diagnostic.Location}: {diagnostic.Severity} {diagnostic.Id}: {diagnostic.Message}"));
+                throw new ArgumentException(
+                    "The provided IL cannot be compiled." + Environment.NewLine +
+                    (diagnosticText.Length > 0 ? diagnosticText : "No compilation result was produced."),
+                    nameof(declarations));
+            }
+
+            var imageBuilder = new BlobBuilder();
+            result.Serialize(imageBuilder);
+            if (emitPdb && !result.PortablePdb.HasValue)
+            {
+                throw new InvalidOperationException("The IL assembler did not produce the requested PDB.");
+            }
+
+            return (imageBuilder.ToImmutableArray(), emitPdb ? result.PortablePdb.Value : default);
         }
     }
 }
