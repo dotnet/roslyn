@@ -43,7 +43,7 @@ internal static class InvocationMethodGroupFilter
             // SyntaxKind.IdentifierName is for basic case, e.g. "MyClass.MyStaticMethod(...)"
             // SyntaxKind.SimpleMemberAccessExpression is for not imported types, e.g. "MyNamespace.MyClass.MyStaticMethod(...)"
             // SyntaxKind.PredefinedType is for built-in types, e.g. "string.Equals(...)"
-            var includeInstance = throughExpression.Kind() is not (SyntaxKind.IdentifierName or SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.PredefinedType) ||
+            var includeInstance = throughExpression.Kind() is not (SyntaxKind.IdentifierName or SyntaxKind.GenericName or SyntaxKind.AliasQualifiedName or SyntaxKind.SimpleMemberAccessExpression or SyntaxKind.PredefinedType) ||
                 throughSymbol is not INamespaceOrTypeSymbol ||
                 semanticModel.LookupSymbols(throughExpression.SpanStart, name: throughSymbol?.Name).Any(static s => s is not INamedTypeSymbol);
 
