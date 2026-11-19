@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             catch (Exception e)
             {
                 // Assume the exception was the result of a missing compiler assembly.
-                logger.LogException(e, "Cannot start server");
+                logger.LogTraceException(e, "Cannot start server");
             }
 
             return CommonCompiler.Failed;

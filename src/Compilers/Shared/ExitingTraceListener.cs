@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             builder.AppendLine(stackTrace.ToString());
 
             var message = builder.ToString();
-            Logger.Log(message);
+            Logger.LogTrace(message);
 
             // Use FailFast so that the process fails rudely and goes through 
             // windows error reporting (on Windows at least). This will allow our 

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                logger.Log($"Failed to compute deterministic key, skipping cache: {ex.Message}");
+                logger.LogTrace($"Failed to compute deterministic key, skipping cache: {ex.Message}");
                 return null;
             }
             finally
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             if (restored)
             {
                 telemetry.Status = CompilationCacheStatus.Hit;
-                logger.Log($"Cache hit satisfied: {dllName} [{hashKey}]");
+                logger.LogTrace($"Cache hit satisfied: {dllName} [{hashKey}]");
                 return CommonCompiler.Succeeded;
             }
 

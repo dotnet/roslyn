@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                Logger.LogException(ex, $"Cancelling server listens threw an exception");
+                Logger.LogTraceException(ex, $"Cancelling server listens threw an exception");
             }
 
             try
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                Logger.LogException(ex, $"Listen tasks threw exception during {nameof(EndListening)}");
+                Logger.LogTraceException(ex, $"Listen tasks threw exception during {nameof(EndListening)}");
             }
 
             _queue.Complete();
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // as Windows refusing to create the pipe for some reason 
                     // (out of handles?), or the pipe was disconnected before we 
                     // starting listening
-                    logger.Log($"Constructing pipe and waiting for connections '{pipeName}'");
+                    logger.LogTrace($"Constructing pipe and waiting for connections '{pipeName}'");
                     pipeStream = NamedPipeUtil.CreateServer(pipeName);
 
                     // The WaitForConnectionAsync API does not fully respect the provided CancellationToken
@@ -204,19 +204,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
 
                     await connectTask.ConfigureAwait(false);
-                    logger.Log("Pipe connection established.");
+                    logger.LogTrace("Pipe connection established.");
                     var connection = new NamedPipeClientConnection(pipeStream, logger);
                     queue.Enqueue(new ListenResult(connection: connection));
                 }
                 catch (OperationCanceledException)
                 {
                     // Expected when the host is shutting down.
-                    logger.Log($"Pipe connection cancelled");
+                    logger.LogTrace($"Pipe connection cancelled");
                     pipeStream?.Dispose();
                 }
                 catch (Exception ex)
                 {
-                    logger.LogException(ex, $"Pipe connection error");
+                    logger.LogTraceException(ex, $"Pipe connection error");
                     queue.Enqueue(new ListenResult(exception: ex));
                     pipeStream?.Dispose();
                 }

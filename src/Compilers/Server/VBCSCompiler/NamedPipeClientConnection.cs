@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogException(ex, $"Error closing client connection");
+                    Logger.LogTraceException(ex, $"Error closing client connection");
                 }
 
                 IsDisposed = true;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogException(ex, $"Error monitoring disconnect {request.RequestId}");
+                    Logger.LogTraceException(ex, $"Error monitoring disconnect {request.RequestId}");
                 }
                 finally
                 {

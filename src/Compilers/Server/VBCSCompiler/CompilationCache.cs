@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return null;
             }
 
-            logger.Log($"Compilation cache enabled at: {cachePath}");
+            logger.LogTrace($"Compilation cache enabled at: {cachePath}");
             return new CompilationCache(cachePath);
         }
 
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var cachePath = PathUtilities.GetTempCachePath(DefaultCacheDirectoryName);
             if (cachePath is null)
             {
-                logger.Log("Compilation cache disabled because LocalApplicationData is unavailable.");
+                logger.LogTrace("Compilation cache disabled because LocalApplicationData is unavailable.");
             }
 
             return cachePath;
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     using var entryMutex = TryAcquireEntryMutex(dllName, hashKey, createIfMissing: false);
                     if (entryMutex is null && !File.Exists(cachedAssemblyPath))
                     {
-                        logger.Log($"Cache miss because entry is being populated: {dllName} [{hashKey}]");
+                        logger.LogTrace($"Cache miss because entry is being populated: {dllName} [{hashKey}]");
                         return false;
                     }
 
@@ -175,11 +175,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     || isMissingWhenRequired(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
                     || isMissingWhenRequired(entryDir, XmlDocFileName, outputFiles.XmlDocPath))
                 {
-                    logger.Log($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
+                    logger.LogTrace($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
                     return false;
                 }
 
-                logger.Log($"Cache hit: {dllName} [{hashKey}]");
+                logger.LogTrace($"Cache hit: {dllName} [{hashKey}]");
                 TouchLastUsed(entryDir, logger);
                 copyAndUpdateTimestamp(cachedAssemblyPath, outputFiles.AssemblyPath, outputTimestampUtc);
                 copyIfNeeded(entryDir, PdbFileName, outputFiles.PdbPath, outputTimestampUtc);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
-                logger.Log($"Cache hit restore failed, falling through to compilation: {ex.Message}");
+                logger.LogTrace($"Cache hit restore failed, falling through to compilation: {ex.Message}");
                 return false;
             }
 
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return;
             }
 
-            logger.Log($"Cache miss: {dllName} [{hashKey}]");
+            logger.LogTrace($"Cache miss: {dllName} [{hashKey}]");
 
             var dllCacheDir = Path.Combine(_cachePath, dllName);
             if (!Directory.Exists(dllCacheDir))
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     var oldKey = File.ReadAllText(keyPath, Encoding.UTF8);
                     var diff = ComputeDiff(currentKey, oldKey);
-                    logger.Log($"Cache miss {dllName} [{hashKey}] diff vs entry [{entryName}]:{Environment.NewLine}{diff}");
+                    logger.LogTrace($"Cache miss {dllName} [{hashKey}] diff vs entry [{entryName}]:{Environment.NewLine}{diff}");
                 }
                 catch (IOException)
                 {
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 using var entryMutex = TryAcquireEntryMutex(dllName, hashKey);
                 if (entryMutex is null)
                 {
-                    logger.Log($"Cache store skipped because another writer is populating: {dllName} [{hashKey}]");
+                    logger.LogTrace($"Cache store skipped because another writer is populating: {dllName} [{hashKey}]");
                     return CompilationCacheStoreResult.SkippedRace;
                 }
 
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (Directory.Exists(cacheDir))
                 {
                     // Another writer finished publishing this entry before we got here.
-                    logger.Log($"Cache store skipped because entry already exists: {dllName} [{hashKey}]");
+                    logger.LogTrace($"Cache store skipped because entry already exists: {dllName} [{hashKey}]");
                     return CompilationCacheStoreResult.SkippedExists;
                 }
 
@@ -334,12 +334,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 stagingDir = null;
 
                 TouchLastUsed(cacheDir, logger);
-                logger.Log($"Cache stored: {dllName} [{hashKey}]");
+                logger.LogTrace($"Cache stored: {dllName} [{hashKey}]");
                 return CompilationCacheStoreResult.Stored;
             }
             catch (Exception ex)
             {
-                logger.Log($"Cache store failed for {dllName} [{hashKey}]: {ex.Message}");
+                logger.LogTrace($"Cache store failed for {dllName} [{hashKey}]: {ex.Message}");
                 return CompilationCacheStoreResult.Failed;
             }
             finally
@@ -355,11 +355,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
                     catch (IOException ex)
                     {
-                        logger.Log($"Cache cleanup failed for {dllName} [{hashKey}]: {ex.Message}");
+                        logger.LogTrace($"Cache cleanup failed for {dllName} [{hashKey}]: {ex.Message}");
                     }
                     catch (UnauthorizedAccessException ex)
                     {
-                        logger.Log($"Cache cleanup failed for {dllName} [{hashKey}]: {ex.Message}");
+                        logger.LogTrace($"Cache cleanup failed for {dllName} [{hashKey}]: {ex.Message}");
                     }
                 }
             }
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             catch (Exception ex)
             {
                 // Best effort — don't fail a compilation because of bookkeeping.
-                logger.LogException(ex, $"Failed to update last-used for {entryDir}");
+                logger.LogTraceException(ex, $"Failed to update last-used for {entryDir}");
             }
         }
 
@@ -510,12 +510,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                             {
                                 Directory.Delete(entryDir, recursive: true);
                                 totalDeleted++;
-                                logger.Log($"Cache purge: deleted {dllName}/{dirName} (last used {lastUsed:u})");
+                                logger.LogTrace($"Cache purge: deleted {dllName}/{dirName} (last used {lastUsed:u})");
                             }
                             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                             {
                                 totalErrors++;
-                                logger.Log($"Cache purge: failed to delete {dllName}/{dirName}: {ex.Message}");
+                                logger.LogTrace($"Cache purge: failed to delete {dllName}/{dirName}: {ex.Message}");
                             }
                         }
                     }
@@ -526,22 +526,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         if (Directory.Exists(dllDir) && !Directory.EnumerateFileSystemEntries(dllDir).Any())
                         {
                             Directory.Delete(dllDir);
-                            logger.Log($"Cache purge: removed empty directory {dllName}");
+                            logger.LogTrace($"Cache purge: removed empty directory {dllName}");
                         }
                     }
                     catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                     {
-                        logger.Log($"Cache purge: failed to remove empty directory {dllName}: {ex.Message}");
+                        logger.LogTrace($"Cache purge: failed to remove empty directory {dllName}: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
-                logger.Log($"Cache purge: error enumerating {cachePath}: {ex.Message}");
+                logger.LogTrace($"Cache purge: error enumerating {cachePath}: {ex.Message}");
             }
 
             var summary = $"Cache purge complete. Deleted: {totalDeleted}, Kept: {totalKept}, Errors: {totalErrors}";
-            logger.Log(summary);
+            logger.LogTrace(summary);
             return summary;
         }
 
@@ -567,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             catch (Exception ex)
             {
                 // Fall through to directory time.
-                logger.Log($"Failed to read last-used for {entryDir}: {ex.Message}");
+                logger.LogTrace($"Failed to read last-used for {entryDir}: {ex.Message}");
             }
 
             return new DateTimeOffset(Directory.GetCreationTimeUtc(entryDir), TimeSpan.Zero);
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             catch (Exception ex)
             {
                 // Fall through to directory time.
-                logger.Log($"Failed to read created time for {entryDir}: {ex.Message}");
+                logger.LogTrace($"Failed to read created time for {entryDir}: {ex.Message}");
             }
 
             return new DateTimeOffset(Directory.GetCreationTimeUtc(entryDir), TimeSpan.Zero);
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             catch (Exception ex)
             {
                 // Best effort.
-                logger.Log($"Failed to enumerate cache stats for {cachePath}: {ex.Message}");
+                logger.LogTrace($"Failed to enumerate cache stats for {cachePath}: {ex.Message}");
             }
 
             return stats;

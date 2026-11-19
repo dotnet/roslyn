@@ -49,70 +49,36 @@ namespace Microsoft.CodeAnalysis.CommandLine
         bool IsEnabled(CompilerServerLogKind kind);
 
         /// <summary>
-        /// Logs <paramref name="message"/>. Callers must first check <see cref="IsEnabled"/> for
-        /// <paramref name="kind"/>; the extension methods do this and avoid formatting disabled messages.
+        /// Logs <paramref name="message"/> if the implementation records messages of <paramref name="kind"/>.
+        /// Callers may check <see cref="IsEnabled"/> to avoid constructing expensive messages.
         /// </summary>
         void Log(CompilerServerLogKind kind, string message);
     }
 
     internal static class CompilerServerLoggerExtensions
     {
-        internal static void Log(this ICompilerServerLogger logger, string message)
-        {
-            if (logger.IsEnabled(CompilerServerLogKind.Trace))
-            {
-                logger.Log(CompilerServerLogKind.Trace, message);
-            }
-        }
+        internal static void LogTrace(this ICompilerServerLogger logger, string message)
+            => logger.Log(CompilerServerLogKind.Trace, message);
 
-        /// <summary>
-        /// Logs a trace message, formatting it only when tracing is enabled. Prefer this overload for
-        /// potentially large values such as command lines.
-        /// </summary>
-        internal static void Log(this ICompilerServerLogger logger, string format, params object?[] arguments)
-        {
-            if (logger.IsEnabled(CompilerServerLogKind.Trace))
-            {
-                logger.Log(CompilerServerLogKind.Trace, string.Format(format, arguments));
-            }
-        }
+        internal static void LogTrace(this ICompilerServerLogger logger, string format, params object?[] arguments)
+            => logger.Log(CompilerServerLogKind.Trace, string.Format(format, arguments));
 
         internal static void LogOperational(this ICompilerServerLogger logger, string message)
-        {
-            if (logger.IsEnabled(CompilerServerLogKind.Operational))
-            {
-                logger.Log(CompilerServerLogKind.Operational, message);
-            }
-        }
+            => logger.Log(CompilerServerLogKind.Operational, message);
 
         internal static void LogOperational(this ICompilerServerLogger logger, string format, params object?[] arguments)
-        {
-            if (logger.IsEnabled(CompilerServerLogKind.Operational))
-            {
-                logger.Log(CompilerServerLogKind.Operational, string.Format(format, arguments));
-            }
-        }
+            => logger.Log(CompilerServerLogKind.Operational, string.Format(format, arguments));
 
-        internal static void LogError(this ICompilerServerLogger logger, string message)
-        {
-            if (logger.IsEnabled(CompilerServerLogKind.Trace))
-            {
-                logger.Log(CompilerServerLogKind.Trace, $"Error: {message}");
-            }
-        }
+        internal static void LogTraceError(this ICompilerServerLogger logger, string message)
+            => logger.Log(CompilerServerLogKind.Trace, $"Error: {message}");
 
-        internal static void LogError(this ICompilerServerLogger logger, string format, params object?[] arguments)
-        {
-            if (logger.IsEnabled(CompilerServerLogKind.Trace))
-            {
-                logger.Log($"Error: {format}", arguments);
-            }
-        }
+        internal static void LogTraceError(this ICompilerServerLogger logger, string format, params object?[] arguments)
+            => logger.LogTrace($"Error: {format}", arguments);
 
         /// <summary>
         /// Log an exception. Also logs information about inner exceptions.
         /// </summary>
-        internal static void LogException(this ICompilerServerLogger logger, Exception exception, string reason)
+        internal static void LogTraceException(this ICompilerServerLogger logger, Exception exception, string reason)
             => LogException(logger, CompilerServerLogKind.Trace, exception, reason);
 
         /// <summary>
@@ -127,11 +93,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Exception exception,
             string reason)
         {
-            if (!logger.IsEnabled(kind))
-            {
-                return;
-            }
-
             var builder = new StringBuilder();
             AppendException(exception);
 

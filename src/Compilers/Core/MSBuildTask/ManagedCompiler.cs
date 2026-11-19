@@ -539,8 +539,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 _sharedCompileCts = new CancellationTokenSource();
-                logger.Log("CommandLine = '{0}'", commandLineCommands);
-                logger.Log("BuildResponseFile = '{0}'", responseFileCommands);
+                if (logger.IsEnabled(CompilerServerLogKind.Trace))
+                {
+                    logger.LogTrace("CommandLine = '{0}'", commandLineCommands);
+                    logger.LogTrace("BuildResponseFile = '{0}'", responseFileCommands);
+                }
 
                 var clientDirectory = Path.GetDirectoryName(PathToBuiltInTool);
                 if (clientDirectory is null || tempDirectory is null)
@@ -832,7 +835,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var message = $"CompilerServer: {category} - {diagnostic} - {requestId}";
             if (kind == CompilationKind.FatalError)
             {
-                logger.LogError(message);
+                logger.LogTraceError(message);
                 Log.LogError(message);
             }
             else
