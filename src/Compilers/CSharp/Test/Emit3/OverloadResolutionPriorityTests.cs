@@ -2250,8 +2250,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     [Fact]
     public void AttributeAppliedTwiceMethod_Metadata()
     {
-        // Equivalent to the IL below. ILAssembler preserves the .custom order (1, then 2);
-        // desktop native ILAsm could reverse equal-parent CustomAttribute rows.
+        // Equivalent to the IL below, which preserves the attribute order (1, then 2).
         // public class C
         // {
         //     [OverloadResolutionPriority(1)]
@@ -2358,8 +2357,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     [Fact]
     public void AttributeAppliedTwiceConstructor_Metadata()
     {
-        // Equivalent to the IL below. ILAssembler preserves the .custom order (1, then 2);
-        // desktop native ILAsm could reverse equal-parent CustomAttribute rows.
+        // Equivalent to the IL below, which preserves the attribute order (1, then 2).
         // public class C
         // {
         //     [OverloadResolutionPriority(1)]
@@ -2474,8 +2472,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
     [Fact]
     public void AttributeAppliedTwiceIndexer_Metadata()
     {
-        // Equivalent to the IL below. ILAssembler preserves the .custom order (1, then 2);
-        // desktop native ILAsm could reverse equal-parent CustomAttribute rows.
+        // Equivalent to the IL below, which preserves the attribute order (1, then 2).
         // public class C
         // {
         //     [OverloadResolutionPriority(1)]
