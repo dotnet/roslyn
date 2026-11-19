@@ -14,18 +14,20 @@ public sealed class ExtensionsTests
 {
     /// <summary>
     /// A project named {positive integer}_{relative URL} with a design-time document whose name ends with
-    /// the language projection suffix is a Venus design-time project. Suffix matching is case-insensitive.
+    /// the language projection suffix is a Venus design-time project. The display name is the document name
+    /// without that suffix. Suffix matching is case-insensitive.
     /// </summary>
     [Theory]
-    [InlineData("1_Default.aspx", LanguageNames.CSharp, "Default.aspx.__projection.g.cs")]
-    [InlineData("42_Folder_My_Page.ascx", LanguageNames.CSharp, "Folder_My_Page.ascx.__PROJECTION.G.CS")]
-    [InlineData("2147483647_Default.aspx", LanguageNames.VisualBasic, "Default.aspx.__projection.g.vb")]
-    [InlineData("1_Pages_Index.aspx", LanguageNames.CSharp, "Index.aspx.__projection.g.cs")]
-    public void IsVenusDesignTimeProject_RecognizesDesignTimeProjection(string projectName, string language, string documentName)
+    [InlineData("1_Default.aspx", LanguageNames.CSharp, "Default.aspx.__projection.g.cs", "Default.aspx")]
+    [InlineData("42_Folder_My_Page.ascx", LanguageNames.CSharp, "Folder_My_Page.ascx.__PROJECTION.G.CS", "Folder_My_Page.ascx")]
+    [InlineData("2147483647_Default.aspx", LanguageNames.VisualBasic, "Default.aspx.__projection.g.vb", "Default.aspx")]
+    [InlineData("1_Pages_Index.aspx", LanguageNames.CSharp, "Index.aspx.__projection.g.cs", "Index.aspx")]
+    public void IsVenusDesignTimeProject_RecognizesDesignTimeProjection(string projectName, string language, string documentName, string displayName)
     {
         var project = CreateProject(projectName, language, documentName);
 
-        Assert.True(EditAndContinue.Extensions.IsVenusDesignTimeProject(project));
+        Assert.True(EditAndContinue.Extensions.IsVenusDesignTimeProject(project, out var actualDisplayName));
+        Assert.Equal(displayName, actualDisplayName);
     }
 
     /// <summary>
@@ -49,7 +51,8 @@ public sealed class ExtensionsTests
     {
         var project = CreateProject(projectName, LanguageNames.CSharp, "Default.aspx.__projection.g.cs");
 
-        Assert.False(EditAndContinue.Extensions.IsVenusDesignTimeProject(project));
+        Assert.False(EditAndContinue.Extensions.IsVenusDesignTimeProject(project, out var webPageName));
+        Assert.Null(webPageName);
     }
 
     /// <summary>
@@ -65,7 +68,8 @@ public sealed class ExtensionsTests
     {
         var project = CreateProject("1_Default.aspx", language, documentName);
 
-        Assert.False(EditAndContinue.Extensions.IsVenusDesignTimeProject(project));
+        Assert.False(EditAndContinue.Extensions.IsVenusDesignTimeProject(project, out var webPageName));
+        Assert.Null(webPageName);
     }
 
     /// <summary>
@@ -76,17 +80,19 @@ public sealed class ExtensionsTests
     {
         var project = CreateProject("1_Default.aspx", LanguageNames.CSharp, "Default.aspx.__projection.g.cs", designTimeOnly: false);
 
-        Assert.False(EditAndContinue.Extensions.IsVenusDesignTimeProject(project));
+        Assert.False(EditAndContinue.Extensions.IsVenusDesignTimeProject(project, out var webPageName));
+        Assert.Null(webPageName);
     }
 
     /// <summary>
-    /// A Venus design-time project with an absolute path and no effective generated output directory is ignored and does not log.
-    /// An ordinary project in the same state is ignored and logs the missing directory.
+    /// A Venus design-time project with an absolute path and no effective generated output directory is ignored
+    /// and logs, under the page display name, that changes are applied by the ASP.NET runtime. An ordinary project
+    /// in the same state is ignored and logs the missing directory.
     /// </summary>
     [Theory]
     [InlineData(LanguageNames.CSharp, ".__projection.g.cs", ".cs")]
     [InlineData(LanguageNames.VisualBasic, ".__projection.g.vb", ".vb")]
-    public void IgnoreForEditAndContinue_SuppressesMissingOutputDirectoryLogOnlyForVenusProject(
+    public void IgnoreForEditAndContinue_LogsRuntimeSaveMessageForVenusProject(
         string language,
         string projectionSuffix,
         string sourceExtension)
@@ -111,7 +117,9 @@ public sealed class ExtensionsTests
 
         var venusLog = new TraceLog("Venus");
         Assert.True(venus.IgnoreForEditAndContinue(venusLog));
-        Assert.DoesNotContain(venusLog.GetTestAccessor().Entries, static entry => entry is not null);
+        Assert.Equal(
+            "Project Default.aspx ignored for EnC: changes applied by ASP.NET runtime on save",
+            Assert.Single(venusLog.GetTestAccessor().Entries, static entry => entry is not null));
 
         var ordinaryLog = new TraceLog("Ordinary");
         Assert.True(ordinary.IgnoreForEditAndContinue(ordinaryLog));

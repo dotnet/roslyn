@@ -83,9 +83,16 @@ internal static partial class Extensions
 
         if (project.SupportsCompilation && !project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
         {
-            if (log != null && !IsVenusDesignTimeProject(project))
+            if (log != null)
             {
-                LogReason("no generated files output directory");
+                if (IsVenusDesignTimeProject(project, out var displayName))
+                {
+                    log.Write($"'{displayName}' ignored for EnC: changes applied by ASP.NET runtime on save");
+                }
+                else
+                {
+                    LogReason("no generated files output directory");
+                }
             }
 
             return true;
@@ -104,8 +111,9 @@ internal static partial class Extensions
     /// the number depends on creation order. The returned display name is that URL and retains the underscores.
     /// The page document is the project document whose name ends with ".__projection.g.cs" or ".__projection.g.vb".
     /// </summary>
-    internal static bool IsVenusDesignTimeProject(Project project)
+    internal static bool IsVenusDesignTimeProject(Project project, [NotNullWhen(true)] out string? displayName)
     {
+        displayName = null;
         var name = project.Name;
         var separator = name.IndexOf('_');
         if (separator <= 0 ||
@@ -124,8 +132,19 @@ internal static partial class Extensions
             _ => null
         };
 
-        return documentNameSuffix != null &&
-               project.Documents.Contains(d => d.State.Attributes.DesignTimeOnly && d.Name.EndsWith(documentNameSuffix, StringComparison.OrdinalIgnoreCase));
+        if (documentNameSuffix is null)
+        {
+            return false;
+        }
+
+        var pageDocument = project.Documents.FirstOrDefault(d => d.State.Attributes.DesignTimeOnly && d.Name.EndsWith(documentNameSuffix, StringComparison.OrdinalIgnoreCase));
+        if (pageDocument == null)
+        {
+            return false;
+        }
+
+        displayName = pageDocument.Name[..^documentNameSuffix.Length];
+        return true;
     }
 
     public static string GetLogDisplay(this Project project)
