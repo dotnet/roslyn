@@ -720,7 +720,7 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
     // - have the [Parameter] attribute
     // - have a setter, even if private
     // - are not indexers
-    private static ImmutableArray<(IPropertySymbol property, PropertyKind kind)> GetProperties(INamedTypeSymbol type)
+    internal static ImmutableArray<(IPropertySymbol property, PropertyKind kind)> GetProperties(INamedTypeSymbol type)
     {
         using var names = new PooledHashSet<string>(StringComparer.Ordinal);
         using var results = new PooledArrayBuilder<(IPropertySymbol, PropertyKind)>();
@@ -852,7 +852,7 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
         return false;
     }
 
-    private enum PropertyKind
+    internal enum PropertyKind
     {
         Ignored,
         Default,

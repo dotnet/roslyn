@@ -1577,25 +1577,20 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
     }
 
-    [Fact(Skip = "Fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84646")]
     public async Task Component_BindValue_NestedDelegateInFallbackComponent()
     {
-        // Known limitation of the decl/impl split: a split (fast-path) component whose ValueChanged
-        // parameter type is a delegate nested in a *fallback* component loses the delegate's metadata
-        // during fast discovery -- the fallback emits a bodiless type shell that declares only the outer
-        // class, so the nested delegate binds as an error type and @bind-Value lowers as an EventCallback,
-        // producing CS1503 in the consumer. Tracked by https://github.com/dotnet/roslyn/issues/84646;
-        // remove the Skip when it is fixed.
+        // The fallback stub omits nested delegates, so @bind requires discovery against the full declaration.
 
         // Arrange
         var project = CreateTestProject(new()
         {
-            // Widget can't be split (@implements forces the fallback path) and declares a nested delegate.
+            // Widget can't be split (markup in a field initializer forces the fallback path) and declares
+            // a nested delegate.
             ["Widget.razor"] = """
-                @implements System.IDisposable
                 @code {
                     public delegate void MyHandler(int x);
-                    public void Dispose() { }
+                    private RenderFragment _fragment = @<div>Hi</div>;
                 }
                 """,
             // MyInput is split and its ValueChanged parameter type is Widget's nested delegate.
@@ -1619,6 +1614,186 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert - the consumer should compile once the limitation is fixed.
         Assert.Empty(outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
+    }
+
+    [Theory]
+    [InlineData("INested", "global::MyApp.Fallback.INested")]
+    [InlineData("IWrapper<INested>", "global::MyApp.IWrapper<global::MyApp.Fallback.INested>")]
+    public async Task Component_TypeInference_ConstraintDependsOnFallbackComponent(string constraint, string expectedConstraint)
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Fallback.razor"] = """
+                @code {
+                    public interface INested { }
+                    public RenderFragment Fragment => @<span>fragment</span>;
+                }
+                """,
+            ["Index.razor"] = """
+                @using MyApp
+                <Constrained Value="@_item" />
+                @code {
+                    private Item _item = new();
+                }
+                """,
+        }, new()
+        {
+            ["Constrained.cs"] = $$"""
+                #nullable disable
+                using Microsoft.AspNetCore.Components;
+                using static MyApp.Fallback;
+
+                namespace MyApp;
+
+                public interface IWrapper<T> { }
+                public class Item : INested, IWrapper<INested> { }
+                public class Constrained<T> : ComponentBase where T : {{constraint}}
+                {
+                    [Parameter] public T Value { get; set; }
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        var indexSource = result.ImplGeneratedSources().Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+        Assert.Contains("where T : " + expectedConstraint, indexSource);
+        Assert.Empty(outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
+    }
+
+    [Fact]
+    public async Task Component_ParameterAttributeUsesFallbackConstant()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Fallback.razor"] = """
+                @code {
+                    public const bool Capture = true;
+                    public RenderFragment Fragment => @<span>fragment</span>;
+                }
+                """,
+            ["Index.razor"] = """
+                @using MyApp
+                <Capture id="hello" />
+                """,
+        }, new()
+        {
+            ["Capture.cs"] = """
+                using System.Collections.Generic;
+                using Microsoft.AspNetCore.Components;
+
+                namespace MyApp;
+
+                public class Capture : ComponentBase
+                {
+                    [Parameter(CaptureUnmatchedValues = Fallback.Capture)]
+                    public Dictionary<string, object> AdditionalAttributes { get; set; } = new();
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(
+            project,
+            options => options.TestGlobalOptions["build_property.RazorWarningLevel"] = "11",
+            trackSteps: true);
+
+        var result = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        Assert.Null(result.Exception);
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Id == "RZ10025");
+        Assert.Empty(outputCompilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        var fallbackTrees = Assert.IsAssignableFrom<IEnumerable<SyntaxTree>>(
+            Assert.Single(Assert.Single(result.TrackedSteps["FallbackDeclTrees"]).Outputs).Value);
+        Assert.Single(fallbackTrees);
+    }
+
+    [Fact]
+    public async Task Component_RenderModeAttributeInheritsFromFallbackType()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Fallback.razor"] = """
+                @code {
+                    public abstract class BaseModeAttribute : RenderModeAttribute
+                    {
+                        public override IComponentRenderMode Mode => null!;
+                    }
+                    public RenderFragment Fragment => @<span>fragment</span>;
+                }
+                """,
+            ["Index.razor"] = """
+                @using MyApp
+                <Marked @rendermode="null" />
+                """,
+        }, new()
+        {
+            ["Marked.cs"] = """
+                using Microsoft.AspNetCore.Components;
+
+                namespace MyApp;
+
+                public sealed class CustomModeAttribute : Fallback.BaseModeAttribute { }
+
+                [CustomMode]
+                public class Marked : ComponentBase { }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        Assert.Null(result.Exception);
+        Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Id == "RZ10024");
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Id != "RZ10024");
+        Assert.Empty(outputCompilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+    }
+
+    [Fact]
+    public async Task Component_EventHandlerAttributeUsesFallbackConstant()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Fallback.razor"] = """
+                @code {
+                    public class CustomEventArgs : System.EventArgs { }
+                    public const string EventName = "oncustom";
+                    public RenderFragment Fragment => @<span>fragment</span>;
+                }
+                """,
+            ["Index.razor"] = """
+                @using MyApp
+                <div @oncustom="Handle" />
+                @code {
+                    private void Handle(Fallback.CustomEventArgs args) { }
+                }
+                """,
+        }, new()
+        {
+            ["EventHandlers.cs"] = """
+                using Microsoft.AspNetCore.Components;
+
+                namespace MyApp;
+
+                [EventHandler(Fallback.EventName, typeof(Fallback.CustomEventArgs))]
+                public static class EventHandlers { }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+
+        var result = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        Assert.Null(result.Exception);
+        Assert.Empty(result.Diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        Assert.Empty(outputCompilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        var indexSource = result.ImplGeneratedSources().Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+        Assert.Contains("EventCallback.Factory.Create<global::MyApp.Fallback.CustomEventArgs>", indexSource);
+        var fallbackTrees = Assert.IsAssignableFrom<IEnumerable<SyntaxTree>>(
+            Assert.Single(Assert.Single(result.TrackedSteps["FallbackDeclTrees"]).Outputs).Value);
+        Assert.Single(fallbackTrees);
     }
 
     [Fact]

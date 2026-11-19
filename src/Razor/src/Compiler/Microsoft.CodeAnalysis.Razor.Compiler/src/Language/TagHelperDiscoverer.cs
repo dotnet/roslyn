@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -47,6 +48,16 @@ internal sealed class TagHelperDiscoverer(ImmutableArray<TagHelperProducer> prod
     }
 
     public TagHelperCollection GetTagHelpers(IAssemblySymbol assembly, CancellationToken cancellationToken = default)
+        => GetTagHelpers(assembly, typeVisitor: null, excludeNonComponentCandidates: false, cancellationToken);
+
+    /// <summary>
+    ///  Discovers tag helpers while visiting each type. Non-component candidates can be omitted for separate discovery.
+    /// </summary>
+    /// <remarks>
+    ///  Visiting types or omitting candidates bypasses the assembly cache: a cache hit skips the visitor,
+    ///  and a partial result must not replace the complete cached collection.
+    /// </remarks>
+    public TagHelperCollection GetTagHelpers(IAssemblySymbol assembly, Action<INamedTypeSymbol, bool>? typeVisitor, bool excludeNonComponentCandidates, CancellationToken cancellationToken = default)
     {
         if (producers.IsDefaultOrEmpty)
         {
@@ -65,7 +76,7 @@ internal sealed class TagHelperDiscoverer(ImmutableArray<TagHelperProducer> prod
         // across compilations, so this ensures that we don't produce new tag helpers
         // for the same assemblies over and over again.
 
-        if (assemblySymbolData.TryGetTagHelpers(_cacheKey, out var tagHelpers))
+        if (typeVisitor is null && !excludeNonComponentCandidates && assemblySymbolData.TryGetTagHelpers(_cacheKey, out var tagHelpers))
         {
             return tagHelpers;
         }
@@ -102,7 +113,7 @@ internal sealed class TagHelperDiscoverer(ImmutableArray<TagHelperProducer> prod
 
             // Did another discovery request for the same assembly finish and
             // cache the result while we were producing static tag helpers?
-            if (assemblySymbolData.TryGetTagHelpers(_cacheKey, out tagHelpers))
+            if (typeVisitor is null && !excludeNonComponentCandidates && assemblySymbolData.TryGetTagHelpers(_cacheKey, out tagHelpers))
             {
                 return tagHelpers;
             }
@@ -135,14 +146,24 @@ internal sealed class TagHelperDiscoverer(ImmutableArray<TagHelperProducer> prod
 
                     case SymbolKind.NamedType:
                         var typeSymbol = (INamedTypeSymbol)namespaceOrType;
+                        var isNonComponentCandidate = false;
 
                         foreach (var producer in typeProducers)
                         {
                             if (producer.IsCandidateType(typeSymbol))
                             {
-                                producer.AddTagHelpersForType(typeSymbol, ref builder, cancellationToken);
+                                var isNonComponentProducer = (typeVisitor is not null || excludeNonComponentCandidates) &&
+                                    producer.Kind != TagHelperProducerKind.Component;
+                                isNonComponentCandidate |= isNonComponentProducer;
+
+                                if (!excludeNonComponentCandidates || !isNonComponentProducer)
+                                {
+                                    producer.AddTagHelpersForType(typeSymbol, ref builder, cancellationToken);
+                                }
                             }
                         }
+
+                        typeVisitor?.Invoke(typeSymbol, isNonComponentCandidate);
 
                         if (includeNestedTypes && namespaceOrType.DeclaredAccessibility == Accessibility.Public)
                         {
@@ -161,7 +182,10 @@ internal sealed class TagHelperDiscoverer(ImmutableArray<TagHelperProducer> prod
             }
 
 
-            return assemblySymbolData.AddTagHelpers(_cacheKey, builder.ToCollection());
+            var result = builder.ToCollection();
+            return typeVisitor is null && !excludeNonComponentCandidates
+                ? assemblySymbolData.AddTagHelpers(_cacheKey, result)
+                : result;
         }
         finally
         {
