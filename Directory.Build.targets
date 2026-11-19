@@ -4,4 +4,10 @@
   <Import Project="Sdk.targets" Sdk="Microsoft.DotNet.Arcade.Sdk" />
   <Import Project="eng\targets\Imports.targets" />
   <Import Project="eng\targets\TargetFrameworks.targets" />
+
+  <!-- BenchmarkDotNet's weaver runs after CoreCompile and reads the compiled assembly from obj.
+       Design-time builds don't write that assembly, so the weaver fails. Skip weaving in design-time builds. -->
+  <PropertyGroup Condition="'$(DesignTimeBuild)' == 'true'">
+    <BenchmarkDotNetShouldWeaveAssemblies>false</BenchmarkDotNetShouldWeaveAssemblies>
+  </PropertyGroup>
 </Project>
