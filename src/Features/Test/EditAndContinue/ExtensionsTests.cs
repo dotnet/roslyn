@@ -2,10 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.IO;
+using System.Linq;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 
+[UseExportProvider]
 public sealed class ExtensionsTests
 {
     /// <summary>
@@ -75,11 +79,60 @@ public sealed class ExtensionsTests
         Assert.False(EditAndContinue.Extensions.IsVenusDesignTimeProject(project));
     }
 
-    private static Project CreateProject(string name, string language, string? documentName, bool designTimeOnly = true)
+    /// <summary>
+    /// A Venus design-time project with an absolute path and no effective generated output directory is ignored and does not log.
+    /// An ordinary project in the same state is ignored and logs the missing directory.
+    /// </summary>
+    [Theory]
+    [InlineData(LanguageNames.CSharp, ".__projection.g.cs", ".cs")]
+    [InlineData(LanguageNames.VisualBasic, ".__projection.g.vb", ".vb")]
+    public void IgnoreForEditAndContinue_SuppressesMissingOutputDirectoryLogOnlyForVenusProject(
+        string language,
+        string projectionSuffix,
+        string sourceExtension)
     {
         using var workspace = new AdhocWorkspace();
+        var venusPath = Path.Combine(Path.GetTempPath(), "1_Default.aspx" + sourceExtension + "proj");
+        var ordinaryPath = Path.Combine(Path.GetTempPath(), "ClassLibrary" + sourceExtension + "proj");
+
+        var venus = CreateProject(
+            "1_Default.aspx",
+            language,
+            "Default.aspx" + projectionSuffix,
+            filePath: venusPath,
+            workspace: workspace);
+        var ordinary = CreateProject(
+            "ClassLibrary",
+            language,
+            "Class1" + sourceExtension,
+            designTimeOnly: false,
+            filePath: ordinaryPath,
+            workspace: workspace);
+
+        var venusLog = new TraceLog("Venus");
+        Assert.True(venus.IgnoreForEditAndContinue(venusLog));
+        Assert.DoesNotContain(venusLog.GetTestAccessor().Entries, static entry => entry is not null);
+
+        var ordinaryLog = new TraceLog("Ordinary");
+        Assert.True(ordinary.IgnoreForEditAndContinue(ordinaryLog));
+        Assert.Equal(
+            $"Project '{ordinaryPath}' ignored for EnC: no generated files output directory",
+            Assert.Single(ordinaryLog.GetTestAccessor().Entries, static entry => entry is not null));
+    }
+
+    private static Project CreateProject(
+        string name,
+        string language,
+        string? documentName,
+        bool designTimeOnly = true,
+        string? filePath = null,
+        AdhocWorkspace? workspace = null)
+    {
+        var ownsWorkspace = workspace is null;
+        workspace ??= new AdhocWorkspace();
+
         var projectId = ProjectId.CreateNewId();
-        var solution = workspace.CurrentSolution.AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name, name, language));
+        var solution = workspace.CurrentSolution.AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, name, name, language, filePath: filePath));
 
         if (documentName != null)
         {
@@ -87,6 +140,12 @@ public sealed class ExtensionsTests
             solution = solution.AddDocument(documentInfo);
         }
 
-        return solution.GetProject(projectId)!;
+        var project = solution.GetProject(projectId)!;
+        if (ownsWorkspace)
+        {
+            workspace.Dispose();
+        }
+
+        return project;
     }
 }
