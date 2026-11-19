@@ -108,8 +108,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var client = new BuildClient(logger, language, compileFunc, compileOnServerFunc);
             var clientDir = GetClientDirectory();
             var workingDir = Directory.GetCurrentDirectory();
-            var tempDir = Path.GetTempPath();
-            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
+            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
             var originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
@@ -225,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     _language,
                     buildRequestArguments,
                     workingDirectory: buildPaths.WorkingDirectory,
-                    tempDirectory: buildPaths.TempDirectory,
                     keepAlive: keepAlive,
                     libDirectory: libDirectory);
 

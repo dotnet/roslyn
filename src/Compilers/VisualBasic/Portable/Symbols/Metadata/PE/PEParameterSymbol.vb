@@ -7,6 +7,7 @@ Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports System.Reflection
 Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Reflection.Metadata.Ecma335
@@ -356,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Public Overloads Overrides Function GetAttributes() As ImmutableArray(Of VisualBasicAttributeData)
-            If _lazyCustomAttributes.IsDefault Then
+            If RoslynImmutableInterlocked.VolatileRead(_lazyCustomAttributes).IsDefault Then
                 Debug.Assert(Not _handle.IsNil)
 
                 Dim containingPEModuleSymbol = DirectCast(_containingSymbol.ContainingModule, PEModuleSymbol)

@@ -25,6 +25,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit3.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CSharp15.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CSharp16.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests" />
@@ -70,7 +71,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.HotReload.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Rebuild.UnitTests" />
@@ -116,6 +116,7 @@
     <PackageReference Include="Basic.Reference.Assemblies.Net70" />
     <PackageReference Include="Basic.Reference.Assemblies.Net40" />
     <PackageReference Include="Basic.Reference.Assemblies.Net461" />
+    <PackageReference Include="Microsoft.Diagnostics.NETCore.Client" />
     <PackageReference Include="Microsoft.ILVerification" />
   </ItemGroup>
 </Project>

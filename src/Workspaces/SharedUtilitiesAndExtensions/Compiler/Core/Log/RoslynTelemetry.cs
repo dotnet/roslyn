@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
@@ -58,6 +59,40 @@ internal sealed partial class RoslynTelemetry
         return new Registration(() => ImmutableInterlocked.Update(ref _eventSinks, static (sinks, sink) => sinks.Remove(sink, ReferenceEqualityComparer.Instance), sink));
     }
 
+    /// <summary>
+    /// Reports underlying exceptions to this instance's sinks. Reporting failures terminate the process.
+    /// </summary>
+    public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+    {
+        try
+        {
+            if (exception is OperationCanceledException { InnerException: { } oceInnerException })
+            {
+                ReportFault(oceInnerException, severity, forceDump);
+                return;
+            }
+
+            if (exception is AggregateException aggregateException)
+            {
+                foreach (var innerException in aggregateException.Flatten().InnerExceptions)
+                    ReportFault(innerException, severity, forceDump);
+
+                return;
+            }
+
+            foreach (var sink in _eventSinks)
+                sink.ReportFault(exception, severity, forceDump);
+        }
+        catch (OutOfMemoryException)
+        {
+            FailFast.OnFatalException(exception);
+        }
+        catch (Exception e)
+        {
+            FailFast.OnFatalException(e);
+        }
+    }
+
     private static ImmutableArray<TSink> AddSink<TSink>(ImmutableArray<TSink> sinks, TSink sink)
         where TSink : class
     {
@@ -92,6 +127,9 @@ internal sealed partial class RoslynTelemetry
 
         return false;
     }
+
+    public bool IsEnabled(FunctionId functionId)
+        => TryGetEnabledSinks(functionId, out _);
 
     private static void LogToSinks(ImmutableArray<IEventSink> sinks, FunctionId functionId, LogMessage logMessage)
     {

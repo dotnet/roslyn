@@ -406,6 +406,76 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(9, 23));
     }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86469")]
+    public void Await_RestrictedTypes_Across_RuntimeAsync(bool useRuntimeAsync, bool debug)
+    {
+        var source = """
+            using System;
+            using System.Threading.Tasks;
+            class C
+            {
+                async Task<int> Foreach(int[] data)
+                {
+                    int sum = 0;
+                    foreach (var x in new ReadOnlySpan<int>(data))
+                    {
+                        await Task.Yield();
+                        sum += x;
+                    }
+                    return sum;
+                }
+
+                async Task<int> Local()
+                {
+                    Span<int> s = stackalloc int[3];
+                    int sum = 0;
+                    for (int i = 0; i < s.Length; i++)
+                    {
+                        await Task.Yield();
+                        sum += s[i];
+                    }
+                    return sum;
+                }
+
+                async Task TypeParameter<T>() where T : allows ref struct
+                {
+                    T value = default;
+                    await Task.Yield();
+                    Use(value);
+                }
+
+                static void Use<T>(T value) where T : allows ref struct { }
+            }
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (8,9): error CS4007: Instance of type 'System.ReadOnlySpan<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //         foreach (var x in new ReadOnlySpan<int>(data))
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"foreach (var x in new ReadOnlySpan<int>(data))
+        {
+            await Task.Yield();
+            sum += x;
+        }").WithArguments("System.ReadOnlySpan<int>").WithLocation(8, 9),
+            // (20,29): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //         for (int i = 0; i < s.Length; i++)
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s").WithArguments("System.Span<int>").WithLocation(20, 29),
+            // (23,20): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+            //             sum += s[i];
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s").WithArguments("System.Span<int>").WithLocation(23, 20),
+            // (32,13): error CS4007: Instance of type 'T' cannot be preserved across 'await' or 'yield' boundary.
+            //         Use(value);
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "value").WithArguments("T").WithLocation(32, 13)
+        };
+
+        var options = debug ? TestOptions.DebugDll : TestOptions.ReleaseDll;
+        var comp = useRuntimeAsync
+            ? CreateRuntimeAsyncCompilation(source, options)
+            : CreateCompilation(source, targetFramework: TargetFramework.Net100, options: options);
+        comp.VerifyEmitDiagnostics(expectedDiagnostics);
+    }
+
     [Fact]
     public void Await_RefStruct_Across_Unsafe()
     {
@@ -500,6 +570,82 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             // (9,23): error CS4007: Instance of type 'System.TypedReference' cannot be preserved across 'await' or 'yield' boundary.
             //         Console.Write(y.GetHashCode());
             Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.TypedReference").WithLocation(9, 23));
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86469")]
+    public void Await_Restricted_Across_RuntimeAsync(bool useRuntimeAsync, bool debug)
+    {
+        var source = """
+            using System.Threading.Tasks;
+            class C
+            {
+                static async Task M()
+                {
+                    System.RuntimeArgumentHandle handle = default;
+                    await default(Task);
+                    Use(handle);
+                }
+                static void Use(System.RuntimeArgumentHandle handle) { }
+            }
+            """;
+        var options = debug ? TestOptions.DebugDll : TestOptions.ReleaseDll;
+        CSharpCompilation comp;
+        if (useRuntimeAsync)
+        {
+            // The .NET 10 restricted types are ref structs, so use a custom corlib to test a non-ref struct.
+            var corlib = CreateEmptyCompilation("""
+                namespace System
+                {
+                    public class Object;
+                    public class ValueType;
+                    public struct Void;
+                    public struct Int32;
+                    public struct Boolean;
+                    public class String;
+                    public class Action;
+                    public struct RuntimeArgumentHandle;
+                    public class Attribute;
+                    public class Enum;
+                    public enum AttributeTargets;
+                    public class AttributeUsageAttribute : Attribute
+                    {
+                        public AttributeUsageAttribute(AttributeTargets targets) { }
+                        public bool AllowMultiple { get; set; }
+                        public bool Inherited { get; set; }
+                    }
+                }
+                namespace System.Runtime.CompilerServices
+                {
+                    public interface INotifyCompletion;
+                    public static class AsyncHelpers
+                    {
+                        public static void Await(System.Threading.Tasks.Task task) { }
+                    }
+                }
+                namespace System.Threading.Tasks
+                {
+                    public class Task : System.Runtime.CompilerServices.INotifyCompletion
+                    {
+                        public Task GetAwaiter() => this;
+                        public bool IsCompleted => false;
+                        public void GetResult() { }
+                        public void OnCompleted(System.Action continuation) { }
+                    }
+                }
+                """).EmitToImageReference();
+            comp = CreateEmptyCompilation(source, references: [corlib], options: options, parseOptions: WithRuntimeAsync(TestOptions.RegularPreview));
+        }
+        else
+        {
+            comp = CreateCompilation(source, options: options);
+        }
+
+        Assert.False(comp.GetSpecialType(SpecialType.System_RuntimeArgumentHandle).IsRefLikeType);
+        comp.VerifyEmitDiagnostics(
+            // (8,13): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
+            //         Use(handle);
+            Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "handle").WithArguments("System.RuntimeArgumentHandle").WithLocation(8, 13));
     }
 
     [Fact]

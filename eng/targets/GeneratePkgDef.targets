@@ -2,104 +2,53 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project>
   <!--
-    This file must be imported after targets from NuGet packages have been imported (e.g. from Directory.Build.targets).
-    It overwrites GeneratePkgDef defined by VSSDK NuGet package targets.
-    
-    GeneratePkgDef target defined below generates .pkgdef file based on PkgDef* items that represent entries in pkgdef file.
-    Unlike the VSSDK implementation it does not load the project assembly and does not use RegistrationAttributes.
-    The following item PkgDef* groups are recognized:
-    
-      1) PkgDefPackageRegistration 
-         Corresponds to Microsoft.VisualStudio.Shell.PackageRegistrationAttribute.
-         Project specifies this entry explicitly.
-         
-         Metadata:
-         - ItemSpec: package guid
-         - Name: package name
-         - Class: namespace qualified type name of package implementation class
-         - AllowsBackgroundLoad: bool
-         
-      2) PkgDefInstalledProduct
-         Emits $RootKey$\InstalledProducts entry.
-         Project specifies this entry explicitly.
-         
-         Metadata:
-         - ItemSpec: package guid
-         - Name
-         - DisplayName (resource id)
-         - ProductDetauls (resource id)
-         
-      3) PkgDefBrokeredService
-         Emits $RootKey$\BrokeredServices entry.
+    Generates assembly redirects and brokered-service registrations in separate pkgdef
+    files, alongside the VSSDK's attribute-based GeneratePkgDef output.
+    The following PkgDef* item groups are recognized:
+
+      1) PkgDefBrokeredService
+         Emits $RootKey$\BrokeredServices entries.
          Entries with ProfferingPackageId correspond to Microsoft.VisualStudio.Shell.ServiceBroker.ProvideBrokeredServiceAttribute.
-         
+
          Metadata:
          - ItemSpec: service name
+         - Version (optional): service version
          - Audience ('Local'|'Process'|...): Microsoft.VisualStudio.Shell.ServiceBroker.ServiceAudience enum value
          - ProfferingPackageId (guid, optional): GUID of the proffering package or empty for ServiceHub services
+         - SubFolder (optional): ServiceHub service location relative to $PackageFolder$
 
-      4) PkgDefBindingRedirect
-         Emits $RootKey$\RuntimeConfiguration\dependentAssembly\bindingRedirection entry.
-         
+      2) PkgDefBindingRedirect
+         Emits $RootKey$\RuntimeConfiguration\dependentAssembly\bindingRedirection entries.
+
          Project may specify <PkgDefEntry>BindingRedirect</PkgDefEntry> on any item that contributes to ReferencePath item group.
          (e.g. ProjectReference), or on NuGetPackageToIncludeInVsix items. These items will be automatically included in PkgDefEntry items.
-         
+
          Metadata:
          - ItemSpec: full path to the binary if FusionName is not specified, otherwise it may be just a file name
          - FusionName: optional assembly name (read from the binary if not specified)
 
-      5) PkgDefCodeBase
-         Emits $RootKey$\RuntimeConfiguration\dependentAssembly\codeBase entry.
-         
+      3) PkgDefCodeBase
+         Emits $RootKey$\RuntimeConfiguration\dependentAssembly\codeBase entries.
+
          Project may specify <PkgDefEntry>CodeBase</PkgDefEntry> on any item that contributes to ReferencePath item group.
          (e.g. ProjectReference), or on NuGetPackageToIncludeInVsix items. These items will be automatically included in PkgDefEntry items.
-         
+
          Metadata:
          - ItemSpec: full path to the binary
          - FusionName: optional assembly name (read from the binary if not specified)
-         
-      6) PkgDefFileContent
-         Merges the content of the file whose path is specified in the identity of the item to the generated pkgdef file.
-         The path may be relative to the project being built.
-         
-         Project may specify these items using None item group with PkgDefEntry="FileContent" metadata set like so:
-           <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent"/>.
-    
-         PkgDefFileContent allows the project to add arbitrary static content. The other kinds are used to generate dynamic content.
-         
-         Note: We use None items since we do not want them to be included in VSIX and we want them to be displayed in Solution Explorer
-         (if we used Content items they would get included in the VSIX by VSSDK by default).
   -->
 
   <Target Name="_SetGeneratePkgDefInputsOutputs">
     <PropertyGroup>
-      <!-- The path must match the value that VSSDK uses. -->
-      <_GeneratePkgDefOutputFile>$(IntermediateOutputPath)$(TargetName).pkgdef</_GeneratePkgDefOutputFile>
+      <_GeneratedAssemblyRedirectsPkgDefFile>$(IntermediateOutputPath)$(TargetName).AssemblyRedirects.pkgdef</_GeneratedAssemblyRedirectsPkgDefFile>
+      <_GeneratedBrokeredServicesPkgDefFile>$(IntermediateOutputPath)$(TargetName).BrokeredServices.pkgdef</_GeneratedBrokeredServicesPkgDefFile>
     </PropertyGroup>
-
-    <ItemGroup>
-      <_FileContentEntries Include="@(None)" Condition="'%(None.PkgDefEntry)' == 'FileContent'">
-        <FullFilePath>$([System.IO.Path]::Combine('$(MSBuildProjectDirectory)', '%(None.Identity)'))</FullFilePath>
-      </_FileContentEntries>
-
-      <PkgDefFileContent Include="@(_FileContentEntries->'%(FullFilePath)')" />
-
-      <!-- Ensure we add these to the fast-up-to-date-check collections -->
-      <UpToDateCheckInput Include="@(PkgDefFileContent)" Set="PkgdefFiles" />
-      <UpToDateCheckOutput Include="$(_GeneratePkgDefOutputFile)" Set="PkgdefFiles" />
-    </ItemGroup>
   </Target>
-
-  <PropertyGroup>
-    <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);_SetGeneratePkgDefInputsOutputs</CollectUpToDateCheckInputDesignTimeDependsOn>
-    <CollectUpToDateCheckOutputDesignTimeDependsOn>$(CollectUpToDateCheckOutputDesignTimeDependsOn);_SetGeneratePkgDefInputsOutputs</CollectUpToDateCheckOutputDesignTimeDependsOn>
-  </PropertyGroup>
 
   <!--
     Initializes metadata of PkgDefBrokeredService items.
   -->
-  <Target Name="_InitializeBrokeredServiceEntries"
-          BeforeTargets="GeneratePkgDef">
+  <Target Name="_InitializeBrokeredServiceEntries">
     <ItemGroup>
       <PkgDefBrokeredService Update="@(PkgDefBrokeredService)">
         <_Version Condition="'%(PkgDefBrokeredService.Version)' != ''">\%(PkgDefBrokeredService.Version)</_Version>
@@ -114,74 +63,45 @@
       </PkgDefBrokeredService>
     </ItemGroup>
   </Target>
-  
-  <!--
-    Initializes metadata of PkgDefPackageRegistration items.
-  -->
-  <Target Name="_InitializePackageRegistrationEntries"
-          BeforeTargets="GeneratePkgDef"
-          DependsOnTargets="GetAssemblyVersion">
-    <PropertyGroup>
-      <_AssemblyCodeBase>$([System.IO.Path]::Combine('$PackageFolder$', '$(AssemblyVSIXSubPath)', '$(TargetFileName)'))</_AssemblyCodeBase>
-      <_AssemblyOrCodeBase Condition="'$(UseCodeBase)' != 'true'">"Assembly"="$(AssemblyName), Version=$(AssemblyVersion), Culture=neutral, PublicKeyToken=$(PublicKeyToken)"</_AssemblyOrCodeBase>
-      <_AssemblyOrCodeBase Condition="'$(UseCodeBase)' == 'true'">"CodeBase"="$(_AssemblyCodeBase)"</_AssemblyOrCodeBase>
-    </PropertyGroup>
-    <ItemGroup>
-      <PkgDefPackageRegistration Update="@(PkgDefPackageRegistration)">
-        <_AllowsBackgroundLoad>dword:00000000</_AllowsBackgroundLoad>
-        <_AllowsBackgroundLoad Condition="'%(PkgDefPackageRegistration.AllowsBackgroundLoad)' == 'true'">dword:00000001</_AllowsBackgroundLoad>
-        <_AssemblyOrCodeBase>$(_AssemblyOrCodeBase)</_AssemblyOrCodeBase>
-      </PkgDefPackageRegistration>
-    </ItemGroup>
-  </Target>
 
-  <!--
-    Initializes metadata of PkgDefInstalledProduct items.
-  -->
-  <Target Name="_InitializeInstalledProductEntries"
-          BeforeTargets="GeneratePkgDef"
-          DependsOnTargets="AddSourceRevisionToInformationalVersion">
-    <ItemGroup>
-      <PkgDefInstalledProduct Update="@(PkgDefInstalledProduct)">
-        <_PID>$(InformationalVersion)</_PID>
-      </PkgDefInstalledProduct>
-    </ItemGroup>
-  </Target>
-  
   <!--
     Populates PkgDefBindingRedirect and PkgDefCodeBase items from references.
   -->
   <Target Name="_AddPkgDefEntriesFromReferences"
-          BeforeTargets="GeneratePkgDef"
-          DependsOnTargets="ResolveReferences">
+          DependsOnTargets="ResolveReferences;_IncludeNuGetResolvedAssets">
     <ItemGroup>
       <PkgDefBindingRedirect Include="@(ReferencePath)" Condition="'%(ReferencePath.PkgDefEntry)' == 'BindingRedirect'" />
       <PkgDefCodeBase Include="@(ReferencePath)" Condition="'%(ReferencePath.PkgDefEntry)' == 'CodeBase'" />
     </ItemGroup>
   </Target>
-  
+
   <!--
-    Generates a .pkgdef file based on items in PkgDef* groups.
+    Generates a .pkgdef file based on PkgDefBindingRedirect and PkgDefCodeBase items.
+    MSBuild evaluates a target's Condition before its dependencies. Keep the nonempty-input
+    check on the private target so the ordered dependency list collects reference entries first.
+    Call this entry point, not the private target, to ensure that initialization runs.
   -->
-  <Target Name="GeneratePkgDef"
-          DependsOnTargets="$(GeneratePkgDefDependsOn);_SetGeneratePkgDefInputsOutputs"
-          Inputs="$(MSBuildAllProjects);@(PkgDefFileContent)"
-          Outputs="$(_GeneratePkgDefOutputFile)">
+  <Target Name="GenerateAssemblyRedirectsPkgDef"
+          DependsOnTargets="_SetGeneratePkgDefInputsOutputs;_AddPkgDefEntriesFromReferences;_GenerateAssemblyRedirectsPkgDef"
+          Condition="'$(DesignTimeBuild)' != 'true'" />
+
+  <Target Name="_GenerateAssemblyRedirectsPkgDef"
+          Condition="'@(PkgDefBindingRedirect)' != '' or '@(PkgDefCodeBase)' != ''">
     <ItemGroup>
       <_AssemblyDependencyEntry Include="@(PkgDefBindingRedirect)" Kind="BindingRedirect" />
       <_AssemblyDependencyEntry Include="@(PkgDefCodeBase)" Kind="CodeBase" />
-        
+
       <_AssemblyDependencyEntryWithoutAssemblyName Include="@(_AssemblyDependencyEntry)" Condition="'%(_AssemblyDependencyEntry.FusionName)' == ''" />
       <_AssemblyDependencyEntry Remove="@(_AssemblyDependencyEntryWithoutAssemblyName)" />
     </ItemGroup>
-    
-     <Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName Items="@(_AssemblyDependencyEntryWithoutAssemblyName)" FullNameMetadata="FusionName">
-       <Output TaskParameter="ItemsWithFullName" ItemName="_AssemblyDependencyEntryWithCalculatedAssemblyName"/>
-     </Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName>
-  
+
+    <Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName Items="@(_AssemblyDependencyEntryWithoutAssemblyName)" FullNameMetadata="FusionName">
+      <Output TaskParameter="ItemsWithFullName" ItemName="_AssemblyDependencyEntryWithCalculatedAssemblyName" />
+    </Microsoft.DotNet.Arcade.Sdk.GetAssemblyFullName>
+
     <ItemGroup>
       <_AssemblyDependencyEntry Include="@(_AssemblyDependencyEntryWithCalculatedAssemblyName)" />
-      
+
       <_AssemblyDependencyEntry Update="@(_AssemblyDependencyEntry)">
         <AssemblyFileName>%(_AssemblyDependencyEntry.FileName)%(_AssemblyDependencyEntry.Extension)</AssemblyFileName>
         <OldAssemblyVersion>0.0.0.0</OldAssemblyVersion>
@@ -201,62 +121,16 @@
         <HashBase>%(AssemblyName),%(PublicKeyToken),%(Culture),%(AssemblyVersion)</HashBase>
       </_AssemblyDependencyEntry>
     </ItemGroup>
-    
+
     <Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid Items="@(_AssemblyDependencyEntry)" InputMetadata="HashBase" OutputMetadata="Guid">
-      <Output TaskParameter="OutputItems" ItemName="_AssemblyDependencyEntryWithGuid"/>
+      <Output TaskParameter="OutputItems" ItemName="_AssemblyDependencyEntryWithGuid" />
     </Microsoft.DotNet.Build.Tasks.VisualStudio.GetPkgDefAssemblyDependencyGuid>
-  
+
     <ItemGroup>
       <_AssemblyDependencyEntry Remove="@(_AssemblyDependencyEntry)" />
       <_AssemblyDependencyEntry Include="@(_AssemblyDependencyEntryWithGuid)" />
 
-      <_PkgDefEntry Include="@(PkgDefPackageRegistration)">
-        <RawValue>
-          <![CDATA[[$RootKey$\Packages\%(PkgDefPackageRegistration.Identity)]
-@="%(PkgDefPackageRegistration.Name)"
-"InprocServer32"="$WinDir$\SYSTEM32\MSCOREE.DLL"
-"Class"="%(PkgDefPackageRegistration.Class)"
-%(PkgDefPackageRegistration._AssemblyOrCodeBase)
-"AllowsBackgroundLoad"=%(PkgDefPackageRegistration._AllowsBackgroundLoad)
-]]>
-        </RawValue>
-      </_PkgDefEntry>
-      
-      <_PkgDefEntry Include="@(PkgDefInstalledProduct)">
-        <RawValue>
-          <![CDATA[[$RootKey$\InstalledProducts\%(PkgDefInstalledProduct.Name)]
-@="%(PkgDefInstalledProduct.DisplayName)"
-"Package"="%(PkgDefInstalledProduct.Identity)"
-"PID"="%(PkgDefInstalledProduct._PID)"
-"ProductDetails"="%(PkgDefInstalledProduct.ProductDetails)"
-"UseInterface"=dword:00000000
-"UseVSProductID"=dword:00000000
-]]>
-        </RawValue>
-      </_PkgDefEntry>
-
-      <_PkgDefEntry Include="@(PkgDefBrokeredService)" Condition="'%(PkgDefBrokeredService.ProfferingPackageId)' == ''">
-        <!-- 11AD60FC-6D87-4674-8F88-9ABE79176CBE is id of the HubClient package which proffers ServiceHub services -->
-        <RawValue>
-          <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)%(PkgDefBrokeredService._Version)]
-@="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
-"IsServiceHub"=dword:00000001
-"ServiceLocation"=%(PkgDefBrokeredService._ServiceLocation)
-"audience"=%(PkgDefBrokeredService._Audience)
-]]>
-        </RawValue>
-      </_PkgDefEntry>
-
-      <_PkgDefEntry Include="@(PkgDefBrokeredService)" Condition="'%(PkgDefBrokeredService.ProfferingPackageId)' != ''">
-        <RawValue>
-          <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)%(PkgDefBrokeredService._Version)]
-@="%(PkgDefBrokeredService.ProfferingPackageId)"
-"audience"=%(PkgDefBrokeredService._Audience)
-]]>
-        </RawValue>
-      </_PkgDefEntry>
-      
-      <_PkgDefEntry Include="@(_AssemblyDependencyEntry)" Condition="'%(_AssemblyDependencyEntry.Kind)' == 'BindingRedirect'">
+      <_AssemblyRedirectEntry Include="@(_AssemblyDependencyEntry)" Condition="'%(_AssemblyDependencyEntry.Kind)' == 'BindingRedirect'">
         <RawValue>
           <![CDATA[[$RootKey$\RuntimeConfiguration\dependentAssembly\bindingRedirection\%(_AssemblyDependencyEntry.Guid)]
 "name"="%(_AssemblyDependencyEntry.AssemblyName)"
@@ -267,9 +141,9 @@
 "codeBase"="$PackageFolder$\%(_AssemblyDependencyEntry.AssemblyFileName)"
 ]]>
         </RawValue>
-      </_PkgDefEntry>
-      
-      <_PkgDefEntry Include="@(_AssemblyDependencyEntry)" Condition="'%(_AssemblyDependencyEntry.Kind)' == 'CodeBase'">
+      </_AssemblyRedirectEntry>
+
+      <_AssemblyRedirectEntry Include="@(_AssemblyDependencyEntry)" Condition="'%(_AssemblyDependencyEntry.Kind)' == 'CodeBase'">
         <RawValue>
           <![CDATA[[$RootKey$\RuntimeConfiguration\dependentAssembly\codeBase\%(_AssemblyDependencyEntry.Guid)]
 "name"="%(_AssemblyDependencyEntry.AssemblyName)"
@@ -279,32 +153,65 @@
 "codeBase"="$PackageFolder$\%(_AssemblyDependencyEntry.AssemblyFileName)"
 ]]>
         </RawValue>
-      </_PkgDefEntry>
+      </_AssemblyRedirectEntry>
     </ItemGroup>
 
-    <!-- Include content generated above -->
-    <ItemGroup>
-      <_PkgDefLines Include="@(_PkgDefEntry->'%(RawValue)')" />
-    </ItemGroup>
-
-    <!-- Include content of files listed in PkgDefFileContent items -->
-    <ItemGroup>
-      <_FilesToMerge Include="@(PkgDefFileContent)"/>
-    </ItemGroup>
-    
-    <ReadLinesFromFile File="%(_FilesToMerge.Identity)" Condition="'@(_FilesToMerge)' != ''">
-      <Output TaskParameter="Lines" ItemName="_PkgDefLines"/>
-    </ReadLinesFromFile>
-
-    <Error Text="GeneratePkgDefFile is true but the project did not produce any entries (PkgDef* items) to be written to pkgdef file"
-           Condition="'@(_PkgDefLines)' == ''"/>
-
-    <WriteLinesToFile File="$(_GeneratePkgDefOutputFile)"
-                      Lines="@(_PkgDefLines)"
+    <WriteLinesToFile File="$(_GeneratedAssemblyRedirectsPkgDefFile)"
+                      Lines="@(_AssemblyRedirectEntry->'%(RawValue)')"
                       Overwrite="true"
-                      Encoding="UTF-8" />
+                      Encoding="UTF-8"
+                      WriteOnlyWhenDifferent="true" />
     <ItemGroup>
-      <FileWrites Include="$(_GeneratePkgDefOutputFile)" />
+      <_AssemblyRedirectsOutput Include="$(_GeneratedAssemblyRedirectsPkgDefFile)" />
+      <_GeneratedRegistrationFile Include="@(_AssemblyRedirectsOutput)" />
+      <FileWrites Include="@(_AssemblyRedirectsOutput)" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Generates a .pkgdef file based on PkgDefBrokeredService items.
+    MSBuild evaluates a target's Condition before its dependencies. Keep the nonempty-input
+    check on the private target so the ordered dependency list runs service-list producers
+    and initializes their entries first. Call this entry point, not the private target.
+  -->
+  <Target Name="GenerateBrokeredServicesPkgDef"
+          DependsOnTargets="_SetGeneratePkgDefInputsOutputs;_InitializeBrokeredServiceEntries;_GenerateBrokeredServicesPkgDef"
+          Condition="'$(DesignTimeBuild)' != 'true'" />
+
+  <Target Name="_GenerateBrokeredServicesPkgDef"
+          Condition="'@(PkgDefBrokeredService)' != ''">
+    <ItemGroup>
+      <_BrokeredServiceEntry Include="@(PkgDefBrokeredService)" Condition="'%(PkgDefBrokeredService.ProfferingPackageId)' == ''">
+        <!-- 11AD60FC-6D87-4674-8F88-9ABE79176CBE is id of the HubClient package which proffers ServiceHub services -->
+        <RawValue>
+          <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)%(PkgDefBrokeredService._Version)]
+@="11AD60FC-6D87-4674-8F88-9ABE79176CBE"
+"IsServiceHub"=dword:00000001
+"ServiceLocation"=%(PkgDefBrokeredService._ServiceLocation)
+"audience"=%(PkgDefBrokeredService._Audience)
+]]>
+        </RawValue>
+      </_BrokeredServiceEntry>
+
+      <_BrokeredServiceEntry Include="@(PkgDefBrokeredService)" Condition="'%(PkgDefBrokeredService.ProfferingPackageId)' != ''">
+        <RawValue>
+          <![CDATA[[$RootKey$\BrokeredServices\%(PkgDefBrokeredService.Identity)%(PkgDefBrokeredService._Version)]
+@="%(PkgDefBrokeredService.ProfferingPackageId)"
+"audience"=%(PkgDefBrokeredService._Audience)
+]]>
+        </RawValue>
+      </_BrokeredServiceEntry>
+    </ItemGroup>
+
+    <WriteLinesToFile File="$(_GeneratedBrokeredServicesPkgDefFile)"
+                      Lines="@(_BrokeredServiceEntry->'%(RawValue)')"
+                      Overwrite="true"
+                      Encoding="UTF-8"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <_BrokeredServicesOutput Include="$(_GeneratedBrokeredServicesPkgDefFile)" />
+      <_GeneratedRegistrationFile Include="@(_BrokeredServicesOutput)" />
+      <FileWrites Include="@(_BrokeredServicesOutput)" />
     </ItemGroup>
   </Target>
 </Project>

@@ -13999,6 +13999,7 @@ End Module
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_1()
+            ' https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -14018,7 +14019,7 @@ Public Class TestClass
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe,
-                expectedOutput:="57.2957795130823")
+                expectedOutput:=If(Environment.Version.Major >= 11, "57.295779513082322864647721872", "57.2957795130823"))
 
             c.VerifyIL("TestClass.CalculateDimensions",
             <![CDATA[
@@ -14046,6 +14047,7 @@ End Class
         <WorkItem(33564, "https://github.com/dotnet/roslyn/issues/33564")>
         <WorkItem(7148, "https://github.com/dotnet/roslyn/issues/7148")>
         Public Sub Issue7148_2()
+            ' https://github.com/dotnet/roslyn/issues/85043: decimal representation changed in .NET 11
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -14068,7 +14070,7 @@ Public Class TestClass
 End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe,
-                expectedOutput:="57.2957795130823")
+                expectedOutput:=If(Environment.Version.Major >= 11, "57.295779513082322864647721872", "57.2957795130823"))
 
             c.VerifyIL("TestClass.CalculateDimensions",
             <![CDATA[

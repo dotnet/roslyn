@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 
 internal interface IExternalCSharpOnTheFlyDocsService
 {
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken);
+    Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
     Task<string> GetOnTheFlyDocsPromptAsync(CopilotOnTheFlyDocsInfoWrapper onTheFlyDocsInfo, CancellationToken cancellationToken);
     Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken);
 }

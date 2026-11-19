@@ -54,19 +54,9 @@
         <target state="translated">Razor 编辑器使用 Razor 源生成器，这要求 *.razor 和 *.cshtml 文件是项目中的 AdditionalFile。{0} 似乎来自“{1}”，其中包含 Razor 文档，但此文件不是 AdditionalFile，因此编辑体验将受到限制。对于此项目，将不会记录更多消息。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">偏移无效。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">{0} 关键字</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Razor 语言服务未正确配置，缺少语言服务 "{0}"。</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">

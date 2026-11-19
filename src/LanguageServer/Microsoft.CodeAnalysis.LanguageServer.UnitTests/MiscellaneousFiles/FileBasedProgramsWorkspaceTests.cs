@@ -2,12 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+extern alias MSBuildWorkspacesContracts;
+
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -16,16 +22,58 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit.Abstractions;
+using DocumentFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo;
+using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
 public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutputHelper) : AbstractLspMiscellaneousFilesWorkspaceTests(testOutputHelper)
 {
+    [Fact]
+    public async Task GetOrLoadEntryPointDocument_NormalizesPath()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var sourceFile = CreateTempDirectoryWithGlobalJson().CreateFile("SomeFile.cs");
+        var nonCanonicalPath = Path.Combine(Path.GetDirectoryName(sourceFile.Path)!, "directory", "..", Path.GetFileName(sourceFile.Path));
+        var sourceText = SourceText.From("Console.WriteLine(\"Hello World!\");");
+        var languageInformation = new LanguageInformation(LanguageNames.CSharp, "csx");
+
+        var documents = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            nonCanonicalPath, new SourceTextLoader(sourceText, nonCanonicalPath), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+        var document = Assert.Single(documents);
+        var documentsFromCanonicalPath = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            sourceFile.Path, new SourceTextLoader(sourceText, sourceFile.Path), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+
+        Assert.Equal(sourceFile.Path, document.FilePath);
+        Assert.Equal(document.Id, Assert.Single(documentsFromCanonicalPath).Id);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public async Task GetOrLoadEntryPointDocument_MatchesPathCaseInsensitively()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var projectSystem = (FileBasedProgramsProjectSystem)testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var sourceFile = CreateTempDirectoryWithGlobalJson().CreateFile("SomeFile.cs");
+        var sourceText = SourceText.From("Console.WriteLine(\"Hello World!\");");
+        var languageInformation = new LanguageInformation(LanguageNames.CSharp, "csx");
+
+        var document = Assert.Single(await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            sourceFile.Path, new SourceTextLoader(sourceText, sourceFile.Path), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false));
+        var pathWithDifferentCasing = sourceFile.Path.ToUpperInvariant();
+        var documentsFromDifferentCasing = await projectSystem.GetOrLoadEntryPointDocumentAsync(
+            pathWithDifferentCasing, new SourceTextLoader(sourceText, pathWithDifferentCasing), languageInformation, SourceHashAlgorithms.Default, doDesignTimeBuild: false);
+
+        Assert.Equal(document.Id, Assert.Single(documentsFromDifferentCasing).Id);
+    }
+
     [Theory, CombinatorialData]
     public async Task TestFileBasedProgram_Simple(bool mutatingLspWorkspace)
     {
@@ -116,6 +164,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             <Project>
               <PropertyGroup>
                 <ArtifactsPath>$(MSBuildThisFileDirectory)</ArtifactsPath>
+                <!-- Temporary gap: RC1 lacks this marker. -->
+                <_SupportsFileBasedAppArtifactsPath Condition="'$(NETCoreSdkVersion)' == '11.0.100-rc.1.26425.128'">true</_SupportsFileBasedAppArtifactsPath>
               </PropertyGroup>
             </Project>
             """);
@@ -436,6 +486,40 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
     }
 
+    /// <summary>
+    /// Project loading adds non-file documents as virtual documents, but must not open them: LSP is responsible for opening them.
+    /// </summary>
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9846")]
+    public async Task TestLoadedProjectDoesNotOpenNonFileDocuments()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var projectFactory = workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+        var documentPath = """git:/repo/Test.cs?{"path":"/repo/Test.cs","ref":"~"}""";
+        var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, Path.Combine(TempRoot.Root, "Canonical.csproj")) with
+        {
+            CommandLineArgs = ["/target:library"],
+            Documents = [new DocumentFileInfo(documentPath, "Test.cs", isLinked: false, isGenerated: false, folders: [])],
+        };
+        await using var loadedProject = new LoadedProject(documentPath, projectFactory.FileChangeWatcher);
+
+        Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
+            [projectInfo],
+            isMiscellaneousFile: true,
+            hasAllInformation: false,
+            projectFactory,
+            testLspServer.GetRequiredLspService<ProjectTargetFrameworkManager>(),
+            testLspServer.GetRequiredLspService<ProjectCapabilityManager>(),
+            workspaceFactory,
+            NullLogger.Instance,
+            CancellationToken.None));
+
+        var workspace = projectFactory.Workspace;
+        var document = Assert.Single(Assert.Single(workspace.CurrentSolution.Projects).Documents);
+        Assert.Equal(documentPath, document.FilePath);
+        Assert.False(workspace.IsDocumentOpen(document.Id));
+    }
+
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81644")]
     public async Task TestScriptsWithIgnoredDirectives(bool mutatingLspWorkspace)
     {
@@ -633,8 +717,11 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
 
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        var workspaceWaiter = testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace);
         globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, false);
 
+        // Option changes unload projects asynchronously; wait before looking up the replacement document.
+        await workspaceWaiter.ExpeditedWaitAsync();
         (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         Assert.DoesNotContain("FileBasedProgram", document.Project.ParseOptions!.Features);
         syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
@@ -645,6 +732,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true);
 
+        await workspaceWaiter.ExpeditedWaitAsync();
         (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
@@ -694,7 +782,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
                 fileChangeTcs.TrySetResult();
         };
 
-        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await fileChangeTcs.Task;
     }
 
     [Theory, CombinatorialData]
@@ -1128,12 +1216,12 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Lookup "Util.cs" in the "App" project context
         var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilCsFile.Path);
-        (_, _, var textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(utilCsUri, projects[0].Id), CancellationToken.None);
+        var textDocument = (await testLspServer.CaptureLspDocumentContextAsync(CreateTextDocumentIdentifier(utilCsUri, projects[0].Id)))?.Document;
         Assert.NotNull(textDocument);
         Assert.Equal("App", textDocument.Project.AssemblyName);
 
         // Lookup "Util.cs" in the "Ordinary" project context
-        (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(utilCsUri, projects[1].Id), CancellationToken.None);
+        textDocument = (await testLspServer.CaptureLspDocumentContextAsync(CreateTextDocumentIdentifier(utilCsUri, projects[1].Id)))?.Document;
         Assert.NotNull(textDocument);
         Assert.Equal("Ordinary", textDocument.Project.AssemblyName);
     }
@@ -1230,6 +1318,16 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        // Restore before loading so a delayed assets-file notification cannot reload the edited Util.cs.
+        // Intentionally narrows this test to projects that don't need to be restored before loading.
+        Assert.True(await RestoreHandler.RestoreAsync(
+            [appCsFile.Path],
+            testLspServer.GetRequiredLspService<WorkDoneProgressManager>(),
+            testLspServer.GetRequiredLspService<DotnetCliHelper>(),
+            testLspServer.GetRequiredLspService<LspLoggerFactory>().CreateLogger<RestoreHandler>(),
+            enableProgressReporting: false,
+            CancellationToken.None));
 
         // Open App.cs.
         var appCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
@@ -1399,8 +1497,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Lookup "App.cs" in the "App" project context
         var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
-        (_, _, var textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
-            CreateTextDocumentIdentifier(utilCsUri, projects[0].Id), CancellationToken.None);
+        var textDocument = (await testLspServer.CaptureLspDocumentContextAsync(
+            CreateTextDocumentIdentifier(utilCsUri, projects[0].Id)))?.Document;
         document = (Document)textDocument!;
         Assert.Equal("App", document.Project.AssemblyName);
 
@@ -1409,8 +1507,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
 
         // Lookup "App.cs" in the "Ordinary" project context
-        (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
-            CreateTextDocumentIdentifier(utilCsUri, projects[1].Id), CancellationToken.None);
+        textDocument = (await testLspServer.CaptureLspDocumentContextAsync(
+            CreateTextDocumentIdentifier(utilCsUri, projects[1].Id)))?.Document;
         Assert.NotNull(textDocument);
         document = (Document)textDocument!;
         Assert.Equal("Ordinary", document.Project.AssemblyName);

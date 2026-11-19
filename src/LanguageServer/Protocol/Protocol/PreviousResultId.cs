@@ -27,6 +27,17 @@ internal sealed class PreviousResultId
     }
 
     /// <summary>
+    /// Gets or sets the Visual Studio project context for this result.
+    /// </summary>
+    [JsonPropertyName("_vs_projectContext")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public VSProjectContext? ProjectContext
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
     /// Gets or sets the value of the previous result id.
     /// </summary>
     [JsonPropertyName("value")]

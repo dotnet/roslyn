@@ -8,9 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -67,6 +69,46 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
 
         await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
         AssertEx.Equal(ConvertToReadableFormat(testLspServer.ClientCapabilities, expectedResults.Data), ConvertToReadableFormat(testLspServer.ClientCapabilities, results.Data));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetSemanticTokensRange_HasAllInformationAsync(bool mutatingLspWorkspace, bool isVS)
+    {
+        var markup = """{|range:class C { }|}""";
+        var clientCapabilities = GetCapabilities(isVS);
+        clientCapabilities.Workspace = new WorkspaceClientCapabilities
+        {
+            SemanticTokens = new SemanticTokensWorkspaceSetting { RefreshSupport = true },
+        };
+
+        var clientCallbackTarget = new SemanticTokensRefreshClientCallbackTarget();
+        await using var testLspServer = await CreateTestLspServerAsync(
+            markup, mutatingLspWorkspace, new InitializationOptions
+            {
+                ClientCapabilities = clientCapabilities,
+                ClientTarget = clientCallbackTarget,
+            });
+
+        var workspace = testLspServer.TestWorkspace;
+        var projectId = workspace.CurrentSolution.ProjectIds.Single();
+        await workspace.ChangeProjectAsync(projectId, workspace.CurrentSolution.WithHasAllInformation(projectId, hasAllInformation: false));
+
+        var location = testLspServer.GetLocations("range").Single();
+        await testLspServer.OpenDocumentAsync(location.DocumentUri);
+        var loadingResults = await RunGetSemanticTokensRangeAsync(testLspServer, location);
+        Assert.Empty(loadingResults.Data);
+
+        // Drain earlier refreshes so only the load-complete update can satisfy the assertion.
+        var operations = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+        await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.Classification]);
+        var refreshCount = clientCallbackTarget.RefreshCount;
+
+        await workspace.ChangeProjectAsync(projectId, workspace.CurrentSolution.WithHasAllInformation(projectId, hasAllInformation: true));
+        await operations.WaitAllAsync(workspace, [FeatureAttribute.Workspace, FeatureAttribute.Classification]);
+        Assert.True(clientCallbackTarget.RefreshCount > refreshCount, "Completing project loading should request a semantic tokens refresh.");
+
+        var results = await RunGetSemanticTokensRangeAsync(testLspServer, location);
+        Assert.NotEmpty(results.Data);
     }
 
     [Theory, CombinatorialData]
@@ -856,5 +898,19 @@ public sealed class SemanticTokensRangeTests(ITestOutputHelper testOutputHelper)
 
         await VerifyBasicInvariantsAndNoMultiLineTokens(testLspServer, results.Data).ConfigureAwait(false);
         AssertEx.Equal(ConvertToReadableFormat(testLspServer.ClientCapabilities, expectedResults.Data), ConvertToReadableFormat(testLspServer.ClientCapabilities, results.Data));
+    }
+
+    private sealed class SemanticTokensRefreshClientCallbackTarget
+    {
+        private int _refreshCount;
+
+        public int RefreshCount => Volatile.Read(ref _refreshCount);
+
+        [JsonRpcMethod(LSP.Methods.WorkspaceSemanticTokensRefreshName)]
+        public object? WorkspaceSemanticTokensRefresh(CancellationToken _)
+        {
+            Interlocked.Increment(ref _refreshCount);
+            return null;
+        }
     }
 }

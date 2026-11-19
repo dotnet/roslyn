@@ -66,7 +66,7 @@ internal sealed class RoslynSpellCheckFixerProvider(
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var buffer = span.Snapshot.TextBuffer;
-        var edit = buffer.CreateEdit();
+        using var edit = buffer.CreateEdit();
 
         edit.Replace(span.TranslateTo(buffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive), replacement);
         edit.Apply();

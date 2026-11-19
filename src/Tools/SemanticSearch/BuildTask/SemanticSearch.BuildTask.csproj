@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
-    <AutoGenerateAssemblyVersion>true</AutoGenerateAssemblyVersion>
+    <AutoGenerateAssemblyVersion Condition="'$(OfficialBuild)' != 'true' and '$(DotNetUseShippingVersions)' != 'true'">true</AutoGenerateAssemblyVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>

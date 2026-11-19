@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
@@ -18,11 +19,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 [Export(typeof(ILanguageServerTelemetryReporterWrapper))]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Lazy<LanguageServerTelemetry>? telemetryService) : ILanguageServerTelemetryReporterWrapper
+internal sealed class TelemetryReporterWrapper() : ILanguageServerTelemetryReporterWrapper
 {
+    private static readonly ConditionalWeakTable<RoslynTelemetry, TelemetrySession> s_sessions = new();
+
     public void ReportEvent(string name, List<KeyValuePair<string, object?>> properties)
     {
-        if (telemetryService?.Value.Session is not { } session)
+        if (GetSession(RoslynTelemetry.Current) is not { } session)
             return;
 
         var telemetryEvent = new TelemetryEvent(name);
@@ -33,5 +36,16 @@ internal sealed class TelemetryReporterWrapper([Import(AllowDefault = true)] Laz
     }
 
     public void ReportMetric(TelemetryMetricEvent metricEvent)
-        => telemetryService?.Value.Session?.PostMetricEvent(metricEvent);
+        => GetSession(RoslynTelemetry.Current)?.PostMetricEvent(metricEvent);
+
+    internal static void RegisterSession(RoslynTelemetry telemetry, TelemetrySession session)
+        => s_sessions.Add(telemetry, session);
+
+    internal static void UnregisterSession(RoslynTelemetry telemetry)
+        => s_sessions.Remove(telemetry);
+
+    internal static TelemetrySession? GetSession(RoslynTelemetry telemetry)
+        => s_sessions.TryGetValue(telemetry, out var session)
+            ? session
+            : null;
 }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -84,6 +85,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _state.DefaultForceComplete(this, cancellationToken);
+        }
+
+        public sealed override bool IsDefinedInSourceTree(
+            SyntaxTree tree,
+            TextSpan? definedWithinSpan,
+            CancellationToken cancellationToken = default)
+        {
+            // Since only the declaring (and not the implementing) part of a partial event appears in the member
+            // list, we need to ensure we complete the implementation part when needed.
+            Debug.Assert(this.DeclaringSyntaxReferences.Length == 1);
+            return
+                IsDefinedInSourceTree(this, tree, definedWithinSpan) ||
+                (this.SourcePartialImplementationPart is { } impl && IsDefinedInSourceTree(impl, tree, definedWithinSpan));
+        }
+
+        internal static bool IsDefinedInSourceTree(SourceEventSymbol @event, SyntaxTree tree, TextSpan? definedWithinSpan)
+        {
+            if (@event.SyntaxTree != tree)
+            {
+                return false;
+            }
+
+            if (!definedWithinSpan.HasValue)
+            {
+                return true;
+            }
+
+            return @event.MemberSyntax is { SyntaxTree.HasCompilationUnitRoot: true } memberSyntax &&
+                memberSyntax.Span.IntersectsWith(definedWithinSpan.Value);
         }
 
         public abstract override string Name { get; }
@@ -412,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, containingType.GetNullableContextValue(), type));
             }
 
-            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
@@ -478,17 +508,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return (_modifiers & DeclarationModifiers.Unsafe) != 0; }
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
                 return HasUnsafeModifier
-                    ? CallerUnsafeMode.Explicit
-                    : CallerUnsafeMode.None;
+                    ? RequiresUnsafeMode.Explicit
+                    : RequiresUnsafeMode.None;
             }
 
             return Type.ContainsPointerOrFunctionPointer()
-                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                ? RequiresUnsafeMode.Implicit : RequiresUnsafeMode.None;
         }
 
         public sealed override Accessibility DeclaredAccessibility
@@ -598,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, explicitInterfaceImplementation, location, diagnostics);
 
-            this.CheckUnsafeModifier(mods, diagnostics);
+            this.CheckUnsafeOptionForModifiers(mods, diagnostics, modifiers);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(!isFieldLike, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -886,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.ExternKeyword, location));
             }
 
-            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     (MemberSyntax?.Modifiers).GetModifierLocation(SyntaxKind.UnsafeKeyword, location),

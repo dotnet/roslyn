@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
@@ -27,9 +26,15 @@ internal
 #endif
 sealed class VirtualProjectBuilder
 {
-    internal readonly record struct ExplicitProjectItem(string ItemType, string Include);
+    internal readonly record struct ExplicitProjectItem(string ItemType, string Include)
+    {
+        public bool IsUpdate { get; init; }
+        public ImmutableArray<(string Name, string Value)> Metadata { get; init; }
+    }
 
     internal const string FromIncludeDirectiveMetadataName = "FileBasedProgramsFromIncludeDirective";
+
+    internal const string IncludeDirectiveMetadataNames = "FileBasedProgramsIncludeDirectiveMetadataNames";
 
     internal const string FromRefDirectiveMetadataName = "FileBasedProgramsFromRefDirective";
 
@@ -467,7 +472,6 @@ sealed class VirtualProjectBuilder
             }
         }
 
-        await CheckDirectivesAsync(project, evaluatedDirectives, reportError).ConfigureAwait(false);
         await CreateReferencedVirtualProjectsAsync(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles).ConfigureAwait(false);
 
         return new Result(project, projectRootElement, evaluatedDirectives);
@@ -569,36 +573,6 @@ sealed class VirtualProjectBuilder
                 reportError,
                 validateAllDirectives: validateAllDirectives,
                 processedRefFiles: processedFiles).ConfigureAwait(false);
-        }
-    }
-
-    private async ValueTask CheckDirectivesAsync(
-        IProjectInstance project,
-        ImmutableArray<CSharpDirective> directives,
-        ErrorReporter reportError)
-    {
-        var refEnabled = new StrongBox<bool?>();
-
-        foreach (var directive in directives)
-        {
-            if (directive is CSharpDirective.Ref)
-            {
-                await CheckFlagEnabledAsync(refEnabled, CSharpDirective.Ref.ExperimentalFileBasedProgramEnableRefDirective, directive).ConfigureAwait(false);
-            }
-        }
-
-        async ValueTask CheckFlagEnabledAsync(StrongBox<bool?> flag, string flagName, CSharpDirective directive)
-        {
-            bool value = flag.Value ??= MSBuildUtilities.ConvertStringToBool(await project.GetPropertyValueAsync(flagName).ConfigureAwait(false));
-
-            if (!value)
-            {
-                reportError(
-                    directive.Info.SourceFile.Text,
-                    directive.Info.SourceFile.Path,
-                    directive.Info.Span,
-                    string.Format(FileBasedProgramsResources.ExperimentalFeatureDisabled, flagName));
-            }
         }
     }
 
@@ -854,9 +828,13 @@ sealed class VirtualProjectBuilder
 
                 if (includeOrExclude.Kind == CSharpDirective.IncludeOrExcludeKind.Include)
                 {
-                    writer.WriteLine($"""
-                        <{itemType} Include="{EscapeValue(includeOrExclude.Name)}" {FromIncludeDirectiveMetadataName}="true" />
-                    """);
+                    var attributes = $"Include=\"{EscapeValue(includeOrExclude.Name)}\" {FromIncludeDirectiveMetadataName}=\"true\"";
+                    if (!includeOrExclude.Metadata.IsDefaultOrEmpty)
+                    {
+                        attributes += $" {IncludeDirectiveMetadataNames}=\"{EscapeValue(string.Join(";", includeOrExclude.Metadata.Select(static m => m.Name)))}\"";
+                    }
+
+                    WriteItem(writer, itemType, attributes, includeOrExclude.Metadata);
                 }
                 else
                 {
@@ -878,11 +856,10 @@ sealed class VirtualProjectBuilder
                   <ItemGroup>
                 """);
 
-            foreach (var (itemType, include) in explicitProjectItems)
+            foreach (var item in explicitProjectItems)
             {
-                writer.WriteLine($"""
-                        <{itemType} Include="{EscapeValue(include)}" />
-                    """);
+                var operation = item.IsUpdate ? "Update" : "Include";
+                WriteItem(writer, item.ItemType, $"{operation}=\"{EscapeValue(item.Include)}\"", item.Metadata);
             }
 
             writer.WriteLine("""
@@ -997,6 +974,11 @@ sealed class VirtualProjectBuilder
 
         static void WriteItem(TextWriter writer, string itemType, string attributes, ImmutableArray<(string Name, string Value)> metadata)
         {
+            if (!FileBasedProgramDirectiveValueHelpers.IsValidMSBuildName(itemType, out var errorMessage))
+            {
+                throw new ArgumentException($"Invalid MSBuild item type name '{itemType}': {errorMessage}", paramName: nameof(itemType));
+            }
+
             if (metadata.IsDefaultOrEmpty)
             {
                 writer.WriteLine($"    <{itemType} {attributes} />");

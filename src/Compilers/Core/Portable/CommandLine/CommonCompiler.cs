@@ -45,18 +45,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal string? SdkDirectory { get; }
 
-        /// <summary>
-        /// The temporary directory a compilation should use instead of Path.GetTempPath.  The latter
-        /// relies on global state individual compilations should ignore.
-        /// </summary>
-        internal string? TempDirectory { get; }
-
-        internal BuildPaths(string clientDir, string workingDir, string? sdkDir, string? tempDir)
+        internal BuildPaths(string clientDir, string workingDir, string? sdkDir)
         {
             ClientDirectory = clientDir;
             WorkingDirectory = workingDir;
             SdkDirectory = sdkDir;
-            TempDirectory = tempDir;
         }
     }
 
@@ -1320,6 +1313,7 @@ namespace Microsoft.CodeAnalysis
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.FTL_InvalidInputFileName, Location.None, finalPdbFilePath));
                 }
 
+                bool emitPdb = Arguments.EmitPdb && !emitOptions.EmitMetadataOnly;
                 var moduleBeingBuilt = compilation.CheckOptionsAndCreateModuleBuilder(
                     diagnostics,
                     Arguments.ManifestResources,
@@ -1338,7 +1332,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         success = compilation.CompileMethods(
                             moduleBeingBuilt,
-                            Arguments.EmitPdb,
+                            emitPdb,
                             diagnostics,
                             filterOpt: null,
                             cancellationToken: cancellationToken);
@@ -1457,7 +1451,7 @@ namespace Microsoft.CodeAnalysis
                     if (success)
                     {
                         var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath);
-                        var pdbStreamProviderOpt = Arguments.EmitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
+                        var pdbStreamProviderOpt = emitPdb && Arguments.EmitPdbFile ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null;
 
                         string? finalRefPeFilePath = Arguments.OutputRefFilePath;
                         var refPeStreamProviderOpt = finalRefPeFilePath != null ? new CompilerEmitStreamProvider(this, finalRefPeFilePath) : null;

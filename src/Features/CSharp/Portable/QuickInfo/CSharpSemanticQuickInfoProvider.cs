@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
@@ -311,7 +310,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         var position = context.Position;
 
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-            !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            !await copilotService.IsOnTheFlyDocsAvailableAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -346,12 +345,10 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         if (symbol.DeclaringSyntaxReferences.Length == 0)
             return null;
 
-        // Checks to see if any of the files containing the symbol are excluded.
         var hasContentExcluded = false;
-        var symbolFilePaths = symbol.DeclaringSyntaxReferences.Select(reference => reference.SyntaxTree.FilePath);
-        foreach (var symbolFilePath in symbolFilePaths)
+        foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
         {
-            if (await copilotService.IsFileExcludedAsync(symbolFilePath, cancellationToken).ConfigureAwait(false))
+            if (await copilotService.IsFileExcludedFromOnTheFlyDocsAsync(syntaxReference.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
             {
                 hasContentExcluded = true;
                 Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, logLevel: LogLevel.Information);

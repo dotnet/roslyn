@@ -48,9 +48,9 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
             => ((DebuggingSessionCallback)GetCallback(callbackId)).PrepareModuleForUpdateAsync(mvid, cancellationToken);
     }
 
-    private sealed class DebuggingSessionCallback(IManagedHotReloadService debuggerService, IPdbMatchingSourceTextProvider sourceTextProvider)
+    private sealed class DebuggingSessionCallback(IManagedHotReloadState state, IPdbMatchingSourceTextProvider sourceTextProvider)
     {
-        private readonly IManagedHotReloadService _debuggerService = debuggerService;
+        private readonly IManagedHotReloadState _state = state;
         private readonly IPdbMatchingSourceTextProvider _sourceTextProvider = sourceTextProvider;
 
         public async ValueTask<string?> TryGetMatchingSourceTextAsync(string filePath, ImmutableArray<byte> requiredChecksum, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)
@@ -69,7 +69,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         {
             try
             {
-                return await _debuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+                return await _state.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -81,7 +81,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         {
             try
             {
-                return await _debuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+                return await _state.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -93,7 +93,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         {
             try
             {
-                await _debuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
+                await _state.PrepareModuleForUpdateAsync(mvid, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -105,7 +105,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         {
             try
             {
-                return await _debuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+                return await _state.GetUpdateCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -119,7 +119,7 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
 
     public async ValueTask<DebuggingSessionProxy?> StartDebuggingSessionAsync(
         Solution solution,
-        IManagedHotReloadService debuggerService,
+        IManagedHotReloadState state,
         IPdbMatchingSourceTextProvider sourceTextProvider,
         bool reportDiagnostics,
         CancellationToken cancellationToken)
@@ -127,13 +127,13 @@ internal readonly partial struct RemoteEditAndContinueServiceProxy(SolutionServi
         var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
         if (client == null)
         {
-            var sessionId = GetLocalService().StartDebuggingSession(solution, debuggerService, sourceTextProvider, reportDiagnostics);
+            var sessionId = GetLocalService().StartDebuggingSession(solution, state, sourceTextProvider, reportDiagnostics);
             return new DebuggingSessionProxy(solution.Services, LocalConnection.Instance, sessionId);
         }
 
         // need to keep the providers alive until the session ends:
         var connection = client.CreateConnection<IRemoteEditAndContinueService>(
-            callbackTarget: new DebuggingSessionCallback(debuggerService, sourceTextProvider));
+            callbackTarget: new DebuggingSessionCallback(state, sourceTextProvider));
 
         var sessionIdOpt = await connection.TryInvokeAsync(
             solution,

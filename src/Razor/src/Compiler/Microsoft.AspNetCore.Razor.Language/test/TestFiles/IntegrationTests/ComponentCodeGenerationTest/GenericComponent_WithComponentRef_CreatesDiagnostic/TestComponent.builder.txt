@@ -7,5 +7,5 @@ int
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<int>. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<int>( 3 ))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< int >. Item ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<int>( 3 ))
 [0002] AddComponentReferenceCapture((__value) => { _my = (global::Test.MyComponent<int>)__value; })

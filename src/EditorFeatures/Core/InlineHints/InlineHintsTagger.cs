@@ -60,7 +60,7 @@ internal partial class InlineHintsTaggerProvider
             _underlyingTagger.TagsChanged += OnTagsChanged;
 
             _formatMap = taggerProvider.ClassificationFormatMapService.GetClassificationFormatMap(textView);
-            _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetClassificationType(InlineHintsTag.TagId);
+            _hintClassification = taggerProvider.ClassificationTypeRegistryService.GetRequiredClassificationType(InlineHintsTag.TagId);
 
             _formatMap.ClassificationFormatMappingChanged += this.OnClassificationFormatMappingChanged;
             _taggerProvider.GlobalOptionService.AddOptionChangedHandler(this, OnGlobalOptionChanged);

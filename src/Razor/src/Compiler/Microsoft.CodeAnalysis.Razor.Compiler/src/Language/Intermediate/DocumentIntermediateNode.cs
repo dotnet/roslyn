@@ -41,11 +41,11 @@ public sealed class DocumentIntermediateNode : IntermediateNode
     /// tag-helper descriptor must be produced by the separate declaration engine (the fallback discovery
     /// path) rather than read from the pre-compilation compilation; <see langword="null"/> for a component
     /// that split completely or for a non-component. Set by <see cref="DefaultRazorMarkupSplitPhase"/>. A
-    /// non-null value both marks the document for fallback discovery and carries the name the source
-    /// generator matches to route its descriptor through slow discovery over the augmented compilation
-    /// instead of fast discovery, without re-deriving the name from the generated code. Independent of
-    /// <see cref="DeclDocumentNode"/>: a fallback component with a primary class also emits a type-shell
-    /// decl for resolution.
+    /// non-null value marks the document for fallback discovery: the source generator adds the component's
+    /// full declaration to an augmented compilation and discovers tag helpers over that whole assembly instead
+    /// of using fast discovery, since other components can inherit from the fallback type. The name carries no
+    /// generic arity. Independent of <see cref="DeclDocumentNode"/>: a fallback component with a primary class
+    /// also emits a type-shell decl for resolution.
     /// </summary>
     internal string FallbackComponentTypeName { get; set; }
 

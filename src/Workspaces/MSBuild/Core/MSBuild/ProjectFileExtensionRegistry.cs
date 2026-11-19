@@ -46,7 +46,7 @@ internal sealed class ProjectFileExtensionRegistry
     }
 
     /// <summary>
-    /// Gets the registered project file extensions with a leading '.'.
+    /// Gets the registered project file extensions. Non-empty extensions have a leading '.'.
     /// </summary>
     public ImmutableArray<string> GetRegisteredProjectFileExtensions()
     {

@@ -243,7 +243,7 @@ public sealed partial class ServiceHubServicesTests
     private static async Task<ExtensionMessageNames> RegisterTestHandlers(
         TestWorkspace localWorkspace,
         Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>> createWorkspaceMessageHandlersCallback,
-        Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Document>>> createDocumentMessageHandlersCallback)
+        Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<TextDocument>>> createDocumentMessageHandlersCallback)
     {
         localWorkspace.SetCurrentSolution(solution =>
         {
@@ -287,7 +287,7 @@ public sealed partial class ServiceHubServicesTests
         var result = await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [new TestHandler<Solution>("WorkspaceMessageName")],
-            (_, _, _) => [new TestHandler<Document>("DocumentMessageName")]);
+            (_, _, _) => [new TestHandler<TextDocument>("DocumentMessageName")]);
 
         Assert.Null(result.ExtensionException);
         AssertEx.SequenceEqual(["DocumentMessageName"], result.DocumentMessageHandlers);
@@ -337,7 +337,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [],
-            (_, _, _) => [new TestHandler<Document>("HandlerName")]);
+            (_, _, _) => [new TestHandler<TextDocument>("HandlerName")]);
 
         var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
 
@@ -362,7 +362,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [],
-            (_, _, _) => [new TestHandler<Document>("HandlerName")]);
+            (_, _, _) => [new TestHandler<TextDocument>("HandlerName")]);
 
         var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
 
@@ -390,7 +390,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [],
-            (_, _, _) => [new TestHandler<Document>(
+            (_, _, _) => [new TestHandler<TextDocument>(
                 "HandlerName",
                 (_, _, _) =>
                 {
@@ -429,7 +429,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [],
-            (_, _, _) => [new TestHandler<Document>(
+            (_, _, _) => [new TestHandler<TextDocument>(
                 "HandlerName",
                 (_, _, _) =>
                 {
@@ -468,7 +468,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [],
-            (_, _, _) => [new TestHandler<Document>(
+            (_, _, _) => [new TestHandler<TextDocument>(
                 "HandlerName",
                 (_, _, _) =>
                 {
@@ -521,7 +521,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [],
-            (_, _, _) => [new TestHandler<Document>(
+            (_, _, _) => [new TestHandler<TextDocument>(
                 "HandlerName",
                 (_, _, _) =>
                 {
@@ -554,7 +554,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [],
-            (_, _, _) => [new TestHandler<Document>(
+            (_, _, _) => [new TestHandler<TextDocument>(
                 "HandlerName",
                 (_, _, _) =>
                 {
@@ -586,7 +586,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [],
-            (_, _, _) => [new TestHandler<Document>(
+            (_, _, _) => [new TestHandler<TextDocument>(
                 "HandlerName",
                 (_, _, _) =>
                 {
@@ -626,7 +626,7 @@ public sealed partial class ServiceHubServicesTests
         var assemblyLoaderProvider = await GetRemoteAssemblyLoaderProvider(localWorkspace);
         var handlerFactory = await GetRemoteAssemblyHandlerFactory(localWorkspace);
 
-        handlerFactory.CreateDocumentMessageHandlersCallback = (_, _, _) => [new TestHandler<Document>("HandlerName")];
+        handlerFactory.CreateDocumentMessageHandlersCallback = (_, _, _) => [new TestHandler<TextDocument>("HandlerName")];
         handlerFactory.CreateWorkspaceMessageHandlersCallback = (_, _, _) => [];
 
         // Make a basic loader that just returns null for the assembly.
@@ -673,7 +673,7 @@ public sealed partial class ServiceHubServicesTests
         await RegisterTestHandlers(
             localWorkspace,
             (_, _, _) => [new TestHandler<Solution>("HandlerName", (_, _, _) => 1)],
-            (_, _, _) => [new TestHandler<Document>("HandlerName", (_, _, _) => 2)]);
+            (_, _, _) => [new TestHandler<TextDocument>("HandlerName", (_, _, _) => 2)]);
 
         var extensionMessageHandlerService = localWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();
 
@@ -774,12 +774,12 @@ public sealed partial class ServiceHubServicesTests
     private sealed class TestExtensionMessageHandlerFactory() : IExtensionMessageHandlerFactory
     {
         public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Solution>>>? CreateWorkspaceMessageHandlersCallback { get; set; }
-        public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<Document>>>? CreateDocumentMessageHandlersCallback { get; set; }
+        public Func<Assembly, string, CancellationToken, ImmutableArray<IExtensionMessageHandlerWrapper<TextDocument>>>? CreateDocumentMessageHandlersCallback { get; set; }
 
         public ImmutableArray<IExtensionMessageHandlerWrapper<Solution>> CreateWorkspaceMessageHandlers(Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
             => CreateWorkspaceMessageHandlersCallback!.Invoke(assembly, extensionIdentifier, cancellationToken);
 
-        public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
+        public ImmutableArray<IExtensionMessageHandlerWrapper<TextDocument>> CreateDocumentMessageHandlers(Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
             => CreateDocumentMessageHandlersCallback!.Invoke(assembly, extensionIdentifier, cancellationToken);
     }
 

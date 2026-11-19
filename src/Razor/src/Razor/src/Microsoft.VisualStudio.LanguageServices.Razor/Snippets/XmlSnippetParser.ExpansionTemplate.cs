@@ -149,7 +149,18 @@ internal partial class XmlSnippetParser
                                     if (field != null)
                                     {
                                         // If we have an editable field we need to know its order in the snippet so we can place the appropriate tab stop indices.
-                                        int? fieldIndex = field.IsEditable ? fieldNameToSnippetIndex.GetOrAdd(field.ID, (key) => currentTabStopIndex++) : null;
+                                        int? fieldIndex = null;
+                                        if (field.IsEditable)
+                                        {
+                                            // Mutate the builder directly so its lazily allocated dictionary is retained.
+                                            if (!fieldNameToSnippetIndex.ContainsKey(field.ID))
+                                            {
+                                                fieldNameToSnippetIndex.Add(field.ID, currentTabStopIndex++);
+                                            }
+
+                                            fieldIndex = fieldNameToSnippetIndex[field.ID];
+                                        }
+
                                         var fieldPart = string.IsNullOrEmpty(field.FunctionName)
                                             ? new SnippetFieldPart(field.ID, field.Default, fieldIndex)
                                             : new SnippetFunctionPart(field.ID, field.Default, fieldIndex, field.FunctionName!, field.FunctionParam);

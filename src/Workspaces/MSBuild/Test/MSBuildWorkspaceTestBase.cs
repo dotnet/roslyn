@@ -28,7 +28,8 @@ public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
     private readonly TestOutputLoggerProvider _testOutputLoggerProvider;
     protected readonly ILoggerFactory LoggerFactory;
 
-    protected MSBuildWorkspaceTestBase(ITestOutputHelper testOutput)
+    protected MSBuildWorkspaceTestBase(ITestOutputHelper testOutput, ProjectGuardFiles projectGuardFiles)
+        : base(projectGuardFiles)
     {
         _testOutputHelper = testOutput;
         _testOutputLoggerProvider = new TestOutputLoggerProvider(testOutput);
@@ -179,6 +180,18 @@ public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
         additionalProperties ??= [];
         var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
         workspace.AddLoggerProvider(new TestOutputLoggerProvider(_testOutputHelper));
+
+        if (Environment.GetEnvironmentVariable("HELIX_DUMP_FOLDER") is { Length: > 0 } helixDumpFolder)
+        {
+            workspace.GetTestAccessor().SetBeforeKillHungBuildHostProcess(process =>
+            {
+                var dumpFilePath = Path.Combine(helixDumpFolder, $"HungBuildHost-{process.Id}-{Guid.NewGuid():N}.dmp");
+
+                _testOutputHelper.WriteLine($"Dumping timed-out BuildHost process {process.Id} to {dumpFilePath}.");
+                if (!DumpCollector.TryDumpProcess(process, dumpFilePath, _testOutputHelper.WriteLine))
+                    _testOutputHelper.WriteLine($"Failed to dump timed-out BuildHost process {process.Id}.");
+            });
+        }
 
         if (throwOnWorkspaceFailed)
         {

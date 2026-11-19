@@ -18,7 +18,7 @@ public abstract partial class TagHelperCollection
 
         public Builder()
         {
-            _items = TagHelperDescriptorListPool.Default.Get();
+            _items = s_listPool.Get();
             _set = ChecksumSetPool.Default.Get();
         }
 
@@ -27,7 +27,7 @@ public abstract partial class TagHelperCollection
             var items = Interlocked.Exchange(ref _items, null!);
             if (items is not null)
             {
-                TagHelperDescriptorListPool.Default.Return(items);
+                s_listPool.Return(items);
             }
 
             var set = Interlocked.Exchange(ref _set, null!);

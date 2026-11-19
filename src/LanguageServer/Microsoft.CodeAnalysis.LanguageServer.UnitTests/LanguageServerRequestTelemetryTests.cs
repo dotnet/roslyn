@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
-using Microsoft.VisualStudio.Telemetry;
-using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 using Roslyn.LanguageServer.Protocol;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,16 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 public sealed class LanguageServerRequestTelemetryTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerHostTests(testOutputHelper)
 {
-    private sealed class RecordingPoster : VSMetricSink.IMetricPoster
-    {
-        public List<TelemetryEvent> PostedEvents { get; } = [];
-
-        public bool IsOptedIn => true;
-
-        public void Post(TelemetryEvent telemetryEvent, TelemetryMetricEvent metricEvent)
-            => PostedEvents.Add(telemetryEvent);
-    }
-
     [Fact]
     public async Task RealRequestsProduceAggregatedTelemetry()
     {

@@ -48,7 +48,7 @@ internal static class FilePathNormalizer
         return CreateString(normalizedSpan);
     }
 
-    public static string Normalize(string? filePath)
+    public static string Normalize(string? filePath, bool urlDecode = true)
     {
         if (filePath.IsNullOrEmpty())
         {
@@ -59,7 +59,7 @@ internal static class FilePathNormalizer
 
         // Rent a buffer for Normalize to write to.
         using var _ = ArrayPool<char>.Shared.GetPooledArraySpan(filePathSpan.Length, out var destination);
-        var normalizedSpan = NormalizeCoreAndGetSpan(filePathSpan, destination);
+        var normalizedSpan = NormalizeCoreAndGetSpan(filePathSpan, destination, urlDecode);
 
         // If we didn't change anything, just return the original string.
         if (filePathSpan.Equals(normalizedSpan, StringComparison.Ordinal))
@@ -162,9 +162,9 @@ internal static class FilePathNormalizer
         return hashCombiner.CombinedHash;
     }
 
-    private static ReadOnlySpan<char> NormalizeCoreAndGetSpan(ReadOnlySpan<char> source, Span<char> destination)
+    private static ReadOnlySpan<char> NormalizeCoreAndGetSpan(ReadOnlySpan<char> source, Span<char> destination, bool urlDecode = true)
     {
-        var (start, length) = NormalizeCore(source, destination);
+        var (start, length) = NormalizeCore(source, destination, urlDecode);
         return destination.Slice(start, length);
     }
 
@@ -184,10 +184,11 @@ internal static class FilePathNormalizer
     /// </summary>
     /// <param name="source">The span to normalize.</param>
     /// <param name="destination">The span to write to.</param>
+    /// <param name="urlDecode">Whether to decode percent-encoded characters before normalizing.</param>
     /// <returns>
     ///  Returns a tuple containing the start index and length of the normalized path within <paramref name="destination"/>.
     /// </returns>
-    private static (int start, int length) NormalizeCore(ReadOnlySpan<char> source, Span<char> destination)
+    private static (int start, int length) NormalizeCore(ReadOnlySpan<char> source, Span<char> destination, bool urlDecode = true)
     {
         if (source.IsEmpty)
         {
@@ -211,7 +212,7 @@ internal static class FilePathNormalizer
         // Note: We check for '%' characters before calling UrlDecoder.Decode to ensure that we *only*
         // decode when there are '%XX' entities. So, calling Normalize on a path and then calling Normalize
         // on the result will not call Decode twice.
-        if (source.Contains("%".AsSpan(), StringComparison.Ordinal))
+        if (urlDecode && source.Contains("%".AsSpan(), StringComparison.Ordinal))
         {
             UrlDecoder.Decode(source, destination, out charsWritten);
         }

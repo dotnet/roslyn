@@ -605,6 +605,301 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Using
         End Function
 
+        <Theory, CombinatorialData>
+        Public Async Function InterruptedDatabasePublicationPreservesBinaryCache(isPatch As Boolean) As Task
+            Using cancellationTokenSource As New CancellationTokenSource()
+                Dim files As New Dictionary(Of String, Byte())(StringComparer.OrdinalIgnoreCase)
+                Dim textPath = GetCacheFilePath(".txt")
+                Dim binaryPath = GetCacheFilePath(".bin")
+                Dim previousDatabase = New AddReferenceDatabase(ArdbVersion.V1) With {.DatabaseVersion = 41}
+                Dim updatedDatabase = New AddReferenceDatabase(ArdbVersion.V1) With {.DatabaseVersion = 42}
+                Dim updatedText = CreateDatabaseContent(updatedDatabase, isBinary:=False)
+
+                If isPatch Then
+                    files(textPath) = CreateDatabaseContent(previousDatabase, isBinary:=False)
+                    files(binaryPath) = CreateDatabaseContent(previousDatabase, isBinary:=True)
+                End If
+
+                Dim publishedFiles As New List(Of String)
+                Dim ioMock = CreateFileCacheMock(
+                    files,
+                    Sub(path)
+                        publishedFiles.Add(path)
+                        cancellationTokenSource.Cancel()
+                    End Sub)
+
+                Dim downloaderMock = If(
+                    isPatch,
+                    CreatePatchdownloaderMock(contents:=""),
+                    CreateDownloaderMock(CreateFullDownloadElementStream(updatedText)))
+                Dim downloaderFactory = CreatefileDownloaderFactoryMock(downloaderMock, latest:=Not isPatch)
+                Dim patchService = New Mock(Of IPatchService)(MockBehavior.Strict)
+                patchService.Setup(Function(s) s.ApplyPatch(It.IsAny(Of Byte()), It.IsAny(Of Byte()))).
+                    Returns(updatedText)
+
+                Dim service = New SymbolSearchUpdateEngine(
+                    fileDownloaderFactory:=downloaderFactory.Object,
+                    delayService:=TestDelayService.Instance,
+                    ioService:=ioMock.Object,
+                    patchService:=patchService.Object,
+                    databaseFactoryService:=New TestDatabaseFactory(),
+                    reportAndSwallowExceptionUnlessCanceled:=AddressOf ReportCacheTestException)
+
+                Await service.UpdateContinuouslyAsync(
+                    PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token)
+
+                Assert.Equal(binaryPath, Assert.Single(publishedFiles))
+                Assert.Equal(
+                    42,
+                    New TestDatabaseFactory().CreateDatabaseFromStream(
+                        New MemoryStream(files(binaryPath)), isBinary:=True).DatabaseVersion)
+
+                Dim requestPath = Await ReadCacheBeforeRemoteResponseAsync(files)
+                Assert.EndsWith("/42_Patch.xml", requestPath)
+            End Using
+        End Function
+
+        <Fact>
+        Public Async Function BinaryCacheDoesNotRequireTextCache() As Task
+            Dim database = New AddReferenceDatabase(ArdbVersion.V1) With {.DatabaseVersion = 42}
+            Dim binaryPath = GetCacheFilePath(".bin")
+            Dim binaryContent = CreateDatabaseContent(database, isBinary:=True)
+            Dim files As New Dictionary(Of String, Byte())(StringComparer.OrdinalIgnoreCase) From {
+                {binaryPath, binaryContent}
+            }
+
+            Dim requestPath = Await ReadCacheBeforeRemoteResponseAsync(files)
+
+            Assert.EndsWith("/42_Patch.xml", requestPath)
+            Assert.Same(binaryContent, files(binaryPath))
+            Assert.False(files.ContainsKey(GetCacheFilePath(".txt")))
+        End Function
+
+        <Fact>
+        Public Async Function BinaryOnlyCacheRetainsReferenceAssemblyResults() As Task
+            Using tempRoot As New TempRoot(), cancellationTokenSource As New CancellationTokenSource()
+                Dim settingsDirectory = tempRoot.CreateDirectory().Path
+                Dim cacheDirectory = Directory.CreateDirectory(Path.Combine(settingsDirectory, "PackageCache", "Format1"))
+                Dim database As New AddReferenceDatabase(ArdbVersion.V1)
+                database.ReadText(New StringReader(String.Join(vbLf, {
+                    "Elfie V1",
+                    "42",
+                    "P MicrosoftAssemblyReferences",
+                    vbTab & "R 30",
+                    New String(ChrW(9), 2) & "A CacheAssembly",
+                    New String(ChrW(9), 3) & "N CacheNamespace",
+                    New String(ChrW(9), 4) & "C CacheType",
+                    ""
+                })))
+                database.ConvertToImmutable()
+                File.WriteAllBytes(
+                    Path.Combine(cacheDirectory.FullName, "_58__58_nuget_58__58_.bin"),
+                    CreateDatabaseContent(database, isBinary:=True))
+
+                Dim requestPath As String = Nothing
+                Dim downloader As New Mock(Of IFileDownloader)(MockBehavior.Strict)
+                downloader.Setup(Sub(s) s.Dispose())
+                Dim downloaderFactory As New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
+                downloaderFactory.Setup(Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
+                    Callback(Sub(host As String, path As String, pollingMinutes As Integer)
+                                 requestPath = path
+                                 cancellationTokenSource.Cancel()
+                             End Sub).
+                    Returns(downloader.Object)
+                Dim service As New SymbolSearchUpdateEngine(downloaderFactory.Object)
+
+                Await service.UpdateContinuouslyAsync(
+                    PackageSourceHelper.NugetOrgSourceName, settingsDirectory, cancellationTokenSource.Token)
+                Assert.EndsWith("/42_Patch.xml", requestPath)
+
+                Dim result = Assert.Single(Await service.FindReferenceAssembliesAsync(
+                    New TypeQuery("CacheType", Arity:=0), NamespaceQuery.Default, CancellationToken.None))
+                Assert.Equal("CacheAssembly", result.AssemblyName)
+                Assert.Equal("CacheType", result.TypeName)
+                Assert.Equal({"CacheNamespace"}, result.ContainingNamespaceNames)
+            End Using
+        End Function
+
+        <Theory, CombinatorialData>
+        Public Async Function TextCacheIsConvertedBeforeRemoteResponse(returnsNoData As Boolean) As Task
+            Dim database = New AddReferenceDatabase(ArdbVersion.V1) With {.DatabaseVersion = 42}
+            Dim textPath = GetCacheFilePath(".txt")
+            Dim binaryPath = GetCacheFilePath(".bin")
+            Dim files As New Dictionary(Of String, Byte())(StringComparer.OrdinalIgnoreCase) From {
+                {textPath, CreateDatabaseContent(database, isBinary:=False)}
+            }
+
+            Dim requestPath = Await ReadCacheBeforeRemoteResponseAsync(files, returnsNoData)
+
+            Assert.EndsWith("/42_Patch.xml", requestPath)
+            Assert.True(files.ContainsKey(binaryPath))
+            Assert.Equal(
+                42,
+                New TestDatabaseFactory().CreateDatabaseFromStream(
+                    New MemoryStream(files(binaryPath)), isBinary:=True).DatabaseVersion)
+
+            files.Remove(textPath)
+            Assert.EndsWith("/42_Patch.xml", Await ReadCacheBeforeRemoteResponseAsync(files))
+        End Function
+
+        <Fact>
+        Public Async Function CorruptBinaryCacheWithoutTextDownloadsFullDatabase() As Task
+            Dim files As New Dictionary(Of String, Byte())(StringComparer.OrdinalIgnoreCase) From {
+                {GetCacheFilePath(".bin"), {0}}
+            }
+
+            Dim requestPath = Await ReadCacheBeforeRemoteResponseAsync(files)
+
+            Assert.EndsWith("/Latest.xml", requestPath)
+        End Function
+
+        Private Shared Function GetCacheFilePath(extension As String) As String
+            Return Path.GetFullPath(Path.Combine(
+                "TestDirectory", "PackageCache", "Format1", "_58__58_nuget_58__58_" & extension))
+        End Function
+
+        Private Shared Function CreateDatabaseContent(database As AddReferenceDatabase, isBinary As Boolean) As Byte()
+            Using stream As New MemoryStream()
+                If isBinary Then
+                    Using writer As New BinaryWriter(stream)
+                        database.WriteBinary(writer)
+                    End Using
+                Else
+                    Using writer As New StreamWriter(stream)
+                        database.WriteText(writer)
+                    End Using
+                End If
+
+                Return stream.ToArray()
+            End Using
+        End Function
+
+        Private Shared Function CreateFullDownloadElementStream(content As Byte()) As Stream
+            Using compressed As New MemoryStream()
+                Using deflate As New DeflateStream(compressed, CompressionMode.Compress, leaveOpen:=True)
+                    deflate.Write(content, 0, content.Length)
+                End Using
+
+                Return CreateStream(New XElement(
+                    "Database",
+                    New XAttribute(SymbolSearchUpdateEngine.ContentAttributeName, Convert.ToBase64String(compressed.ToArray()))))
+            End Using
+        End Function
+
+        Private Shared Function CreateFileCacheMock(
+                files As Dictionary(Of String, Byte()),
+                Optional filePublished As Action(Of String) = Nothing) As Mock(Of IIOService)
+            Dim ioMock As New Mock(Of IIOService)(MockBehavior.Strict)
+            ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).
+                Returns(Function(info As FileSystemInfo) TypeOf info Is DirectoryInfo OrElse files.ContainsKey(info.FullName))
+            ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo)))
+            ioMock.Setup(Sub(s) s.Delete(It.IsAny(Of FileInfo))).
+                Callback(Sub(info As FileInfo) files.Remove(info.FullName))
+            ioMock.Setup(Function(s) s.OpenRead(It.IsAny(Of String))).
+                Returns(
+                    Function(path As String)
+                        If Not files.ContainsKey(path) Then
+                            Throw New FileNotFoundException(path)
+                        End If
+
+                        Return New MemoryStream(files(path), writable:=False)
+                    End Function)
+            ioMock.Setup(Function(s) s.ReadAllBytes(It.IsAny(Of String))).
+                Returns(Function(path As String) files(path))
+            ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of ArraySegment(Of Byte)))).
+                Callback(Sub(path As String, content As ArraySegment(Of Byte)) files(path) = content.ToArray())
+
+            Dim publish As Action(Of String, String) =
+                Sub(source, destination)
+                    files(destination) = files(source)
+                    files.Remove(source)
+                    filePublished?.Invoke(destination)
+                End Sub
+            ioMock.Setup(Sub(s) s.Move(It.IsAny(Of String), It.IsAny(Of String))).Callback(publish)
+            ioMock.Setup(Sub(s) s.Replace(It.IsAny(Of String), It.IsAny(Of String), Nothing, It.IsAny(Of Boolean))).
+                Callback(Sub(source As String, destination As String, backup As String, ignoreMetadataErrors As Boolean)
+                             publish(source, destination)
+                         End Sub)
+            Return ioMock
+        End Function
+
+        Private Shared Async Function ReadCacheBeforeRemoteResponseAsync(
+                files As Dictionary(Of String, Byte()),
+                Optional returnsNoData As Boolean = False) As Task(Of String)
+            Using cancellationTokenSource As New CancellationTokenSource(TimeSpan.FromSeconds(30))
+                Dim request As New TaskCompletionSource(Of String)(TaskCreationOptions.RunContinuationsAsynchronously)
+                Dim response As New TaskCompletionSource(Of Stream)(TaskCreationOptions.RunContinuationsAsynchronously)
+                Using registration = cancellationTokenSource.Token.Register(
+                    Sub()
+                        request.TrySetCanceled()
+                        response.TrySetCanceled()
+                    End Sub)
+                    Dim requestPath As String = Nothing
+                    Dim downloader As New Mock(Of IFileDownloader)(MockBehavior.Strict)
+                    downloader.Setup(Sub(s) s.Dispose())
+                    downloader.Setup(Function(s) s.ReadFileAsync()).
+                        Returns(
+                            Function()
+                                request.TrySetResult(requestPath)
+                                If returnsNoData Then
+                                    cancellationTokenSource.Cancel()
+                                    Return Task.FromResult(Of Stream)(Nothing)
+                                End If
+
+                                Return response.Task
+                            End Function)
+
+                    Dim downloaderFactory As New Mock(Of IFileDownloaderFactory)(MockBehavior.Strict)
+                    downloaderFactory.Setup(Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
+                        Callback(Sub(host As String, path As String, pollingMinutes As Integer) requestPath = path).
+                        Returns(downloader.Object)
+                    Dim service As New SymbolSearchUpdateEngine(
+                        fileDownloaderFactory:=downloaderFactory.Object,
+                        delayService:=TestDelayService.Instance,
+                        ioService:=CreateFileCacheMock(files).Object,
+                        patchService:=Nothing,
+                        databaseFactoryService:=New TestDatabaseFactory(),
+                        reportAndSwallowExceptionUnlessCanceled:=AddressOf ReportCacheTestException)
+
+                    Dim update = service.UpdateContinuouslyAsync(
+                        PackageSourceHelper.NugetOrgSourceName, "TestDirectory", cancellationTokenSource.Token).AsTask()
+                    Await Task.WhenAny(request.Task, update)
+                    If Not request.Task.IsCompleted Then
+                        Await update
+                        Assert.True(request.Task.IsCompleted, "The updater exited without requesting a remote file.")
+                    End If
+
+                    Dim result = Await request.Task
+                    cancellationTokenSource.Cancel()
+                    Await update
+                    Return result
+                End Using
+            End Using
+        End Function
+
+        Private Shared Function ReportCacheTestException(exception As Exception, cancellationToken As CancellationToken) As Boolean
+            Return TypeOf exception IsNot MockException AndAlso TypeOf exception IsNot OperationCanceledException
+        End Function
+
+        Private NotInheritable Class TestDatabaseFactory
+            Implements IDatabaseFactoryService
+
+            Public Function CreateDatabaseFromStream(stream As Stream, isBinary As Boolean) As AddReferenceDatabase Implements IDatabaseFactoryService.CreateDatabaseFromStream
+                Dim database As New AddReferenceDatabase(ArdbVersion.V1)
+                If isBinary Then
+                    Using reader As New BinaryReader(stream)
+                        database.ReadBinary(reader)
+                    End Using
+                Else
+                    Using reader As New StreamReader(stream)
+                        database.ReadText(reader)
+                    End Using
+                End If
+
+                Return database
+            End Function
+        End Class
+
         Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioMock As Mock(Of IIOService))
             ' Expect that we'll write out the temp file.
             ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of ArraySegment(Of Byte))))

@@ -1134,7 +1134,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         {
             AssertEx.SequenceEqual(
             [
-                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=3",
+                "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=1|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}|ProjectIdsWithUpdatedBaselines=",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
             ], _telemetryLog);
@@ -2616,6 +2616,56 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Contains("System.InvalidOperationException: Source generator failed", generatorDiagnostics.Single().GetMessage());
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task GetProjectDifferences_SourceGeneratorDiagnostics_CurrentSnapshotOnly(bool oldHasError, bool newHasError)
+    {
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var log = new TraceLog("Test");
+        var oldInput = oldHasError ? "old_error" : "old_clean";
+        var newInput = newHasError ? "new_error" : "new_clean";
+        var descriptor = new DiagnosticDescriptor("TEST001", "Generator error", "{0}", "Test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context =>
+            {
+                var input = context.AdditionalFiles.Single().GetText(context.CancellationToken).ToString();
+                context.AddSource("generated.cs", SourceText.From($"class C {{ string M() => \"{input}\"; }}", Encoding.UTF8, SourceHashAlgorithm.Sha256));
+
+                if (input.Contains("error"))
+                {
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, Location.None, input));
+                }
+            }
+        };
+
+        var project = solution
+            .AddTestProject("A")
+            .AddAdditionalDocument("A.txt", oldInput, filePath: Path.Combine(TempRoot.Root, "A.txt"))
+            .Project;
+
+        var projectId = project.Id;
+        solution = project.Solution.AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+        var oldProject = solution.GetRequiredProject(projectId);
+        var generatedDocumentId = (await oldProject.GetSourceGeneratedDocumentsAsync()).Single().Id;
+
+        solution = solution.WithAdditionalDocumentText(oldProject.AdditionalDocumentIds.Single(), CreateText(newInput));
+        project = solution.GetRequiredProject(projectId);
+
+        using var differences = new ProjectDifferences();
+        var diagnostics = new ArrayBuilder<Diagnostic>();
+        await EditSession.GetProjectDifferencesAsync(log, oldProject, project, differences, diagnostics, EditAndContinueDiagnosticLevel.None, CancellationToken.None);
+
+        AssertEx.Equal(newHasError ? [newInput] : [], diagnostics.Select(d => d.GetMessage()));
+        AssertEx.Equal([generatedDocumentId], differences.ChangedOrAddedDocuments.Select(d => d.Id));
+        Assert.Empty(differences.DeletedDocuments);
+    }
+
     [Fact]
     public async Task HasChanges_Settings()
     {
@@ -3542,7 +3592,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         {
             AssertEx.SequenceEqual(
             [
-                $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(commitUpdate ? 3 : 2)}",
+                $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=1|EmptySessionCount={(commitUpdate ? 1 : 0)}|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                 $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={(commitUpdate ? "{6A6F7270-0000-4000-8000-000000000000}" : "")}|ProjectIdsWithUpdatedBaselines=",
             ], _telemetryLog);
         }

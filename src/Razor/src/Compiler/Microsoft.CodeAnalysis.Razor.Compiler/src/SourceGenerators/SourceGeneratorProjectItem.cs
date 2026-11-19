@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
@@ -15,11 +16,11 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         private readonly RazorSourceDocument? _source;
 
         public SourceGeneratorProjectItem(
-            string basePath, 
-            string filePath, 
+            string basePath,
+            string filePath,
             string relativePhysicalPath,
-            RazorFileKind fileKind, 
-            AdditionalText additionalText, 
+            RazorFileKind fileKind,
+            AdditionalText additionalText,
             string? cssScope)
         {
             BasePath = basePath;
@@ -32,7 +33,8 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             var text = AdditionalText.GetText();
             if (text is not null)
             {
-                _source = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(AdditionalText.Path, relativePhysicalPath));
+                var relativePath = FileUtilities.AdjustToUsableFilePath(relativePhysicalPath);
+                _source = RazorSourceDocument.Create(text, RazorSourceDocumentProperties.Create(AdditionalText.Path, relativePath));
             }
         }
 

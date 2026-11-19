@@ -59,12 +59,16 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
         using var progress = BufferedProgress.Create(referenceParams.PartialResultToken);
 
         var includeDeclaration = referenceParams.Context.IncludeDeclaration;
-        await FindReferencesAsync(progress, workspace, document, linePosition, clientCapabilities.HasVisualStudioLspCapability(), includeDeclaration, _globalOptions, _metadataAsSourceFileService, _asyncListener, cancellationToken).ConfigureAwait(false);
+        var hasReferences = await FindReferencesAsync(progress, workspace, document, linePosition, clientCapabilities.HasVisualStudioLspCapability(), includeDeclaration, _globalOptions, _metadataAsSourceFileService, _asyncListener, cancellationToken).ConfigureAwait(false);
 
-        return progress.GetFlattenedValues();
+        var references = progress.GetFlattenedValues();
+        if (!hasReferences)
+            await context.GetRequiredLspService<RequestTelemetryLogger>().ReportEmptySymbolResultAsync(LSP.Methods.TextDocumentReferencesName, document, referenceParams.Position, cancellationToken).ConfigureAwait(false);
+
+        return references;
     }
 
-    internal static async Task FindReferencesAsync(
+    internal static async Task<bool> FindReferencesAsync(
         IProgress<SumType<VSInternalReferenceItem, LSP.Location>[]> progress,
         Workspace workspace,
         Document document,
@@ -86,5 +90,6 @@ internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandl
         var classificationOptions = globalOptions.GetClassificationOptionsProvider();
         await findUsagesService.FindReferencesAsync(findUsagesContext, document, position, classificationOptions, cancellationToken).ConfigureAwait(false);
         await findUsagesContext.OnCompletedAsync(cancellationToken).ConfigureAwait(false);
+        return findUsagesContext.HasReportedReferences;
     }
 }

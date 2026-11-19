@@ -7,7 +7,7 @@ using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
 
-internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeManifest
+internal sealed class BrokeredServiceBridgeManifest(BrokeredServiceContainer container, ILogger logger) : IBrokeredServiceBridgeManifest
 {
     internal const string MonikerName = "Microsoft.VisualStudio.Server.IBrokeredServiceBridgeManifest";
     internal const string MonikerVersion = "0.1";
@@ -18,27 +18,18 @@ internal sealed class BrokeredServiceBridgeManifest : IBrokeredServiceBridgeMani
         ServiceJsonRpcDescriptor.Formatters.UTF8,
         ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders);
 
-    private readonly BrokeredServiceContainer _container;
-    private readonly ILogger _logger;
-
-    public BrokeredServiceBridgeManifest(BrokeredServiceContainer container, ILoggerFactory loggerFactory)
-    {
-        _container = container;
-        _logger = loggerFactory.CreateLogger<BrokeredServiceBridgeManifest>();
-    }
-
     /// <summary>
     /// Returns a subset of services registered to Microsoft.VisualStudio.Code.Server container that are proferred by the Language Server process.
     /// </summary>
     public ValueTask<IReadOnlyCollection<ServiceMoniker>> GetAvailableServicesAsync(CancellationToken cancellationToken)
     {
 
-        var services = (IReadOnlyCollection<ServiceMoniker>)[.. _container.GetRegisteredServices()
+        var services = (IReadOnlyCollection<ServiceMoniker>)[.. container.GetRegisteredServices()
             .Select(s => s.Key)
             .Where(s => s.Name.StartsWith("Microsoft.CodeAnalysis.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServer.", StringComparison.Ordinal) ||
                         s.Name.StartsWith("Microsoft.VisualStudio.LanguageServices.", StringComparison.Ordinal))];
-        _logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");
+        logger.LogDebug($"Proffered services: {string.Join(',', services.Select(s => s.ToString()))}");
         return new ValueTask<IReadOnlyCollection<ServiceMoniker>>(services);
     }
 }

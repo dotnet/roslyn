@@ -18,9 +18,6 @@ internal static class ITextImageHelpers
     private static readonly Func<ITextChange, TextChangeRange> s_forwardTextChangeRange = c => CreateTextChangeRange(c, forward: true);
     private static readonly Func<ITextChange, TextChangeRange> s_backwardTextChangeRange = c => CreateTextChangeRange(c, forward: false);
 
-    public static IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImage oldImage, ITextImage newImage)
-        => GetChangeRanges(oldImage.Version, newImage.Version);
-
     public static IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImageVersion oldImageVersion, ITextImageVersion newImageVersion)
     {
         var forward = oldImageVersion.VersionNumber <= newImageVersion.VersionNumber;
@@ -33,6 +30,8 @@ internal static class ITextImageHelpers
             oldVersion != newSnapshotVersion;
             oldVersion = oldVersion.Next)
         {
+            Contract.ThrowIfNull(oldVersion, "We should reach the newer snapshot before running out of versions.");
+            Contract.ThrowIfNull(oldVersion.Changes, "This version comes before the newer snapshot, so it must have changes to the next version.");
             if (oldVersion.Changes.Count != 0)
             {
                 if (changes != null)
@@ -86,6 +85,8 @@ internal static class ITextImageHelpers
     {
         for (var version = oldVersion; version != newVersion; version = version.Next)
         {
+            Contract.ThrowIfNull(version, "We should reach the newer snapshot before running out of versions.");
+            Contract.ThrowIfNull(version.Changes, "This version comes before the newer snapshot, so it must have changes to the next version.");
             var changes = ArrayBuilder<TextChangeRange>.GetInstance(version.Changes.Count);
             for (var i = 0; i < version.Changes.Count; i++)
             {

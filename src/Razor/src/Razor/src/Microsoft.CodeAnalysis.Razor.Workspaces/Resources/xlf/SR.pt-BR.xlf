@@ -54,19 +54,9 @@
         <target state="translated">O editor Razor utiliza o Razor Source Generator, que exige que os arquivos \*.razor e \*.cshtml sejam especificados como AdditionalFiles no projeto. {0} parece vir de '{1}', que contém documentos Razor, mas este arquivo não é um AdditionalFile, portanto, a experiência de edição será limitada. Nenhuma outra mensagem será registrada para este projeto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Deslocamento inválido.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">{0} Palavra-chave</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Serviços de Linguagem Razor não configurados corretamente, serviço de linguagem '{0}' ausente.</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">

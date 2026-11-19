@@ -13,19 +13,19 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportLspServiceFactory(typeof(DocumentPullDiagnosticHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(DocumentPullDiagnosticsHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
+internal sealed class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
     : DocumentPullDiagnosticHandlerFactory(diagnosticSourceManager, diagnosticsRefresher, globalOptions);
 
-[ExportLspServiceFactory(typeof(WorkspacePullDiagnosticHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(WorkspacePullDiagnosticsHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class VSTypeScriptWorkspacePullDiagnosticHandler(
+internal sealed class VSTypeScriptWorkspacePullDiagnosticHandlerFactory(
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)

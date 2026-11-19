@@ -990,10 +990,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                             (diagnostics, overriddenEvent, overridingEvent, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, location),
                                                             overridingMemberLocation);
 
-                            CheckCallerUnsafeMismatch(
+                            CheckRequiresUnsafeMismatch(
                                 implementedMember: null,
                                 overridingEvent,
-                                ErrorCode.ERR_CallerUnsafeOverridingSafe,
+                                ErrorCode.ERR_RequiresUnsafeOverridingSafe,
                                 overridingMemberLocation,
                                 static l => l,
                                 diagnostics);
@@ -1213,10 +1213,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     overridingMemberLocation,
                     invokedAsExtensionMethod: false);
 
-                CheckCallerUnsafeMismatch(
+                CheckRequiresUnsafeMismatch(
                     implementedMember: null,
                     overridingMethod,
-                    ErrorCode.ERR_CallerUnsafeOverridingSafe,
+                    ErrorCode.ERR_RequiresUnsafeOverridingSafe,
                     overridingMemberLocation,
                     static l => l,
                     diagnostics);
@@ -1562,7 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void CheckCallerUnsafeMismatch<TArg>(
+        internal static void CheckRequiresUnsafeMismatch<TArg>(
             Symbol? implementedMember,
             Symbol? overridingMember,
             ErrorCode errorCode,
@@ -1578,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(implementedMember is not null || overridingMember.IsDefinition);
 
             var leastOverriddenMember = implementedMember ?? overridingMember.GetLeastOverriddenMember(overridingMember.ContainingType);
-            if (overridingMember.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit && leastOverriddenMember.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.None)
+            if (overridingMember.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit && leastOverriddenMember.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.None)
             {
                 diagnostics.Add(errorCode, overridingMemberLocation(arg), overridingMember, leastOverriddenMember);
             }

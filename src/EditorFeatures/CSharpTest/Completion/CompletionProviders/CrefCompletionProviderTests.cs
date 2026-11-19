@@ -123,6 +123,23 @@ public sealed class CrefCompletionProviderTests : AbstractCSharpCompletionProvid
             }
             """, "Q");
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85788")]
+    public Task DescriptionForMethodReturningCrefTypeParameter()
+        => VerifyItemExistsAsync("""
+            class C<T>
+            {
+                public T Copy() => default;
+            }
+
+            static class Extensions
+            {
+                public static int GetAwaiter(this object value) => 0;
+            }
+
+            /// <see cref="C{U}.$$"/>
+            class D { }
+            """, "Copy", "U C<U>.Copy()", sourceCodeKind: SourceCodeKind.Regular);
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530887")]
     public Task PrivateMember()
         => VerifyItemExistsAsync("""

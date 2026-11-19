@@ -11,6 +11,9 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+#if NETFRAMEWORK
+using System.Security.AccessControl;
+#endif
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
@@ -72,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             RequestLanguage language,
             List<string> arguments,
             string workingDirectory,
-            string? tempDirectory,
             string? keepAlive,
             string? libDirectory,
             string? compilerHash = null)
@@ -83,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 language,
                 arguments,
                 workingDirectory: workingDirectory,
-                tempDirectory: tempDirectory,
                 compilerHash: compilerHash ?? BuildProtocolConstants.GetCommitHash() ?? "",
                 requestId: requestId,
                 keepAlive: keepAlive,
@@ -235,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     try
                     {
                         var clientMutexName = GetClientMutexName(pipeName);
-                        clientMutex = OpenOrCreateMutex(clientMutexName, out holdsMutex);
+                        clientMutex = OpenOrCreateClientMutex(clientMutexName, out holdsMutex);
                     }
                     catch
                     {
@@ -251,16 +252,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         try
                         {
-                            holdsMutex = clientMutex.TryLock(timeoutNewProcess);
-
-                            if (!holdsMutex)
+                            if (!clientMutex.TryLock(timeoutNewProcess))
                             {
                                 return Task.FromResult<NamedPipeClientStream?>(null);
                             }
                         }
                         catch (AbandonedMutexException)
                         {
-                            holdsMutex = true;
+                            // WaitOne grants ownership when reporting abandonment.
                         }
                     }
 
@@ -284,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         clientMutex?.Dispose();
                     }
-                    catch (ApplicationException e)
+                    catch (Exception e) when (e is ApplicationException or InvalidOperationException)
                     {
                         var releaseThreadId = Environment.CurrentManagedThreadId;
                         var message = $"ReleaseMutex failed. WaitOne Id: {originalThreadId} Release Id: {releaseThreadId}";
@@ -750,6 +749,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+        internal static IServerMutex OpenOrCreateClientMutex(string name, out bool holdsMutex)
+        {
+            if (PlatformInformation.IsUsingMonoRuntime)
+            {
+                return OpenOrCreateMutex(name, out holdsMutex);
+            }
+            else
+            {
+                // Avoid the constructor-time ownership race in https://github.com/dotnet/runtime/issues/134043.
+                holdsMutex = false;
+                return new ServerNamedMutex(name, initiallyOwned: false, out _);
+            }
+        }
+
         internal static IServerMutex OpenOrCreateMutex(string name, out bool createdNew)
         {
             if (PlatformInformation.IsUsingMonoRuntime)
@@ -802,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetMutexDirectory()
         {
-            var tempPath = Path.GetTempPath();
+            var tempPath = TempPathUtilities.GetTempPath();
             var result = Path.Combine(tempPath, ".roslyn");
             Directory.CreateDirectory(result);
             return result;
@@ -990,13 +1003,38 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public bool IsLocked { get; private set; }
 
         public ServerNamedMutex(string mutexName, out bool createdNew)
+            : this(mutexName, initiallyOwned: true, out createdNew)
         {
+        }
+
+        internal ServerNamedMutex(string mutexName, bool initiallyOwned, out bool createdNew)
+        {
+#if NET
             Mutex = new Mutex(
-                initiallyOwned: true,
+                initiallyOwned: initiallyOwned,
                 name: mutexName,
+                options: GetOptions(),
                 createdNew: out createdNew
             );
-            if (createdNew)
+#else
+            Mutex = new Mutex(initiallyOwned, mutexName, out createdNew, CreateMutexSecurity());
+            if (!createdNew)
+            {
+                try
+                {
+                    if (!IsCurrentUserOnly(Mutex))
+                    {
+                        throw new WaitHandleCannotBeOpenedException($"Mutex '{mutexName}' is not restricted to the current user.");
+                    }
+                }
+                catch
+                {
+                    Mutex.Dispose();
+                    throw;
+                }
+            }
+#endif
+            if (initiallyOwned && createdNew)
                 IsLocked = true;
         }
 
@@ -1005,7 +1043,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Mutex? m = null;
             try
             {
-                return Mutex.TryOpenExisting(mutexName, out m);
+#if NET
+                return Mutex.TryOpenExisting(mutexName, GetOptions(), out m);
+#else
+                const MutexRights rights = MutexRights.Synchronize | MutexRights.Modify | MutexRights.ReadPermissions;
+                return Mutex.TryOpenExisting(mutexName, rights, out m) && IsCurrentUserOnly(m);
+#endif
             }
             catch
             {
@@ -1019,13 +1062,69 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+#if NET
+        private static NamedWaitHandleOptions GetOptions() => new()
+        {
+            CurrentUserOnly = true,
+            CurrentSessionOnly = false,
+        };
+#else
+        private static MutexSecurity CreateMutexSecurity()
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var security = new MutexSecurity();
+            security.SetOwner(identity.User);
+            security.AddAccessRule(new MutexAccessRule(identity.User, MutexRights.FullControl, AccessControlType.Allow));
+            return security;
+        }
+
+        private static bool IsCurrentUserOnly(Mutex mutex)
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var security = mutex.GetAccessControl();
+            if (!identity.User.Equals(security.GetOwner(typeof(SecurityIdentifier))))
+            {
+                return false;
+            }
+
+            // A null DACL permits everyone, even though GetAccessRules returns no rules.
+            var descriptor = new RawSecurityDescriptor(security.GetSecurityDescriptorBinaryForm(), 0);
+            if (descriptor.DiscretionaryAcl is null)
+            {
+                return false;
+            }
+
+            // Match the access checks made by NamedWaitHandleOptions.CurrentUserOnly on modern .NET.
+            const MutexRights restrictedRights = MutexRights.ChangePermissions | MutexRights.TakeOwnership | MutexRights.Synchronize | MutexRights.Modify;
+            foreach (MutexAccessRule rule in security.GetAccessRules(includeExplicit: true, includeInherited: true, typeof(SecurityIdentifier)))
+            {
+                if (rule.AccessControlType == AccessControlType.Allow &&
+                    (rule.MutexRights & restrictedRights) != 0 &&
+                    !identity.User.Equals(rule.IdentityReference))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+#endif
+
         public bool TryLock(int timeoutMs)
         {
             if (IsDisposed)
                 throw new ObjectDisposedException("Mutex");
             if (IsLocked)
                 throw new InvalidOperationException("Lock already held");
-            return IsLocked = Mutex.WaitOne(timeoutMs);
+            try
+            {
+                return IsLocked = Mutex.WaitOne(timeoutMs);
+            }
+            catch (AbandonedMutexException)
+            {
+                IsLocked = true;
+                throw;
+            }
         }
 
         public void Dispose()

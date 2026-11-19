@@ -5,6 +5,39 @@
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
   <Import Project="DeveloperSettings.targets" />
 
+  <!-- Registration attribute arguments must be constants, even when building without VSSDK tooling. -->
+  <Target Name="GeneratePkgDefProductVersion"
+          BeforeTargets="BeforeCompile;CoreCompile"
+          DependsOnTargets="GetAssemblyVersion;AddSourceRevisionToInformationalVersion"
+          Condition="'$(GeneratePkgDefProductVersion)' == 'true'">
+    <PropertyGroup>
+      <_PkgDefProductVersionFile>$(IntermediateOutputPath)PkgDefProductVersion.g$(DefaultLanguageSourceExtension)</_PkgDefProductVersionFile>
+      <_PkgDefProductVersionSource Condition="'$(Language)' == 'C#'"><![CDATA[
+internal static class PkgDefProductVersion
+{
+    internal const string InformationalVersion = "$(InformationalVersion)"%3B
+}
+]]></_PkgDefProductVersionSource>
+      <_PkgDefProductVersionSource Condition="'$(Language)' == 'VB'"><![CDATA[
+Namespace Global
+    Friend Module PkgDefProductVersion
+        Friend Const InformationalVersion As String = "$(InformationalVersion)"
+    End Module
+End Namespace
+]]></_PkgDefProductVersionSource>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_PkgDefProductVersionFile)"
+                      Lines="$(_PkgDefProductVersionSource)"
+                      Overwrite="true"
+                      Encoding="UTF-8"
+                      WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <Compile Remove="$(_PkgDefProductVersionFile)" />
+      <Compile Include="$(_PkgDefProductVersionFile)" />
+      <FileWrites Include="$(_PkgDefProductVersionFile)" />
+    </ItemGroup>
+  </Target>
+
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
     https://github.com/dotnet/roslyn/issues/43371
@@ -239,6 +272,27 @@
       This package was built from the source at $(PrivateRepositoryUrl)/commit/$(SourceRevisionId).
       </PackageDescription>
     </PropertyGroup>
+  </Target>
+
+  <!--
+    When GeneratePackageOnBuild is true, NuGet's Pack target doesn't depend on Build (to avoid a cycle with
+    _PackAsBuildAfterTarget), so packing a project that hasn't been built fails with NU5026.
+    Build the project in a separate instance with GeneratePackageOnBuild=false unless Pack is already running after Build.
+    https://github.com/dotnet/sdk/issues/10335
+  -->
+  <PropertyGroup Condition="'$(GeneratePackageOnBuild)' == 'true'">
+    <BeforePack>$(BeforePack);_BuildBeforePackWhenGeneratePackageOnBuild</BeforePack>
+  </PropertyGroup>
+
+  <Target Name="_MarkBuiltBeforePack" BeforeTargets="Build" Condition="'$(GeneratePackageOnBuild)' == 'true'">
+    <PropertyGroup>
+      <_BuiltBeforePack>true</_BuiltBeforePack>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_BuildBeforePackWhenGeneratePackageOnBuild"
+          Condition="'$(NoBuild)' != 'true' and '$(IsPackable)' == 'true' and '$(_BuiltBeforePack)' != 'true'">
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="GeneratePackageOnBuild=false" />
   </Target>
 
   <!-- Make sure additional files show up in Solution Explorer -->

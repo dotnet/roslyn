@@ -17,6 +17,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+using Microsoft;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
@@ -285,39 +286,46 @@ namespace Roslyn.SyntaxVisualizer.Control
             IEditorFormatMap editorFormatMap)
         {
             var syntaxNodeBrush = (SolidColorBrush)FindResource(SyntaxNodeTextBrushKey);
-            syntaxNodeBrush.Color = GetForegroundColor(editorFormatMap.GetProperties(classificationFormatMap.GetEditorFormatMapKey(classificationTypeRegistryService.GetClassificationType(PredefinedClassificationTypeNames.Keyword))));
+            syntaxNodeBrush.Color = GetClassificationForegroundColor(PredefinedClassificationTypeNames.Keyword);
 
             var syntaxTokenBrush = (SolidColorBrush)FindResource(SyntaxTokenTextBrushKey);
-            syntaxTokenBrush.Color = GetForegroundColor(editorFormatMap.GetProperties(classificationFormatMap.GetEditorFormatMapKey(classificationTypeRegistryService.GetClassificationType(PredefinedClassificationTypeNames.Comment))));
+            syntaxTokenBrush.Color = GetClassificationForegroundColor(PredefinedClassificationTypeNames.Comment);
 
             var syntaxTriviaBrush = (SolidColorBrush)FindResource(SyntaxTriviaTextBrushKey);
-            syntaxTriviaBrush.Color = GetForegroundColor(editorFormatMap.GetProperties(classificationFormatMap.GetEditorFormatMapKey(classificationTypeRegistryService.GetClassificationType(PredefinedClassificationTypeNames.String))));
+            syntaxTriviaBrush.Color = GetClassificationForegroundColor(PredefinedClassificationTypeNames.String);
 
             var operationBrush = (SolidColorBrush)FindResource(OperationTextBrushKey);
-            operationBrush.Color = GetForegroundColor(editorFormatMap.GetProperties(classificationFormatMap.GetEditorFormatMapKey(classificationTypeRegistryService.GetClassificationType(PredefinedClassificationTypeNames.Number))));
+            operationBrush.Color = GetClassificationForegroundColor(PredefinedClassificationTypeNames.Number);
 
             var errorBrush = (SolidColorBrush)FindResource(ErrorSquiggleBrushKey);
             errorBrush.Color = GetForegroundColor(editorFormatMap.GetProperties(PredefinedErrorTypeNames.SyntaxError));
-        }
 
-        private static Color GetForegroundColor(ResourceDictionary resourceDictionary)
-        {
-            if (resourceDictionary == null)
+            Color GetClassificationForegroundColor(string name)
+            {
+                var classificationType = classificationTypeRegistryService.GetClassificationType(name);
+                Assumes.Present(classificationType);
+                return GetForegroundColor(editorFormatMap.GetProperties(classificationFormatMap.GetEditorFormatMapKey(classificationType)));
+            }
+
+            static Color GetForegroundColor(ResourceDictionary resourceDictionary)
+            {
+                if (resourceDictionary == null)
+                    return Colors.Transparent;
+
+                if (resourceDictionary.Contains(EditorFormatDefinition.ForegroundColorId))
+                {
+                    var color = (Color)resourceDictionary[EditorFormatDefinition.ForegroundColorId];
+                    return color;
+                }
+
+                if (resourceDictionary.Contains(EditorFormatDefinition.ForegroundBrushId))
+                {
+                    if (resourceDictionary[EditorFormatDefinition.ForegroundBrushId] is SolidColorBrush brush)
+                        return brush.Color;
+                }
+
                 return Colors.Transparent;
-
-            if (resourceDictionary.Contains(EditorFormatDefinition.ForegroundColorId))
-            {
-                var color = (Color)resourceDictionary[EditorFormatDefinition.ForegroundColorId];
-                return color;
             }
-
-            if (resourceDictionary.Contains(EditorFormatDefinition.ForegroundBrushId))
-            {
-                if (resourceDictionary[EditorFormatDefinition.ForegroundBrushId] is SolidColorBrush brush)
-                    return brush.Color;
-            }
-
-            return Colors.Transparent;
         }
 
         public void Clear()

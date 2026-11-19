@@ -1133,6 +1133,82 @@ public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logge
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85774")]
+    public Task TestMissingIfCapturedInBlockBodiedLocalFunctionAndUsedAfterwards()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                static void M(int input, out int output) => output = input * 2;
+
+                static int Test()
+                {
+                    [|int|] output;
+
+                    void Apply(int input)
+                    {
+                        M(input, out output);
+                    }
+
+                    Apply(5);
+
+                    return output;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85774")]
+    public Task TestNotMissingIfCapturedInExpressionBodiedLocalFunctionAndNotUsedAfterwards()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                static void M(int input, out int output) => output = input * 2;
+
+                static void Test()
+                {
+                    [|int|] output;
+                    void Apply(int input) => M(input, out output);
+
+                    Apply(5);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                static void M(int input, out int output) => output = input * 2;
+
+                static void Test()
+                {
+                    void Apply(int input) => M(input, out int output);
+
+                    Apply(5);
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85774")]
+    public Task TestMissingIfCapturedInExpressionBodiedLocalFunctionAndUsedAfterwards()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                static void M(int input, out int output) => output = input * 2;
+
+                static int Test()
+                {
+                    [|int|] output;
+
+                    void Apply(int input) => M(input, out output);
+
+                    Apply(5);
+
+                    return output;
+                }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15408")]
     public Task TestDataFlow1()
         => TestMissingInRegularAndScriptAsync(

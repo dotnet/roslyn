@@ -1,0 +1,10 @@
+﻿Source Location: (25:1,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|TItem|
+Generated Location: (474:16,0 [5] )
+|TItem|
+
+Source Location: (36:2,4 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|typeof(TItem).Name|
+Generated Location: (953:30,24 [18] )
+|typeof(TItem).Name|
+

@@ -16,12 +16,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Apex" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
+
+    <!--
+      ⚠ ONLY PROJECT SYSTEM ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS.UnitTests" />
+
+    <!--
+      ⚠ ONLY TEST PROXY ASSEMBLIES MAY BE ADDED HERE ⚠
+    -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
 
     <!--
       ⚠ ONLY APEX ASSEMBLIES MAY BE ADDED HERE ⚠
@@ -32,11 +38,6 @@
       ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
-
-    <!--
-      ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
-    -->
-    <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" Key="$(MicrosoftSharedPublicKey)" />
 
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
@@ -50,6 +51,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Override the transitive SDK dependency so it isn't included in this package. -->
+    <PackageReference Include="Microsoft.VisualStudio.Sdk" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

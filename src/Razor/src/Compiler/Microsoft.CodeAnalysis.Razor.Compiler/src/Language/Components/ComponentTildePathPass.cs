@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
@@ -29,10 +29,6 @@ internal sealed class ComponentTildePathPass(RazorLanguageVersion version) : Com
 {
     private const string TildePrefix = "~/";
 
-    // The allowlist derives solely from the engine's discovered tag helpers, which are fixed for
-    // the lifetime of this pass instance, so it is computed once and shared across every document.
-    private Dictionary<string, HashSet<string>>? _allowedElementAttributes;
-
     public override int Order => 75;
 
     protected override void ExecuteCore(
@@ -50,23 +46,16 @@ internal sealed class ComponentTildePathPass(RazorLanguageVersion version) : Com
             return;
         }
 
-        var rewriter = new Rewriter(GetAllowedElementAttributes(cancellationToken));
+        if (!codeDocument.TryGetTagHelpers(out var tagHelpers))
+        {
+            return;
+        }
+
+        var rewriter = new Rewriter(BuildAllowedElementAttributes(tagHelpers));
         rewriter.Visit(documentNode);
     }
 
-    private Dictionary<string, HashSet<string>> GetAllowedElementAttributes(CancellationToken cancellationToken)
-    {
-        // The allowlist is idempotent, so a benign race just builds it twice; CompareExchange keeps
-        // whichever result lands first and discards the other, and no lock is needed.
-        if (_allowedElementAttributes is null)
-        {
-            Interlocked.CompareExchange(ref _allowedElementAttributes, BuildAllowedElementAttributes(cancellationToken), null);
-        }
-
-        return _allowedElementAttributes;
-    }
-
-    private Dictionary<string, HashSet<string>> BuildAllowedElementAttributes(CancellationToken cancellationToken)
+    private static Dictionary<string, HashSet<string>> BuildAllowedElementAttributes(TagHelperCollection tagHelpers)
     {
         // Maps an opted-in HTML element name to the set of its attributes that accept asset paths.
         // Both element and attribute comparisons are case-insensitive, matching HTML semantics. The
@@ -75,12 +64,7 @@ internal sealed class ComponentTildePathPass(RazorLanguageVersion version) : Com
         // helpers are in scope for this document. An empty map means nothing is opted in.
         var result = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
 
-        if (!Engine.TryGetFeature(out ITagHelperFeature? tagHelperFeature))
-        {
-            return result;
-        }
-
-        foreach (var tagHelper in tagHelperFeature.GetTagHelpers(cancellationToken))
+        foreach (var tagHelper in tagHelpers)
         {
             if (tagHelper.Metadata is not AssetPathMetadata { Element: var element, Attribute: var attribute })
             {

@@ -101,6 +101,7 @@ public static class ToolTipAssert
         else if (expected.NavigationAction.Target is QuickInfoHyperLink hyperLink)
         {
             Assert.Same(expected.NavigationAction, hyperLink.NavigationAction);
+            Assert.NotNull(actual.NavigationAction);
             var actualTarget = Assert.IsType<QuickInfoHyperLink>(actual.NavigationAction.Target);
             Assert.Same(actual.NavigationAction, actualTarget.NavigationAction);
             Assert.Equal(hyperLink, actualTarget);

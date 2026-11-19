@@ -69,7 +69,7 @@ internal sealed partial class GlobalUndoServiceFactory
             if (visualStudioWorkspace.IsDocumentOpen(id))
             {
                 var container = document.GetTextSynchronously(CancellationToken.None).Container;
-                var textBuffer = container.TryGetTextBuffer();
+                var textBuffer = container.GetTextBuffer();
                 var undoHistory = _undoHistoryRegistry.RegisterHistory(textBuffer);
 
                 using var undoTransaction = undoHistory.CreateTransaction(_description);

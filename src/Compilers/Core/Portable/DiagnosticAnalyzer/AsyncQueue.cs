@@ -30,6 +30,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private bool _completed;
         private bool _disallowEnqueue;
 
+        private readonly bool _discardElements;
+
+        public AsyncQueue()
+            : this(discardElements: false)
+        {
+        }
+
+        private AsyncQueue(bool discardElements)
+        {
+            _discardElements = discardElements;
+        }
+
+        /// <summary>
+        /// Creates a queue that discards all enqueued elements, for producers that require a queue nobody consumes.
+        /// </summary>
+        public static AsyncQueue<TElement> CreateDiscarding()
+            => new AsyncQueue<TElement>(discardElements: true);
+
         private object SyncObject
         {
             get { return _data; }
@@ -89,6 +107,11 @@ retry:
                     return false;
                 }
 
+                if (_discardElements)
+                {
+                    return true;
+                }
+
                 if (_waiters == null || _waiters.Count == 0)
                 {
                     _data.Enqueue(value);
@@ -99,7 +122,7 @@ retry:
                 waiter = _waiters.Dequeue();
             }
 
-            Debug.Assert(waiter.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            Debug.Assert((waiter.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously) == TaskCreationOptions.RunContinuationsAsynchronously);
             if (!waiter.TrySetResult(value))
             {
                 // A waiter was available in the queue, but was cancelled before we were able to assign this value
@@ -197,12 +220,12 @@ retry:
                 Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
                 foreach (var tcs in existingWaiters)
                 {
-                    Debug.Assert(tcs.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+                    Debug.Assert((tcs.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously) == TaskCreationOptions.RunContinuationsAsynchronously);
                     tcs.TrySetResult(default);
                 }
             }
 
-            Debug.Assert(_whenCompleted.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            Debug.Assert((_whenCompleted.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously) == TaskCreationOptions.RunContinuationsAsynchronously);
             _whenCompleted.SetResult(true);
 
             return true;
@@ -313,7 +336,7 @@ retry:
                 cancelableTaskCompletionSource,
                 useSynchronizationContext: false);
 
-            Debug.Assert(taskCompletionSource.Task.CreationOptions.HasFlag(TaskCreationOptions.RunContinuationsAsynchronously));
+            Debug.Assert((taskCompletionSource.Task.CreationOptions & TaskCreationOptions.RunContinuationsAsynchronously) == TaskCreationOptions.RunContinuationsAsynchronously);
             taskCompletionSource.Task.ContinueWith(
                 static (_, s) =>
                 {

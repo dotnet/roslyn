@@ -34,6 +34,13 @@ internal sealed class ComponentRenderModeLoweringPass : ComponentIntermediateNod
                     continue;
                 }
 
+                // Malformed or incomplete directive attributes can have no value nodes.
+                // Leave them unchanged so existing diagnostics and error recovery are preserved.
+                if (node.Children.Count == 0)
+                {
+                    continue;
+                }
+
                 var expression = node.Children[0] switch
                 {
                     CSharpExpressionIntermediateNode csharpNode => csharpNode.Children[0],

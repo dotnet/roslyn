@@ -222,7 +222,7 @@
     <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}{Locked="'.'"}</comment>
   </data>
   <data name="InvalidIncludeExcludeMappingItemType" xml:space="preserve">
-    <value>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a non-empty item type. The item type '{0}' in entry '{1}' is invalid.</value>
+    <value>Each entry in 'FileBasedProgramsItemMapping' MSBuild property must map to a valid MSBuild item type name. The item type '{0}' in entry '{1}' is invalid.</value>
     <comment>{Locked="FileBasedProgramsItemMapping"}{Locked="MSBuild"}</comment>
   </data>
   <data name="EmptyTempPath" xml:space="preserve">
@@ -231,9 +231,5 @@
   <data name="IncludedFileNotFound" xml:space="preserve">
     <value>File included via #:include directive (or Compile item) not found: {0}</value>
     <comment>{Locked="#:include"}{Locked="Compile"}. {0} is file path.</comment>
-  </data>
-  <data name="ExperimentalFeatureDisabled" xml:space="preserve">
-    <value>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</value>
-    <comment>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</comment>
   </data>
 </root>

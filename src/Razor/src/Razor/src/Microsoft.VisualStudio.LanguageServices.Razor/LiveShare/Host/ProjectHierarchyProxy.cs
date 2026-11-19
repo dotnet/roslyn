@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LiveShare;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -32,7 +33,7 @@ internal class ProjectHierarchyProxy(
         await _jtf.SwitchToMainThreadAsync(cancellationToken);
 
         _openDocumentShell ??= _serviceProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
-        Assumes.Present(_openDocumentShell);
+        Contract.ThrowIfNull(_openDocumentShell);
 
         var hostDocumentFilePath = _session.ConvertSharedUriToLocalPath(documentFilePath);
         var hr = _openDocumentShell.IsDocumentInAProject(hostDocumentFilePath, out var hierarchy, out _, out _, out _);

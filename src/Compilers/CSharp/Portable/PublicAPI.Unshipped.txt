@@ -95,3 +95,8 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClosedKeyword = 8453 -> Microsoft.CodeA
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitUnsafeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax! node) -> void
 [RSEXPERIMENTAL006]virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitUnsafeExpression(Microsoft.CodeAnalysis.CSharp.Syntax.UnsafeExpressionSyntax! node) -> TResult?
 static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetValueConversion(this Microsoft.CodeAnalysis.Operations.ICoalesceOperation! coalesceExpression) -> Microsoft.CodeAnalysis.CSharp.Conversion
+Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions
+Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions.IncludeTypeSuffix = 1 -> Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions
+Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions.None = 0 -> Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions
+static Microsoft.CodeAnalysis.CSharp.TypedConstantExtensions.ToCSharpString(this Microsoft.CodeAnalysis.TypedConstant constant, Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions options) -> string!
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAsyncIterationType(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, int position, Microsoft.CodeAnalysis.ITypeSymbol! type, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ITypeSymbol?

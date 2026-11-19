@@ -396,11 +396,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitConstructorMethodBody(node);
         }
 
+        private void VisitPossibleEmbeddedStatement(BoundStatement? node)
+        {
+            var originalDepth = _localScopeDepth;
+            _localScopeDepth = _localScopeDepth.Narrower();
+            Visit(node);
+            _localScopeDepth = originalDepth;
+        }
+
+        public override BoundNode? VisitIfStatement(BoundIfStatement node)
+        {
+            var originalDepth = _localScopeDepth;
+            while (true)
+            {
+                Visit(node.Condition);
+                VisitPossibleEmbeddedStatement(node.Consequence);
+                var alternative = node.AlternativeOpt;
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    // Each else-if is an embedded statement, but visit the chain iteratively to avoid stack overflow.
+                    _localScopeDepth = _localScopeDepth.Narrower();
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    VisitPossibleEmbeddedStatement(alternative);
+                    break;
+                }
+            }
+            _localScopeDepth = originalDepth;
+            return null;
+        }
+
         public override BoundNode? VisitForStatement(BoundForStatement node)
         {
             using var outerLocals = new LocalScope(this, node.OuterLocals);
             using var innerLocals = new LocalScope(this, node.InnerLocals);
-            return base.VisitForStatement(node);
+            Visit(node.Initializer);
+            Visit(node.Condition);
+            Visit(node.Increment);
+            VisitPossibleEmbeddedStatement(node.Body);
+            return null;
         }
 
         public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
@@ -421,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             using var region = new PlaceholderRegion(this, placeholders);
             this.Visit(node.AwaitOpt);
-            this.Visit(node.Body);
+            VisitPossibleEmbeddedStatement(node.Body);
             return null;
         }
 
@@ -440,19 +476,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitFixedStatement(BoundFixedStatement node)
         {
             using var _ = new LocalScope(this, node.Locals);
-            return base.VisitFixedStatement(node);
+            Visit(node.Declarations);
+            VisitPossibleEmbeddedStatement(node.Body);
+            return null;
+        }
+
+        public override BoundNode? VisitLockStatement(BoundLockStatement node)
+        {
+            Visit(node.Argument);
+            VisitPossibleEmbeddedStatement(node.Body);
+            return null;
         }
 
         public override BoundNode? VisitDoStatement(BoundDoStatement node)
         {
             using var _ = new LocalScope(this, node.Locals);
-            return base.VisitDoStatement(node);
+            Visit(node.Condition);
+            VisitPossibleEmbeddedStatement(node.Body);
+            return null;
         }
 
         public override BoundNode? VisitWhileStatement(BoundWhileStatement node)
         {
             using var _ = new LocalScope(this, node.Locals);
-            return base.VisitWhileStatement(node);
+            Visit(node.Condition);
+            VisitPossibleEmbeddedStatement(node.Body);
+            return null;
         }
 
         public override BoundNode? VisitSwitchStatement(BoundSwitchStatement node)
@@ -1340,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.IterationErrorExpressionOpt);
             this.Visit(node.DeconstructionOpt);
             this.Visit(awaitableInfo);
-            this.Visit(node.Body);
+            VisitPossibleEmbeddedStatement(node.Body);
 
             foreach (var local in node.IterationVariables)
             {

@@ -16,8 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Debugger" />
-
     <!--
       ⚠ ONLY VISUAL STUDIO DEBUGGER ASSEMBLIES MAY BE ADDED HERE ⚠
     -->

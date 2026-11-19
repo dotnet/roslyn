@@ -9568,6 +9568,29 @@ a
             CleanupAllGeneratedFiles(dir.Path)
         End Sub
 
+        <Fact>
+        Public Sub RefOnly_EmbeddedDebugInformation()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("Public Class C
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/target:library", "/out:a.dll", "/refonly", "/debug:embedded", "/deterministic", "a.vb"})
+
+            Assert.Equal(0, vbc.Run(outWriter))
+            Assert.Equal("", outWriter.ToString())
+
+            Using peReader = New PEReader(File.OpenRead(Path.Combine(dir.Path, "a.dll")))
+                AssertEx.Equal(
+                    {DebugDirectoryEntryType.Reproducible},
+                    peReader.ReadDebugDirectory().Select(Function(entry) entry.Type))
+            End Using
+
+            CleanupAllGeneratedFiles(dir.Path)
+        End Sub
+
         <WorkItem(13681, "https://github.com/dotnet/roslyn/issues/13681")>
         <Theory()>
         <InlineData("/t:exe", "/out:goo.dll", "goo.dll", "goo.dll.exe")>                                'Output with known but different extension
@@ -9762,15 +9785,79 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub StrongNameProviderWithCustomTempPath()
-            Dim tempDir = Temp.CreateDirectory()
+        Public Sub StrongNameProviderUsesOutputDirectory()
             Dim workingDir = Temp.CreateDirectory()
             workingDir.CreateFile("a.vb")
 
-            Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
+            Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing),
                               {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
             Dim comp = vbc.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance, Nothing)
             Assert.False(comp.SignUsingBuilder)
+            Assert.Equal(workingDir.Path, comp.Options.StrongNameProvider.FileSystem.GetSigningPath())
+        End Sub
+
+        Private NotInheritable Class LegacySigningCompiler
+            Inherits MockVisualBasicCompiler
+
+            Private ReadOnly _beforeSign As Action(Of String)
+
+            Public Sub New(workingDirectory As String, arguments As String(), beforeSign As Action(Of String))
+                MyBase.New(Nothing, workingDirectory, arguments, additionalReferences:={MscorlibRef})
+                _beforeSign = beforeSign
+            End Sub
+
+            Public Overrides Function CreateCompilation(
+                consoleOutput As TextWriter,
+                touchedFilesLogger As TouchedFileLogger,
+                errorLogger As ErrorLogger,
+                syntaxTreeDiagnosticOptionsOpt As ImmutableArray(Of AnalyzerConfigOptionsResult),
+                globalDiagnosticOptions As AnalyzerConfigOptionsResult) As Compilation
+
+                Dim compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxTreeDiagnosticOptionsOpt, globalDiagnosticOptions)
+                Dim original = DirectCast(compilation.Options.StrongNameProvider, DesktopStrongNameProvider)
+                Dim provider = New TestDesktopStrongNameProvider(fileSystem:=original.FileSystem) With {
+                    .SignFileFunc = Sub(keys, path)
+                                        _beforeSign(path)
+                                        original.SignFile(keys, path)
+                                    End Sub
+                }
+                Return compilation.WithOptions(compilation.Options.WithStrongNameProvider(provider))
+            End Function
+        End Class
+
+        <ConditionalFact(GetType(WindowsOnly))>
+        Public Sub LegacySigningOutputPaths()
+            Dim workingDirectory = Temp.CreateDirectory()
+            Dim outputDirectory = workingDirectory.CreateDirectory("bin")
+            Dim referenceDirectory = Temp.CreateDirectory()
+            Dim source = workingDirectory.CreateFile("Library.vb").WriteAllText("Public Class C : End Class")
+            Dim key = workingDirectory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey)
+            Dim outputPath = Path.Combine(outputDirectory.Path, "Library.dll")
+            Dim referencePath = Path.Combine(referenceDirectory.Path, "Reference.dll")
+            Dim stagingPaths = New List(Of String)()
+            Dim arguments = {
+                "/nologo", "/nostdlib", "/vbruntime-", "/define:_MYTYPE=""Empty""", "/target:library", "/features:UseLegacyStrongNameProvider",
+                "/keyfile:" & key.Path, "/out:bin\Library.dll", "/refout:" & referencePath, source.Path
+            }
+            Dim compiler = New LegacySigningCompiler(workingDirectory.Path, arguments, Sub(path) stagingPaths.Add(path))
+            Using writer As New StringWriter()
+                Dim exitCode = compiler.Run(writer)
+                Assert.True(exitCode = 0, writer.ToString())
+                Assert.Equal("", writer.ToString())
+            End Using
+
+            Assert.Equal(2, stagingPaths.Count)
+            For Each path In stagingPaths
+                Assert.Equal(outputDirectory.Path, System.IO.Path.GetDirectoryName(path))
+                Assert.Matches("^legacy-sign\.[0-9a-f]{32}\.dll$", System.IO.Path.GetFileName(path))
+                Assert.False(File.Exists(path))
+            Next
+            Using stream = File.OpenRead(outputPath)
+                Assert.True(ILValidation.IsStreamFullSigned(stream))
+            End Using
+            Using stream = File.OpenRead(referencePath)
+                Assert.True(ILValidation.IsStreamFullSigned(stream))
+            End Using
         End Sub
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String

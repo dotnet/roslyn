@@ -1,0 +1,89 @@
+name: Update FBA sources
+
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    if: github.repository == 'dotnet/roslyn'
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.branches.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Install automation SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
+      - name: Discover target branches and matching SDKs
+        id: branches
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: dotnet run --file eng/update-fba-sources.cs -- discover
+
+  update:
+    needs: discover
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+    concurrency:
+      group: update-fba-sources-${{ matrix.branch }}
+      cancel-in-progress: false
+    steps:
+      - name: Check out automation
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          path: automation
+          persist-credentials: false
+      - name: Check out target branch
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ matrix.branch }}
+          path: target
+          persist-credentials: false
+      - name: Install automation SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: automation/global.json
+      - name: Synchronize sources and check declined updates
+        id: sync
+        working-directory: automation
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: ${{ matrix.branch }}
+          ROSLYN_VERSION: ${{ matrix.version }}
+          SDK_BRANCH: ${{ matrix.sdkBranch }}
+          SDK_COMMIT: ${{ matrix.sdkCommit }}
+        run: dotnet run --file eng/update-fba-sources.cs -- sync ../target
+      - name: Install target branch SDK
+        if: steps.sync.outputs.changed == 'true'
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: target/global.json
+      - name: Update localization files
+        if: steps.sync.outputs.changed == 'true'
+        working-directory: target
+        run: dotnet msbuild src/Workspaces/CSharp/Portable/Microsoft.CodeAnalysis.CSharp.Workspaces.csproj -restore -t:UpdateXlf
+      - name: Create or update pull request
+        if: steps.sync.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          path: target
+          base: ${{ matrix.branch }}
+          branch: ${{ steps.sync.outputs.head }}
+          title: '[${{ matrix.branch }}] Update FBA sources'
+          commit-message: Update FBA sources from dotnet/sdk
+          body: ${{ steps.sync.outputs.body }}
+          add-paths: src/Workspaces/CSharp/Portable/SyncedSource

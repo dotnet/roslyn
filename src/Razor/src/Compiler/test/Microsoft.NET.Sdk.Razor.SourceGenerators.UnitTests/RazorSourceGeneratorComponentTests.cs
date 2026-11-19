@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -15,6 +16,30 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators;
 
 public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTestsBase
 {
+    private const string AcceptsAssetPathAttributeSource = """
+        namespace Microsoft.AspNetCore.Components
+        {
+            [System.AttributeUsage(System.AttributeTargets.Class, AllowMultiple = true, Inherited = true)]
+            public sealed class AcceptsAssetPathAttribute : System.Attribute
+            {
+                public AcceptsAssetPathAttribute(string elementName, string attributeName)
+                {
+                }
+            }
+        }
+        """;
+
+    private const string AssetPathConventionSource = """
+
+        namespace Microsoft.AspNetCore.Components.Web
+        {
+            [Microsoft.AspNetCore.Components.AcceptsAssetPath("img", "src")]
+            public static class AssetPathAttributes
+            {
+            }
+        }
+        """;
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/10991")]
     public async Task ImportsRazor()
     {
@@ -968,6 +993,41 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85692")]
+    [InlineData("<Child @rendermode />", false)]
+    [InlineData("<Child @rendermode= />", false)]
+    [InlineData("<Child @rendermode=\" />", true)]
+    [InlineData("<Child @rendermode=\"\" />", false)]
+    public async Task IncompleteRenderModeAttribute_DoesNotCrash(string markup, bool expectMalformedTagDiagnostics)
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Parent.razor"] = markup,
+            ["Shared/Child.razor"] = """
+                Child
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        if (expectMalformedTagDiagnostics)
+        {
+            result.Diagnostics.Verify(
+                Diagnostic("RZ1035").WithLocation(1, 2),
+                Diagnostic("RZ1034").WithLocation(1, 2));
+        }
+        else
+        {
+            result.Diagnostics.Verify();
+        }
+
+        Assert.Null(result.Exception);
+        Assert.DoesNotContain(outputCompilation.GetDiagnostics(), diagnostic => diagnostic.Id == "CS8785");
+        Assert.Equal(4, result.GeneratedSources.Length);
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/9381")]
     public async Task UnrecognizedComponentName()
     {
@@ -1237,6 +1297,284 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // Assert
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
+    }
+
+    [Fact]
+    public async Task TildePath_SourceDeclaredAcceptsAssetPath_ExpandsHtmlAttribute()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Pages/Index.razor"] = """
+                <img src="~/favicon.png" />
+                """,
+        }, new()
+        {
+            ["AssetPathAttributes.cs"] = AcceptsAssetPathAttributeSource + AssetPathConventionSource,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "11.0";
+        });
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        AssertTildePathExpanded(result);
+    }
+
+    [Fact]
+    public async Task TildePath_ReferencedAcceptsAssetPath_ExpandsHtmlAttribute()
+    {
+        var conventionProject = CreateTestProject(new(), new()
+        {
+            ["AssetPathAttributes.cs"] = AcceptsAssetPathAttributeSource + AssetPathConventionSource,
+        });
+
+        // Reference discovery filters assemblies that neither use nor carry the Microsoft.AspNetCore prefix.
+        conventionProject = conventionProject.WithAssemblyName("Microsoft.AspNetCore.Components.Web.Test");
+        var conventionCompilation = await conventionProject.GetCompilationAsync();
+        using var peStream = new MemoryStream();
+        var emitResult = conventionCompilation!.Emit(peStream);
+        Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
+        peStream.Position = 0;
+
+        var project = CreateTestProject(new()
+        {
+            ["Pages/Index.razor"] = """
+                <img src="~/favicon.png" />
+                """,
+        });
+        project = project.AddMetadataReference(MetadataReference.CreateFromStream(peStream));
+
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project, options =>
+        {
+            options.TestGlobalOptions["build_property.RazorLangVersion"] = "11.0";
+        });
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        AssertTildePathExpanded(result);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86444")]
+    public async Task Component_InheritsComponent()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86444")]
+    public async Task Component_InheritsComponentWithMarkupFieldInitializer()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+
+                @code {
+                    // Markup in a field initializer forces this component to use fallback discovery.
+                    private RenderFragment _fragment = @<div>Hi</div>;
+                }
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/Razor-class-library-fails-to-build-after/11180609")]
+    public async Task Component_InheritsAbstractPartialComponentWithMarkupFieldInitializer()
+    {
+        // The report describes an abstract partial base class. The markup field is one way to make
+        // that component fall back, though it isn't known whether the reported component has one.
+        var project = CreateTestProject(new()
+        {
+            ["ColumnBase.razor"] = """
+                @code {
+                    private RenderFragment _fragment = @<div>Hi</div>;
+                }
+                """,
+            ["PropertyColumn.razor"] = """
+                @inherits ColumnBase
+                <span>Column</span>
+                """,
+            ["Index.razor"] = """
+                <PropertyColumn />
+                """,
+        }, new()
+        {
+            ["ColumnBase.razor.cs"] = """
+                namespace MyApp;
+
+                public abstract partial class ColumnBase
+                {
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var indexSource = result.ImplGeneratedSources().Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.PropertyColumn>(0);", indexSource);
+    }
+
+    [Fact]
+    public async Task Component_InheritsComponentWithMarkupProperty()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+
+                @code {
+                    // A property must stay in the declaration, but its markup needs component discovery.
+                    private RenderFragment Fragment => @<div>Hi</div>;
+                }
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
+    [Fact]
+    public async Task Component_InheritsComponentWithMarkupPropertyInitializer()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+
+                @code {
+                    private RenderFragment Fragment { get; set; } = @<div>Hi</div>;
+                }
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
+    [Fact]
+    public async Task Component_InheritsComponentWithConditionalMarkupMethod()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+
+                @code {
+                #if true
+                    // Without the directive, Razor can move this method to the implementation.
+                    private RenderFragment MakeFragment() => @<div>Hi</div>;
+                #endif
+                }
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
     }
 
     [Fact(Skip = "Fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
@@ -2093,4 +2431,11 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var diagnostic = Assert.Single(result.Diagnostics);
         Assert.Equal("RZ10011", diagnostic.Id);
     }
+
+    private static void AssertTildePathExpanded(GeneratorRunResult result)
+    {
+        var source = result.ImplGeneratedSources().Single().SourceText.ToString();
+        Assert.Contains("""Assets[@"favicon.png"]""", source);
+    }
+
 }

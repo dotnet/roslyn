@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -83,16 +84,17 @@ internal sealed class InlineDiagnosticsAdornmentManager : AbstractAdornmentManag
         {
             foreach (var element in AdornmentLayer.Elements)
             {
-                var tag = (InlineDiagnosticsTag)element.Tag;
-                var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
-                var format = GetFormat(classificationType);
+                var tag = (InlineDiagnosticsTag?)element.Tag;
+                Contract.ThrowIfNull(tag, "Every adornment should have a diagnostic tag.");
+                var format = GetFormat(tag);
                 InlineDiagnosticsTag.UpdateColor(format, element.Adornment);
             }
         }
     }
 
-    private TextFormattingRunProperties GetFormat(IClassificationType classificationType)
+    private TextFormattingRunProperties GetFormat(InlineDiagnosticsTag tag)
     {
+        var classificationType = _classificationRegistryService.GetRequiredClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
         return _formatMap.GetTextProperties(classificationType);
     }
 
@@ -153,10 +155,8 @@ internal sealed class InlineDiagnosticsAdornmentManager : AbstractAdornmentManag
         foreach (var (lineView, tagMappingSpan) in map)
         {
             var tag = tagMappingSpan.Tag;
-            var classificationType = _classificationRegistryService.GetClassificationType(InlineDiagnosticsTag.GetClassificationId(tag.ErrorType));
-
             // Pass in null! because the geometry is unused for drawing anything for Inline Diagnostics
-            var graphicsResult = tag.GetGraphics(TextView, unused: null!, GetFormat(classificationType));
+            var graphicsResult = tag.GetGraphics(TextView, unused: null!, GetFormat(tag));
 
             var visualElement = graphicsResult.VisualElement;
 

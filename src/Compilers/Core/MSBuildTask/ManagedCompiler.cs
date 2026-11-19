@@ -528,8 +528,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var requestId = getRequestId();
                 logger.LogOperational($"Compilation request {requestId}, PathToTool={pathToTool}");
 
-                string? tempDirectory = TaskEnvironment.GetTempPath();
-
                 if (!UseSharedCompilation ||
                     !UsingBuiltinTool ||
                     !BuildServerConnection.IsCompilerServerSupported)
@@ -546,9 +544,9 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 var clientDirectory = Path.GetDirectoryName(PathToBuiltInTool);
-                if (clientDirectory is null || tempDirectory is null)
+                if (clientDirectory is null)
                 {
-                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client or temp directory '{PathToBuiltInTool}'");
+                    LogCompilationMessage(logger, requestId, CompilationKind.Tool, $"using command line tool because we could not find client directory '{PathToBuiltInTool}'");
                     return base.ExecuteTool(pathToTool, responseFileCommands, commandLineCommands);
                 }
 
@@ -565,7 +563,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     Language,
                     buildRequestArguments,
                     workingDirectory: TaskEnvironment.ProjectDirectory,
-                    tempDirectory: tempDirectory,
                     keepAlive: null,
                     libDirectory: LibDirectoryToUse());
 

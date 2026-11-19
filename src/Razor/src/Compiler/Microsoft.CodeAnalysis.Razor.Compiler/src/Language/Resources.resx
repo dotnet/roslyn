@@ -224,6 +224,18 @@
   <data name="FunctionsDirective_Description" xml:space="preserve">
     <value>Specify a C# code block.</value>
   </data>
+  <data name="DocumentationDirective_Description" xml:space="preserve">
+    <value>Specify XML documentation for the generated class.</value>
+  </data>
+  <data name="DocumentationCommentTerminator" xml:space="preserve">
+    <value>The '@documentation' directive cannot contain '*/'. Use an XML character reference instead.</value>
+  </data>
+  <data name="DocumentationDirectiveWillChangeMeaning" xml:space="preserve">
+    <value>The '@documentation' syntax will be treated as a directive in Razor 12.0. Use an explicit expression ('@(...)') to preserve the current meaning.</value>
+  </data>
+  <data name="DocumentationShouldStartWithTag" xml:space="preserve">
+    <value>Documentation should start with an XML tag, such as '&lt;summary&gt;'.</value>
+  </data>
   <data name="HtmlToken_NewLine" xml:space="preserve">
     <value>&lt;&lt;newline sequence&gt;&gt;</value>
   </data>

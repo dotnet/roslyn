@@ -10,12 +10,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 
 [ExcludeFromCodeCoverage]
 [Guid(Guids.CSharpEditorFactoryIdString)]
+[ProvideView(LogicalView.Designer, "Form")]
+[ProvidePhysicalViewAttributes("Form", __VSPHYSICALVIEWATTRIBUTES.PVA_OpensSlowly | __VSPHYSICALVIEWATTRIBUTES.PVA_SupportsPreview)]
 internal sealed class CSharpEditorFactory(IComponentModel componentModel) : AbstractEditorFactory(componentModel)
 {
     protected override string ContentTypeName => ContentTypeNames.CSharpContentType;

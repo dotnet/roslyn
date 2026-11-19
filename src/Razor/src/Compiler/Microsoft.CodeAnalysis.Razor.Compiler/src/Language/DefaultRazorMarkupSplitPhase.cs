@@ -57,7 +57,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         var renderMethod = documentNode.FindPrimaryMethod();
         var primaryNamespace = documentNode.FindPrimaryNamespace();
 
-        // Fallback discovery is keyed by the component's type name, so it needs a classified primary class.
+        // Fallback discovery is marked by the component's type name, so it needs a classified primary class.
         // Classification creates one unconditionally for a component file; without it there is no component
         // type to discover or split, so leave the document untouched rather than dereference a null name.
         if (primaryClass is null)
@@ -66,8 +66,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         }
 
         // A component whose primary method body is suppressed, or that lacks a render method or namespace,
-        // can't be split here; it routes to fallback discovery keyed by its type name and builds no
-        // pre-compilation shell.
+        // can't be split here; it routes to fallback discovery and builds no pre-compilation shell.
         if (codeDocument.CodeGenerationOptions.SuppressPrimaryMethodBody ||
             renderMethod is null || primaryNamespace is null)
         {
@@ -94,18 +93,17 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         // form, ahead of the resolution and optimization passes that mutate them.
         var declDocNode = BuildDeclDocument(documentNode, primaryNamespace, primaryClass, renderMethod, plan);
         MakeImplInPlace(primaryClass, renderMethod, plan);
-        StripClassAttributesFromImpl(documentNode, primaryNamespace);
+        StripClassDecorationsFromImpl(documentNode, primaryNamespace);
 
         documentNode.DeclDocumentNode = declDocNode;
 
         return codeDocument.WithDocumentNode(documentNode);
 
-        // Routes the document to fallback discovery: records its namespace-qualified type name -- the
-        // discovery key the source generator matches against tag-helper descriptor names -- and stashes the
+        // Routes the document to fallback discovery: records its namespace-qualified type name -- which marks
+        // the document as a fallback for the source generator and the decl lowering phase -- and stashes the
         // type-shell decl (null when there is no referenceable type to build one for). A document only
         // routes here after classification, which creates the primary class unconditionally, so a class
-        // name is always present; the name carries no generic arity (type parameters are held separately),
-        // matching the descriptor form after arity is stripped.
+        // name is always present; the name carries no generic arity (type parameters are held separately).
         RazorCodeDocument RouteToFallbackDiscovery(DocumentIntermediateNode? shellDecl)
         {
             Debug.Assert(primaryClass?.Name is not null, "A fallback component is missing its classified primary class.");
@@ -305,23 +303,27 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
     // and are shared into the decl subtree; the same node kept in the impl half decorates the impl partial
     // too, emitting the attribute twice on the combined type -- a CS0579 for a single-instance attribute,
     // a duplicate route for @page (RouteAttribute allows multiples, so it compiles but registers twice).
+    // Namespace-level declarations (e.g. the file-local empty layout) stay with their attributes in decl.
+    // Documentation also belongs only on the decl partial, so C# does not combine duplicate comments.
     // The class body, usings, directives, and synthesized helpers stay in the impl.
-    private static void StripClassAttributesFromImpl(
+    private static void StripClassDecorationsFromImpl(
         DocumentIntermediateNode documentNode,
         NamespaceDeclarationIntermediateNode primaryNamespace)
     {
-        RemoveClassAttributeChildren(primaryNamespace.Children);
-        RemoveClassAttributeChildren(documentNode.Children);
+        RemoveClassDecorationChildren(primaryNamespace.Children);
+        RemoveClassDecorationChildren(documentNode.Children);
     }
 
-    private static void RemoveClassAttributeChildren(IntermediateNodeCollection children)
+    private static void RemoveClassDecorationChildren(IntermediateNodeCollection children)
     {
         for (var i = children.Count - 1; i >= 0; i--)
         {
             // @layout/@attribute lower to a CSharpCodeIntermediateNode, @page to a RouteAttributeExtensionNode.
             // A compiler-synthesized decoration (e.g. the @rendermode attribute helper) is impl-half plumbing
             // and isn't shared into the decl, so it stays in the impl.
-            if (children[i] is CSharpCodeIntermediateNode { IsSynthesizedHelper: false } or RouteAttributeExtensionNode)
+            if (children[i] is CSharpCodeIntermediateNode { IsSynthesizedHelper: false } or
+                EmptyLayoutIntermediateNode or
+                RouteAttributeExtensionNode or DocumentationIntermediateNode)
             {
                 children.RemoveAt(i);
             }

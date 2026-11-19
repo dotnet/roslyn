@@ -50,6 +50,7 @@ internal sealed class CohostConfigurationChangedService(
                 //TODO: new ConfigurationItem { Section = "razor.format.enable" },
                 new ConfigurationItem { Section = "razor.format.code_block_brace_on_next_line" },
                 new ConfigurationItem { Section = "razor.format.attribute_indent_style" },
+                new ConfigurationItem { Section = "razor.format.ignore_indentation_in_script_or_style_blocks_with_complex_razor" },
                 new ConfigurationItem { Section = "razor.completion.commit_elements_with_space" },
                 // Note: VS Code settings use snake_case, so this is "auto_closing_tags" not "autoClosingTags"
                 // TypeScript code in the VS Code extension converts between camelCase and snake_case
@@ -75,9 +76,10 @@ internal sealed class CohostConfigurationChangedService(
         {
             CodeBlockBraceOnNextLine = GetBooleanOptionValue(TryGetElement(jsonArray, 0), settings.CodeBlockBraceOnNextLine),
             AttributeIndentStyle = GetEnumOptionValue(TryGetElement(jsonArray, 1), settings.AttributeIndentStyle),
-            CommitElementsWithSpace = GetBooleanOptionValue(TryGetElement(jsonArray, 2), settings.CommitElementsWithSpace),
-            AutoClosingTags = GetBooleanOptionValue(TryGetElement(jsonArray, 3), settings.AutoClosingTags),
-            ShowAllCSharpCodeActions = GetBooleanOptionValue(TryGetElement(jsonArray, 4), settings.ShowAllCSharpCodeActions),
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = GetBooleanOptionValue(TryGetElement(jsonArray, 2), settings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor),
+            CommitElementsWithSpace = GetBooleanOptionValue(TryGetElement(jsonArray, 3), settings.CommitElementsWithSpace),
+            AutoClosingTags = GetBooleanOptionValue(TryGetElement(jsonArray, 4), settings.AutoClosingTags),
+            ShowAllCSharpCodeActions = GetBooleanOptionValue(TryGetElement(jsonArray, 5), settings.ShowAllCSharpCodeActions),
         };
     }
 

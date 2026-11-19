@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,7 +17,8 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     /// <summary>
     /// A <c>bool</c> flag emulating a multi-level break/continue.  The flag is set and breaks the innermost loop, then a
     /// chain of <c>if (flag) break;</c> guards propagates the exit outward (one per intervening loop) up to a final
-    /// <c>if (flag) break/continue;</c> that decides the action on the loop we relabel:
+    /// <c>if (flag) break/continue;</c> that decides the action on the loop we relabel. The opposite polarity is also
+    /// supported: the flag starts true, is set false, and the guards test for false.
     /// <code>
     /// bool flag = false;                            // LocalDeclarationStatement
     /// while (...)                                   // LoopStatement (the final guard's target)
@@ -42,7 +43,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
 
         if (declaration is not
             {
-                Declaration.Variables: [{ Initializer.Value: LiteralExpressionSyntax(SyntaxKind.FalseLiteralExpression) } declarator],
+                Declaration.Variables: [{ Initializer.Value: { } initializer } declarator],
                 Parent: BlockSyntax enclosingBlock,
             })
         {
@@ -52,13 +53,16 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         if (semanticModel.GetDeclaredSymbol(declarator, cancellationToken) is not ILocalSymbol { Type.SpecialType: SpecialType.System_Boolean } flag)
             return false;
 
+        if (semanticModel.GetConstantValue(initializer, cancellationToken) is not { HasValue: true, Value: bool jumpValue })
+            return false;
+
         using var _1 = ArrayBuilder<(ExpressionStatementSyntax Assignment, BreakStatementSyntax Break)>.GetInstance(out var sites);
         using var _2 = PooledHashSet<IfStatementSyntax>.GetInstance(out var guards);
         using var _3 = ArrayBuilder<ExpressionStatementSyntax>.GetInstance(out var resets);
 
-        // Classify every reference to the flag.  It may only be a 'flag = true;' (immediately before a 'break;'), an
-        // 'if (flag) break/continue;' guard, or a 'flag = false;' reset.  Anything else means the flag is doing more
-        // than propagating a jump.
+        // Classify every reference to the flag. It may only assign the jump value immediately before a 'break;',
+        // test for that value in an 'if' guard, or reset the flag to its initial value. Anything else means the flag
+        // is doing more than propagating a jump.
         foreach (var name in enclosingBlock.DescendantNodes().OfType<IdentifierNameSyntax>())
         {
             if (name.Identifier.ValueText != flag.Name ||
@@ -67,11 +71,11 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
                 continue;
             }
 
-            if (TryGetAssignmentToTrueSite(name, out var assignment, out var innerBreak))
+            if (TryGetAssignmentSite(semanticModel, name, jumpValue, cancellationToken, out var assignment, out var innerBreak))
                 sites.Add((assignment, innerBreak));
-            else if (TryGetGuard(name, out var ifStatement))
+            else if (TryGetGuard(semanticModel, name, jumpValue, cancellationToken, out var ifStatement))
                 guards.Add(ifStatement);
-            else if (TryGetResetToFalseSite(name, out var reset))
+            else if (TryGetResetSite(semanticModel, name, jumpValue, cancellationToken, out var reset))
                 resets.Add(reset);
             else
                 return false;
@@ -104,8 +108,8 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
                 return false;
         }
 
-        // The flag must be re-initialized to false before the guard is (re-)reached, otherwise the stale 'true' from a
-        // previous iteration/entry would make the rewrite behave differently than the original.
+        // The flag must be reset to its initial value before the guard is reached again, otherwise a stale jump
+        // value from a previous iteration/entry would make the rewrite behave differently than the original.
         if (!FlagResetsBeforeGuard(enclosingBlock, targetLoop, innerLoop, resets, isBreak))
             return false;
 
@@ -117,16 +121,17 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
             AssignmentAndBreakSites = sites.ToImmutable(),
             ResetStatements = resets.ToImmutable(),
             IsBreak = isBreak,
+            InitialValue = jumpValue,
         };
         return true;
     }
 
     /// <summary>
-    /// Whether the flag is guaranteed to be <c>false</c> each time the guard's break/continue could fire other than as
-    /// a result of the current iteration's inner break.  The flag starts <c>false</c> and is only ever set <c>true</c>,
-    /// so this requires it to be re-initialized to <c>false</c> beforehand, via one of:
+    /// Whether the flag is guaranteed to have its initial value each time the guard's break/continue could fire
+    /// other than as a result of the current iteration's inner break. This requires the flag to be reset beforehand,
+    /// via one of:
     /// <list type="bullet">
-    /// <item>an explicit <c>flag = false;</c> reset at the top of the target loop's body (before the inner loop), or</item>
+    /// <item>an explicit reset to the initial value at the top of the target loop's body (before the inner loop), or</item>
     /// <item>for <c>continue</c>: the declaration living directly in the target loop's body (re-initialized every
     /// iteration), or</item>
     /// <item>for <c>break</c>: no loop sitting between the declaration and the target loop (so the loop is never
@@ -167,7 +172,7 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         if (!isBreak)
             return false;
 
-        // break exits the target loop, so the flag only needs to be false on each entry: no loop may sit between the
+        // break exits the target loop, so the flag only needs its initial value on each entry: no loop may sit between the
         // declaration's block and the target loop (which would re-enter it with a stale flag).
         for (var current = targetLoop.Parent; current != null; current = current.Parent)
         {
@@ -260,9 +265,10 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
                 Expression: AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
                 {
                     Left: IdentifierNameSyntax flagName,
-                    Right: LiteralExpressionSyntax(SyntaxKind.TrueLiteralExpression),
+                    Right: var value,
                 }
-            })
+            } ||
+            semanticModel.GetConstantValue(value, cancellationToken) is not { HasValue: true, Value: bool })
         {
             return false;
         }
@@ -295,20 +301,24 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     /// break;          // innerBreak (immediately follows)
     /// </code>
     /// </summary>
-    private static bool TryGetAssignmentToTrueSite(
+    private static bool TryGetAssignmentSite(
+        SemanticModel semanticModel,
         IdentifierNameSyntax name,
+        bool initialValue,
+        CancellationToken cancellationToken,
         [NotNullWhen(true)] out ExpressionStatementSyntax? assignment,
         [NotNullWhen(true)] out BreakStatementSyntax? innerBreak)
     {
         assignment = null;
         innerBreak = null;
 
-        // 'name' can only be the left side: the right side is required to be a 'true' literal.
+        // 'name' can only be the left side: the right side must be a bool constant opposite to the initial value.
         if (name.Parent is not AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
             {
-                Right: LiteralExpressionSyntax(SyntaxKind.TrueLiteralExpression),
+                Right: var value,
                 Parent: ExpressionStatementSyntax { Parent: BlockSyntax block } assignmentStatement,
-            })
+            } ||
+            !IsBooleanConstant(semanticModel, value, !initialValue, cancellationToken))
         {
             return false;
         }
@@ -324,17 +334,23 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
     }
 
     /// <summary>
-    /// A flag reference <paramref name="name"/> used as a <c>flag = false;</c> reset statement.
+    /// A flag reference <paramref name="name"/> used in an assignment that resets it to its initial value.
     /// </summary>
-    private static bool TryGetResetToFalseSite(IdentifierNameSyntax name, [NotNullWhen(true)] out ExpressionStatementSyntax? reset)
+    private static bool TryGetResetSite(
+        SemanticModel semanticModel,
+        IdentifierNameSyntax name,
+        bool initialValue,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out ExpressionStatementSyntax? reset)
     {
         reset = null;
 
         if (name.Parent is not AssignmentExpressionSyntax(SyntaxKind.SimpleAssignmentExpression)
             {
-                Right: LiteralExpressionSyntax(SyntaxKind.FalseLiteralExpression),
+                Right: var value,
                 Parent: ExpressionStatementSyntax resetStatement,
-            })
+            } ||
+            !IsBooleanConstant(semanticModel, value, initialValue, cancellationToken))
         {
             return false;
         }
@@ -343,16 +359,103 @@ internal static partial class CSharpUseLabeledJumpStatementsHelpers
         return true;
     }
 
-    private static bool TryGetGuard(IdentifierNameSyntax name, [NotNullWhen(true)] out IfStatementSyntax? ifStatement)
+    private static bool TryGetGuard(
+        SemanticModel semanticModel,
+        IdentifierNameSyntax name,
+        bool initialValue,
+        CancellationToken cancellationToken,
+        [NotNullWhen(true)] out IfStatementSyntax? ifStatement)
     {
         ifStatement = null;
 
-        if (name.Parent is not IfStatementSyntax { Else: null } candidate || candidate.Condition != name)
+        // Include parentheses around the flag, e.g. 'if ((flag) == true) break;'.
+        var condition = name.WalkUpParentheses();
+        switch (condition.Parent)
+        {
+            case PrefixUnaryExpressionSyntax(SyntaxKind.LogicalNotExpression) negation:
+                // 'bool flag = false; if (!flag) break;' would jump before the flag changes.
+                if (!initialValue)
+                    return false;
+
+                condition = negation;
+                break;
+
+            case BinaryExpressionSyntax(SyntaxKind.EqualsExpression or SyntaxKind.NotEqualsExpression) binary:
+                // The flag may be on either side, e.g. 'flag == true' or 'true == flag'.
+                var other = binary.Left == condition ? binary.Right : binary.Left;
+                // With 'bool flag = false;', 'flag == true' and 'flag != false' both test for a change.
+                var expectedValue = binary.IsKind(SyntaxKind.NotEqualsExpression) ? initialValue : !initialValue;
+                // Named constants also work, e.g. 'const bool Jump = true; if (flag == Jump) break;'.
+                if (!IsBooleanConstant(semanticModel, other, expectedValue, cancellationToken))
+                    return false;
+
+                condition = binary;
+                break;
+
+            // 'const bool Jump = true; if (flag is Jump) break;' can use the legacy is-expression syntax.
+            case BinaryExpressionSyntax(SyntaxKind.IsExpression) isExpression when isExpression.Left == condition:
+                if (!IsBooleanConstant(semanticModel, isExpression.Right, !initialValue, cancellationToken))
+                    return false;
+
+                condition = isExpression;
+                break;
+
+            case IsPatternExpressionSyntax isPattern:
+                // Recognize tests such as 'flag is true', 'flag is not false', and 'flag is (not false)'.
+                var pattern = isPattern.Pattern;
+                var initialPatternValue = initialValue;
+                while (true)
+                {
+                    if (pattern is ParenthesizedPatternSyntax parenthesized)
+                    {
+                        // Unwrap '(true)' in 'flag is (true)'.
+                        pattern = parenthesized.Pattern;
+                    }
+                    else if (pattern is UnaryPatternSyntax(SyntaxKind.NotPattern) notPattern)
+                    {
+                        // Track which constant would match initially, e.g. 'flag is not true' matches false.
+                        initialPatternValue = !initialPatternValue;
+                        pattern = notPattern.Pattern;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                // Reject patterns such as 'flag is var value', which do not test for a particular flag value.
+                if (pattern is not ConstantPatternSyntax constant ||
+                    !IsBooleanConstant(semanticModel, constant.Expression, !initialPatternValue, cancellationToken))
+                {
+                    return false;
+                }
+
+                condition = isPattern;
+                break;
+
+            default:
+                // 'bool flag = true; if (flag) break;' would jump before the flag changes.
+                if (initialValue)
+                    return false;
+
+                break;
+        }
+
+        // Include parentheses around the whole test, e.g. 'if ((flag == true)) break;'.
+        condition = condition.WalkUpParentheses();
+        // Require the entire condition and no 'else'. Reject 'if (flag && ready) break;' or
+        // 'if (flag) break; else DoOtherWork();', since either contains behavior this rewrite would discard.
+        if (condition.Parent is not IfStatementSyntax { Else: null } candidate || candidate.Condition != condition)
             return false;
 
         ifStatement = candidate;
         return true;
     }
+
+    private static bool IsBooleanConstant(
+        SemanticModel semanticModel, ExpressionSyntax expression, bool value, CancellationToken cancellationToken)
+        => semanticModel.GetConstantValue(expression, cancellationToken) is { HasValue: true, Value: bool constantValue } &&
+           constantValue == value;
 
     private static StatementSyntax Unwrap(StatementSyntax statement)
         => statement is BlockSyntax { Statements: [var single] } ? single : statement;

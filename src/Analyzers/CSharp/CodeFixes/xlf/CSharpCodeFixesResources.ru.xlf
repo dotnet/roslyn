@@ -17,6 +17,11 @@
         <target state="translated">Добавить скобки</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_safety_documentation">
+        <source>Add '&lt;safety&gt;' documentation</source>
+        <target state="translated">Добавить документацию для "&lt;safety&gt;"</target>
+        <note>{Locked="&lt;safety&gt;"} "safety" is an XML documentation element name and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
         <target state="translated">Добавьте "this".</target>

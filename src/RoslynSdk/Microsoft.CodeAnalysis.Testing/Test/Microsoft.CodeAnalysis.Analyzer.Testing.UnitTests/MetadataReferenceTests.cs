@@ -14,6 +14,12 @@ namespace Microsoft.CodeAnalysis.Testing
 {
     public class MetadataReferenceTests
     {
+#if NET
+        [Fact]
+        public void DefaultReferenceAssembliesUseNetCoreApp31()
+            => Assert.Same(ReferenceAssemblies.NetCore.NetCoreApp31, ReferenceAssemblies.Default);
+#endif
+
         [Fact]
         public async Task ResolveReferenceAssemblies_Net20()
         {

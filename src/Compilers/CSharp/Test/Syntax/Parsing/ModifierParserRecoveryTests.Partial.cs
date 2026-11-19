@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -408,21 +407,6 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             N(SyntaxKind.EndOfFileToken);
         }
         EOF();
-    }
-
-    [Theory]
-    [InlineData(LanguageVersion.CSharp13)]
-    [InlineData(LanguageVersion.Preview)]
-    public void ManyPartialModifiers_MakesProgress(LanguageVersion languageVersion)
-    {
-        var modifiers = string.Concat(Enumerable.Repeat("partial ", 10_000));
-        var source = $"class C {{ {modifiers}int M(); }}";
-
-        var root = SyntaxFactory.ParseSyntaxTree(
-            source,
-            options: TestOptions.Regular.WithLanguageVersion(languageVersion)).GetRoot();
-
-        Assert.Equal(source, root.ToFullString());
     }
 
     [Fact]
