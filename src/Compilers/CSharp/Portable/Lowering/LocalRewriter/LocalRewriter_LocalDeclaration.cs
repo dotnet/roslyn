@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax,
                     new BoundLocal(
                         syntax,
+                        isInUnsafeRegion: false,
                         localSymbol,
                         null,
                         localSymbol.Type

@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     localSymbol.SetTypeWithAnnotations(type);
-                    return new BoundLocal(this.Syntax, localSymbol, BoundLocalDeclarationKind.WithInferredType, constantValueOpt: null, isNullableUnknown: false, type: type.Type, hasErrors: this.HasErrors || inferenceFailed).WithWasConverted();
+                    return new BoundLocal(this.Syntax, isInUnsafeRegion: IsInUnsafeRegion, localSymbol, BoundLocalDeclarationKind.WithInferredType, constantValueOpt: null, isNullableUnknown: false, type: type.Type, hasErrors: this.HasErrors || inferenceFailed).WithWasConverted();
 
                 case SymbolKind.Field:
                     var fieldSymbol = (GlobalExpressionVariable)this.VariableSymbol;
@@ -98,6 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     inferenceDiagnostics.Free();
 
                     return new BoundFieldAccess(this.Syntax,
+                                                isInUnsafeRegion: IsInUnsafeRegion,
                                                 this.ReceiverOpt,
                                                 fieldSymbol,
                                                 null,

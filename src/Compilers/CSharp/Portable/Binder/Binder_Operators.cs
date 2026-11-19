@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // NOTE: no overload resolution candidates.
                     left = BindToTypeForErrorRecovery(left);
                     right = BindToTypeForErrorRecovery(right);
-                    return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
+                    return new BoundCompoundAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, BinaryOperatorSignature.Error, left, right,
                         leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
                 }
 
@@ -72,16 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(left.Type is { });
 
                         right = BindToNaturalType(right, diagnostics);
-                        var placeholder = new BoundValuePlaceholder(right.Syntax, left.HasDynamicType() ? left.Type : right.Type).MakeCompilerGenerated();
+                        var placeholder = new BoundValuePlaceholder(right.Syntax, isInUnsafeRegion: right.IsInUnsafeRegion, left.HasDynamicType() ? left.Type : right.Type).MakeCompilerGenerated();
                         var finalDynamicConversion = this.Compilation.Conversions.ClassifyConversionFromExpression(placeholder, left.Type, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                         diagnostics.Add(node, useSiteInfo);
-                        var conversion = (BoundConversion)CreateConversion(node, placeholder, finalDynamicConversion, isCast: true, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, left.Type, diagnostics);
+                        var conversion = (BoundConversion)CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, placeholder, finalDynamicConversion, isCast: true, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, left.Type, diagnostics);
 
                         conversion = conversion.Update(conversion.Operand, conversion.Conversion, conversion.IsBaseConversion, conversion.Checked,
                                                        explicitCastInCode: true, conversion.ConstantValueOpt, conversion.ConversionGroupOpt, conversion.InConversionGroupFlags, conversion.Type);
 
                         return new BoundCompoundAssignmentOperator(
                             node,
+                            isInUnsafeRegion: InUnsafeRegion,
                             new BinaryOperatorSignature(
                                 kind.WithType(BinaryOperatorKind.Dynamic).WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                                 left.Type,
@@ -103,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // error: operator can't be applied on dynamic and a type that is not convertible to dynamic:
                         left = BindToTypeForErrorRecovery(left);
                         right = BindToTypeForErrorRecovery(right);
-                        return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
+                        return new BoundCompoundAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, BinaryOperatorSignature.Error, left, right,
                             leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, LookupResultKind.Empty, CreateErrorType(), hasErrors: true);
                     }
                 }
@@ -117,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // NOTE: no overload resolution candidates.
                     left = BindToTypeForErrorRecovery(left);
                     right = BindToTypeForErrorRecovery(right);
-                    return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
+                    return new BoundCompoundAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, BinaryOperatorSignature.Error, left, right,
                         leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, LookupResultKind.NotAVariable, CreateErrorType(), hasErrors: true);
                 }
 
@@ -260,16 +261,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         bestSignature.ConstrainedToTypeOpt);
                 }
 
-                BoundExpression rightConverted = CreateConversion(right, best.RightConversion, bestSignature.RightType, diagnostics);
+                BoundExpression rightConverted = CreateConversion(isInUnsafeRegion: InUnsafeRegion, right, best.RightConversion, bestSignature.RightType, diagnostics);
 
                 bool isPredefinedOperator = !bestSignature.Kind.IsUserDefined();
 
                 var leftType = left.Type;
                 Debug.Assert(leftType is { });
 
-                var finalPlaceholder = new BoundValuePlaceholder(node, bestSignature.ReturnType);
+                var finalPlaceholder = new BoundValuePlaceholder(node, isInUnsafeRegion: InUnsafeRegion, bestSignature.ReturnType);
 
-                BoundExpression? finalConversion = GenerateConversionForAssignment(leftType, finalPlaceholder, diagnostics,
+                BoundExpression? finalConversion = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, leftType, finalPlaceholder, diagnostics,
                                 ConversionForAssignmentFlags.CompoundAssignment |
                                 (isPredefinedOperator ? ConversionForAssignmentFlags.PredefinedOperator : ConversionForAssignmentFlags.None));
 
@@ -311,10 +312,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // code path for the diagnostics.  Make sure we don't report success.
                 Debug.Assert(left.Kind != BoundKind.EventAccess || hasError);
 
-                var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-                var leftConversion = CreateConversion(node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.LeftType, diagnostics);
+                var leftPlaceholder = new BoundValuePlaceholder(left.Syntax, isInUnsafeRegion: left.IsInUnsafeRegion, leftType).MakeCompilerGenerated();
+                var leftConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node.Left, leftPlaceholder, best.LeftConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.LeftType, diagnostics);
 
-                return new BoundCompoundAssignmentOperator(node, bestSignature, left, rightConverted,
+                return new BoundCompoundAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, bestSignature, left, rightConverted,
                     leftPlaceholder, leftConversion, finalPlaceholder, finalConversion, resultKind, originalUserDefinedOperators, leftType, hasError);
             }
 
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportAssignmentOperatorError(node, kind, diagnostics, left, right, resultKind, ref operatorResolutionForReporting);
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
-                return new BoundCompoundAssignmentOperator(node, BinaryOperatorSignature.Error, left, right,
+                return new BoundCompoundAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, BinaryOperatorSignature.Error, left, right,
                     leftPlaceholder: null, leftConversion: null, finalPlaceholder: null, finalConversion: null, resultKind, originalUserDefinedOperators, CreateErrorType(), hasErrors: true);
             }
 
@@ -473,10 +474,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var method = overloadResolutionResult.ValidResult.Member;
 
-                    BoundExpression rightConverted = CreateConversion(right, overloadResolutionResult.ValidResult.Result.ConversionForArg(isExtension ? 1 : 0), method.Parameters[0].Type, diagnostics);
+                    BoundExpression rightConverted = CreateConversion(isInUnsafeRegion: InUnsafeRegion, right, overloadResolutionResult.ValidResult.Result.ConversionForArg(isExtension ? 1 : 0), method.Parameters[0].Type, diagnostics);
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node, InUnsafeRegion);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
 
                     BoundValuePlaceholder? leftPlaceholder = null;
@@ -502,13 +503,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(conversion.Kind is ConversionKind.ImplicitReference);
                             Debug.Assert(leftType.IsReferenceType);
 
-                            leftPlaceholder = new BoundValuePlaceholder(left.Syntax, leftType).MakeCompilerGenerated();
-                            leftConversion = CreateConversion(node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.ContainingType.ExtensionParameter.Type, diagnostics);
+                            leftPlaceholder = new BoundValuePlaceholder(left.Syntax, isInUnsafeRegion: left.IsInUnsafeRegion, leftType).MakeCompilerGenerated();
+                            leftConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, leftPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.ContainingType.ExtensionParameter.Type, diagnostics);
                         }
                     }
 
                     inPlaceResult = new BoundCompoundAssignmentOperator(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         new BinaryOperatorSignature(
                             kind.WithOverflowChecksIfApplicable(checkOverflowAtRuntime),
                             leftType: leftType,
@@ -536,6 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     inPlaceResult = new BoundCompoundAssignmentOperator(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         BinaryOperatorSignature.Error,
                         left,
                         BindToTypeForErrorRecovery(right),
@@ -710,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            BoundExpression argument = CreateConversion(right, argumentConversion, delegateType, diagnostics);
+            BoundExpression argument = CreateConversion(isInUnsafeRegion: InUnsafeRegion, right, argumentConversion, delegateType, diagnostics);
 
             bool isAddition = opKind == BinaryOperatorKind.Addition;
             MethodSymbol method = isAddition ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
@@ -744,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     CheckReceiverAndRuntimeSupportForSymbolAccess(node, receiverOpt, method, diagnostics);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node.OperatorToken);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node.OperatorToken, InUnsafeRegion);
                 }
 
                 if (eventSymbol.IsWindowsRuntimeEvent)
@@ -764,6 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundEventAssignmentOperator(
                 syntax: node,
+                isInUnsafeRegion: InUnsafeRegion,
                 @event: eventSymbol,
                 isAddition: isAddition,
                 isDynamic: right.HasDynamicType(),
@@ -842,6 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBinaryOperator(
                 syntax: node,
+                isInUnsafeRegion: InUnsafeRegion,
                 operatorKind: (hasError ? kind : kind.WithType(BinaryOperatorKind.Dynamic)).WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                 left: BindToNaturalType(left, diagnostics),
                 right: BindToNaturalType(right, diagnostics),
@@ -946,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE: no user-defined conversion candidates
                 left = BindToTypeForErrorRecovery(left);
                 right = BindToTypeForErrorRecovery(right);
-                return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Empty, left, right, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
+                return new BoundBinaryOperator(node, isInUnsafeRegion: InUnsafeRegion, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, LookupResultKind.Empty, left, right, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
             }
 
             TypeSymbol leftType = left.Type;
@@ -970,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
             if (isEquality && leftNull && rightNull)
             {
-                return new BoundLiteral(node, ConstantValue.Create(kind == BinaryOperatorKind.Equal), GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
+                return new BoundLiteral(node, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(kind == BinaryOperatorKind.Equal), GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
             }
 
             if (IsTupleBinaryOperation(left, right) &&
@@ -987,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(right.Type.SpecialType == SpecialType.System_String);
                 var stringConstant = FoldBinaryOperator(node, BinaryOperatorKind.StringConcatenation, left, right, right.Type, diagnostics);
-                return new BoundBinaryOperator(node, BinaryOperatorKind.StringConcatenation, BoundBinaryOperator.UncommonData.UnconvertedInterpolatedStringAddition(stringConstant), LookupResultKind.Empty, left, right, right.Type);
+                return new BoundBinaryOperator(node, isInUnsafeRegion: InUnsafeRegion, BinaryOperatorKind.StringConcatenation, BoundBinaryOperator.UncommonData.UnconvertedInterpolatedStringAddition(stringConstant), LookupResultKind.Empty, left, right, right.Type);
             }
 
             // SPEC: For an operation of one of the forms x == null, null == x, x != null, null != x,
@@ -1079,8 +1084,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.AccumulatesDiagnostics;
                 var conversionDiagnostics = needsFilterDiagnostics ? BindingDiagnosticBag.GetInstance(template: diagnostics) : diagnostics;
 
-                resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
-                resultRight = CreateConversion(right, best.RightConversion, signature.RightType, conversionDiagnostics);
+                resultLeft = CreateConversion(isInUnsafeRegion: InUnsafeRegion, left, best.LeftConversion, signature.LeftType, conversionDiagnostics);
+                resultRight = CreateConversion(isInUnsafeRegion: InUnsafeRegion, right, best.RightConversion, signature.RightType, conversionDiagnostics);
 
                 if (needsFilterDiagnostics)
                 {
@@ -1119,6 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundBinaryOperator(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 resultOperatorKind.WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                 resultLeft,
                 resultRight,
@@ -1239,6 +1245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         private BoundExpression RebindSimpleBinaryOperatorAsConverted(BoundBinaryOperator unconvertedBinaryOperator, BindingDiagnosticBag diagnostics)
         {
+            if (InUnsafeRegion != unconvertedBinaryOperator.IsInUnsafeRegion)
+            {
+                return WithUnsafeRegion(unconvertedBinaryOperator.IsInUnsafeRegion).RebindSimpleBinaryOperatorAsConverted(unconvertedBinaryOperator, diagnostics);
+            }
+
             if (TryBindUnconvertedBinaryOperatorToDefaultInterpolatedStringHandler(unconvertedBinaryOperator, diagnostics, out var convertedBinaryOperator))
             {
                 return convertedBinaryOperator;
@@ -1444,7 +1455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var constantValue = FoldBinaryOperator(node, kind | BinaryOperatorKind.Bool, left, right, left.Type, diagnostics);
 
                     // NOTE: no candidate user-defined operators.
-                    return new BoundBinaryOperator(node, kind | BinaryOperatorKind.Bool, constantValue, methodOpt: null, constrainedToTypeOpt: null,
+                    return new BoundBinaryOperator(node, isInUnsafeRegion: InUnsafeRegion, kind | BinaryOperatorKind.Bool, constantValue, methodOpt: null, constrainedToTypeOpt: null,
                         resultKind: LookupResultKind.Viable, left, right, type: left.Type, hasErrors: constantValue != null && constantValue.IsBad);
                 }
 
@@ -1454,7 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (left.HasAnyErrors || right.HasAnyErrors)
                 {
                     // NOTE: no candidate user-defined operators.
-                    return new BoundBinaryOperator(node, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null,
+                    return new BoundBinaryOperator(node, isInUnsafeRegion: InUnsafeRegion, kind, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null,
                         resultKind: LookupResultKind.Empty, left, right, type: GetBinaryOperatorErrorType(kind, diagnostics, node), hasErrors: true);
                 }
 
@@ -1513,8 +1524,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else if (bothBool || IsValidUserDefinedConditionalLogicalOperator(node, signature, diagnostics, out trueOperator, out falseOperator))
                     {
-                        var resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
-                        var resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
+                        var resultLeft = CreateConversion(isInUnsafeRegion: InUnsafeRegion, left, best.LeftConversion, signature.LeftType, diagnostics);
+                        var resultRight = CreateConversion(isInUnsafeRegion: InUnsafeRegion, right, best.RightConversion, signature.RightType, diagnostics);
                         var resultKind = kind | signature.Kind.OperandTypes();
                         if (signature.Kind.IsLifted())
                         {
@@ -1533,9 +1544,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
                             Debug.Assert(resultLeft.Type.Equals(signature.LeftType, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
-                            var operandPlaceholder = new BoundValuePlaceholder(resultLeft.Syntax, resultLeft.Type).MakeCompilerGenerated();
+                            var operandPlaceholder = new BoundValuePlaceholder(resultLeft.Syntax, isInUnsafeRegion: InUnsafeRegion, resultLeft.Type).MakeCompilerGenerated();
 
                             BoundExpression operandConversion = CreateConversion(
+                                isInUnsafeRegion: InUnsafeRegion,
                                 resultLeft.Syntax,
                                 operandPlaceholder,
                                 trueFalseOperator.Conversion,
@@ -1547,6 +1559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             return new BoundUserDefinedConditionalLogicalOperator(
                                 node,
+                                isInUnsafeRegion: InUnsafeRegion,
                                 resultKind,
                                 signature.Method,
                                 trueOperator.GetValueOrDefault().Signature.Method,
@@ -1567,6 +1580,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             return new BoundBinaryOperator(
                                 node,
+                                isInUnsafeRegion: InUnsafeRegion,
                                 resultKind,
                                 resultLeft,
                                 resultRight,
@@ -1581,7 +1595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We've already reported the error.
-                return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, lookupResult, originalUserDefinedOperators, CreateErrorType(), true);
+                return new BoundBinaryOperator(node, isInUnsafeRegion: InUnsafeRegion, kind, left, right, ConstantValue.NotAvailable, methodOpt: null, constrainedToTypeOpt: null, lookupResult, originalUserDefinedOperators, CreateErrorType(), true);
             }
         }
 
@@ -1608,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (left.Type is not null)
                 {
-                    CreateConversion(left.Syntax, new BoundValuePlaceholder(left.Syntax, left.Type).MakeCompilerGenerated(), implicitConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, booleanType, diagnostics);
+                    CreateConversion(isInUnsafeRegion: InUnsafeRegion, left.Syntax, new BoundValuePlaceholder(left.Syntax, isInUnsafeRegion: left.IsInUnsafeRegion, left.Type).MakeCompilerGenerated(), implicitConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, booleanType, diagnostics);
                 }
                 else
                 {
@@ -1638,7 +1652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Stack Trace:
             //     at CallSite.Target(Closure, CallSite, Object, Nullable`1)
             //     at System.Dynamic.UpdateDelegates.UpdateAndExecute2[T0,T1,TRet](CallSite site, T0 arg0, T1 arg1)
-            var operandPlaceholder = new BoundValuePlaceholder(left.Syntax, namedType).MakeCompilerGenerated();
+            var operandPlaceholder = new BoundValuePlaceholder(left.Syntax, isInUnsafeRegion: left.IsInUnsafeRegion, namedType).MakeCompilerGenerated();
             UnaryOperatorAnalysisResult result = operatorOverloadResolution(left.Syntax, operandPlaceholder, isNegative ? UnaryOperatorKind.False : UnaryOperatorKind.True, diagnostics);
 
             if (result.HasValue)
@@ -1647,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 userDefinedOperator = result.Signature.Method;
 
                 TypeSymbol parameterType = userDefinedOperator.Parameters[0].Type;
-                CreateConversion(left.Syntax, operandPlaceholder, result.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterType, diagnostics);
+                CreateConversion(isInUnsafeRegion: InUnsafeRegion, left.Syntax, operandPlaceholder, result.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, parameterType, diagnostics);
                 return true;
             }
 
@@ -1783,7 +1797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // As mentioned above, we need more than just op true and op false existing; we need
                 // to know that the first operand can be passed to it.
 
-                var leftPlaceholder = new BoundValuePlaceholder(syntax, signature.LeftType).MakeCompilerGenerated();
+                var leftPlaceholder = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, signature.LeftType).MakeCompilerGenerated();
                 var result = UnaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
 
@@ -1941,7 +1955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // SPEC: T must contain declarations of operator true and operator false.
 
-                var leftPlaceholder = new BoundValuePlaceholder(syntax, signature.LeftType).MakeCompilerGenerated();
+                var leftPlaceholder = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, signature.LeftType).MakeCompilerGenerated();
                 var result = UnaryOperatorOverloadResolutionResult.GetInstance();
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 var extensionCandidates = ArrayBuilder<Symbol>.GetInstance();
@@ -2218,7 +2232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ReportUseSite(operatorMethod, diagnostics, node);
                 ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, operatorMethod, node);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, operatorMethod, node, InUnsafeRegion);
 
                 if (operatorMethod.ContainingType.IsInterface &&
                     operatorMethod.ContainingModule != Compilation.SourceModule)
@@ -2696,8 +2710,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol enumType = GetEnumType(kind, left, right);
             TypeSymbol underlyingType = enumType.GetEnumUnderlyingType()!;
 
-            BoundExpression newLeftOperand = CreateConversion(left, underlyingType, diagnostics);
-            BoundExpression newRightOperand = CreateConversion(right, underlyingType, diagnostics);
+            BoundExpression newLeftOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, left, underlyingType, diagnostics);
+            BoundExpression newRightOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, right, underlyingType, diagnostics);
 
             // If the underlying type is byte, sbyte, short, ushort or nullables of those then we'll need
             // to convert it up to int or int? because there are no + - * & | ^ < > <= >= == != operators
@@ -2708,8 +2722,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingType :
                 GetSpecialType(operandSpecialType, diagnostics, syntax);
 
-            newLeftOperand = CreateConversion(newLeftOperand, operandType, diagnostics);
-            newRightOperand = CreateConversion(newRightOperand, operandType, diagnostics);
+            newLeftOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, newLeftOperand, operandType, diagnostics);
+            newRightOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, newRightOperand, operandType, diagnostics);
 
             BinaryOperatorKind newKind = kind.Operator().WithType(newLeftOperand.Type!.SpecialType);
 
@@ -3280,6 +3294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // NOTE: no candidate user-defined operators.
                     return new BoundIncrementOperator(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         kind,
                         operand,
                         methodOpt: null,
@@ -3301,6 +3316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return new BoundIncrementOperator(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         kind.WithType(UnaryOperatorKind.Dynamic).WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                         operand,
                         methodOpt: null,
@@ -3379,6 +3395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReportUnaryOperatorError(node, diagnostics, operatorToken.Text, operand, resultKind, ref operatorResolutionForReporting);
                     return new BoundIncrementOperator(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         kind,
                         operand,
                         methodOpt: null,
@@ -3398,9 +3415,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CheckNativeIntegerFeatureAvailability(signature.Kind, node, diagnostics);
                 CheckConstraintLanguageVersionAndRuntimeSupportForOperator(node, signature.Method, isUnsignedRightShift: false, signature.ConstrainedToTypeOpt, diagnostics);
 
-                var resultPlaceholder = new BoundValuePlaceholder(node, signature.ReturnType).MakeCompilerGenerated();
+                var resultPlaceholder = new BoundValuePlaceholder(node, isInUnsafeRegion: InUnsafeRegion, signature.ReturnType).MakeCompilerGenerated();
 
-                BoundExpression? resultConversion = GenerateConversionForAssignment(operandType, resultPlaceholder, diagnostics, ConversionForAssignmentFlags.IncrementAssignment);
+                BoundExpression? resultConversion = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, operandType, resultPlaceholder, diagnostics, ConversionForAssignmentFlags.IncrementAssignment);
 
                 bool hasErrors = resultConversion.HasErrors;
 
@@ -3421,11 +3438,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors = true;
                 }
 
-                var operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operandType).MakeCompilerGenerated();
-                var operandConversion = CreateConversion(node, operandPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
+                var operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, isInUnsafeRegion: operand.IsInUnsafeRegion, operandType).MakeCompilerGenerated();
+                var operandConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, operandPlaceholder, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, best.Signature.OperandType, diagnostics);
 
                 return new BoundIncrementOperator(
                     node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     signature.Kind.WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                     operand,
                     signature.Method,
@@ -3582,7 +3600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var method = overloadResolutionResult.ValidResult.Member;
 
                     ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver: false);
-                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
+                    ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node, InUnsafeRegion);
                     ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
 
                     BoundValuePlaceholder? operandPlaceholder = null;
@@ -3608,13 +3626,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(conversion.Kind is ConversionKind.ImplicitReference);
                             Debug.Assert(operandType.IsReferenceType);
 
-                            operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operandType).MakeCompilerGenerated();
-                            operandConversion = CreateConversion(node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.ContainingType.ExtensionParameter.Type, diagnostics);
+                            operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, isInUnsafeRegion: operand.IsInUnsafeRegion, operandType).MakeCompilerGenerated();
+                            operandConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, operandPlaceholder, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, method.ContainingType.ExtensionParameter.Type, diagnostics);
                         }
                     }
 
                     inPlaceResult = new BoundIncrementOperator(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         (kind | UnaryOperatorKind.UserDefined).WithOverflowChecksIfApplicable(checkOverflowAtRuntime),
                         operand,
                         methodOpt: method,
@@ -3640,6 +3659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     inPlaceResult = new BoundIncrementOperator(
                         node,
+                        isInUnsafeRegion: InUnsafeRegion,
                         (kind | UnaryOperatorKind.UserDefined).WithOverflowChecksIfApplicable(checkOverflowAtRuntime),
                         operand,
                         methodOpt: null,
@@ -4084,11 +4104,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasErrors;
             BindPointerIndirectionExpressionInternal(node, operand, diagnostics, out pointedAtType, out hasErrors);
 
-            var result = new BoundPointerIndirectionOperator(node, operand, pointedAtType ?? CreateErrorType(), hasErrors);
+            var result = new BoundPointerIndirectionOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, pointedAtType ?? CreateErrorType(), hasErrors);
 
             if (!result.HasErrors)
             {
-                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, MemorySafetyRulesVersion.Version2);
+                ReportUnsafeIfNotAllowed(node.OperatorToken.GetLocation(), diagnostics, InUnsafeRegion, MemorySafetyRulesVersion.Version2);
             }
 
             return result;
@@ -4144,11 +4164,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case UnboundLambda _:
                     {
                         Debug.Assert(hasErrors);
-                        return new BoundAddressOfOperator(node, operand, CreateErrorType(), hasErrors: true);
+                        return new BoundAddressOfOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, CreateErrorType(), hasErrors: true);
                     }
 
                 case BoundMethodGroup methodGroup:
-                    return new BoundUnconvertedAddressOfOperator(node, methodGroup, hasErrors);
+                    return new BoundUnconvertedAddressOfOperator(node, isInUnsafeRegion: InUnsafeRegion, methodGroup, hasErrors);
             }
 
             TypeSymbol operandType = operand.Type;
@@ -4174,7 +4194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(operandType));
-            return new BoundAddressOfOperator(node, operand, pointerType, hasErrors,
+            return new BoundAddressOfOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, pointerType, hasErrors,
                 requiresAssignedOperand: !hasErrors &&
                     Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution) &&
                     !InUnsafeRegion);
@@ -4362,7 +4382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isOperandNullOrNew || operand.Type?.IsErrorType() == true)
             {
                 // Note: no candidate user-defined operators.
-                return new BoundUnaryOperator(node, kind, operand, ConstantValue.NotAvailable,
+                return new BoundUnaryOperator(node, isInUnsafeRegion: InUnsafeRegion, kind, operand, ConstantValue.NotAvailable,
                     methodOpt: null,
                     constrainedToTypeOpt: null,
                     resultKind: LookupResultKind.Empty,
@@ -4381,6 +4401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundUnaryOperator(
                     syntax: node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     operatorKind: kind.WithType(UnaryOperatorKind.Dynamic).WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                     operand: operand,
                     constantValueOpt: ConstantValue.NotAvailable,
@@ -4402,6 +4423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundUnaryOperator(
                     node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     kind,
                     operand,
                     ConstantValue.NotAvailable,
@@ -4416,7 +4438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             operatorResolutionForReporting.Free();
             var signature = best.Signature;
 
-            var resultOperand = CreateConversion(operand.Syntax, operand, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, signature.OperandType, diagnostics);
+            var resultOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, operand.Syntax, operand, best.Conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, signature.OperandType, diagnostics);
             var resultType = signature.ReturnType;
             UnaryOperatorKind resultOperatorKind = signature.Kind;
             var resultConstant = FoldUnaryOperator(node, resultOperatorKind, resultOperand, resultType, diagnostics);
@@ -4426,6 +4448,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundUnaryOperator(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 resultOperatorKind.WithOverflowChecksIfApplicable(CheckOverflowAtRuntime),
                 resultOperand,
                 resultConstant,
@@ -4443,7 +4466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var underlyingType = operand.Type.GetEnumUnderlyingType()!;
 
-            BoundExpression newOperand = CreateConversion(operand, underlyingType, diagnostics);
+            BoundExpression newOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, operand, underlyingType, diagnostics);
 
             // We may have to upconvert the type if it is a byte, sbyte, short, ushort
             // or nullable of those, because there is no ~ operator
@@ -4452,7 +4475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingType :
                 GetSpecialType(upconvertSpecialType, diagnostics, syntax);
 
-            newOperand = CreateConversion(newOperand, upconvertType, diagnostics);
+            newOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, newOperand, upconvertType, diagnostics);
 
             UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
 
@@ -4708,7 +4731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                return new BoundLiteral(node, ConstantValue.Create((int)-2147483648), GetSpecialType(SpecialType.System_Int32, diagnostics, node));
+                return new BoundLiteral(node, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create((int)-2147483648), GetSpecialType(SpecialType.System_Int32, diagnostics, node));
             }
             else if (token.Value is ulong)
             {
@@ -4723,7 +4746,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                return new BoundLiteral(node, ConstantValue.Create(-9223372036854775808), GetSpecialType(SpecialType.System_Int64, diagnostics, node));
+                return new BoundLiteral(node, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(-9223372036854775808), GetSpecialType(SpecialType.System_Int64, diagnostics, node));
             }
 
             return null;
@@ -4878,7 +4901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var targetTypeKind = targetType.TypeKind;
             if (operandHasErrors || IsOperatorErrors(node, inputType, typeExpression, diagnostics))
             {
-                return new BoundIsOperator(node, operand, typeExpression, ConversionKind.NoConversion, resultType, hasErrors: true);
+                return new BoundIsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, ConversionKind.NoConversion, resultType, hasErrors: true);
             }
 
             if (wasUnderscore && ((CSharpParseOptions)node.SyntaxTree.Options).IsFeatureEnabled(MessageID.IDS_FeatureRecursivePatterns))
@@ -4915,7 +4938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.WRN_IsAlwaysFalse, node, targetType);
                 Conversion conv = Conversions.ClassifyConversionFromExpression(operand, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
                 diagnostics.Add(node, useSiteInfo);
-                return new BoundIsOperator(node, operand, typeExpression, conv.Kind, resultType);
+                return new BoundIsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, conv.Kind, resultType);
             }
 
             if (targetTypeKind == TypeKind.Dynamic)
@@ -4937,7 +4960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = Conversions.ClassifyBuiltInConversion(inputType, targetType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo);
             diagnostics.Add(node, useSiteInfo);
             ReportIsOperatorDiagnostics(node, diagnostics, inputType, targetType, conversion.Kind, operand.ConstantValueOpt);
-            return new BoundIsOperator(node, operand, typeExpression, conversion.Kind, resultType);
+            return new BoundIsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, conversion.Kind, resultType);
 
             bool tryBindAsType(
                 ExpressionSyntax possibleType,
@@ -4948,7 +4971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bindAsTypeDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
                 TypeWithAnnotations targetTypeWithAnnotations = BindType(possibleType, bindAsTypeDiagnostics, out AliasSymbol alias);
                 TypeSymbol targetType = targetTypeWithAnnotations.Type;
-                boundType = new BoundTypeExpression(possibleType, alias, targetTypeWithAnnotations);
+                boundType = new BoundTypeExpression(possibleType, isInUnsafeRegion: InUnsafeRegion, alias, targetTypeWithAnnotations);
                 return !(targetType?.IsErrorType() == true && bindAsTypeDiagnostics.HasAnyResolvedErrors());
             }
 
@@ -5371,7 +5394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AliasSymbol alias;
             TypeWithAnnotations targetTypeWithAnnotations = BindType(node.Right, diagnostics, out alias);
             TypeSymbol targetType = targetTypeWithAnnotations.Type;
-            var typeExpression = new BoundTypeExpression(node.Right, alias, targetTypeWithAnnotations);
+            var typeExpression = new BoundTypeExpression(node.Right, isInUnsafeRegion: InUnsafeRegion, alias, targetTypeWithAnnotations);
             var targetTypeKind = targetType.TypeKind;
             var resultType = targetType;
 
@@ -5393,14 +5416,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Error(diagnostics, ErrorCode.ERR_LambdaInIsAs, node);
                     }
 
-                    return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
+                    return new BoundAsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
 
                 case BoundKind.TupleLiteral:
                 case BoundKind.ConvertedTupleLiteral:
                     if ((object)operand.Type == null)
                     {
                         Error(diagnostics, ErrorCode.ERR_TypelessTupleInAs, node);
-                        return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
+                        return new BoundAsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
                     }
                     break;
             }
@@ -5408,14 +5431,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (operand.HasAnyErrors || targetTypeKind == TypeKind.Error)
             {
                 // If either operand is bad or target type has errors, bail out preventing more cascading errors.
-                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
+                return new BoundAsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
             }
 
             if (targetType.IsReferenceType && targetTypeWithAnnotations.NullableAnnotation.IsAnnotated())
             {
                 Error(diagnostics, ErrorCode.ERR_AsNullableType, node.Right, targetType);
 
-                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
+                return new BoundAsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
             }
             else if (!targetType.IsReferenceType && !targetType.IsNullableType())
             {
@@ -5434,7 +5457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_AsMustHaveReferenceType, node, targetType);
                 }
 
-                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
+                return new BoundAsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
             }
 
             // The C# specification states in the section called
@@ -5460,17 +5483,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // is a literal, because the user might be saying it to cause overload resolution
                 // to pick a particular method
                 Debug.Assert(operand.Type is null);
-                operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
-                operandConversion = CreateConversion(node, operandPlaceholder,
+                operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, isInUnsafeRegion: InUnsafeRegion, operand.Type).MakeCompilerGenerated();
+                operandConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, operandPlaceholder,
                                                      Conversion.NullLiteral,
                                                      isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, resultType, diagnostics);
 
-                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder, operandConversion, resultType);
+                return new BoundAsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, operandPlaceholder, operandConversion, resultType);
             }
 
             if (operand.IsLiteralDefault())
             {
-                operand = new BoundDefaultExpression(operand.Syntax, targetType: null, constantValueOpt: ConstantValue.Null,
+                operand = new BoundDefaultExpression(operand.Syntax, isInUnsafeRegion: InUnsafeRegion, targetType: null, constantValueOpt: ConstantValue.Null,
                     type: GetSpecialType(SpecialType.System_Object, diagnostics, node));
             }
 
@@ -5483,7 +5506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // operand for an is or as expression cannot be of pointer type
                 Error(diagnostics, ErrorCode.ERR_PointerInAsOrIs, node);
-                return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
+                return new BoundAsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, operandPlaceholder: null, operandConversion: null, resultType, hasErrors: true);
             }
 
             if (operandTypeKind == TypeKind.Dynamic)
@@ -5507,8 +5530,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Exists)
             {
-                operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, operand.Type).MakeCompilerGenerated();
-                operandConversion = CreateConversion(node, operandPlaceholder,
+                operandPlaceholder = new BoundValuePlaceholder(operand.Syntax, isInUnsafeRegion: InUnsafeRegion, operand.Type).MakeCompilerGenerated();
+                operandConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, operandPlaceholder,
                                                      conversion,
                                                      isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, resultType, diagnostics);
             }
@@ -5518,7 +5541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandConversion = null;
             }
 
-            return new BoundAsOperator(node, operand, typeExpression, operandPlaceholder, operandConversion, resultType, hasErrors);
+            return new BoundAsOperator(node, isInUnsafeRegion: InUnsafeRegion, operand, typeExpression, operandPlaceholder, operandConversion, resultType, hasErrors);
         }
 
         private static bool ReportAsOperatorConversionDiagnostics(
@@ -5653,7 +5676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             leftOperand = BindToTypeForErrorRecovery(leftOperand);
             rightOperand = BindToTypeForErrorRecovery(rightOperand);
-            return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
+            return new BoundNullCoalescingOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, rightOperand,
                 leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, @checked: CheckOverflowAtRuntime, CreateErrorType(), hasErrors: true);
         }
 
@@ -5668,7 +5691,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 leftOperand = BindToTypeForErrorRecovery(leftOperand);
                 rightOperand = BindToTypeForErrorRecovery(rightOperand);
-                return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
+                return new BoundNullCoalescingOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, rightOperand,
                     leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, @checked: CheckOverflowAtRuntime, CreateErrorType(), hasErrors: true);
             }
 
@@ -5677,7 +5700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefaultOrNew, node, node.OperatorToken.Text, "default");
 
-                return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
+                return new BoundNullCoalescingOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, rightOperand,
                     leftPlaceholder: null, leftConversion: null, BoundNullCoalescingOperatorResultKind.NoCommonType, @checked: CheckOverflowAtRuntime, CreateErrorType(), hasErrors: true);
             }
 
@@ -5725,15 +5748,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)optRightType != null && optRightType.IsDynamic())
             {
-                var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType).MakeCompilerGenerated();
+                var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, isInUnsafeRegion: InUnsafeRegion, optLeftType).MakeCompilerGenerated();
                 var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
-                var leftConversion = CreateConversion(node, leftPlaceholder,
+                var leftConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, leftPlaceholder,
                                                       Conversions.ClassifyConversionFromExpression(leftOperand, objectType, isChecked: CheckOverflowAtRuntime, ref useSiteInfo),
                                                       isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, objectType, diagnostics);
 
                 rightOperand = BindToNaturalType(rightOperand, diagnostics);
                 diagnostics.Add(node, useSiteInfo);
-                return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
+                return new BoundNullCoalescingOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, rightOperand,
                     leftPlaceholder, leftConversion, BoundNullCoalescingOperatorResultKind.RightDynamicType, @checked: CheckOverflowAtRuntime, optRightType);
             }
 
@@ -5747,11 +5770,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, optLeftType0, ref useSiteInfo);
                 if (rightConversion.Exists)
                 {
-                    var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType0).MakeCompilerGenerated();
+                    var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, isInUnsafeRegion: InUnsafeRegion, optLeftType0).MakeCompilerGenerated();
                     diagnostics.Add(node, useSiteInfo);
-                    var convertedRightOperand = CreateConversion(rightOperand, rightConversion, optLeftType0, diagnostics);
+                    var convertedRightOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, rightOperand, rightConversion, optLeftType0, diagnostics);
                     // Note: we use an identity conversion for LHS and let lowering get 'a0' from 'a' with GetValueOrDefault
-                    return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
+                    return new BoundNullCoalescingOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, convertedRightOperand,
                         leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftUnwrappedType, @checked: CheckOverflowAtRuntime, optLeftType0);
                 }
             }
@@ -5765,10 +5788,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var rightConversion = Conversions.ClassifyImplicitConversionFromExpression(rightOperand, optLeftType, ref useSiteInfo);
                 if (rightConversion.Exists)
                 {
-                    var convertedRightOperand = CreateConversion(rightOperand, rightConversion, optLeftType, diagnostics);
-                    var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType).MakeCompilerGenerated();
+                    var convertedRightOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, rightOperand, rightConversion, optLeftType, diagnostics);
+                    var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, isInUnsafeRegion: InUnsafeRegion, optLeftType).MakeCompilerGenerated();
                     diagnostics.Add(node, useSiteInfo);
-                    return new BoundNullCoalescingOperator(node, leftOperand, convertedRightOperand,
+                    return new BoundNullCoalescingOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, convertedRightOperand,
                         leftPlaceholder, leftConversion: leftPlaceholder, BoundNullCoalescingOperatorResultKind.LeftType, @checked: CheckOverflowAtRuntime, optLeftType);
                 }
             }
@@ -5816,11 +5839,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (leftConversionClassification.Exists)
                     {
-                        var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType0).MakeCompilerGenerated();
-                        var leftConversion = CreateConversion(node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, optRightType, diagnostics);
+                        var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, isInUnsafeRegion: InUnsafeRegion, optLeftType0).MakeCompilerGenerated();
+                        var leftConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, optRightType, diagnostics);
 
                         diagnostics.Add(node, useSiteInfo);
-                        return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, @checked: CheckOverflowAtRuntime, optRightType);
+                        return new BoundNullCoalescingOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, @checked: CheckOverflowAtRuntime, optRightType);
                     }
                 }
                 else
@@ -5830,11 +5853,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (leftConversionClassification.Exists)
                     {
-                        var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, optLeftType).MakeCompilerGenerated();
-                        var leftConversion = CreateConversion(node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, optRightType, diagnostics);
+                        var leftPlaceholder = new BoundValuePlaceholder(leftOperand.Syntax, isInUnsafeRegion: InUnsafeRegion, optLeftType).MakeCompilerGenerated();
+                        var leftConversion = CreateConversion(isInUnsafeRegion: InUnsafeRegion, node, leftPlaceholder, leftConversionClassification, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, optRightType, diagnostics);
 
                         diagnostics.Add(node, useSiteInfo);
-                        return new BoundNullCoalescingOperator(node, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, @checked: CheckOverflowAtRuntime, optRightType);
+                        return new BoundNullCoalescingOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, rightOperand, leftPlaceholder, leftConversion, resultKind, @checked: CheckOverflowAtRuntime, optRightType);
                     }
                 }
             }
@@ -5881,8 +5904,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (underlyingRightConversion.Exists && rightOperand.Type?.IsDynamic() != true)
                 {
                     diagnostics.Add(node, useSiteInfo);
-                    var convertedRightOperand = CreateConversion(rightOperand, underlyingRightConversion, underlyingLeftType, diagnostics);
-                    return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, underlyingLeftType);
+                    var convertedRightOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, rightOperand, underlyingRightConversion, underlyingLeftType, diagnostics);
+                    return new BoundNullCoalescingAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, convertedRightOperand, underlyingLeftType);
                 }
             }
 
@@ -5895,8 +5918,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteInfo);
             if (rightConversion.Exists)
             {
-                var convertedRightOperand = CreateConversion(rightOperand, rightConversion, leftType, diagnostics);
-                return new BoundNullCoalescingAssignmentOperator(node, leftOperand, convertedRightOperand, leftType);
+                var convertedRightOperand = CreateConversion(isInUnsafeRegion: InUnsafeRegion, rightOperand, rightConversion, leftType, diagnostics);
+                return new BoundNullCoalescingAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, convertedRightOperand, leftType);
             }
 
             // a and b are incompatible and a compile-time error occurs
@@ -5908,7 +5931,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
             leftOperand = BindToTypeForErrorRecovery(leftOperand);
             rightOperand = BindToTypeForErrorRecovery(rightOperand);
-            return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
+            return new BoundNullCoalescingAssignmentOperator(node, isInUnsafeRegion: InUnsafeRegion, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
         }
 
         /// <remarks>
@@ -5986,7 +6009,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ErrorCode noCommonTypeError = hadMultipleCandidates ? ErrorCode.ERR_AmbigQM : ErrorCode.ERR_InvalidQM;
                 constantValue = FoldConditionalOperator(condition, trueExpr, falseExpr);
-                return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, hasErrors: constantValue?.IsBad == true);
+                return new BoundUnconvertedConditionalOperator(node, isInUnsafeRegion: InUnsafeRegion, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, hasErrors: constantValue?.IsBad == true);
             }
 
             bool hasErrors;
@@ -5998,8 +6021,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
-                falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
+                trueExpr = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, bestType, trueExpr, diagnostics);
+                falseExpr = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, bestType, falseExpr, diagnostics);
                 hasErrors = trueExpr.HasAnyErrors || falseExpr.HasAnyErrors;
             }
 
@@ -6009,7 +6032,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = constantValue != null && constantValue.IsBad;
             }
 
-            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: bestType, wasTargetTyped: false, bestType, hasErrors);
+            return new BoundConditionalOperator(node, isInUnsafeRegion: InUnsafeRegion, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: bestType, wasTargetTyped: false, bestType, hasErrors);
         }
 #nullable disable
 
@@ -6044,7 +6067,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
             falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
-            return new BoundConditionalOperator(node, isRef: true, condition, trueExpr, falseExpr, constantValueOpt: null, type, wasTargetTyped: false, type, hasErrors);
+            return new BoundConditionalOperator(node, isInUnsafeRegion: InUnsafeRegion, isRef: true, condition, trueExpr, falseExpr, constantValueOpt: null, type, wasTargetTyped: false, type, hasErrors);
         }
     }
 

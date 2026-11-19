@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression boundExpression = originalBinder.BindValue(TargetExpressionSyntax, expressionDiagnostics, Binder.BindValueKind.RValueOrMethodGroup);
                 if (targetTypeOpt is object)
                 {
-                    boundExpression = originalBinder.GenerateConversionForAssignment(targetTypeOpt, boundExpression, expressionDiagnostics);
+                    boundExpression = originalBinder.GenerateConversionForAssignment(isInUnsafeRegion: originalBinder.InUnsafeRegion, targetTypeOpt, boundExpression, expressionDiagnostics);
                 }
                 else
                 {

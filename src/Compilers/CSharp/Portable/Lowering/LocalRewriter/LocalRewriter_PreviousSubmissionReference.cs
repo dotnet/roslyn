@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = node.Syntax;
             var targetScriptReference = _previousSubmissionFields.GetOrMakeField(targetType);
-            var thisReference = new BoundThisReference(syntax, _factory.CurrentType);
-            return new BoundFieldAccess(syntax, thisReference, targetScriptReference, ConstantValue.NotAvailable);
+            var thisReference = new BoundThisReference(syntax, isInUnsafeRegion: false, _factory.CurrentType);
+            return new BoundFieldAccess(syntax, isInUnsafeRegion: false, thisReference, targetScriptReference, ConstantValue.NotAvailable);
         }
     }
 }

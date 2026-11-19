@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     hasErrors |= ReportUseSite(awaitableTypeOpt, diagnostics, awaitKeyword);
-                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, awaitableTypeOpt).MakeCompilerGenerated();
+                    var placeholder = new BoundAwaitableValuePlaceholder(syntax, isInUnsafeRegion: originalBinder.InUnsafeRegion, awaitableTypeOpt).MakeCompilerGenerated();
                     awaitOpt = originalBinder.BindAwaitInfo(placeholder, syntax, diagnostics, ref hasErrors);
                 }
             }
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression? receiver = fromExpression
                                                ? expressionOpt
-                                               : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
+                                               : new BoundLocal(syntax, isInUnsafeRegion: originalBinder.InUnsafeRegion, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
                     BindingDiagnosticBag patternDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var disposeMethod = originalBinder.Compilation.GetSpecialTypeMember(SpecialMember.System_IDisposable__Dispose);
                         if (disposeMethod != null)
                         {
-                            originalBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, syntax);
+                            originalBinder.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, disposeMethod, syntax, originalBinder.InUnsafeRegion);
                         }
                     }
 

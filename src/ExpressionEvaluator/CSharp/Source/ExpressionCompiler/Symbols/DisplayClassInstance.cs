@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override BoundExpression ToBoundExpression(SyntaxNode syntax)
         {
-            return new BoundLocal(syntax, this.Local, constantValueOpt: null, type: this.Local.Type) { WasCompilerGenerated = true };
+            return new BoundLocal(syntax, isInUnsafeRegion: false, this.Local, constantValueOpt: null, type: this.Local.Type) { WasCompilerGenerated = true };
         }
 
         protected override string GetInstanceName() => Local.Name;
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         internal override BoundExpression ToBoundExpression(SyntaxNode syntax)
         {
-            return new BoundParameter(syntax, this.Parameter) { WasCompilerGenerated = true };
+            return new BoundParameter(syntax, isInUnsafeRegion: false, this.Parameter) { WasCompilerGenerated = true };
         }
 
         protected override string GetInstanceName() => Parameter.Name;

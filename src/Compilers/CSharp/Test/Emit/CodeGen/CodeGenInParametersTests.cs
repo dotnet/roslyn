@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 refKind: RefKindExtensions.StrictIn);
             var boundLocal = new BoundLocal(
                 method.GetNonNullSyntaxNode(),
+                isInUnsafeRegion: false,
                 local,
                 BoundLocalDeclarationKind.None,
                 constantValueOpt: null,
@@ -65,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var method = comp.GetMember<MethodSymbol>("C.M");
             var dup = new BoundDup(
                 method.GetNonNullSyntaxNode(),
+                isInUnsafeRegion: false,
                 RefKindExtensions.StrictIn,
                 isAlive: true,
                 method.ReturnType);

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var loweredFieldReceiver = VisitExpression(fieldAccess.ReceiverOpt);
                 fieldAccess = fieldAccess.Update(loweredFieldReceiver, fieldAccess.FieldSymbol, fieldAccess.ConstantValueOpt, fieldAccess.ResultKind, fieldAccess.Type);
-                return new BoundAddressOfOperator(receiver.Syntax, fieldAccess, isManaged: true, fieldAccess.Type);
+                return new BoundAddressOfOperator(receiver.Syntax, isInUnsafeRegion: receiver.IsInUnsafeRegion, fieldAccess, isManaged: true, fieldAccess.Type);
             }
 
             return VisitExpression(receiver);
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundPointerIndirectionOperator(
                     node.Syntax,
+                    isInUnsafeRegion: node.IsInUnsafeRegion,
                     rewrittenExpression,
                     node.Type);
             }
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundPointerIndirectionOperator(
                 node.Syntax,
+                isInUnsafeRegion: node.IsInUnsafeRegion,
                 MakeBinaryOperator(
                     node.Syntax,
                     additionKind,

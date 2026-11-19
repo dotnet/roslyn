@@ -323,6 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             TrackVisit(node);
 #endif
+            using var _ = new UnsafeRegion(this, node is BoundExpression expression ? expression.IsInUnsafeRegion : _inUnsafeRegion);
             return base.Visit(node);
         }
 
@@ -384,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitLambda(BoundLambda node)
         {
             var lambda = node.Symbol;
-            var analysis = new RefSafetyAnalysis(_compilation, lambda, node, _inUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
+            var analysis = new RefSafetyAnalysis(_compilation, lambda, node, node.IsInUnsafeRegion, _useUpdatedEscapeRules, _diagnostics);
             analysis.Visit(node.Body);
             return null;
         }
@@ -880,6 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void visitReceiver(BoundCall node, ref readonly MethodInvocationInfo methodInvocationInfo)
             {
+                using var _ = new UnsafeRegion(this, node.IsInUnsafeRegion);
                 if (node.IsErroneousNode)
                 {
                     Visit(node.ReceiverOpt);
@@ -892,6 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void visitArguments(BoundCall node, ref readonly MethodInvocationInfo methodInvocationInfo)
             {
+                using var _ = new UnsafeRegion(this, node.IsInUnsafeRegion);
                 if (node.IsErroneousNode)
                 {
                     VisitList(node.Arguments);

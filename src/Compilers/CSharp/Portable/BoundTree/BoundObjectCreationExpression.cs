@@ -9,10 +9,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class BoundObjectCreationExpression
     {
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt,
+        public BoundObjectCreationExpression(SyntaxNode syntax, bool isInUnsafeRegion, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt,
                                              ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ConstantValue? constantValueOpt,
                                              BoundObjectInitializerExpressionBase? initializerExpressionOpt, TypeSymbol type, bool hasErrors = false)
-            : this(syntax, constructor, ImmutableArray<MethodSymbol>.Empty, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, constantValueOpt, initializerExpressionOpt, wasTargetTyped: false, type, hasErrors)
+            : this(syntax, isInUnsafeRegion, constructor, ImmutableArray<MethodSymbol>.Empty, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, constantValueOpt, initializerExpressionOpt, wasTargetTyped: false, type, hasErrors)
         { }
 
         public BoundObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded,

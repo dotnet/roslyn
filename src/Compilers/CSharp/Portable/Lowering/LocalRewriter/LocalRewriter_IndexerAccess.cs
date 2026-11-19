@@ -142,6 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type),
                     BoundObjectInitializerMember member => new BoundIndexerAccess(
                         syntax,
+                        isInUnsafeRegion: false,
                         rewrittenReceiver,
                         initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                         indexer,
@@ -229,6 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return new BoundSequence(
                         syntax,
+                        isInUnsafeRegion: false,
                         temps.ToImmutableAndFree(),
                         sideEffects,
                         call,

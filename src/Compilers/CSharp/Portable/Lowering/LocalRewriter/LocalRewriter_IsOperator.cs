@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundSequence(
                 syntax: syntax,
+                isInUnsafeRegion: false,
                 locals: ImmutableArray<LocalSymbol>.Empty,
                 sideEffects: ImmutableArray.Create<BoundExpression>(loweredOperand),
                 value: MakeLiteral(syntax, constantValue, type),

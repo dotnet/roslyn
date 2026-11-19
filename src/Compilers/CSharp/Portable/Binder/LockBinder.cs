@@ -65,9 +65,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.ReportUseSite(lockTypeInfo.ScopeType, exprSyntax) ||
                     diagnostics.ReportUseSite(lockTypeInfo.ScopeDisposeMethod, exprSyntax);
 
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, lockTypeInfo.EnterScopeMethod, exprSyntax);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, lockTypeInfo.EnterScopeMethod, exprSyntax, InUnsafeRegion);
                 AssertNotUnsafeMemberAccess(lockTypeInfo.ScopeType);
-                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, lockTypeInfo.ScopeDisposeMethod, exprSyntax);
+                ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, lockTypeInfo.ScopeDisposeMethod, exprSyntax, InUnsafeRegion);
             }
 
             BoundStatement stmt = originalBinder.BindPossibleEmbeddedStatement(_syntax.Statement, diagnostics);

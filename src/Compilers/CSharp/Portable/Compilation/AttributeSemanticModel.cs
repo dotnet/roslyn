@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (SyntaxFacts.IsAttributeName(node))
             {
-                return new BoundTypeExpression((NameSyntax)node, _aliasOpt, type: AttributeType);
+                return new BoundTypeExpression((NameSyntax)node, isInUnsafeRegion: binder.InUnsafeRegion, _aliasOpt, type: AttributeType);
             }
             else
             {

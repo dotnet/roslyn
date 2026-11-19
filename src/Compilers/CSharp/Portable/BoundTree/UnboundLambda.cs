@@ -82,8 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         SyntaxNode IBoundLambdaOrFunction.Syntax { get { return Syntax; } }
 
-        public BoundLambda(SyntaxNode syntax, UnboundLambda unboundLambda, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? delegateType, InferredLambdaReturnType inferredReturnType)
-            : this(syntax, unboundLambda.WithNoCache(), (LambdaSymbol)binder.ContainingMemberOrLambda!, body, diagnostics, binder, delegateType)
+        public BoundLambda(SyntaxNode syntax, bool isInUnsafeRegion, UnboundLambda unboundLambda, BoundBlock body, ReadOnlyBindingDiagnostic<AssemblySymbol> diagnostics, Binder binder, TypeSymbol? delegateType, InferredLambdaReturnType inferredReturnType)
+            : this(syntax, isInUnsafeRegion, unboundLambda.WithNoCache(), (LambdaSymbol)binder.ContainingMemberOrLambda!, body, diagnostics, binder, delegateType)
         {
             InferredReturnType = inferredReturnType;
 
@@ -427,15 +427,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var functionType = FunctionTypeSymbol.CreateIfFeatureEnabled(syntax, binder, static (binder, expr) => ((UnboundLambda)expr).Data.InferDelegateType());
             var data = new PlainUnboundLambdaState(binder, returnRefKind, refCustomModifiers, returnType, parameterAttributes, names, discardsOpt, types, refKinds, declaredScopes, defaultValues, syntaxList, isAsync: isAsync, isStatic: isStatic, includeCache: true);
-            var lambda = new UnboundLambda(syntax, data, functionType, withDependencies, hasErrors: hasErrors);
+            var lambda = new UnboundLambda(syntax, isInUnsafeRegion: binder.InUnsafeRegion, data, functionType, withDependencies, hasErrors: hasErrors);
             data.SetUnboundLambda(lambda);
             functionType?.SetExpression(lambda.WithNoCache());
 
             return lambda;
         }
 
-        private UnboundLambda(SyntaxNode syntax, UnboundLambdaState state, FunctionTypeSymbol? functionType, bool withDependencies, NullableWalker.VariableState? nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData, bool hasErrors) :
-            this(syntax, state, functionType, withDependencies, hasErrors)
+        private UnboundLambda(SyntaxNode syntax, bool isInUnsafeRegion, UnboundLambdaState state, FunctionTypeSymbol? functionType, bool withDependencies, NullableWalker.VariableState? nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData, bool hasErrors) :
+            this(syntax, isInUnsafeRegion, state, functionType, withDependencies, hasErrors)
         {
             this._nullableState = nullableState;
             this._getterNullResilienceData = getterNullResilienceData;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal UnboundLambda WithNullabilityInfo(NullableWalker.VariableState nullableState, NullableWalker.GetterNullResilienceData? getterNullResilienceData)
         {
             var data = Data.WithCaching(true);
-            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, nullableState, getterNullResilienceData, HasErrors);
+            var lambda = new UnboundLambda(Syntax, isInUnsafeRegion: IsInUnsafeRegion, data, FunctionType, WithDependencies, nullableState, getterNullResilienceData, HasErrors);
             data.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this;
             }
 
-            var lambda = new UnboundLambda(Syntax, data, FunctionType, WithDependencies, _nullableState, _getterNullResilienceData, HasErrors);
+            var lambda = new UnboundLambda(Syntax, isInUnsafeRegion: IsInUnsafeRegion, data, FunctionType, WithDependencies, _nullableState, _getterNullResilienceData, HasErrors);
             data.SetUnboundLambda(lambda);
             return lambda;
         }
@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var result = new BoundLambda(_unboundLambda.Syntax, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType: default)
+            var result = new BoundLambda(_unboundLambda.Syntax, isInUnsafeRegion: _unboundLambda.IsInUnsafeRegion, _unboundLambda, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferredReturnType: default)
             { WasCompilerGenerated = _unboundLambda.WasCompilerGenerated };
 
             return result;
@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (targetParameterTypes[i].Type.ContainsPointerOrFunctionPointer())
                     {
-                        this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
+                        this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics, this.Binder.InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1);
                     }
                 }
             }
@@ -1028,6 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = new BoundLambda(
                 _unboundLambda.Syntax,
+                isInUnsafeRegion: _unboundLambda.IsInUnsafeRegion,
                 _unboundLambda,
                 block,
                 diagnostics.ToReadOnlyAndFree(),
@@ -1286,6 +1287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             (var lambdaSymbol, var block, var lambdaBodyBinder, var diagnostics) = BindWithParameterAndReturnType(parameterTypes, parameterRefKinds, returnType, refKind, refCustomModifiers);
             return new BoundLambda(
                 _unboundLambda.Syntax,
+                isInUnsafeRegion: _unboundLambda.IsInUnsafeRegion,
                 _unboundLambda,
                 block,
                 diagnostics.ToReadOnlyAndFree(),

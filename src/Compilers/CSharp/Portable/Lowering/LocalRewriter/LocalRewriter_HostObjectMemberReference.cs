@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = node.Syntax;
             var hostObjectReference = _previousSubmissionFields.GetHostObjectField();
-            var thisReference = new BoundThisReference(syntax, _factory.CurrentType);
-            return new BoundFieldAccess(syntax, thisReference, hostObjectReference, constantValueOpt: null);
+            var thisReference = new BoundThisReference(syntax, isInUnsafeRegion: false, _factory.CurrentType);
+            return new BoundFieldAccess(syntax, isInUnsafeRegion: false, thisReference, hostObjectReference, constantValueOpt: null);
         }
     }
 }

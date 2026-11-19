@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     Debug.Assert(constantValue.IsNull);
-                    BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultExpression(syntax, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
+                    BoundExpression result = rewrittenType.IsNullableType() ? new BoundDefaultExpression(syntax, isInUnsafeRegion: false, rewrittenType) : MakeLiteral(syntax, constantValue, rewrittenType);
 
                     if (rewrittenOperand.ConstantValueOpt != null)
                     {
@@ -70,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     return new BoundSequence(
                         syntax: syntax,
+                        isInUnsafeRegion: false,
                         locals: ImmutableArray<LocalSymbol>.Empty,
                         sideEffects: ImmutableArray.Create<BoundExpression>(rewrittenOperand),
                         value: result,

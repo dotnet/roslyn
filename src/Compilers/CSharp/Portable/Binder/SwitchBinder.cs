@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!conversion.IsUnion && !(caseExpression.IsLiteralNull() && SwitchGoverningType.StrippedType() is NamedTypeSymbol { IsUnionType: true }))
                 {
-                    caseExpression = CreateConversion(caseExpression, conversion, SwitchGoverningType, diagnostics);
+                    caseExpression = CreateConversion(isInUnsafeRegion: InUnsafeRegion, caseExpression, conversion, SwitchGoverningType, diagnostics);
                 }
             }
 
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(conversion.Method.IsUserDefinedConversion());
                         Debug.Assert(conversion.UserDefinedToConversion.IsIdentity);
                         Debug.Assert(resultantGoverningType.IsValidV6SwitchGoverningType(isTargetTypeOfUserDefinedOp: true));
-                        return binder.CreateConversion(node, switchGoverningExpression, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, resultantGoverningType, diagnostics);
+                        return binder.CreateConversion(isInUnsafeRegion: binder.InUnsafeRegion, node, switchGoverningExpression, conversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, resultantGoverningType, diagnostics);
                     }
                     else if (!switchGoverningType.IsVoidType())
                     {
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchGoverningExpression.Display);
             }
 
-            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(switchGoverningExpression), switchGoverningType ?? CreateErrorType());
+            return new BoundBadExpression(node, isInUnsafeRegion: switchGoverningExpression.IsInUnsafeRegion, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(switchGoverningExpression), switchGoverningType ?? CreateErrorType());
         }
 
         private Dictionary<SyntaxNode, LabelSymbol> _labelsByNode;

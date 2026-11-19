@@ -349,11 +349,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // needs to wait until the attributes are populated on the parameter symbol.
             var parameterEqualsValue = new BoundParameterEqualsValue(
                 parameterSyntax,
+                isInUnsafeRegion: binder.InUnsafeRegion,
                 this,
                 ImmutableArray<LocalSymbol>.Empty,
                 // note that if the parameter type conflicts with the default value from attributes,
                 // we will just get a bad constant value above and return early.
-                new BoundLiteral(parameterSyntax, defaultValue, Type));
+                new BoundLiteral(parameterSyntax, isInUnsafeRegion: false, defaultValue, Type));
 
             var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             Debug.Assert(diagnostics.DiagnosticBag != null);
@@ -409,7 +410,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (Type.IsNullableType())
                 {
-                    convertedExpression = binder.GenerateConversionForAssignment(Type.GetNullableUnderlyingType(),
+                    convertedExpression = binder.GenerateConversionForAssignment(isInUnsafeRegion: binder.InUnsafeRegion,
+                        Type.GetNullableUnderlyingType(),
                         valueBeforeConversion, diagnostics, Binder.ConversionForAssignmentFlags.DefaultParameter);
                 }
             }
@@ -1635,7 +1637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             if (!binder.HasCollectionExpressionApplicableConstructor(
-                                    withElement: null, syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
+                                    binder.InUnsafeRegion, withElement: null, syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
                             {
                                 return;
                             }
@@ -1705,7 +1707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics);
+                            binder.CheckCollectionBuilderMethod(binder.InUnsafeRegion, syntax, collectionBuilderMethod, diagnostics);
 
                             if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
                             {

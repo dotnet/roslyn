@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Note that the native compiler converts null literals to object, and for everything
                     // else it either crashes, or produces nonsense code. Roslyn improves upon this considerably.
 
-                    analyzedArguments.Arguments[i] = GenerateConversionForAssignment(objType, argument, diagnostics);
+                    analyzedArguments.Arguments[i] = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, objType, argument, diagnostics);
                 }
                 else if (argument.Type.IsVoidType())
                 {
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<BoundExpression> arguments = analyzedArguments.Arguments.ToImmutable();
             ImmutableArray<RefKind> refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
-            return new BoundArgListOperator(node, arguments, refKinds, null, hasErrors);
+            return new BoundArgListOperator(node, isInUnsafeRegion: InUnsafeRegion, arguments, refKinds, null, hasErrors);
         }
 
         /// <summary>
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodGroup.LookupError,
                                     methodGroup.Flags & ~BoundMethodGroupFlags.HasImplicitReceiver,
                                     methodGroup.FunctionType,
-                                    receiverOpt: new BoundTypeExpression(node, null, this.ContainingType).MakeCompilerGenerated(),
+                                    receiverOpt: new BoundTypeExpression(node, isInUnsafeRegion: InUnsafeRegion, null, this.ContainingType).MakeCompilerGenerated(),
                                     resultKind: methodGroup.ResultKind);
                             }
 
@@ -492,6 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return new BoundDynamicInvocation(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 arguments.GetNames(),
                 refKindsArray,
                 applicableMethods,
@@ -795,6 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Create receiver as BindMemberAccessBadResult does
                             receiverOpt = new BoundBadExpression(
                                 methodGroup.Syntax,
+                                isInUnsafeRegion: methodGroup.IsInUnsafeRegion,
                                 methodGroup.ResultKind,
                                 [methodGroup.LookupSymbolOpt],
                                 receiverOpt == null ? [] : [AdjustBadExpressionChild(receiverOpt)],
@@ -1349,7 +1351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Don't worry about double reporting (i.e. for both the argument and the parameter)
                 // because only one unsafe diagnostic is allowed per scope - the others are suppressed.
-                gotError = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1) || gotError;
+                gotError = ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1) || gotError;
             }
 
             bool hasBaseReceiver = receiver != null && receiver.Kind == BoundKind.BaseReference;
@@ -1357,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, method, node, hasBaseReceiver);
             ReportDiagnosticsIfUnmanagedCallersOnly(diagnostics, method, node, isDelegateConversion: false);
             ReportDisallowedExtensionBlockMethod(method, node, diagnostics);
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, method, node, InUnsafeRegion);
 
             // No use site errors, but there could be use site warnings.
             // If there are any use site warnings, they have already been reported by overload resolution.
@@ -1387,7 +1389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundCall(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
+            return new BoundCall(node, isInUnsafeRegion: InUnsafeRegion, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, method), method, args, argNames, argRefKinds, isDelegateCall: isDelegateCall,
                         expanded: expanded, invokedAsExtensionMethod: invokedAsExtensionMethod,
                         argsToParamsOpt: argsToParams, defaultArguments, resultKind: LookupResultKind.Viable, type: returnType, hasErrors: gotError);
         }
@@ -1404,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver = CheckValue(receiver, BindValueKind.RefOrOut, diagnostics);
             }
 
-            receiver = CreateConversion(receiver, extensionParameter.Type, diagnostics);
+            receiver = CreateConversion(isInUnsafeRegion: InUnsafeRegion, receiver, extensionParameter.Type, diagnostics);
             return receiver;
         }
 
@@ -1488,15 +1490,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (parameter.IsMarshalAsObject)
             {
                 // default(object)
-                defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                defaultValue = new BoundDefaultExpression(syntax, isInUnsafeRegion: InUnsafeRegion, parameterType) { WasCompilerGenerated = true };
             }
             else if (parameter.IsIUnknownConstant)
             {
                 if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor, diagnostics, syntax: syntax) is MethodSymbol methodSymbol)
                 {
                     // new UnknownWrapper(default(object))
-                    var unknownArgument = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, unknownArgument) { WasCompilerGenerated = true };
+                    var unknownArgument = new BoundDefaultExpression(syntax, isInUnsafeRegion: InUnsafeRegion, parameterType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundObjectCreationExpression(syntax, isInUnsafeRegion: InUnsafeRegion, methodSymbol, unknownArgument) { WasCompilerGenerated = true };
                 }
             }
             else if (parameter.IsIDispatchConstant)
@@ -1504,8 +1506,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor, diagnostics, syntax: syntax) is MethodSymbol methodSymbol)
                 {
                     // new DispatchWrapper(default(object))
-                    var dispatchArgument = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
-                    defaultValue = new BoundObjectCreationExpression(syntax, methodSymbol, dispatchArgument) { WasCompilerGenerated = true };
+                    var dispatchArgument = new BoundDefaultExpression(syntax, isInUnsafeRegion: InUnsafeRegion, parameterType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundObjectCreationExpression(syntax, isInUnsafeRegion: InUnsafeRegion, methodSymbol, dispatchArgument) { WasCompilerGenerated = true };
                 }
             }
             else
@@ -1513,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (GetWellKnownTypeMember(Compilation, WellKnownMember.System_Type__Missing, diagnostics, syntax: syntax) is FieldSymbol fieldSymbol)
                 {
                     // Type.Missing
-                    defaultValue = new BoundFieldAccess(syntax, null, fieldSymbol, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
+                    defaultValue = new BoundFieldAccess(syntax, isInUnsafeRegion: InUnsafeRegion, null, fieldSymbol, ConstantValue.NotAvailable) { WasCompilerGenerated = true };
                 }
             }
 
@@ -1706,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // This is only expected to occur in recursive error scenarios, for example: `object F(object param = F()) { }`
                     // We return a non-error expression here to ensure ERR_DefaultValueMustBeConstant (or another appropriate diagnostics) is produced by the caller.
-                    return new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    return new BoundDefaultExpression(syntax, isInUnsafeRegion: InUnsafeRegion, parameterType) { WasCompilerGenerated = true };
                 }
 
                 var parameterDefaultValue = parameter.ExplicitDefaultConstantValue;
@@ -1730,17 +1732,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (callerSourceLocation is object && parameter.IsCallerLineNumber)
                 {
                     int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
-                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(line), Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
+                    defaultValue = new BoundLiteral(syntax, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(line), Compilation.GetSpecialType(SpecialType.System_Int32)) { WasCompilerGenerated = true };
                 }
                 else if (callerSourceLocation is object && parameter.IsCallerFilePath)
                 {
                     string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, Compilation.Options.SourceReferenceResolver);
-                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(path), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                    defaultValue = new BoundLiteral(syntax, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(path), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (callerSourceLocation is object && parameter.IsCallerMemberName && containingMember is not null)
                 {
                     var memberName = containingMember.GetMemberCallerName();
-                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                    defaultValue = new BoundLiteral(syntax, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(memberName), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (callerSourceLocation is object
                     && !parameter.IsCallerMemberName
@@ -1748,7 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     && Conversions.ClassifyBuiltInConversion(Compilation.GetSpecialType(SpecialType.System_String), parameterType, isChecked: false, ref discardedUseSiteInfo).Exists
                     && tryGetArgument(parameter.CallerArgumentExpressionParameterIndex, extensionReceiver, argumentsBuilder, argumentsCount, argsToParamsOpt, out var argument))
                 {
-                    defaultValue = new BoundLiteral(syntax, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
+                    defaultValue = new BoundLiteral(syntax, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(argument.Syntax.ToString()), Compilation.GetSpecialType(SpecialType.System_String)) { WasCompilerGenerated = true };
                 }
                 else if (defaultConstantValue == ConstantValue.NotAvailable)
                 {
@@ -1761,17 +1763,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         // The argument to M([Optional] int x) becomes default(int)
-                        defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                        defaultValue = new BoundDefaultExpression(syntax, isInUnsafeRegion: InUnsafeRegion, parameterType) { WasCompilerGenerated = true };
                     }
                 }
                 else if (defaultConstantValue.IsNull)
                 {
-                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundDefaultExpression(syntax, isInUnsafeRegion: InUnsafeRegion, parameterType) { WasCompilerGenerated = true };
                 }
                 else
                 {
                     TypeSymbol constantType = Compilation.GetSpecialType(defaultConstantValue.SpecialType);
-                    defaultValue = new BoundLiteral(syntax, defaultConstantValue, constantType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundLiteral(syntax, isInUnsafeRegion: InUnsafeRegion, defaultConstantValue, constantType) { WasCompilerGenerated = true };
 
                     if (InAttributeArgument && parameterType.SpecialType == SpecialType.System_Object)
                     {
@@ -1789,7 +1791,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Usually, if a default constant value fails to convert to the parameter type, we want an error at the call site.
                     // For legacy reasons, decimal and DateTime constants are special. If such a constant fails to convert to the parameter type
                     // then we want to silently replace it with default(ParameterType).
-                    defaultValue = new BoundDefaultExpression(syntax, parameterType) { WasCompilerGenerated = true };
+                    defaultValue = new BoundDefaultExpression(syntax, isInUnsafeRegion: InUnsafeRegion, parameterType) { WasCompilerGenerated = true };
                 }
                 else
                 {
@@ -1799,6 +1801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     var isCast = conversion.IsExplicit;
                     defaultValue = CreateConversion(
+                        isInUnsafeRegion: InUnsafeRegion,
                         defaultValue.Syntax,
                         defaultValue,
                         conversion,
@@ -1878,12 +1881,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (collectionType is ArrayTypeSymbol { IsSZArray: true })
             {
                 TypeSymbol int32Type = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-                BoundExpression arraySize = new BoundLiteral(node, ConstantValue.Create(collectionArgs.Length), int32Type) { WasCompilerGenerated = true };
+                BoundExpression arraySize = new BoundLiteral(node, isInUnsafeRegion: InUnsafeRegion, ConstantValue.Create(collectionArgs.Length), int32Type) { WasCompilerGenerated = true };
 
                 collection = new BoundArrayCreation(
                             node,
+                            isInUnsafeRegion: InUnsafeRegion,
                             ImmutableArray.Create(arraySize),
-                            new BoundArrayInitialization(node, isInferred: false, collectionArgs) { WasCompilerGenerated = true },
+                            new BoundArrayInitialization(node, isInUnsafeRegion: InUnsafeRegion, isInferred: false, collectionArgs) { WasCompilerGenerated = true },
                             collectionType)
                 { WasCompilerGenerated = true, IsParamsArrayOrCollection = true };
             }
@@ -1897,7 +1901,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // params collections have no way to pass `with(...)` arguments along.  So just pass 'null' for them
                 // as they will never exist.
                 var unconvertedCollection = new BoundUnconvertedCollectionExpression(
-                    node, withElement: null, ImmutableArray<BoundNode>.CastUp(collectionArgs))
+                    node, isInUnsafeRegion: InUnsafeRegion, withElement: null, ImmutableArray<BoundNode>.CastUp(collectionArgs))
                 {
                     WasCompilerGenerated = true,
                     IsParamsArrayOrCollection = true
@@ -1921,6 +1925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 collection = new BoundConversion(
                                  node,
+                                 isInUnsafeRegion: InUnsafeRegion,
                                  converted,
                                  conversion,
                                  @checked: CheckOverflowAtRuntime,
@@ -2468,7 +2473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             boundArgument = BindToNaturalType(boundArgument, diagnostics, reportNoTargetType: false);
-            return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
+            return new BoundNameOfOperator(node, isInUnsafeRegion: InUnsafeRegion, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
         }
 
         private void EnsureNameofExpressionSymbols(BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics)
@@ -2607,6 +2612,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundFunctionPointerInvocation(
                     node,
+                    isInUnsafeRegion: InUnsafeRegion,
                     boundExpression,
                     BuildArgumentsForErrorRecovery(analyzedArguments, StaticCast<MethodSymbol>.From(methods), BindingDiagnosticBag.Discarded),
                     analyzedArguments.RefKinds.ToImmutableOrNull(),
@@ -2626,10 +2632,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             var args = analyzedArguments.Arguments.ToImmutable();
             var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1) ||
-                ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version2);
+            bool hasErrors = ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version1) ||
+                ReportUnsafeIfNotAllowed(node, diagnostics, InUnsafeRegion, disallowedUnder: MemorySafetyRulesVersion.Version2);
             return new BoundFunctionPointerInvocation(
                 node,
+                isInUnsafeRegion: InUnsafeRegion,
                 boundExpression,
                 args,
                 refKinds,
