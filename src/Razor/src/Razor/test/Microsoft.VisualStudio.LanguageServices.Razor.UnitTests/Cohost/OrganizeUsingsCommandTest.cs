@@ -754,6 +754,44 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 <div>@Abs(-1) @IsNullOrEmpty("")</div>
                 """);
 
+    [Fact]
+    public Task DuplicateUsingAlias_SortedButNothingRemoved()
+        // With CS1537 we can't trust which alias is reported as unused, so nothing gets removed, even System.Text which
+        // really is unused. Sorting still happens though.
+        => VerifyRemoveAndSortUsingsAsync(
+            input: """
+                @using Alias = System.Console
+                @using System.Text
+                @using Alias = System.Text.StringBuilder
+                @using System
+
+                <div></div>
+
+                @code
+                {
+                    public void M(Alias a)
+                    {
+                        Console.WriteLine("");
+                    }
+                }
+                """,
+            expected: """
+                @using System
+                @using System.Text
+                @using Alias = System.Console
+                @using Alias = System.Text.StringBuilder
+
+                <div></div>
+
+                @code
+                {
+                    public void M(Alias a)
+                    {
+                        Console.WriteLine("");
+                    }
+                }
+                """);
+
     private async Task VerifyRemoveAndSortUsingsAsync(TestCode input, string expected, (string filePath, string contents)[]? additionalFiles = null, RazorFileKind? fileKind = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, additionalFiles: additionalFiles);

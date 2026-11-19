@@ -305,6 +305,18 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
     [Fact]
     public void TagHelpersInSection() => RunTagHelpersTest(TestTagHelperDescriptors.TagHelpersInSectionDescriptors);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86459")]
+    public void SectionInTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86459")]
+    public void SectionWithTagHelperInTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86459")]
+    public void SectionsAndContentInTagHelper() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86459")]
+    public void SectionInTagHelperAfterFunctionsDirective() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
+
     [Fact]
     public void TagHelpersWithTemplate() => RunTagHelpersTest(TestTagHelperDescriptors.SimpleTagHelperDescriptors);
 
