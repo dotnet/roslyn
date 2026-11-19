@@ -17,7 +17,7 @@ public sealed class LanguageServerProjectCacheTests(ITestOutputHelper testOutput
         var directory = TempRoot.CreateDirectory();
         var projectPath = directory.CreateFile("Cached.csproj").Path;
         directory.CreateFile("Cached.csproj.lscache").WriteAllText("""
-            version=2
+            version=3
 
             [project]
             language=C#
@@ -75,7 +75,7 @@ public sealed class LanguageServerProjectCacheTests(ITestOutputHelper testOutput
         var directory = TempRoot.CreateDirectory();
         var projectPath = directory.CreateFile("Cached.csproj").Path;
         directory.CreateFile("Cached.csproj.lscache").WriteAllText("""
-            version=2
+            version=3
 
             [project]
             language=C#
