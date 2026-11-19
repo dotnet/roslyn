@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -204,7 +205,7 @@ internal partial class SolutionExplorerInProcess
 
         var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
         var solution = dte.Solution;
-        Assumes.Present(solution);
+        Contract.ThrowIfNull(solution);
 
         var project = solution.Projects.Cast<EnvDTE.Project>().FirstOrDefault(x => x.Name == projectName);
         if (project is null)

@@ -11,6 +11,39 @@ namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
 public class IntermediateNodeReferenceTest
 {
     [Fact]
+    public void Mutations_PreserveUnresolvedElementBoundaries()
+    {
+        var element = new UnresolvedElementIntermediateNode { StartTagEndIndex = 1, BodyEndIndex = 2 };
+        var startTag = new BasicIntermediateNode("Start");
+        var body = new BasicIntermediateNode("Body");
+        var endTag = new BasicIntermediateNode("End");
+        element.Children.Add(startTag);
+        element.Children.Add(body);
+        element.Children.Add(endTag);
+
+        var startReference = new IntermediateNodeReference(startTag, element);
+        var bodyReference = new IntermediateNodeReference(body, element);
+        var endReference = new IntermediateNodeReference(endTag, element);
+
+        startReference.InsertBefore([new BasicIntermediateNode("Attribute1"), new BasicIntermediateNode("Attribute2")]);
+        Assert.Equal(3, element.StartTagEndIndex);
+        Assert.Equal(4, element.BodyEndIndex);
+
+        bodyReference.InsertAfter([new BasicIntermediateNode("Content1"), new BasicIntermediateNode("Content2")]);
+        Assert.Equal(3, element.StartTagEndIndex);
+        Assert.Equal(6, element.BodyEndIndex);
+
+        endReference.InsertBefore(new BasicIntermediateNode("EndTagContent"));
+        Assert.Equal(3, element.StartTagEndIndex);
+        Assert.Equal(6, element.BodyEndIndex);
+
+        startReference.Remove();
+        bodyReference.Remove();
+        Assert.Equal(2, element.StartTagEndIndex);
+        Assert.Equal(4, element.BodyEndIndex);
+    }
+
+    [Fact]
     public void InsertAfter_SingleNode_AddsNodeAfterNode()
     {
         // Arrange

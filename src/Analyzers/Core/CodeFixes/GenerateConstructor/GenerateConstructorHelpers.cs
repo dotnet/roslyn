@@ -161,7 +161,7 @@ internal static class GenerateConstructorHelpers
             var argument = arguments[i];
 
             // See if there's a matching field or property we can use, or create a new member otherwise.
-            parameterName = FindExistingOrCreateNewMember(parameterName, parameterType, argument);
+            parameterName = await FindExistingOrCreateNewMemberAsync(parameterName, parameterType, argument).ConfigureAwait(false);
 
             parameters.Add(CodeGenerationSymbolFactory.CreateParameterSymbol(
                 attributes: default,
@@ -176,7 +176,7 @@ internal static class GenerateConstructorHelpers
             parameterToNewFieldMap.ToImmutable(),
             parameterToNewPropertyMap.ToImmutable());
 
-        ParameterName FindExistingOrCreateNewMember(
+        async Task<ParameterName> FindExistingOrCreateNewMemberAsync(
             ParameterName parameterName,
             ITypeSymbol parameterType,
             Argument<TExpressionSyntax> argument)
@@ -186,7 +186,7 @@ internal static class GenerateConstructorHelpers
             var symbol = TryFindMatchingMember(parameterName);
             if (symbol != null)
             {
-                if (IsViableFieldOrProperty(document, parameterType, symbol, cancellationToken))
+                if (await IsViableFieldOrPropertyAsync(document, parameterType, symbol, cancellationToken).ConfigureAwait(false))
                 {
                     // Ok!  We can just the existing field.  
                     parameterToExistingMemberMap[parameterName.BestNameForParameter] = symbol;
@@ -341,7 +341,7 @@ internal static class GenerateConstructorHelpers
         }
     }
 
-    private static bool IsViableFieldOrProperty(
+    private static async Task<bool> IsViableFieldOrPropertyAsync(
         SemanticDocument document,
         ITypeSymbol parameterType,
         ISymbol symbol,
@@ -365,7 +365,8 @@ internal static class GenerateConstructorHelpers
                     return true;
 
                 var service = document.Document.GetRequiredLanguageService<IInitializeParameterService>();
-                return service.IsThrowNotImplementedProperty(document.SemanticModel.Compilation, property, cancellationToken);
+                return await service.IsThrowNotImplementedPropertyAsync(
+                    document.Document.Project.Solution, property, cancellationToken).ConfigureAwait(false);
             }
         }
 

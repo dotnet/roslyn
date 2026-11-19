@@ -68,12 +68,5 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
         
-    <!-- BEGIN PROJECT SYSTEM FOR VS CODE -->
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VSCode" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VSCode.UnitTests" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />
-    <!-- END PROJECT SYSTEM FOR VS CODE -->
-
   </ItemGroup>
 </Project>

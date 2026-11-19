@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             RequestLanguage language,
             List<string> arguments,
             string workingDirectory,
-            string? tempDirectory,
             string? keepAlive,
             string? libDirectory,
             string? compilerHash = null)
@@ -86,7 +85,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 language,
                 arguments,
                 workingDirectory: workingDirectory,
-                tempDirectory: tempDirectory,
                 compilerHash: compilerHash ?? BuildProtocolConstants.GetCommitHash() ?? "",
                 requestId: requestId,
                 keepAlive: keepAlive,
@@ -817,7 +815,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetMutexDirectory()
         {
-            var tempPath = Path.GetTempPath();
+            var tempPath = TempPathUtilities.GetTempPath();
             var result = Path.Combine(tempPath, ".roslyn");
             Directory.CreateDirectory(result);
             return result;

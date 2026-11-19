@@ -128,12 +128,6 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
-  </ItemGroup>
-
   <!-- Resources are a little bit special in a VSIX -->
   <PropertyGroup>
     <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>

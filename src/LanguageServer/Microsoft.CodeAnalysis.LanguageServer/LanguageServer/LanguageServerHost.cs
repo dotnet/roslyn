@@ -33,7 +33,8 @@ internal sealed class LanguageServerHost
         Stream outputStream,
         ExportProvider exportProvider,
         AbstractTypeRefResolver typeRefResolver,
-        LanguageServerTelemetry? processTelemetry)
+        LanguageServerTelemetry? processTelemetry,
+        string? copilotSessionId)
     {
         var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
@@ -61,6 +62,7 @@ internal sealed class LanguageServerHost
                     _telemetry,
                     sessionId: null,
                     isDefaultSession: false,
+                    copilotSessionId: copilotSessionId,
                     daemonSessionId: processTelemetry?.SessionId);
                 _ownedTelemetry = languageServerTelemetry;
             }

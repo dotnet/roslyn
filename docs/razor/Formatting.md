@@ -71,7 +71,7 @@ Editor triggers such as format-on-type and format-on-paste remain IDE settings.
 
 Razor creates a sub-folder for each operation and writes several log files there. Zip the
 log folder and attach it to the issue you file (either through the IDE feedback mechanism or
-by creating an issue in the dotnet/razor repository). The logs help us identify exactly what
+by creating an issue in the dotnet/roslyn repository). The logs help us identify exactly what
 went wrong.
 
 > [!NOTE]

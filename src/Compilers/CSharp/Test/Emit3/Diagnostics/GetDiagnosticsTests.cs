@@ -174,15 +174,18 @@ namespace N1
 
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
-            HashSet<string> declaredSymbolNames, completedCompilationUnits;
-            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out _, out completedCompilationUnits));
+            HashSet<ISymbol> declaredSymbols;
+            HashSet<string> completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbols, out completedCompilationUnits));
 
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
-            Assert.True(declaredSymbolNames.Contains(compilation.GlobalNamespace.Name));
-            Assert.True(declaredSymbolNames.Contains("N1"));
-            Assert.True(declaredSymbolNames.Contains("Class"));
-            Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"));
+            Assert.Contains((ISymbol)compilation.SourceModule.GlobalNamespace, declaredSymbols);
+            var n1 = compilation.SourceModule.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N1");
+            Assert.Contains(n1, declaredSymbols);
+            var c = n1.GetTypeMembers("Class").Single();
+            Assert.Contains(c, declaredSymbols);
+            Assert.Contains(c.GetMembers("NonPartialMethod1").Single(), declaredSymbols);
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
@@ -198,6 +201,7 @@ namespace N1
         partial void ImpartialMethod1();
         partial void ImpartialMethod2() { }
         partial void PartialMethod();
+        partial void PartialMethod2() { }
     }
 } 
 ";
@@ -208,6 +212,7 @@ namespace N1
     {
         private void NonPartialMethod2() { }
         partial void PartialMethod() { }
+        partial void PartialMethod2();
     }
 } 
 ";
@@ -223,18 +228,24 @@ namespace N1
 
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
-            HashSet<string> declaredSymbolNames, completedCompilationUnits;
-            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out _, out completedCompilationUnits));
+            HashSet<ISymbol> declaredSymbols;
+            HashSet<string> completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbols, out completedCompilationUnits));
 
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
-            Assert.True(declaredSymbolNames.Contains(compilation.GlobalNamespace.Name));
-            Assert.True(declaredSymbolNames.Contains("N1"));
-            Assert.True(declaredSymbolNames.Contains("Class"));
-            Assert.True(declaredSymbolNames.Contains("NonPartialMethod1"));
-            Assert.True(declaredSymbolNames.Contains("ImpartialMethod1"));
-            Assert.True(declaredSymbolNames.Contains("ImpartialMethod2"));
-            Assert.True(declaredSymbolNames.Contains("PartialMethod"));
+            Assert.Contains((ISymbol)compilation.SourceModule.GlobalNamespace, declaredSymbols);
+            var n1 = compilation.SourceModule.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N1");
+            Assert.Contains(n1, declaredSymbols);
+            var c = n1.GetTypeMembers("Class").Single();
+            Assert.Contains(c, declaredSymbols);
+            Assert.Contains(c.GetMembers("NonPartialMethod1").Single(), declaredSymbols);
+            Assert.Contains(c.GetMembers("ImpartialMethod1").Single(), declaredSymbols);
+            Assert.Contains(c.GetMembers("ImpartialMethod2").Single(), declaredSymbols);
+            var partialMethod = (IMethodSymbol)c.GetMembers("PartialMethod").Single();
+            Assert.Contains(partialMethod, declaredSymbols);
+            var partialMethod2 = (IMethodSymbol)c.GetMembers("PartialMethod2").Single();
+            Assert.Contains(partialMethod2.PartialImplementationPart, declaredSymbols);
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
@@ -250,6 +261,7 @@ namespace N1
         partial int DefOnlyPartialProp { get; set; }
         partial int ImplOnlyPartialProp { get => 1; set { } }
         partial int PartialProp { get; set; }
+        partial int PartialProp2 { get => 1; set { } }
     }
 } 
 ";
@@ -260,6 +272,7 @@ namespace N1
     {
         int NonPartialProp2 { get; set; }
         partial int PartialProp { get => 1; set { } }
+        partial int PartialProp2 { get; set; }
     }
 } 
 ";
@@ -275,32 +288,40 @@ namespace N1
 
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
-            HashSet<string> declaredSymbolNames, completedCompilationUnits;
-            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out _, out completedCompilationUnits));
+            HashSet<ISymbol> declaredSymbols;
+            HashSet<string> completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbols, out completedCompilationUnits));
 
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
 
             // NB: NonPartialProp2 is missing here because we only asked for diagnostics in tree1
-            AssertEx.Equal([
-                "",
-                "Class",
-                "DefOnlyPartialProp",
-                "get_DefOnlyPartialProp",
-                "get_ImplOnlyPartialProp",
-                "get_NonPartialProp1",
-                "get_PartialProp",
-                "ImplOnlyPartialProp",
-                "N1",
-                "NonPartialProp1",
-                "PartialProp",
-                "set_DefOnlyPartialProp",
-                "set_ImplOnlyPartialProp",
-                "set_NonPartialProp1",
-                "set_PartialProp"
-            ], declaredSymbolNames.OrderBy(name => name));
-
-            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+            Assert.Contains((ISymbol)compilation.SourceModule.GlobalNamespace, declaredSymbols);
+            var n1 = compilation.SourceModule.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N1");
+            Assert.Contains(n1, declaredSymbols);
+            var c = n1.GetTypeMembers("Class").Single();
+            Assert.Contains(c, declaredSymbols);
+            var nonPartialProp1 = (IPropertySymbol)c.GetMembers("NonPartialProp1").Single();
+            Assert.Contains(nonPartialProp1, declaredSymbols);
+            Assert.Contains(nonPartialProp1.GetMethod, declaredSymbols);
+            Assert.Contains(nonPartialProp1.SetMethod, declaredSymbols);
+            var defOnlyPartialProp = (IPropertySymbol)c.GetMembers("DefOnlyPartialProp").Single();
+            Assert.Contains(defOnlyPartialProp, declaredSymbols);
+            Assert.Contains(defOnlyPartialProp.GetMethod, declaredSymbols);
+            Assert.Contains(defOnlyPartialProp.SetMethod, declaredSymbols);
+            var implOnlyPartialProp = (IPropertySymbol)c.GetMembers("ImplOnlyPartialProp").Single();
+            Assert.Contains(implOnlyPartialProp, declaredSymbols);
+            Assert.Contains(implOnlyPartialProp.GetMethod, declaredSymbols);
+            Assert.Contains(implOnlyPartialProp.SetMethod, declaredSymbols);
+            var partialProp = (IPropertySymbol)c.GetMembers("PartialProp").Single();
+            Assert.Contains(partialProp, declaredSymbols);
+            Assert.Contains(partialProp.GetMethod, declaredSymbols);
+            Assert.Contains(partialProp.SetMethod, declaredSymbols);
+            var partialProp2 = (IPropertySymbol)c.GetMembers("PartialProp2").Single();
+            Assert.Contains(partialProp2.PartialImplementationPart, declaredSymbols);
+            Assert.Contains(partialProp2.PartialImplementationPart.GetMethod, declaredSymbols);
+            Assert.Contains(partialProp2.PartialImplementationPart.SetMethod, declaredSymbols);
+            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
         [Fact]
@@ -342,31 +363,44 @@ namespace N1
 
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
-            HashSet<string> declaredSymbolNames, completedCompilationUnits;
-            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out _, out completedCompilationUnits));
+            HashSet<ISymbol> declaredSymbols;
+            HashSet<string> completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbols, out completedCompilationUnits));
 
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
 
             // NB: NonPartialEvent2 is missing here because we only asked for diagnostics in tree1.
-            // PartialEvent2 is missing because it is the implementation part and that is removed (only the definition part is kept).
-            AssertEx.Equal([
-                "",
-                "add_ImplOnlyPartialEvent",
-                "add_NonPartialEvent1",
-                "add_PartialEvent1",
-                "Class",
-                "DefOnlyPartialEvent",
-                "ImplOnlyPartialEvent",
-                "N1",
-                "NonPartialEvent1",
-                "PartialEvent1",
-                "remove_ImplOnlyPartialEvent",
-                "remove_NonPartialEvent1",
-                "remove_PartialEvent1",
-            ], declaredSymbolNames.OrderBy(name => name));
-
-            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+            Assert.Contains((ISymbol)compilation.SourceModule.GlobalNamespace, declaredSymbols);
+            var n1 = compilation.SourceModule.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N1");
+            Assert.Contains(n1, declaredSymbols);
+            var c = n1.GetTypeMembers("Class").Single();
+            Assert.Contains(c, declaredSymbols);
+            var nonPartialEvent1 = (IEventSymbol)c.GetMembers("NonPartialEvent1").Single();
+            Assert.Contains(nonPartialEvent1, declaredSymbols);
+            Assert.Contains(nonPartialEvent1.AddMethod, declaredSymbols);
+            Assert.Contains(nonPartialEvent1.RemoveMethod, declaredSymbols);
+            var defOnlyPartialEvent = (IEventSymbol)c.GetMembers("DefOnlyPartialEvent").Single();
+            Assert.Contains(defOnlyPartialEvent, declaredSymbols);
+            Assert.True(defOnlyPartialEvent.AddMethod.IsImplicitlyDeclared);
+            Assert.DoesNotContain(defOnlyPartialEvent.AddMethod, declaredSymbols);
+            Assert.True(defOnlyPartialEvent.RemoveMethod.IsImplicitlyDeclared);
+            Assert.DoesNotContain(defOnlyPartialEvent.RemoveMethod, declaredSymbols);
+            var implOnlyPartialEvent = (IEventSymbol)c.GetMembers("ImplOnlyPartialEvent").Single();
+            Assert.Contains(implOnlyPartialEvent, declaredSymbols);
+            Assert.Contains(implOnlyPartialEvent.AddMethod, declaredSymbols);
+            Assert.Contains(implOnlyPartialEvent.RemoveMethod, declaredSymbols);
+            var partialEvent1 = (IEventSymbol)c.GetMembers("PartialEvent1").Single();
+            Assert.Contains(partialEvent1, declaredSymbols);
+            Assert.True(partialEvent1.AddMethod.IsImplicitlyDeclared);
+            Assert.DoesNotContain(partialEvent1.AddMethod, declaredSymbols);
+            Assert.True(partialEvent1.RemoveMethod.IsImplicitlyDeclared);
+            Assert.DoesNotContain(partialEvent1.RemoveMethod, declaredSymbols);
+            var partialEvent2 = (IEventSymbol)c.GetMembers("PartialEvent2").Single();
+            Assert.Contains(partialEvent2.PartialImplementationPart, declaredSymbols);
+            Assert.Contains(partialEvent2.PartialImplementationPart.AddMethod, declaredSymbols);
+            Assert.Contains(partialEvent2.PartialImplementationPart.RemoveMethod, declaredSymbols);
+            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
         [Fact]
@@ -408,24 +442,28 @@ namespace N1
 
             Assert.True(eventQueue.Count > 0);
             bool compilationStartedFired;
-            HashSet<string> declaredSymbols, completedCompilationUnits;
-            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out _, out declaredSymbols, out completedCompilationUnits));
+            HashSet<ISymbol> declaredSymbols;
+            HashSet<string> completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbols, out completedCompilationUnits));
 
             // Verify symbol declared events fired for all symbols declared in the first source file.
             Assert.True(compilationStartedFired);
 
             // NB: non partial 2 is missing here because we only asked for diagnostics in tree1
-            AssertEx.Equal([
-                "<global namespace>",
-                "N1",
-                "N1.Class",
-                "N1.Class..ctor(System.Int32 a)",
-                "N1.Class..ctor(System.Int32 a, System.Int32 b)",
-                "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c)",
-                "N1.Class..ctor(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d)",
-            ], declaredSymbols.OrderBy(name => name, StringComparer.Ordinal));
-
-            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+            Assert.Contains((ISymbol)compilation.SourceModule.GlobalNamespace, declaredSymbols);
+            var n1 = compilation.SourceModule.GlobalNamespace.GetNamespaceMembers().Single(n => n.Name == "N1");
+            Assert.Contains(n1, declaredSymbols);
+            var c = n1.GetTypeMembers("Class").Single();
+            Assert.Contains(c, declaredSymbols);
+            var ctors = c.GetMembers(".ctor").Cast<IMethodSymbol>().ToArray();
+            Assert.Contains(ctors.Single(m => m.Parameters is [{ Type.SpecialType: SpecialType.System_Int32 }]), declaredSymbols);
+            Assert.Contains(ctors.Single(m => m.Parameters.Length == 2), declaredSymbols);
+            Assert.Contains(ctors.Single(m => m.Parameters.Length == 3), declaredSymbols);
+            var ctor4 = ctors.Single(m => m.Parameters.Length == 4);
+            Assert.Contains(ctor4, declaredSymbols);
+            var ctor5 = ctors.Single(m => m.Parameters.Length == 5);
+            Assert.Contains(ctor5.PartialImplementationPart, declaredSymbols);
+            Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
         [Fact, WorkItem(8178, "https://github.com/dotnet/roslyn/issues/8178")]
@@ -449,11 +487,10 @@ namespace N1
             model.GetDiagnostics(tree.GetRoot().FullSpan);
         }
 
-        private static bool DequeueCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, out bool compilationStartedFired, out HashSet<string> declaredSymbolNames, out HashSet<string> declaredSymbols, out HashSet<string> completedCompilationUnits)
+        private static bool DequeueCompilationEvents(AsyncQueue<CompilationEvent> eventQueue, out bool compilationStartedFired, out HashSet<ISymbol> declaredSymbols, out HashSet<string> completedCompilationUnits)
         {
             compilationStartedFired = false;
-            declaredSymbolNames = new HashSet<string>();
-            declaredSymbols = new HashSet<string>();
+            declaredSymbols = new HashSet<ISymbol>();
             completedCompilationUnits = new HashSet<string>();
             if (eventQueue.Count == 0)
             {
@@ -474,11 +511,8 @@ namespace N1
                     if (symbolDeclaredEvent != null)
                     {
                         var symbol = symbolDeclaredEvent.Symbol;
-                        var added = declaredSymbolNames.Add(symbol.Name) & declaredSymbols.Add(symbol.ToTestDisplayString());
-                        if (!added)
-                        {
-                            Assert.True(symbol.GetSymbol().IsPartialMember(), "Unexpected multiple symbol declared events for symbol " + symbol);
-                        }
+                        var added = declaredSymbols.Add(symbol);
+                        Assert.True(added, "Unexpected multiple symbol declared events for symbol " + symbol);
                     }
                     else
                     {
@@ -653,6 +687,44 @@ class C
             var analyzerDiagnostics = compilation.GetAnalyzerDiagnostics(analyzers);
             analyzerDiagnostics.Verify(expected);
             Assert.False(analyzerDiagnostics.Single().IsSuppressed);
+        }
+
+        [Fact]
+        public async Task TestCompilerAnalyzerSingleFileAnalysisDoesNotRetainCompilationEvents()
+        {
+            var source1 = @"
+class C
+{
+    void M()
+    {
+        int x;
+        new D().N();
+    }
+}
+";
+            var source2 = @"
+class D
+{
+    public void N() { }
+    public int P { get; set; }
+    public event System.Action E;
+}
+";
+            var compilation = CreateCompilation(new[] { source1, source2 });
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CSharpCompilerDiagnosticAnalyzer());
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers, new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty));
+
+            var trees = compilation.SyntaxTrees.ToArray();
+            var diagnostics1 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(trees[0]), filterSpan: null, CancellationToken.None);
+            var diagnostics2 = await compilationWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(compilation.GetSemanticModel(trees[1]), filterSpan: null, CancellationToken.None);
+
+            diagnostics1.Verify(
+                // (6,13): warning CS0168: The variable 'x' is declared but never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13));
+            diagnostics2.Verify();
+
+            Assert.Equal(0, compilationWithAnalyzers.Compilation.EventQueue!.Count);
         }
 
         [Fact]

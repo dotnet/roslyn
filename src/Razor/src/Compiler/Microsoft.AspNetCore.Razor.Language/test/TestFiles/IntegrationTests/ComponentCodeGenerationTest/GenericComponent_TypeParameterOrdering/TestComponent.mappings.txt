@@ -13,38 +13,78 @@ Source Location: (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (967:30,0 [6] )
 |string|
 
+Source Location: (37:0,37 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|IComposedInterface|
+Generated Location: (1208:39,0 [18] )
+|IComposedInterface|
+
+Source Location: (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (1376:47,0 [6] )
+|string|
+
 Source Location: (63:0,63 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (1236:39,0 [5] )
+Generated Location: (1532:55,0 [5] )
 |Value|
 
 Source Location: (70:0,70 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |_componentValue|
-Generated Location: (1482:47,0 [15] )
+Generated Location: (1778:63,0 [15] )
 |_componentValue|
+
+Source Location: (37:0,37 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|IComposedInterface|
+Generated Location: (2025:72,0 [18] )
+|IComposedInterface|
+
+Source Location: (19:0,19 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (2193:80,0 [6] )
+|string|
 
 Source Location: (92:1,1 [11] x:\dir\subdir\Test\TestComponent.cshtml)
 |MyComponent|
-Generated Location: (2224:56,49 [11] )
+Generated Location: (2816:88,49 [11] )
 |MyComponent|
 
 Source Location: (114:1,23 [18] x:\dir\subdir\Test\TestComponent.cshtml)
 |IComposedInterface|
-Generated Location: (2320:59,0 [18] )
+Generated Location: (2912:91,0 [18] )
 |IComposedInterface|
 
 Source Location: (140:1,49 [6] x:\dir\subdir\Test\TestComponent.cshtml)
 |string|
-Generated Location: (2488:67,0 [6] )
+Generated Location: (3080:99,0 [6] )
+|string|
+
+Source Location: (114:1,23 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|IComposedInterface|
+Generated Location: (3321:108,0 [18] )
+|IComposedInterface|
+
+Source Location: (140:1,49 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (3489:116,0 [6] )
 |string|
 
 Source Location: (154:1,63 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 |Value|
-Generated Location: (2757:76,0 [5] )
+Generated Location: (3645:124,0 [5] )
 |Value|
 
 Source Location: (161:1,70 [15] x:\dir\subdir\Test\TestComponent.cshtml)
 |_componentValue|
-Generated Location: (3003:84,0 [15] )
+Generated Location: (3891:132,0 [15] )
 |_componentValue|
+
+Source Location: (114:1,23 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|IComposedInterface|
+Generated Location: (4138:141,0 [18] )
+|IComposedInterface|
+
+Source Location: (140:1,49 [6] x:\dir\subdir\Test\TestComponent.cshtml)
+|string|
+Generated Location: (4306:149,0 [6] )
+|string|
 

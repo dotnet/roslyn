@@ -47,16 +47,4 @@
     <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFramework)' == '$(NetFxVS)'" />
   </ItemGroup>
 
-  <!-- Reference the LSP protocol dlls so that we can include them in the code base and output them with the VSIX. -->
-  <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" />
-    <PackageReference Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Extensions.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.LanguageServer.Protocol.Internal.dll" />
-  </ItemGroup>
 </Project>

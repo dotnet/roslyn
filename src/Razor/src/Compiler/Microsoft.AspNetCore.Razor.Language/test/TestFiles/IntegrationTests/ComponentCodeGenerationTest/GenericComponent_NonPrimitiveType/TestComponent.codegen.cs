@@ -26,7 +26,15 @@ CustomType
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<CustomType>.
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,21)-(1,31) "x:\dir\subdir\Test\TestComponent.cshtml"
+CustomType
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (1,33)-(1,37) "x:\dir\subdir\Test\TestComponent.cshtml"
 Item

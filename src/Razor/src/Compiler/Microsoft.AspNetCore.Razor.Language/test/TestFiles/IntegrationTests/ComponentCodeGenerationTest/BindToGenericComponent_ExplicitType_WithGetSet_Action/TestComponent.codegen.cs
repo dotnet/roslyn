@@ -26,7 +26,15 @@ CustomValue
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<CustomValue>.
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,22)-(1,33) "x:\dir\subdir\Test\TestComponent.cshtml"
+CustomValue
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (1,41)-(1,46) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value
@@ -43,7 +51,15 @@ ParentValue
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent<CustomValue>.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<CustomValue>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<CustomValue>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
+            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,22)-(1,33) "x:\dir\subdir\Test\TestComponent.cshtml"
+CustomValue
+
+#line default
+#line hidden
+#nullable disable
+            >.ValueChanged), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<CustomValue>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<CustomValue>(this, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
 #nullable restore
 #line (1,82)-(1,93) "x:\dir\subdir\Test\TestComponent.cshtml"
 UpdateValue
@@ -52,7 +68,15 @@ UpdateValue
 #line hidden
 #nullable disable
             , ParentValue))));
-             var (_, _) = (nameof(global::Test.MyComponent<CustomValue>.
+             var (_, _) = (nameof(global::Test.MyComponent<
+#nullable restore
+#line (1,22)-(1,33) "x:\dir\subdir\Test\TestComponent.cshtml"
+CustomValue
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (1,71)-(1,76) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value

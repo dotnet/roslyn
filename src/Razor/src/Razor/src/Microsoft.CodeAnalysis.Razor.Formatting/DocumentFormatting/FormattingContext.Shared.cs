@@ -86,7 +86,7 @@ internal sealed partial class FormattingContext
     /// <returns></returns>
     public int GetIndentationOffsetForLevel(int level)
     {
-        return level * Options.TabSize;
+        return level * Options.IndentSize;
     }
 
     public async Task<FormattingContext> WithTextAsync(SourceText changedText, CancellationToken cancellationToken)
