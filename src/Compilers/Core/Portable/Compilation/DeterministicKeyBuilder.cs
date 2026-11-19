@@ -155,13 +155,17 @@ namespace Microsoft.CodeAnalysis
             var configPathMap = configFilePathMap.SelectAsArray(static pair => KeyValuePair.Create(
                 PathUtilities.NormalizeWithForwardSlash(pair.Key),
                 PathUtilities.NormalizeWithForwardSlash(pair.Value)));
-            var generatedDirectory = generatedSourceBaseDirectory is null
-                ? null
-                : PathUtilities.NormalizeDriveLetter(
+            string? generatedDirectory = null;
+            string? generatedPrefix = null;
+            if (!generators.IsEmpty && !analyzerConfigFiles.IsEmpty)
+            {
+                Debug.Assert(generatedSourceBaseDirectory is not null);
+                generatedDirectory = PathUtilities.NormalizeDriveLetter(
                     PathUtilities.ExpandAbsolutePathWithRelativeParts(PathUtilities.CollapseWithForwardSlash(generatedSourceBaseDirectory)));
-            var generatedPrefix = generatedDirectory is null || generatedDirectory.EndsWith("/", StringComparison.Ordinal)
-                ? generatedDirectory
-                : generatedDirectory + "/";
+                generatedPrefix = generatedDirectory.EndsWith("/", StringComparison.Ordinal)
+                    ? generatedDirectory
+                    : generatedDirectory + "/";
+            }
 
             var (writer, builder) = CreateWriter();
 
@@ -227,9 +231,8 @@ namespace Microsoft.CodeAnalysis
                     foreach (var config in analyzerConfigFiles)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        var mayMatchGenerated = !generators.IsEmpty && !config.IsGlobal &&
-                            (generatedDirectory is null ||
-                             PathUtilities.IsSameDirectoryOrChildOf(generatedDirectory, config.NormalizedDirectory, StringComparison.Ordinal) ||
+                        var mayMatchGenerated = generatedDirectory is not null && !config.IsGlobal &&
+                            (PathUtilities.IsSameDirectoryOrChildOf(generatedDirectory, config.NormalizedDirectory, StringComparison.Ordinal) ||
                              PathUtilities.IsSameDirectoryOrChildOf(config.NormalizedDirectory, generatedDirectory, StringComparison.Ordinal));
 
                         writer.WriteObjectStart();
@@ -245,12 +248,11 @@ namespace Microsoft.CodeAnalysis
                             var absolutePath = config.IsGlobal && AnalyzerConfig.IsAbsoluteEditorConfigPath(section.Name)
                                 ? AnalyzerConfig.UnescapeSectionName(section.Name)
                                 : null;
-                            var generatedFileName = !generators.IsEmpty && absolutePath is not null && generatedPrefix is not null &&
+                            var generatedFileName = absolutePath is not null && generatedPrefix is not null &&
                                 absolutePath.StartsWith(generatedPrefix, StringComparison.Ordinal)
                                 ? absolutePath.Substring(generatedPrefix.Length)
                                 : null;
-                            var mayMatchGeneratedSection = mayMatchGenerated ||
-                                (!generators.IsEmpty && absolutePath is not null && (generatedPrefix is null || generatedFileName is not null));
+                            var mayMatchGeneratedSection = mayMatchGenerated || generatedFileName is not null;
                             bindings.TryGetValue(section, out var sectionBindings);
                             if (sectionBindings is null && !mayMatchGeneratedSection)
                             {
@@ -276,10 +278,9 @@ namespace Microsoft.CodeAnalysis
                         writer.WriteKey("generatedSourceDirectory");
                         if (mayMatchGenerated && analyzerConfigSet?.HasNamedSections == true)
                         {
+                            Debug.Assert(generatedDirectory is not null);
                             writer.WriteObjectStart();
-                            writer.Write("relativeToConfig", generatedDirectory is null
-                                ? null
-                                : GetAnalyzerConfigRelativeDirectory(config.NormalizedDirectory, generatedDirectory));
+                            writer.Write("relativeToConfig", GetAnalyzerConfigRelativeDirectory(config.NormalizedDirectory, generatedDirectory));
                             writer.Write("configRelativeToGenerated", GetAnalyzerConfigRelativeDirectory(generatedDirectory, config.NormalizedDirectory));
                             writer.WriteObjectEnd();
                         }
@@ -448,13 +449,8 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectEnd();
         }
 
-        private static string GetAnalyzerConfigRelativeDirectory(string? generatedDirectory, string configDirectory)
+        private static string GetAnalyzerConfigRelativeDirectory(string generatedDirectory, string configDirectory)
         {
-            if (generatedDirectory is null)
-            {
-                return configDirectory;
-            }
-
             var relativePath = PathUtilities.NormalizeWithForwardSlash(PathUtilities.GetRelativePath(generatedDirectory, configDirectory));
             var combinedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(
                 PathUtilities.CollapseWithForwardSlash(PathUtilities.CombinePathsUnchecked(generatedDirectory, relativePath)));
