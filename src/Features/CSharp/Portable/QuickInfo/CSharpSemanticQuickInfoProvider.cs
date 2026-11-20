@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
@@ -85,6 +86,25 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
 
     protected override bool ShouldCheckPreviousToken(SyntaxToken token)
         => !token.Parent.IsKind(SyntaxKind.XmlCrefAttribute);
+
+    protected override ImmutableArray<ISymbol> FilterMemberGroup(
+        SemanticModel semanticModel, SyntaxNode bindableParent, ImmutableArray<ISymbol> memberGroup, CancellationToken cancellationToken)
+    {
+        var invokedExpression = bindableParent as ExpressionSyntax;
+        if (invokedExpression?.Parent is MemberAccessExpressionSyntax parentAccess && parentAccess.Name == invokedExpression)
+            invokedExpression = parentAccess;
+
+        var invocation = bindableParent as InvocationExpressionSyntax;
+        if (invocation == null && invokedExpression?.Parent is InvocationExpressionSyntax parentInvocation && parentInvocation.Expression == invokedExpression)
+            invocation = parentInvocation;
+
+        // Invocation filtering only applies to method groups.
+        if (invocation == null || memberGroup.IsEmpty || !memberGroup.All(static s => s is IMethodSymbol))
+            return memberGroup;
+
+        return [.. InvocationMethodGroupFilter.FilterByStaticness(
+            semanticModel, invocation, memberGroup.Cast<IMethodSymbol>(), out _, cancellationToken)];
+    }
 
     protected override ImmutableArray<TaggedText> GetInterceptorDisplayParts(
         SemanticModel semanticModel,
@@ -311,7 +331,7 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         var position = context.Position;
 
         if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
-            !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            !await copilotService.IsOnTheFlyDocsAvailableAsync(cancellationToken).ConfigureAwait(false))
         {
             return null;
         }
@@ -346,12 +366,10 @@ internal sealed class CSharpSemanticQuickInfoProvider() : CommonSemanticQuickInf
         if (symbol.DeclaringSyntaxReferences.Length == 0)
             return null;
 
-        // Checks to see if any of the files containing the symbol are excluded.
         var hasContentExcluded = false;
-        var symbolFilePaths = symbol.DeclaringSyntaxReferences.Select(reference => reference.SyntaxTree.FilePath);
-        foreach (var symbolFilePath in symbolFilePaths)
+        foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
         {
-            if (await copilotService.IsFileExcludedAsync(symbolFilePath, cancellationToken).ConfigureAwait(false))
+            if (await copilotService.IsFileExcludedFromOnTheFlyDocsAsync(syntaxReference.SyntaxTree.FilePath, cancellationToken).ConfigureAwait(false))
             {
                 hasContentExcluded = true;
                 Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, logLevel: LogLevel.Information);

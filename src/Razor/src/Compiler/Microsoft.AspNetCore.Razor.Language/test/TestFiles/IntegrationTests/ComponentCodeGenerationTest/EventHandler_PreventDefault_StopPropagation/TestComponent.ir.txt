@@ -25,5 +25,3 @@
                     ComponentAttribute - (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml) - onfocus - StopPropagation - AttributeStructure.DoubleQuotes
                         CSharpExpression - 
                             IntermediateToken - (169:1,125 [5] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - false
-            CSharpCode - (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (202:2,7 [30] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    bool Foo { get; set; }\n

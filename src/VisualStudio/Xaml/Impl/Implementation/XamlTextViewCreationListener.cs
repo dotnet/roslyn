@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
@@ -26,6 +27,7 @@ internal sealed partial class XamlTextViewCreationListener : IWpfTextViewCreatio
     private static readonly Guid s_serverUIContextGuid = new("39F55746-6E65-4FCF-BEC5-EC0B466EAC0F");
 
     private readonly IServiceProvider _serviceProvider;
+    private readonly IVsEditorAdaptersFactoryService _vsEditorAdaptersFactoryService;
     private readonly XamlProjectService _projectService;
     private readonly UIContext _serverUIContext;
 
@@ -33,9 +35,11 @@ internal sealed partial class XamlTextViewCreationListener : IWpfTextViewCreatio
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public XamlTextViewCreationListener(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        IVsEditorAdaptersFactoryService vsEditorAdaptersFactoryService,
         XamlProjectService projectService)
     {
         _serviceProvider = serviceProvider;
+        _vsEditorAdaptersFactoryService = vsEditorAdaptersFactoryService;
         _projectService = projectService;
         _serverUIContext = UIContext.FromUIContextGuid(s_serverUIContextGuid);
     }
@@ -56,7 +60,12 @@ internal sealed partial class XamlTextViewCreationListener : IWpfTextViewCreatio
 
         _projectService.TrackOpenDocument(filePath);
 
-        var target = new XamlOleCommandTarget(textView, (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel)));
-        target.AttachToVsTextView();
+        // If we don't have a view adapter, this might be an inline IWpfTextView in some other view (like a diff view) and we won't
+        // be able to attach a command handler.
+        if (_vsEditorAdaptersFactoryService.GetViewAdapter(textView) is not null)
+        {
+            var target = new XamlOleCommandTarget(textView, (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel)));
+            target.AttachToVsTextView();
+        }
     }
 }

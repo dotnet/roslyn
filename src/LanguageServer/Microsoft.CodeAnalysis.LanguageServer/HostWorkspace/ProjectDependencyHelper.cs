@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Buffers;
 using System.Collections.Immutable;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.Extensions.Logging;
-using NuGet.ProjectModel;
-using NuGet.Versioning;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 internal static class ProjectDependencyHelper
 {
+    public const string UnknownVersion = "<unknown>";
+
     internal static bool NeedsRestore(ProjectFileInfo newProjectFileInfo, ProjectFileInfo? previousProjectFileInfo, ILogger logger)
     {
         if (previousProjectFileInfo is null)
@@ -60,60 +62,68 @@ internal static class ProjectDependencyHelper
             return false;
         }
 
-        // Iterate the project's package references and check if there is a package with the same name
-        // and acceptable version in the lock file.
-
-        var lockFileFormat = new LockFileFormat();
-        var lockFile = lockFileFormat.Read(projectAssetsPath);
-        var projectAssetsMap = CreateProjectAssetsMap(lockFile);
-
-        using var _ = PooledHashSet<PackageReferenceItem>.GetInstance(out var unresolved);
-
-        foreach (var reference in projectFileInfo.PackageReferences)
+        var packageReferences = projectFileInfo.PackageReferences;
+        var resolvedReferences = ArrayPool<bool>.Shared.Rent(packageReferences.Length);
+        Array.Clear(resolvedReferences, 0, packageReferences.Length);
+        int? assetsFileVersion = null;
+        try
         {
-            if (!projectAssetsMap.TryGetValue(reference.Name, out var projectAssetsVersions))
+            ProjectAssetsReader.FindResolvedPackageReferences(
+                projectAssetsPath, packageReferences, resolvedReferences.AsSpan(0, packageReferences.Length), ref assetsFileVersion);
+
+            using var _ = PooledHashSet<PackageReferenceItem>.GetInstance(out var unresolved);
+            for (var i = 0; i < packageReferences.Length; i++)
             {
-                // If the package name isn't in the lock file then it's unresolved.
-                unresolved.Add(reference);
-                continue;
+                if (!resolvedReferences[i])
+                    unresolved.Add(packageReferences[i]);
             }
 
-            var requestedVersionRange = VersionRange.TryParse(reference.VersionRange, out var versionRange)
-                ? versionRange
-                : VersionRange.All;
-
-            var projectAssetsHasVersion = projectAssetsVersions.Any(projectAssetsVersion => SatisfiesVersion(requestedVersionRange, projectAssetsVersion));
-            if (!projectAssetsHasVersion)
+            if (unresolved.Any())
             {
-                // If the package name is in the lock file but none of the versions satisfy the requested version range then it's unresolved.
-                unresolved.Add(reference);
+                var message = string.Format(LanguageServerResources.Project_0_has_unresolved_dependencies, projectFileInfo.FilePath)
+                    + Environment.NewLine
+                    + string.Join(Environment.NewLine, unresolved.Select(r => $"    {r.Name}-{r.VersionRange}"));
+                logger.LogWarning(message);
+                return true;
             }
+
+            return false;
         }
-
-        if (unresolved.Any())
+        catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException)
         {
-            var message = string.Format(LanguageServerResources.Project_0_has_unresolved_dependencies, projectFileInfo.FilePath)
-                + Environment.NewLine
-                + string.Join(Environment.NewLine, unresolved.Select(r => $"    {r.Name}-{r.VersionRange}"));
-            logger.LogWarning(message);
+            // The file could not be read, so nothing is known about which packages are resolved. Report a
+            // restore, which rewrites the file and recovers from a corrupt or partially written one.
+            logger.LogError(e, string.Format(
+                LanguageServerResources.Failed_to_read_project_assets_file_0_version_1_2,
+                projectAssetsPath,
+                assetsFileVersion?.ToString() ?? UnknownVersion,
+                e.Message));
             return true;
         }
-
-        return false;
-
-        static ImmutableDictionary<string, ImmutableArray<NuGetVersion>> CreateProjectAssetsMap(LockFile lockFile)
+        finally
         {
-            // Create a map of package names to all versions in the lock file.
-            var map = lockFile.Libraries
-                .GroupBy(l => l.Name, l => l.Version, StringComparer.OrdinalIgnoreCase)
-                .ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray(), StringComparer.OrdinalIgnoreCase);
-
-            return map;
+            ArrayPool<bool>.Shared.Return(resolvedReferences);
         }
+    }
 
-        static bool SatisfiesVersion(VersionRange requestedVersionRange, NuGetVersion projectAssetsVersion)
+    internal static class TestAccessor
+    {
+        public static bool CheckProjectAssetsForUnresolvedDependencies(
+            string projectAssetsPath,
+            (string Name, string VersionRange)[] packageReferences,
+            ILogger logger)
         {
-            return requestedVersionRange.Satisfies(projectAssetsVersion);
+            var packageReferenceItems = new PackageReferenceItem[packageReferences.Length];
+            for (var i = 0; i < packageReferences.Length; i++)
+                packageReferenceItems[i] = new(packageReferences[i].Name, packageReferences[i].VersionRange);
+
+            var projectFileInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, "TestProject.csproj") with
+            {
+                ProjectAssetsFilePath = projectAssetsPath,
+                PackageReferences = packageReferenceItems,
+            };
+
+            return ProjectDependencyHelper.CheckProjectAssetsForUnresolvedDependencies(projectFileInfo, logger);
         }
     }
 

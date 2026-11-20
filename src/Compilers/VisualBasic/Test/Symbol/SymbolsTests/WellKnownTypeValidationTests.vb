@@ -1,4 +1,4 @@
-' Licensed to the .NET Foundation under one or more agreements.
+﻿' Licensed to the .NET Foundation under one or more agreements.
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
@@ -541,6 +541,7 @@ End Namespace
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Memory_T,
                          WellKnownType.System_ReadOnlyMemory_T,
+                         WellKnownType.System_Collections_Immutable_ImmutableArray,
                          WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
@@ -649,6 +650,7 @@ End Namespace
                          WellKnownType.System_ReadOnlySpan_T,
                          WellKnownType.System_Memory_T,
                          WellKnownType.System_ReadOnlyMemory_T,
+                         WellKnownType.System_Collections_Immutable_ImmutableArray,
                          WellKnownType.System_Collections_Immutable_ImmutableArray_T,
                          WellKnownType.System_Index,
                          WellKnownType.System_Range,
@@ -763,6 +765,7 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_Span_T__Slice_Int_Int,
                          WellKnownMember.System_Span_T__Slice_Int,
+                         WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
@@ -817,7 +820,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -886,6 +890,10 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_OneElement,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_TwoElements,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_FourElements,
                          WellKnownMember.System_Span_T__ctor_ref_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T,
                          WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
@@ -986,6 +994,7 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_Span_T__Slice_Int,
                          WellKnownMember.System_Span_T__Slice_Int_Int,
+                         WellKnownMember.System_Span_T__op_Implicit_ReadOnlySpan_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
@@ -1040,7 +1049,8 @@ End Namespace
                          WellKnownMember.System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
                          WellKnownMember.System_Runtime_CompilerServices_ExtensionMarkerAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsClosedTypeAttribute__DerivedTypes
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
@@ -1109,6 +1119,10 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_OneElement,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_TwoElements,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_FourElements,
                          WellKnownMember.System_Span_T__ctor_ref_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T,
                          WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,

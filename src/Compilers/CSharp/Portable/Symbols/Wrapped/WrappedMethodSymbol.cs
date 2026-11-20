@@ -180,8 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override CallerUnsafeMode CallerUnsafeMode => UnderlyingMethod.CallerUnsafeMode;
-
         internal override bool IsMetadataVirtual(ModuleSymbol context, bool ignoreInterfaceImplementationChanges = false)
         {
             return UnderlyingMethod.IsMetadataVirtual(context, ignoreInterfaceImplementationChanges);

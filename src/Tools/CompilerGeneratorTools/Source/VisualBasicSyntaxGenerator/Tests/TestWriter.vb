@@ -324,6 +324,22 @@ Public Class TestWriter
                     childNodeKind = DirectCast(child.ChildKind, List(Of ParseNodeKind)).Item(0)
                 End If
 
+                ' Pick the header and terminator that match the lambda kind.  These children
+                ' intentionally accept both variants in the public factory API.
+                If child.Name = "SubOrFunctionHeader" Then
+                    If nodeKind.Name.Contains("FunctionLambdaExpression") Then
+                        childNodeKind = child.ParseTree.NodeKinds("FunctionLambdaHeader")
+                    ElseIf nodeKind.Name.Contains("SubLambdaExpression") Then
+                        childNodeKind = child.ParseTree.NodeKinds("SubLambdaHeader")
+                    End If
+                ElseIf child.Name = "EndSubOrFunctionStatement" Then
+                    If nodeKind.Name = "MultiLineFunctionLambdaExpression" Then
+                        childNodeKind = child.ParseTree.NodeKinds("EndFunctionStatement")
+                    ElseIf nodeKind.Name = "MultiLineSubLambdaExpression" Then
+                        childNodeKind = child.ParseTree.NodeKinds("EndSubStatement")
+                    End If
+                End If
+
                 If child.IsList AndAlso child.IsSeparated Then
                     Dim childKindStructure = child.ParseTree.NodeStructures(childNodeKind.StructureId)
                     childKindStructure = If(Not childKindStructure.ParentStructure Is Nothing, childKindStructure.ParentStructure, childKindStructure)

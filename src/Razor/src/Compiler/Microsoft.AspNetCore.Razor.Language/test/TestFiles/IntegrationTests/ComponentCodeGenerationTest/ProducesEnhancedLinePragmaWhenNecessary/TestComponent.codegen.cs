@@ -41,18 +41,6 @@ __builder.AddContent(4, JsonToHtml(@"{
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (12,8)-(17,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public string JsonToHtml(string foo)
-    {
-        return foo;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

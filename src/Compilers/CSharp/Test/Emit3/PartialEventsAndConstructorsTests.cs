@@ -747,12 +747,6 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial static C();
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (3,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial static C();
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 5),
-            // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-            //     partial static C() { }
-            Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
             // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
             //     partial static C() { }
             Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
@@ -1896,7 +1890,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         {
             Assert.True(accessor.GetPublicSymbol().IsExtern);
             Assert.Equal(expectedMetadataName, accessor.MetadataName);
-            Assert.False(accessor.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
+            Assert.False((accessor.ImplementationAttributes & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized);
 
             var importData = accessor.GetDllImportData()!;
             Assert.Equal("something.dll", importData.ModuleName);
@@ -1940,11 +1934,11 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.True(ev.AddMethod!.GetPublicSymbol().IsExtern);
             Assert.Null(ev.AddMethod!.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, ev.AddMethod.ImplementationAttributes);
-            Assert.False(ev.AddMethod.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
+            Assert.False((ev.AddMethod.ImplementationAttributes & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized);
             Assert.True(ev.RemoveMethod!.GetPublicSymbol().IsExtern);
             Assert.Null(ev.RemoveMethod!.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, ev.RemoveMethod.ImplementationAttributes);
-            Assert.False(ev.RemoveMethod.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
+            Assert.False((ev.RemoveMethod.ImplementationAttributes & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized);
 
             var c = module.GlobalNamespace.GetMember<SourceConstructorSymbol>("C..ctor");
             Assert.True(c.GetPublicSymbol().IsExtern);
@@ -1959,11 +1953,11 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             Assert.False(ev.AddMethod!.GetPublicSymbol().IsExtern);
             Assert.Null(ev.AddMethod!.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, ev.AddMethod.ImplementationAttributes);
-            Assert.False(ev.AddMethod.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
+            Assert.False((ev.AddMethod.ImplementationAttributes & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized);
             Assert.False(ev.RemoveMethod!.GetPublicSymbol().IsExtern);
             Assert.Null(ev.RemoveMethod!.GetDllImportData());
             Assert.Equal(MethodImplAttributes.InternalCall, ev.RemoveMethod.ImplementationAttributes);
-            Assert.False(ev.RemoveMethod.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
+            Assert.False((ev.RemoveMethod.ImplementationAttributes & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized);
 
             var c = module.GlobalNamespace.GetMember<MethodSymbol>("C..ctor");
             Assert.False(c.GetPublicSymbol().IsExtern);
@@ -2079,8 +2073,8 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
         static void validate(ModuleSymbol module)
         {
             var e = module.GlobalNamespace.GetMember<EventSymbol>("C.E");
-            Assert.True(e.AddMethod!.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
-            Assert.True(e.RemoveMethod!.ImplementationAttributes.HasFlag(MethodImplAttributes.Synchronized));
+            Assert.True((e.AddMethod!.ImplementationAttributes & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized);
+            Assert.True((e.RemoveMethod!.ImplementationAttributes & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized);
         }
     }
 
@@ -3090,7 +3084,7 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
                 partial event System.Action F { add { int* p = null; } remove { } }
             }
             """;
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (8,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     partial C(int* p) { }
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(8, 15),
@@ -3922,5 +3916,133 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             // (35,14): error CS8423: Attribute 'System.ObsoleteAttribute' is not valid on event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
             //     [method: Obsolete] public partial event Action H;
             Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(35, 14));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86250")]
+    public void PartialConstructorImplementationDiagnostics()
+    {
+        var sources = new[]
+        {
+            """
+            public partial class C
+            {
+                public partial C();
+                public partial C(int x);
+            }
+            """,
+            """
+            public partial class C
+            {
+                public partial C() { Missing(); }
+
+                [MissingAttr]
+                public partial C(int x) : this(MissingInit()) { }
+            }
+            """,
+        };
+
+        DiagnosticDescription[] expected =
+        [
+            // (3,26): error CS0103: The name 'Missing' does not exist in the current context
+            //     public partial C() { Missing(); }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(3, 26),
+            // (5,6): error CS0246: The type or namespace name 'MissingAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [MissingAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAttr").WithArguments("MissingAttrAttribute").WithLocation(5, 6),
+            // (5,6): error CS0246: The type or namespace name 'MissingAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [MissingAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAttr").WithArguments("MissingAttr").WithLocation(5, 6),
+            // (6,36): error CS0103: The name 'MissingInit' does not exist in the current context
+            //     public partial C(int x) : this(MissingInit()) { }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingInit").WithArguments("MissingInit").WithLocation(6, 36),
+        ];
+
+        CreateCompilation(sources).VerifyDiagnostics(expected);
+
+        var compilation0 = CreateCompilation(sources);
+        compilation0.GetSemanticModel(compilation0.SyntaxTrees[0]).GetDiagnostics().Verify();
+
+        var compilation1 = CreateCompilation(sources);
+        compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86250")]
+    public void PartialEventImplementationDiagnostics()
+    {
+        var sources = new[]
+        {
+            """
+            using System;
+
+            public partial class C
+            {
+                public partial event Action E1;
+                public partial event Action E2;
+            }
+            """,
+            """
+            using System;
+
+            public partial class C
+            {
+                [MissingEventAttr]
+                public partial event Action E1
+                {
+                    [MissingAccessorAttr]
+                    add { MissingAdd(); }
+                    remove { MissingRemove(); }
+                }
+
+                [method: MissingExternAttr]
+                public extern partial event Action E2;
+            }
+            """,
+        };
+
+        DiagnosticDescription[] expected =
+        [
+            // (5,6): error CS0246: The type or namespace name 'MissingEventAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [MissingEventAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingEventAttr").WithArguments("MissingEventAttrAttribute").WithLocation(5, 6),
+            // (5,6): error CS0246: The type or namespace name 'MissingEventAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [MissingEventAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingEventAttr").WithArguments("MissingEventAttr").WithLocation(5, 6),
+            // (8,10): error CS0246: The type or namespace name 'MissingAccessorAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //         [MissingAccessorAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAccessorAttr").WithArguments("MissingAccessorAttrAttribute").WithLocation(8, 10),
+            // (8,10): error CS0246: The type or namespace name 'MissingAccessorAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //         [MissingAccessorAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAccessorAttr").WithArguments("MissingAccessorAttr").WithLocation(8, 10),
+            // (9,15): error CS0103: The name 'MissingAdd' does not exist in the current context
+            //         add { MissingAdd(); }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingAdd").WithArguments("MissingAdd").WithLocation(9, 15),
+            // (10,18): error CS0103: The name 'MissingRemove' does not exist in the current context
+            //         remove { MissingRemove(); }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingRemove").WithArguments("MissingRemove").WithLocation(10, 18),
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttrAttribute").WithLocation(13, 14),
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttr").WithLocation(13, 14),
+        ];
+
+        CreateCompilation(sources).VerifyDiagnostics(expected);
+
+        var compilation0 = CreateCompilation(sources);
+        compilation0.GetSemanticModel(compilation0.SyntaxTrees[0]).GetDiagnostics().Verify();
+
+        var compilation1 = CreateCompilation(sources);
+        compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected);
+
+        var compilation2 = CreateCompilation(sources);
+        var externAttributeSpan = compilation2.SyntaxTrees[1].GetRoot().DescendantNodes().OfType<AttributeListSyntax>().Last().Span;
+        compilation2.GetSemanticModel(compilation2.SyntaxTrees[1]).GetDeclarationDiagnostics(externAttributeSpan).Verify(
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttrAttribute").WithLocation(13, 14),
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttr").WithLocation(13, 14));
     }
 }

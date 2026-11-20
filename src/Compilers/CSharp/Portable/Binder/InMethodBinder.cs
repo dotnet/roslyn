@@ -103,21 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override GeneratedLabelSymbol BreakLabel
-        {
-            get
-            {
-                return null;
-            }
-        }
+#nullable enable
+        internal override GeneratedLabelSymbol? GetBreakLabel(string? labelName) => null;
 
-        internal override GeneratedLabelSymbol ContinueLabel
-        {
-            get
-            {
-                return null;
-            }
-        }
+        internal override GeneratedLabelSymbol? GetContinueLabel(string? labelName) => null;
+#nullable disable
 
         protected override void ValidateYield(YieldStatementSyntax node, BindingDiagnosticBag diagnostics)
         {

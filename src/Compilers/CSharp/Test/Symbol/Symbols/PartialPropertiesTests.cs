@@ -2071,15 +2071,15 @@ public partial class C
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,15): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                // partial class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 15),
-                // (4,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (7,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+                // unsafe partial class C
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(7, 1),
+                // (4,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     public unsafe partial int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P2").WithLocation(4, 31),
-                // (9,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(4, 12),
+                // (9,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     public unsafe partial int P1 { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P1").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(9, 12));
         }
 
         [Fact]
@@ -2099,7 +2099,7 @@ public partial class C
                     public partial int P2 { get => 1; set { } }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyEmitDiagnostics(
                 // (9,20): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public partial int* P1 { get => null; set { } }
@@ -5588,6 +5588,81 @@ public partial class C
                 //     public readonly partial int V { get; set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "V").WithArguments("X.V").WithLocation(9, 33)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86250")]
+        public void PartialPropertyImplementationDiagnostics()
+        {
+            var sources = new[]
+            {
+                """
+                public partial class C
+                {
+                    public partial int P1 { get; set; }
+                    public partial int P2 { get; }
+                    public partial int this[int i] { get; set; }
+                }
+                """,
+                """
+                public partial class C
+                {
+                    [MissingPropAttr]
+                    public partial int P1
+                    {
+                        [MissingAccessorAttr]
+                        get => field + MissingGet();
+                        set => field = MissingSet();
+                    }
+
+                    public partial int P2 => MissingExpr();
+
+                    public partial int this[int i]
+                    {
+                        get => MissingIndexerGet();
+                        set => MissingIndexerSet();
+                    }
+                }
+                """,
+            };
+
+            DiagnosticDescription[] expected =
+            [
+                // (3,6): error CS0246: The type or namespace name 'MissingPropAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //     [MissingPropAttr]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingPropAttr").WithArguments("MissingPropAttrAttribute").WithLocation(3, 6),
+                // (3,6): error CS0246: The type or namespace name 'MissingPropAttr' could not be found (are you missing a using directive or an assembly reference?)
+                //     [MissingPropAttr]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingPropAttr").WithArguments("MissingPropAttr").WithLocation(3, 6),
+                // (6,10): error CS0246: The type or namespace name 'MissingAccessorAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+                //         [MissingAccessorAttr]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAccessorAttr").WithArguments("MissingAccessorAttrAttribute").WithLocation(6, 10),
+                // (6,10): error CS0246: The type or namespace name 'MissingAccessorAttr' could not be found (are you missing a using directive or an assembly reference?)
+                //         [MissingAccessorAttr]
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAccessorAttr").WithArguments("MissingAccessorAttr").WithLocation(6, 10),
+                // (7,24): error CS0103: The name 'MissingGet' does not exist in the current context
+                //         get => field + MissingGet();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingGet").WithArguments("MissingGet").WithLocation(7, 24),
+                // (8,24): error CS0103: The name 'MissingSet' does not exist in the current context
+                //         set => field = MissingSet();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingSet").WithArguments("MissingSet").WithLocation(8, 24),
+                // (11,30): error CS0103: The name 'MissingExpr' does not exist in the current context
+                //     public partial int P2 => MissingExpr();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingExpr").WithArguments("MissingExpr").WithLocation(11, 30),
+                // (15,16): error CS0103: The name 'MissingIndexerGet' does not exist in the current context
+                //         get => MissingIndexerGet();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingIndexerGet").WithArguments("MissingIndexerGet").WithLocation(15, 16),
+                // (16,16): error CS0103: The name 'MissingIndexerSet' does not exist in the current context
+                //         set => MissingIndexerSet();
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingIndexerSet").WithArguments("MissingIndexerSet").WithLocation(16, 16),
+            ];
+
+            CreateCompilation(sources).VerifyDiagnostics(expected);
+
+            var compilation0 = CreateCompilation(sources);
+            compilation0.GetSemanticModel(compilation0.SyntaxTrees[0]).GetDiagnostics().Verify();
+
+            var compilation1 = CreateCompilation(sources);
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected);
         }
     }
 }

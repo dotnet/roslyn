@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -31,13 +32,13 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
     private readonly Lazy<VisualStudioWorkspace> _workspace = workspace;
     private readonly IGlobalOptionService _globalOptions = globalOptions;
 
-    protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
-        => AggregateLogger.Create(
-            CodeMarkerLogger.Instance,
-            new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions)),
-            TelemetryLogger.Create(telemetrySession, logDelta),
-            new FileLogger(_globalOptions, _threadingContext),
-            Logger.GetLogger());
+    protected override ImmutableArray<IEventSink> CreateEventSinks(TelemetrySession telemetrySession, bool logDelta)
+        => [
+            CodeMarkerEventSink.Instance,
+            TraceSourceEventSink.Instance,
+            TelemetryEventSink.Create(telemetrySession, logDelta),
+            new FileEventSink(_globalOptions, _threadingContext),
+        ];
 
     protected override void TelemetrySessionInitialized()
     {

@@ -150,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
-        protected sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
-        internal sealed override bool CanBeCallerUnsafe
+        internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
+        internal sealed override bool CanRequireUnsafe
         {
             get
             {
-                Debug.Assert(!HasUnsafeModifier, $"Revisit {nameof(CanBeCallerUnsafe)} implementation if {nameof(SynthesizedSimpleProgramEntryPointSymbol)} can be marked 'unsafe'.");
+                Debug.Assert(!HasUnsafeModifier, $"Revisit {nameof(CanRequireUnsafe)} implementation if {nameof(SynthesizedSimpleProgramEntryPointSymbol)} can be marked 'unsafe'.");
                 return false;
             }
         }

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.SemanticTokens;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudioCode.RazorExtension.Configuration;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
@@ -22,11 +21,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostTestBase(testOutputHelper)
 {
     private IRemoteServiceInvoker? _remoteServiceInvoker;
-    private IFilePathService? _filePathService;
     private ISemanticTokensLegendService? _semanticTokensLegendService;
 
     private protected override IRemoteServiceInvoker RemoteServiceInvoker => _remoteServiceInvoker.AssumeNotNull();
-    private protected override IFilePathService FilePathService => _filePathService.AssumeNotNull();
     private protected ISemanticTokensLegendService SemanticTokensLegendService => _semanticTokensLegendService.AssumeNotNull();
 
     private protected override TestComposition LocalComposition => TestComposition.RoslynFeatures
@@ -44,7 +41,6 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
 
         // Grab a few things from the local MEF composition, for convenience
         _remoteServiceInvoker = LocalExportProvider.GetExportedValue<IRemoteServiceInvoker>();
-        _filePathService = LocalExportProvider.GetExportedValue<IFilePathService>();
 
         _semanticTokensLegendService = new CohostSemanticTokensLegendService(new TestClientCapabilitiesService(new VSInternalClientCapabilities() { SupportsVisualStudioExtensions = false }));
     }

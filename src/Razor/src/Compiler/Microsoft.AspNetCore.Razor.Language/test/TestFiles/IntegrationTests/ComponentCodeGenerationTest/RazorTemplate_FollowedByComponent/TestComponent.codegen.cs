@@ -72,18 +72,6 @@ __builder2.AddContent(5, "hello, world!"
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (8,8)-(13,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    class Person
-    {
-        public string Name { get; set; }
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

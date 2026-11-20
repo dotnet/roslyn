@@ -1,0 +1,7 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent. MyAttr ), "abc")
+[0002] AddAttribute("ChildContent", (global::Microsoft.AspNetCore.Components.RenderFragment<global::System.String>)((item) => (__builder2) => { __builder2.AddMarkupContent(3, "\r\n Some text"); __builder2.OpenElement(4, "some-child"); __builder2.AddAttribute(5, "a", "1"); __builder2.AddContent(6, item.ToLowerInvariant() ); __builder2.CloseElement(); } ))
+[0003] AddMarkupContent("\r\n Some text")
+[0004] OpenElement("some-child")
+[0005] AddAttribute("a", "1")
+[0006] AddContent(item.ToLowerInvariant())

@@ -133,13 +133,86 @@ public abstract class IntegrationTestBase : TestBase
     {
         var pipeName = Regex.Match(result.Output, @"Named pipe '([^']+)' connected").Groups[1].Value;
         AssertEx.Equal(sharedCompilationId, pipeName);
-        using var logger = new CompilerServerLogger("test");
+        using var logger = new CompilerServerLogger("test", loggingFilePath: null);
         await BuildServerConnection.RunServerShutdownRequestAsync(
             pipeName,
             timeoutOverride: null,
             waitForProcess: true,
             logger,
             CancellationToken.None);
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public void LegacySigning_Csc()
+    {
+        _tempDirectory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+        _tempDirectory.CreateFile("mscorlib.dll").WriteAllBytes(Basic.Reference.Assemblies.Net40.Resources.mscorlib);
+        var outputDirectory = _tempDirectory.CreateDirectory("bin");
+        var result = RunMsbuild(
+            "/v:n /nr:false /t:Build Test.proj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "Library.cs", "public class C { }" },
+                { "Test.proj", $"""
+                    <Project>
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Csc" AssemblyFile="{_buildTaskDll}" />
+                        <Target Name="Build">
+                            <Csc Sources="Library.cs" References="mscorlib.dll"
+                                OutputAssembly="bin\Library.dll" TargetType="Library" KeyFile="key.snk"
+                                Features="UseLegacyStrongNameProvider" NoStandardLib="true" NoConfig="true"
+                                UseSharedCompilation="false" />
+                        </Target>
+                    </Project>
+                    """ },
+            });
+
+        if (result == null)
+            return;
+        _output.WriteLine(result.Output);
+        Assert.True(result.ExitCode == 0, result.Output);
+
+        var outputPath = Path.Combine(outputDirectory.Path, "Library.dll");
+        using var stream = File.OpenRead(outputPath);
+        Assert.True(ILValidation.IsStreamFullSigned(stream));
+        AssertEx.Equal(new[] { outputPath }, Directory.GetFiles(outputDirectory.Path));
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public void LegacySigning_Vbc()
+    {
+        _tempDirectory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+        _tempDirectory.CreateFile("mscorlib.dll").WriteAllBytes(Basic.Reference.Assemblies.Net40.Resources.mscorlib);
+        var outputDirectory = _tempDirectory.CreateDirectory("bin");
+        var result = RunMsbuild(
+            "/v:n /nr:false /t:Build Test.proj",
+            _tempDirectory,
+            new Dictionary<string, string>
+            {
+                { "Library.vb", "Public Class C : End Class" },
+                { "Test.proj", $"""
+                    <Project>
+                        <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.Vbc" AssemblyFile="{_buildTaskDll}" />
+                        <Target Name="Build">
+                            <Vbc Sources="Library.vb" References="mscorlib.dll"
+                                OutputAssembly="bin\Library.dll" TargetType="Library" KeyFile="key.snk"
+                                Features="UseLegacyStrongNameProvider" NoStandardLib="true" NoConfig="true"
+                                VBRuntime="None" DefineConstants="_MYTYPE=&quot;Empty&quot;"
+                                UseSharedCompilation="false" />
+                        </Target>
+                    </Project>
+                    """ },
+            });
+
+        if (result == null)
+            return;
+        _output.WriteLine(result.Output);
+        Assert.True(result.ExitCode == 0, result.Output);
+
+        var outputPath = Path.Combine(outputDirectory.Path, "Library.dll");
+        using var stream = File.OpenRead(outputPath);
+        Assert.True(ILValidation.IsStreamFullSigned(stream));
+        AssertEx.Equal(new[] { outputPath }, Directory.GetFiles(outputDirectory.Path));
     }
 
     /// <param name="overrideToolExe">

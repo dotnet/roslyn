@@ -86,28 +86,6 @@ public class ExtractToCodeBehindTests(ITestOutputHelper testOutputHelper) : Coho
     }
 
     [Fact]
-    public async Task NotWithoutFileCreation()
-    {
-        UpdateClientInitializationOptions(c =>
-        {
-            c.SupportsFileManipulation = false;
-            return c;
-        });
-
-        await VerifyCodeActionAsync(
-            input: """
-                <div></div>
-                @$$code {
-                    void Test()
-                    {
-                    }
-                }
-                """,
-            expected: null,
-            codeActionName: LanguageServerConstants.CodeActions.ExtractToCodeBehind);
-    }
-
-    [Fact]
     public async Task ExtractToCodeBehind()
     {
         await VerifyCodeActionAsync(

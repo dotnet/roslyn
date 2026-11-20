@@ -45,10 +45,7 @@ internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHand
     public async Task<LSP.CompletionList?> HandleRequestAsync(
         LSP.CompletionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Document);
-        Contract.ThrowIfNull(context.Solution);
-
-        var document = context.Document;
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var position = await document
             .GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken)
             .ConfigureAwait(false);

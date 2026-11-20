@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal sealed override CallerUnsafeMode CallerUnsafeMode => _underlyingField.CallerUnsafeMode;
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingField.GetRequiresUnsafeMode(fieldsBeingBound);
 
         public override int TupleElementIndex => _underlyingField.TupleElementIndex;
 

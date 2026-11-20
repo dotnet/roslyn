@@ -2942,6 +2942,45 @@ Punctuation.CloseCurly);
         ], actualFormatted);
     }
 
+    [WpfTheory]
+    [InlineData("System.Action<int, int> lambda = (_, p) => { };", false)]
+    [InlineData("System.Action<int, int> lambda = (int _, int p) => { };", false)]
+    [InlineData("System.Action<int, int, int> lambda = (_, _, p) => { };", true)]
+    [InlineData("System.Action<int, int, int> lambda = (int _, int _, int p) => { };", true)]
+    public async Task TestTotalClassifier_LambdaDiscards(string declaration, bool isDiscard)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp($$"""
+            class C
+            {
+                void M()
+                {
+                    {{declaration}}
+                }
+            }
+            """);
+        var document = workspace.Documents.First();
+        var provider = new TotalClassificationTaggerProvider(
+            workspace.GetService<TaggerHost>(),
+            workspace.GetService<ClassificationTypeMap>());
+
+        var buffer = document.GetTextBuffer();
+        using var tagger = provider.CreateTagger(document.GetTextView(), buffer);
+
+        var listenerProvider = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>();
+        await listenerProvider.GetWaiter(FeatureAttribute.Classification).ExpeditedWaitAsync();
+
+        var tags = tagger!.GetTags(new NormalizedSnapshotSpanCollection(buffer.CurrentSnapshot.GetFullSpan()));
+        var actual = tags.OrderBy(tag => tag.Span.Start.Position)
+            .Where(tag => tag.Span.GetText() is "_" or "p")
+            .Select(tag => new FormattedClassification(tag.Span.GetText(), tag.Tag.ClassificationType.Classification));
+
+        AssertEx.Equal<FormattedClassification>(
+            isDiscard
+                ? [Keyword("_"), Keyword("_"), Parameter("p")]
+                : [Parameter("_"), Parameter("p")],
+            actual);
+    }
+
     [WpfFact]
     public void TestCopyPasteClassifier()
     {
@@ -3284,4 +3323,58 @@ Punctuation.CloseCurly);
             Number("0"),
             Punctuation.CloseParen,
             Punctuation.CloseBracket);
+
+    [Theory, CombinatorialData]
+    public Task TestLabeledBreak(TestHost testHost)
+        => TestInMethodAsync(
+            """
+            outer: while (true)
+            {
+                break outer;
+            }
+            """,
+            testHost,
+            Label("outer"),
+            Punctuation.Colon,
+            ControlKeyword("while"),
+            Punctuation.OpenParen,
+            Keyword("true"),
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            ControlKeyword("break"),
+            Label("outer"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly);
+
+    [Theory, CombinatorialData]
+    public Task TestLabeledContinue(TestHost testHost)
+        => TestInMethodAsync(
+            """
+            loop: for (int i = 0; i < 10; i++)
+            {
+                continue loop;
+            }
+            """,
+            testHost,
+            Label("loop"),
+            Punctuation.Colon,
+            ControlKeyword("for"),
+            Punctuation.OpenParen,
+            Keyword("int"),
+            Local("i"),
+            Operators.Equals,
+            Number("0"),
+            Punctuation.Semicolon,
+            Local("i"),
+            Operators.LessThan,
+            Number("10"),
+            Punctuation.Semicolon,
+            Local("i"),
+            Operators.PlusPlus,
+            Punctuation.CloseParen,
+            Punctuation.OpenCurly,
+            ControlKeyword("continue"),
+            Label("loop"),
+            Punctuation.Semicolon,
+            Punctuation.CloseCurly);
 }

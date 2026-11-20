@@ -15870,22 +15870,6 @@ namespace System
             Assert.False(m1thisGet.IsImplicitlyDeclared);
         }
 
-        private class SyntaxReferenceEqualityComparer : IEqualityComparer<SyntaxReference>
-        {
-            public static readonly SyntaxReferenceEqualityComparer Instance = new SyntaxReferenceEqualityComparer();
-            private SyntaxReferenceEqualityComparer() { }
-
-            public bool Equals(SyntaxReference x, SyntaxReference y)
-            {
-                return x.GetSyntax().Equals(y.GetSyntax());
-            }
-
-            public int GetHashCode(SyntaxReference obj)
-            {
-                return obj.GetHashCode();
-            }
-        }
-
         [Fact]
         public void EventsAsMembers_01()
         {
@@ -28530,19 +28514,7 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics(
-                // (10,40): hidden CS9335: The pattern is redundant.
-                //             (message: null, isColInit: false) => 43,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 40),
-                // (11,23): hidden CS9335: The pattern is redundant.
-                //             (message: { }, isColInit: true) => 44,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(11, 23),
-                // (12,23): hidden CS9335: The pattern is redundant.
-                //             (message: { }, isColInit: false) => 45,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(12, 23),
-                // (12,39): hidden CS9335: The pattern is redundant.
-                //             (message: { }, isColInit: false) => 45,
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(12, 39));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

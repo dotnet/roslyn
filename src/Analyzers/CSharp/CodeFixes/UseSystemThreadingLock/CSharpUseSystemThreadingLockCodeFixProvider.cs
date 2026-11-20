@@ -51,7 +51,7 @@ internal sealed partial class CSharpUseSystemThreadingLockCodeFixProvider() : Co
                 CodeAction.Create(
                     CSharpAnalyzersResources.Use_System_Threading_Lock,
                     cancellationToken => UseSystemThreadingLockAsync(document, semanticModel: null, variableDeclarator, cancellationToken),
-                    nameof(CSharpAnalyzersResources.Use_primary_constructor)),
+                    nameof(CSharpAnalyzersResources.Use_System_Threading_Lock)),
                 diagnostic);
         }
     }

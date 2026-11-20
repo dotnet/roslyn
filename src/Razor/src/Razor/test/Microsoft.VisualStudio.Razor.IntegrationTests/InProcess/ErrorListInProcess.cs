@@ -44,44 +44,31 @@ internal partial class ErrorListInProcess
 
         var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
 
-        using var semaphore = new SemaphoreSlim(1);
-        await semaphore.WaitAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var completionSource = new TaskCompletionSource<ImmutableArray<ITableEntryHandle>>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         errorList.TableControl.EntriesChanged += OnEntries_Changed;
 
-        var args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
-
-        var filteredEntries = FilterEntries(args, documentName, errorSource, minimumSeverity);
-
-        if (EntriesReady(filteredEntries, expectedCount))
+        try
         {
-            semaphore.Release();
+            var args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
+            CompleteIfResolved(args);
+            return await completionSource.Task.WithCancellation(cancellationToken);
+        }
+        finally
+        {
             errorList.TableControl.EntriesChanged -= OnEntries_Changed;
-            return filteredEntries;
         }
-        else
-        {
-            try
-            {
-                await semaphore.WaitAsync(cancellationToken);
-            }
-            finally
-            {
-                errorList.TableControl.EntriesChanged -= OnEntries_Changed;
-            }
-        }
-
-        args = await errorList.TableControl.ForceUpdateAsync().WithCancellation(cancellationToken);
-        filteredEntries = FilterEntries(args, documentName, errorSource, minimumSeverity);
-
-        return filteredEntries;
 
         void OnEntries_Changed(object sender, EntriesChangedEventArgs e)
+            => CompleteIfResolved(e);
+
+        void CompleteIfResolved(EntriesChangedEventArgs args)
         {
-            var filteredEntries = FilterEntries(e, documentName, errorSource, minimumSeverity);
+            var filteredEntries = FilterEntries(args, documentName, errorSource, minimumSeverity);
             if (EntriesReady(filteredEntries, expectedCount))
             {
-                semaphore.Release();
+                completionSource.TrySetResult(filteredEntries);
             }
         }
 

@@ -1,0 +1,15 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - Razor
+        RazorSourceChecksumAttribute - 
+        ClassDeclaration -  - public - Template -  - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::PTagHelper - __PTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                TagHelper - (53:2,0 [29] TestFiles\IntegrationTests\TagHelpersIntegrationTest\Index.cshtml) - p - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (59:2,6 [16] TestFiles\IntegrationTests\TagHelpersIntegrationTest\Index.cshtml)
+                            LazyIntermediateToken - (59:2,6 [5] TestFiles\IntegrationTests\TagHelpersIntegrationTest\Index.cshtml) - Html - Hello
+                            LazyIntermediateToken - (64:2,11 [11] TestFiles\IntegrationTests\TagHelpersIntegrationTest\Index.cshtml) - Html - </th:input>
+                    DefaultTagHelperCreate -  - PTagHelper
+                    DefaultTagHelperExecute - 

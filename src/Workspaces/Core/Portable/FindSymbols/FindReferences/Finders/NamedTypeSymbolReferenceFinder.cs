@@ -40,7 +40,11 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
         Add(result, symbol.Constructors);
 
         // cascade to destructor
-        Add(result, symbol.GetMembers(WellKnownMemberNames.DestructorName));
+        foreach (var member in symbol.GetMembers(WellKnownMemberNames.DestructorName))
+        {
+            if (member is IMethodSymbol { MethodKind: MethodKind.Destructor })
+                result.Add(member);
+        }
 
         return result.ToImmutable();
     }

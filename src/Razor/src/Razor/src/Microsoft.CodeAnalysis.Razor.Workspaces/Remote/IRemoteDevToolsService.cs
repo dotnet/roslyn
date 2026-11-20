@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteDevToolsService
 {
-    ValueTask<string> GetCSharpDocumentTextAsync(RazorSolutionWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
+    ValueTask<string?> GetCSharpDocumentTextAsync(RazorSolutionWrapper solutionInfo, DocumentId razorDocumentId, bool declarationDocument, CancellationToken cancellationToken);
 
     ValueTask<string> GetHtmlDocumentTextAsync(RazorSolutionWrapper solutionInfo, DocumentId razorDocumentId, CancellationToken cancellationToken);
 

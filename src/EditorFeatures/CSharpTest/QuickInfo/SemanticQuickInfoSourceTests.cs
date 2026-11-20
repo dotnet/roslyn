@@ -2515,6 +2515,73 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
             """,
             MainDescription($"void C.Method() (+ 1 {FeaturesResources.overload})"));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86345")]
+    public Task Method_StaticAccessIgnoresInstanceOverload()
+        => TestInClassAsync(
+            """
+            static void Method() { }
+
+            void Method(int i) { }
+
+            void Test()
+            {
+                C.Met$$hod();
+            }
+            """,
+            MainDescription("void C.Method()"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86345")]
+    public Task Method_InstanceAccessIgnoresStaticOverload()
+        => TestInClassAsync(
+            """
+            static void Method() { }
+
+            void Method(int i) { }
+
+            void Test()
+            {
+                this.Met$$hod(1);
+            }
+            """,
+            MainDescription("void C.Method(int i)"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86345")]
+    public Task Method_UnqualifiedInStaticContextIgnoresInstanceOverload()
+        => TestInClassAsync(
+            """
+            static void Method() { }
+
+            void Method(int i) { }
+
+            static void Test()
+            {
+                Met$$hod();
+            }
+            """,
+            MainDescription("void C.Method()"));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86345")]
+    public Task Method_ColorColorKeepsBothOverloads()
+        => TestAsync(
+            """
+            class Color
+            {
+                public static void Method() { }
+                public void Method(int i) { }
+            }
+
+            class C
+            {
+                Color Color;
+
+                void Test()
+                {
+                    Color.Met$$hod();
+                }
+            }
+            """,
+            MainDescription($"void Color.Method() (+ 1 {FeaturesResources.overload})"));
+
     [Fact]
     public Task Method_MoreOverloads()
         => TestInClassAsync(
@@ -6038,6 +6105,26 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             Captures($"""
 
                 {WorkspacesResources.Variables_captured_colon} this, i
+                """));
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84988")]
+    public Task QuickInfoCapturesOnLocalFunctionWithDefaultParameter()
+        => TestAsync("""
+
+            class C
+            {
+                void M(int x = 1)
+                {
+                    void local$$()
+                    {
+                        x++;
+                    }
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} x
                 """));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]

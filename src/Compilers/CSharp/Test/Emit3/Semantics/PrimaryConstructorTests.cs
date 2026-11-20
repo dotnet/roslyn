@@ -19443,7 +19443,7 @@ class C(int y)
     	IL_000a: call int32 C::'<M>g__local|2_0'(valuetype C/'<>c__DisplayClass2_0'&)
     	IL_000f: ret
     } // end of method C::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
     	int32 '<M>g__local|2_0' (
     		valuetype C/'<>c__DisplayClass2_0'& ''
     	) cil managed 
@@ -19524,7 +19524,7 @@ class C(int y)
     	IL_0014: ldloc.1
     	IL_0015: ret
     } // end of method C::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
     	int32 '<M>g__local|2_0' (
     		valuetype C/'<>c__DisplayClass2_0'& ''
     	) cil managed 
@@ -22114,7 +22114,7 @@ class C1(int* x)
     public int X => *x;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // struct S1(int* x)

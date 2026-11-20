@@ -1056,6 +1056,25 @@ namespace Microsoft.CodeAnalysis.Operations
             else
             {
                 isImplicit = !boundConversion.ExplicitCastInCode;
+
+                if (isImplicit && boundConversion.ConversionGroupOpt?.Conversion is { IsUserDefined: true, IsValid: true } &&
+                    (boundConversion.InConversionGroupFlags & InConversionGroupFlags.UserDefinedFinal) != 0)
+                {
+                    if (boundConversion.Operand is BoundConversion operandAsConversion &&
+                        operandAsConversion.ConversionGroupOpt == boundConversion.ConversionGroupOpt &&
+                        (operandAsConversion.InConversionGroupFlags & InConversionGroupFlags.UserDefinedOperator) != 0)
+                    {
+                        Debug.Assert(operandAsConversion.WasCompilerGenerated);
+                        if (operandAsConversion.ExplicitCastInCode && (operandAsConversion.WasCompilerGenerated || boundConversion.Syntax != operandAsConversion.Syntax))
+                        {
+                            isImplicit = false;
+                        }
+                    }
+                    else
+                    {
+                        ExceptionUtilities.UnexpectedValue(boundConversion); // Unexpected tree shape
+                    }
+                }
             }
 
             if (boundConversion.ConversionKind == ConversionKind.InterpolatedStringHandler)

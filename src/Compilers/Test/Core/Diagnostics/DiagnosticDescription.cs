@@ -385,6 +385,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 sb.Append('"').Append(_code).Append('"');
             }
+            else if (_errorCodeType == typeof(int))
+            {
+                sb.Append(_code);
+            }
             else
             {
                 sb.Append(_errorCodeType.Name);

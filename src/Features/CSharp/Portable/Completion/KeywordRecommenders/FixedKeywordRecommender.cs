@@ -11,6 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
 internal sealed class FixedKeywordRecommender() : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.FixedKeyword)
 {
+    private static readonly ISet<SyntaxKind> s_structDeclaration = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+    {
+        SyntaxKind.StructDeclaration,
+    };
+
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
         SyntaxKind.NewKeyword,
@@ -22,16 +27,12 @@ internal sealed class FixedKeywordRecommender() : AbstractSyntacticSingleKeyword
     };
 
     protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        => IsUnsafeStatementContext(context) || IsMemberDeclarationContext(context, cancellationToken);
+        => context.IsStatementContext || IsMemberDeclarationContext(context, cancellationToken);
 
     private static bool IsMemberDeclarationContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         return
-            context.TargetToken.IsUnsafeContext() &&
-           (context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
-           context.IsMemberDeclarationContext(validModifiers: s_validModifiers, validTypeDeclarations: SyntaxKindSet.StructOnlyTypeDeclarations, canBePartial: false, cancellationToken: cancellationToken));
+           context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
+           context.IsMemberDeclarationContext(validModifiers: s_validModifiers, validTypeDeclarations: s_structDeclaration, canBePartial: false, cancellationToken);
     }
-
-    private static bool IsUnsafeStatementContext(CSharpSyntaxContext context)
-        => context.TargetToken.IsUnsafeContext() && context.IsStatementContext;
 }

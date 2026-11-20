@@ -74,6 +74,9 @@ internal sealed class CrefCompletionProvider(
             Contract.ThrowIfNull(semanticModel);
 
             context.IsExclusive = true;
+
+            // Unimported types are valid in a cref, so let import completion still offer its items alongside ours.
+            context.AllowExpandedItemsWhileExclusive = true;
             context.AddItems(CreateCompletionItems(semanticModel, symbols, token, position));
 
             // Because we took over completion entirely as an exclusive provider, we have to ensure that appropriate

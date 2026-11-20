@@ -210,10 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
-                case ErrorCode.WRN_UnsafeMeaningless:
-                    // Warning level 11 is exclusively for warnings introduced in the compiler
-                    // shipped with dotnet 11 (C# 15) and that can be reported for pre-existing code.
-                    return 11;
                 case ErrorCode.WRN_UnassignedInternalRefField:
                     // Warning level 10 is exclusively for warnings introduced in the compiler
                     // shipped with dotnet 10 (C# 14) and that can be reported for pre-existing code.
@@ -415,6 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_DelaySignButNoKey:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
+                case ErrorCode.WRN_DeprecatedFeatureFlag:
                 case ErrorCode.WRN_BadUILang:
                 case ErrorCode.WRN_RefCultureMismatch:
                 case ErrorCode.WRN_ConflictingMachineAssembly:
@@ -642,7 +639,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait
                 or ErrorCode.ERR_RefLocalAcrossAwait
                 or ErrorCode.ERR_DataSectionStringLiteralHashCollision
-                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_NonTaskMainCantBeAsync
                 or ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported
                 or ErrorCode.ERR_EncUpdateFailedMissingSymbol
@@ -650,6 +646,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_EncReferenceToAddedMember
                 or ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime
                 or ErrorCode.ERR_AbstractBaseRecordImplementation
+                or ErrorCode.ERR_WrongArityAsyncReturn
+                or ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty
                     // Update src\Features\CSharp\Portable\Diagnostics\LanguageServer\CSharpLspBuildOnlyDiagnostics.cs
                     // and TestIsBuildOnlyDiagnostic in src\Compilers\CSharp\Test\Syntax\Diagnostics\DiagnosticTest.cs
                     // whenever new values are added here.
@@ -1555,7 +1553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.FTL_BadChecksumAlgorithm
                 or ErrorCode.ERR_BadAwaitArgIntrinsic
                 or ErrorCode.ERR_BadAwaitAsIdentifier
-                or ErrorCode.ERR_AwaitInUnsafeContext
+                or ErrorCode.ERR_BadAwaitInFixed
                 or ErrorCode.ERR_UnsafeAsyncArgType
                 or ErrorCode.ERR_VarargsAsync
                 or ErrorCode.ERR_BadAwaitArgVoidCall
@@ -1821,7 +1819,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_VarInvocationLvalueReserved
                 or ErrorCode.ERR_PublicSignNetModule
                 or ErrorCode.ERR_BadAssemblyName
-                or ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty
                 or ErrorCode.ERR_TypeForwardedToMultipleAssemblies
                 or ErrorCode.ERR_ExpressionTreeContainsDiscard
                 or ErrorCode.ERR_PatternDynamicType
@@ -2004,7 +2001,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_AutoSetterCantBeReadOnly
                 or ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly
                 or ErrorCode.ERR_InvalidPropertyReadOnlyMods
+                or ErrorCode.ERR_InvalidPropertyUnsafeMods
                 or ErrorCode.ERR_DuplicatePropertyReadOnlyMods
+                or ErrorCode.ERR_SamePropertyUnsafeAccessorMods
                 or ErrorCode.ERR_FieldLikeEventCantBeReadOnly
                 or ErrorCode.ERR_PartialMemberReadOnlyDifference
                 or ErrorCode.ERR_ReadOnlyModMissingAccessor
@@ -2198,7 +2197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SimpleProgramIsEmpty
                 or ErrorCode.ERR_LineSpanDirectiveInvalidValue
                 or ErrorCode.ERR_LineSpanDirectiveEndLessThanStart
-                or ErrorCode.ERR_WrongArityAsyncReturn
                 or ErrorCode.ERR_InterpolatedStringHandlerMethodReturnMalformed
                 or ErrorCode.ERR_InterpolatedStringHandlerMethodReturnInconsistent
                 or ErrorCode.ERR_NullInvalidInterpolatedStringHandlerArgumentName
@@ -2542,13 +2540,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
                 or ErrorCode.ERR_MemberNameSameAsExtendedType
                 or ErrorCode.ERR_FeatureNotAvailableInVersion14
+                or ErrorCode.ERR_FeatureNotAvailableInVersion15
+                or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_ExtensionBlockCollision
                 or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
                 or ErrorCode.ERR_AttributeCannotBeAppliedManually
                 or ErrorCode.ERR_BadSpreadInCatchFilter
                 or ErrorCode.ERR_ExplicitInterfaceMemberTypeMismatch
                 or ErrorCode.ERR_ExplicitInterfaceMemberReturnTypeMismatch
-                or ErrorCode.HDN_RedundantPattern
                 or ErrorCode.WRN_RedundantPattern
                 or ErrorCode.HDN_RedundantPatternStackGuard
                 or ErrorCode.ERR_BadVisBaseType
@@ -2573,12 +2572,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                 or ErrorCode.ERR_NoAwaitOnAsyncEnumerable
                 or ErrorCode.ERR_UnsafeOperation
+                or ErrorCode.ERR_UnsafeUnassignedAddressOf
                 or ErrorCode.ERR_UnsafeUninitializedStackAlloc
                 or ErrorCode.ERR_UnsafeMemberOperation
                 or ErrorCode.ERR_UnsafeMemberOperationCompat
-                or ErrorCode.ERR_CallerUnsafeOverridingSafe
-                or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
-                or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeOverridingSafe
+                or ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe
                 or ErrorCode.ERR_ExpressionTreeContainsUnionConversion
                 or ErrorCode.ERR_UnionDeclarationNeedsCaseTypes
                 or ErrorCode.ERR_NoImplicitConversionToObject
@@ -2587,7 +2587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InstanceCtorWithOneParameterInUnion
                 or ErrorCode.ERR_UnionConstructorCallsDefaultConstructor
                 or ErrorCode.ERR_UnsafeConstructorConstraint
-                or ErrorCode.WRN_UnsafeMeaningless
+                or ErrorCode.ERR_UnsafeMeaningless
                 or ErrorCode.ERR_RequiresUnsafeAttributeInSource
                 or ErrorCode.ERR_ClosedTypeNameDisallowed
                 or ErrorCode.ERR_ClosedSealedStatic
@@ -2597,10 +2597,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_MissingUnionCaseTypes
                 or ErrorCode.ERR_MissingUnionValueProperty
                 or ErrorCode.ERR_MemberProviderInUnionDeclaration
-                or ErrorCode.ERR_SafeModifierUnsupportedTarget
+                or ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                 or ErrorCode.ERR_PartialMemberSafeDifference
-                or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe
+                or ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe
+                or ErrorCode.ERR_NoBreakId
+                or ErrorCode.ERR_NoContinueId
+                or ErrorCode.ERR_ClosedBadDerivedTypesProperty
+                or ErrorCode.ERR_BadCompilationOptionValueAccepted
+                or ErrorCode.ERR_IllegalUnsafeModifier
+                or ErrorCode.WRN_DeprecatedFeatureFlag
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

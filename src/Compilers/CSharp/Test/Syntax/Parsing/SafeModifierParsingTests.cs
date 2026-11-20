@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -45,7 +45,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Method_Async_Before()
     {
-        UsingDeclaration("public safe async(int i);", TestOptions.Regular14);
+        UsingDeclaration("public safe async(int i);", TestOptions.Regular15);
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -307,7 +307,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Destructor_Before()
     {
-        UsingDeclaration("safe ~C() { }", TestOptions.Regular14,
+        UsingDeclaration("safe ~C() { }", TestOptions.Regular15,
             // (1,1): error CS1073: Unexpected token '~'
             // safe ~C() { }
             Diagnostic(ErrorCode.ERR_UnexpectedToken, "safe").WithArguments("~").WithLocation(1, 1),
@@ -353,7 +353,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Destructor_ExternSafe_Before()
     {
-        UsingDeclaration("extern safe ~C();", TestOptions.Regular14,
+        UsingDeclaration("extern safe ~C();", TestOptions.Regular15,
             // (1,1): error CS1073: Unexpected token '~'
             // extern safe ~C();
             Diagnostic(ErrorCode.ERR_UnexpectedToken, "extern safe").WithArguments("~").WithLocation(1, 1),
@@ -418,7 +418,16 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void PropertyAccessor()
     {
-        UsingDeclaration("public int P { safe get; set; }");
+        const string declaration = """public int P { safe get; set; }""";
+        var source = $$"""class C { {{declaration}} }""";
+        UsingDeclaration(declaration);
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (1,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public int P { safe get; set; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 26));
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
         N(SyntaxKind.PropertyDeclaration);
         {
@@ -452,7 +461,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [InlineData("public int P { private safe get; set; }", 0, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
     [InlineData("public int P { safe private get; set; }", 0, SyntaxKind.SafeKeyword, SyntaxKind.PrivateKeyword)]
     [InlineData("public int P { get; private safe set; }", 1, SyntaxKind.PrivateKeyword, SyntaxKind.SafeKeyword)]
-    public void PropertyAccessor_WithOtherModifiers(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
+    public void PropertyAccessor_WithOtherModifiers_ModifierOrder(string source, int accessorIndex, params SyntaxKind[] expectedModifiers)
     {
         var declaration = Assert.IsType<PropertyDeclarationSyntax>(SyntaxFactory.ParseMemberDeclaration(source));
         declaration.GetDiagnostics().Verify();
@@ -467,9 +476,38 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     }
 
     [Fact]
+    public void PropertyAccessor_WithOtherModifiers()
+    {
+        const string declaration = """public int P { private safe get; set; }""";
+        var source = $$"""class C { {{declaration}} }""";
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (1,34): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public int P { private safe get; set; } }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 34));
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void EventAccessor()
     {
-        UsingDeclaration("public event EHandler E { safe add { } remove { } }");
+        const string declaration = """public event EHandler E { safe add { } remove { } }""";
+        var source = $$"""delegate void EHandler(); class C { {{declaration}} }""";
+        UsingDeclaration(declaration);
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
+            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
+            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63));
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
+            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63));
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
+            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
+            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63));
 
         N(SyntaxKind.EventDeclaration);
         {
@@ -542,7 +580,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Constructor_BeforeName_Before()
     {
-        UsingDeclaration("public safe C();", TestOptions.Regular14);
+        UsingDeclaration("public safe C();", TestOptions.Regular15);
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -586,7 +624,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Constructor_AfterExtern_Before()
     {
-        UsingDeclaration("public extern safe C();", TestOptions.Regular14);
+        UsingDeclaration("public extern safe C();", TestOptions.Regular15);
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -632,31 +670,32 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Constructor_BeforePartial_Before()
     {
-        UsingDeclaration("public safe partial C();", TestOptions.Regular14,
-            // (1,13): error CS1525: Invalid expression term 'partial'
-            // public safe partial C();
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 13),
-            // (1,13): error CS1003: Syntax error, ',' expected
-            // public safe partial C();
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 13));
+        UsingDeclaration("public safe partial C();", TestOptions.Regular15);
 
-        N(SyntaxKind.FieldDeclaration);
+        N(SyntaxKind.ConstructorDeclaration);
         {
             N(SyntaxKind.PublicKeyword);
-            N(SyntaxKind.VariableDeclaration);
+            N(SyntaxKind.SafeKeyword);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierToken, "C");
+            N(SyntaxKind.ParameterList);
             {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "safe");
-                }
-                M(SyntaxKind.VariableDeclarator);
-                {
-                    M(SyntaxKind.IdentifierToken);
-                }
+                N(SyntaxKind.OpenParenToken);
+                N(SyntaxKind.CloseParenToken);
             }
             N(SyntaxKind.SemicolonToken);
         }
         EOF();
+
+        CreateCompilation(
+            "class C { public safe partial C(); }",
+            parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            // (1,18): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // class C { public safe partial C(); }
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 18),
+            // (1,31): error CS9275: Partial member 'C.C()' must have an implementation part.
+            // class C { public safe partial C(); }
+            Diagnostic(ErrorCode.ERR_PartialMemberMissingImplementation, "C").WithArguments("C.C()").WithLocation(1, 31));
     }
 
     [Theory, CombinatorialData]
@@ -679,6 +718,20 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
             N(SyntaxKind.SemicolonToken);
         }
         EOF();
+    }
+
+    [Fact]
+    public void Constructor_BeforePartial_WithImplementation()
+    {
+        CreateCompilation(
+            """
+            partial class C
+            {
+                public safe partial C();
+                public safe partial C() { }
+            }
+            """,
+            parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
     }
 
     [Fact]

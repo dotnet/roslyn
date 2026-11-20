@@ -57,16 +57,6 @@ System.Console.WriteLine(1);System.Console.WriteLine(2);
             __builder.AddMarkupContent(4, "<h1>Full-on code block</h1>");
         }
         #pragma warning restore 1998
-#nullable restore
-#line (11,8)-(14,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter]
-    public int IncrementAmount { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

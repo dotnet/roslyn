@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis
                     bits[value] = true;
                 }
             }
-            Debug.Assert(expectedLength == actualLength);
+            Debug.Assert(expectedLength == actualLength, $"Expected {expectedLength} arguments for error code {errorCode}, but got {actualLength}. Message: {message}");
             Debug.Assert(bits == BitVector.AllSet(actualLength));
 #endif
         }

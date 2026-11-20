@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.GenerateComparisonOperators;
@@ -440,8 +441,10 @@ public sealed class GenerateComparisonOperatorsTests
     // https://github.com/dotnet/roslyn/issues/71625
     [ConditionalFact(typeof(DesktopOnly))]
     public Task TestInInterfaceWithDefaultImpl()
-        => VerifyCS.VerifyRefactoringAsync(
-            """
+        => new VerifyCS.Test
+        {
+            LanguageVersion = LanguageVersion.CSharp15,
+            TestCode = """
             using System;
 
             interface C : IComparable<C>
@@ -451,33 +454,33 @@ public sealed class GenerateComparisonOperatorsTests
             [||]
             }
             """,
-            """
+            FixedCode = """
             using System;
 
             interface C : IComparable<C>
             {
                 int IComparable<C>.{|CS8701:CompareTo|}(C c) => 0;
 
-                public static bool operator {|CS8652:<|}(C left, C right)
+                public static bool operator <(C left, C right)
                 {
                     return left.CompareTo(right) < 0;
                 }
 
-                public static bool operator {|CS8652:>|}(C left, C right)
+                public static bool operator >(C left, C right)
                 {
                     return left.CompareTo(right) > 0;
                 }
 
-                public static bool operator {|CS8652:<=|}(C left, C right)
+                public static bool operator <=(C left, C right)
                 {
                     return left.CompareTo(right) <= 0;
                 }
 
-                public static bool operator {|CS8652:>=|}(C left, C right)
+                public static bool operator >=(C left, C right)
                 {
                     return left.CompareTo(right) >= 0;
                 }
             }
-            """);
+            """,
+        }.RunAsync();
 }
-

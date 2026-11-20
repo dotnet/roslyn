@@ -1,8 +1,7 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -76,62 +75,148 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 return false;
             });
 
-            var componentFiles = sourceItems.Where(static file => FileUtilities.IsRazorComponentFilePath(file.FilePath, StringComparison.OrdinalIgnoreCase));
-
-            var generatedDeclarationText = componentFiles
+            // Parse and lower each Razor file through decl C# lowering (engine phases up to and including
+            // decl lowering). A splittable component yields the resolution-independent decl half here; a
+            // fallback component (or non-component) yields a null main-run decl, and the separate
+            // declaration engine produces a discovery-only decl for the fallback components.
+            var withOptions = sourceItems
                 .Combine(importFiles.Collect())
-                .Combine(razorSourceGeneratorOptions)
-                .WithLambdaComparer((old, @new) => old.Right.Equals(@new.Right) && old.Left.Left.Equals(@new.Left.Left) && old.Left.Right.SequenceEqual(@new.Left.Right))
-                .Select(static (pair, cancellationToken) =>
+                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
+                .Combine(razorSourceGeneratorOptions);
+
+            var processedDocuments = withOptions
+                .Select((pair, cancellationToken) =>
                 {
-                    var ((sourceItem, importFiles), razorSourceGeneratorOptions) = pair;
-                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
+                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
 
-                    var projectEngine = GetDeclarationProjectEngine(sourceItem, importFiles, razorSourceGeneratorOptions);
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
 
-                    var codeGen = projectEngine.Process(sourceItem, cancellationToken);
+                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
+                    var document = projectEngine.ProcessInitialParse(sourceItem, cancellationToken);
 
-                    var result = new SourceGeneratorText(codeGen.GetRequiredCSharpDocument().Text);
+                    // A component the split couldn't partition needs its full declaration for discovery (the
+                    // fallback discovery path); the split phase marks it by recording its type name. Its
+                    // discovery-only decl is added to the augmented discovery compilation but never
+                    // emitted -- the single impl already carries the whole class, and any type shell for
+                    // resolution is emitted from GetDeclCSharpDocument() below.
+                    RazorCSharpDocument? fallbackDecl = null;
+                    if (document.CodeDocument.GetRequiredDocumentNode().FallbackComponentTypeName is not null &&
+                        FileUtilities.IsRazorComponentFilePath(sourceItem.FilePath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
+                        fallbackDecl = GetFallbackDiscoveryDeclDocument(document.CodeDocument, sourceItem, imports, razorSourceGeneratorOptions, cancellationToken);
+                        RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
+                    }
 
-                    RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
-
-                    return result;
+                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
+                    return (projectEngine, path: sourceItem.RelativePhysicalPath, document, fallbackDecl);
                 })
-                .WithTrackingName("GeneratedDeclarationCode");
+                .WithTrackingName("ProcessedDocuments");
 
-            var generatedDeclarationSyntaxTrees = generatedDeclarationText
+            // The generation flow (UTF-8 map, tag-helper rewrite, impl codegen) only needs the parsed
+            // document; keeping it a 3-tuple keeps the fallback decl out of that flow's cache key.
+            var parsedDocuments = processedDocuments
+                .Select(static (item, _) => (item.projectEngine, item.path, item.document))
+                .WithTrackingName("ParsedDocuments");
+
+            // Split decls: the resolution-independent decl half of a splittable component, emitted via
+            // pre-compilation source output so it is in the compilation that tag-helper discovery sees
+            // (and compiled into the output as the decl partial alongside the impl partial).
+            var declSources = processedDocuments
+                .Select(static (item, _) =>
+                {
+                    var declCSharpDocument = item.document.CodeDocument.GetCSharpDocument(declarationDocument: true);
+                    return (hintName: GetIdentifierFromPath(item.path), declCSharpDocument);
+                })
+                .Where(static item => item.declCSharpDocument is not null)
+                .WithLambdaComparer(static (a, b) =>
+                    a.hintName == b.hintName &&
+                    a.declCSharpDocument!.Text.ContentEquals(b.declCSharpDocument!.Text))
+                .WithTrackingName("DeclSources");
+
+#pragma warning disable RSEXPERIMENTAL007 // RegisterPreCompilationSourceOutput is experimental: emit the split decl before the compilation is built so tag-helper discovery sees it.
+            context.RegisterPreCompilationSourceOutput(declSources, static (context, pair) =>
+            {
+                var (hintName, declCSharpDocument) = pair;
+                context.AddSource(GetDeclIdentifierFromHintName(hintName), declCSharpDocument!.Text);
+            });
+#pragma warning restore RSEXPERIMENTAL007
+
+            // Fallback decls: discovery-only decl syntax trees for components that couldn't be split.
+            // Empty when everything splits -- in which case slowDiscovery below is skipped entirely.
+            var fallbackDeclTrees = processedDocuments
+                .Select(static (item, _) => item.fallbackDecl)
+                .Where(static decl => decl is not null)
+                // Match the split-decl path (DeclSources): a fallback component's discovery decl is
+                // markup-free and checksum-suppressed, so a markup-only edit leaves it byte-identical.
+                // Comparing on text keeps a new-but-equal instance from re-parsing here and, through the
+                // Collect below, from re-running slow discovery over the whole augmented assembly.
+                .WithLambdaComparer(static (a, b) => a!.Text.ContentEquals(b!.Text))
                 .Combine(parseOptions)
                 .Select(static (pair, ct) =>
-                {
-                    var (generatedDeclarationText, parseOptions) = pair;
-
-                    return CSharpSyntaxTree.ParseText(generatedDeclarationText.Text, (CSharpParseOptions)parseOptions, cancellationToken: ct);
-                });
-
-            var declCompilation = generatedDeclarationSyntaxTrees
+                    CSharpSyntaxTree.ParseText(pair.Left!.Text, (CSharpParseOptions)pair.Right, cancellationToken: ct))
                 .Collect()
-                .Combine(compilation)
-                .Select(static (pair, _) =>
-                {
-                    return pair.Right.AddSyntaxTrees(pair.Left);
-                });
+                .WithTrackingName("FallbackDeclTrees");
 
-            var tagHelpersFromCompilation = declCompilation
+            // fastDiscovery: tag helpers in the standard compilation, which -- once the split decls are
+            // added via pre-compilation output -- already contains every splittable component. It only runs
+            // when nothing fell back: a fallback type's pre-compilation shell has no base type or members,
+            // so components that inherit from it (or use its nested types) would be discovered wrongly
+            // here. slowDiscovery owns the whole assembly in that case.
+            var fastTagHelpers = compilation
                 .Combine(razorSourceGeneratorOptions)
+                .Combine(fallbackDeclTrees)
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var (compilation, razorSourceGeneratorOptions) = pair;
+                    var ((compilation, razorSourceGeneratorOptions), fallbackTrees) = pair;
+                    if (!fallbackTrees.IsDefaultOrEmpty)
+                    {
+                        return TagHelperCollection.Empty;
+                    }
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
-
                     var collection = tagHelperFeature.GetTagHelpers(compilation.Assembly, cancellationToken);
-
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStop();
 
                     return collection;
                 })
                 .WithLambdaComparer(static (a, b) => a!.SequenceEqual(b!))
+                .WithTrackingName("FastTagHelpers");
+
+            // slowDiscovery: only runs when something fell back. Augment the compilation with the fallback
+            // decl trees and discover over the whole augmented assembly. Discovering just the fallback types
+            // isn't enough: their full declarations can change other components' base classes, inherited
+            // parameters, and nested types, and fastDiscovery's view of those components was built against
+            // the incomplete shells. The cost is re-walking every splittable component whenever anything
+            // falls back, rather than mixing descriptors from the two compilations.
+            var slowTagHelpers = fallbackDeclTrees
+                .Combine(compilation)
+                .Select(static (pair, cancellationToken) =>
+                {
+                    var (fallbackTrees, compilation) = pair;
+                    if (fallbackTrees.IsDefaultOrEmpty)
+                    {
+                        return TagHelperCollection.Empty;
+                    }
+
+                    var augmented = compilation.AddSyntaxTrees(fallbackTrees);
+
+                    var tagHelperFeature = GetStaticTagHelperFeature(augmented);
+                    return tagHelperFeature.GetTagHelpers(augmented.Assembly, cancellationToken);
+                })
+                .WithLambdaComparer(static (a, b) => a!.SequenceEqual(b!))
+                .WithTrackingName("SlowTagHelpers");
+
+            // Exactly one of fastDiscovery and slowDiscovery produces descriptors, depending on whether
+            // anything fell back, so merging them never duplicates or mixes a type's descriptors.
+            var tagHelpersFromCompilation = fastTagHelpers
+                .Combine(slowTagHelpers)
+                .Select(static (pair, _) =>
+                {
+                    var (fast, slow) = pair;
+                    return TagHelperCollection.Merge(fast, slow);
+                })
                 .WithTrackingName("TagHelpersFromCompilation");
 
             var tagHelpersFromReferences = compilation
@@ -246,27 +331,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return TagHelperCollection.Merge(pair.Left, pair.Right);
                 });
 
-            var withOptions = sourceItems
-                .Combine(importFiles.Collect())
-                .WithLambdaComparer((old, @new) => old.Left.Equals(@new.Left) && old.Right.SequenceEqual(@new.Right))
-                .Combine(razorSourceGeneratorOptions);
-
-            var parsedDocuments = withOptions
-                .Select((pair, cancellationToken) =>
-                {
-                    var ((sourceItem, imports), razorSourceGeneratorOptions) = pair;
-
-                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStart(sourceItem.RelativePhysicalPath);
-
-                    var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
-
-                    var document = projectEngine.ProcessInitialParse(sourceItem, cancellationToken);
-
-                    RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
-                    return (projectEngine, sourceItem.RelativePhysicalPath, document);
-                })
-                .WithTrackingName("ParsedDocuments");
-
             // Build a map of which @inherits base types support UTF-8 WriteLiteral.
             var utf8SupportMap = parsedDocuments
                 .Select(static (item, _) =>
@@ -275,14 +339,14 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (codeDocument, InheritsValue: codeDocument.GetInheritsDirectiveValue());
                 })
                 .Where(static item => item.InheritsValue is not null)
-                .Select(static (item, _) => new DefaultUtf8WriteLiteralFeature.InheritsInfo(
+                .Select(static (item, _) => new Utf8SupportMap.InheritsInfo(
                     item.codeDocument.Source.FilePath ?? string.Empty, item.InheritsValue!, item.codeDocument.GetUsingDirectives()))
                 .Collect()
-                .Combine(declCompilation)
+                .Combine(compilation)
                 .Select(static (pair, _) =>
                 {
                     var (inheritsInfos, compilation) = pair;
-                    return DefaultUtf8WriteLiteralFeature.Utf8SupportMap.Create(inheritsInfos, compilation);
+                    return Utf8SupportMap.Create(inheritsInfos, compilation);
                 })
                 .WithTrackingName("Utf8SupportMap");
 
@@ -316,13 +380,43 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (projectEngine, filePath, document);
                 })
                 .WithTrackingName("CheckedAndRewrittenTagHelpers")
+                .Select(static (tuple, cancellationToken) =>
+                {
+                    var (projectEngine, filePath, document) = tuple;
+
+                    RazorSourceGeneratorEventSource.Log.RazorOptimizeStart(filePath);
+                    document = projectEngine.ProcessOptimizationPasses(document, cancellationToken);
+
+                    RazorSourceGeneratorEventSource.Log.RazorOptimizeStop(filePath);
+                    return (projectEngine, filePath, document);
+                })
+                .WithTrackingName("OptimizedDocuments")
+
+                // Run UTF-8 detection on its own so a support-map change doesn't replay the cached optimization passes.
                 .Combine(utf8SupportMap)
-                .Select((pair, cancellationToken) =>
+                .Select(static (pair, cancellationToken) =>
                 {
                     var ((projectEngine, filePath, document), utf8SupportMap) = pair;
 
+                    RazorSourceGeneratorEventSource.Log.RazorComputeUtf8LiteralsStart(filePath);
+                    var useUtf8Literals = projectEngine.ProcessUtf8(document, utf8SupportMap, cancellationToken);
+
+                    RazorSourceGeneratorEventSource.Log.RazorComputeUtf8LiteralsStop(filePath);
+                    return (projectEngine, filePath, document, useUtf8Literals);
+                })
+                .WithLambdaComparer(static (a, b) =>
+                    a.filePath == b.filePath &&
+                    ReferenceEquals(a.document, b.document) &&
+                    a.useUtf8Literals == b.useUtf8Literals)
+                .WithTrackingName("Utf8Documents")
+
+                // Generate the C# for each document.
+                .Select(static (tuple, cancellationToken) =>
+                {
+                    var (projectEngine, filePath, document, _) = tuple;
+
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStart(filePath);
-                    document = projectEngine.ProcessRemaining(document, utf8SupportMap, cancellationToken);
+                    document = projectEngine.ProcessCSharp(document, cancellationToken);
 
                     RazorSourceGeneratorEventSource.Log.RazorCodeGenerateStop(filePath);
                     return (filePath, document);
@@ -334,29 +428,57 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     return (
                         hintName: GetIdentifierFromPath(filePath),
                         codeDocument: document.CodeDocument,
-                        csharpDocument: document.CodeDocument.GetRequiredCSharpDocument());
+                        csharpDocument: document.CodeDocument.GetRequiredCSharpDocument(declarationDocument: false),
+                        declCSharpDocument: document.CodeDocument.GetCSharpDocument(declarationDocument: true));
                 })
                 .WithLambdaComparer(static (a, b) =>
                 {
+                    // If either side has diagnostics on either document, force uncached output.
                     if (a.csharpDocument.Diagnostics.Length > 0 || b.csharpDocument.Diagnostics.Length > 0)
                     {
-                        // if there are any diagnostics, treat the documents as unequal and force RegisterSourceOutput to be called uncached.
+                        return false;
+                    }
+                    if ((a.declCSharpDocument?.Diagnostics.Length ?? 0) > 0 || (b.declCSharpDocument?.Diagnostics.Length ?? 0) > 0)
+                    {
                         return false;
                     }
 
-                    return a.csharpDocument.Text.ContentEquals(b.csharpDocument.Text);
+                    if (!a.csharpDocument.Text.ContentEquals(b.csharpDocument.Text))
+                    {
+                        return false;
+                    }
+
+                    return (a.declCSharpDocument, b.declCSharpDocument) switch
+                    {
+                        (null, null) => true,
+                        (not null, not null) => a.declCSharpDocument.Text.ContentEquals(b.declCSharpDocument.Text),
+                        _ => false,
+                    };
                 })
                 .WithTrackingName("CSharpDocuments");
 
             context.RegisterImplementationSourceOutput(csharpDocuments, static (context, pair) =>
             {
-                var (hintName, _, csharpDocument) = pair;
+                var (hintName, _, csharpDocument, declCSharpDocument) = pair;
 
                 RazorSourceGeneratorEventSource.Log.AddSyntaxTrees(hintName);
                 foreach (var razorDiagnostic in csharpDocument.Diagnostics)
                 {
                     var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
                     context.ReportDiagnostic(csharpDiagnostic);
+                }
+
+                // Decl diagnostics are surfaced here even though the split decl source itself is emitted
+                // via RegisterPreCompilationSourceOutput: the pre-comp output runs before the compilation
+                // exists, but diagnostics want to be reported alongside the compilation, so they flow
+                // through this implementation-time output instead.
+                if (declCSharpDocument is not null)
+                {
+                    foreach (var razorDiagnostic in declCSharpDocument.Diagnostics)
+                    {
+                        var csharpDiagnostic = razorDiagnostic.AsDiagnostic();
+                        context.ReportDiagnostic(csharpDiagnostic);
+                    }
                 }
 
                 context.AddSource(hintName, csharpDocument.Text);
@@ -376,10 +498,15 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 using var filePathToDocument = new PooledDictionaryBuilder<string, (string, RazorCodeDocument)>();
                 using var hintNameToFilePath = new PooledDictionaryBuilder<string, string>();
 
-                foreach (var (hintName, codeDocument, _) in documents)
+                foreach (var (hintName, codeDocument, _, declCSharpDocument) in documents)
                 {
                     filePathToDocument.Add(codeDocument.Source.FilePath!, (hintName, codeDocument));
                     hintNameToFilePath.Add(hintName, codeDocument.Source.FilePath!);
+
+                    if (declCSharpDocument is not null)
+                    {
+                        hintNameToFilePath.Add(GetDeclIdentifierFromHintName(hintName), codeDocument.Source.FilePath!);
+                    }
                 }
 
                 context.AddOutput(nameof(RazorGeneratorResult), new RazorGeneratorResult(tagHelpers, filePathToDocument.ToImmutable(), hintNameToFilePath.ToImmutable()));
@@ -387,3 +514,5 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         }
     }
 }
+
+

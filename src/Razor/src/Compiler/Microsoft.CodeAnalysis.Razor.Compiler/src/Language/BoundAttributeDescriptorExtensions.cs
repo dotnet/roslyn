@@ -24,7 +24,7 @@ public static class BoundAttributeDescriptorExtensions
 
     internal static bool ExpectsStringValue(this BoundAttributeDescriptor attribute, string name)
     {
-        if (attribute.IsStringProperty)
+        if (attribute.IsStringProperty || attribute.AcceptsStringLiteral())
         {
             return true;
         }

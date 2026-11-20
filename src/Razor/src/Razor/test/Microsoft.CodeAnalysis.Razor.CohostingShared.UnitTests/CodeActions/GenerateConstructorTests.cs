@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
@@ -51,6 +51,52 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
             PredefinedCodeFixProviderNames.GenerateConstructor,
             codeActionIndex: 0,
             makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task GenerateConstructor_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+    {
+        var input = """
+            @code
+            {
+                private File1 Create(int value)
+                {
+                    return new [||]File1(value);
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                private File1 Create(int value)
+                {
+                    return new File1(value);
+                }
+
+                private int value;
+
+                public File1(int value) {
+                    this.value = value;
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionIndex: 0,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
     }
 
     [Fact]

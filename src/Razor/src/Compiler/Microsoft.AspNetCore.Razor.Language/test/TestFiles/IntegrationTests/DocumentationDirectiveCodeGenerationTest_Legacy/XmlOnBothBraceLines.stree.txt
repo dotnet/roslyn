@@ -1,0 +1,38 @@
+﻿RazorDocument - [0..99)::99 - [@documentation {<summary>LF    Uses <see cref="System.DateTime"/>.LF    </summary>}LF<p>After</p>LF]
+    MarkupBlock - [0..99)::99
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..85)::85
+            RazorDocumentationDirective - [0..83)::83 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..83)::82
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..83)::69
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..82)::66
+                            CSharpStatementLiteral - [16..82)::66 - [<summary>LF    Uses <see cref="System.DateTime"/>.LF    </summary>] - Gen<Stmt>
+                                Text;[<summary>LF    Uses <see cref="System.DateTime"/>.LF    </summary>];
+                        RazorMetaCode - [82..83)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [83..85)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [85..97)::12
+            MarkupStartTag - [85..88)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [88..93)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [93..97)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [97..99)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

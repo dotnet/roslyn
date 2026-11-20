@@ -108,7 +108,7 @@ enumerable is actually iterated over:
 **IEnumerable**:
 
 ```csharp
-    var squares = Enumerable.Range(1, 10).Select(i => i * 2); 
+    var squares = Enumerable.Range(1, 10).Select(i => i * i); 
 
     // the code inside select is not executed until we iterate the collection
     foreach (var square in squares) { ... }

@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.ComponentWithNullableRenderFragment>()
+[0001] AddComponentParameter(nameof(global::Test.ComponentWithNullableRenderFragment. Header ), (global::Microsoft.AspNetCore.Components.RenderFragment)( Header ))

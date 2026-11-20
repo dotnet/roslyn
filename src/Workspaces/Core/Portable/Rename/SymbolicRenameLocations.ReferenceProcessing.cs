@@ -269,6 +269,12 @@ internal sealed partial class SymbolicRenameLocations
             if (location.IsImplicit)
                 return [];
 
+            var candidateReason = location.CandidateReason;
+            if (candidateReason is CandidateReason.OverloadResolutionFailure)
+            {
+                candidateReason = await GetCandidateReasonForOverloadResolutionFailureAsync(location, cancellationToken).ConfigureAwait(false);
+            }
+
             var results = new List<RenameLocation>();
 
             // If we were originally naming an alias, then we'll only use the location if was
@@ -301,7 +307,7 @@ internal sealed partial class SymbolicRenameLocations
                     if (location.Alias.Name == referencedSymbolName)
                     {
                         results.Add(new RenameLocation(location.Location, location.Document.Id,
-                            candidateReason: location.CandidateReason, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
+                            candidateReason: candidateReason, isRenamableAliasUsage: true, isWrittenTo: location.IsWrittenTo));
 
                         // We also need to add the location of the alias itself
                         var aliasLocation = location.Alias.Locations.Single();
@@ -324,12 +330,29 @@ internal sealed partial class SymbolicRenameLocations
                         location.Location,
                         location.Document.Id,
                         isWrittenTo: location.IsWrittenTo,
-                        candidateReason: location.CandidateReason,
+                        candidateReason: candidateReason,
                         isRenamableAccessor: await IsPropertyAccessorOrAnOverrideAsync(referencedSymbol, solution, cancellationToken).ConfigureAwait(false)));
                 }
             }
 
             return results;
+
+            static async Task<CandidateReason> GetCandidateReasonForOverloadResolutionFailureAsync(
+                ReferenceLocation location, CancellationToken cancellationToken)
+            {
+                var syntaxRoot = await location.Document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var token = syntaxRoot.FindToken(location.Location.SourceSpan.Start, findInsideTrivia: true);
+                var syntaxFacts = location.Document.GetRequiredLanguageService<ISyntaxFactsService>();
+                var bindableParent = syntaxFacts.TryGetBindableParent(token) ?? token.Parent;
+                if (bindableParent is null)
+                    return location.CandidateReason;
+
+                var semanticModel = await location.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var symbolInfo = semanticModel.GetSymbolInfo(bindableParent, cancellationToken);
+                return symbolInfo.CandidateSymbols.Length == 1
+                    ? CandidateReason.None
+                    : location.CandidateReason;
+            }
         }
 
         internal static async Task<(ImmutableArray<RenameLocation> strings, ImmutableArray<RenameLocation> comments)> GetRenamableLocationsInStringsAndCommentsAsync(

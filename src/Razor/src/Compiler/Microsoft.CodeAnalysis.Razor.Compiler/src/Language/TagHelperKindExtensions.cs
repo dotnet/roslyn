@@ -8,7 +8,7 @@ public static class TagHelperKindExtensions
     extension(TagHelperKind kind)
     {
         public bool IsAnyComponentKind
-            => kind is >= TagHelperKind.Component and <= TagHelperKind.RenderMode;
+            => kind is >= TagHelperKind.Component and <= TagHelperKind.AssetPath;
 
         public bool IsComponentOrChildContentKind
             => kind is TagHelperKind.Component or TagHelperKind.ChildContent;

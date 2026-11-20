@@ -8,29 +8,59 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
 public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
-    private IRazorEditService? _razorEditService;
+    private RazorEditService? _razorEditService;
 
     protected override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
-        _razorEditService = OOPExportProvider.GetExportedValue<IRazorEditService>();
+        _razorEditService = Assert.IsType<RazorEditService>(OOPExportProvider.GetExportedValue<IRazorEditService>());
     }
+
+    [Fact]
+    public Task UsingAliasAdded_SameNameDifferentTarget_KeepsBoth()
+        // Conflicting aliases can occur while editing; mapping must retain both rather than stall.
+        => TestAsync(
+            csharpSource: """
+                {|mapUsing:using Goo = System.String;|}
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                {|mapUsing:@using Goo = System.String|}
+
+                <div></div>
+                """,
+            newCSharpSource: """
+                using Goo = System.String;
+                using Goo = System.Text.StringBuilder;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @using Goo = System.String
+                @using Goo = System.Text.StringBuilder
+
+                <div></div>
+                """);
 
     [Fact]
     public Task SimpleEdits_Apply()
@@ -516,6 +546,186 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """);
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/13202")]
+    public Task GeneratedBuildRenderTree_SignatureChange_IsNotAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                        if ({|map1:awa|})
+                        {
+                        }
+                    }
+                }
+                """,
+            razorSource: """
+                @if({|map1:awa|})
+                {
+                }
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override async Task BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                        if (await)
+                        {
+                        }
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                @if(await)
+                {
+                }
+                """);
+
+    [Fact]
+    public Task UserBuildRenderTreeOverload_IsAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                    }
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                    }
+
+                    private void BuildRenderTree(int value)
+                    {
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                    private void BuildRenderTree(int value)
+                    {
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task Component_UserExecuteAsync_IsAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                    }
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    protected override void BuildRenderTree(global::Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder __builder)
+                    {
+                    }
+
+                    private void ExecuteAsync()
+                    {
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                    private void ExecuteAsync()
+                    {
+                    }
+                }
+                """);
+
+    [Fact]
+    public Task Legacy_UserBuildRenderTree_IsAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyPage : RazorPage
+                {
+                    public override async Task ExecuteAsync()
+                    {
+                    }
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyPage : RazorPage
+                {
+                    public override async Task ExecuteAsync()
+                    {
+                    }
+
+                    private void BuildRenderTree(int __builder)
+                    {
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @functions {
+                    private void BuildRenderTree(int __builder)
+                    {
+                    }
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task GeneratedExecuteAsync_SignatureChange_IsNotAdded()
+        => TestAsync(
+            csharpSource: """
+                class MyPage : RazorPage
+                {
+                    public override void ExecuteAsync()
+                    {
+                        if ({|map1:awa|})
+                        {
+                        }
+                    }
+                }
+                """,
+            razorSource: """
+                @if({|map1:awa|})
+                {
+                }
+                """,
+            newCSharpSource: """
+                class MyPage : RazorPage
+                {
+                    public override async Task ExecuteAsync()
+                    {
+                        if (await)
+                        {
+                        }
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                @if(await)
+                {
+                }
+                """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
     public Task NewMethod_ExpressionBodied()
       => TestAsync(
           csharpSource: """
@@ -581,6 +791,131 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 }
                 """);
     }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task NewMethod_NoCodeBlock_EditorConfig_BraceOnNextLine()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath(".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public async Task NewMethod_NoCodeBlock_EditorConfig_BraceOnSameLine()
+    {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
+        await TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath(".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86303")]
+    public Task NewMethod_NoCodeBlock_EditorConfig_IndentSize()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                  private int UnmappedMethod()
+                  {
+                    return 5;
+                  }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                  private int UnmappedMethod()
+                  {
+                    return 5;
+                  }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath(".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    indent_size = 2
+                    """)
+            ]);
 
     [Fact]
     public Task NewMethod_ExpressionBodied_NoCodeBlock()
@@ -1788,6 +2123,340 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """);
 
     [Fact]
+    public Task UsingAdded_NamespaceOnlyWithoutTrailingNewline_StartsOnNewLine()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: "@namespace MyNamespace",
+            newCSharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @namespace MyNamespace
+                @using System
+
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_NamespaceOnlyWithoutTrailingNewline_PreservesBothInsertions()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: "@namespace MyNamespace",
+            newCSharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @namespace MyNamespace
+                @using System
+
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_EmptyDocument_PreservesBothInsertions()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: "",
+            newCSharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_NamespaceOnlyWithTrailingNewline_PreservesBothInsertions()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @namespace MyNamespace
+
+                """,
+            newCSharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @namespace MyNamespace
+                @using System
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_AtEndOfFileWithTrailingNewline_PreservesMember()
+        => TestAsync(
+            csharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using System
+
+                """,
+            newCSharpSource: """
+                using System;
+                using System.Text;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @using System.Text
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_AtEndOfFileWithoutTrailingNewline_PreservesMember()
+        => TestAsync(
+            csharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using System
+                """,
+            newCSharpSource: """
+                using System;
+                using System.Text;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @using System.Text
+
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
+    public Task UsingAliasAndNamespaceRenamed_HandledCorrectly()
+        => TestAsync(
+            csharpSource: """
+                using My.Foo;
+                using Alias = {|target:My|}.Foo.Component;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using My.Foo
+                @using Alias = {|target:My|}.Foo.Component
+
+                <div></div>
+                """,
+            newCSharpSource: """
+                using Your.Foo;
+                using Alias = Your.Foo.Component;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @using Your.Foo
+                @using Alias = Your.Foo.Component
+
+                <div></div>
+                """);
+
+    [Fact]
+    public Task UsingAliasAndNamespaceRenamed_MultipleUsingGroups_PreservesLaterDirectives()
+        => TestAsync(
+            csharpSource: """
+                using My.Foo;
+                using Alias = {|target:My|}.Foo.Component;
+                using System.Text;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using My.Foo
+
+                <p></p>
+
+                @using Alias = {|target:My|}.Foo.Component
+                @using System.Text
+
+                <div></div>
+                """,
+            newCSharpSource: """
+                using Your.Foo;
+                using Alias = Your.Foo.Component;
+                using System.Text;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @using Your.Foo
+
+                <p></p>
+
+                @using Alias = Your.Foo.Component
+                @using System.Text
+
+                <div></div>
+                """);
+
+    [Fact]
+    public Task UsingAliasAndNamespaceRenamed_MultipleUsingGroups_NamespaceInLaterGroup()
+        => TestAsync(
+            csharpSource: """
+                using Alias = {|target:My|}.Foo.Component;
+                using My.Foo;
+                using System.Text;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using Alias = {|target:My|}.Foo.Component
+
+                <p></p>
+
+                @using My.Foo
+
+                <div></div>
+
+                @using System.Text
+                """,
+            newCSharpSource: """
+                using Alias = Your.Foo.Component;
+                using Your.Foo;
+                using System.Text;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @using Your.Foo
+                @using Alias = Your.Foo.Component
+
+                <p></p>
+
+
+                <div></div>
+
+                @using System.Text
+                """);
+
+    [Fact]
+    public Task NamespacesRenamed_MultipleUsingGroups_PreservesOtherDirectives()
+        => TestAsync(
+            csharpSource: """
+                using My.Foo;
+                using System.Text;
+                using My.Bar;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using My.Foo
+
+                <p></p>
+
+                @using System.Text
+                @using My.Bar
+
+                <div></div>
+                """,
+            newCSharpSource: """
+                using Your.Foo;
+                using System.Text;
+                using Your.Bar;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @using Your.Bar
+                @using Your.Foo
+
+                <p></p>
+
+                @using System.Text
+
+                <div></div>
+                """);
+
+    [Fact]
+    public Task UsingAddedWithAliasTargetRenamed_HandledCorrectly()
+        => TestAsync(
+            csharpSource: """
+                using Alias = {|target:My|}.Foo.Component;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using Alias = {|target:My|}.Foo.Component
+
+                <div></div>
+                """,
+            newCSharpSource: """
+                using System;
+                using Alias = Your.Foo.Component;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @using Alias = Your.Foo.Component
+
+                <div></div>
+                """);
+
+    [Fact]
     public Task UsingStaticRemoved_HandledCorrectly()
         => TestAsync(
             csharpSource: """
@@ -1974,15 +2643,19 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         TestCode csharpSource,
         TestCode razorSource,
         string newCSharpSource,
-        string expectedRazorSource)
+        string expectedRazorSource,
+        RazorFileKind? fileKind = null,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
         var csharpSpans = csharpSource.NamedSpans;
         var razorSpans = razorSource.NamedSpans;
 
         AssertEx.SetEqual(csharpSpans.Keys.OrderAsArray(), razorSpans.Keys.OrderAsArray());
 
-        var csharpPath = @"C:\path\to\document.razor.g.cs";
-        var razorPath = @"C:\path\to\document.razor";
+        var razorPath = fileKind == RazorFileKind.Legacy
+            ? FilePath("document.cshtml")
+            : FilePath("document.razor");
+        var csharpPath = razorPath + ".g.cs";
         var csharpSourceText = SourceText.From(csharpSource.Text);
         var razorSourceText = SourceText.From(razorSource.Text);
 
@@ -2016,7 +2689,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         var changes = GetChanges(csharpSource.Text, newCSharpSource);
         Assert.NotEmpty(changes);
 
-        var document = CreateProjectAndRazorDocument(razorSource.Text, documentFilePath: razorPath);
+        var document = CreateProjectAndRazorDocument(razorSource.Text, fileKind, documentFilePath: razorPath, additionalFiles: additionalFiles);
 
         var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
         var codeDocument = await snapshotManager.GetSnapshot(document).GetGeneratedOutputAsync(DisposalToken);
@@ -2026,17 +2699,22 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
             csharpSource.Text,
             sourceMappings.OrderByAsArray(s => s.GeneratedSpan.AbsoluteIndex));
 
-        codeDocument = codeDocument.WithCSharpDocument(csharpDocument);
-        var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
+        codeDocument = codeDocument.WithImplCSharpDocument(csharpDocument);
+        var originalCSharpSyntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.Text, cancellationToken: DisposalToken);
 
-        var responseTextChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
-            changes,
-            snapshot,
+        var responseTextChanges = await _razorEditService.AssumeNotNull().GetTestAccessor().MapCSharpEditsAsync(
+            document,
+            changes.SelectAsArray(static c => c.ToRazorTextChange()),
+            codeDocument,
+            originalCSharpSyntaxTree,
+            declarationDocument: false,
+            includeCSharpLanguageFeatureEdits: true,
+            directlyMappedEditFilter: null,
             CancellationToken.None);
 
         Assert.NotEmpty(responseTextChanges);
 
-        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges);
+        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges.SelectAsArray(static c => c.ToTextChange()));
         AssertEx.EqualOrDiff(expectedRazorSource, newRazorSourceText.ToString());
     }
 

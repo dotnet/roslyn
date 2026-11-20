@@ -94,15 +94,6 @@ using Microsoft.AspNetCore.Components.Web
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (10,8)-(12,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public RenderFragment ChildContent { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

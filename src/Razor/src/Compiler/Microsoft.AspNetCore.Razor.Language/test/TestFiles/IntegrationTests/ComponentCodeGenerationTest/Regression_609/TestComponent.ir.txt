@@ -24,5 +24,3 @@
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
                             IntermediateToken -  - CSharp - __value => UserIsActive = __value
                             IntermediateToken -  - CSharp - , UserIsActive)
-            CSharpCode - (73:2,7 [88] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (73:2,7 [88] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string UserName { get; set; }\n    public bool UserIsActive { get; set; }\n

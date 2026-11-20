@@ -60,7 +60,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
             </Project>
             """;
 
-        _tempDirectory = Path.Combine(Path.GetTempPath(), "roslyn-canonical-misc", Guid.NewGuid().ToString());
+        _tempDirectory = Path.Combine(TempPathUtilities.GetTempPath(), "roslyn-canonical-misc", Guid.NewGuid().ToString());
 
         Directory.CreateDirectory(_tempDirectory);
         var virtualProjectPath = Path.Combine(_tempDirectory, "Canonical.csproj");
@@ -74,7 +74,7 @@ internal sealed class CanonicalMiscellaneousFilesProjectProvider : IDisposable
             binaryLogPathProvider: null,
             loggerFactory: _loggerFactory);
         var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, virtualProjectPath, dotnetPath: null, cancellationToken);
-        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, virtualProjectXml, languageName: LanguageNames.CSharp, cancellationToken);
+        var loadedFile = await buildHost.LoadProjectAsync(virtualProjectPath, physicalFilePath: null, virtualProjectXml, languageName: LanguageNames.CSharp, globalProperties: null, cancellationToken);
         return await loadedFile.GetProjectFileInfosAsync(cancellationToken);
     }
 

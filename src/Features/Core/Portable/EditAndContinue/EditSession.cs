@@ -64,13 +64,13 @@ internal sealed class EditSession
 
     /// <summary>
     /// Gets the capabilities of the runtime with respect to applying code changes.
-    /// Retrieved lazily from <see cref="DebuggingSession.DebuggerService"/> since they are only needed when changes are detected in the solution.
+    /// Retrieved lazily from project system since they are only needed when changes are detected in the solution.
     /// </summary>
     internal readonly AsyncLazy<EditAndContinueCapabilities> Capabilities;
 
     /// <summary>
     /// Map of base active statements.
-    /// Calculated lazily based on info retrieved from <see cref="DebuggingSession.DebuggerService"/> since it is only needed when changes are detected in the solution.
+    /// Calculated lazily based on info retrieved from project system since it is only needed when changes are detected in the solution.
     /// </summary>
     internal readonly AsyncLazy<ActiveStatementsMap> BaseActiveStatements;
 
@@ -85,8 +85,11 @@ internal sealed class EditSession
     /// </summary>
     internal readonly bool InBreakState;
 
+    internal readonly IManagedHotReloadState DebuggerService;
+
     internal EditSession(
         DebuggingSession debuggingSession,
+        IManagedHotReloadState debuggerService,
         ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions,
         EditSessionTelemetry telemetry,
         AsyncLazy<ActiveStatementsMap>? lazyActiveStatementMap,
@@ -95,6 +98,7 @@ internal sealed class EditSession
         DebuggingSession = debuggingSession;
         NonRemappableRegions = nonRemappableRegions;
         Telemetry = telemetry;
+        DebuggerService = debuggerService;
         InBreakState = inBreakState;
 
         telemetry.SetBreakState(inBreakState);
@@ -154,7 +158,7 @@ internal sealed class EditSession
     /// <returns>Non-null diagnostic id if the module blocks EnC operation.</returns>
     public async Task<string?> ReportModuleDiagnosticsAsync(Guid mvid, Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
-        var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+        var availability = await DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
         if (availability.Status is ManagedHotReloadAvailabilityStatus.ModuleNotLoaded or ManagedHotReloadAvailabilityStatus.Available)
         {
             return null;
@@ -228,7 +232,7 @@ internal sealed class EditSession
     {
         try
         {
-            var capabilities = await DebuggingSession.DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+            var capabilities = await DebuggerService.GetUpdateCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
             return EditAndContinueCapabilitiesParser.Parse(capabilities);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -242,7 +246,7 @@ internal sealed class EditSession
         try
         {
             // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
-            var debugInfos = await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+            var debugInfos = await DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
             return ActiveStatementsMap.Create(debugInfos, NonRemappableRegions);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -340,7 +344,11 @@ internal sealed class EditSession
             return false;
         }
 
-        if (AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis && HasProjectLevelDifferences(oldProject, newProject, differences) && differences == null)
+        // Check for project differences even when AbstractEditAndContinueAnalyzer.EnableProjectLevelAnalysis is false.
+        // A project-level change may be used by a source generator to produce different outputs.
+        // We assume that a source generator will not produce different outputs if the project state
+        // and content of all input documents are the same.
+        if (HasProjectLevelDifferences(oldProject, newProject, differences) && differences == null)
         {
             return true;
         }
@@ -494,7 +502,14 @@ internal sealed class EditSession
             .WithXmlReferenceResolver(newOptions.XmlReferenceResolver)
             .Equals(newOptions);
 
-    internal static async Task GetProjectDifferencesAsync(TraceLog log, Project? oldProject, Project newProject, ProjectDifferences documentDifferences, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
+    internal static async Task GetProjectDifferencesAsync(
+        TraceLog log,
+        Project? oldProject,
+        Project newProject,
+        ProjectDifferences documentDifferences,
+        ArrayBuilder<Diagnostic> diagnostics,
+        EditAndContinueDiagnosticLevel diagnosticLevel,
+        CancellationToken cancellationToken)
     {
         documentDifferences.Clear();
 
@@ -503,12 +518,16 @@ internal sealed class EditSession
             return;
         }
 
-        if (!await HasDifferencesAsync(oldProject, newProject, documentDifferences, cancellationToken).ConfigureAwait(false))
+        var hasNonGeneratedDifferences = await HasDifferencesAsync(oldProject, newProject, documentDifferences, cancellationToken).ConfigureAwait(false);
+        if (!hasNonGeneratedDifferences && diagnosticLevel == EditAndContinueDiagnosticLevel.None)
         {
+            // When not running in diagnostic mode we expect source generators to be deterministic
+            // and not produce any changes if the project state and content of all input documents are the same.
+            // Therefore, we can avoid computing the source generated document states.
             return;
         }
 
-        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, oldProject, diagnostics, cancellationToken).ConfigureAwait(false);
+        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, oldProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
         var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(log, newProject, diagnostics, cancellationToken).ConfigureAwait(false);
@@ -545,6 +564,25 @@ internal sealed class EditSession
             }
 
             documentDifferences.DeletedDocuments.Add(oldProject.GetOrCreateSourceGeneratedDocument(oldState));
+        }
+
+        if (!hasNonGeneratedDifferences)
+        {
+            Contract.ThrowIfTrue(diagnosticLevel == EditAndContinueDiagnosticLevel.None);
+
+            foreach (var newDocument in documentDifferences.ChangedOrAddedDocuments)
+            {
+                log.Write($"Source-generated document '{newDocument.FilePath}' changed even though there are no differences in the project. The generator is faulty.", LogMessageSeverity.Warning);
+            }
+
+            foreach (var document in documentDifferences.DeletedDocuments)
+            {
+                log.Write($"Source-generated document '{document.FilePath}' has been deleted even though there are no differences in the project. The generator is faulty.", LogMessageSeverity.Warning);
+            }
+
+            // Keep the changed documents in the result.
+            // This modifies the behavior compared to non-diagnostic mode,
+            // but it allows to work around the issue with the source generator.
         }
     }
 
@@ -1156,7 +1194,7 @@ internal sealed class EditSession
                         continue;
                     }
 
-                    await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, cancellationToken).ConfigureAwait(false);
+                    await GetProjectDifferencesAsync(Log, oldProject, newProject, projectDifferences, projectDiagnostics, DebuggingSession.DiagnosticLevel, cancellationToken).ConfigureAwait(false);
                     projectDifferences.Log(Log, newProject);
 
                     if (projectDifferences.IsEmpty)
@@ -1597,7 +1635,11 @@ internal sealed class EditSession
 
         bool LogException(Exception e)
         {
-            Log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
+            if (e is not OperationCanceledException)
+            {
+                Log.Write($"Exception while emitting update: {e}", LogMessageSeverity.Error);
+            }
+
             return true;
         }
     }

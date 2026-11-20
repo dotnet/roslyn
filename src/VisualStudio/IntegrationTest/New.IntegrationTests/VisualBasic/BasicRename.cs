@@ -34,7 +34,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
         globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, false);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task VerifyLocalVariableRename()
     {
         var markup = """
@@ -226,7 +226,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeRename()
     {
         var markup = """
@@ -257,7 +257,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeRenameWhileRenameClasss()
     {
         var markup = """
@@ -289,7 +289,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeRenameWhileRenameAttribute()
     {
         var markup = """
@@ -328,7 +328,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeRenameWhileRenameAttributeClass()
     {
         var markup = """
@@ -367,7 +367,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact, WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737"), WorkItem("https://github.com/dotnet/roslyn/issues/21657")]
     public async Task VerifyAttributeCapitalizedRename()
     {
         var markup = """

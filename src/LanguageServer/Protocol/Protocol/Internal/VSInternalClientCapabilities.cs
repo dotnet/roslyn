@@ -57,14 +57,4 @@ internal sealed class VSInternalClientCapabilities : ClientCapabilities
         set;
     }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether the client provides support for diagnostic pull requests.
-    /// </summary>
-    [JsonPropertyName("_vs_supportsDiagnosticRequests")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool SupportsDiagnosticRequests
-    {
-        get;
-        set;
-    }
 }

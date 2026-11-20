@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.Counter>()
+[0001] AddContent("This text is rendered")

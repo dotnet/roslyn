@@ -13,10 +13,12 @@ internal static class SettingsNames
     public const string ColorBackground = UnifiedCollection + ".colorBackground";
     public const string CodeBlockBraceOnNextLine = UnifiedCollection + ".codeBlockBraceOnNextLine";
     public const string AttributeIndentStyle = UnifiedCollection + ".attributeIndentStyle";
+    public const string IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = UnifiedCollection + ".ignoreIndentationInScriptOrStyleBlocksWithComplexRazor";
     public const string CommitElementsWithSpace = UnifiedCollection + ".commitElementsWithSpace";
     public const string Snippets = UnifiedCollection + ".snippets";
     public const string LogLevel = UnifiedCollection + ".logLevel";
     public const string FormatOnPaste = UnifiedCollection + ".formatOnPaste";
+    public const string ShowAllCSharpCodeActions = UnifiedCollection + ".showAllCSharpCodeActions";
 
     public static readonly string[] AllSettings =
     [
@@ -26,9 +28,11 @@ internal static class SettingsNames
         ColorBackground,
         CodeBlockBraceOnNextLine,
         AttributeIndentStyle,
+        IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
         CommitElementsWithSpace,
         Snippets,
         LogLevel,
         FormatOnPaste,
+        ShowAllCSharpCodeActions,
     ];
 }

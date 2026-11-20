@@ -212,6 +212,9 @@ namespace Microsoft.CodeAnalysis.Rebuild
             }
 
             int uncompressedSize = BitConverter.ToInt32(bytes, 0);
+            // Preserve the original blob because deflate output can vary with the runtime and write boundaries,
+            // which would change deterministic PDB and PE identifiers even when the source text is identical.
+            var embeddedTextBlob = bytes.ToImmutableArray();
             var stream = new MemoryStream(bytes, sizeof(int), bytes.Length - sizeof(int));
 
             byte[]? compressedHash = null;
@@ -238,7 +241,11 @@ namespace Microsoft.CodeAnalysis.Rebuild
             using (stream)
             {
                 // todo: IVT and EncodedStringText.Create?
-                var embeddedText = SourceText.From(stream, encoding: sourceTextInfo.SourceTextEncoding, checksumAlgorithm: sourceTextInfo.HashAlgorithm, canBeEmbedded: true);
+                var embeddedText = SourceText.From(
+                    stream,
+                    sourceTextInfo.SourceTextEncoding,
+                    sourceTextInfo.HashAlgorithm,
+                    embeddedTextBlob);
                 return new EmbeddedSourceTextInfo(sourceTextInfo, embeddedText, compressedHash?.ToImmutableArray() ?? ImmutableArray<byte>.Empty);
             }
         }

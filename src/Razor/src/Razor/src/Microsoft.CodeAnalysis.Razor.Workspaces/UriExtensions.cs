@@ -12,16 +12,17 @@ namespace Microsoft.CodeAnalysis.Razor;
 internal static class UriExtensions
 {
     public static Uri GetRequiredSystemUri(this DocumentUri uri)
-        => GetSystemUri(uri).AssumeNotNull();
-
-    public static Uri? GetSystemUri(this DocumentUri uri)
-        => uri.ParsedUri;
+#pragma warning disable CS0618 // Type or member is obsolete - Tracking https://github.com/dotnet/roslyn/issues/84785
+        => uri.ParsedUri.AssumeNotNull();
+#pragma warning restore CS0618 // Type or member is obsolete
 
     public static Uri CreateSystemUri(this TextDocument document)
         => document.GetURI().GetRequiredSystemUri();
 
     public static DocumentUri CreateDocumentUriFromSystemUri(this Uri uri)
+#pragma warning disable CS0618 // Type or member is obsolete - Tracking https://github.com/dotnet/roslyn/issues/84785
         => new DocumentUri(uri);
+#pragma warning restore CS0618 // Type or member is obsolete
 
     public static string GetDocumentFilePathFromUri(this Uri uri)
     {

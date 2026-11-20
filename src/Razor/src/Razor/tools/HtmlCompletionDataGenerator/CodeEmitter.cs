@@ -118,7 +118,7 @@ internal static class CodeEmitter
 
         sb.AppendLine("using System.Collections.Immutable;");
         sb.AppendLine();
-        sb.AppendLine("namespace Microsoft.CodeAnalysis.Razor.Completion.Html;");
+        sb.AppendLine("namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;");
         sb.AppendLine();
     }
 
@@ -988,7 +988,7 @@ internal static class CodeEmitter
         sb.AppendLine();
         sb.AppendLine("using System.Resources;");
         sb.AppendLine();
-        sb.AppendLine("namespace Microsoft.CodeAnalysis.Razor.Completion.Html;");
+        sb.AppendLine("namespace Microsoft.CodeAnalysis.Remote.Razor.Completion.Html;");
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
         sb.AppendLine("/// Provides localized HTML element and attribute descriptions from embedded resources.");
@@ -996,7 +996,7 @@ internal static class CodeEmitter
         sb.AppendLine("internal static class HtmlDescriptions");
         sb.AppendLine("{");
         sb.AppendLine("    private static readonly ResourceManager s_resourceManager =");
-        sb.AppendLine("        new(\"Microsoft.CodeAnalysis.Razor.Workspaces.Resources.HtmlDescriptions\",");
+        sb.AppendLine("        new(\"Microsoft.CodeAnalysis.Remote.Razor.Resources.HtmlDescriptions\",");
         sb.AppendLine("            typeof(HtmlDescriptions).Assembly);");
         sb.AppendLine();
         sb.AppendLine("    internal static string GetElementDescription(string elementName)");

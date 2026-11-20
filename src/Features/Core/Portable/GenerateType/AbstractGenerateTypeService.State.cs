@@ -338,8 +338,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (TypeToGenerateInOpt != null)
             {
                 var codeGenerationContext = new CodeGenerationContext(
-                    contextLocation: SimpleName.GetLocation(),
-                    allowGenerationIntoHiddenCode: static document => document.IsRazorSourceGeneratedDocument());
+                    contextLocation: SimpleName.GetLocation());
 
                 if (!CodeGenerator.CanAdd(document.Project.Solution, TypeToGenerateInOpt, codeGenerationContext, cancellationToken))
                 {

@@ -13,12 +13,3 @@ Source Location: (83:1,53 [12] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1261:40,0 [12] )
 |x.ToString()|
 
-Source Location: (109:2,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public string ParentValue { get; set; } = "hi";
-|
-Generated Location: (1697:52,0 [55] )
-|
-    public string ParentValue { get; set; } = "hi";
-|
-

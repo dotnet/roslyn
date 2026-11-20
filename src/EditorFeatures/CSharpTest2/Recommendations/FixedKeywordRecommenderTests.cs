@@ -51,9 +51,9 @@ public sealed class FixedKeywordRecommenderTests : KeywordRecommenderTests
         => VerifyAbsenceAsync(
 @"global using Goo = $$");
 
-    [Fact]
-    public Task TestNotInsideEmptyMethod()
-        => VerifyAbsenceAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83538")]
+    public Task TestInsideEmptyMethod()
+        => VerifyKeywordAsync(AddInsideMethod(
 @"$$"));
 
     [Fact]
@@ -65,7 +65,7 @@ public sealed class FixedKeywordRecommenderTests : KeywordRecommenderTests
             """));
 
     [Fact]
-    public Task TestAfterFixed()
+    public Task TestAfterFixedInUnsafeContext()
         => VerifyKeywordAsync(AddInsideMethod(
             """
             unsafe {
@@ -74,9 +74,9 @@ public sealed class FixedKeywordRecommenderTests : KeywordRecommenderTests
                 $$
             """));
 
-    [Fact]
-    public Task TestNotAfterFixed()
-        => VerifyAbsenceAsync(AddInsideMethod(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83538")]
+    public Task TestAfterFixedWithoutUnsafeContext()
+        => VerifyKeywordAsync(AddInsideMethod(
             """
             fixed (int* = bar) {
               }
@@ -91,19 +91,27 @@ public sealed class FixedKeywordRecommenderTests : KeywordRecommenderTests
                 $$
             """);
 
-    [Fact]
-    public Task TestNotInStruct()
-        => VerifyAbsenceAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83538")]
+    public Task TestInOrdinaryStruct()
+        => VerifyKeywordAsync(
             """
             struct S {
                 $$
             """);
 
     [Fact]
-    public Task TestNotInRecordStruct()
+    public Task TestNotInOrdinaryRecordStruct()
         => VerifyAbsenceAsync(
             """
             record struct S {
+                $$
+            """);
+
+    [Fact]
+    public Task TestNotInUnsafeRecordStruct()
+        => VerifyAbsenceAsync(
+            """
+            unsafe record struct S {
                 $$
             """);
 
@@ -157,9 +165,11 @@ public sealed class FixedKeywordRecommenderTests : KeywordRecommenderTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52296")]
-    public Task TestNotInOrdinaryLocalFunction()
-        => VerifyAbsenceAsync(
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/52296")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/83538")]
+    public Task TestInOrdinaryLocalFunction()
+        => VerifyKeywordAsync(
             """
             public class C
             {

@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.ComponentWithEditorRequiredParameters>()
+[0001] AddComponentParameter(nameof(global::Test.ComponentWithEditorRequiredParameters. Property1 ), "Some Value")

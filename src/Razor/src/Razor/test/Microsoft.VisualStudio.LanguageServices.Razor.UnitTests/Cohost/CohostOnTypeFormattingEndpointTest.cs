@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
@@ -15,6 +16,7 @@ using Microsoft.CodeAnalysis.Razor.Remote;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using WorkItemAttribute = Microsoft.AspNetCore.Razor.Test.Common.WorkItemAttribute;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -22,6 +24,29 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormattingFixture, ITestOutputHelper testOutputHelper)
     : CohostEndpointTestBase(testOutputHelper)
 {
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirectiveDoesNotFormatXmlAsCode()
+    {
+        await VerifyOnTypeFormattingAsync(
+            input: """
+                    @documentation {
+                        <example><code>
+                    if(true){}$$
+                        </code></example>
+                    }
+                    """,
+            expected: """
+                    @documentation {
+                        <example><code>
+                    if(true){}
+                        </code></example>
+                    }
+                    """,
+            triggerCharacter: '}',
+            fileKind: RazorFileKind.Component);
+    }
+
     [Fact]
     public async Task InvalidTrigger()
     {
@@ -74,6 +99,62 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharp_UsesEditorConfig_Razor()
+    {
+        await VerifyOnTypeFormattingAsync(
+            input: """
+                    @{
+                     if(true){}$$
+                    }
+                    """,
+            expected: """
+                    @{
+                        if(true) { }
+                    }
+                    """,
+            triggerCharacter: '}',
+            fileKind: RazorFileKind.Component,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_after_keywords_in_control_flow_statements = false
+                    """)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharp_UsesEditorConfig_Cshtml()
+    {
+        await VerifyOnTypeFormattingAsync(
+            input: """
+                    @{
+                     if(true){}$$
+                    }
+                    """,
+            expected: """
+                    @{
+                        if(true) { }
+                    }
+                    """,
+            triggerCharacter: '}',
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_space_after_keywords_in_control_flow_statements = false
+                    """)
+            ]);
+    }
+
+    [Fact]
     public async Task FormatsSimpleHtmlTag_OnType()
     {
         await VerifyOnTypeFormattingAsync(
@@ -120,9 +201,15 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
             triggerCharacter: '}');
     }
 
-    private async Task VerifyOnTypeFormattingAsync(TestCode input, string expected, char triggerCharacter, bool html = false)
+    private async Task VerifyOnTypeFormattingAsync(
+        TestCode input,
+        string expected,
+        char triggerCharacter,
+        bool html = false,
+        RazorFileKind? fileKind = null,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(input.Position);
 

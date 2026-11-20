@@ -13,8 +13,6 @@
                         IntermediateToken - (51:2,19 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildItem
                     ComponentAttribute - (71:2,39 [12] x:\dir\subdir\Test\TestComponent.cshtml) - MyEvent - MyEvent - AttributeStructure.DoubleQuotes
                         IntermediateToken - (71:2,39 [12] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - MyChildEvent
-            CSharpCode - (97:4,1 [138] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (97:4,1 [138] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n        [Parameter] public TChild ChildItem { get; set; }\n        [Parameter] public EventCallback<TChild> MyChildEvent { get; set; }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

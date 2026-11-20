@@ -10,5 +10,3 @@
                 Component - (0:0,0 [56] x:\dir\subdir\Test\TestComponent.cshtml) - ComponentWithNullableRenderFragment
                     ComponentAttribute - (45:0,45 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Header - Header - AttributeStructure.DoubleQuotes
                         LazyIntermediateToken - (46:0,46 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Header
-            CSharpCode - (65:1,7 [59] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (65:1,7 [59] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n	[Parameter] public RenderFragment Header { get; set; }\n

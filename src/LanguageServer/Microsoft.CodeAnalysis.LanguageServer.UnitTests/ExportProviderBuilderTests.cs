@@ -56,6 +56,13 @@ public sealed class ExportProviderBuilderTests(ITestOutputHelper testOutputHelpe
         AssertCachedCompositionCountEquals(expectedCount: 2);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/85135")]
+    public void AspNetCoreCompatibilityAssemblyIsDeployed()
+    {
+        var assemblyPath = Path.Combine(TestPaths.GetLanguageServerDirectory(), "Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll");
+        Assert.True(File.Exists(assemblyPath), $"Expected compatibility assembly at '{assemblyPath}'.");
+    }
+
     [Theory, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/1686")]
     // gen-delims
     [InlineData("#"),

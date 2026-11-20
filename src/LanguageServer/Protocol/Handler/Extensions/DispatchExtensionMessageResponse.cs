@@ -8,7 +8,7 @@ using System.Text.Json.Serialization;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
 /// <summary>
-/// Return type for the workspace/_vs_dispatchExtensionMessage and textDocument/_vs_dipatchExtensionMessage request.
+/// Return type for the workspace/_vs_dispatchExtensionMessage and textDocument/_vs_dispatchExtensionMessage request.
 /// </summary>
 /// <param name="Response">Json response returned by the extension message handler. Can be <see langword="null"/> if the
 /// extension was unloaded concurrently with the response being issued, or if the extension threw an exception while

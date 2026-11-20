@@ -4,7 +4,6 @@
 using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.LanguageServer.Protocol;
@@ -203,16 +202,6 @@ internal static class LspFactory
 
     public static TextEdit CreateTextEdit((int line, int character) position, string newText)
         => CreateTextEdit(CreateZeroWidthRange(position), newText);
-
-    public static DocumentUri CreateFilePathUri(string filePath, LanguageServerFeatureOptions options)
-    {
-        // VS Code in Windows expects path to start with '/'
-        var updateFilePath = options.ReturnCodeActionAndRenamePathsWithPrefixedSlash && !filePath.StartsWith('/')
-            ? $"/{filePath}"
-            : filePath;
-
-        return CreateFilePathUri(updateFilePath);
-    }
 
     public static DocumentUri CreateFilePathUri(string filePath)
     {

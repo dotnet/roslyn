@@ -1,0 +1,10 @@
+﻿Source Location: (11:0,11 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|Test.Nested|
+Generated Location: (146:5,0 [11] )
+|Test.Nested|
+
+Source Location: (25:1,1 [18] x:\dir\subdir\Test\TestComponent.cshtml)
+|using OtherLibrary|
+Generated Location: (513:19,0 [18] )
+|using OtherLibrary|
+

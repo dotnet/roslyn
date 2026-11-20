@@ -9,4 +9,5 @@ namespace Microsoft.CodeAnalysis.Razor.Protocol;
 internal record DelegatedCompletionResolutionContext(
     [property: JsonPropertyName("projectedKind")] RazorLanguageKind ProjectedKind,
     [property: JsonPropertyName("originalCompletionListData")] object? OriginalCompletionListData,
-    [property: JsonPropertyName("provisionalTextEdit")] TextEdit? ProvisionalTextEdit) : ICompletionResolveContext;
+    [property: JsonPropertyName("provisionalTextEdit")] TextEdit? ProvisionalTextEdit,
+    [property: JsonPropertyName("inDeclDocument")] bool InDeclDocument) : ICompletionResolveContext;

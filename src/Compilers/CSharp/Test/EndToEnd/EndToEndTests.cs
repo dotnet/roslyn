@@ -1029,6 +1029,106 @@ or E._{i}
             });
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void ManyBinaryPatterns_04_RedundantPatternCheckRespectsPragmaSuppression()
+        {
+            // Ensure that redundant pattern analysis is not performed when the associated warning is disabled.
+            const int numArms = 300;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("#pragma warning disable CS9336");
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine("    static int M(int x) => x switch");
+            builder.AppendLine("    {");
+
+            for (int i = 0; i < numArms; i++)
+            {
+                int lo = i * 10;
+                int hi = lo + 9;
+                int redundant = lo + 1;
+                builder.AppendLine($"        >= {lo} and <= {hi} and not {lo} or {redundant} => {i},");
+            }
+
+            builder.AppendLine("        _ => -1");
+            builder.AppendLine("    };");
+            builder.AppendLine("}");
+            builder.AppendLine("#pragma warning restore CS9336");
+
+            var source = builder.ToString();
+
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                comp.GetDiagnostics().Verify();
+            }, timeout: TimeSpan.FromSeconds(10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void ManyBinaryPatterns_05_RedundantPatternCheckRespectsSpecificDiagnosticOption()
+        {
+            // Same as ManyBinaryPatterns_04, but disables the warning via WithSpecificDiagnosticOptions
+            // instead of #pragma, to exercise the non-pragma suppression path.
+            const int numArms = 300;
+
+            var builder = new StringBuilder();
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine("    static int M(int x) => x switch");
+            builder.AppendLine("    {");
+
+            for (int i = 0; i < numArms; i++)
+            {
+                int lo = i * 10;
+                int hi = lo + 9;
+                int redundant = lo + 1;
+                builder.AppendLine($"        >= {lo} and <= {hi} and not {lo} or {redundant} => {i},");
+            }
+
+            builder.AppendLine("        _ => -1");
+            builder.AppendLine("    };");
+            builder.AppendLine("}");
+
+            var source = builder.ToString();
+
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(
+                    source,
+                    options: TestOptions.DebugDll.WithConcurrentBuild(false)
+                        .WithSpecificDiagnosticOptions("CS9336", ReportDiagnostic.Suppress));
+                comp.GetDiagnostics().Verify();
+            }, timeout: TimeSpan.FromSeconds(10));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75506")]
+        public void ManyTupleSwitchArms_01()
+        {
+            const int fieldsPerEntity = 25;
+            const int tupleConstantArmCount = 500;
+            var sb = new StringBuilder();
+            sb.AppendLine("public static class P");
+            sb.AppendLine("{");
+            sb.AppendLine("    public static int Get(string entity, string field) => (entity, field) switch");
+            sb.AppendLine("    {");
+            for (var i = 0; i < tupleConstantArmCount; i++)
+            {
+                var entityIndex = i / fieldsPerEntity;
+                sb.AppendLine($"        (\"Entity{entityIndex}\", \"Field{i}\") => {i},");
+            }
+
+            sb.AppendLine("        _ => -1");
+            sb.AppendLine("    };");
+            sb.AppendLine("}");
+
+            var source = sb.ToString();
+            RunInThread(() =>
+            {
+                var comp = CreateCompilation(source, options: TestOptions.DebugDll.WithConcurrentBuild(false));
+                comp.VerifyDiagnostics();
+            }, timeout: TimeSpan.FromSeconds(10));
+        }
+
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/pull/83087")]
         public void ManyUnreferencedSuppressMessageAttributes()

@@ -7,8 +7,8 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
-using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,7 +18,10 @@ namespace Microsoft.CodeAnalysis.Razor;
 public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     private IDocumentMappingService CreateMappingService()
-        => new TestDocumentMappingService(LoggerFactory.GetOrCreateLogger(nameof(TestDocumentMappingService)));
+    {
+        var snapshotManager = new RemoteSnapshotManager();
+        return new DocumentMappingService(snapshotManager, LoggerFactory);
+    }
 
     [Fact]
     public void TryMapToHostDocumentRange_Strict_StartOnlyMaps_ReturnsFalse()
@@ -33,7 +36,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Strict,
             out var originalRange);
@@ -56,7 +59,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Strict,
             out var originalRange);
@@ -80,7 +83,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Strict,
             out var originalRange);
@@ -104,7 +107,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inclusive,
             out var originalRange);
@@ -128,7 +131,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inclusive,
             out var originalRange);
@@ -152,7 +155,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inclusive,
             out var originalRange);
@@ -178,7 +181,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inclusive,
             out var originalRange);
@@ -204,7 +207,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inclusive,
             out var originalRange);
@@ -228,7 +231,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inclusive,
             out var originalRange);
@@ -254,7 +257,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inclusive,
             out var originalRange);
@@ -278,7 +281,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inferred,
             out var originalRange);
@@ -301,7 +304,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inferred,
             out var originalRange);
@@ -328,7 +331,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inferred,
             out var originalRange);
@@ -352,7 +355,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inferred,
             out var originalRange);
@@ -375,7 +378,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inferred,
             out _);
@@ -411,7 +414,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             projectedRange,
             MappingBehavior.Inferred,
             out var originalRange);
@@ -437,7 +440,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToCSharpDocumentPosition(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             razorIndex: 1,
             out _,
             out _);
@@ -461,7 +464,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToCSharpDocumentPosition(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             razorIndex: 16,
             out var projectedPosition,
             out var projectedPositionIndex);
@@ -487,7 +490,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToCSharpDocumentPosition(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             razorIndex: 28,
             out var projectedPosition,
             out var projectedPositionIndex);
@@ -513,7 +516,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToCSharpDocumentPosition(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             razorIndex: 35,
             out var projectedPosition,
             out var projectedPositionIndex);
@@ -522,6 +525,53 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
         Assert.Equal(3, projectedPosition.Line);
         Assert.Equal(9, projectedPosition.Character);
         Assert.Equal(30, projectedPositionIndex);
+    }
+
+    [Fact]
+    public void TryMapToCSharpDocumentLinePosition_SelectsImplementationOrDeclaration()
+    {
+        var service = CreateMappingService();
+        var codeDocument = CreateCodeDocumentWithCSharpProjection(
+            razorSource: "foo",
+            projectedCSharpSource: "\nfoo",
+            sourceMappings: [new SourceMapping(new SourceSpan(0, 3), new SourceSpan(1, 3))]);
+        var declDocument = TestRazorCSharpDocument.Create(
+            codeDocument,
+            "\n\nfoo",
+            [new SourceMapping(new SourceSpan(0, 3), new SourceSpan(2, 3))]);
+        codeDocument = codeDocument.WithDeclCSharpDocument(declDocument);
+
+        Assert.True(service.TryMapToCSharpDocumentLinePosition(codeDocument, 0, out var position, out var index, out var inDeclDocument));
+        Assert.Equal(new LinePosition(1, 0), position);
+        Assert.Equal(1, index);
+        Assert.False(inDeclDocument);
+
+        var implDocument = TestRazorCSharpDocument.Create(codeDocument, "\nfoo", sourceMappings: []);
+        codeDocument = codeDocument.WithImplCSharpDocument(implDocument);
+
+        Assert.True(service.TryMapToCSharpDocumentLinePosition(codeDocument, 0, out position, out index, out inDeclDocument));
+        Assert.Equal(new LinePosition(2, 0), position);
+        Assert.Equal(2, index);
+        Assert.True(inDeclDocument);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TryMapToCSharpDocumentLinePosition_UnmappedPosition_PreservesFailureOutputs(bool hasDeclarationDocument)
+    {
+        var service = CreateMappingService();
+        var codeDocument = CreateCodeDocumentWithCSharpProjection("foo", "\nfoo", []);
+        if (hasDeclarationDocument)
+        {
+            codeDocument = codeDocument.WithDeclCSharpDocument(
+                TestRazorCSharpDocument.Create(codeDocument, "\n\nfoo", sourceMappings: []));
+        }
+
+        Assert.False(service.TryMapToCSharpDocumentLinePosition(codeDocument, 1, out var position, out var index, out var inDeclDocument));
+        Assert.Equal(default, position);
+        Assert.Equal(default, index);
+        Assert.True(inDeclDocument);
     }
 
     [Fact]
@@ -536,7 +586,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToRazorDocumentPosition(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             csharpIndex: 1,
             out _,
             out _);
@@ -560,7 +610,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToRazorDocumentPosition(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             csharpIndex: 11, // @{|
             out var hostDocumentPosition,
             out var razorIndex);
@@ -586,7 +636,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToRazorDocumentPosition(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             csharpIndex: 21, // |var def
             out var hostDocumentPosition,
             out var razorIndex);
@@ -612,7 +662,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToRazorDocumentPosition(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             csharpIndex: 30, // def; |}
             out var hostDocumentPosition,
             out var razorIndex);
@@ -639,7 +689,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToCSharpDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             range, // |var| abc
             out var projectedRange);
 
@@ -665,7 +715,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToCSharpDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             range, // |a;|
             out var projectedRange);
 
@@ -688,7 +738,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToCSharpDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             range, // |a\n;|
             out var projectedRange);
 
@@ -711,7 +761,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act & Assert
         var result = service.TryMapToCSharpDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             range, // |a\n\n;|
             out var projectedRange);
 
@@ -732,7 +782,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToCSharpDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             range, // |var| abc
             out _);
 
@@ -757,7 +807,7 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
 
         // Act
         var result = service.TryMapToCSharpDocumentRange(
-            codeDoc.GetRequiredCSharpDocument(),
+            codeDoc.GetRequiredCSharpDocument(declarationDocument: false),
             range, // |var| abc
             out _);
 
@@ -823,10 +873,8 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
             codeDocument,
             projectedCSharpSource,
             sourceMappings);
-        codeDocument = codeDocument.WithCSharpDocument(csharpDocument);
+        codeDocument = codeDocument.WithImplCSharpDocument(csharpDocument);
 
         return codeDocument;
     }
-
-    private sealed class TestDocumentMappingService(ILogger logger) : AbstractDocumentMappingService(logger);
 }

@@ -16,5 +16,3 @@
                     ComponentAttribute -  - SomeProp -  - AttributeStructure.DoubleQuotes
                         HtmlContent - (41:0,41 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (41:0,41 [3] x:\dir\subdir\Test\TestComponent.cshtml) - Html - val
-            CSharpCode - (108:4,7 [104] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (108:4,7 [104] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private Test.MyComponent myInstance;\n    public void Foo() { System.GC.KeepAlive(myInstance); }\n

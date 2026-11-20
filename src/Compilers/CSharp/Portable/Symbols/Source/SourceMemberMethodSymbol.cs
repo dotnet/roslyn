@@ -13,6 +13,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -895,8 +896,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
-        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            PartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
+
             if (filter?.Invoke(this) == false)
             {
                 return;
@@ -976,6 +979,20 @@ done:
             CompletionPart allParts = CompletionPart.MethodSymbolAll;
             state.SpinWaitComplete(allParts, cancellationToken);
         }
+
+        public override bool IsDefinedInSourceTree(
+            SyntaxTree tree,
+            TextSpan? definedWithinSpan,
+            CancellationToken cancellationToken = default)
+        {
+            // Since only the declaring (and not the implementing) part of a partial method, constructor, or accessor appears in the member
+            // list, we need to ensure we complete the implementation part when needed.
+            return
+                (this.SyntaxRef is { } syntaxRef
+                    ? IsDefinedInSourceTree(syntaxRef, tree, definedWithinSpan)
+                    : base.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken)) ||
+                this.PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
+        }
 #nullable disable
 
         protected sealed override void NoteAttributesComplete(bool forReturnType)
@@ -1001,19 +1018,11 @@ done:
                     Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, _location));
             }
 
-            if (CallerUnsafeMode == CallerUnsafeMode.Explicit)
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location),
                     modifyCompilation: true);
-            }
-
-            // Event accessors get modifiers from the event (and don't have their own modifiers),
-            // hence we skip this error here and report it only at the event symbol.
-            if (AssociatedSymbol is not SourceEventSymbol && HasSafeModifier && (!IsExtern || HasUnsafeModifier))
-            {
-                diagnostics.Add(ErrorCode.ERR_SafeModifierUnsupportedTarget,
-                    Modifiers.GetModifierLocation(SyntaxKind.SafeKeyword, _location));
             }
 
             if (compilation.ShouldEmitNullableAttributes(this) &&

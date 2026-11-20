@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -20,7 +19,7 @@ internal static class CodeActionExtensions
     private const string CodeActionPathProperty = nameof(CodeActionResolveData.CodeActionPath);
     private const string FixAllFlavorsProperty = nameof(CodeActionResolveData.FixAllFlavors);
 
-    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument, Uri? delegatedDocumentUri)
+    public static SumType<Command, CodeAction> AsVSCodeCommandOrCodeAction(this VSInternalCodeAction razorCodeAction, VSTextDocumentIdentifier textDocument, DocumentUri? delegatedDocumentUri)
     {
         if (razorCodeAction.Data is null)
         {
@@ -60,30 +59,8 @@ internal static class CodeActionExtensions
         RazorLanguageKind language = RazorLanguageKind.CSharp,
         bool isOnAllowList = true)
     {
-        if (!TryHandleNestedCodeAction(razorCodeAction, context, action, language))
-        {
-            var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
-            {
-                Action = action,
-                Language = language,
-                DelegatedDocumentUri = context.DelegatedDocumentUri,
-                Data = razorCodeAction.Data
-            };
-            razorCodeAction.Data = JsonSerializer.SerializeToElement(resolutionParams);
-        }
-
-        if (!isOnAllowList)
-        {
-            razorCodeAction.Title = $"(Exp) {razorCodeAction.Title} ({razorCodeAction.Name})";
-        }
-
-        if (razorCodeAction.Children != null)
-        {
-            for (var i = 0; i < razorCodeAction.Children.Length; i++)
-            {
-                razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language, isOnAllowList);
-            }
-        }
+        var wrapData = !TryHandleNestedCodeAction(razorCodeAction, context, action, language);
+        WrapResolvableCodeActionCore(razorCodeAction, context, action, language, isOnAllowList, wrapData);
 
         return razorCodeAction;
     }
@@ -141,35 +118,37 @@ internal static class CodeActionExtensions
         return true;
     }
 
-    private static VSInternalCodeAction WrapResolvableCodeAction(
-        this VSInternalCodeAction razorCodeAction,
+    private static void WrapResolvableCodeActionCore(
+        VSInternalCodeAction razorCodeAction,
         RazorCodeActionContext context,
         string action,
         RazorLanguageKind language,
-        bool isOnAllowList)
+        bool isOnAllowList,
+        bool wrapData)
     {
-        var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
+        if (wrapData)
         {
-            Action = action,
-            Language = language,
-            DelegatedDocumentUri = context.DelegatedDocumentUri,
-            Data = razorCodeAction.Data
-        };
-        razorCodeAction.Data = JsonSerializer.SerializeToElement(resolutionParams);
+            var resolutionParams = new RazorCodeActionResolutionParams(context.Request.TextDocument)
+            {
+                Action = action,
+                Language = language,
+                DelegatedDocumentUri = context.DelegatedDocumentUri,
+                Data = razorCodeAction.Data
+            };
+            razorCodeAction.Data = JsonSerializer.SerializeToElement(resolutionParams);
+        }
 
         if (!isOnAllowList)
         {
-            razorCodeAction.Title = "(Exp) " + razorCodeAction.Title;
+            razorCodeAction.Title = $"{razorCodeAction.Title} ({SR.Untested})";
         }
 
         if (razorCodeAction.Children != null)
         {
             for (var i = 0; i < razorCodeAction.Children.Length; i++)
             {
-                razorCodeAction.Children[i] = razorCodeAction.Children[i].WrapResolvableCodeAction(context, action, language, isOnAllowList);
+                WrapResolvableCodeActionCore(razorCodeAction.Children[i], context, action, language, isOnAllowList, wrapData: true);
             }
         }
-
-        return razorCodeAction;
     }
 }

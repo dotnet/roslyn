@@ -8,12 +8,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.MetadataAsSource;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
+using Response = Microsoft.CodeAnalysis.Razor.Remote.RemoteResponse<Microsoft.CodeAnalysis.Razor.Remote.GoToDefinitionResponse?>;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -27,13 +30,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 internal sealed class CohostGoToDefinitionEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
-    IHtmlRequestInvoker requestInvoker,
-    IFilePathService filePathService)
+    IHtmlRequestInvoker requestInvoker)
     : AbstractCohostDocumentEndpoint<TextDocumentPositionParams, SumType<LspLocation, LspLocation[], DocumentLink[]>?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
-    private readonly IFilePathService _filePathService = filePathService;
 
     protected override bool MutatesSolutionState => false;
 
@@ -61,24 +62,71 @@ internal sealed class CohostGoToDefinitionEndpoint(
         var position = LspFactory.CreatePosition(request.Position.ToLinePosition());
 
         var response = await _remoteServiceInvoker
-            .TryInvokeAsync<IRemoteGoToDefinitionService, RemoteResponse<LspLocation[]?>>(
+            .TryInvokeAsync<IRemoteGoToDefinitionService, Response>(
                 razorDocument.Project.Solution,
                 (service, solutionInfo, cancellationToken) =>
                     service.GetDefinitionsAsync(solutionInfo, razorDocument.Id, position, cancellationToken),
                 cancellationToken)
             .ConfigureAwait(false);
 
-        if (response.Result is LspLocation[] locations)
-        {
-            return locations;
-        }
-
-        if (response.StopHandling)
+        if (response == Response.NoFurtherHandling)
         {
             return null;
         }
 
-        return await GetHtmlDefinitionsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
+        if (response == Response.CallHtml)
+        {
+            return await GetHtmlDefinitionsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Razor OOP found definition locations it could return directly.
+        if (response is { StopHandling: false, Result: { Locations: { } locations, CSharpRequest: null } })
+        {
+            return locations;
+        }
+
+        // Razor OOP found a navigable metadata symbol that must be resolved in the host.
+        if (response is { StopHandling: false, Result: { Locations: null, CSharpRequest: { } csharpRequest } })
+        {
+            return await GetCSharpDefinitionsAsync(razorDocument, csharpRequest, cancellationToken).ConfigureAwait(false);
+        }
+
+        // Any other combination represents a malformed response.
+        throw new InvalidOperationException($"Invalid go-to-definition response: {response}");
+    }
+
+    private static async Task<LspLocation[]?> GetCSharpDefinitionsAsync(
+        TextDocument razorDocument,
+        TextDocumentPositionParams request,
+        CancellationToken cancellationToken)
+    {
+        var generatedDocument = await razorDocument.Project.Solution
+            .TryGetSourceGeneratedDocumentAsync(request.TextDocument.DocumentUri, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (generatedDocument is null)
+        {
+            return null;
+        }
+
+        var solution = generatedDocument.Project.Solution;
+        var globalOptions = solution.Services.ExportProvider.GetService<IGlobalOptionService>();
+        var metadataAsSourceFileService = solution.Services.ExportProvider.GetService<IMetadataAsSourceFileService>();
+
+        // OOP already ran this helper with metadata-as-source disabled. If it found a source location,
+        // it returned that result directly and we would not get this far. Repeat the lookup in the host
+        // workspace with metadata-as-source enabled so the remaining metadata symbol can use host-only
+        // services such as SourceLink.
+        var locations = await AbstractGoToDefinitionHandler.GetDefinitionsAsync(
+            globalOptions,
+            metadataAsSourceFileService,
+            solution.Workspace,
+            generatedDocument,
+            forSymbolType: false,
+            request.Position.ToLinePosition(),
+            cancellationToken).ConfigureAwait(false);
+
+        return locations;
     }
 
     private async Task<SumType<LspLocation, LspLocation[], DocumentLink[]>?> GetHtmlDefinitionsAsync(TextDocumentPositionParams request, TextDocument razorDocument, CancellationToken cancellationToken)
@@ -98,11 +146,11 @@ internal sealed class CohostGoToDefinitionEndpoint(
 
         if (result.TryGetFirst(out var singleLocation))
         {
-            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), singleLocation.Range.ToLinePositionSpan());
+            return LspFactory.CreateLocation(RemapVirtualHtmlUri(singleLocation.DocumentUri), singleLocation.Range.ToLinePositionSpan());
         }
         else if (result.TryGetSecond(out var multipleLocations))
         {
-            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), l.Range.ToLinePositionSpan()));
+            return Array.ConvertAll(multipleLocations, l => LspFactory.CreateLocation(RemapVirtualHtmlUri(l.DocumentUri), l.Range.ToLinePositionSpan()));
         }
         else if (result.TryGetThird(out var documentLinks))
         {
@@ -112,7 +160,7 @@ internal sealed class CohostGoToDefinitionEndpoint(
             {
                 if (documentLink.DocumentTarget is DocumentUri target)
                 {
-                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target.GetRequiredSystemUri()).CreateDocumentUriFromSystemUri(), documentLink.Range.ToLinePositionSpan()));
+                    builder.Add(LspFactory.CreateDocumentLink(RemapVirtualHtmlUri(target), documentLink.Range.ToLinePositionSpan()));
                 }
             }
 
@@ -122,11 +170,11 @@ internal sealed class CohostGoToDefinitionEndpoint(
         return null;
     }
 
-    private Uri RemapVirtualHtmlUri(Uri uri)
+    private DocumentUri RemapVirtualHtmlUri(DocumentUri uri)
     {
-        if (_filePathService.IsVirtualHtmlFile(uri))
+        if (uri.IsRazorHtmlDocumentUri(out var razorUri))
         {
-            return _filePathService.GetRazorDocumentUri(uri);
+            return razorUri;
         }
 
         return uri;

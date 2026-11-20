@@ -55,7 +55,17 @@ parameters:
 steps:
   - checkout: none
 
-  - script: dotnet tool install Microsoft.RoslynTools --tool-path .tools --prerelease --source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json
+  - task: UseDotNet@2
+    displayName: 'Install .NET 10 SDK'
+    inputs:
+      packageType: sdk
+      version: 10.0.x
+
+  - download: current
+    artifact: PackageArtifacts
+    displayName: 'Download package artifacts'
+
+  - script: dotnet tool install Microsoft.RoslynTools --tool-path .tools --prerelease --source "$(Pipeline.Workspace)/PackageArtifacts"
     displayName: 'Install roslyn-tools'
 
   - powershell: |

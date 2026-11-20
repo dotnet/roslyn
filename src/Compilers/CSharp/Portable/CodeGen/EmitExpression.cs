@@ -136,14 +136,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.PassByCopy:
-                    EmitExpression(((BoundPassByCopy)expression).Expression, used);
+                    EmitPassByCopyExpression((BoundPassByCopy)expression, used);
                     break;
 
                 case BoundKind.Parameter:
-                    if (used)  // unused parameter has no side-effects
-                    {
-                        EmitParameterLoad((BoundParameter)expression);
-                    }
+                    EmitParameterLoad((BoundParameter)expression, used);
                     break;
 
                 case BoundKind.FieldAccess:
@@ -154,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitArrayElementLoad((BoundArrayAccess)expression, used);
                     break;
 
-                case BoundKind.RefArrayAccess:
-                    EmitArrayElementRefLoad((BoundRefArrayAccess)expression, used);
+                case BoundKind.RefAccess:
+                    EmitRefAccessLoad((BoundRefAccess)expression, used);
                     break;
 
                 case BoundKind.ArrayLength:
@@ -163,10 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    if (used) // unused this has no side-effects
-                    {
-                        EmitThisReferenceExpression((BoundThisReference)expression);
-                    }
+                    EmitThisReferenceExpression((BoundThisReference)expression, used);
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -366,6 +360,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void EmitPassByCopyExpression(BoundPassByCopy passByCopy, bool used)
+        {
+            BoundExpression expression = passByCopy.Expression;
+
+            if (!used && IsRef(expression))
+            {
+                EmitExpression(expression, used: true);
+                _builder.EmitOpCode(ILOpCode.Pop);
+                return;
+            }
+
+            EmitExpression(expression, used);
+        }
+
         private void EmitThrowExpression(BoundThrowExpression node, bool used)
         {
             this.EmitThrow(node.Expression);
@@ -417,7 +425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // const but not null, must be a reference type
                 Debug.Assert(receiverType.IsVerifierReference());
                 // receiver is a reference type, so addresskind does not matter, but we do not intend to write.
-                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly, used: true);
                 EmitExpression(expression.WhenNotNull, used);
                 if (receiverTemp != null)
                 {
@@ -450,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (notConstrained)
                 {
                     // if T happens to be a value type, it could be a target of mutating calls.
-                    receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
+                    receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained, used: true);
 
                     if (receiverTemp is null)
                     {
@@ -498,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // we may call "HasValue" on this, but it is not mutating 
                     var addressKind = AddressKind.ReadOnly;
 
-                    receiverTemp = EmitReceiverRef(receiver, addressKind);
+                    receiverTemp = EmitReceiverRef(receiver, addressKind, used: true);
                     _builder.EmitOpCode(ILOpCode.Dup);
                     // here we have loaded two copies of a reference   { O, O }  or  {&nub, &nub}
                 }
@@ -509,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // we may call "HasValue" on this, but it is not mutating
                 // besides, since we are not making a copy, the receiver is not a field, 
                 // so it cannot be readonly, in verifier sense, anyways.
-                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly, used: true);
                 // here we have loaded just { O } or  {&nub}
                 // we have the most trivial case where we can just reload receiver when needed again
             }
@@ -574,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 Debug.Assert(receiverTemp == null);
                 // receiver may be used as target of a struct call (if T happens to be a struct)
-                receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained, used: true);
                 Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }
 
@@ -673,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // push address of variable
             // mkrefany [Type] -- takes address off stack, puts TypedReference on stack
 
-            var temp = EmitAddress(expression.Operand, AddressKind.Writeable);
+            var temp = EmitAddress(expression.Operand, AddressKind.Writeable, used: true);
             Debug.Assert(temp == null, "makeref should not create temps");
 
             _builder.EmitOpCode(ILOpCode.Mkrefany);
@@ -722,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 default:
                     Debug.Assert(refKind is RefKind.In or RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
-                    var temp = EmitAddress(argument, GetArgumentAddressKind(refKind));
+                    var temp = EmitAddress(argument, getArgumentAddressKind(refKind), used: true);
                     if (temp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
@@ -733,23 +741,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     break;
             }
-        }
 
-        internal static AddressKind GetArgumentAddressKind(RefKind refKind)
-        {
-            switch (refKind)
+            static AddressKind getArgumentAddressKind(RefKind refKind)
             {
-                case RefKind.None:
-                    throw ExceptionUtilities.UnexpectedValue(refKind);
+                switch (refKind)
+                {
+                    case RefKind.None:
+                        throw ExceptionUtilities.UnexpectedValue(refKind);
 
-                case RefKind.In:
-                    return AddressKind.ReadOnly;
+                    case RefKind.In:
+                        return AddressKind.ReadOnly;
 
-                default:
-                    Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
-                    // NOTE: returning "ReadOnlyStrict" here. 
-                    //       we should not get an address of a copy if at all possible
-                    return refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable;
+                    default:
+                        Debug.Assert(refKind is RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
+                        // NOTE: returning "ReadOnlyStrict" here. 
+                        //       we should not get an address of a copy if at all possible
+                        return refKind == RefKindExtensions.StrictIn ? AddressKind.ReadOnlyStrict : AddressKind.Writeable;
+                }
             }
         }
 
@@ -757,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             // NOTE: passing "ReadOnlyStrict" here. 
             //       we should not get an address of a copy if at all possible
-            var temp = EmitAddress(expression.Operand, AddressKind.ReadOnlyStrict);
+            var temp = EmitAddress(expression.Operand, AddressKind.ReadOnlyStrict, used);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
 
             if (used && !expression.IsManaged)
@@ -770,18 +778,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // standard, Partition I section 12.1.1.1).
                 _builder.EmitOpCode(ILOpCode.Conv_u);
             }
-
-            EmitPopIfUnused(used);
         }
 
         private void EmitPointerIndirectionOperator(BoundPointerIndirectionOperator expression, bool used)
         {
             EmitExpression(expression.Operand, used: true);
-            if (!expression.RefersToLocation)
-            {
-                EmitLoadIndirect(expression.Type, expression.Syntax);
-            }
-
+            EmitLoadIndirect(expression.Type, expression.Syntax);
             EmitPopIfUnused(used);
         }
 
@@ -792,11 +794,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // unused dup is noop
                 if (used)
                 {
+                    if (!expression.IsAlive)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
                     _builder.EmitOpCode(ILOpCode.Dup);
                 }
             }
             else
             {
+                if (!expression.IsAlive)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
                 _builder.EmitOpCode(ILOpCode.Dup);
 
                 // must read in case if it is a null ref
@@ -814,15 +826,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
         }
 
-        private void EmitThisReferenceExpression(BoundThisReference thisRef)
+        private void EmitThisReferenceExpression(BoundThisReference thisRef, bool used)
         {
             var thisType = thisRef.Type;
             Debug.Assert(thisType.TypeKind != TypeKind.TypeParameter);
 
-            _builder.EmitOpCode(ILOpCode.Ldarg_0);
-            if (thisType.IsValueType)
+            if (used || thisType.IsValueType)
             {
-                EmitLoadIndirect(thisType, thisRef.Syntax);
+                if (!used && thisType.IsDisplayClassType())
+                {
+                    // Cannot be a null ref
+                    return;
+                }
+
+                _builder.EmitOpCode(ILOpCode.Ldarg_0);
+                if (thisType.IsValueType)
+                {
+                    EmitLoadIndirect(thisType, thisRef.Syntax);
+                }
+
+                EmitPopIfUnused(used);
             }
         }
 
@@ -1115,15 +1138,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitPopIfUnused(used);
         }
 
-        private void EmitArrayElementRefLoad(BoundRefArrayAccess refArrayAccess, bool used)
+        private void EmitRefAccessLoad(BoundRefAccess refAccess, bool used)
         {
-            if (used)
+            if (used &&
+                (refAccess.Expression is not BoundArrayAccess arrayAccess ||
+                 LocalRewriter.IsInvariantArray(arrayAccess.Expression.Type) ||
+                 IsAnyReadOnly(RefAssignmentValueAddressKind(refAccess.RefKind))))
             {
-                throw ExceptionUtilities.Unreachable();
+                // Just load the value without first getting a ref
+                EmitExpression(refAccess.Expression, used: true);
+                return;
             }
 
-            EmitArrayElementAddress(refArrayAccess.ArrayAccess, AddressKind.Writeable);
-            _builder.EmitOpCode(ILOpCode.Pop);
+            EmitRefAssignmentValue(refAccess.RefKind, refAccess.Expression, used);
+
+            if (used)
+            {
+                EmitLoadIndirect(refAccess.Type, refAccess.Syntax);
+            }
         }
 
         private void EmitFieldLoad(BoundFieldAccess fieldAccess, bool used)
@@ -1140,9 +1172,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
-                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue() && field.RefKind == RefKind.None)
+                BoundExpression receiver;
+                if (!field.IsVolatile && !field.IsStatic && (receiver = fieldAccess.ReceiverOpt).Type.IsVerifierValue() && field.RefKind == RefKind.None &&
+                    (!IsRef(receiver) || isDereferencedWhenEmittedAsNotUsedExpression(receiver)))
                 {
-                    EmitExpression(fieldAccess.ReceiverOpt, used: false);
+                    EmitExpression(receiver, used: false);
                     return;
                 }
             }
@@ -1158,6 +1192,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitPopIfUnused(used);
+
+            static bool isDereferencedWhenEmittedAsNotUsedExpression(BoundExpression receiver)
+            {
+                switch (receiver.Kind)
+                {
+                    case BoundKind.Local:
+                    case BoundKind.Parameter:
+                    case BoundKind.FieldAccess:
+                    case BoundKind.RefValueOperator:
+                    case BoundKind.Dup:
+                    case BoundKind.ThisReference when receiver.Type.IsValueType:
+                        return true;
+
+                    case BoundKind.Call:
+                    case BoundKind.FunctionPointerInvocation:
+                    case BoundKind.RefAccess:
+                    case BoundKind.AssignmentOperator:
+                    case BoundKind.ConditionalOperator: // We could check both branches, but the IL is shorter this way because we have a single load field instruction instead of indirect load on each branch.
+                        return false;
+
+                    case BoundKind.Sequence:
+                        {
+                            var result = isDereferencedWhenEmittedAsNotUsedExpression(((BoundSequence)receiver).Value);
+                            Debug.Assert(!result, "No test coverage for this scenario.");
+                            return result;
+                        }
+
+                    default:
+                        // It should always be safe to return false here, but still it would be good to decide explicitly for any new node that comes through here.
+                        ExceptionUtilities.UnexpectedValue(receiver);
+                        return false;
+                }
+            }
         }
 
         private void EmitFieldLoadNoIndirection(BoundFieldAccess fieldAccess, bool used)
@@ -1190,7 +1257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var temp = EmitFieldLoadReceiver(receiver);
                     if (temp != null)
                     {
-                        Debug.Assert(FieldLoadMustUseRef(receiver), "only clr-ambiguous structs use temps here");
                         FreeTemp(temp);
                     }
 
@@ -1212,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // there are also cases where we must emit receiver as a reference
             if (FieldLoadMustUseRef(receiver) || FieldLoadPrefersRef(receiver))
             {
-                return EmitFieldLoadReceiverAddress(receiver) ? null : EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                return EmitFieldLoadReceiverAddress(receiver) ? null : EmitReceiverRef(receiver, AddressKind.ReadOnly, used: true);
             }
 
             EmitExpression(receiver, true);
@@ -1427,15 +1493,29 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitParameterLoad(BoundParameter parameter)
+        private void EmitParameterLoad(BoundParameter parameter, bool used)
         {
-            int slot = ParameterSlot(parameter);
-            _builder.EmitLoadArgumentOpcode(slot);
+            Debug.Assert(parameter.Type.Equals(parameter.ParameterSymbol.Type, TypeCompareKind.AllIgnoreOptions) ||
+                         (!used && parameter.Type.SpecialType == SpecialType.System_Byte &&
+                          parameter.ParameterSymbol is
+                          {
+                              Ordinal: 0,
+                              ContainingSymbol:
+                                   SynthesizedInlineArrayAsReadOnlySpanMethod or SynthesizedInlineArrayAsSpanMethod or SynthesizedInlineArrayElementRefMethod or
+                                   SynthesizedInlineArrayElementRefReadOnlyMethod or SynthesizedInlineArrayFirstElementRefMethod or SynthesizedInlineArrayFirstElementRefReadOnlyMethod
+                          })); // See a comment in SynthesizedInlineArrayAsSpanMethod.ThrowIfInlineArrayIsNullRef about the 'byte' type relaxation for some parameters.
 
-            if (parameter.ParameterSymbol.RefKind != RefKind.None)
+            if (used || parameter.ParameterSymbol.RefKind != RefKind.None)  // unused value parameter has no side-effects
             {
-                var parameterType = parameter.ParameterSymbol.Type;
-                EmitLoadIndirect(parameterType, parameter.Syntax);
+                int slot = ParameterSlot(parameter);
+                _builder.EmitLoadArgumentOpcode(slot);
+
+                if (parameter.ParameterSymbol.RefKind != RefKind.None)
+                {
+                    EmitLoadIndirect(parameter.Type, parameter.Syntax);
+                }
+
+                EmitPopIfUnused(used);
             }
         }
 
@@ -1656,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(TypeSymbol.Equals(method.ContainingType, receiver.Type, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(receiver.Kind == BoundKind.ThisReference);
 
-            LocalDefinition tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
+            LocalDefinition tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable, used: true);
             _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
             EmitSymbolToken(method.ContainingType, call.Syntax);
             FreeOptTemp(tempOpt);
@@ -1961,7 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     Debug.Assert(!box);
                     Debug.Assert(!receiverType.IsVerifierReference());
-                    tempOpt = EmitReceiverRef(receiver, addressKind.GetValueOrDefault());
+                    tempOpt = EmitReceiverRef(receiver, addressKind.GetValueOrDefault(), used: true);
 
                     emitGenericReceiverCloneIfNecessary(call, callKind, ref tempOpt);
                 }
@@ -2254,6 +2334,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Parameter:
                     return ((BoundParameter)receiver).ParameterSymbol.RefKind != RefKind.None;
 
+                case BoundKind.FieldAccess:
+                    return ((BoundFieldAccess)receiver).FieldSymbol.RefKind != RefKind.None;
+
                 case BoundKind.Call:
                     return ((BoundCall)receiver).Method.RefKind != RefKind.None;
 
@@ -2265,6 +2348,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Sequence:
                     return IsRef(((BoundSequence)receiver).Value);
+
+                case BoundKind.RefAccess:
+                    return true;
+
+                case BoundKind.AssignmentOperator:
+                    return ((BoundAssignmentOperator)receiver).IsRef;
+
+                case BoundKind.ConditionalOperator:
+                    return ((BoundConditionalOperator)receiver).IsRef;
+
+                case BoundKind.RefValueOperator:
+                    return true;
+
+                case BoundKind.ThisReference:
+                    return receiver.Type.IsValueType;
             }
 
             return false;
@@ -2714,7 +2812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void InPlaceInit(BoundExpression target, bool used)
         {
-            var temp = EmitAddress(target, AddressKind.Writeable);
+            var temp = EmitAddress(target, AddressKind.Writeable, used: true);
             Debug.Assert(temp == null, "in-place init target should not create temps");
 
             _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
@@ -2743,7 +2841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            var temp = EmitAddress(target, AddressKind.Writeable);
+            var temp = EmitAddress(target, AddressKind.Writeable, used: true);
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
@@ -2837,7 +2935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         }
                         else if (!left.FieldSymbol.IsStatic)
                         {
-                            var temp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
+                            var temp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable, used: true);
                             Debug.Assert(temp == null, "temp is unexpected when assigning to a field");
                             lhsUsesStack = true;
                         }
@@ -2921,7 +3019,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var left = (BoundThisReference)assignmentTarget;
 
-                        var temp = EmitAddress(left, AddressKind.Writeable);
+                        var temp = EmitAddress(left, AddressKind.Writeable, used: true);
                         Debug.Assert(temp == null, "taking ref of this should not create a temp");
 
                         lhsUsesStack = true;
@@ -2932,7 +3030,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var left = (BoundDup)assignmentTarget;
 
-                        var temp = EmitAddress(left, AddressKind.Writeable);
+                        if (!left.IsAlive)
+                        {
+                            throw ExceptionUtilities.Unreachable();
+                        }
+
+                        var temp = EmitAddress(left, AddressKind.Writeable, used: true);
                         Debug.Assert(temp == null, "taking ref of Dup should not create a temp");
 
                         lhsUsesStack = true;
@@ -2944,7 +3047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var left = (BoundConditionalOperator)assignmentTarget;
                         Debug.Assert(left.IsRef);
 
-                        var temp = EmitAddress(left, AddressKind.Writeable);
+                        var temp = EmitAddress(left, AddressKind.Writeable, used: true);
                         Debug.Assert(temp == null, "taking ref of this should not create a temp");
 
                         lhsUsesStack = true;
@@ -3004,7 +3107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind);
 
                 case BoundKind.PseudoVariable:
-                    EmitPseudoVariableAddress((BoundPseudoVariable)assignmentTarget);
+                    EmitPseudoVariableAddress((BoundPseudoVariable)assignmentTarget, used: true);
                     lhsUsesStack = true;
                     break;
 
@@ -3039,14 +3142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 int exprTempsBefore = _expressionTemps?.Count ?? 0;
                 BoundExpression lhs = assignmentOperator.Left;
 
-                // NOTE: passing "ReadOnlyStrict" here. 
-                //       we should not get an address of a copy if at all possible
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() is RefKind.RefReadOnly or RefKindExtensions.StrictIn or RefKind.RefReadOnlyParameter ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
-
-                // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
-                // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
-                // Retain those temps for the extent of the encompassing expression.
-                AddExpressionTemp(temp);
+                EmitRefAssignmentValue(lhs.GetRefKind(), assignmentOperator.Right, used: true);
 
                 var exprTempsAfter = _expressionTemps?.Count ?? 0;
 
@@ -3067,6 +3163,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                 }
             }
+        }
+
+        private void EmitRefAssignmentValue(RefKind refKind, BoundExpression right, bool used)
+        {
+            // NOTE: passing "ReadOnlyStrict" here. 
+            //       we should not get an address of a copy if at all possible
+            LocalDefinition temp = EmitAddress(right, RefAssignmentValueAddressKind(refKind), used);
+
+            // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
+            // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
+            // Retain those temps for the extent of the encompassing expression.
+            AddExpressionTemp(temp);
+        }
+
+        private static AddressKind RefAssignmentValueAddressKind(RefKind refKind)
+        {
+            return refKind is RefKind.RefReadOnly or RefKindExtensions.StrictIn or RefKind.RefReadOnlyParameter ? AddressKind.ReadOnlyStrict : AddressKind.Writeable;
         }
 
         private LocalDefinition EmitAssignmentDuplication(BoundAssignmentOperator assignmentOperator, UseKind useKind, bool lhsUsesStack)
@@ -3158,6 +3271,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Dup:
                     Debug.Assert(((BoundDup)expression).RefKind != RefKind.None);
+
+                    if (!((BoundDup)expression).IsAlive)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 

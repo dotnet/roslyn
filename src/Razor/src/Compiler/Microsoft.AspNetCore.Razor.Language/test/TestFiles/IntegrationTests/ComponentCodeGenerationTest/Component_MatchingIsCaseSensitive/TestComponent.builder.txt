@@ -1,0 +1,5 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddMarkupContent("\r\n<mycomponent></mycomponent>\r\n")
+[0002] OpenComponent<global::Test.MyComponent>()
+[0003] AddComponentParameter(nameof(global::Test.MyComponent. IntProperty ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Int32>( 1 ))
+[0004] AddComponentParameter(nameof(global::Test.MyComponent. BoolProperty ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Boolean>( true ))

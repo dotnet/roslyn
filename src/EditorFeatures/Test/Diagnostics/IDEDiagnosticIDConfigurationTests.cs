@@ -69,15 +69,16 @@ public sealed class IDEDiagnosticIDConfigurationTests
 
     private static void ValidateHelpLinkForDiagnostic(string diagnosticId, string helpLinkUri)
     {
-        if (diagnosticId is "IDE0043" // Intentionally undocumented because it's being removed in favor of CA2241
-                or "IDE1007"
-                or "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
-                or "IDE0005_gen" // this diagnostic is hidden and not configurable.
-                or "RE0001"
-                or "JSON001"
-                or "JSON002") // Tracked by https://github.com/dotnet/roslyn/issues/48530
+        if (diagnosticId is "RemoveUnnecessaryImportsFixable" // this diagnostic is hidden and not configurable.
+                or "IDE0005_gen") // this diagnostic is hidden and not configurable.
         {
             Assert.True(helpLinkUri == string.Empty, $"Expected empty help link for {diagnosticId}");
+            return;
+        }
+
+        if (diagnosticId is "RE0001" or "JSON001" or "JSON002")
+        {
+            Assert.Equal($"https://learn.microsoft.com/visualstudio/ide/reference/{diagnosticId.ToLowerInvariant()}", helpLinkUri);
             return;
         }
 
@@ -523,6 +524,9 @@ public sealed class IDEDiagnosticIDConfigurationTests
             # IDE0391
             dotnet_diagnostic.IDE0391.severity = %value%
 
+            # IDE0410
+            dotnet_diagnostic.IDE0410.severity = %value%
+
             # IDE1005
             dotnet_diagnostic.IDE1005.severity = %value%
 
@@ -942,6 +946,7 @@ public sealed class IDEDiagnosticIDConfigurationTests
             ("IDE0380", null, null),
             ("IDE0390", null, null),
             ("IDE0391", null, null),
+            ("IDE0410", "csharp_style_prefer_labeled_jump_statements", "true"),
             ("IDE1005", "csharp_style_conditional_delegate_call", "true"),
             ("IDE1006", null, null),
             ("IDE1007", null, null),

@@ -22,6 +22,61 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class TargetTests : TestBase
     {
+        [Theory, CombinatorialData]
+        public void RoslynCompilerCacheSettings(
+            bool? useCache,
+            [CombinatorialValues("", "custom cache path")] string environmentCachePath)
+        {
+            using var reader = XmlReader.Create(new StringReader($"""
+                <Project>
+                    <PropertyGroup>
+                        <UseRoslynCompilerCache>{useCache}</UseRoslynCompilerCache>
+                        <ROSLYN_CACHE_PATH>{environmentCachePath}</ROSLYN_CACHE_PATH>
+                        <Features>existing-feature</Features>
+                        <Deterministic>false</Deterministic>
+                        <DeterministicSourcePaths>false</DeterministicSourcePaths>
+                        <EnableSourceLink>true</EnableSourceLink>
+                        <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
+                    </PropertyGroup>
+                    <Import Project="Microsoft.Managed.Core.targets" />
+                </Project>
+                """));
+
+            var instance = CreateProjectInstance(reader);
+
+            Assert.Equal(useCache == true ? "true" : "false", instance.GetPropertyValue("Deterministic"));
+            Assert.Equal(useCache == true ? "true" : "false", instance.GetPropertyValue("DeterministicSourcePaths"));
+            Assert.Equal(useCache == true ? "false" : "true", instance.GetPropertyValue("EnableSourceLink"));
+            Assert.Equal(useCache == true ? "false" : "true", instance.GetPropertyValue("IncludeSourceRevisionInInformationalVersion"));
+            Assert.Equal("existing-feature", instance.GetPropertyValue("Features"));
+            Assert.Equal(
+                useCache == true && environmentCachePath.Length == 0 ? "use-global-cache" : "",
+                instance.GetPropertyValue("_RoslynCompilerCacheFeature"));
+        }
+
+        [Theory]
+        [InlineData("Microsoft.CSharp.Core.targets")]
+        [InlineData("Microsoft.VisualBasic.Core.targets")]
+        public void RoslynCompilerCacheDesignTimeFeatures(string targets)
+        {
+            using var reader = XmlReader.Create(new StringReader($"""
+                <Project>
+                    <PropertyGroup>
+                        <UseRoslynCompilerCache>true</UseRoslynCompilerCache>
+                        <ROSLYN_CACHE_PATH></ROSLYN_CACHE_PATH>
+                        <Features>existing-feature</Features>
+                    </PropertyGroup>
+                    <Import Project="{targets}" />
+                </Project>
+                """));
+
+            var instance = CreateProjectInstance(reader);
+            var commandLine = instance.GetPropertyValue("CommandLineArgsForDesignTimeEvaluation");
+
+            Assert.Contains("-features:use-global-cache", commandLine);
+            Assert.Contains("-features:existing-feature", commandLine);
+        }
+
         [Fact]
         public void GenerateEditorConfigShouldNotRunWhenNoPropertiesOrMetadata()
         {
@@ -404,7 +459,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [InlineData(".NETCoreApp", "8.0", "12.0")]
         [InlineData(".NETCoreApp", "9.0", "13.0")]
         [InlineData(".NETCoreApp", "10.0", "14.0")]
-        [InlineData(".NETCoreApp", "11.0", "14.0")] // update cap when 15.0 is released
+        [InlineData(".NETCoreApp", "11.0", "15.0")]
+        [InlineData(".NETCoreApp", "12.0", "15.0")] // update cap when 16.0 is released
 
         [InlineData(".NETStandard", "1.0", "7.3")]
         [InlineData(".NETStandard", "1.5", "7.3")]
@@ -438,7 +494,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             // This will fail whenever the current language version is updated.
             // Ensure you update the target files to select the correct CSharp version for the newest target framework
             // and add to the theory data above to cover it, before changing this version to make the test pass again.
-            Assert.Equal(CSharp.LanguageVersion.CSharp14, CSharp.LanguageVersionFacts.CurrentVersion);
+            Assert.Equal(CSharp.LanguageVersion.CSharp15, CSharp.LanguageVersionFacts.CurrentVersion);
         }
 
         [Fact]

@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -33,6 +34,32 @@ public sealed class MetadataServiceTests : TestBase
     }
 
     [Fact]
+    public void GetReference_PreservesRecursiveAliases()
+    {
+        using var workspace = SolutionTestHelpers.CreateWorkspace();
+        var metadataService = workspace.Services.GetRequiredService<IMetadataService>();
+        var recordingMetadataService = new RecordingMetadataService(metadataService);
+        var resolver = new WorkspaceMetadataFileReferenceResolver(
+            recordingMetadataService,
+            new RelativePathResolver([], baseDirectory: null));
+        var path = typeof(object).Assembly.Location.Replace(@"\", @"\\");
+        var syntaxTree = CSharpSyntaxTree.ParseText(
+            $"""#r "{path}" """,
+            CSharpParseOptions.Default.WithKind(SourceCodeKind.Script));
+        var compilation = CSharpCompilation.CreateScriptCompilation(
+            "Test",
+            syntaxTree,
+            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                .WithMetadataReferenceResolver(resolver));
+
+        _ = compilation.GetDiagnostics();
+
+        Assert.True(recordingMetadataService.RequestedProperties.HasValue);
+        Assert.NotNull(recordingMetadataService.Reference);
+        Assert.Equal(recordingMetadataService.RequestedProperties.GetValueOrDefault(), recordingMetadataService.Reference.Properties);
+    }
+
+    [Fact]
     public void GetReference_SamePathAndProperties_ReturnsCachedReference()
     {
         using var workspace = SolutionTestHelpers.CreateWorkspace();
@@ -43,6 +70,22 @@ public sealed class MetadataServiceTests : TestBase
         var reference2 = metadataService.GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
 
         Assert.Same(reference1, reference2);
+    }
+
+    [Fact]
+    public void GetReference_DifferentWorkspaces_DoNotShareMetadata()
+    {
+        using var workspace1 = SolutionTestHelpers.CreateWorkspace();
+        using var workspace2 = SolutionTestHelpers.CreateWorkspace();
+        var mscorlibPath = typeof(object).Assembly.Location;
+
+        var reference1 = workspace1.Services.GetRequiredService<IMetadataService>()
+            .GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
+        var reference2 = workspace2.Services.GetRequiredService<IMetadataService>()
+            .GetReference(mscorlibPath, MetadataReferenceProperties.Assembly);
+
+        Assert.NotSame(reference1, reference2);
+        Assert.NotSame(reference1.GetMetadataId(), reference2.GetMetadataId());
     }
 
     [Fact]
@@ -64,5 +107,30 @@ public sealed class MetadataServiceTests : TestBase
 
         // Accessing metadata should throw the stored IOException
         Assert.Throws<FileNotFoundException>(reference1.GetMetadata);
+    }
+
+    [Fact]
+    public void GetReference_InvalidModuleName_DefersBadImageFailure()
+    {
+        using var workspace = SolutionTestHelpers.CreateWorkspace();
+        var metadataService = workspace.Services.GetRequiredService<IMetadataService>();
+        var invalidModuleName = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.Invalid.InvalidModuleName);
+
+        var reference = metadataService.GetReference(invalidModuleName.Path, MetadataReferenceProperties.Assembly);
+        var metadata = Assert.IsType<AssemblyMetadata>(reference.GetMetadata());
+
+        Assert.Throws<BadImageFormatException>(() => metadata.GetModules());
+    }
+
+    private sealed class RecordingMetadataService(IMetadataService underlyingService) : IMetadataService
+    {
+        public MetadataReferenceProperties? RequestedProperties { get; private set; }
+        public PortableExecutableReference? Reference { get; private set; }
+
+        public PortableExecutableReference GetReference(string resolvedPath, MetadataReferenceProperties properties)
+        {
+            RequestedProperties = properties;
+            return Reference = underlyingService.GetReference(resolvedPath, properties);
+        }
     }
 }

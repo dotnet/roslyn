@@ -121,7 +121,9 @@ public abstract class TestWorkspaceFixture : IDisposable
         // to be run on a different thread, clear out their collection.
         var textFormattingRunPropertiesType = typeof(VisualStudio.Text.Formatting.TextFormattingRunProperties);
         var existingPropertiesField = textFormattingRunPropertiesType.GetField("s_existingProperties", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        var existingProperties = (List<VisualStudio.Text.Formatting.TextFormattingRunProperties>)existingPropertiesField.GetValue(null);
-        existingProperties.Clear();
+
+        // The field is lazily initialized by the editor, so it may be null if no properties have been cached yet.
+        var existingProperties = (System.Collections.IList)existingPropertiesField.GetValue(null);
+        existingProperties?.Clear();
     }
 }

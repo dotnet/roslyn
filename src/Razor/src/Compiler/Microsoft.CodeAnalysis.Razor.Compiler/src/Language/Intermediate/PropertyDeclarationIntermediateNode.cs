@@ -17,4 +17,18 @@ public sealed class PropertyDeclarationIntermediateNode : MemberDeclarationInter
 
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitPropertyDeclaration(this);
+
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new PropertyDeclarationIntermediateNode
+        {
+            Name = Name,
+            Type = (IntermediateToken)Type.Clone(),
+            ExpressionBody = ExpressionBody,
+            Modifiers = Modifiers,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
 }

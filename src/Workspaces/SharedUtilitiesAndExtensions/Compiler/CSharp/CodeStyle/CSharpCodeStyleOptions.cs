@@ -218,6 +218,11 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_prefer_system_threading_lock",
         defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
 
+    public static readonly Option2<CodeStyleOption2<bool>> PreferLabeledJumpStatements = CreateOption(
+        CSharpCodeStyleOptionGroups.CodeBlockPreferences,
+        "csharp_style_prefer_labeled_jump_statements",
+        defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);
+
     public static readonly Option2<CodeStyleOption2<bool>> PreferTupleSwap = CreateOption(
         CodeStyleOptionGroups.ExpressionLevelPreferences, "csharp_style_prefer_tuple_swap",
         defaultValue: CodeStyleOption2.TrueWithSuggestionEnforcement);

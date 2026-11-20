@@ -56,6 +56,13 @@ internal sealed class TestRemoteServiceInvoker(
         return await invocation(service, solutionInfo, cancellationToken);
     }
 
+    public async ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Func<TService, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
+    {
+        var service = await GetOrCreateServiceAsync<TService>();
+
+        return await invocation(service, cancellationToken);
+    }
+
     public void MapSolutionIdToRemote(SolutionId localSolutionId, Solution remoteSolution)
     {
         _serviceInterceptor.MapSolutionIdToRemote(localSolutionId, remoteSolution);

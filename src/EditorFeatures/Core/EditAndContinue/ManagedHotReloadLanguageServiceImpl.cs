@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using HR = Microsoft.VisualStudio.HotReload;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -24,12 +25,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal sealed class ManagedHotReloadLanguageServiceImpl(
     EditAndContinueSessionState sessionState,
     IHostWorkspaceProvider workspaceProvider,
-    IManagedHotReloadService debuggerService,
+    IManagedHotReloadState hotReloadState,
     ISolutionSnapshotProvider solutionSnapshotProvider,
     PdbMatchingSourceTextProvider sourceTextProvider,
     IActiveStatementTrackingController activeStatementTrackingController,
     IEditAndContinueLogReporter logReporter,
-    IDiagnosticsRefresher diagnosticRefresher) : IManagedHotReloadLanguageService3, IEditAndContinueSolutionProvider
+    IDiagnosticsRefresher diagnosticRefresher) : IEditAndContinueSolutionProvider, HR.IHotReloadEventListener
 {
     private sealed class NoSessionException : InvalidOperationException
     {
@@ -45,7 +46,20 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     private DebuggingSessionProxy? _debuggingSession;
 
     private Solution? _pendingUpdatedSolution;
-    private Solution? _committedSolution;
+
+    private Solution? CommittedSolution
+    {
+        get;
+        set
+        {
+            field = value;
+
+            if (value != null)
+            {
+                SolutionCommitted?.Invoke(value);
+            }
+        }
+    }
 
     public event Action<Solution>? SolutionCommitted;
 
@@ -65,9 +79,9 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
     }
 
     /// <summary>
-    /// Called by the debugger when a debugging session starts and managed debugging is being used.
+    /// Called when a Hot Reload session starts.
     /// </summary>
-    public async ValueTask StartSessionAsync(CancellationToken cancellationToken)
+    public async ValueTask OnHotReloadActivatedAsync(CancellationToken cancellationToken)
     {
         sessionState.IsSessionActive = true;
 
@@ -84,7 +98,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
             sourceTextProvider.Activate();
 
             var currentSolution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
-            _committedSolution = currentSolution;
+            CommittedSolution = currentSolution;
 
             sourceTextProvider.SetBaseline(currentSolution);
 
@@ -92,7 +106,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
             _debuggingSession = await proxy.StartDebuggingSessionAsync(
                 currentSolution,
-                debuggerService,
+                hotReloadState,
                 sourceTextProvider,
                 reportDiagnostics: true,
                 cancellationToken).ConfigureAwait(false);
@@ -104,13 +118,10 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         }
     }
 
-    public ValueTask EnterBreakStateAsync(CancellationToken cancellationToken)
-        => BreakStateOrCapabilitiesChangedAsync(inBreakState: true, cancellationToken);
+    public ValueTask OnBreakStateChangedAsync(bool value, CancellationToken cancellationToken)
+        => BreakStateOrCapabilitiesChangedAsync(inBreakState: value, cancellationToken);
 
-    public ValueTask ExitBreakStateAsync(CancellationToken cancellationToken)
-        => BreakStateOrCapabilitiesChangedAsync(inBreakState: false, cancellationToken);
-
-    public ValueTask OnCapabilitiesChangedAsync(CancellationToken cancellationToken)
+    public ValueTask OnManagedCodeUpdateCapabilitiesChangedAsync(HR.ManagedCodeUpdateCapabilitiesChangedEventArgs args, CancellationToken cancellationToken)
         => BreakStateOrCapabilitiesChangedAsync(inBreakState: null, cancellationToken);
 
     private async ValueTask BreakStateOrCapabilitiesChangedAsync(bool? inBreakState, CancellationToken cancellationToken)
@@ -162,15 +173,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         var committedSolution = Interlocked.Exchange(ref _pendingUpdatedSolution, null);
         Contract.ThrowIfNull(committedSolution);
 
-        try
-        {
-            SolutionCommitted?.Invoke(committedSolution);
-        }
-        catch (Exception e) when (FatalError.ReportAndCatch(e))
-        {
-        }
-
-        _committedSolution = committedSolution;
+        CommittedSolution = committedSolution;
 
         try
         {
@@ -201,11 +204,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         }
     }
 
-    [Obsolete]
-    public ValueTask UpdateBaselinesAsync(ImmutableArray<string> projectPaths, CancellationToken cancellationToken)
-        => throw new NotImplementedException();
-
-    public async ValueTask EndSessionAsync(CancellationToken cancellationToken)
+    public async ValueTask OnHotReloadDeactivatedAsync(CancellationToken cancellationToken)
     {
         sessionState.IsSessionActive = false;
 
@@ -226,7 +225,7 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
         sourceTextProvider.Deactivate();
         _debuggingSession = null;
-        _committedSolution = null;
+        CommittedSolution = null;
         _pendingUpdatedSolution = null;
     }
 
@@ -252,8 +251,8 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
                 return false;
             }
 
-            Contract.ThrowIfNull(_committedSolution);
-            var oldSolution = _committedSolution;
+            Contract.ThrowIfNull(CommittedSolution);
+            var oldSolution = CommittedSolution;
             var newSolution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
 
             return (sourceFilePath != null)
@@ -266,26 +265,18 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
         }
     }
 
-    [Obsolete]
-    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(CancellationToken cancellationToken)
-        => throw new NotImplementedException();
-
-    [Obsolete]
-    public ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<string> runningProjects, CancellationToken cancellationToken)
-    {
-        // StreamJsonRpc may use this overload when the method is invoked with empty parameters. Call the new implementation instead.
-
-        if (!runningProjects.IsEmpty)
-            throw new NotImplementedException();
-
-        return GetUpdatesAsync(ImmutableArray<RunningProjectInfo>.Empty, cancellationToken);
-    }
-
     public async ValueTask<ManagedHotReloadUpdates> GetUpdatesAsync(ImmutableArray<RunningProjectInfo> runningProjects, CancellationToken cancellationToken)
     {
         if (_disabled)
         {
-            return new ManagedHotReloadUpdates([], [], [], []);
+            return new ManagedHotReloadUpdates()
+            {
+                Updates = [],
+                Diagnostics = [],
+                ProjectsToRebuild = [],
+                ProjectsToRestart = [],
+                HasPendingUpdates = false
+            };
         }
 
         var solution = await solutionSnapshotProvider.GetCurrentSolutionAsync(cancellationToken).ConfigureAwait(false);
@@ -294,18 +285,18 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
         var result = await GetDebuggingSession().EmitSolutionUpdateAsync(solution, runningProjectOptions, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
 
-        switch (result.ModuleUpdates.Status)
+        switch (result.SolutionAction)
         {
-            case ModuleUpdateStatus.Ready:
+            case SolutionAction.PendingUpdate:
                 // The debugger will call Commit/Discard on the solution
                 // based on whether the updates will be applied successfully or not.
                 _pendingUpdatedSolution = solution;
                 break;
 
-            case ModuleUpdateStatus.None:
+            case SolutionAction.Committed:
                 // No significant changes have been made.
                 // Commit the solution to apply any changes in comments that do not generate updates.
-                _committedSolution = solution;
+                CommittedSolution = solution;
                 break;
         }
 
@@ -329,11 +320,14 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
 
         UpdateApplyChangesDiagnostics(applyChangesDiagnostics.ToImmutableOrEmptyAndFree());
 
-        return new ManagedHotReloadUpdates(
-            result.ModuleUpdates.Updates,
-            result.GetAllDiagnostics(),
-            ToProjectIntanceIds(result.ProjectsToRebuild),
-            ToProjectIntanceIds(result.ProjectsToRestart.Keys));
+        return new ManagedHotReloadUpdates()
+        {
+            Updates = result.ModuleUpdates.Updates,
+            Diagnostics = result.GetAllDiagnostics(),
+            ProjectsToRebuild = ToProjectIntanceIds(result.ProjectsToRebuild),
+            ProjectsToRestart = ToProjectIntanceIds(result.ProjectsToRestart.Keys),
+            HasPendingUpdates = result.SolutionAction == SolutionAction.PendingUpdate
+        };
 
         ImmutableArray<ProjectInstanceId> ToProjectIntanceIds(IEnumerable<ProjectId> ids)
             => ids.SelectAsArray(id =>
@@ -341,5 +335,17 @@ internal sealed class ManagedHotReloadLanguageServiceImpl(
                 var project = solution.GetRequiredProject(id);
                 return new ProjectInstanceId(project.FilePath!, project.State.NameAndFlavor.flavor ?? "");
             });
+    }
+
+    public ValueTask OnApplyChangesCompletedAsync(HR.ApplyChangesOperationResult result, CancellationToken cancellationToken)
+        => default;
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(ManagedHotReloadLanguageServiceImpl instance)
+    {
+        public Solution? PendingUpdatedSolution => instance._pendingUpdatedSolution;
+        public Solution? CommittedSolution => instance.CommittedSolution;
     }
 }

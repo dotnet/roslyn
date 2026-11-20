@@ -397,6 +397,11 @@
         <target state="translated">Utiliser la vérification « is object »</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_labeled_jump_statement">
+        <source>Use labeled jump statement</source>
+        <target state="translated">Utiliser l’instruction de transfert étiquetée</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Utiliser une fonction locale</target>

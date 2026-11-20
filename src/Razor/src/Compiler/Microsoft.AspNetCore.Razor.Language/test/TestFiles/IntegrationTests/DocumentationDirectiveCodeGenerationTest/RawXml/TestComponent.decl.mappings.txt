@@ -1,0 +1,13 @@
+﻿Source Location: (16:0,16 [159] x:\dir\subdir\Test\TestComponent.razor)
+|
+    <summary>It's raw XML with @transitions and }.</summary>
+    <remarks><![CDATA[<p>{ content }</p>]]></remarks>
+    <!-- @* Not a Razor comment *@ -->
+|
+Generated Location: (414:14,4 [159] )
+|
+    <summary>It's raw XML with @transitions and }.</summary>
+    <remarks><![CDATA[<p>{ content }</p>]]></remarks>
+    <!-- @* Not a Razor comment *@ -->
+|
+

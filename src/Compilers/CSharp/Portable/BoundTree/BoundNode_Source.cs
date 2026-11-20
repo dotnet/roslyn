@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
@@ -537,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         tempIdentifiers.Add(local, identifier);
                     }
 
-                    return "temp" + identifier.ToString();
+                    return "temp" + identifier.ToString(CultureInfo.InvariantCulture);
                 }
 
                 void appendLocal(LocalSymbol symbol)

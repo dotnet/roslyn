@@ -584,9 +584,9 @@ public class Generic<T> { }
             lib3 = CreateCompilation(libSource3, assemblyName: "lib3").EmitToImageReference();
 
             CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (10,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (10,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public class B1 : Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B1").WithLocation(10, 21),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(10, 1),
                 // (10,21): warning CS3009: 'B1': base type 'Generic<int*[]>' is not CLS-compliant
                 // unsafe public class B1 : Generic<int*[]> { }
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "B1").WithArguments("B1", "Generic<int*[]>").WithLocation(10, 21),
@@ -734,12 +734,12 @@ public interface Bad { }
 public interface Generic<T> { }
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (8,25): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (8,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public interface B : Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B").WithLocation(8, 25),
-                // (14,25): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(8, 1),
+                // (14,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public interface E : Bad, Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(14, 25),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(14, 1),
                 // (10,18): warning CS3027: 'C' is not CLS-compliant because base interface 'Bad' is not CLS-compliant
                 // public interface C : Good, Bad { }
                 Diagnostic(ErrorCode.WRN_CLS_BadInterface, "C").WithArguments("C", "Bad").WithLocation(10, 18),
@@ -838,12 +838,12 @@ public interface Generic<T> { }
 ";
             // Implemented interfaces are not required to be compliant - only inherited ones.
             CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (8,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public class B : Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B").WithLocation(8, 21),
-                // (14,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(8, 1),
+                // (14,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public class E : Bad, Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(14, 21));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(14, 1));
 
             // Implemented interfaces are not required to be compliant - only inherited ones.
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
@@ -3916,6 +3916,99 @@ public class D : C<object>
 }
 ";
             CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86250")]
+        public void FilterTree_PartialMembers()
+        {
+            var sources = new[]
+            {
+                """
+                using System;
+
+                [assembly: CLSCompliant(true)]
+
+                [AttributeUsage(AttributeTargets.All)]
+                public class MyAttribute : Attribute
+                {
+                    public MyAttribute(int[] x) { }
+                    public MyAttribute(int x) { }
+                }
+
+                public partial class C
+                {
+                    public partial C(uint x);
+                    public partial void _M();
+                    public partial int _P { get; }
+                    public partial event Action _E;
+                }
+                """,
+                """
+                using System;
+
+                public partial class C
+                {
+                    [My(new int[] { 1 })]
+                    public partial C(uint x) { }
+
+                    [My(new int[] { 2 })]
+                    public partial void _M() { }
+
+                    [My(new int[] { 3 })]
+                    public partial int _P
+                    {
+                        [My(new int[] { 5 })]
+                        get => 1;
+                    }
+
+                    [My(new int[] { 4 })]
+                    public partial event Action _E { add { } remove { } }
+                }
+                """,
+            };
+
+            DiagnosticDescription[] expected0 =
+            [
+                // (14,27): warning CS3001: Argument type 'uint' is not CLS-compliant
+                //     public partial C(uint x);
+                Diagnostic(ErrorCode.WRN_CLS_BadArgType, "x").WithArguments("uint").WithLocation(14, 27),
+                // (15,25): warning CS3008: Identifier '_M' is not CLS-compliant
+                //     public partial void _M();
+                Diagnostic(ErrorCode.WRN_CLS_BadIdentifier, "_M").WithArguments("_M").WithLocation(15, 25),
+                // (16,24): warning CS3008: Identifier '_P' is not CLS-compliant
+                //     public partial int _P { get; }
+                Diagnostic(ErrorCode.WRN_CLS_BadIdentifier, "_P").WithArguments("_P").WithLocation(16, 24),
+                // (17,33): warning CS3008: Identifier '_E' is not CLS-compliant
+                //     public partial event Action _E;
+                Diagnostic(ErrorCode.WRN_CLS_BadIdentifier, "_E").WithArguments("_E").WithLocation(17, 33),
+            ];
+
+            DiagnosticDescription[] expected1 =
+            [
+                // (5,6): warning CS3016: Arrays as attribute arguments is not CLS-compliant
+                //     [My(new int[] { 1 })]
+                Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "My(new int[] { 1 })").WithLocation(5, 6),
+                // (8,6): warning CS3016: Arrays as attribute arguments is not CLS-compliant
+                //     [My(new int[] { 2 })]
+                Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "My(new int[] { 2 })").WithLocation(8, 6),
+                // (11,6): warning CS3016: Arrays as attribute arguments is not CLS-compliant
+                //     [My(new int[] { 3 })]
+                Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "My(new int[] { 3 })").WithLocation(11, 6),
+                // (14,10): warning CS3016: Arrays as attribute arguments is not CLS-compliant
+                //         [My(new int[] { 5 })]
+                Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "My(new int[] { 5 })").WithLocation(14, 10),
+                // (18,6): warning CS3016: Arrays as attribute arguments is not CLS-compliant
+                //     [My(new int[] { 4 })]
+                Diagnostic(ErrorCode.WRN_CLS_ArrayArgumentToAttribute, "My(new int[] { 4 })").WithLocation(18, 6),
+            ];
+
+            CreateCompilation(sources).VerifyDiagnostics([.. expected0, .. expected1]);
+
+            var compilation0 = CreateCompilation(sources);
+            compilation0.GetSemanticModel(compilation0.SyntaxTrees[0]).GetDiagnostics().Verify(expected0);
+
+            var compilation1 = CreateCompilation(sources);
+            compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected1);
         }
     }
 }

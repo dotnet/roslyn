@@ -896,6 +896,27 @@ class {|unresolve3:$$D|} // Rename to C
         End Sub
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84976")>
+        Public Sub RenameCSharpInterfaceDoesNotRenameOrdinaryMethodNamedFinalize(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document>
+                            interface [|$$IEnvironment|]
+                            {
+                                bool Finalize();
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>, host:=host, renameTo:="IRenamed")
+
+                Dim documentText = result.ConflictResolution.NewSolution.Projects.Single().Documents.Single().GetTextAsync().Result.ToString()
+                Assert.Contains("interface IRenamed", documentText)
+                Assert.Contains("bool Finalize();", documentText)
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
         Public Sub RenameCSharpTypeFromSynthesizedConstructorUse(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

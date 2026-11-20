@@ -357,6 +357,7 @@ public class RenameTests(ITestOutputHelper testOutputHelper) : AbstractRazorEdit
 
         var view = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
         var buffer = view.GetBufferContainingCaret();
+        Assert.NotNull(buffer);
 
         var commandArgs = new RenameCommandArgs(view, buffer);
 

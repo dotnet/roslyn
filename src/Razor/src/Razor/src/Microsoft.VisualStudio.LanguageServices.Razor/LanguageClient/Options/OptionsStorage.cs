@@ -105,10 +105,12 @@ internal class OptionsStorage : IAdvancedSettingsStorage, IDisposable
             GetBool(SettingsNames.ColorBackground, defaultValue: false),
             GetBool(SettingsNames.CodeBlockBraceOnNextLine, defaultValue: false),
             GetEnum(SettingsNames.AttributeIndentStyle, AttributeIndentStyle.AlignWithFirst),
+            GetBool(SettingsNames.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor, defaultValue: true),
             GetBool(SettingsNames.CommitElementsWithSpace, defaultValue: true),
             GetEnum(SettingsNames.Snippets, SnippetSetting.All),
             GetEnum(SettingsNames.LogLevel, LogLevel.Warning),
             GetBool(SettingsNames.FormatOnPaste, defaultValue: true),
+            GetBool(SettingsNames.ShowAllCSharpCodeActions, defaultValue: false),
             _taskListDescriptors);
 
     public bool GetBool(string name, bool defaultValue)

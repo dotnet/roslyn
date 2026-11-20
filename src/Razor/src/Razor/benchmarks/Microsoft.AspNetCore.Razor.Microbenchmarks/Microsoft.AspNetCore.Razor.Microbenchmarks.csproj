@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <DefineConstants>$(DefineConstants);ROSLYN_NO_INDEXRANGE</DefineConstants>
     <NoWarn>$(NoWarn);RS0016;RS0017;RS0018;RS0022;RS0026;RS0027</NoWarn>
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFrameworks>$(NetVS);$(NetFxVS)</TargetFrameworks>

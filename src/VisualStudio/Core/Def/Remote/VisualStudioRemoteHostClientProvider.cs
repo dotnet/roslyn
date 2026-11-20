@@ -68,13 +68,10 @@ internal sealed class VisualStudioRemoteHostClientProvider : IRemoteHostClientPr
         {
             Debug.Assert(workspaceServices.Workspace is VisualStudioWorkspace or PreviewWorkspace);
 
-            // We don't want to bring up the OOP process in a VS cloud environment client instance
-            // Avoids proffering brokered services on the client instance.
+            // If OOP is disabled, or the host services are different, then we can't use the cached VS instance; fall back to in-proc.
+            // This can happen for preview workspace in Tools|Options.
             if (!_globalOptions.GetOption(RemoteHostOptionsStorage.OOP64Bit) ||
-                // If the host services are different, then we can't use the cached VS instance, fall back to in-proc.
-                // This can happen for preview workspace in Tools|Options.
-                workspaceServices.SolutionServices.WorkspaceServices.HostServices != _vsWorkspace.Services.HostServices ||
-                workspaceServices.GetRequiredService<IWorkspaceContextService>().IsCloudEnvironmentClient())
+                workspaceServices.SolutionServices.WorkspaceServices.HostServices != _vsWorkspace.Services.HostServices)
             {
                 // Run code in the current process
                 return new DefaultRemoteHostClientProvider();

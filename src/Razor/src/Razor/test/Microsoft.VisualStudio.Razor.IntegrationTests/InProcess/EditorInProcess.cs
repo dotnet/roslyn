@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
@@ -40,7 +41,7 @@ internal partial class EditorInProcess
         var textView = await GetActiveTextViewAsync(cancellationToken);
 
         var subjectBuffer = textView.GetBufferContainingCaret();
-        Assumes.Present(subjectBuffer);
+        Contract.ThrowIfNull(subjectBuffer);
 
         var options = textView.Options.GlobalOptions;
         EditorOptionKey<bool> optionKey;

@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.AspNetCore.Razor.Language.Components;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -32,7 +33,7 @@ internal struct TagHelperAttributeMatch(
                 return Parameter.IsStringProperty;
             }
 
-            return Attribute.IsStringProperty || (IsIndexerMatch && Attribute.IsIndexerStringProperty);
+            return Attribute.IsStringProperty || Attribute.AcceptsStringLiteral() || (IsIndexerMatch && Attribute.IsIndexerStringProperty);
         }
     }
 

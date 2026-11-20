@@ -27,7 +27,7 @@ internal sealed partial class ComponentTagHelperProducer
 
             _bindTagHelperProducerFactory.TryCreate(compilation, includeDocumentation, excludeHidden, out var producer);
 
-            result = new ComponentTagHelperProducer((BindTagHelperProducer?)producer);
+            result = new ComponentTagHelperProducer(compilation, (BindTagHelperProducer?)producer);
             return true;
         }
     }

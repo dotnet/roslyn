@@ -385,5 +385,10 @@ public class HtmlDocumentSynchronizerTest(ITestOutputHelper testOutput) : Visual
 
             return (TResult)(object)(await solution.GetAdditionalDocument(_documentId).AssumeNotNull().GetTextAsync(cancellationToken)).ToString();
         }
+
+        public ValueTask<TResult?> TryInvokeAsync<TService, TResult>(Func<TService, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken, [CallerFilePath] string? callerFilePath = null, [CallerMemberName] string? callerMemberName = null) where TService : class
+        {
+            throw new NotImplementedException();
+        }
     }
 }

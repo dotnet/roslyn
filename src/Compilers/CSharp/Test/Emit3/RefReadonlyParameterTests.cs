@@ -1138,6 +1138,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
+            // (6,9): error CS9363: 'C.D' must be used in an unsafe context because it has pointers in its signature
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.D").WithArguments("C.D").WithLocation(6, 9),
             // (6,9): error CS0570: 'delegate*<in int, void>' is not supported by the language
             //         c.D(ref x);
             Diagnostic(ErrorCode.ERR_BindToBogus, "c.D(ref x)").WithArguments("delegate*<in int, void>").WithLocation(6, 9),
@@ -1191,6 +1194,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             """;
 
         var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            // (6,9): error CS9363: 'C.D' must be used in an unsafe context because it has pointers in its signature
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.D").WithArguments("C.D").WithLocation(6, 9),
             // (6,9): error CS0570: 'delegate*<ref readonly int, void>' is not supported by the language
             //         c.D(ref x);
             Diagnostic(ErrorCode.ERR_BindToBogus, "c.D(ref x)").WithArguments("delegate*<ref readonly int, void>").WithLocation(6, 9),
@@ -1240,6 +1246,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
 
         var comp = CreateCompilationWithIL(source, ilSource, options: TestOptions.UnsafeDebugDll);
         comp.VerifyDiagnostics(
+            // (6,9): error CS9363: 'C.D' must be used in an unsafe context because it has pointers in its signature
+            //         c.D(ref x);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "c.D").WithArguments("C.D").WithLocation(6, 9),
             // (6,9): error CS0570: 'delegate*<ref int, void>' is not supported by the language
             //         c.D(ref x);
             Diagnostic(ErrorCode.ERR_BindToBogus, "c.D(ref x)").WithArguments("delegate*<ref int, void>").WithLocation(6, 9),

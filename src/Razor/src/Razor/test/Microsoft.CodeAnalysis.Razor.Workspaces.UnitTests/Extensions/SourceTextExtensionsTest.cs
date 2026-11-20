@@ -1,6 +1,7 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -38,5 +39,39 @@ public class SourceTextExtensionsTest
         var textSpan = sourceText.GetTextSpan(startLine: 0, startCharacter: 0, endLine: 0, endCharacter: int.MaxValue);
 
         Assert.Equal(new TextSpan(0, 5), textSpan);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84104")]
+    public void TryGetTextSpan_ReturnsFalse_WhenEndLinePastEnd()
+    {
+        var sourceText = SourceText.From("hello\r\nworld");
+
+        var result = sourceText.TryGetTextSpan(
+            startLine: 0,
+            startCharacter: 0,
+            endLine: 28,
+            endCharacter: 0,
+            out var textSpan);
+
+        Assert.False(result);
+        Assert.Equal(default, textSpan);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84104")]
+    public void TryGetTextSpan_ReturnsFalse_WhenEndBeforeStart()
+    {
+        var sourceText = SourceText.From("hello\r\nworld");
+
+        var result = sourceText.TryGetTextSpan(
+            startLine: 1,
+            startCharacter: 0,
+            endLine: 0,
+            endCharacter: 0,
+            out var textSpan);
+
+        Assert.False(result);
+        Assert.Equal(default, textSpan);
     }
 }

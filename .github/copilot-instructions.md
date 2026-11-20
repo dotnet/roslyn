@@ -1,0 +1,149 @@
+# Roslyn (.NET Compiler Platform) — Copilot Instructions
+
+> This is the **canonical** repo-wide agent entry point. `AGENTS.md` at the repo root points here. Path-scoped rules in `.github/instructions/{Compiler,IDE,Razor}.instructions.md` apply automatically by area and supplement this file. This file establishes the memory-first orientation protocol and doc-maintenance obligation.
+>
+> Across AI-generated output (code, documentation, and user-facing prose), prefer terminology already used in this repository.
+
+## Project Overview
+
+Roslyn is the open-source C# and Visual Basic compilers plus the language services and IDE features built on their APIs. Built around **immutable** syntax trees, semantic models, symbols, and workspace snapshots. Major components:
+- **Compilers** (`src/Compilers/`) — C#/VB compilers (syntax, semantics, emit).
+- **Workspaces** (`src/Workspaces/`) — Solution/Project/Document model + MEF host.
+- **Features / EditorFeatures** (`src/Features/`, `src/EditorFeatures/`) — IDE features.
+- **Analyzers / CodeStyle** (`src/Analyzers/`, `src/CodeStyle/`) — IDE0xxx diagnostics & fixes.
+- **LanguageServer** (`src/LanguageServer/`) — LSP server.
+- **VisualStudio** (`src/VisualStudio/`) — VS integration.
+- **Razor** (`src/Razor/src/`) — Razor compiler & tooling (merged sub-tree).
+
+## Project Structure
+
+```
+src/
+  Compilers/      # C#/VB compilers (Core, CSharp, VisualBasic, Server)
+  Workspaces/     # Solution model, MSBuild loading, Remote (OOP)
+  Features/       # Language-agnostic IDE feature logic
+  EditorFeatures/ # Editor/text-buffer integration
+  Analyzers/      # IDE0xxx code-style analyzers & fixes
+  LanguageServer/ # LSP server
+  VisualStudio/   # VS language services & UI
+  Razor/src/      # Razor compiler + tooling (own layout)
+  ExpressionEvaluator/  Scripting/  Interactive/  RoslynAnalyzers/
+eng/              # Arcade build engineering (eng/common is DARC-synced)
+docs/             # Contributor & design docs
+```
+
+## Build & Test
+
+### Build specific projects during development (preferred)
+```bash
+dotnet build Compilers.slnf      # compilers only
+dotnet build Ide.slnf            # IDE only
+dotnet build Razor.slnf          # Razor compiler & tooling only
+dotnet build <path/to/Project.csproj>
+```
+
+- In this repository, local `dotnet build` will not run analyzers by default. To include analyzers in the build, use the `-p:RunAnalyzersDuringBuild=true` flag to run them. Consider using this when searching for diagnostics you need to fix, or when you're doing a final build before creating a pull request.
+
+### Run tests for modified code
+```bash
+dotnet test <path/to/Specific.UnitTests.csproj>
+dotnet test <proj> --filter "FullyQualifiedName~MyTestClass"
+```
+
+Tests can take a while to build and run — monitor output and wait for completion unless you're confident a run is hung.
+
+### Full build/test (final validation only)
+```bash
+./build.sh   # Build.cmd on Windows
+./test.sh    # Test.cmd on Windows
+```
+
+- If you need build.sh to run analyzers, pass `--runAnalyzers`. If you need build.cmd to run analyzers, pass `-runAnalyzers`.
+
+Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerate Syntax/BoundNodes code), `dotnet msbuild <proj> /t:UpdateXlf` (refresh `.xlf` after `.resx` edits).
+
+## Code Style
+
+- 4-space indent for code; 2-space for project/XML/JSON. Never tabs. UTF-8-BOM, final newline for `*.cs`/`*.vb`.
+- **Blank lines must be completely empty** (no spaces/tabs); no trailing whitespace — both are hard lint failures.
+- Private fields `_camelCase`; namespaces `Microsoft.CodeAnalysis.[Language].[Area]`.
+- Always thread `CancellationToken` through async operations. (Null-checking style is layer-specific — see the area's instruction file: `Contract.ThrowIfNull` in IDE, `Debug.Assert` in the compiler.)
+- Language services are exported **per-language** (`[ExportLanguageService(..., LanguageNames.CSharp), Shared]`), never shared across C#/VB.
+- No `TODO`/`TODO2` comments — track follow-ups as linked GitHub issues in code; existing `TODO2`s are only a frozen enforcement baseline. No `PROTOTYPE` comments in PRs to `main`.
+- Update `PublicAPI.Unshipped.txt` for public API changes. Never hand-edit generated code or `eng/common`.
+- It is acceptable to have async methods with no awaits. CS1998 is not active for this repository.
+
+Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Compiler,IDE,Razor}.instructions.md`.
+
+## Agent Orientation
+
+When starting any task or answering any question about this repo:
+1. **Read `.github/memory/INDEX.md` first** — it's the loading map for the knowledge base. Use it to find authoritative answers before searching the file system.
+2. **For any non-trivial task, also read `.github/memory/ARCHITECTURE.md` and `.github/memory/CONVENTIONS.md`** as your baseline.
+3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **test conventions**, load `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
+4. After completing work, run the `update-agent-docs` skill.
+
+### Memory
+
+`.github/memory/` is your persistent knowledge base. Keep changes focused on documentation needs relevant to the task, using the criteria below. Use descriptive filenames.
+
+**Memory freshness is your responsibility.** Files can drift from the code:
+- **Always cross-check memory claims against actual code** before relying on them.
+- Correct inaccuracies encountered in task-relevant memory files. Do not expand the task into a general freshness audit or record every discovery.
+
+### Doc Update Obligation
+
+**Assess documentation; do not require a documentation diff.** Edit docs only when the
+change makes existing guidance incorrect or leaves a necessary contributor-facing workflow,
+contract, or architectural decision undocumented. Before editing, identify the specific
+incorrect statement or missing information and who needs it. No documentation change is
+a valid outcome.
+
+Do not add guidance merely to record a fix, repeat an existing rule, describe an implementation
+detail, or remind contributors about requirements already enforced by configuration, analyzers,
+tests, or CI. Prefer links to authoritative configuration or tooling over duplicated rules.
+Document automated checks only when contributors need otherwise-undocumented instructions
+to run them or act on failures.
+
+For the documentation-assessment checklist and routing rules, see the
+[`update-agent-docs` skill](skills/update-agent-docs/SKILL.md).
+
+### Skills
+
+Skills live in `.github/skills/<skill-name>/SKILL.md` and are auto-discovered by their YAML `description`. Useful ones here include `code-review`, `ci-analysis`, `analyzer-codefix`, `merge-into-branch`, `snap`, and `update-agent-docs`.
+
+## Working Loop
+
+Implement directly; keep the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. Ask the user only when a decision is genuinely ambiguous and materially affects the approach.
+
+### Keep changes reviewable
+
+- Keep each change focused on one coherent concern. Do not mix behavior changes with unrelated cleanup, broad renames, or opportunistic refactoring.
+- Split work when parts can be reviewed, validated, merged, or reverted independently; when they affect unrelated areas or owners; or when a preparatory refactoring can land before the behavior change.
+- Checkpoint after each independently valid slice rather than accumulating one large unreviewed diff. Each checkpoint must build on the previous one and leave the branch in a coherent state.
+- Do not optimize for an arbitrary line-count limit: generated files and mechanical updates can be large. Optimize for reviewer cognitive load, clear intent, and independent validation.
+- If a change cannot be split without making it less correct or harder to validate, explain that constraint and keep the commits logically separated.
+
+## Pull Request Descriptions
+
+Keep PR descriptions focused on what changed and why. Omit routine validation details
+that CI covers, such as builds, unit tests, formatting, and analyzers. Do not add a
+validation section just to list commands or passing results, or to say that
+documentation-only changes did not need tests.
+
+Include validation information only when it adds useful evidence beyond CI, such as
+manual scenario checks, benchmark results, or known validation limitations.
+
+## Definition of Done
+
+Work is done only when every applicable step below is complete:
+
+1. **Format:** Run the repository's existing formatter for changed files when applicable.
+2. **Lint/analyzers:** Run the smallest existing lint or analyzer command that covers the changed files when applicable.
+3. **Build:** Build the specific affected project or solution filter (`Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, or the project). Documentation-only changes do not require a product build.
+4. **Targeted tests:** Run the affected test project or focused test filter. Add or update tests when behavior changes; explain when no relevant automated test exists.
+   **Regression-test efficacy:** For bug fixes, verify that the regression test fails against the unfixed implementation for the intended reason, then passes with the fix. If the fix was implemented first, use an isolated worktree or safely remove only the fix while retaining the test; preserve unrelated changes and restore the fix afterward. Rebuild the affected code for each run so stale binaries cannot invalidate the comparison. Report the test command and both results. Build failures, unrelated failures, and skipped tests do not establish reproduction. If the test passes without the fix, revise it to reproduce the issue before claiming regression coverage. If this check cannot be performed, explicitly state that regression-test efficacy remains unverified.
+5. **Generated/resource/API updates:** Regenerate Syntax/BoundNodes outputs when their XML changes, run `/t:UpdateXlf` after `.resx` edits, and update `PublicAPI.Unshipped.txt` for public API changes.
+6. **Diff review:** Review the final diff and confirm it matches the task, contains no unrelated edits, and follows nearby patterns.
+7. **Docs:** Run the `update-agent-docs` skill and apply the Doc Update Obligation above.
+8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed in the session. Follow **Pull Request Descriptions** above when writing the PR body. Do not claim completion while required validation is failing or was silently skipped.

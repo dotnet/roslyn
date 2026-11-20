@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         internal override bool UseUpdatedEscapeRules => _underlyingModule.UseUpdatedEscapeRules;
 
-        internal override bool UseUpdatedMemorySafetyRules => _underlyingModule.UseUpdatedMemorySafetyRules;
+        internal override MemorySafetyRulesVersion MemorySafetyRulesVersion => _underlyingModule.MemorySafetyRulesVersion;
 
 #nullable enable
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData

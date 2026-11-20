@@ -154,15 +154,20 @@ internal abstract partial class AbstractEditorInlineRenameService
             if (RenameSymbol.Kind == SymbolKind.NamedType &&
                 this.Document.Project.Solution.CanApplyChange(ApplyChangesKind.ChangeDocumentInfo))
             {
-                if (RenameSymbol.Locations.Length > 1)
+                // Unlike RenameSymbol.Locations DefinitionLocations contains only
+                // non source-generated locations. Since we want the user to be able to rename a file
+                // if all other symbol's partial parts are in source-generated documents, we use this property
+                if (DefinitionLocations.Length > 1)
                 {
                     return InlineRenameFileRenameInfo.TypeWithMultipleLocations;
                 }
 
                 // Get the document that the symbol is defined in to compare
                 // the name with the symbol name. If they match allow
-                // rename file rename as part of the symbol rename
-                var symbolSourceDocument = this.Document.Project.Solution.GetDocument(RenameSymbol.Locations.Single().SourceTree);
+                // rename file rename as part of the symbol rename.
+                // Note: since source-generated partial parts are processed after the initial compilation
+                // the first location of RenameSymbol is always gonna be a non source-generated one
+                var symbolSourceDocument = this.Document.Project.Solution.GetDocument(RenameSymbol.Locations.First().SourceTree);
                 if (symbolSourceDocument != null && WorkspacePathUtilities.TypeNameMatchesDocumentName(symbolSourceDocument, RenameSymbol.Name))
                 {
                     return InlineRenameFileRenameInfo.Allowed;

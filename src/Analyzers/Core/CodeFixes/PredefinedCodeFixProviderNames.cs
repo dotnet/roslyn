@@ -44,7 +44,6 @@ internal static class PredefinedCodeFixProviderNames
     public const string ConvertToTopLevelStatements = nameof(ConvertToTopLevelStatements);
     public const string ConvertTypeOfToNameOf = nameof(ConvertTypeOfToNameOf);
     public const string CopilotImplementNotImplementedException = nameof(CopilotImplementNotImplementedException);
-    public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string CorrectNextControlVariable = nameof(CorrectNextControlVariable);
     public const string DeclareAsNullable = nameof(DeclareAsNullable);
     public const string DisambiguateSameVariable = nameof(DisambiguateSameVariable);
@@ -183,6 +182,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseRangeOperator = nameof(UseRangeOperator);
     public const string UseSimpleUsingStatement = nameof(UseSimpleUsingStatement);
     public const string UseSystemHashCode = nameof(UseSystemHashCode);
+    public const string UseLabeledJumpStatements = nameof(UseLabeledJumpStatements);
     public const string UseSystemThreadingLock = nameof(UseSystemThreadingLock);
     public const string UseThrowExpression = nameof(UseThrowExpression);
     public const string UseTupleSwap = nameof(UseTupleSwap);

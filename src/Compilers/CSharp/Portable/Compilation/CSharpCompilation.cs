@@ -264,6 +264,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool FeatureDisableLengthBasedSwitch => HasFeature(CodeAnalysis.Feature.DisableLengthBasedSwitch);
 
+        internal bool UseUpdatedMemorySafetyRules =>
+            Options.UseUpdatedMemorySafetyRules ||
+            (Options.MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version1 && HasFeature(CodeAnalysis.Feature.UpdatedMemorySafetyRules));
+
         /// <summary>
         /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
         /// </summary>
@@ -3099,11 +3103,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
                 }
 
-                if (Options.UseUpdatedMemorySafetyRules && !this.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
+                if (UseUpdatedMemorySafetyRules && !this.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
                 {
                     builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CompilationOptionNotAvailable,
-                        nameof(Options.MemorySafetyRules), Options.MemorySafetyRules, LanguageVersion.ToDisplayString(),
+                        nameof(Options.MemorySafetyRulesVersion), (int)MemorySafetyRulesVersion.Version2, LanguageVersion.ToDisplayString(),
                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureUnsafeEvolution.RequiredVersion())), Location.None));
+                }
+
+                if (HasFeature(CodeAnalysis.Feature.UpdatedMemorySafetyRules))
+                {
+                    builder.Add(ErrorCode.WRN_DeprecatedFeatureFlag, Location.None,
+                        CodeAnalysis.Feature.UpdatedMemorySafetyRules,
+                        $"MemorySafetyRulesVersion={(int)MemorySafetyRulesVersion.Version2}",
+                        $"/memorysafetyrulesversion:{(int)MemorySafetyRulesVersion.Version2}");
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -3421,24 +3433,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
 
+            // Do not check CLSCompliance if we are doing ENC.
+            ImmutableArray<AssemblySymbol> dependencies;
+            if (symbolFilter == null)
+            {
+                ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
+                result = result.Concat(clsDiagnostics.Diagnostics);
+                dependencies = clsDiagnostics.Dependencies;
+            }
+            else
+            {
+                dependencies = ImmutableArray<AssemblySymbol>.Empty;
+            }
+
             if (locationFilterOpt != null)
             {
                 RoslynDebug.Assert(syntaxTree != null);
                 result = locationFilterOpt(result, syntaxTree, filterSpanWithinTree);
             }
 
-            // Do not check CLSCompliance if we are doing ENC.
-            if (symbolFilter == null)
-            {
-
-                // NOTE: Concatenate the CLS diagnostics *after* filtering by tree/span, because they're already filtered.
-                ReadOnlyBindingDiagnostic<AssemblySymbol> clsDiagnostics = GetClsComplianceDiagnostics(syntaxTree, filterSpanWithinTree, cancellationToken);
-                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable().Concat(clsDiagnostics.Diagnostics), clsDiagnostics.Dependencies);
-            }
-            else
-            {
-                return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable(), ImmutableArray<AssemblySymbol>.Empty);
-            }
+            return new ReadOnlyBindingDiagnostic<AssemblySymbol>(result.AsImmutable(), dependencies);
         }
 
         private ReadOnlyBindingDiagnostic<AssemblySymbol> GetClsComplianceDiagnostics(SyntaxTree? syntaxTree, TextSpan? filterSpanWithinTree, CancellationToken cancellationToken)
@@ -5000,6 +5014,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 writeValue(CompilationOptionNames.Define, string.Join(",", preprocessorSymbols));
             }
+
+            // https://github.com/dotnet/roslyn/issues/82546: serialize MemorySafetyRulesVersion here when it's no longer experimental
 
             void writeValue(string key, string value)
             {

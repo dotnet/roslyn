@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
     /// should be significantly faster with larger projects and have a smaller memory
     /// footprint.
     /// </summary>
+    [MSBuildMultiThreadableTask]
     public class Vbc : ManagedCompiler
     {
         private bool _useHostCompilerIfAvailable;
@@ -277,7 +278,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (!SkipCompilerExecution)
             {
-                MovePdbFileIfNecessary(OutputAssembly?.ItemSpec);
+                MovePdbFileIfNecessary();
             }
 
             return !Log.HasLoggedErrors;
@@ -291,10 +292,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// 
         /// If at some future point VBC.exe offers a /pdbfile switch, this function can be removed.
         /// </summary>
-        internal void MovePdbFileIfNecessary(string? outputAssembly)
+        internal void MovePdbFileIfNecessary()
         {
             // Get the name of the output assembly because the pdb will be written beside it and will have the same name
-            if (RoslynString.IsNullOrEmpty(PdbFile) || String.IsNullOrEmpty(outputAssembly))
+            if (string.IsNullOrEmpty(PdbFile) ||
+                string.IsNullOrEmpty(OutputAssembly?.ItemSpec) ||
+                TaskEnvironment.GetFullPathNoThrow(OutputAssembly!.ItemSpec) is not string outputAssembly)
             {
                 return;
             }
@@ -303,7 +306,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 string actualPdb = Path.ChangeExtension(outputAssembly, ".pdb"); // This is the pdb that the compiler generated
 
-                FileInfo actualPdbInfo = new FileInfo(actualPdb);
+                FileInfo actualPdbInfo = TaskEnvironment.CreateFileInfo(actualPdb);
 
                 string desiredLocation = PdbFile;
                 if (!desiredLocation.EndsWith(".pdb", StringComparison.OrdinalIgnoreCase))
@@ -311,7 +314,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     desiredLocation += ".pdb";
                 }
 
-                FileInfo desiredPdbInfo = new FileInfo(desiredLocation);
+                FileInfo desiredPdbInfo = TaskEnvironment.CreateFileInfo(desiredLocation);
 
                 // If the compiler generated a pdb..
                 if (actualPdbInfo.Exists)
@@ -322,11 +325,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                         // Delete the existing one if it's already there, as Move would otherwise fail
                         if (desiredPdbInfo.Exists)
                         {
-                            Utilities.DeleteNoThrow(desiredPdbInfo.FullName);
+                            TaskEnvironment.DeleteNoThrow(desiredPdbInfo);
                         }
 
                         // Move the file to where we actually wanted VBC to put it
-                        File.Move(actualPdbInfo.FullName, desiredLocation);
+                        TaskEnvironment.FileMove(actualPdbInfo.FullName, desiredLocation);
                     }
                 }
             }
@@ -390,14 +393,24 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 commandLine.AppendSwitchIfNotNull("/sdkpath:", RuntimeEnvironment.GetRuntimeDirectory());
 
+#if NETFRAMEWORK
+                // This branch only runs in the .NET Framework to .NET Core bridge task, which always
+                // executes on .NET Framework MSBuild where this assembly is deployed as loose files on
+                // disk. Assembly.Location is therefore valid here and unreachable from any single-file or
+                // native AOT host, so it does not need to satisfy the IL3000 single-file analyzer.
                 if (!NoConfig)
                 {
                     var rspFile = Path.Combine(Path.GetDirectoryName(typeof(ManagedCompiler).Assembly.Location)!, "vbc.rsp");
-                    if (File.Exists(rspFile))
+                    if (TaskEnvironment.FileExists(rspFile))
                     {
                         commandLine.AppendSwitchIfNotNull("@", rspFile);
                     }
                 }
+#else
+                // IsSdkFrameworkToCoreBridgeTask is only ever true on .NET Framework, so the bridge-only
+                // response file handling above is never reached on .NET Core.
+                Debug.Fail("The SDK framework-to-core bridge task only runs on .NET Framework MSBuild.");
+#endif
             }
 
             commandLine.AppendSwitchIfNotNull("/baseaddress:", this.GetBaseAddressInHex());

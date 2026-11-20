@@ -137,6 +137,16 @@
         <target state="translated">Formátovat při psaní</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription">
+        <source>If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</source>
+        <target state="new">If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName">
+        <source>Ignore indentation in script or style blocks with complex Razor</source>
+        <target state="new">Ignore indentation in script or style blocks with complex Razor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_LogLevelCritical">
         <source>Critical</source>
         <target state="translated">Kritická</target>
@@ -180,6 +190,16 @@
       <trans-unit id="Setting_LogLevelWarning">
         <source>Warning</source>
         <target state="translated">Upozornění</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ShowAllCSharpCodeActionsDescription">
+        <source>Show all C# code actions in Razor files. These actions are untested in Razor and may introduce syntax errors when applied. If this happens, please report a bug.</source>
+        <target state="translated">Zobrazit všechny akce kódu C# v souborech Razor. Tyto akce nejsou v Razoru otestované a po použití můžou způsobit syntaktické chyby. Pokud k tomu dojde, nahlaste prosím chybu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_ShowAllCSharpCodeActionsDisplayName">
+        <source>Show all C# code actions</source>
+        <target state="translated">Zobrazit všechny akce kódu C#</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsAll">

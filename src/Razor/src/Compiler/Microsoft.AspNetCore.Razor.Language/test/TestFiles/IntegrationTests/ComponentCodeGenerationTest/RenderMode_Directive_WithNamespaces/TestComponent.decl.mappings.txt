@@ -1,0 +1,5 @@
+﻿Source Location: (11:0,11 [16] x:\dir\subdir\Test\TestComponent.cshtml)
+|Custom.Namespace|
+Generated Location: (146:5,0 [16] )
+|Custom.Namespace|
+

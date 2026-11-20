@@ -69,7 +69,7 @@ internal static class LinkedFileMergeConflictCommentAdditionService
             var endPosition = changePartition.Last().Span.End;
 
             var startLineStartPosition = oldDocumentText.Lines.GetLineFromPosition(startPosition).Start;
-            var endLineEndPosition = oldDocumentText.Lines.GetLineFromPosition(endPosition).End;
+            var endLineEndPosition = oldDocumentText.Lines.GetLineFromPosition(endPosition).EndIncludingLineBreak;
 
             var oldText = oldDocumentText.GetSubText(TextSpan.FromBounds(startLineStartPosition, endLineEndPosition));
             var adjustedChanges = changePartition.Select(c => new TextChange(TextSpan.FromBounds(c.Span.Start - startLineStartPosition, c.Span.End - startLineStartPosition), c.NewText!));

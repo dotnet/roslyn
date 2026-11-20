@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -95,6 +96,15 @@ public sealed class MSBuildWorkspace : Workspace
 
     internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider)
         => _loader.LoggerFactory.AddProvider(loggerProvider);
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(MSBuildWorkspace workspace)
+    {
+        public void SetBeforeKillHungBuildHostProcess(Action<Process>? beforeKillHungBuildHostProcess)
+            => workspace._loader.GetTestAccessor().SetBeforeKillHungBuildHostProcess(beforeKillHungBuildHostProcess);
+    }
 
     protected override void Dispose(bool finalize)
     {
@@ -220,13 +230,7 @@ public sealed class MSBuildWorkspace : Workspace
         return this.CurrentSolution;
     }
 
-    /// <summary>
-    /// Open a project file and all referenced projects.
-    /// </summary>
-    /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
-    /// current working directory.</param>
-    /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
-    /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+    /// <inheritdoc cref="OpenProjectAsync(string, ILogger, IProgress{ProjectLoadProgress}, CancellationToken)"/>
 #pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
     public Task<Project> OpenProjectAsync(
 #pragma warning restore RS0026
@@ -241,8 +245,13 @@ public sealed class MSBuildWorkspace : Workspace
     /// <param name="projectFilePath">The path to the project file to be opened. This may be an absolute path or a path relative to the
     /// current working directory.</param>
     /// <param name="progress">An optional <see cref="IProgress{T}"/> that will receive updates as the project is opened.</param>
-    /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results..</param>
+    /// <param name="msbuildLogger">An optional <see cref="ILogger"/> that will log msbuild results.</param>
     /// <param name="cancellationToken">An optional <see cref="CancellationToken"/> to allow cancellation of this operation.</param>
+    /// <remarks>
+    /// Supports file-based apps too (just pass the path to the entry point C# file as <paramref name="projectFilePath"/>).
+    /// <paramref name="projectFilePath"/> is treated as a file-based app only if it does not have a recognized project file extension (see also <see cref="AssociateFileExtensionWithLanguage"/>),
+    /// it is a file that exists, and has either the <c>.cs</c> extension, or has the bytes <c>#!</c> (shebang) as the first two bytes of its content.
+    /// </remarks>
 #pragma warning disable RS0026 // Special case to avoid ILogger type getting loaded in downstream clients
     public async Task<Project> OpenProjectAsync(
 #pragma warning restore RS0026
@@ -355,8 +364,16 @@ public sealed class MSBuildWorkspace : Workspace
                     return;
                 }
 
-                if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName))
+                if (_loader.ProjectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, DiagnosticReportingMode.Log, out var languageName, out var isFileBasedApp))
                 {
+                    if (isFileBasedApp)
+                    {
+                        Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure,
+                            string.Format(WorkspaceMSBuildResources.Applying_updates_to_file_based_apps_is_not_supported_0, projectPath),
+                            projectChanges.ProjectId));
+                        return;
+                    }
+
                     try
                     {
                         var buildHost = _applyChangesBuildHostProcessManager.GetBuildHostWithFallbackAsync(projectPath, CancellationToken.None).Result;
@@ -387,6 +404,16 @@ public sealed class MSBuildWorkspace : Workspace
         }
         finally
         {
+            // Ensure that even if we have an issue with disposal that we still null out the field.
+            try
+            {
+                _applyChangesProjectFile?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            }
+            catch (Exception exception)
+            {
+                Reporter.Report(new ProjectDiagnostic(WorkspaceDiagnosticKind.Failure, exception.Message, projectChanges.ProjectId));
+            }
+
             _applyChangesProjectFile = null;
         }
     }
@@ -739,4 +766,3 @@ public sealed class MSBuildWorkspace : Workspace
     }
     #endregion
 }
-

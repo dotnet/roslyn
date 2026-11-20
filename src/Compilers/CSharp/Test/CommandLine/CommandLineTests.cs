@@ -1662,7 +1662,7 @@ class C
         [InlineData("iso1")]
         [InlineData("8.1")]
         [InlineData("10.1")]
-        [InlineData("15")]
+        [InlineData("16")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1733,7 +1733,7 @@ class C
             // - [ ] email release management to add to the release notes. See csharp-version in release.json in previous example: https://github.com/dotnet/core/pull/9493
             // - [ ] make csharplang updates documented at https://github.com/dotnet/csharplang/blob/main/Design-Process.md#steps-to-move-a-triaged-feature-to-an-implemented-feature
             // - [ ] push the list of specs to Codex. See previous example: https://devdiv.visualstudio.com/OnlineServices/_git/CodexV2Data/pullrequest/618779
-            AssertEx.SetEqual(["default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0", "latest", "latestmajor", "preview"],
+            AssertEx.SetEqual(["default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "14.0", "15.0", "latest", "latestmajor", "preview"],
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1770,6 +1770,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion12,
                 ErrorCode.ERR_FeatureNotAvailableInVersion13,
                 ErrorCode.ERR_FeatureNotAvailableInVersion14,
+                ErrorCode.ERR_FeatureNotAvailableInVersion15,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1796,9 +1797,10 @@ class C
             InlineData(LanguageVersion.CSharp12, LanguageVersion.CSharp12),
             InlineData(LanguageVersion.CSharp13, LanguageVersion.CSharp13),
             InlineData(LanguageVersion.CSharp14, LanguageVersion.CSharp14),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp14, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.CSharp15),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp15, LanguageVersion.Default),
             InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
@@ -1845,6 +1847,10 @@ class C
             InlineData("12.0", true, LanguageVersion.CSharp12),
             InlineData("13", true, LanguageVersion.CSharp13),
             InlineData("13.0", true, LanguageVersion.CSharp13),
+            InlineData("14", true, LanguageVersion.CSharp14),
+            InlineData("14.0", true, LanguageVersion.CSharp14),
+            InlineData("15", true, LanguageVersion.CSharp15),
+            InlineData("15.0", true, LanguageVersion.CSharp15),
             InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
@@ -7855,6 +7861,137 @@ class C
             FreeLibrary(lib);
         }
 
+        [Theory]
+        [InlineData("-memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/MEMORYSAFETYRULESVERSION:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:\"1\"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\" 2 \"", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:+2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:02", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:1 /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:2 /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:999 /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        public void MemorySafetyRules_Parse(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("/memorysafetyrulesversion", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\"\"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\" \"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:1.5", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:0x2", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2147483648", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:-2147483649", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2 /memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:abc /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:abc /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        public void MemorySafetyRules_SwitchNeedsNumber(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS2035: Command-line syntax error: Missing ':<number>' for 'memorysafetyrulesversion' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsNumber).WithArguments("memorysafetyrulesversion"));
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData(int.MinValue)]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [InlineData(3)]
+        [InlineData(999)]
+        [InlineData(int.MaxValue)]
+        public void MemorySafetyRules_InvalidVersion(int value)
+        {
+            var args = FullParse($"/memorysafetyrulesversion:{value} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '{value}'. Accepted values are: 1, 2
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, "1, 2"));
+            Assert.Equal((MemorySafetyRulesVersion)value, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Fact]
+        public void MemorySafetyRules_Help()
+        {
+            var compiler = CreateCSharpCompiler(null, WorkingDirectory, ["/help", "/nologo", "/preferreduilang:en"]);
+            var output = new StringWriter(CultureInfo.InvariantCulture);
+
+            Assert.Equal(0, compiler.Run(output));
+            AssertEx.AssertContainsToleratingWhitespaceDifferences($"""
+                -memorysafetyrulesversion:<n>  Set memory safety rules version as
+                                              `{(int)MemorySafetyRulesVersion.Version1}` (legacy),
+                                              `{(int)MemorySafetyRulesVersion.Version2}` (updated: unsafe members require unsafe context at use site)
+                """, output.ToString());
+        }
+
+        [Theory]
+        [InlineData("", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules=false", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:1 /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:2 /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /features", MemorySafetyRulesVersion.Version1)]
+        public void MemorySafetyRules_FeatureFlag(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:999")]
+        [InlineData("/memorysafetyrulesversion:999 /features:updated-memory-safety-rules")]
+        public void MemorySafetyRules_FeatureFlag_InvalidVersion(string commandLine)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2"));
+            Assert.Equal((MemorySafetyRulesVersion)999, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("15")]
+        [InlineData("preview")]
+        public void MemorySafetyRules_FeatureFlag_LangVersion(string languageVersion)
+        {
+            var args = FullParse($"/features:updated-memory-safety-rules /langversion:{languageVersion} /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+
+            var compilation = CSharpCompilation.Create("test",
+                syntaxTrees: [CSharpSyntaxTree.ParseText("", args.ParseOptions)],
+                references: [MscorlibRef],
+                options: args.CompilationOptions);
+
+            if (languageVersion == "preview")
+            {
+                compilation.VerifyDiagnostics(
+                    // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                    Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+                    // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                    Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
+            }
+
+            Assert.Equal(MemorySafetyRulesVersion.Version2, compilation.Options.MemorySafetyRulesVersion);
+        }
+
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_01()
@@ -12039,6 +12176,30 @@ class C
         }
 
         [Fact]
+        public void RefOnly_EmbeddedDebugInformation()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText("public class C { }");
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = CreateCSharpCompiler(null, dir.Path,
+                new[] { "/nologo", "/target:library", "/out:a.dll", "/refonly", "/debug:embedded", "/deterministic", "a.cs" });
+
+            Assert.Equal(0, csc.Run(outWriter));
+            Assert.Equal("", outWriter.ToString());
+
+            using (var peReader = new PEReader(File.OpenRead(Path.Combine(dir.Path, "a.dll"))))
+            {
+                AssertEx.Equal(
+                    new[] { DebugDirectoryEntryType.Reproducible },
+                    peReader.ReadDebugDirectory().Select(entry => entry.Type));
+            }
+
+            CleanupAllGeneratedFiles(dir.Path);
+        }
+
+        [Fact]
         public void CompilingCodeWithInvalidPreProcessorSymbolsShouldProvideDiagnostics()
         {
             var parsedArgs = DefaultParse(new[] { "/define:1", "a.cs" }, WorkingDirectory);
@@ -12107,7 +12268,7 @@ class C
             result = ProcessUtilities.Run(cscPath, arguments: "/nologo /t:library unknown.cs", workingDirectory: dir.Path);
             Assert.Equal(1, result.ExitCode);
             AssertEx.Equal(
-                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".1", ".0")}' or one of its dependencies. The system cannot find the file specified.",
+                $"Could not load file or assembly '{typeof(ImmutableArray).Assembly.FullName.Replace(".10", ".0")}' or one of its dependencies. The system cannot find the file specified.",
                 result.Output.Trim());
         }
 
@@ -12381,16 +12542,198 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [Fact]
-        public void StrongNameProviderWithCustomTempPath()
+        public void StrongNameProviderUsesOutputDirectory()
         {
-            var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { "/features:UseLegacyStrongNameProvider", "/nostdlib", "a.cs" });
             var comp = csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             Assert.True(!comp.SignUsingBuilder);
+            Assert.Equal(workingDir.Path, comp.Options.StrongNameProvider.FileSystem.GetSigningPath());
+        }
+
+        private sealed class LegacySigningCompiler : MockCSharpCompiler
+        {
+            private readonly Action<string> _beforeSign;
+            private readonly Action<string> _createSigningFile;
+
+            public LegacySigningCompiler(string workingDirectory, string[] arguments, Action<string> beforeSign, Action<string> createSigningFile = null)
+                : base(null, workingDirectory, arguments, additionalReferences: [MscorlibRef])
+            {
+                _beforeSign = beforeSign;
+                _createSigningFile = createSigningFile;
+            }
+
+            public override Compilation CreateCompilation(
+                TextWriter consoleOutput,
+                TouchedFileLogger touchedFilesLogger,
+                ErrorLogger errorLogger,
+                ImmutableArray<AnalyzerConfigOptionsResult> syntaxDiagOptionsOpt,
+                AnalyzerConfigOptionsResult globalDiagnosticOptionsOpt)
+            {
+                var compilation = base.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger, syntaxDiagOptionsOpt, globalDiagnosticOptionsOpt);
+                var original = (DesktopStrongNameProvider)compilation.Options.StrongNameProvider;
+                var fileSystem = new TestStrongNameFileSystem(original.FileSystem.GetSigningPath())
+                {
+                    CreateFileStreamFunc = (path, mode, access, share) =>
+                    {
+                        Assert.Equal(FileMode.CreateNew, mode);
+                        _createSigningFile?.Invoke(path);
+                        return original.FileSystem.CreateFileStream(path, mode, access, share);
+                    }
+                };
+                var provider = new TestDesktopStrongNameProvider(fileSystem: fileSystem)
+                {
+                    SignFileFunc = (keys, path) =>
+                    {
+                        _beforeSign(path);
+                        original.SignFile(keys, path);
+                    }
+                };
+                return compilation.WithOptions(compilation.Options.WithStrongNameProvider(provider));
+            }
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(false, false)]
+        [InlineData(true, false)]
+        [InlineData(false, true)]
+        [InlineData(true, true)]
+        public void LegacySigningOutputPaths(bool explicitOutput, bool executable)
+        {
+            var workingDirectory = Temp.CreateDirectory();
+            var outputDirectory = explicitOutput ? Temp.CreateDirectory() : workingDirectory;
+            var referenceDirectory = Temp.CreateDirectory();
+            var source = workingDirectory.CreateFile("MyLibrary.cs").WriteAllText("public class C { public static void Main() { } }");
+            var key = workingDirectory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+            var outputPath = Path.Combine(outputDirectory.Path, executable ? "MyLibrary.exe" : "MyLibrary.dll");
+            var referencePath = Path.Combine(referenceDirectory.Path, "Reference.dll");
+            var touchedPath = Path.Combine(workingDirectory.Path, "touched");
+            var stagingPaths = new List<string>();
+            var arguments = new List<string>
+            {
+                "/nologo", "/nostdlib", executable ? "/target:exe" : "/target:library", "/deterministic",
+                "/features:UseLegacyStrongNameProvider", "/keyfile:" + key.Path,
+                "/refout:" + referencePath, "/touchedfiles:" + touchedPath, source.Path
+            };
+            if (explicitOutput)
+            {
+                arguments.Add("/out:" + outputPath);
+            }
+
+            var compiler = new LegacySigningCompiler(workingDirectory.Path, arguments.ToArray(), beforeSign: path =>
+            {
+                stagingPaths.Add(path);
+            });
+
+            using var writer = new StringWriter();
+            Assert.Equal(0, compiler.Run(writer));
+            Assert.Equal("", writer.ToString());
+            Assert.Equal(2, stagingPaths.Count);
+            Assert.All(stagingPaths, path =>
+            {
+                Assert.Equal(outputDirectory.Path, Path.GetDirectoryName(path));
+                Assert.Matches(@"^legacy-sign\.[0-9a-f]{32}\.dll$", Path.GetFileName(path));
+            });
+            Assert.All(stagingPaths, path => Assert.False(File.Exists(path)));
+            using (var stream = File.OpenRead(outputPath))
+            {
+                Assert.True(ILValidation.IsStreamFullSigned(stream));
+            }
+            using (var stream = File.OpenRead(referencePath))
+            {
+                Assert.True(ILValidation.IsStreamFullSigned(stream));
+            }
+            var previousOutput = File.ReadAllBytes(outputPath);
+            var previousReference = File.ReadAllBytes(referencePath);
+            Assert.Equal(0, compiler.Run(writer));
+            Assert.Equal(4, stagingPaths.Count);
+            Assert.Equal(4, stagingPaths.Distinct().Count());
+            AssertEx.Equal(previousOutput, File.ReadAllBytes(outputPath));
+            AssertEx.Equal(previousReference, File.ReadAllBytes(referencePath));
+            Assert.All(stagingPaths, path => Assert.False(File.Exists(path)));
+            AssertEx.Equal(new[] { outputPath, referencePath }.Select(path => path.ToUpperInvariant()).Order(), File.ReadAllLines(touchedPath + ".write").Order());
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void LegacySigningFailureBehavior(bool failCreation)
+        {
+            var directory = Temp.CreateDirectory();
+            var source = directory.CreateFile("Library.cs").WriteAllText("public class C { }");
+            var key = directory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+            var outputPath = Path.Combine(directory.Path, "Library.dll");
+            var arguments = new[]
+            {
+                "/nologo", "/nostdlib", "/target:library", "/features:UseLegacyStrongNameProvider",
+                "/keyfile:" + key.Path, "/out:" + outputPath, source.Path
+            };
+            string stagingPath = null;
+            bool fail = false;
+            var compiler = new LegacySigningCompiler(directory.Path, arguments, beforeSign: path =>
+            {
+                stagingPath = path;
+                Assert.Equal(0, new FileInfo(outputPath).Length);
+                if (fail && !failCreation)
+                {
+                    throw new IOException("Injected signing failure");
+                }
+            }, createSigningFile: path =>
+            {
+                if (fail && failCreation)
+                {
+                    stagingPath = path;
+                    throw new IOException("Injected staging failure");
+                }
+            });
+            using var writer = new StringWriter();
+            Assert.Equal(0, compiler.Run(writer));
+            var signedOutput = File.ReadAllBytes(outputPath);
+            using (var stream = File.OpenRead(outputPath))
+            {
+                Assert.True(ILValidation.IsStreamFullSigned(stream));
+            }
+
+            source.WriteAllText("public class C { invalid }");
+            Assert.Equal(1, compiler.Run(writer));
+            AssertEx.Equal(signedOutput, File.ReadAllBytes(outputPath));
+
+            source.WriteAllText("public class C { }");
+            fail = true;
+            Assert.Equal(1, compiler.Run(writer));
+            Assert.Contains(failCreation ? "Injected staging failure" : "Injected signing failure", writer.ToString());
+            Assert.Empty(File.ReadAllBytes(outputPath));
+            Assert.False(File.Exists(stagingPath));
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void LegacySigningConcurrentOutputs()
+        {
+            var directory = Temp.CreateDirectory();
+            var source = directory.CreateFile("Library.cs").WriteAllText("public class C { }");
+            var key = directory.CreateFile("key.snk").WriteAllBytes(TestResources.General.snKey);
+            var stagingPaths = new string[4];
+            System.Threading.Tasks.Parallel.For(0, stagingPaths.Length, i =>
+            {
+                var outputPath = Path.Combine(directory.Path, $"Library{i}.dll");
+                var compiler = new LegacySigningCompiler(directory.Path,
+                    ["/nologo", "/nostdlib", "/target:library", "/features:UseLegacyStrongNameProvider",
+                     "/keyfile:" + key.Path, "/out:" + outputPath, source.Path],
+                    beforeSign: path => stagingPaths[i] = path);
+                using var writer = new StringWriter();
+                Assert.True(compiler.Run(writer) == 0, writer.ToString());
+                using var stream = File.OpenRead(outputPath);
+                Assert.True(ILValidation.IsStreamFullSigned(stream));
+            });
+            Assert.Equal(stagingPaths.Length, stagingPaths.Distinct().Count());
+            Assert.All(stagingPaths, path =>
+            {
+                Assert.Equal(directory.Path, Path.GetDirectoryName(path));
+                Assert.False(File.Exists(path));
+            });
         }
 
         [Theory]
@@ -12399,11 +12742,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
         public void FeaturesInterceptorsNamespaces_OptionParsing(string features)
         {
             Assert.Equal("InterceptorsNamespaces", Feature.InterceptorsNamespaces);
-            var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { features, "a.cs" });
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
@@ -12419,11 +12761,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [Fact]
         public void FeaturesInterceptorsNamespaces_Duplicate()
         {
-            var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsNamespaces=NS1.NS2", @"/features:InterceptorsNamespaces=NS3.NS4", "a.cs" });
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
@@ -12440,11 +12781,10 @@ public class TestAnalyzer : DiagnosticAnalyzer
         {
             // '<InterceptorsPreviewNamespaces>' is recognized in the build task and passed through as a '/features:InterceptorsNamespaces=...' argument.
             // '/features:InterceptorsPreviewNamespaces=...' is included in the Features dictionary but does not enable the interceptors feature.
-            var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
-            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null);
             var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2", "a.cs" });
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;

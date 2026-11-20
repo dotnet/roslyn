@@ -727,6 +727,67 @@ End Namespace
         End Sub
 
         ''' <summary>
+        ''' The emit baseline is not updated when a project has no changes to emit, but the solution snapshot might move
+        ''' forward, e.g. when a dependency is updated. The next edits then refer to symbols from a newer compilation
+        ''' than the baseline. Deleting the method added in generation 1 requires its handle to be found in the baseline.
+        ''' </summary>
+        <Fact>
+        Public Sub Method_DeleteAdded_OldSymbolFromCompilationNewerThanBaseline()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Class C
+    Sub N()
+        System.Console.WriteLine(0)
+    End Sub
+End Class
+",
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("<Module>", "C")
+                            g.VerifyMethodDefNames(".ctor", "N")
+                        End Sub).
+                AddGeneration(
+                    source:="
+Class C
+    Sub N()
+        System.Console.WriteLine(0)
+    End Sub
+    Sub M()
+    End Sub
+End Class
+",
+                    edits:={
+                        Edit(SemanticEditKind.Insert, Function(c) c.GetMember("C.M"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames()
+                            g.VerifyMethodDefNames("M")
+                        End Sub).
+                AddCompilationWithoutDelta().
+                AddGeneration(
+                    source:="
+Class C
+    Sub N()
+        System.Console.WriteLine(3)
+    End Sub
+End Class
+",
+                    edits:={
+                        Edit(SemanticEditKind.Delete, Function(c) c.GetMember("C.M"), newSymbolProvider:=Function(c) c.GetMember("C")),
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.N"))
+                    },
+                    validator:=
+                        Sub(g)
+                            g.VerifyTypeDefNames("HotReloadException")
+                            g.VerifyMethodDefNames("N", "M", ".ctor")
+                        End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        ''' <summary>
         ''' Avoid adding references from method bodies
         ''' other than the changed methods.
         ''' </summary>
@@ -6213,6 +6274,161 @@ _Lambda$__1-1
 }
 ")
                     End Sub).
+                Verify()
+            End Using
+        End Sub
+
+        ''' <summary>
+        ''' Verifies that deleting one of two previously emitted lambdas after a compilation-only advance 
+        ''' leaves a throwing body for the deleted lambda and reuses the retained lambda's handle.
+        ''' </summary>
+        <ConditionalFact(GetType(NotOnMonoCore), GetType(IsEnglishLocal))>
+        Public Sub Lambda_Delete_OldSymbolFromCompilationNewerThanBaseline()
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+    End Sub
+End Class
+",
+                    validator:=Sub(g)
+                               End Sub).
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+        Dim a1 = New Action(Sub() Console.WriteLine(1))
+        Dim a2 = New Action(<N:0>Sub() Console.WriteLine(2)</N:0>)
+    End Sub
+End Class
+",
+                    edits:={
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=Sub(g)
+                                   g.VerifyMethodDefNames("F", ".ctor", ".cctor", "_Lambda$__1#1-0#1", "_Lambda$__1#1-1#1")
+                                   g.VerifyEncLogDefinitions(
+                                   {
+                                       Row(1, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                       Row(3, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                       Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                       Row(1, TableIndex.Field, EditAndContinueOperation.Default),
+                                       Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                       Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                                       Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                       Row(3, TableIndex.Field, EditAndContinueOperation.Default),
+                                       Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                       Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                       Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                       Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                       Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                                       Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default)
+                                   })
+                                   g.VerifyEncMapDefinitions(
+                                   {
+                                       Handle(3, TableIndex.TypeDef),
+                                       Handle(1, TableIndex.Field),
+                                       Handle(2, TableIndex.Field),
+                                       Handle(3, TableIndex.Field),
+                                       Handle(2, TableIndex.MethodDef),
+                                       Handle(3, TableIndex.MethodDef),
+                                       Handle(4, TableIndex.MethodDef),
+                                       Handle(5, TableIndex.MethodDef),
+                                       Handle(6, TableIndex.MethodDef),
+                                       Handle(4, TableIndex.CustomAttribute),
+                                       Handle(1, TableIndex.StandAloneSig),
+                                       Handle(1, TableIndex.NestedClass)
+                                   })
+                               End Sub).
+                AddCompilationWithoutDelta().
+                AddGeneration(
+                    source:="
+Imports System
+
+Class C
+    Sub F()
+        Dim a2 = New Action(<N:0>Sub() Console.WriteLine(2)</N:0>)
+    End Sub
+End Class
+",
+                    edits:={
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    validator:=Sub(g)
+                                   g.VerifyMethodDefNames("F", "_Lambda$__1#1-0#1", "_Lambda$__1#1-1#1", ".ctor")
+                                   g.VerifyEncLogDefinitions(
+                                   {
+                                       Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                                       Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                                       Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                                       Row(4, TableIndex.Field, EditAndContinueOperation.Default),
+                                       Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                                       Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                                       Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                                   })
+                                   g.VerifyIL("
+F
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldsfld     0x04000003
+  IL_0006:  brfalse.s  IL_000f
+  IL_0008:  ldsfld     0x04000003
+  IL_000d:  br.s       IL_0025
+  IL_000f:  ldsfld     0x04000001
+  IL_0014:  ldftn      0x06000006
+  IL_001a:  newobj     0x0A00000A
+  IL_001f:  dup
+  IL_0020:  stsfld     0x04000003
+  IL_0025:  stloc.2
+  IL_0026:  ret
+}
+_Lambda$__1#1-0#1
+{
+  // Code size       12 (0xc)
+  .maxstack  8
+  IL_0000:  ldstr      0x70000009
+  IL_0005:  ldc.i4.m1
+  IL_0006:  newobj     0x06000007
+  IL_000b:  throw
+}
+_Lambda$__1#1-1#1
+{
+  // Code size        9 (0x9)
+  .maxstack  8
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       0x0A00000B
+  IL_0007:  nop
+  IL_0008:  ret
+}
+.ctor
+{
+  // Code size       15 (0xf)
+  .maxstack  8
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  call       0x0A00000C
+  IL_0007:  ldarg.0
+  IL_0008:  ldarg.2
+  IL_0009:  stfld      0x04000004
+  IL_000e:  ret
+}
+")
+                               End Sub).
                 Verify()
             End Using
         End Sub

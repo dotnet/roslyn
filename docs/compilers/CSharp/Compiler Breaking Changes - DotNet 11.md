@@ -214,7 +214,7 @@ object with(object a, object b) { ... }
 
 ***Introduced in Visual Studio 2026 version 18.7***
 
-In a future C# version (currently in `langversion:preview`), pointer types (e.g., `int*`, `delegate*<void>`) no longer require an unsafe context.
+In C# 16, pointer types (e.g., `int*`, `delegate*<void>`) no longer require an unsafe context.
 Only pointer indirection operations (dereference, member access via `->`, element access, etc.) require unsafe.
 This is part of the [unsafe evolution](https://github.com/dotnet/csharplang/issues/9704) feature.
 
@@ -227,7 +227,7 @@ class Program
 {
     static void Main()
     {
-        M(x => { }); // C# 14: prints "2"; C# preview: error CS0121 (ambiguous)
+        M(x => { }); // C# 15: prints "2"; C# 16: error CS0121 (ambiguous)
     }
 
     static void M(F1 f) { Console.WriteLine(1); }
@@ -251,7 +251,7 @@ M((int x) => { }); // Resolves to M(F2)
 
 ***Introduced in Visual Studio 2026 version 18.9***
 
-In a future C# version (currently in `langversion:preview`), `safe` is a keyword when placed as a modifier on member declarations.
+In C# 16, `safe` is a keyword when placed as a modifier on member declarations.
 That can break cases where it was previously referring to a type.
 To mitigate the break, it is possible to use `@`.
 
@@ -262,5 +262,67 @@ class C
 {
     safe M1() => new safe(); // previously `safe` refers to a type, now it is a keyword
     @safe M2() => new safe(); // workaround
+}
+```
+
+## `unsafe` required for more members
+
+***Introduced in Visual Studio 2026 version 18.9***
+
+Previously, C# compiler did not report errors for calling some members with pointers even outside the `unsafe` context.
+This has been fixed under `langversion:16`.
+For example:
+
+```cs
+var c = new C();
+int a = c.M(null); // error always
+int b = c[null]; // no error in C# 15, reports CS9363 in C# 16
+
+class C
+{
+    public unsafe int M(int* x) => 0;
+    public unsafe int this[int* x] => 0;
+}
+```
+
+To fix the violations, use the `unsafe` block or expression, for example:
+
+```cs
+int b = unsafe(c[null]);
+```
+
+## `closed` is a contextual keyword in type declaration contexts
+
+***Introduced in Visual Studio 2026 version 18.10***
+
+In C# 15, a type or alias declaration named `closed` without an `@` escape produces CS9380. In member declaration contexts, `closed` is treated as a modifier, so code that previously used `closed` as a type name may now be parsed as an incomplete declaration and produce CS1519.
+
+To continue using `closed` as an identifier, escape its declaration and references with `@`.
+
+```cs
+class @closed { }
+
+class C
+{
+    closed oldField;      // C# 14: field of type 'closed'; C# 15: parsed as an incomplete declaration
+    @closed currentField; // field of type 'closed'
+}
+```
+
+## `union` is a contextual keyword in type declaration contexts
+
+***Introduced in Visual Studio 2026 version 18.10***
+
+In C# 15, `union` followed by a type name can be parsed as a union declaration. Code that previously used `union` as a type name in a declaration may therefore produce CS9370 instead of declaring a field.
+
+To continue using `union` as an identifier, escape it with `@`.
+
+```cs
+class @union { }
+
+class C
+{
+    union OldField;      // C# 14: field of type 'union'; C# 15: union declaration
+    @union CurrentField; // field of type 'union'
 }
 ```

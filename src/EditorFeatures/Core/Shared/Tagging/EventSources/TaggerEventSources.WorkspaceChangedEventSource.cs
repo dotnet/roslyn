@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Threading;
@@ -31,8 +30,13 @@ internal partial class TaggerEventSources
                 {
                     RaiseChanged();
                 },
-                asyncListener,
-                CancellationToken.None);
+                asyncListener);
+        }
+
+        public override void Disconnect()
+        {
+            _asyncDelay.Dispose();
+            base.Disconnect();
         }
 
         protected override void ConnectToWorkspace(Workspace workspace)

@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.TypeHierarchy;
-using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Extensions;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
@@ -26,8 +25,6 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             => new RemoteTypeHierarchyService(in args);
     }
 
-    private readonly IFilePathService _filePathService = args.ExportProvider.GetExportedValue<IFilePathService>();
-
     protected override IDocumentPositionInfoStrategy DocumentPositionInfoStrategy => PreferAttributeNameDocumentPositionInfoStrategy.Instance;
 
     public ValueTask<RemoteResponse<TypeHierarchyItem[]?>> PrepareTypeHierarchyAsync(
@@ -38,15 +35,15 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => PrepareTypeHierarchyAsync(context, position, cancellationToken),
+            snapshot => PrepareTypeHierarchyAsync(snapshot, position, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<TypeHierarchyItem[]?>> PrepareTypeHierarchyAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         Position position,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         if (!codeDocument.Source.Text.TryGetAbsoluteIndex(position, out var hostDocumentIndex))
         {
@@ -61,7 +58,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             return NoFurtherHandling;
         }
 
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await snapshot.GetGeneratedDocumentAsync(positionInfo.InDeclDocument, cancellationToken).ConfigureAwait(false);
         var items = await PrepareTypeHierarchyHandler.PrepareTypeHierarchyAsync(generatedDocument, positionInfo.Position.ToLinePosition(), cancellationToken)
             .ConfigureAwait(false);
 
@@ -70,7 +67,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             return NoFurtherHandling;
         }
 
-        var mappedItems = await MapItemsAsync(context, items, cancellationToken).ConfigureAwait(false);
+        var mappedItems = await MapItemsAsync(snapshot, items, cancellationToken).ConfigureAwait(false);
         return Results(mappedItems);
     }
 
@@ -82,15 +79,20 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => ResolveSupertypesAsync(context, item, cancellationToken),
+            snapshot => ResolveSupertypesAsync(snapshot, item, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<TypeHierarchyItem[]?>> ResolveSupertypesAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         TypeHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await TryGetGeneratedDocumentForItemAsync(snapshot, item, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return NoFurtherHandling;
+        }
+
         var items = await TypeHierarchySupertypesHandler.ResolveSupertypesAsync(generatedDocument, item, cancellationToken)
             .ConfigureAwait(false);
 
@@ -99,7 +101,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             return NoFurtherHandling;
         }
 
-        var mappedItems = await MapItemsAsync(context, items, cancellationToken).ConfigureAwait(false);
+        var mappedItems = await MapItemsAsync(snapshot, items, cancellationToken).ConfigureAwait(false);
         return Results(mappedItems);
     }
 
@@ -111,15 +113,20 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => ResolveSubtypesAsync(context, item, cancellationToken),
+            snapshot => ResolveSubtypesAsync(snapshot, item, cancellationToken),
             cancellationToken);
 
     private async ValueTask<RemoteResponse<TypeHierarchyItem[]?>> ResolveSubtypesAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         TypeHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var generatedDocument = await context.Snapshot.GetGeneratedDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var generatedDocument = await TryGetGeneratedDocumentForItemAsync(snapshot, item, cancellationToken).ConfigureAwait(false);
+        if (generatedDocument is null)
+        {
+            return NoFurtherHandling;
+        }
+
         var items = await TypeHierarchySubtypesHandler.ResolveSubtypesAsync(generatedDocument, item, cancellationToken)
             .ConfigureAwait(false);
 
@@ -128,18 +135,36 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             return NoFurtherHandling;
         }
 
-        var mappedItems = await MapItemsAsync(context, items, cancellationToken).ConfigureAwait(false);
+        var mappedItems = await MapItemsAsync(snapshot, items, cancellationToken).ConfigureAwait(false);
         return Results(mappedItems);
     }
+
+    private static async ValueTask<SourceGeneratedDocument?> TryGetGeneratedDocumentForItemAsync(
+        RemoteDocumentSnapshot snapshot,
+        TypeHierarchyItem item,
+        CancellationToken cancellationToken)
+    {
+        var resolveData = TypeHierarchyHelpers.GetResolveData(item);
+        if (!snapshot.TextDocument.Project.Solution.TryGetSourceGeneratedDocumentIdentity(resolveData.TextDocument.DocumentUri, out var identity))
+        {
+            return null;
+        }
+
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        var csharpDocument = codeDocument.GetCSharpDocumentForHintName(identity.HintName);
+
+        return await snapshot.GetGeneratedDocumentAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
+    }
+
     private async Task<TypeHierarchyItem[]?> MapItemsAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         TypeHierarchyItem[] items,
         CancellationToken cancellationToken)
     {
         using var mappedItems = new PooledArrayBuilder<TypeHierarchyItem>(items.Length);
         foreach (var item in items)
         {
-            var mappedItem = await MapItemAsync(context, item, cancellationToken).ConfigureAwait(false);
+            var mappedItem = await MapItemAsync(snapshot, item, cancellationToken).ConfigureAwait(false);
             if (mappedItem is not null)
             {
                 mappedItems.Add(mappedItem);
@@ -150,24 +175,22 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
     }
 
     private async Task<TypeHierarchyItem?> MapItemAsync(
-        RemoteDocumentContext context,
+        RemoteDocumentSnapshot snapshot,
         TypeHierarchyItem item,
         CancellationToken cancellationToken)
     {
-        var uri = item.Uri.GetRequiredSystemUri();
-
         var (mappedDocumentUri, mappedRange) = await DocumentMappingService
-            .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.Range, cancellationToken)
+            .MapToHostDocumentUriAndRangeAsync(snapshot, item.Uri, item.Range, cancellationToken)
             .ConfigureAwait(false);
-        if (_filePathService.IsVirtualCSharpFile(mappedDocumentUri))
+        if (mappedDocumentUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
         {
             return null;
         }
 
         var (mappedSelectionUri, mappedSelectionRange) = await DocumentMappingService
-            .MapToHostDocumentUriAndRangeAsync(context.Snapshot, uri, item.SelectionRange, cancellationToken)
+            .MapToHostDocumentUriAndRangeAsync(snapshot, item.Uri, item.SelectionRange, cancellationToken)
             .ConfigureAwait(false);
-        if (_filePathService.IsVirtualCSharpFile(mappedSelectionUri))
+        if (mappedSelectionUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
         {
             return null;
         }
@@ -178,7 +201,7 @@ internal sealed class RemoteTypeHierarchyService(in ServiceArgs args) : RazorDoc
             Kind = item.Kind,
             Tags = item.Tags,
             Detail = item.Detail,
-            Uri = mappedDocumentUri.CreateDocumentUriFromSystemUri(),
+            Uri = mappedDocumentUri,
             Range = mappedRange,
             SelectionRange = mappedSelectionRange,
             Data = item.Data,

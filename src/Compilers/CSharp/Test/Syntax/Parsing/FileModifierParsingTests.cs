@@ -99,9 +99,9 @@ public sealed class FileModifierParsingTests : ParsingTests
             """,
             expectedBindingDiagnostics: new[]
             {
-                // (1,19): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // file partial enum C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "C").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
             });
         N(SyntaxKind.CompilationUnit);
         {
@@ -128,46 +128,18 @@ public sealed class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,14): error CS1002: ; expected
-                // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 14)
-            },
             expectedBindingDiagnostics: new[]
             {
-                // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                // partial file interface C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,9): warning CS0168: The variable 'file' is declared but never used
-                // partial file interface C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 9),
-                // (1,14): error CS1002: ; expected
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // partial file {{SyntaxFacts.GetText(typeKeyword)}} C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, SyntaxFacts.GetText(typeKeyword)).WithLocation(1, 14)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
             });
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxFacts.GetBaseTypeDeclarationKind(typeKeyword));
             {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.FileKeyword);
                 N(typeKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -265,52 +237,22 @@ public sealed class FileModifierParsingTests : ParsingTests
             file partial ref struct C { }
             """,
             options: TestOptions.Regular10,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,14): error CS1003: Syntax error, ',' expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
-                // (1,18): error CS1002: ; expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
-            },
             expectedBindingDiagnostics: new[]
             {
-                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
-                // (1,6): warning CS0168: The variable 'partial' is declared but never used
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6),
+                // (1,25): error CS8936: Feature 'file types' is not available in C# 10.0. Please use language version 11.0 or greater.
                 // file partial ref struct C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "partial").WithArguments("partial").WithLocation(1, 6),
-                // (1,14): error CS1003: Syntax error, ',' expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
-                // (1,18): error CS1002: ; expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "C").WithArguments("file types", "11.0").WithLocation(1, 25)
             });
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxKind.StructDeclaration);
             {
+                N(SyntaxKind.FileKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -327,53 +269,20 @@ public sealed class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             file partial ref struct C { }
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,14): error CS1003: Syntax error, ',' expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
-                // (1,18): error CS1002: ; expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
-            },
             expectedBindingDiagnostics: new[]
             {
-                // (1,1): error CS0246: The type or namespace name 'file' could not be found (are you missing a using directive or an assembly reference?)
+                // (1,6): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "file").WithArguments("file").WithLocation(1, 1),
-                // (1,6): warning CS0168: The variable 'partial' is declared but never used
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "partial").WithArguments("partial").WithLocation(1, 6),
-                // (1,14): error CS1003: Syntax error, ',' expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
-                // (1,18): error CS1002: ; expected
-                // file partial ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 6)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxKind.StructDeclaration);
             {
+                N(SyntaxKind.FileKeyword);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -390,53 +299,20 @@ public sealed class FileModifierParsingTests : ParsingTests
         UsingNode($$"""
             partial file ref struct C { }
             """,
-            expectedParsingDiagnostics: new[]
-            {
-                // (1,14): error CS1003: Syntax error, ',' expected
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
-                // (1,18): error CS1002: ; expected
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
-            },
             expectedBindingDiagnostics: new[]
             {
-                // (1,1): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,9): warning CS0168: The variable 'file' is declared but never used
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "file").WithArguments("file").WithLocation(1, 9),
-                // (1,14): error CS1003: Syntax error, ',' expected
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",").WithLocation(1, 14),
-                // (1,18): error CS1002: ; expected
-                // partial file ref struct C { }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "struct").WithLocation(1, 18)
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1)
             });
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    N(SyntaxKind.VariableDeclaration);
-                    {
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "partial");
-                        }
-                        N(SyntaxKind.VariableDeclarator);
-                        {
-                            N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
-                    M(SyntaxKind.SemicolonToken);
-                }
-            }
             N(SyntaxKind.StructDeclaration);
             {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.FileKeyword);
+                N(SyntaxKind.RefKeyword);
                 N(SyntaxKind.StructKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
@@ -730,7 +606,7 @@ public sealed class FileModifierParsingTests : ParsingTests
             }
             """;
         UsingNode(src,
-            options: TestOptions.Regular14,
+            options: TestOptions.Regular15,
             expectedBindingDiagnostics: new[]
             {
                 // (3,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1572,9 +1448,9 @@ public sealed class FileModifierParsingTests : ParsingTests
                 // (1,15): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // public struct file { public int item; }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 15),
-                // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,8): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // public unsafe class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 8)
             });
 
         N(SyntaxKind.CompilationUnit);
@@ -1809,9 +1685,9 @@ public sealed class FileModifierParsingTests : ParsingTests
                 // (1,15): error CS9056: Types and aliases cannot be named 'file'.
                 // public struct file { public int item; }
                 Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 15),
-                // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,8): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // public unsafe class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 8),
                 // (5,22): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public file _file;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 22),

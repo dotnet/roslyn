@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -34,6 +35,14 @@ internal sealed class TypeImportCompletionProvider : AbstractTypeImportCompletio
         => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+
+    protected override bool ShouldProvideCompletion(CompletionContext completionContext, SyntaxContext syntaxContext)
+    {
+        // In addition to the regular type contexts handled by the base provider, unimported types should be
+        // offered inside `cref` documentation comments.
+        return base.ShouldProvideCompletion(completionContext, syntaxContext)
+            || syntaxContext is CSharpSyntaxContext { IsCrefContext: true };
+    }
 
     protected override bool IsFinalSemicolonOfUsingOrExtern(SyntaxNode directive, SyntaxToken token)
     {

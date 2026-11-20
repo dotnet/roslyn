@@ -34,7 +34,15 @@ TParam
 #line hidden
 #nullable disable
             >>(0);
-            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<TParam>.
+            __builder.AddComponentParameter(1, nameof(global::Test.MyComponent<
+#nullable restore
+#line (2,22)-(2,28) "x:\dir\subdir\Test\TestComponent.cshtml"
+TParam
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (2,36)-(2,41) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value
@@ -51,7 +59,15 @@ ParentValue
 #line hidden
 #nullable disable
             ));
-            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent<TParam>.ValueChanged), (global::System.Action<TParam>)( __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
+            __builder.AddComponentParameter(2, nameof(global::Test.MyComponent<
+#nullable restore
+#line (2,22)-(2,28) "x:\dir\subdir\Test\TestComponent.cshtml"
+TParam
+
+#line default
+#line hidden
+#nullable disable
+            >.ValueChanged), (global::System.Action<TParam>)( __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate(
 #nullable restore
 #line (2,79)-(2,85) "x:\dir\subdir\Test\TestComponent.cshtml"
 Update
@@ -60,7 +76,15 @@ Update
 #line hidden
 #nullable disable
             ); }));
-             var (_, _) = (nameof(global::Test.MyComponent<TParam>.
+             var (_, _) = (nameof(global::Test.MyComponent<
+#nullable restore
+#line (2,22)-(2,28) "x:\dir\subdir\Test\TestComponent.cshtml"
+TParam
+
+#line default
+#line hidden
+#nullable disable
+            >.
 #nullable restore
 #line (2,66)-(2,71) "x:\dir\subdir\Test\TestComponent.cshtml"
 Value
@@ -72,17 +96,6 @@ Value
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public TParam ParentValue { get; set; }
-
-    public void Update() { }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

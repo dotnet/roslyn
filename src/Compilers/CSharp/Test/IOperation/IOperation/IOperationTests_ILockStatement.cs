@@ -7,6 +7,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1188,11 +1189,13 @@ Block[B6] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedGraph, expectedDiagnostics);
         }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void LockFlow_LockObject()
+        [Theory, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [InlineData(NullableContextOptions.Disable)]
+        [InlineData(NullableContextOptions.Enable)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86321")]
+        public void LockFlow_LockObject(NullableContextOptions nullableContextOptions)
         {
             var source = """
-                using System;
                 using System.Threading;
 
                 class C
@@ -1271,11 +1274,16 @@ Block[B6] - Exit
 
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>([source, LockTypeDefinition], expectedFlowGraph, expectedDiagnostics);
+            var compilation = CreateCompilation([source, LockTypeDefinition], options: TestOptions.DebugDll.WithNullableContextOptions(nullableContextOptions));
+            compilation.VerifyEmitDiagnostics();
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedFlowGraph, expectedDiagnostics);
         }
 
-        [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
-        public void LockFlow_LockObject_NonEmptyBody()
+        [Theory, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [InlineData(NullableContextOptions.Disable)]
+        [InlineData(NullableContextOptions.Enable)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86321")]
+        public void LockFlow_LockObject_NonEmptyBody(NullableContextOptions nullableContextOptions)
         {
             var source = """
                 using System;
@@ -1368,7 +1376,9 @@ Block[B6] - Exit
 
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>([source, LockTypeDefinition], expectedFlowGraph, expectedDiagnostics);
+            var compilation = CreateCompilation([source, LockTypeDefinition], options: TestOptions.DebugDll.WithNullableContextOptions(nullableContextOptions));
+            compilation.VerifyEmitDiagnostics();
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(compilation, expectedFlowGraph, expectedDiagnostics);
         }
 
         [Fact, CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]

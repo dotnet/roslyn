@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
-using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Utilities;
-using Microsoft.CodeAnalysis.Razor.ProjectSystem;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 
@@ -22,7 +20,7 @@ internal static class TestProjectData
         SomeProjectPath = Path.Combine(baseDirectory, "SomeProject");
         var someProjectObjPath = Path.Combine(SomeProjectPath, "obj");
 
-        SomeProject = new HostProject(Path.Combine(SomeProjectPath, "SomeProject.csproj"), someProjectObjPath, RazorConfiguration.Default, "SomeProject");
+        SomeProject = new HostProject(Path.Combine(SomeProjectPath, "SomeProject.csproj"), "SomeProject");
         SomeProjectFile1 = new HostDocument(Path.Combine(SomeProjectPath, "File1.cshtml"));
         SomeProjectFile2 = new HostDocument(Path.Combine(SomeProjectPath, "File2.cshtml"));
         SomeProjectImportFile = new HostDocument(Path.Combine(SomeProjectPath, "_ViewImports.cshtml"));
@@ -39,7 +37,7 @@ internal static class TestProjectData
         var anotherProjectPath = Path.Combine(baseDirectory, "AnotherProject");
         var anotherProjectObjPath = Path.Combine(anotherProjectPath, "obj");
 
-        AnotherProject = new HostProject(Path.Combine(anotherProjectPath, "AnotherProject.csproj"), anotherProjectObjPath, RazorConfiguration.Default, "AnotherProject");
+        AnotherProject = new HostProject(Path.Combine(anotherProjectPath, "AnotherProject.csproj"), "AnotherProject");
         AnotherProjectFile1 = new HostDocument(Path.Combine(anotherProjectPath, "File1.cshtml"));
         AnotherProjectFile2 = new HostDocument(Path.Combine(anotherProjectPath, "File2.cshtml"));
         AnotherProjectImportFile = new HostDocument(Path.Combine(anotherProjectPath, "_ViewImports.cshtml"));
@@ -78,4 +76,11 @@ internal static class TestProjectData
     public static readonly HostDocument AnotherProjectComponentFile2;
     public static readonly HostDocument AnotherProjectNestedComponentFile3;
     public static readonly HostDocument AnotherProjectNestedComponentFile4;
+}
+
+internal sealed record class HostDocument(string FilePath);
+
+internal sealed record class HostProject(string FilePath, string? RootNamespace)
+{
+    public string DisplayName => Path.GetFileNameWithoutExtension(FilePath);
 }

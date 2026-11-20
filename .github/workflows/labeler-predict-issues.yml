@@ -23,6 +23,8 @@ on:
         default: "ACTIVE"
 
 env:
+  CACHE_KEY: ${{ inputs.cache_key || 'ACTIVE' }}
+
   # Do not allow failure for jobs triggered automatically (as this causes red noise on the workflows list)
   ALLOW_FAILURE: ${{ github.event_name == 'workflow_dispatch' }}
 
@@ -39,16 +41,17 @@ jobs:
     steps:
       - name: "Restore issues model from cache"
         id: restore-model
-        uses: dotnet/issue-labeler/restore@46125e85e6a568dc712f358c39f35317366f5eed # v2.0.0
+        uses: dotnet/issue-labeler/restore@94442c952121cb5448aaa7e247f65be93c07632e # v2.3.0
         with:
           type: issues
+          cache_key: ${{ env.CACHE_KEY }}
           fail-on-cache-miss: ${{ env.ALLOW_FAILURE }}
           quiet: true
 
       - name: "Predict issue labels"
         id: prediction
         if: ${{ steps.restore-model.outputs.cache-hit == 'true' }}
-        uses: dotnet/issue-labeler/predict@46125e85e6a568dc712f358c39f35317366f5eed # v2.0.0
+        uses: dotnet/issue-labeler/predict@94442c952121cb5448aaa7e247f65be93c07632e # v2.3.0
         with:
           issues: ${{ inputs.issues || github.event.issue.number }}
           label_prefix: ${{ env.LABEL_PREFIX }}

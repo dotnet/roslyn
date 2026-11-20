@@ -35,6 +35,7 @@ internal sealed class DebuggingSession : IDisposable
     private readonly CancellationTokenSource _cancellationSource = new();
 
     internal readonly IPdbMatchingSourceTextProvider SourceTextProvider;
+    internal readonly EditAndContinueDiagnosticLevel DiagnosticLevel;
 
     /// <summary>
     /// Logs debugging session events.
@@ -105,8 +106,6 @@ internal sealed class DebuggingSession : IDisposable
     /// </summary>
     internal readonly CommittedSolution LastCommittedSolution;
 
-    internal readonly IManagedHotReloadService DebuggerService;
-
     /// <summary>
     /// True if the diagnostics produced by the session should be reported to the diagnotic analyzer.
     /// </summary>
@@ -129,11 +128,12 @@ internal sealed class DebuggingSession : IDisposable
     internal DebuggingSession(
         DebuggingSessionId id,
         Solution solution,
-        IManagedHotReloadService debuggerService,
+        IManagedHotReloadState debuggerService,
         Func<Project, CompilationOutputs> compilationOutputsProvider,
         IPdbMatchingSourceTextProvider sourceTextProvider,
         TraceLog sessionLog,
         TraceLog analysisLog,
+        EditAndContinueDiagnosticLevel diagnosticLevel,
         bool reportDiagnostics)
     {
         sessionLog.Write($"Debugging session started: #{id}");
@@ -146,17 +146,18 @@ internal sealed class DebuggingSession : IDisposable
         _telemetry = new DebuggingSessionTelemetry(solution.SolutionState.SolutionAttributes.TelemetryId);
 
         Id = id;
-        DebuggerService = debuggerService;
         LastCommittedSolution = new CommittedSolution(this, solution);
 
         EditSession = new EditSession(
             this,
-            nonRemappableRegions: ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty,
+            debuggerService,
+            nonRemappableRegions: [],
             _editSessionTelemetry,
             lazyActiveStatementMap: null,
             inBreakState: false);
 
         ReportDiagnostics = reportDiagnostics;
+        DiagnosticLevel = diagnosticLevel;
     }
 
     public void Dispose()
@@ -248,6 +249,7 @@ internal sealed class DebuggingSession : IDisposable
 
         EditSession = new EditSession(
             this,
+            EditSession.DebuggerService,
             nonRemappableRegions ?? EditSession.NonRemappableRegions,
             EditSession.Telemetry,
             (inBreakState == null) ? EditSession.BaseActiveStatements : null,
@@ -501,7 +503,7 @@ internal sealed class DebuggingSession : IDisposable
                 if (AddModulePreparedForUpdate(mvid))
                 {
                     // fire and forget:
-                    _ = Task.Run(() => DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
+                    _ = Task.Run(() => EditSession.DebuggerService.PrepareModuleForUpdateAsync(mvid, cancellationToken), cancellationToken);
                 }
             }
 
@@ -540,6 +542,8 @@ internal sealed class DebuggingSession : IDisposable
         solutionUpdate.Log(SessionLog, updateId);
         _lastModuleUpdatesLog = solutionUpdate.ModuleUpdates.Updates;
 
+        SolutionAction solutionAction;
+
         switch (solutionUpdate.ModuleUpdates.Status)
         {
             case ModuleUpdateStatus.Ready:
@@ -556,6 +560,7 @@ internal sealed class DebuggingSession : IDisposable
                     solutionUpdate.ModuleUpdates.Updates,
                     solutionUpdate.NonRemappableRegions));
 
+                solutionAction = SolutionAction.PendingUpdate;
                 break;
 
             case ModuleUpdateStatus.None:
@@ -569,6 +574,12 @@ internal sealed class DebuggingSession : IDisposable
                 // No significant changes have been made.
                 // Commit the solution to apply any insignificant changes that do not generate updates.
                 LastCommittedSolution.CommitChanges(solution, solutionUpdate.StaleProjects);
+
+                solutionAction = SolutionAction.Committed;
+                break;
+
+            default:
+                solutionAction = SolutionAction.None;
                 break;
         }
 
@@ -577,6 +588,7 @@ internal sealed class DebuggingSession : IDisposable
         return new EmitSolutionUpdateResults()
         {
             Solution = solution,
+            SolutionAction = solutionAction,
             ModuleUpdates = solutionUpdate.ModuleUpdates,
             Diagnostics = solutionUpdate.Diagnostics,
             SyntaxError = solutionUpdate.SyntaxError,
@@ -651,8 +663,7 @@ internal sealed class DebuggingSession : IDisposable
 
         _editSessionTelemetry.LogCommitted();
 
-        // Restart edit session with no active statements (switching to run mode).
-        RestartEditSession(newNonRemappableRegions, inBreakState: false);
+        RestartEditSession(newNonRemappableRegions, inBreakState: null);
     }
 
     public void DiscardSolutionUpdate()

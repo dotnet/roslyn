@@ -21,5 +21,3 @@
                     ComponentChildContent -  - ChildContent - context
                         CSharpExpression - (116:4,2 [15] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (116:4,2 [15] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "hello, world!"
-            CSharpCode - (159:7,7 [76] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (159:7,7 [76] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    class Person\n    {\n        public string Name { get; set; }\n    }\n

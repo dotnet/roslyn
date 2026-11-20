@@ -4,12 +4,12 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 using System.Security;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -110,16 +110,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string.Equals(parameterValue, "!on", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(parameterValue, "!yes", StringComparison.OrdinalIgnoreCase);
 
-        internal static string GetFullPathNoThrow(string path)
-        {
-            try
-            {
-                path = Path.GetFullPath(path);
-            }
-            catch (Exception e) when (IsIoRelatedException(e)) { }
-            return path;
-        }
-
         internal static bool TryCombine(string path1, string path2, [NotNullWhen(returnValue: true)] out string? combined)
         {
             try
@@ -132,15 +122,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 combined = null;
                 return false;
             }
-        }
-
-        internal static void DeleteNoThrow(string path)
-        {
-            try
-            {
-                File.Delete(path);
-            }
-            catch (Exception e) when (IsIoRelatedException(e)) { }
         }
 
         internal static bool IsIoRelatedException(Exception e) =>
@@ -161,26 +142,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                                                                 params object[] args)
         {
             return new ArgumentException(string.Format(CultureInfo.CurrentCulture, errorString, args));
-        }
-
-        internal static string? TryGetAssemblyPath(Assembly assembly)
-        {
-#if NETFRAMEWORK
-            if (assembly.GlobalAssemblyCache)
-            {
-                return null;
-            }
-
-            if (assembly.CodeBase is { } codebase)
-            {
-                var uri = new Uri(codebase);
-                return uri.IsFile ? uri.LocalPath : assembly.Location;
-            }
-
-            return null;
-#else
-            return assembly.Location;
-#endif
         }
     }
 }

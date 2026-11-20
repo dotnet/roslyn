@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Framework;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -29,6 +30,7 @@ public partial class MSBuildProjectLoader
     private readonly Microsoft.Extensions.Logging.ILoggerFactory _loggerFactory;
     private readonly PathResolver _pathResolver;
     private readonly ProjectFileExtensionRegistry _projectFileExtensionRegistry;
+    private Action<Process>? _beforeKillHungBuildHostProcess;
 
     // used to protect access to the following mutable state
     private readonly NonReentrantLock _dataGuard = new();
@@ -43,7 +45,7 @@ public partial class MSBuildProjectLoader
         _diagnosticReporter = diagnosticReporter;
         _loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory([new DiagnosticReporterLoggerProvider(_diagnosticReporter)]);
         _pathResolver = new PathResolver(_diagnosticReporter);
-        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(diagnosticReporter);
+        _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(diagnosticReporter, solutionServices.GetService<IFileBasedProgramService>());
 
         Properties = ImmutableDictionary.Create<string, string>(StringComparer.OrdinalIgnoreCase);
 
@@ -72,6 +74,15 @@ public partial class MSBuildProjectLoader
 
     internal Microsoft.Extensions.Logging.ILoggerFactory LoggerFactory
         => _loggerFactory;
+
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(MSBuildProjectLoader loader)
+    {
+        public void SetBeforeKillHungBuildHostProcess(Action<Process>? beforeKillHungBuildHostProcess)
+            => loader._beforeKillHungBuildHostProcess = beforeKillHungBuildHostProcess;
+    }
 
     /// <summary>
     /// The MSBuild properties used when interpreting project files.
@@ -259,10 +270,16 @@ public partial class MSBuildProjectLoader
             ? new BinLogPathProvider(fileName)
             : null;
 
-        var buildHostProcessManager = new BuildHostProcessManager(_knownCommandLineParserLanguages, Properties, binLogPathProvider, loggerFactory: _loggerFactory);
+        var buildHostProcessManager = new BuildHostProcessManager(
+            _knownCommandLineParserLanguages,
+            Properties,
+            binLogPathProvider,
+            loggerFactory: _loggerFactory,
+            beforeKillHungBuildHostProcess: _beforeKillHungBuildHostProcess);
         await using var _ = buildHostProcessManager.ConfigureAwait(false);
 
         var projectFileProvider = new BuildHostProjectFileInfoProvider(
+            _solutionServices,
             buildHostProcessManager,
             _projectFileExtensionRegistry,
             _diagnosticReporter,

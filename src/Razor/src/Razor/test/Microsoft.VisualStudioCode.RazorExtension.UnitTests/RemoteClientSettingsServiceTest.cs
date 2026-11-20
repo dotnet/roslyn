@@ -41,7 +41,6 @@ public class RemoteClientSettingsServiceTest(ITestOutputHelper testOutput) : Coh
         workspaceProvider.SetWorkspace(LocalWorkspace);
 
         var initializer = new VSCodeRemoteServicesInitializer(
-            new VSCodeLanguageServerFeatureOptions(),
             SemanticTokensLegendService,
             workspaceProvider,
             ClientSettingsManager,
@@ -67,10 +66,12 @@ public class RemoteClientSettingsServiceTest(ITestOutputHelper testOutput) : Coh
                 ColorBackground: true,
                 CodeBlockBraceOnNextLine: true,
                 AttributeIndentStyle: AttributeIndentStyle.IndentByOne,
+                IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor: false,
                 CommitElementsWithSpace: false,
                 SnippetSetting: SnippetSetting.None,
                 LogLevel: LogLevel.Trace,
                 FormatOnPaste: false,
+                ShowAllCSharpCodeActions: true,
                 TaskListDescriptors: ["TODO", "HACK"]));
 
     private static void ApplySettings(IClientSettingsManager clientSettingsManager, ClientSettings settings)

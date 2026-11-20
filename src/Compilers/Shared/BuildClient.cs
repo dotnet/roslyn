@@ -108,8 +108,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var client = new BuildClient(logger, language, compileFunc, compileOnServerFunc);
             var clientDir = GetClientDirectory();
             var workingDir = Directory.GetCurrentDirectory();
-            var tempDir = Path.GetTempPath();
-            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
+            var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir);
             var originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
         }
@@ -198,6 +197,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 buildRequest,
                 pipeName,
                 GetClientDirectory(),
+                StandardBuildEnvironment.Instance,
                 logger,
                 cancellationToken);
 
@@ -218,13 +218,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 var requestId = Guid.NewGuid().ToString();
                 var buildRequestArguments = new List<string>(arguments);
-                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, _logger.Log);
+                CompilerOptionParseUtilities.PrependFeatureFlagFromEnvironment(buildRequestArguments, Environment.GetEnvironmentVariable, _logger.Log);
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     _language,
                     buildRequestArguments,
                     workingDirectory: buildPaths.WorkingDirectory,
-                    tempDirectory: buildPaths.TempDirectory,
                     keepAlive: keepAlive,
                     libDirectory: libDirectory);
 

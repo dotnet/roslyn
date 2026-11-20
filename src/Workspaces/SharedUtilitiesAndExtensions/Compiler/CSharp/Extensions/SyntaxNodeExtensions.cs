@@ -392,25 +392,12 @@ internal static partial class SyntaxNodeExtensions
         }
     }
 
-    public static bool IsBreakableConstruct(this SyntaxNode node)
-    {
-        switch (node.Kind())
-        {
-            case SyntaxKind.DoStatement:
-            case SyntaxKind.WhileStatement:
-            case SyntaxKind.SwitchStatement:
-            case SyntaxKind.ForStatement:
-            case SyntaxKind.ForEachStatement:
-            case SyntaxKind.ForEachVariableStatement:
-                return true;
-        }
+    public static bool IsBreakableConstruct([NotNullWhen(true)] this SyntaxNode? node)
+        => node.IsContinuableConstruct() || node?.Kind() is SyntaxKind.SwitchStatement;
 
-        return false;
-    }
-
-    public static bool IsContinuableConstruct(this SyntaxNode node)
+    public static bool IsContinuableConstruct([NotNullWhen(true)] this SyntaxNode? node)
     {
-        switch (node.Kind())
+        switch (node?.Kind())
         {
             case SyntaxKind.DoStatement:
             case SyntaxKind.WhileStatement:

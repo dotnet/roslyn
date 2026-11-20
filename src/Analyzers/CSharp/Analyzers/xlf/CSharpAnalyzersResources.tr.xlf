@@ -397,6 +397,11 @@
         <target state="translated">'is object' denetimini kullan</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_labeled_jump_statement">
+        <source>Use labeled jump statement</source>
+        <target state="translated">Etiketli atlama deyimini kullanın</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Use_local_function">
         <source>Use local function</source>
         <target state="translated">Yerel işlev kullan</target>

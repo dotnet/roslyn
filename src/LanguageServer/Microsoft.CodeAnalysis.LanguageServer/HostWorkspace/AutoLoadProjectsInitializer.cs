@@ -4,6 +4,7 @@
 
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -41,16 +42,16 @@ internal sealed class AutoLoadProjectsInitializer(
 
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        if (serverConfiguration.AutoLoadProjects is not int projectAutoLoadMaximum)
+        var initializeParams = context.GetRequiredService<IInitializeManager>().TryGetInitializeParams();
+        Contract.ThrowIfNull(initializeParams, "Initialize params should be set during initialization.");
+
+        if (GetAutoLoadProjectsMaximum(initializeParams.InitializationOptions, serverConfiguration.AutoLoadProjects) is not int projectAutoLoadMaximum)
         {
             return;
         }
 
         var isUsingDevKit = globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures);
         Contract.ThrowIfTrue(isUsingDevKit, "Auto load projects is not supported when using DevKit.");
-
-        var initializeParams = context.GetRequiredService<IInitializeManager>().TryGetInitializeParams();
-        Contract.ThrowIfNull(initializeParams, "Initialize params should be set during initialization.");
 
         var workspaceFolders = initializeParams.WorkspaceFolders;
         if (workspaceFolders is null || workspaceFolders.Length == 0)
@@ -68,10 +69,12 @@ internal sealed class AutoLoadProjectsInitializer(
         else if (solutionPath is not null)
         {
             _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
+            var solutionFileName = Path.GetFileName(solutionPath);
             await StartAndReportProgressAsync(
                 (reporter) => projectSystem.OpenSolutionAsync(solutionPath, reporter),
-                startMessage: string.Format(LanguageServerResources.Loading_0, solutionPath),
-                endMessage: string.Format(LanguageServerResources.Loaded_0, solutionPath));
+                title: string.Format(LanguageServerResources.Loading_0, solutionFileName),
+                startMessage: string.Empty,
+                endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFileName));
             return;
         }
 
@@ -88,10 +91,12 @@ internal sealed class AutoLoadProjectsInitializer(
                 if (solutionFiles.Length == 1)
                 {
                     _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
+                    var solutionFileName = Path.GetFileName(solutionFiles[0]);
                     await StartAndReportProgressAsync(
                         (reporter) => projectSystem.OpenSolutionAsync(solutionFiles[0], reporter),
-                        startMessage: string.Format(LanguageServerResources.Loading_0, solutionFiles[0]),
-                        endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFiles[0]));
+                        title: string.Format(LanguageServerResources.Loading_0, solutionFileName),
+                        startMessage: string.Empty,
+                        endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFileName));
                     return;
                 }
             }
@@ -129,18 +134,21 @@ internal sealed class AutoLoadProjectsInitializer(
             }
         }
 
+        // The background load can outlive this method's pooled builder.
+        var projectsToLoad = projectFiles.ToImmutable();
         await StartAndReportProgressAsync(
-            (reporter) => projectSystem.OpenProjectsAsync(projectFiles.ToImmutable(), reporter),
-            startMessage: string.Format(LanguageServerResources.Loading_0_projects, projectFiles.Count),
+            (reporter) => projectSystem.OpenProjectsAsync(projectsToLoad, reporter),
+            title: LanguageServerResources.Loading_projects,
+            startMessage: string.Empty,
             endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectFiles.Count));
 
-        async Task StartAndReportProgressAsync(Func<IWorkDoneProgressReporter, Task> loadOperation, string startMessage, string endMessage)
+        async Task StartAndReportProgressAsync(Func<IWorkDoneProgressReporter, Task> loadOperation, string title, string startMessage, string endMessage)
         {
             var workDoneProgressManager = context.GetRequiredLspService<WorkDoneProgressManager>();
 
             // We will await for the client to know that we are starting work...
             var progressReporter = await workDoneProgressManager.CreateWorkDoneProgressAsync(reportProgressToClient: true,
-                title: startMessage,
+                title: title,
                 startMessage: startMessage,
                 endMessage: endMessage,
                 clientCanCancel: false,
@@ -164,9 +172,26 @@ internal sealed class AutoLoadProjectsInitializer(
         }
     }
 
+    internal static int? GetAutoLoadProjectsMaximum(object? initializationOptions, int? commandLineMaximum)
+    {
+        if (initializationOptions is not JsonElement { ValueKind: JsonValueKind.Object } options ||
+            !options.TryGetProperty("autoLoadProjects", out var value) ||
+            value.ValueKind == JsonValueKind.Null)
+        {
+            return commandLineMaximum;
+        }
+
+        if (value.ValueKind != JsonValueKind.Number || !value.TryGetInt32(out var maximum) || maximum < 0)
+        {
+            throw new JsonException("initializationOptions.autoLoadProjects must be a non-negative 32-bit integer.");
+        }
+
+        return maximum == 0 ? null : maximum;
+    }
+
     internal static bool TryGetFolderPath(WorkspaceFolder folder, ILogger logger, [NotNullWhen(returnValue: true)] out string? folderPath)
     {
-        if (folder.DocumentUri.ParsedUri is null || folder.DocumentUri.ParsedUri.Scheme != Uri.UriSchemeFile)
+        if (folder.DocumentUri.ParsedDocumentUri?.IsFile != true)
         {
             logger.LogWarning("Workspace folder {FolderUri} is not a file URI, skipping.", folder.DocumentUri);
             folderPath = null;

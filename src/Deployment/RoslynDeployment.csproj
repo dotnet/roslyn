@@ -21,25 +21,21 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Compilers\Extension\Roslyn.Compilers.Extension.csproj">
-      <Name>CompilerExtension</Name>
       <VSIXSubPath>Vsixes</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj">
-      <Name>ExpressionEvaluatorPackage</Name>
       <VSIXSubPath>Vsixes</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\VisualStudio\Setup\Roslyn.VisualStudio.Setup.csproj">
-      <Name>VisualStudioSetup</Name>
       <VSIXSubPath>Vsixes</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\VisualStudio\Setup.ServiceHub\x64\Roslyn.VisualStudio.ServiceHub.Setup.x64.csproj">
-      <Name>VisualStudioServiceHubSetupX64</Name>
       <VSIXSubPath>Vsixes</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
@@ -47,6 +43,6 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Prevent downstream projects from trying to place the Sqlite assemblies from this package -->
-    <PackageReference Include="SQLite3MC.PCLRaw.lib" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 </Project>

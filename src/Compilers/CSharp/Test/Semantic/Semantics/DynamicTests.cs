@@ -1318,9 +1318,9 @@ IDynamicInvocationOperation (OperationKind.DynamicInvocation, Type: dynamic) (Sy
   ArgumentRefKinds(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (5,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     static unsafe void M()
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(5, 24),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(5, 12),
                 // CS0307: The property 'N' cannot be used with type arguments
                 //         object x = d1.N<int>;
                 Diagnostic(ErrorCode.ERR_TypeArgsNotAllowed, "N<int>").WithArguments("N", "property").WithLocation(8, 23),

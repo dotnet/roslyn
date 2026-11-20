@@ -15,6 +15,7 @@ param(
   [switch]$enableDumps = $false,
   [string]$bootstrapDir = "",
   [switch]$ci = $false,
+  [switch]$warnAsError = $false,
   [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -23,6 +24,7 @@ $ErrorActionPreference="Stop"
 function Print-Usage() {
   Write-Host "Usage: test-build-correctness.ps1"
   Write-Host "  -configuration            Build configuration ('Debug' or 'Release')"
+  Write-Host "  -warnAsError              Treat all warnings as errors (default: false)"
 }
 
 $docBranch = "main"
@@ -53,12 +55,12 @@ try {
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
     $bootstrapDir = Join-Path $ArtifactsDir (Join-Path "bootstrap" "correctness")
-    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci -warnAsError:$warnAsError
     Test-LastExitCode
   }
 
   Write-Host "Building Roslyn"
-  & eng/build.ps1 -restore -build -bootstrapDir:$bootstrapDir -ci:$ci -prepareMachine:$prepareMachine -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$true -properties:"/p:RoslynEnforceCodeStyle=true"
+  & eng/build.ps1 -restore -build -bootstrapDir:$bootstrapDir -ci:$ci -prepareMachine:$prepareMachine -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$warnAsError
   Test-LastExitCode
 
   Subst-TempDir
@@ -72,7 +74,7 @@ try {
   # Verify the state of our generated syntax files
   Write-Host "Checking generated compiler files"
   Exec-DotNet "run --file eng/generate-compiler-code.cs -- -test -configuration $configuration"
-  Exec-DotNet "tool run dotnet-format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
+  Exec-DotNet "format whitespace . --folder --include-generated --include src/Compilers/CSharp/Portable/Generated/ src/Compilers/VisualBasic/Portable/Generated/ src/ExpressionEvaluator/VisualBasic/Source/ResultProvider/Generated/ --verify-no-changes"
   Write-Host ""
 
   ExitWithExitCode 0

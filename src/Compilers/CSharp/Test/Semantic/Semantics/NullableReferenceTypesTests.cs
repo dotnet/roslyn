@@ -1095,6 +1095,110 @@ class C
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_Null_LegacyBehavior()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        lock (null)
+                        {
+                        }
+                    }
+                }
+                """, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8602: Dereference of a possibly null reference.
+                //         lock (null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null").WithLocation(5, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant_LegacyBehavior_Suppressed()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
+
+                    void M()
+                    {
+                        lock (Null!)
+                        {
+                        }
+                    }
+                }
+                """, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_Null_Strict()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        lock (null)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: TestOptions.Regular.WithStrictFeature(), options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0185: '<null>' is not a reference type as required by the lock statement
+                //         lock (null)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(5, 15));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant(bool strict)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
+
+                    void M()
+                    {
+                        lock (Null)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: strict ? TestOptions.Regular.WithStrictFeature() : TestOptions.Regular,
+                     options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8602: Dereference of a possibly null reference.
+                //         lock (Null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Null").WithLocation(7, 15));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant_Suppressed(bool strict)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
+
+                    void M()
+                    {
+                        lock (Null!)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: strict ? TestOptions.Regular.WithStrictFeature() : TestOptions.Regular,
+                     options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
         public void SuppressOnNullLiteralInAs()
         {
@@ -27071,10 +27175,7 @@ public struct Test
             c.VerifyDiagnostics(
                 // 0.cs(17,24): warning CS8603: Possible null reference return.
                 //                 return Value; // 1
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "Value").WithLocation(17, 24),
-                // 0.cs(18,26): hidden CS9271: The pattern is redundant.
-                //             case { IsOk: true, IsIrrelevant: true }: // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(18, 26)
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "Value").WithLocation(17, 24)
                 );
         }
 
@@ -27140,10 +27241,7 @@ public class Test
 }
 ", MemberNotNullWhenAttributeDefinition });
 
-            c.VerifyDiagnostics(
-                // 0.cs(17,39): hidden CS9271: The pattern is redundant.
-                //             case ({ IsOk: true }, not null): // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(17, 39));
+            c.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(49750, "https://github.com/dotnet/roslyn/issues/49750"), CompilerTrait(CompilerFeature.Patterns)]
@@ -27174,10 +27272,7 @@ public class Test
 }
 ", MemberNotNullWhenAttributeDefinition });
 
-            c.VerifyDiagnostics(
-                // 0.cs(16,34): hidden CS9271: The pattern is redundant.
-                //             ({ IsOk: true }, not null) => M2(Value), // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(16, 34));
+            c.VerifyDiagnostics();
         }
 
         [Fact, WorkItem(49750, "https://github.com/dotnet/roslyn/issues/49750")]
@@ -27519,9 +27614,6 @@ public class C
                 // (11,41): warning CS8604: Possible null reference argument for parameter 'o2' in 'int C.Test(object o, object o2)'.
                 //             (not null, null) => Test(o, o2), // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o2").WithArguments("o2", "int C.Test(object o, object o2)").WithLocation(11, 41),
-                // (12,28): hidden CS9271: The pattern is redundant.
-                //             (not null, not null) => Test(o, o2), // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(12, 28),
                 // (13,23): warning CS8604: Possible null reference argument for parameter 'o' in 'int C.Test(object o, object o2)'.
                 //             _ => Test(o, o2), // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "int C.Test(object o, object o2)").WithLocation(13, 23),
@@ -27584,9 +27676,6 @@ public class C
                 // (12,25): warning CS8604: Possible null reference argument for parameter 'o2' in 'void C.Test(object o, object o2)'.
                 //                 Test(o, o2); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o2").WithArguments("o2", "void C.Test(object o, object o2)").WithLocation(12, 25),
-                // (14,33): hidden CS9271: The pattern is redundant.
-                //             case (not null, not null): // 2
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "null").WithLocation(14, 33),
                 // (18,22): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.Test(object o, object o2)'.
                 //                 Test(o, o2); // 3
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "o").WithArguments("o", "void C.Test(object o, object o2)").WithLocation(18, 22),
@@ -27627,9 +27716,6 @@ public struct Test
 ", MemberNotNullWhenAttributeDefinition });
 
             c.VerifyDiagnostics(
-                // 0.cs(15,26): hidden CS9274: The pattern is redundant.
-                //             case { IsOk: bool }:
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "bool").WithLocation(15, 26),
                 // 0.cs(16,24): warning CS8603: Possible null reference return.
                 //                 return Value; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "Value").WithLocation(16, 24)
@@ -27697,9 +27783,6 @@ public struct Test
 ", MemberNotNullWhenAttributeDefinition });
 
             c.VerifyDiagnostics(
-                // 0.cs(18,50): hidden CS9271: The pattern is redundant.
-                //             case { IsOk: true, IsIrrelevant: not true }: // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(18, 50),
                 // 0.cs(21,24): warning CS8603: Possible null reference return.
                 //                 return Value; // 2
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "Value").WithLocation(21, 24)
@@ -51767,6 +51850,22 @@ class C
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84642")]
+        public void EqualsBoolConstant_DefaultLiteral()
+        {
+            var source = """
+                class C
+                {
+                    static bool M()
+                    {
+                        return default != true;
+                    }
+                }
+                """;
+
+            CreateNullableCompilation(source).VerifyEmitDiagnostics();
+        }
+
         [Fact]
         public void EqualsBoolConstant_UserDefinedOperator_BoolRight()
         {
@@ -52071,9 +52170,6 @@ class C
                 // (32,15): warning CS8602: Dereference of a possibly null reference.
                 //             ? x.ToString() // 5
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(32, 15),
-                // (38,39): hidden CS9271: The pattern is redundant.
-                //         _ = c?.M0(x = 0) is not (C or { }) // 6
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(38, 39),
                 // (39,15): warning CS8602: Dereference of a possibly null reference.
                 //             ? x.ToString() // 7
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(39, 15),
@@ -52606,18 +52702,12 @@ class C
                 // 0.cs(33,15): warning CS8602: Dereference of a possibly null reference.
                 //             : obj.ToString(); // 10
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "obj").WithLocation(33, 15),
-                // 0.cs(38,39): hidden CS9271: The pattern is redundant.
-                //         _ = c?.M0(out obj) is bool or true // 11
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(38, 39),
                 // 0.cs(39,15): warning CS8602: Dereference of a possibly null reference.
                 //             ? obj.ToString() // 12
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "obj").WithLocation(39, 15),
                 // 0.cs(40,15): warning CS8602: Dereference of a possibly null reference.
                 //             : obj.ToString(); // 13
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "obj").WithLocation(40, 15),
-                // 0.cs(45,38): hidden CS9271: The pattern is redundant.
-                //         _ = c?.M0(out obj) is { } or true // 14
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "true").WithLocation(45, 38),
                 // 0.cs(46,15): warning CS8602: Dereference of a possibly null reference.
                 //             ? obj.ToString() // 15
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "obj").WithLocation(46, 15),
@@ -108997,9 +109087,6 @@ public interface IB
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
-                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
-                //         M1(b2, a2); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -109029,9 +109116,6 @@ public interface IB
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
-                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
-                //         M1(b2, a2); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -109061,9 +109145,6 @@ public interface IB
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
-                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
-                //         M1(b2, a2); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -109099,9 +109180,6 @@ public interface IC
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
-                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
-                //         M1(b2, a2); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -109137,9 +109215,6 @@ public interface IC
             var comp1 = CreateCompilation(new[] { source }, options: WithNullableEnable());
 
             comp1.VerifyDiagnostics(
-                // (9,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
-                //         M1(b2, a2); // 1
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(9, 9),
                 // (10,9): warning CS8631: The type 'TB1?' cannot be used as type parameter 'TM2' in the generic type or method 'B<TB1>.M1<TM1, TM2>(TM1, TM2)'. Nullability of type argument 'TB1?' doesn't match constraint type 'TB1'.
                 //         M1<TB1, TB1?>(b2, a2); // 2
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M1<TB1, TB1?>").WithArguments("B<TB1>.M1<TM1, TM2>(TM1, TM2)", "TB1", "TM2", "TB1?").WithLocation(10, 9)
@@ -110085,9 +110160,9 @@ class C
             var comp = CreateCompilation(new[] { source }, options: WithNullableEnable());
             // https://github.com/dotnet/roslyn/issues/29983: Should not report warning for `x6.ToString()`.
             comp.VerifyDiagnostics(
-                // (29,9): error CS0411: The type arguments for method 'C.CopyOutInherit<T1, T2>(T1, out T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                //         CopyOutInherit(u, out var x7);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "CopyOutInherit").WithArguments("C.CopyOutInherit<T1, T2>(T1, out T2)").WithLocation(29, 9),
+                // (30,9): warning CS8602: Dereference of a possibly null reference.
+                //         x7.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x7").WithLocation(30, 9),
                 // (10,9): warning CS8602: Dereference of a possibly null reference.
                 //         x1.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(10, 9),
@@ -119227,6 +119302,8 @@ class Outer
 
         M3<I1<T>, U>(y0, null);
         M3<I1<object>, string>(z0, null);
+
+        M3<I1<T>, T>(M2(x0), a0);
     }
 
     I1<U> M2<U>(U a) => throw null!;
@@ -119237,18 +119314,30 @@ interface I1<in U> {}
 ";
 
             CreateCompilation(source, options: WithNullableEnable()).VerifyDiagnostics(
-                // (6,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<U?>'.
+                // (6,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<T?>'.
                 //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "I1<U?>", "U", "I1<T>").WithLocation(6, 9),
-                // (9,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<U?>'.
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "I1<T?>", "U", "I1<T>").WithLocation(6, 9),
+                // (6,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
                 //         M3(M2(x0), a0);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "I1<U?>", "U", "I1<T>").WithLocation(9, 9),
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(6, 9),
+                // (9,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<T?>'.
+                //         M3(M2(x0), a0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "I1<T?>", "U", "I1<T>").WithLocation(9, 9),
+                // (9,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
+                //         M3(M2(x0), a0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(9, 9),
                 // (11,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<U?>'.
                 //         M3<I1<T>, U>(y0, null);
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3<I1<T>, U>").WithArguments("Outer.M3<U, W>(U, W?)", "I1<U?>", "U", "I1<T>").WithLocation(11, 9),
                 // (12,9): warning CS8631: The type 'I1<object>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<object>' doesn't match constraint type 'I1<string?>'.
                 //         M3<I1<object>, string>(z0, null);
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3<I1<object>, string>").WithArguments("Outer.M3<U, W>(U, W?)", "I1<string?>", "U", "I1<object>").WithLocation(12, 9)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3<I1<object>, string>").WithArguments("Outer.M3<U, W>(U, W?)", "I1<string?>", "U", "I1<object>").WithLocation(12, 9),
+                // (14,9): warning CS8631: The type 'I1<T>' cannot be used as type parameter 'U' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'I1<T>' doesn't match constraint type 'I1<T?>'.
+                //         M3<I1<T>, T>(M2(x0), a0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "M3<I1<T>, T>").WithArguments("Outer.M3<U, W>(U, W?)", "I1<T?>", "U", "I1<T>").WithLocation(14, 9),
+                // (14,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
+                //         M3<I1<T>, T>(M2(x0), a0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3<I1<T>, T>").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(14, 9)
                 );
         }
 
@@ -119327,6 +119416,7 @@ class Outer
         
         if (x0 == null) return;
         M3(M2(x0), a0);
+        M3<I1<T>, T>(M2(x0), a0);
 
         M3<I1<T>, U>(y0, null);
         M3<I1<object>, string>(z0, null);
@@ -119339,7 +119429,17 @@ class Outer
 interface I1<in U> {}
 ";
 
-            CreateCompilation(source, options: WithNullableEnable()).VerifyDiagnostics();
+            CreateCompilation(source, options: WithNullableEnable()).VerifyDiagnostics(
+                // (6,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
+                //         M3(M2(x0), a0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(6, 9),
+                // (9,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
+                //         M3(M2(x0), a0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(9, 9),
+                // (10,9): warning CS8634: The type 'T' cannot be used as type parameter 'W' in the generic type or method 'Outer.M3<U, W>(U, W?)'. Nullability of type argument 'T' doesn't match 'class' constraint.
+                //         M3<I1<T>, T>(M2(x0), a0);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterReferenceTypeConstraint, "M3<I1<T>, T>").WithArguments("Outer.M3<U, W>(U, W?)", "W", "T").WithLocation(10, 9)
+                );
         }
 
         [Fact]
@@ -141494,13 +141594,8 @@ class Program
             comp.VerifyDiagnostics(
                 // (11,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T y = null; // 1
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 15),
-                // (14,14): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'E.F<T, U>(T, U)'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
-                //         d1 = x.F; // 2
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "x.F").WithArguments("E.F<T, U>(T, U)", "T", "U", "T?").WithLocation(14, 14),
-                // (18,23): warning CS8631: The type 'T?' cannot be used as type parameter 'U' in the generic type or method 'E.F<T, U>(T, U)'. Nullability of type argument 'T?' doesn't match constraint type 'T'.
-                //         _ = new D<T?>(x.F); // 3
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInTypeParameterConstraint, "x.F").WithArguments("E.F<T, U>(T, U)", "T", "U", "T?").WithLocation(18, 23));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 15)
+                );
         }
 
         [Fact]
@@ -159313,9 +159408,6 @@ class C
 ";
             var comp = CreateCompilation(new[] { source, MemberNotNullWhenAttributeDefinition });
             comp.VerifyDiagnostics(
-                // 0.cs(15,21): hidden CS9274: The pattern is redundant.
-                //             { Init: { } } => field.Length, // 1
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "{ }").WithLocation(15, 21),
                 // 0.cs(15,30): warning CS8602: Dereference of a possibly null reference.
                 //             { Init: { } } => field.Length, // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(15, 30)
@@ -161810,6 +161902,77 @@ class C
                 // (5,32): warning CS8602: Dereference of a possibly null reference.
                 // M(new() { [x = null] = 1 }, M2(x.ToString()));
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(5, 32));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84398")]
+        public void NullableOfErrorType_IsPatternInLocalFunction_NullableMissing()
+        {
+            var source = """
+                #pragma warning disable 649 // unused field
+                #nullable enable
+                class C
+                {
+                    Undefined? _f;
+                    void M()
+                    {
+                        local();
+                        void local()
+                        {
+                            if (_f is { } v)
+                            {
+                                v.ToString();
+                            }
+                        }
+                    }
+                }
+                """;
+
+            // 'System.Nullable<T>' is missing, but its members are still available through the core library,
+            // so '_f' has a constructed error type whose original definition is the missing 'System.Nullable<T>'.
+            var comp = CreateCompilation(source);
+            comp.MakeTypeMissing(SpecialType.System_Nullable_T);
+            comp.VerifyDiagnostics(
+                // (5,5): error CS0246: The type or namespace name 'Undefined' could not be found (are you missing a using directive or an assembly reference?)
+                //     Undefined? _f;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Undefined").WithArguments("Undefined").WithLocation(5, 5),
+                // (5,5): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     Undefined? _f;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "Undefined?").WithArguments("System.Nullable`1").WithLocation(5, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84398")]
+        public void NullableOfErrorType_IsPattern_TypeFromCompilationWithoutCorLibrary()
+        {
+            // This compilation has no core library at all, so 'Undefined?' binds to a constructed
+            // error type over the missing 'System.Nullable<T>'.
+            var libSource = """
+                public class C
+                {
+                    public Undefined? F;
+                }
+                """;
+            var libComp = CreateEmptyCompilation(libSource, assemblyName: "lib");
+
+            // The referencing compilation does have a core library, so 'System.Nullable<T>.Value' is
+            // available even though the original definition of the type of 'C.F' is an error type.
+            var source = """
+                #nullable enable
+                class D
+                {
+                    void M(C c)
+                    {
+                        if (c.F is { } v)
+                        {
+                            v.ToString();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, references: [libComp.ToMetadataReference()]);
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //         if (c.F is { } v)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F").WithArguments("System.Nullable`1").WithLocation(6, 15));
         }
     }
 }

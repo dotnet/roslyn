@@ -379,11 +379,11 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             Punctuation.CloseCurly);
 
     [Theory, CombinatorialData]
-    public Task ClosedAsIdentifierInClass(TestHost testHost)
+    public Task ClosedAsKeywordInClass(TestHost testHost)
         => TestInClassAsync("closed Goo;",
             testHost,
-            Identifier("closed"),
-            Field("Goo"),
+            Keyword("closed"),
+            Identifier("Goo"),
             Punctuation.Semicolon);
 
     private static readonly string[] s_contextualKeywordsOnlyValidInMethods = ["where", "from", "group", "join", "select", "into", "let", "by", "orderby", "on", "equals", "ascending", "descending"];
@@ -2115,7 +2115,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
     public Task UnionTypeDeclaration1(TestHost testHost)
         => TestAsync("union Union1(int, Union1) { }",
             testHost,
-            TestOptions.RegularNext,
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp15),
             Keyword("union"),
             Struct("Union1"),
             Punctuation.OpenParen,
@@ -2752,7 +2752,7 @@ public sealed partial class SyntacticClassifierTests : AbstractCSharpClassifierT
             }
             """,
             testHost,
-            [new CSharpParseOptions(LanguageVersion.Preview)],
+            [new CSharpParseOptions(LanguageVersion.CSharp15)],
             Keyword("static"),
             Keyword("class"),
             Class("E"),

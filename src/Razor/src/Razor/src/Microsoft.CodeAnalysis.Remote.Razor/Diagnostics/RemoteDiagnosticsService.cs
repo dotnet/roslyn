@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Remote.Razor;
 internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocumentServiceBase(in args), IRemoteDiagnosticsService
 {
     private const string UnusedDirectiveDiagnosticId = "RZ0005";
+    private const string DuplicateUsingAliasDiagnosticId = "CS1537";
     private static readonly DiagnosticTag[] s_unnecessaryDiagnosticTags = [VSDiagnosticTags.HiddenInEditor, DiagnosticTag.Unnecessary];
 
     internal sealed class Factory : FactoryBase<IRemoteDiagnosticsService>
@@ -35,28 +36,30 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
     public ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LspDiagnostic[] csharpDiagnostics,
+        LspDiagnostic[] csharpImplDiagnostics,
+        LspDiagnostic[] csharpDeclDiagnostics,
         LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetDiagnosticsAsync(context, csharpDiagnostics, htmlDiagnostics, cancellationToken),
+            snapshot => GetDiagnosticsAsync(snapshot, csharpImplDiagnostics, csharpDeclDiagnostics, htmlDiagnostics, cancellationToken),
             cancellationToken);
 
     private async ValueTask<ImmutableArray<LspDiagnostic>> GetDiagnosticsAsync(
-        RemoteDocumentContext context,
-        LspDiagnostic[] csharpDiagnostics,
+        RemoteDocumentSnapshot snapshot,
+        LspDiagnostic[] csharpImplDiagnostics,
+        LspDiagnostic[] csharpDeclDiagnostics,
         LspDiagnostic[] htmlDiagnostics,
         CancellationToken cancellationToken)
     {
         // We've got C# and Html, lets get Razor diagnostics
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         ImmutableArray<LspDiagnostic> allDiagnostics = [
-            .. GetRazorDiagnostics(context, codeDocument),
-            .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.CSharp, csharpDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false),
-            .. await _translateDiagnosticsService.TranslateAsync(RazorLanguageKind.Html, htmlDiagnostics, context.Snapshot, cancellationToken).ConfigureAwait(false)
+            .. GetRazorDiagnostics(snapshot, codeDocument),
+            .. await _translateDiagnosticsService.TranslateCSharpAsync(csharpImplDiagnostics, csharpDeclDiagnostics, snapshot, cancellationToken).ConfigureAwait(false),
+            .. await _translateDiagnosticsService.TranslateHtmlAsync(htmlDiagnostics, snapshot, cancellationToken).ConfigureAwait(false)
         ];
 
         // Our final pass is to update all unused directive errors to ensure they display how we want in the IDE. Doing it here
@@ -66,6 +69,7 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
         var sourceText = codeDocument.Source.Text;
         var tree = codeDocument.GetRequiredTagHelperRewrittenSyntaxTree();
         using var unusedDirectiveSpans = new PooledArrayBuilder<TextSpan>();
+        var hasDuplicateUsingAlias = false;
 
         // In VS, we use Warning so we get an error list entry, and the tags mean we won't get squiggles in the editor.
         // In VS Code we can't do that, so just report as Hint to avoid squiggles. This matches Roslyn's behaviour with
@@ -97,20 +101,30 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
                     diagnostic.Range.Start.Character = 0;
                 }
             }
+            else if (diagnostic.Code is { Value: DuplicateUsingAliasDiagnosticId })
+            {
+                hasDuplicateUsingAlias = true;
+            }
         }
 
-        UnusedDirectiveCache.Set(codeDocument, unusedDirectiveSpans.ToArrayAndClear());
+        // If there are two usings with the same alias name, C# can't tell which one the code actually uses, so it's
+        // anyone's guess which one gets reported as unused. Rather than have cleanup remove the one the user wanted, we
+        // pretend nothing is unused until they fix the error. Duplicate namespace usings (CS0105) are fine though, since
+        // either copy can go.
+        UnusedDirectiveCache.Set(codeDocument, hasDuplicateUsingAlias ? [] : unusedDirectiveSpans.ToArrayAndClear());
 
         return allDiagnostics;
     }
 
-    private static ImmutableArray<LspDiagnostic> GetRazorDiagnostics(RemoteDocumentContext context, RazorCodeDocument codeDocument)
+    private static ImmutableArray<LspDiagnostic> GetRazorDiagnostics(RemoteDocumentSnapshot snapshot, RazorCodeDocument codeDocument)
     {
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
 
         // First, RZ diagnostics. Yes, CSharpDocument.Documents are the Razor diagnostics. Don't ask.
-        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument().Diagnostics;
-        var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, context.Snapshot);
+        // Right now Razor diagnostics are duplicated on both decl and impl documents, so it doesn't matter which
+        // one we use.
+        var razorDiagnostics = codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics;
+        var convertedDiagnostics = RazorDiagnosticHelper.Convert(razorDiagnostics, codeDocument.Source.Text, snapshot);
         diagnostics.AddRange(convertedDiagnostics);
 
         // For legacy files, that aren't imports, we also want to raise unused directive diagnostics. We only do this for
@@ -151,24 +165,33 @@ internal sealed class RemoteDiagnosticsService(in ServiceArgs args) : RazorDocum
     public ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId documentId,
-        LspDiagnostic[] csharpTaskItems,
+        LspDiagnostic[] csharpImplTaskItems,
+        LspDiagnostic[] csharpDeclTaskItems,
         CancellationToken cancellationToken)
         => RunServiceAsync(
             solutionInfo,
             documentId,
-            context => GetTaskListDiagnosticsAsync(context, csharpTaskItems, cancellationToken),
+            snapshot => GetTaskListDiagnosticsAsync(snapshot, csharpImplTaskItems, csharpDeclTaskItems, cancellationToken),
             cancellationToken);
 
     private async ValueTask<ImmutableArray<LspDiagnostic>> GetTaskListDiagnosticsAsync(
-        RemoteDocumentContext context,
-        LspDiagnostic[] csharpTaskItems,
+        RemoteDocumentSnapshot snapshot,
+        LspDiagnostic[] csharpImplTaskItems,
+        LspDiagnostic[] csharpDeclTaskItems,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await context.GetCodeDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
 
         using var diagnostics = new PooledArrayBuilder<LspDiagnostic>();
         diagnostics.AddRange(TaskListDiagnosticProvider.GetTaskListDiagnostics(codeDocument, _clientSettingsManager.GetClientSettings().AdvancedSettings.TaskListDescriptors));
-        diagnostics.AddRange(_translateDiagnosticsService.MapDiagnostics(RazorLanguageKind.CSharp, csharpTaskItems, context.Snapshot, codeDocument));
+
+        diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpImplTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: false)));
+
+        if (csharpDeclTaskItems.Length > 0)
+        {
+            diagnostics.AddRange(_translateDiagnosticsService.MapCSharpDiagnostics(csharpDeclTaskItems, codeDocument.GetRequiredCSharpDocument(declarationDocument: true)));
+        }
+
         return diagnostics.ToImmutableAndClear();
     }
 }

@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
 using Microsoft.AspNetCore.Mvc.Razor.Extensions;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 {
@@ -24,6 +24,23 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
             builder.Append(".g.cs");
 
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// Returns the hint name for the decl half of a Razor component generated source given
+        /// the impl half's hint name. The decl file substitutes <c>.decl.g.cs</c> for the
+        /// trailing <c>.g.cs</c> -- e.g. <c>Component1_razor.g.cs</c> →
+        /// <c>Component1_razor.decl.g.cs</c> -- so both halves keep the <c>.g.cs</c> suffix
+        /// (which the editor and MSBuild use to identify generated files) without stacking it.
+        /// </summary>
+        internal static string GetDeclIdentifierFromHintName(string implHintName)
+        {
+            const string ImplSuffix = ".g.cs";
+            const string DeclSuffix = ".decl.g.cs";
+
+            return implHintName.EndsWith(ImplSuffix, StringComparison.Ordinal)
+                ? implHintName.Substring(0, implHintName.Length - ImplSuffix.Length) + DeclSuffix
+                : implHintName + DeclSuffix;
         }
 
         internal static void BuildIdentifierFromPath(StringBuilder builder, ReadOnlySpan<char> filePath)
@@ -47,6 +64,40 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                         break;
                 }
             }
+        }
+
+        private static RazorCSharpDocument GetFallbackDiscoveryDeclDocument(
+            RazorCodeDocument codeDocument,
+            SourceGeneratorProjectItem item,
+            ImmutableArray<SourceGeneratorProjectItem> imports,
+            RazorSourceGenerationOptions razorSourceGeneratorOptions,
+            CancellationToken cancellationToken)
+        {
+            // Reuse the discoverable decl the split phase built from the already-parsed document and lower
+            // it here, so a fallback component's descriptor comes from the initial parse instead of
+            // re-parsing the source through a separate declaration engine. The generator processes each
+            // document before running discovery over the set, so this lowers ahead of the tag-helper
+            // rewrite that mutates the shared IR.
+            if (codeDocument.GetRequiredDocumentNode().FallbackDiscoveryDeclDocumentNode is { } declDocumentNode)
+            {
+                // Mirror DefaultRazorDeclCSharpLoweringPhase: the decl is lowered before the rewrite phase,
+                // so seed the rewritten-tree back-reference with the canonical (markup-free) syntax tree.
+                var declCodeDocument = codeDocument.GetTagHelperRewrittenSyntaxTree() is null
+                    ? codeDocument.WithTagHelperRewrittenSyntaxTree(codeDocument.GetRequiredSyntaxTree())
+                    : codeDocument;
+
+                return RazorCSharpDocumentWriter.Write(
+                    declDocumentNode,
+                    declCodeDocument,
+                    reportDiagnostics: false,
+                    isDeclarationDocument: true,
+                    isStubDocument: false,
+                    cancellationToken);
+            }
+
+            // Rare fallback shapes (no render method or namespace) leave no discovery decl; re-parse those.
+            var declEngine = GetDeclarationProjectEngine(item, imports, razorSourceGeneratorOptions);
+            return declEngine.Process(item, cancellationToken).GetRequiredCSharpDocument(declarationDocument: false);
         }
 
         private static RazorProjectEngine GetDeclarationProjectEngine(
@@ -126,6 +177,10 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     builder.SupportLocalizedComponentNames = razorSourceGeneratorOptions.SupportLocalizedComponentNames;
                     builder.SuppressUniqueIds = razorSourceGeneratorOptions.TestSuppressUniqueIds;
                     builder.SuppressAddComponentParameter = razorSourceGeneratorOptions.Configuration.SuppressAddComponentParameter;
+
+                    // The generator emits both halves of a split component (the impl `.g.cs` and the
+                    // decl `.decl.g.cs`), so it is the one host that opts into the markup split.
+                    builder.EnableMarkupSplit = true;
                 });
 
                 b.ConfigureParserOptions(builder =>
@@ -133,8 +188,6 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     builder.UseRoslynTokenizer = razorSourceGeneratorOptions.UseRoslynTokenizer;
                     builder.CSharpParseOptions = razorSourceGeneratorOptions.CSharpParseOptions;
                 });
-
-                b.Features.Add(new DefaultUtf8WriteLiteralFeature());
 
                 CompilerFeatures.Register(b);
                 RazorExtensions.Register(b);

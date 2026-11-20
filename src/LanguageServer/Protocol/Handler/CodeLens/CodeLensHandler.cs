@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
 [ExportCSharpVisualBasicStatelessLspService(typeof(CodeLensHandler)), Shared]
 [Method(LSP.Methods.TextDocumentCodeLensName)]
-internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]?>
+internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.CodeLensParams, LSP.CodeLens[]>
 {
     public const string RunTestsCommandIdentifier = "dotnet.test.run";
 
@@ -42,10 +42,10 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.CodeLensParams request)
         => request.TextDocument;
 
-    public Task<LSP.CodeLens[]?> HandleRequestAsync(LSP.CodeLensParams request, RequestContext context, CancellationToken cancellationToken)
-        => GetCodeLensAsync(request.TextDocument, context.GetRequiredDocument(), _globalOptionService, cancellationToken);
+    public async Task<LSP.CodeLens[]> HandleRequestAsync(LSP.CodeLensParams request, RequestContext context, CancellationToken cancellationToken)
+        => await GetCodeLensAsync(request.TextDocument, await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), _globalOptionService, cancellationToken).ConfigureAwait(false);
 
-    internal static async Task<LSP.CodeLens[]?> GetCodeLensAsync(LSP.TextDocumentIdentifier textDocumentIdentifier, Document document, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
+    internal static async Task<LSP.CodeLens[]> GetCodeLensAsync(LSP.TextDocumentIdentifier textDocumentIdentifier, Document document, IGlobalOptionService globalOptionService, CancellationToken cancellationToken)
     {
         var referencesCodeLensEnabled = globalOptionService.GetOption(LspOptionsStorage.LspEnableReferencesCodeLens, document.Project.Language);
         var testsCodeLensEnabled = globalOptionService.GetOption(LspOptionsStorage.LspEnableTestsCodeLens, document.Project.Language);
@@ -75,7 +75,15 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         if (!globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures) && testsCodeLensEnabled)
         {
             // Only return test codelenses if we're not using devkit.
-            AddTestCodeLens(codeLenses, members, document, text, textDocumentIdentifier);
+            var useSemanticTestDiscovery = globalOptionService.GetOption(LspOptionsStorage.LspUseSemanticTestDiscovery, document.Project.Language);
+            if (useSemanticTestDiscovery)
+            {
+                await AddSemanticTestCodeLensAsync(codeLenses, members, document, text, textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                AddTestCodeLens(codeLenses, members, document, text, textDocumentIdentifier);
+            }
         }
 
         return codeLenses.ToArray();
@@ -125,13 +133,56 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         using var _ = ArrayBuilder<CodeLensMember>.GetInstance(out var testMethodMembers);
         foreach (var member in members)
         {
-            var isTestMethod = testMethodFinder.IsTestMethod(member.Node);
-            if (isTestMethod)
+            if (testMethodFinder.IsTestMethod(member.Node))
             {
                 testMethodMembers.Add(member);
             }
         }
 
+        AddTestCodeLensCommands(codeLenses, members, testMethodMembers, text, textDocumentIdentifier);
+    }
+
+    private static async Task AddSemanticTestCodeLensAsync(
+        ArrayBuilder<LSP.CodeLens> codeLenses,
+        ImmutableArray<CodeLensMember> members,
+        Document document,
+        SourceText text,
+        LSP.TextDocumentIdentifier textDocumentIdentifier,
+        CancellationToken cancellationToken)
+    {
+        var testMethodFinder = document.GetLanguageService<ITestMethodFinder>();
+        // The service is not implemented for all languages.
+        if (testMethodFinder == null)
+        {
+            return;
+        }
+
+        var memberNodes = members.SelectAsArray(static member => member.Node);
+        var testMethodNodes = await testMethodFinder.GetSemanticTestMethodsAsync(
+            document, memberNodes, cancellationToken).ConfigureAwait(false);
+
+        using var _1 = PooledHashSet<SyntaxNode>.GetInstance(out var testMethodNodeSet);
+        testMethodNodeSet.UnionWith(testMethodNodes);
+
+        using var _2 = ArrayBuilder<CodeLensMember>.GetInstance(out var testMethodMembers);
+        foreach (var member in members)
+        {
+            if (testMethodNodeSet.Contains(member.Node))
+            {
+                testMethodMembers.Add(member);
+            }
+        }
+
+        AddTestCodeLensCommands(codeLenses, members, testMethodMembers, text, textDocumentIdentifier);
+    }
+
+    private static void AddTestCodeLensCommands(
+        ArrayBuilder<LSP.CodeLens> codeLenses,
+        ImmutableArray<CodeLensMember> members,
+        ArrayBuilder<CodeLensMember> testMethodMembers,
+        SourceText text,
+        LSP.TextDocumentIdentifier textDocumentIdentifier)
+    {
         // Find any test container members based on the test method members we found (e.g. find the class containing the test methods).
         var testContainerNodes = testMethodMembers.Select(member => member.Node.Parent);
         var testContainerMembers = members.Where(member => testContainerNodes.Contains(member.Node));
@@ -200,4 +251,3 @@ internal sealed class CodeLensHandler : ILspServiceDocumentRequestHandler<LSP.Co
         }
     }
 }
-

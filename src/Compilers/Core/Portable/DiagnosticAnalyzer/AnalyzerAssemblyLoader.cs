@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -401,15 +402,15 @@ namespace Microsoft.CodeAnalysis
         /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
         /// most appropriate for the current platform.
         /// </summary>
-        /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
-        /// will be the base directory where shadow copy assemblies are stored. </param>
+        /// <param name="windowsBasePath">A shadow copy path will be created on Windows and this value
+        /// will be the base directory where shadow copy assemblies and cached files are stored. </param>
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
-            string windowsShadowPath,
+            string windowsBasePath,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default,
             ImmutableArray<IAnalyzerAssemblyResolver> assemblyResolvers = default,
             System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null)
         {
-            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsShadowPath);
+            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsBasePath);
             pathResolvers = pathResolvers.NullToEmpty();
             assemblyResolvers = assemblyResolvers.NullToEmpty();
 
@@ -432,7 +433,7 @@ namespace Microsoft.CodeAnalysis
             // Program Files are not expected to change and so locking is not a concern. But for everything else
             // we want to avoid locking and use shadow copy.
             return new AnalyzerAssemblyLoader(
-                [.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath)],
+                [.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsBasePath)],
                 [.. assemblyResolvers, DiskResolver.Instance],
                 compilerLoadContext);
         }
@@ -443,21 +444,29 @@ namespace Microsoft.CodeAnalysis
         /// Return an <see cref="IAnalyzerAssemblyLoader"/> which does not lock assemblies on disk that is
         /// most appropriate for the current platform.
         /// </summary>
-        /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
-        /// will be the base directory where shadow copy assemblies are stored. </param>
+        /// <param name="windowsBasePath">A shadow copy path will be created on Windows and this value
+        /// will be the base directory where shadow copy assemblies and cached files are stored. </param>
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
-            string windowsShadowPath,
+            string windowsBasePath,
             ImmutableArray<IAnalyzerPathResolver> pathResolvers = default)
         {
-            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsShadowPath);
+            CodeAnalysisEventSource.Log.CreateNonLockingLoader(windowsBasePath);
             pathResolvers = pathResolvers.NullToEmpty();
 
             // The goal here is to avoid locking files on disk that are reasonably expected to be changed by 
             // developers for the lifetime of VBCSCompiler, Visual Studio, VS Code, etc ... Places like 
             // Program Files are not expected to change and so locking is not a concern. But for everything else
             // we want to avoid locking and use shadow copy.
-            return new AnalyzerAssemblyLoader([.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsShadowPath)]);
+            return new AnalyzerAssemblyLoader([.. pathResolvers, ProgramFilesAnalyzerPathResolver.Instance, new ShadowCopyAnalyzerPathResolver(windowsBasePath)]);
         }
 #endif
+
+        internal static void CleanLegacyShadowCopyDirectoryIfNeeded(string legacyShadowDirectory)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _ = ShadowCopyAnalyzerPathResolver.CleanLegacyShadowDirectoryAsync(legacyShadowDirectory);
+            }
+        }
     }
 }

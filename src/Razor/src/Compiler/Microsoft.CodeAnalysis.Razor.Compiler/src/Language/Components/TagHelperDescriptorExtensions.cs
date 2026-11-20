@@ -30,6 +30,13 @@ internal static class TagHelperDescriptorExtensions
             Metadata: ComponentMetadata { IsGeneric: true }
         };
 
+    public static bool AcceptsUnmatchedAttributes(this TagHelperDescriptor tagHelper)
+        => tagHelper is
+        {
+            Kind: TagHelperKind.Component,
+            Metadata: ComponentMetadata { AcceptsUnmatchedAttributes: true }
+        };
+
     /// <summary>
     /// Given a taghelper binding it finds the BoundAttribute that is a type parameter and then the
     /// actual binding value for that type.

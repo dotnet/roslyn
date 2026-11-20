@@ -28,7 +28,7 @@ public sealed class RequestExecutionQueueTests
         protected override ILspServices ConstructLspServices() => RequestExecutionQueueTests.GetLspServices();
     }
 
-    private static RequestExecutionQueue<TestRequestContext> GetRequestExecutionQueue(
+    private static TestRequestExecutionQueue GetRequestExecutionQueue(
         bool cancelInProgressWorkUponMutatingRequest,
         params (RequestHandlerMetadata metadata, IMethodHandler handler)[] handlers)
     {
@@ -155,16 +155,36 @@ public sealed class RequestExecutionQueueTests
         Assert.True(task2.IsCompleted);
     }
 
+    [Fact]
+    public async Task Queue_CompletionDoesNotShutdownServer()
+    {
+        var requestExecutionQueue = GetRequestExecutionQueue(false, (TestMethodHandler.Metadata, TestMethodHandler.Instance));
+        var lspServices = GetLspServices();
+
+        await requestExecutionQueue.ExecuteAsync(JsonSerializer.SerializeToElement(new MockRequest(1)), TestMethodHandler.Name, lspServices, CancellationToken.None);
+
+        requestExecutionQueue.Complete();
+        await requestExecutionQueue.GetTestAccessor().WaitForProcessingToStopAsync();
+
+        Assert.False(requestExecutionQueue.LanguageServer.GetTestAccessor().HasShutdownStarted());
+    }
+
     private sealed class TestRequestExecutionQueue : RequestExecutionQueue<TestRequestContext>
     {
         private readonly bool _cancelInProgressWorkUponMutatingRequest;
 
-        public TestRequestExecutionQueue(AbstractLanguageServer<TestRequestContext> languageServer, AbstractHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
+        public TestRequestExecutionQueue(MockServer languageServer, AbstractHandlerProvider handlerProvider, bool cancelInProgressWorkUponMutatingRequest)
             : base(languageServer, handlerProvider)
         {
             _cancelInProgressWorkUponMutatingRequest = cancelInProgressWorkUponMutatingRequest;
+            LanguageServer = languageServer;
         }
 
+        public MockServer LanguageServer { get; }
+
         protected override bool CancelInProgressWorkUponMutatingRequest => _cancelInProgressWorkUponMutatingRequest;
+
+        public void Complete()
+            => _queue.Complete();
     }
 }

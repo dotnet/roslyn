@@ -30,31 +30,6 @@ namespace Test
 
         }
         #pragma warning restore 1998
-#nullable restore
-#line (7,8)-(25,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public partial class Example
-    {
-        public partial event System.Action Updated;
-        public partial event System.Action Updated
-        {
-            add { }
-            remove { }
-        }
-
-        public int Value { get; }
-
-        public partial Example();
-        public partial Example()
-        {
-            Value = 1;
-        }
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -16,5 +16,3 @@
                             IntermediateToken -  - Html -  
                         CSharpExpression - (39:0,39 [8] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (39:0,39 [8] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "string"
-            CSharpCode - (63:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (63:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    int x = 1;\n

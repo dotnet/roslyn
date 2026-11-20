@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Frozen;
+using System;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -33,6 +35,10 @@ internal sealed class CohostOnTypeFormattingEndpoint(
     ILoggerFactory loggerFactory)
     : AbstractCohostDocumentEndpoint<DocumentOnTypeFormattingParams, TextEdit[]?>(incompatibleProjectService), IDynamicRegistrationProvider
 {
+    internal const string FirstTriggerCharacter = "}";
+    internal static readonly string[] MoreTriggerCharacters = [";", "\n", "{"];
+    internal static readonly FrozenSet<string> AllTriggerCharacterSet = FrozenSet.ToFrozenSet([FirstTriggerCharacter, .. MoreTriggerCharacters], StringComparer.Ordinal);
+
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
@@ -51,8 +57,8 @@ internal sealed class CohostOnTypeFormattingEndpoint(
                 Method = Methods.TextDocumentOnTypeFormattingName,
                 RegisterOptions = new DocumentOnTypeFormattingRegistrationOptions()
                 {
-                    FirstTriggerCharacter = RazorFormattingService.FirstTriggerCharacter,
-                    MoreTriggerCharacter = RazorFormattingService.MoreTriggerCharacters
+                    FirstTriggerCharacter = FirstTriggerCharacter,
+                    MoreTriggerCharacter = MoreTriggerCharacters
                 }
             }];
         }
@@ -72,7 +78,7 @@ internal sealed class CohostOnTypeFormattingEndpoint(
             return null;
         }
 
-        if (!RazorFormattingService.AllTriggerCharacterSet.Contains(request.Character))
+        if (!AllTriggerCharacterSet.Contains(request.Character))
         {
             _logger.LogWarning($"Unexpected trigger character '{request.Character}'.");
             return null;
@@ -95,12 +101,13 @@ internal sealed class CohostOnTypeFormattingEndpoint(
         }
 
         var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var options = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken);
 
         ImmutableArray<TextChange> htmlChanges = [];
         if (triggerKind == IRemoteFormattingService.TriggerKind.ValidHtml)
         {
             _logger.LogDebug($"Getting Html formatting changes for {razorDocument.FilePath}");
-            var htmlResult = await TryGetHtmlFormattingEditsAsync(request, razorDocument, cancellationToken).ConfigureAwait(false);
+            var htmlResult = await TryGetHtmlFormattingEditsAsync(request, options, razorDocument, cancellationToken).ConfigureAwait(false);
 
             if (htmlResult is not { } htmlEdits)
             {
@@ -111,9 +118,6 @@ internal sealed class CohostOnTypeFormattingEndpoint(
 
             htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
         }
-
-        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
-        var options = RazorFormattingOptions.From(request.Options, clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine, clientSettings.AdvancedSettings.AttributeIndentStyle, csharpSyntaxFormattingOptions);
 
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");
         var remoteResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteFormattingService, ImmutableArray<TextChange>>(
@@ -131,8 +135,19 @@ internal sealed class CohostOnTypeFormattingEndpoint(
         return remoteResult.SelectAsPlainArray(sourceText.GetTextEdit);
     }
 
-    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentOnTypeFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+    private async Task<TextEdit[]?> TryGetHtmlFormattingEditsAsync(DocumentOnTypeFormattingParams request, RazorFormattingOptions options, TextDocument razorDocument, CancellationToken cancellationToken)
     {
+        if (options.IndentSize != request.Options.TabSize)
+        {
+            request = new DocumentOnTypeFormattingParams
+            {
+                TextDocument = request.TextDocument,
+                Position = request.Position,
+                Character = request.Character,
+                Options = options.GetHtmlFormattingOptions(request.Options),
+            };
+        }
+
         var result = await _requestInvoker.MakeHtmlLspRequestAsync<DocumentOnTypeFormattingParams, TextEdit[]>(
             razorDocument,
             Methods.TextDocumentOnTypeFormattingName,

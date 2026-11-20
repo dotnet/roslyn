@@ -79,7 +79,12 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         {
             var (originalDiagnosticNode, diagnostic) = tuple;
             var currentRoot = semanticDocument.Root;
-            var diagnosticNode = currentRoot.GetCurrentNodes(originalDiagnosticNode).Single();
+
+            // A prior fix may have already rewritten or removed this node (for example, several diagnostics that a
+            // single fix resolves together).  If the tracked node is gone, there's nothing left to do for it.
+            var diagnosticNode = currentRoot.GetCurrentNodes(originalDiagnosticNode).SingleOrDefault();
+            if (diagnosticNode is null)
+                continue;
 
             var subEditor = new SyntaxEditor(currentRoot, solutionServices);
 

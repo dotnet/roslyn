@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.AddImportOnPaste;
 using Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing;
 using Microsoft.CodeAnalysis.Editor.CSharp.CompleteStatement;
+using Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.KeywordHighlighting;
@@ -28,6 +29,12 @@ public partial class AutomationObject
     {
         get { return GetBooleanOption(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste); }
         set { SetBooleanOption(StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, value); }
+    }
+
+    public int FixCrefOnPaste
+    {
+        get { return GetBooleanOption(CrefPasteOptionsStorage.FixCrefOnPaste); }
+        set { SetBooleanOption(CrefPasteOptionsStorage.FixCrefOnPaste, value); }
     }
 
     public int DisplayLineSeparators

@@ -3969,26 +3969,23 @@ public class Program
             verifier.VerifyIL("Program.Test3<T>(T[])",
 @"
 {
-  // Code size       42 (0x2a)
-  .maxstack  3
-  .locals init (int V_0,
-            T V_1)
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T[] Program.GetA<T>(T[])""
   IL_0006:  call       ""int Program.Get0()""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldloc.0
-  IL_000e:  ldelem     ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  constrained. ""T""
-  IL_001c:  callvirt   ""void I1." + methodName + @"()""
-  IL_0021:  ldloc.0
-  IL_0022:  ldloc.1
-  IL_0023:  stelem     ""T""
-  IL_0028:  ldloc.1
-  IL_0029:  ret
+  IL_000b:  ldelema    ""T""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  constrained. ""T""
+  IL_001f:  callvirt   ""void I1." + methodName + @"()""
+  IL_0024:  ldloc.0
+  IL_0025:  stobj      ""T""
+  IL_002a:  ldloc.0
+  IL_002b:  ret
 }
 ");
 
@@ -4019,26 +4016,23 @@ public class Program
             verifier.VerifyIL("Program.Test4<T>(T[])",
 @"
 {
-  // Code size       42 (0x2a)
-  .maxstack  3
-  .locals init (int V_0,
-            T V_1)
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T[] Program.GetA<T>(T[])""
   IL_0006:  call       ""int Program.Get0()""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldloc.0
-  IL_000e:  ldelem     ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  constrained. ""T""
-  IL_001c:  callvirt   ""void I1." + methodName + @"()""
-  IL_0021:  ldloc.0
-  IL_0022:  ldloc.1
-  IL_0023:  stelem     ""T""
-  IL_0028:  ldloc.1
-  IL_0029:  ret
+  IL_000b:  ldelema    ""T""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  constrained. ""T""
+  IL_001f:  callvirt   ""void I1." + methodName + @"()""
+  IL_0024:  ldloc.0
+  IL_0025:  stobj      ""T""
+  IL_002a:  ldloc.0
+  IL_002b:  ret
 }
 ");
             comp2 = CreateCompilation([source2, CompilerFeatureRequiredAttribute], references: [fromMetadata ? comp1.EmitToImageReference() : comp1.ToMetadataReference()], options: TestOptions.DebugExe);
@@ -14952,28 +14946,25 @@ public class Program
             verifier.VerifyIL("Program.Test3<T>(T[])",
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       50 (0x32)
   .maxstack  3
-  .locals init (int V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T[] Program.GetA<T>(T[])""
   IL_0006:  call       ""int Program.Get0()""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldloc.0
-  IL_000e:  ldelem     ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  call       ""int Program.G1()""
-  IL_001b:  conv.i8
-  IL_001c:  constrained. ""T""
-  IL_0022:  callvirt   ""void I1." + methodName + @"(long)""
-  IL_0027:  ldloc.0
-  IL_0028:  ldloc.1
-  IL_0029:  stelem     ""T""
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_000b:  ldelema    ""T""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_002a:  ldloc.0
+  IL_002b:  stobj      ""T""
+  IL_0030:  ldloc.0
+  IL_0031:  ret
 }
 ");
 
@@ -15050,28 +15041,25 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             verifier.VerifyIL("Program.Test4<T>(T[])",
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       50 (0x32)
   .maxstack  3
-  .locals init (int V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T[] Program.GetA<T>(T[])""
   IL_0006:  call       ""int Program.Get0()""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldloc.0
-  IL_000e:  ldelem     ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  call       ""int Program.G1()""
-  IL_001b:  conv.i8
-  IL_001c:  constrained. ""T""
-  IL_0022:  callvirt   ""void I1." + methodName + @"(long)""
-  IL_0027:  ldloc.0
-  IL_0028:  ldloc.1
-  IL_0029:  stelem     ""T""
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_000b:  ldelema    ""T""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_002a:  ldloc.0
+  IL_002b:  stobj      ""T""
+  IL_0030:  ldloc.0
+  IL_0031:  ret
 }
 ");
 
@@ -15302,28 +15290,25 @@ public class Program
             verifier.VerifyIL("Program.Test3<T>(T[])",
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       50 (0x32)
   .maxstack  3
-  .locals init (int V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T[] Program.GetA<T>(T[])""
   IL_0006:  call       ""int Program.Get0()""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldloc.0
-  IL_000e:  ldelem     ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  call       ""int Program.G1()""
-  IL_001b:  conv.i8
-  IL_001c:  constrained. ""T""
-  IL_0022:  callvirt   ""void I1." + methodName + @"(long)""
-  IL_0027:  ldloc.0
-  IL_0028:  ldloc.1
-  IL_0029:  stelem     ""T""
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_000b:  ldelema    ""T""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_002a:  ldloc.0
+  IL_002b:  stobj      ""T""
+  IL_0030:  ldloc.0
+  IL_0031:  ret
 }
 ");
 
@@ -15398,28 +15383,25 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             verifier.VerifyIL("Program.Test4<T>(T[])",
 @"
 {
-  // Code size       48 (0x30)
+  // Code size       50 (0x32)
   .maxstack  3
-  .locals init (int V_0,
-                T V_1)
+  .locals init (T V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T[] Program.GetA<T>(T[])""
   IL_0006:  call       ""int Program.Get0()""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldloc.0
-  IL_000e:  ldelem     ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  call       ""int Program.G1()""
-  IL_001b:  conv.i8
-  IL_001c:  constrained. ""T""
-  IL_0022:  callvirt   ""void I1." + methodName + @"(long)""
-  IL_0027:  ldloc.0
-  IL_0028:  ldloc.1
-  IL_0029:  stelem     ""T""
-  IL_002e:  ldloc.1
-  IL_002f:  ret
+  IL_000b:  ldelema    ""T""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  constrained. ""T""
+  IL_0025:  callvirt   ""void I1." + methodName + @"(long)""
+  IL_002a:  ldloc.0
+  IL_002b:  stobj      ""T""
+  IL_0030:  ldloc.0
+  IL_0031:  ret
 }
 ");
 
@@ -16065,31 +16047,28 @@ public class Program
             verifier.VerifyIL("Program.Test3<T>(T[])",
 @"
 {
-  // Code size       51 (0x33)
+  // Code size       53 (0x35)
   .maxstack  3
-  .locals init (int V_0,
-                T V_1,
-                long V_2)
+  .locals init (T V_0,
+            long V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T[] Program.GetA<T>(T[])""
   IL_0006:  call       ""int Program.Get0()""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldloc.0
-  IL_000e:  ldelem     ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  call       ""int Program.G1()""
-  IL_001b:  conv.i8
-  IL_001c:  stloc.2
-  IL_001d:  ldloca.s   V_2
-  IL_001f:  constrained. ""T""
-  IL_0025:  callvirt   ""void I1." + methodName + @"(in long)""
-  IL_002a:  ldloc.0
-  IL_002b:  ldloc.1
-  IL_002c:  stelem     ""T""
-  IL_0031:  ldloc.1
-  IL_0032:  ret
+  IL_000b:  ldelema    ""T""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_002d:  ldloc.0
+  IL_002e:  stobj      ""T""
+  IL_0033:  ldloc.0
+  IL_0034:  ret
 }
 ");
 
@@ -16123,31 +16102,28 @@ public class Program
             verifier.VerifyIL("Program.Test4<T>(T[])",
 @"
 {
-  // Code size       51 (0x33)
+  // Code size       53 (0x35)
   .maxstack  3
-  .locals init (int V_0,
-            T V_1,
-            long V_2)
+  .locals init (T V_0,
+            long V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T[] Program.GetA<T>(T[])""
   IL_0006:  call       ""int Program.Get0()""
-  IL_000b:  stloc.0
-  IL_000c:  dup
-  IL_000d:  ldloc.0
-  IL_000e:  ldelem     ""T""
-  IL_0013:  stloc.1
-  IL_0014:  ldloca.s   V_1
-  IL_0016:  call       ""int Program.G1()""
-  IL_001b:  conv.i8
-  IL_001c:  stloc.2
-  IL_001d:  ldloca.s   V_2
-  IL_001f:  constrained. ""T""
-  IL_0025:  callvirt   ""void I1." + methodName + @"(in long)""
-  IL_002a:  ldloc.0
-  IL_002b:  ldloc.1
-  IL_002c:  stelem     ""T""
-  IL_0031:  ldloc.1
-  IL_0032:  ret
+  IL_000b:  ldelema    ""T""
+  IL_0010:  dup
+  IL_0011:  ldobj      ""T""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  call       ""int Program.G1()""
+  IL_001e:  conv.i8
+  IL_001f:  stloc.1
+  IL_0020:  ldloca.s   V_1
+  IL_0022:  constrained. ""T""
+  IL_0028:  callvirt   ""void I1." + methodName + @"(in long)""
+  IL_002d:  ldloc.0
+  IL_002e:  stobj      ""T""
+  IL_0033:  ldloc.0
+  IL_0034:  ret
 }
 ");
         }

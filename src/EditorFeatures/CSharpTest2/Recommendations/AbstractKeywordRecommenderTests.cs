@@ -234,7 +234,7 @@ public sealed class AbstractKeywordRecommenderTests : KeywordRecommenderTests
             """
             union U(int) {
                $$
-            """, CSharpNextParseOptions, CSharpNextScriptParseOptions);
+            """, CSharp15ParseOptions, CSharp15ScriptParseOptions);
 
     [Fact]
     public Task TestInsideInterface()

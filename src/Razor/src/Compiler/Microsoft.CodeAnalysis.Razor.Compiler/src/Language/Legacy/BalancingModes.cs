@@ -16,4 +16,5 @@ internal enum BalancingModes
     AllowCommentsAndTemplates = 4,
     AllowEmbeddedTransitions = 8,
     StopAtEndOfLine = 16,
+    ParseNestedBlocksAsMarkup = 32,
 }

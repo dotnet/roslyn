@@ -1,0 +1,18 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [73] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (2:0,2 [73] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    var count = 0;\nouter:\n    while (true)\n    {\n        count++;\n
+                MarkupElement - (83:6,8 [23] x:\dir\subdir\Test\TestComponent.razor) - p
+                    HtmlContent - (86:6,11 [10] x:\dir\subdir\Test\TestComponent.razor)
+                        LazyIntermediateToken - (86:6,11 [10] x:\dir\subdir\Test\TestComponent.razor) - Html - Iteration 
+                    CSharpExpression - (97:6,22 [5] x:\dir\subdir\Test\TestComponent.razor)
+                        LazyIntermediateToken - (97:6,22 [5] x:\dir\subdir\Test\TestComponent.razor) - CSharp - count
+                CSharpCode - (108:7,0 [109] x:\dir\subdir\Test\TestComponent.razor)
+                    LazyIntermediateToken - (108:7,0 [109] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n        if (count == 1)\n        {\n            continue outer;\n        }\n\n        break outer;\n    }\n

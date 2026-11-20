@@ -19,8 +19,6 @@
                         LazyIntermediateToken - (49:1,36 [5] x:\dir\subdir\Test\UseTestComponent.cshtml) - CSharp - items
                     ComponentAttribute - (61:1,48 [6] x:\dir\subdir\Test\UseTestComponent.cshtml) - Item3 - Item3 - AttributeStructure.DoubleQuotes
                         LazyIntermediateToken - (62:1,49 [5] x:\dir\subdir\Test\UseTestComponent.cshtml) - CSharp - item1
-            CSharpCode - (118:5,7 [268] x:\dir\subdir\Test\UseTestComponent.cshtml)
-                LazyIntermediateToken - (118:5,7 [268] x:\dir\subdir\Test\UseTestComponent.cshtml) - CSharp - \n    Image item1 = new Image() { id = 1, url="https://example.com"};\n    static Tag tag1 = new Tag() { description = "A description."};\n    static Tag tag2 = new Tag() { description = "Another description."};\n    List<Tag> items = new List<Tag>() { tag1, tag2 };\n
     NamespaceDeclaration -  - __Blazor.Test.UseTestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.UseTestComponent.TypeInference - CreateTestComponent_0

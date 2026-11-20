@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => false;
 
-        internal sealed override bool UseUpdatedMemorySafetyRules => false;
+        internal sealed override MemorySafetyRulesVersion MemorySafetyRulesVersion => MemorySafetyRulesVersion.Version1;
 
 #nullable enable
         internal sealed override ObsoleteAttributeData? ObsoleteAttributeData => null;

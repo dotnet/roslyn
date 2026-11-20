@@ -55,7 +55,7 @@ internal sealed class VisualStudioWorkspaceServiceHubConnector(
         _disposalCancellationSource.Cancel();
         _disposalCancellationSource.Dispose();
 
-        _checksumUpdater?.Shutdown();
+        _checksumUpdater?.Dispose();
 
         // dispose remote client if its initialization has completed:
         _remoteClientInitializationTask?.ContinueWith(

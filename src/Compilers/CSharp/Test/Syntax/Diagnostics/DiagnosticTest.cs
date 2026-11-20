@@ -260,6 +260,7 @@ class X
                         case ErrorCode.WRN_DelaySignButNoKey:
                         case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                         case ErrorCode.WRN_UnimplementedCommandLineSwitch:
+                        case ErrorCode.WRN_DeprecatedFeatureFlag:
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
@@ -480,10 +481,6 @@ class X
                         case ErrorCode.WRN_UnassignedInternalRefField:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 10 and C# 14.
                             Assert.Equal(10, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_UnsafeMeaningless:
-                            // These are the warnings introduced with the warning "wave" shipped with dotnet 11 and C# 15.
-                            Assert.Equal(11, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail
@@ -3014,7 +3011,6 @@ class Program
                     case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                     case ErrorCode.ERR_RefLocalAcrossAwait:
                     case ErrorCode.ERR_DataSectionStringLiteralHashCollision:
-                    case ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync:
                     case ErrorCode.ERR_NonTaskMainCantBeAsync:
                     case ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported:
                     case ErrorCode.ERR_EncUpdateFailedMissingSymbol:
@@ -3022,6 +3018,8 @@ class Program
                     case ErrorCode.ERR_EncReferenceToAddedMember:
                     case ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime:
                     case ErrorCode.ERR_AbstractBaseRecordImplementation:
+                    case ErrorCode.ERR_WrongArityAsyncReturn:
+                    case ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

@@ -379,27 +379,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// returns the <see cref="GeneratedLabelSymbol"/> that a break statement would branch to.
         /// Returns null otherwise.
         /// </summary>
-        internal virtual GeneratedLabelSymbol? BreakLabel
-        {
-            get
-            {
-                RoslynDebug.Assert(Next is object);
-                return Next.BreakLabel;
-            }
-        }
+        internal GeneratedLabelSymbol? BreakLabel => GetBreakLabel(labelName: null);
 
         /// <summary>
         /// If we are inside a context where a continue statement is legal,
         /// returns the <see cref="GeneratedLabelSymbol"/> that a continue statement would branch to.
         /// Returns null otherwise.
         /// </summary>
-        internal virtual GeneratedLabelSymbol? ContinueLabel
+        internal GeneratedLabelSymbol? ContinueLabel => GetContinueLabel(labelName: null);
+
+        /// <summary>
+        /// Returns the <see cref="GeneratedLabelSymbol"/> for a break statement targeting the given label,
+        /// or the nearest enclosing loop/switch if <paramref name="labelName"/> is null.
+        /// </summary>
+        internal virtual GeneratedLabelSymbol? GetBreakLabel(string? labelName)
         {
-            get
-            {
-                RoslynDebug.Assert(Next is object);
-                return Next.ContinueLabel;
-            }
+            RoslynDebug.Assert(Next is object);
+            return Next.GetBreakLabel(labelName);
+        }
+
+        /// <summary>
+        /// Returns the <see cref="GeneratedLabelSymbol"/> for a continue statement targeting the given label,
+        /// or the nearest enclosing loop if <paramref name="labelName"/> is null.
+        /// </summary>
+        internal virtual GeneratedLabelSymbol? GetContinueLabel(string? labelName)
+        {
+            RoslynDebug.Assert(Next is object);
+            return Next.GetContinueLabel(labelName);
         }
 
         /// <summary>

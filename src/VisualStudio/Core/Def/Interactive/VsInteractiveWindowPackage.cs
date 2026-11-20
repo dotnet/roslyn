@@ -54,8 +54,8 @@ internal abstract partial class VsInteractiveWindowPackage<TVsInteractiveWindowP
         FatalError.CopyHandlersTo(typeof(InteractiveHostFatalError).Assembly);
 
         // Explicitly set up FatalError handlers for the InteractiveWindowPackage.
-        Action<Exception> fatalHandler = e => FaultReporter.ReportFault(e, VisualStudio.Telemetry.FaultSeverity.Critical, forceDump: false);
-        Action<Exception> nonFatalHandler = e => FaultReporter.ReportFault(e, VisualStudio.Telemetry.FaultSeverity.General, forceDump: false);
+        Action<Exception> fatalHandler = e => FaultReporter.ReportFault(e, ErrorSeverity.Critical, forceDump: false);
+        Action<Exception> nonFatalHandler = e => FaultReporter.ReportFault(e, ErrorSeverity.General, forceDump: false);
 
         SetErrorHandlers(typeof(IInteractiveWindow).Assembly, fatalHandler, nonFatalHandler);
         SetErrorHandlers(typeof(IVsInteractiveWindow).Assembly, fatalHandler, nonFatalHandler);

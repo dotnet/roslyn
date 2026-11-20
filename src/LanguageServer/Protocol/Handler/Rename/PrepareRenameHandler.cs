@@ -25,8 +25,8 @@ internal sealed class PrepareRenameHandler() : ILspServiceDocumentRequestHandler
     public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.PrepareRenameParams request)
         => request.TextDocument;
 
-    public Task<LSP.Range?> HandleRequestAsync(LSP.PrepareRenameParams request, RequestContext context, CancellationToken cancellationToken)
-        => GetRenameRangeAsync(context.GetRequiredDocument(), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken);
+    public async Task<LSP.Range?> HandleRequestAsync(LSP.PrepareRenameParams request, RequestContext context, CancellationToken cancellationToken)
+        => await GetRenameRangeAsync(await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
     internal static async Task<LSP.Range?> GetRenameRangeAsync(Document document, LinePosition linePosition, CancellationToken cancellationToken)
     {

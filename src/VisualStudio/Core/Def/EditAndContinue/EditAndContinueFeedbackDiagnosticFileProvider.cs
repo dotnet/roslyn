@@ -3,80 +3,32 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.Internal.VisualStudio.Shell.Embeddable.Feedback;
-using Newtonsoft.Json.Linq;
-using Roslyn.Utilities;
-using Task = System.Threading.Tasks.Task;
+using Microsoft.VisualStudio.LanguageServices.Feedback;
 
 namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue;
 
 [Export(typeof(IFeedbackDiagnosticFileProvider))]
-internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackDiagnosticFileProvider
+internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : AbstractZippedLogFeedbackDiagnosticFileProvider
 {
-    /// <summary>
-    /// Name of the file displayed in VS Feedback UI.
-    /// See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1714452.
-    /// </summary>
-    private const string ZipFileName = "source_files_and_binaries_updated_during_hot_reload.zip";
-
-    private const string VSFeedbackSemaphoreDir = @"Microsoft\VSFeedbackCollector";
-    private const string VSFeedbackSemaphoreFileName = "feedback.recording.json";
-
-    /// <summary>
-    /// VS Feedback creates a JSON file at the start of feedback session and deletes it when the session is over.
-    /// Watching the file is currently the only way to detect the feedback session.
-    /// </summary>
-    private readonly string _vsFeedbackSemaphoreFullPath;
-    private readonly FileSystemWatcher? _vsFeedbackSemaphoreFileWatcher;
-
-    private readonly int _vsProcessId;
-    private readonly DateTime _vsProcessStartTime;
-    private readonly string _tempDir;
     private readonly Lazy<IHostWorkspaceProvider> _workspaceProvider;
-    private volatile int _isLogCollectionInProgress;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EditAndContinueFeedbackDiagnosticFileProvider(Lazy<IHostWorkspaceProvider> workspaceProvider)
+    public EditAndContinueFeedbackDiagnosticFileProvider(
+        Lazy<IHostWorkspaceProvider> workspaceProvider,
+        IVisualStudioFeedbackFileWatcherService feedbackFileWatcherService)
+        : base(feedbackFileWatcherService)
     {
-        var vsProcess = Process.GetCurrentProcess();
-
-        _vsProcessId = vsProcess.Id;
-        _vsProcessStartTime = vsProcess.StartTime;
         _workspaceProvider = workspaceProvider;
 
-        _tempDir = Path.GetTempPath();
-        var vsFeedbackTempDir = Path.Combine(_tempDir, VSFeedbackSemaphoreDir);
-        _vsFeedbackSemaphoreFullPath = Path.Combine(vsFeedbackTempDir, VSFeedbackSemaphoreFileName);
-
-        // Directory may not exist in scenarios such as Razor integration tests
-        if (!Directory.Exists(vsFeedbackTempDir))
-        {
-            return;
-        }
-
-        _vsFeedbackSemaphoreFileWatcher = new FileSystemWatcher(vsFeedbackTempDir, VSFeedbackSemaphoreFileName);
-        _vsFeedbackSemaphoreFileWatcher.Created += (_, _) => OnFeedbackSemaphoreCreatedOrChanged();
-        _vsFeedbackSemaphoreFileWatcher.Changed += (_, _) => OnFeedbackSemaphoreCreatedOrChanged();
-        _vsFeedbackSemaphoreFileWatcher.Deleted += (_, _) => OnFeedbackSemaphoreDeleted();
-
-        if (File.Exists(_vsFeedbackSemaphoreFullPath))
-        {
-            OnFeedbackSemaphoreCreatedOrChanged();
-        }
-
-        _vsFeedbackSemaphoreFileWatcher.EnableRaisingEvents = true;
+        StartListeningToFeedbackRecording();
     }
 
     /// <summary>
@@ -87,16 +39,15 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
     /// we might not be able to write the new zip file to disk and the previous content might be uploaded instead.
     /// See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1716980
     /// </summary>
-    private string GetLogDirectory()
-        => Path.Combine(Path.Combine(_tempDir, $"EnC_{_vsProcessId}", "Log"));
+    protected override string LogDirectoryNamePrefix => "EnC";
 
-    private string GetZipFilePath()
-        => Path.Combine(Path.Combine(_tempDir, $"EnC_{_vsProcessId}", ZipFileName));
+    /// <summary>
+    /// Name of the file displayed in VS Feedback UI.
+    /// See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1714452.
+    /// </summary>
+    protected override string ZipFileName => "source_files_and_binaries_updated_during_hot_reload.zip";
 
-    public IReadOnlyCollection<string> GetFiles()
-        => _vsFeedbackSemaphoreFileWatcher is null ? [] : [GetZipFilePath()];
-
-    private void SetFileLoggingDirectory(string? logDirectory)
+    protected override void SetLogDirectory(string? logDirectory)
     {
         _ = Task.Run(async () =>
         {
@@ -110,61 +61,5 @@ internal sealed class EditAndContinueFeedbackDiagnosticFileProvider : IFeedbackD
                 // ignore
             }
         });
-    }
-
-    private void OnFeedbackSemaphoreCreatedOrChanged()
-    {
-        if (!IsLoggingEnabledForCurrentVisualStudioInstance(_vsFeedbackSemaphoreFullPath))
-        {
-            // The semaphore file was created for another VS instance.
-            return;
-        }
-
-        if (Interlocked.CompareExchange(ref _isLogCollectionInProgress, 1, 0) == 0)
-        {
-            SetFileLoggingDirectory(GetLogDirectory());
-        }
-    }
-
-    private void OnFeedbackSemaphoreDeleted()
-    {
-        if (Interlocked.Exchange(ref _isLogCollectionInProgress, 0) == 1)
-        {
-            SetFileLoggingDirectory(logDirectory: null);
-
-            // Including the zip files in VS Feedback is currently on best effort basis.
-            // See https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1714439
-            Task.Run(() =>
-            {
-                try
-                {
-                    ZipFile.CreateFromDirectory(GetLogDirectory(), GetZipFilePath());
-                }
-                catch
-                {
-                }
-            });
-        }
-    }
-
-    private bool IsLoggingEnabledForCurrentVisualStudioInstance(string semaphoreFilePath)
-    {
-        try
-        {
-            if (_vsProcessStartTime > File.GetCreationTime(semaphoreFilePath))
-            {
-                // Semaphore file is older than the running instance of VS
-                return false;
-            }
-
-            // Check the contents of the semaphore file to see if it's for this instance of VS
-            var content = File.ReadAllText(semaphoreFilePath);
-            return JObject.Parse(content)["processIds"] is JContainer pidCollection && pidCollection.Values<int>().Contains(_vsProcessId);
-        }
-        catch
-        {
-            // Something went wrong opening or parsing the semaphore file - ignore it
-            return false;
-        }
     }
 }

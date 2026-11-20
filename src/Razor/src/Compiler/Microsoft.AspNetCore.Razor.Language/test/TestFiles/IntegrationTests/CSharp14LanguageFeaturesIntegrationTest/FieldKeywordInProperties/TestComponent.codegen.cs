@@ -38,19 +38,6 @@ __builder.AddContent(1, Value
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (7,8)-(13,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public int Value
-    {
-        get => field;
-        set => field = value;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

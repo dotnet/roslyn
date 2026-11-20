@@ -3,12 +3,3 @@
 Generated Location: (950:25,0 [10] )
 |someObject|
 
-Source Location: (95:2,7 [49] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    private object someObject = new object();
-|
-Generated Location: (1245:38,0 [49] )
-|
-    private object someObject = new object();
-|
-

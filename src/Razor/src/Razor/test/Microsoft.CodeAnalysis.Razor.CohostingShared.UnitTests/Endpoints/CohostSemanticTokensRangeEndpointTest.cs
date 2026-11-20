@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
@@ -15,6 +15,98 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostSemanticTokensEndpointTestBase(testOutputHelper)
 {
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective(bool colorBackground, bool isComponent)
+        => VerifySemanticTokensAsync(
+            """
+            @documentation {
+                <summary>
+                Uses <see cref="System.DateTime"/>.
+                </summary>
+            }
+
+            <p>After</p>
+            """,
+            colorBackground,
+            miscellaneousFile: false,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static project => project.RazorLanguageVersion = RazorLanguageVersion.Preview,
+            testName: nameof(DocumentationDirective) + (isComponent ? "" : "_Legacy"));
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective_SingleLine(bool colorBackground, bool isComponent)
+        => VerifySemanticTokensAsync(
+            """
+            @documentation {<summary>Uses <see cref="System.DateTime"/>.</summary>}
+
+            <p>After</p>
+            """,
+            colorBackground,
+            miscellaneousFile: false,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static project => project.RazorLanguageVersion = RazorLanguageVersion.Preview,
+            testName: nameof(DocumentationDirective_SingleLine) + (isComponent ? "" : "_Legacy"));
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective_XmlOnOpeningBraceLine(bool colorBackground, bool isComponent)
+        => VerifySemanticTokensAsync(
+            """
+            @documentation {<summary>
+                Uses <see cref="System.DateTime"/>.
+                </summary>
+            }
+
+            <p>After</p>
+            """,
+            colorBackground,
+            miscellaneousFile: false,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static project => project.RazorLanguageVersion = RazorLanguageVersion.Preview,
+            testName: nameof(DocumentationDirective_XmlOnOpeningBraceLine) + (isComponent ? "" : "_Legacy"));
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective_XmlOnClosingBraceLine(bool colorBackground, bool isComponent)
+        => VerifySemanticTokensAsync(
+            """
+            @documentation {
+                <summary>
+                Uses <see cref="System.DateTime"/>.
+                </summary>}
+
+            <p>After</p>
+            """,
+            colorBackground,
+            miscellaneousFile: false,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static project => project.RazorLanguageVersion = RazorLanguageVersion.Preview,
+            testName: nameof(DocumentationDirective_XmlOnClosingBraceLine) + (isComponent ? "" : "_Legacy"));
+
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective_XmlOnBothBraceLines(bool colorBackground, bool isComponent)
+        => VerifySemanticTokensAsync(
+            """
+            @documentation {<summary>
+                Uses <see cref="System.DateTime"/>.
+                </summary>}
+
+            <p>After</p>
+            """,
+            colorBackground,
+            miscellaneousFile: false,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static project => project.RazorLanguageVersion = RazorLanguageVersion.Preview,
+            testName: nameof(DocumentationDirective_XmlOnBothBraceLines) + (isComponent ? "" : "_Legacy"));
+
     [Theory]
     [CombinatorialData]
     public async Task RazorComponents(bool colorBackground, bool miscellaneousFile)
@@ -390,7 +482,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
     {
         var sourceText = await document.GetTextAsync(cancellationToken);
         var span = new LinePositionSpan(new(0, 0), new(sourceText.Lines.Count, 0));
-        var endpoint = new CohostSemanticTokensRangeEndpoint(IncompatibleProjectService, RemoteServiceInvoker, NoOpTelemetryReporter.Instance);
+        var endpoint = new CohostSemanticTokensRangeEndpoint(IncompatibleProjectService, RemoteServiceInvoker, NoOpTelemetryReporter.Instance, SemanticTokensLegendService);
         return await endpoint.GetTestAccessor().HandleRequestAsync(document, span, cancellationToken);
     }
 }

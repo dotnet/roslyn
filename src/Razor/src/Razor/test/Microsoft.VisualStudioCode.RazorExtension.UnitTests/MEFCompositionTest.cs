@@ -17,18 +17,23 @@ public class MEFCompositionTest(ITestOutputHelper testOutputHelper) : ToolingTes
     public void Composes()
     {
         var testComposition = TestComposition.RoslynFeatures
-            .AddAssemblies(typeof(VSCodeLanguageServerFeatureOptions).Assembly);
+            .AddAssemblies(typeof(VSCodeRemoteServicesInitializer).Assembly);
 
         var errors = testComposition.GetCompositionErrors().Order().ToArray();
 
         // There are known failures that are satisfied by Microsoft.CodeAnalysis.LanguageServer, which we don't reference
         Assert.Collection(errors,
             e => AssertEx.AssertEqualToleratingWhitespaceDifferences("""
-                Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider.ctor(implementation): expected exactly 1 export matching constraints:
+                Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider.ctor(parameter #1): expected exactly 1 export matching constraints:
                     Contract name: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
                     TypeIdentityName: Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api.IPythiaSignatureHelpProviderImplementation
                 but found 0.
+                """, e),
+            e => AssertEx.AssertEqualToleratingWhitespaceDifferences("""
+                Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationServiceFactory.ctor(parameter #1): expected exactly 1 export matching constraints:
+                    Contract name: Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationEventListener
+                    TypeIdentityName: Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationEventListener
+                but found 0.
                 """, e));
-        ;
     }
 }

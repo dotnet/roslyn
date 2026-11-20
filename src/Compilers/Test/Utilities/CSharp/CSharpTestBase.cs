@@ -254,7 +254,10 @@ namespace System.Diagnostics.CodeAnalysis
             namespace System.Runtime.CompilerServices
             {
                 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-                public sealed class IsClosedTypeAttribute : Attribute { }
+                public sealed class IsClosedTypeAttribute : Attribute
+                {
+                    public Type[] DerivedTypes { get; set; }
+                }
             }
             """;
 
@@ -3352,7 +3355,7 @@ namespace System
                 case SwitchStatementSyntax n:
                     {
                         var b = (BoundSwitchStatement)binder.BindStatement(n, BindingDiagnosticBag.Discarded);
-                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp) : b.ReachabilityDecisionDag;
+                        decisionDag = forLowering ? b.GetDecisionDagForLowering((CSharpCompilation)comp, out _) : b.ReachabilityDecisionDag;
                     }
                     break;
 

@@ -1846,7 +1846,7 @@ public sealed class NavigateToTests : AbstractNavigateToTests
     {
         var content = XElement.Parse("""
             <Workspace>
-                <Project Language="C#"  LanguageVersion="preview" CommonReferences="true">
+                <Project Language="C#" CommonReferences="true">
                     <Document FilePath="File1.cs">
             static class C
             {

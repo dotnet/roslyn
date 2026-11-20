@@ -23,7 +23,7 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Sub New(responseFile As String, baseDirectory As String, args As String(), analyzer As DiagnosticAnalyzer)
-        MyClass.New(responseFile, CreateBuildPaths(baseDirectory, Path.GetTempPath()), args, analyzer)
+        MyClass.New(responseFile, CreateBuildPaths(baseDirectory), args, analyzer)
     End Sub
 
     Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzer As DiagnosticAnalyzer)
@@ -31,7 +31,7 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Sub New(responseFile As String, workingDirectory As String, args As String(), Optional analyzers As DiagnosticAnalyzer() = Nothing, Optional generators As ISourceGenerator() = Nothing, Optional additionalReferences As MetadataReference() = Nothing)
-        MyClass.New(responseFile, CreateBuildPaths(workingDirectory, Path.GetTempPath()), args, analyzers, generators, additionalReferences)
+        MyClass.New(responseFile, CreateBuildPaths(workingDirectory), args, analyzers, generators, additionalReferences)
     End Sub
 
     Public Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), Optional analyzers As DiagnosticAnalyzer() = Nothing, Optional generators As ISourceGenerator() = Nothing, Optional additionalReferences As MetadataReference() = Nothing)
@@ -42,8 +42,8 @@ Friend Class MockVisualBasicCompiler
         _additionalReferences = additionalReferences.AsImmutableOrEmpty()
     End Sub
 
-    Private Shared Function CreateBuildPaths(workingDirectory As String, tempDirectory As String) As BuildPaths
-        Return RuntimeUtilities.CreateBuildPaths(workingDirectory, tempDirectory:=tempDirectory)
+    Private Shared Function CreateBuildPaths(workingDirectory As String) As BuildPaths
+        Return RuntimeUtilities.CreateBuildPaths(workingDirectory)
     End Function
 
     Protected Overrides Sub ResolveAnalyzersFromArguments(

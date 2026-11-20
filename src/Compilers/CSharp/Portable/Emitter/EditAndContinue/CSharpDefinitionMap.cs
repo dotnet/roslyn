@@ -37,6 +37,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         public override SymbolMatcher SourceToPreviousSymbolMatcher => _sourceToPrevious;
         public override SymbolMatcher PreviousSourceToMetadataSymbolMatcher { get; } = previousSourceToMetadata;
 
+        protected override IAssemblySymbolInternal BaselineSourceAssembly
+            => ((CSharpCompilation)Baseline.Compilation).SourceAssembly;
+
+        protected override SymbolMatcher? CreateSymbolMatcherToBaselineSource(IAssemblySymbolInternal sourceAssembly)
+            => sourceAssembly is SourceAssemblySymbol source
+                ? new CSharpSymbolMatcher(
+                    sourceAssembly: source,
+                    otherAssembly: ((CSharpCompilation)Baseline.Compilation).SourceAssembly,
+                    otherSynthesizedTypes: Baseline.SynthesizedTypes,
+                    otherSynthesizedMembers: Baseline.SynthesizedMembers,
+                    otherDeletedMembers: Baseline.DeletedMembers)
+                : null;
+
         protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
         {
             return (symbol as Symbols.PublicModel.Symbol)?.UnderlyingSymbol;

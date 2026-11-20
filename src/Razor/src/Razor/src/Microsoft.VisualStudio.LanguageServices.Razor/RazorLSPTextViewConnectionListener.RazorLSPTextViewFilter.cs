@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Razor.LanguageClient;
 using Microsoft.VisualStudio.Shell;
@@ -96,6 +97,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener
                     using var edit = textBuffer.CreateEdit();
                     foreach (var change in edits)
                     {
+                        Contract.ThrowIfNull(change.NewText);
                         edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
                     }
 

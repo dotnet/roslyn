@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramsWorkspaceProviderFactory(
-    VirtualProjectXmlProvider projectXmlProvider,
     IGlobalOptionService globalOptionService,
     IAsynchronousOperationListenerProvider listenerProvider,
     ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
@@ -27,7 +26,6 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     {
         return new FileBasedProgramsProjectSystem(
             lspServices,
-            projectXmlProvider,
             globalOptionService,
             lspServices.GetRequiredService<ILoggerFactory>(),
             listenerProvider,

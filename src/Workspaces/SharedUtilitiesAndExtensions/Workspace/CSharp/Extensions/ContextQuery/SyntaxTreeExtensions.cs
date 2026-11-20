@@ -2144,27 +2144,20 @@ internal static partial class SyntaxTreeExtensions
 
     public static bool IsLabelContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
     {
-        var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+        var token = syntaxTree
+            .FindTokenOnLeftOfPosition(position, cancellationToken)
+            .GetPreviousTokenIfTouchingWord(position);
 
-        var gotoStatement = token.GetAncestor<GotoStatementSyntax>();
-        if (gotoStatement != null)
-        {
-            if (gotoStatement.GotoKeyword == token)
-            {
-                return true;
-            }
-
-            if (gotoStatement.Expression != null &&
-                !gotoStatement.Expression.IsMissing &&
-                gotoStatement.Expression is IdentifierNameSyntax &&
-                ((IdentifierNameSyntax)gotoStatement.Expression).Identifier == token &&
-                token.IntersectsWith(position))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        // goto |
+        // goto x|
+        //
+        // break |
+        // break x|
+        //
+        // continue |
+        // continue x|
+        return token.Kind() is SyntaxKind.GotoKeyword or SyntaxKind.BreakKeyword or SyntaxKind.ContinueKeyword &&
+               token.Parent is GotoStatementSyntax or BreakStatementSyntax or ContinueStatementSyntax;
     }
 
     public static bool IsExpressionContext(

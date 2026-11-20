@@ -1679,9 +1679,9 @@ class C
             EOF();
 
             CreateCompilation(test).GetDiagnostics().Verify(
-                // (4,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void Goo(int[] vals)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(4, 5),
                 // (6,9): error CS7014: Attributes are not valid in this context.
                 //         [A]fixed (int* p = vals) { }
                 Diagnostic(ErrorCode.ERR_AttributesNotAllowed, "[A]").WithLocation(6, 9));

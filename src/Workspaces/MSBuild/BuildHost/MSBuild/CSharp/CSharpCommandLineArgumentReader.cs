@@ -21,7 +21,6 @@ internal sealed class CSharpCommandLineArgumentReader : CommandLineArgumentReade
     protected override void ReadCore()
     {
         ReadAdditionalFiles();
-        ReadAnalyzers();
         ReadCodePage();
         ReadDebugInfo();
         ReadDelaySign();
@@ -29,7 +28,6 @@ internal sealed class CSharpCommandLineArgumentReader : CommandLineArgumentReade
         ReadFeatures();
         ReadImports();
         ReadPlatform();
-        ReadReferences();
         ReadSigning();
 
         AddIfNotNullOrWhiteSpace("appconfig", Project.ReadPropertyString(PropertyNames.AppConfigForCompiler));

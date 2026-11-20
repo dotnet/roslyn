@@ -3,4 +3,4 @@
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
-internal readonly record struct SpellCheckRange(int Kind, int AbsoluteStartIndex, int Length);
+internal readonly record struct SpellCheckRange(int Kind, int AbsoluteStartIndex, int Length, bool InDeclDocument);

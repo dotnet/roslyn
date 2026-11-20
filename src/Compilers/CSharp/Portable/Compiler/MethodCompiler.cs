@@ -2182,7 +2182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Logic in this lambda is based on Binder.IdentifierUsedAsValueFinder.CheckIdentifiersInNode.childrenNeedChecking.
+            // Logic in this local function is based on Binder.IdentifierUsedAsValueFinder.CheckIdentifiersInNode.childrenNeedChecking.
             // It can be more permissive (i.e. allow us to dive into more nodes), but should not be more restrictive
             static void addIdentifiers(CSharpSyntaxNode? node, ConcurrentDictionary<IdentifierNameSyntax, int> identifierMap)
             {
@@ -2199,10 +2199,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case MemberBindingExpressionSyntax:
                             case BaseExpressionColonSyntax:
                             case NameEqualsSyntax:
-                            case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
                             case TypeParameterConstraintClauseSyntax:
                             case AliasQualifiedNameSyntax:
                                 // These nodes do not have anything interesting for us
+                                return false;
+
+                            case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
+                            case BreakStatementSyntax:
+                            case ContinueStatementSyntax:
+                                // Any identifier children of these statements refer to a label, not a
+                                // value, so they aren't candidates for being a value reference to a
+                                // primary-constructor parameter.
                                 return false;
 
                             case ExpressionSyntax expression:

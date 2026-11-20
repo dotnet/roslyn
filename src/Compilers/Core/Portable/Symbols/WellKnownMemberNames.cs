@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis
@@ -522,13 +521,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The name for the 'HasValue' property.
         /// </summary>
-        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         public const string HasValuePropertyName = "HasValue";
 
         /// <summary>
         /// The name for the 'TryGetValue' method.
         /// </summary>
-        [Experimental("RSEXPERIMENTAL006", UrlFormat = "https://github.com/dotnet/roslyn/issues/82567")]
         public const string TryGetValueMethodName = "TryGetValue";
 
         internal const string UnionMembersInterfaceName = "IUnionMembers";

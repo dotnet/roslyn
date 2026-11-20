@@ -6,12 +6,14 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using PolyType;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote.ProjectSystem;
 
 [RpcMarshalable]
-internal interface IWorkspaceProject : IDisposable
+[TypeShape(IncludeMethods = MethodShapeFlags.PublicInstance)]
+internal partial interface IWorkspaceProject : IDisposable
 {
     Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken);
 
@@ -24,8 +26,6 @@ internal interface IWorkspaceProject : IDisposable
     Task AddMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken);
     Task RemoveMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken);
 
-    [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
-    Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken);
     Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken);
     Task RemoveAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken);
 

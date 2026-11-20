@@ -41,16 +41,6 @@ TestBool
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (5,8)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter]
-    public bool TestBool { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

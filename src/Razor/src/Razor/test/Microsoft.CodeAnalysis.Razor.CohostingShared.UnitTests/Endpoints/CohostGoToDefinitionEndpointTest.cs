@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
@@ -10,6 +10,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,7 +26,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task CSharp_Method()
     {
-        var input = """
+        TestCode input = """
             <div></div>
             @{
                 var x = Ge$$tX();
@@ -36,7 +40,15 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             }
             """;
 
-        await VerifyGoToDefinitionAsync(input);
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var response = await GetRemoteGoToDefinitionResponseAsync(document, input);
+
+        Assert.False(response.StopHandling);
+        Contract.ThrowIfNull(response.Result);
+        Assert.NotNull(response.Result.Locations);
+        Assert.Null(response.Result.CSharpRequest);
+
+        await VerifyGoToDefinitionAsync(input, razorDocument: document);
     }
 
     [Fact]
@@ -63,7 +75,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task CSharp_MetadataReference()
     {
-        var input = """
+        TestCode input = """
             <div></div>
             @functions
             {
@@ -71,9 +83,17 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             }
             """;
 
-        var result = await GetGoToDefinitionResultAsync(input);
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var response = await GetRemoteGoToDefinitionResponseAsync(document, input);
 
-        Assumes.NotNull(result);
+        Assert.False(response.StopHandling);
+        Contract.ThrowIfNull(response.Result);
+        Assert.Null(response.Result.Locations);
+        Assert.NotNull(response.Result.CSharpRequest);
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
+
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -148,7 +168,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -183,7 +203,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -216,7 +236,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -249,7 +269,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -287,7 +307,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -329,7 +349,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("SurveyPrompt.cs"), surveyPrompt.Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -371,7 +391,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("SurveyPrompt.cs"), surveyPrompt.Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -419,7 +439,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("SurveyPrompt.razor"), surveyPrompt.Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -483,7 +503,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         }
                         """).Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -519,7 +539,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         }
                         """).Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -563,7 +583,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                     }
                     """)]);
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -601,7 +621,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         }
                         """).Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -646,7 +666,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         }
                         """).Text)]);
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -710,7 +730,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         }
                         """).Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -774,7 +794,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         }
                         """).Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -860,7 +880,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                         }
                         """).Text));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         Assert.Equal(expected.Spans.Length, locations.Length);
@@ -890,7 +910,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy,
             additionalFiles: (FilePath("Views/Shared/_Partial.cshtml"), partialFileContent));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -914,7 +934,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Legacy,
             additionalFiles: (FilePath("_Partial.cshtml"), partialFileContent));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -944,7 +964,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var result = await GetGoToDefinitionResultAsync(input, RazorFileKind.Component,
             additionalFiles: (FilePath("Pages/Counter.razor"), counterFileContent));
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -952,11 +972,291 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri);
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData(RazorFileKind.Legacy, "css/site.css")]
+    [InlineData(RazorFileKind.Legacy, "js/site.js")]
+    [InlineData(RazorFileKind.Legacy, "images/logo.png")]
+    [InlineData(RazorFileKind.Legacy, "LICENSE")]
+    [InlineData(RazorFileKind.Component, "css/site.css")]
+    [InlineData(RazorFileKind.Component, "js/site.js")]
+    [InlineData(RazorFileKind.Component, "images/logo.png")]
+    [InlineData(RazorFileKind.Component, "LICENSE")]
+    public async Task StringLiteral_TildePath_AnyFileKind(RazorFileKind fileKind, string fileName)
+    {
+        TestCode input = $$"""
+            @{
+                var path = "~/{{fileName}}$$";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            fileKind,
+            expectedFileName: fileName,
+            additionalFiles: [(FilePath(fileName), "")]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public async Task StringLiteral_TildePath_PrefersWwwroot(RazorFileKind fileKind)
+    {
+        TestCode input = """
+            @{
+                var path = "~/css/si$$te.css";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            fileKind,
+            expectedFileName: "wwwroot/css/site.css",
+            additionalFiles: [
+                (FilePath("wwwroot/css/site.css"), ""),
+                (FilePath("css/site.css"), "")]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public async Task StringLiteral_TildePath_FallsBackToProjectRoot(RazorFileKind fileKind)
+    {
+        TestCode input = """
+            @{
+                var path = "~/js/si$$te.js";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            fileKind,
+            expectedFileName: "js/site.js",
+            additionalFiles: [
+                (FilePath("wwwroot/js/other.js"), ""),
+                (FilePath("js/site.js"), "")]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    public async Task StringLiteral_RelativePath_AnyFileKind_Legacy()
+    {
+        TestCode input = """
+            @{
+                var path = "../images/lo$$go.png";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Legacy,
+            expectedFileName: "Views/images/logo.png",
+            additionalFiles: [
+                (FilePath("Views/images/logo.png"), ""),
+                (FilePath("wwwroot/images/logo.png"), "")],
+            documentFilePath: FilePath("Views/Home/Index.cshtml"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    public async Task StringLiteral_RelativePath_AnyFileKind_Component()
+    {
+        TestCode input = """
+            @{
+                var path = "../images/lo$$go.png";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Component,
+            expectedFileName: "Views/images/logo.png",
+            additionalFiles: [
+                (FilePath("Views/images/logo.png"), ""),
+                (FilePath("wwwroot/images/logo.png"), "")],
+            documentFilePath: FilePath("Views/Home/Index.razor"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    public async Task StringLiteral_TildePath_Backslashes()
+    {
+        TestCode input = """
+            @{
+                var path = @"~\images\lo$$go.png";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Legacy,
+            expectedFileName: "wwwroot/images/logo.png",
+            additionalFiles: [(FilePath("wwwroot/images/logo.png"), "")]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/86072")]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public async Task StringLiteral_ProtocolRelativeUrl(RazorFileKind fileKind)
+    {
+        TestCode input = """
+            @{
+                var path = "//cdn.example.com/css/si$$te.css";
+            }
+            """;
+
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
+        var fileSystem = SetFileSystem([]);
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
+
+        Assert.Empty(fileSystem.FileExistsCalls);
+        Contract.ThrowIfNull(result);
+        var location = Assert.Single(result.Value.Second);
+        Assert.EndsWith("String.cs", location.DocumentUri.UriString);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/86072")]
+    [InlineData(RazorFileKind.Legacy, """@{ var path = "~/css/Rate%20Ca$$rd%25.css"; }""")]
+    [InlineData(RazorFileKind.Component, """@{ var path = "~/css/Rate%20Ca$$rd%25.css"; }""")]
+    [InlineData(RazorFileKind.Legacy, """<link href="~/css/Rate%20Ca$$rd%25.css" />""")]
+    [InlineData(RazorFileKind.Component, """<link href="~/css/Rate%20Ca$$rd%25.css" />""")]
+    public async Task FilePath_PercentEscapes_AreLiteral(RazorFileKind fileKind, string input)
+    {
+        TestCode testCode = input;
+        var document = CreateProjectAndRazorDocument(testCode.Text, fileKind);
+        var expectedPath = FilePath("wwwroot/css/Rate%20Card%25.css");
+        var fileSystem = SetFileSystem([(expectedPath, ""), (FilePath("wwwroot/css/Rate Card%.css"), "")]);
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, testCode, htmlResponse: null);
+
+        // The fake URL-decodes paths when comparing them, so also check the exact path it received.
+        Assert.Equal(expectedPath, Assert.Single(fileSystem.FileExistsCalls));
+        Contract.ThrowIfNull(result);
+        var location = Assert.Single(result.Value.Second);
+        Assert.Equal(FileUri("wwwroot/css/Rate%20Card%25.css"), location.DocumentUri);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData(RazorFileKind.Legacy, """<img src="~/images/lo$$go.png" />""")]
+    [InlineData(RazorFileKind.Component, """<img src="~/images/lo$$go.png" />""")]
+    [InlineData(RazorFileKind.Legacy, """<img src='~/images/lo$$go.png' />""")]
+    [InlineData(RazorFileKind.Component, """<img src='~/images/lo$$go.png' />""")]
+    [InlineData(RazorFileKind.Legacy, """<img src="~/$$images/logo.png" />""")]
+    [InlineData(RazorFileKind.Component, """<img src="~/images/logo.png$$" />""")]
+    public async Task LiteralAttribute_TildePath(RazorFileKind fileKind, string input)
+    {
+        await VerifyFilePathDefinitionAsync(
+            input,
+            fileKind,
+            expectedFileName: "wwwroot/images/logo.png",
+            additionalFiles: [(FilePath("wwwroot/images/logo.png"), "")]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData("site.css")]
+    [InlineData("site styles.css")]
+    public async Task LiteralAttribute_RelativePath_Legacy(string fileName)
+    {
+        TestCode input = $$"""<link href="css/$${{fileName}}" />""";
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Legacy,
+            expectedFileName: $"Views/css/{fileName}",
+            additionalFiles: [(FilePath($"Views/css/{fileName}"), "")],
+            documentFilePath: FilePath("Views/Index.cshtml"));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData("site.css")]
+    [InlineData("site styles.css")]
+    public async Task LiteralAttribute_RelativePath_Component(string fileName)
+    {
+        TestCode input = $$"""<link href="css/$${{fileName}}" />""";
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Component,
+            expectedFileName: $"Views/css/{fileName}",
+            additionalFiles: [(FilePath($"Views/css/{fileName}"), "")],
+            documentFilePath: FilePath("Views/Index.razor"));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData("logo.png")]
+    [InlineData("site logo.png")]
+    public async Task LiteralAttribute_UnmappedComponentParameter(string fileName)
+    {
+        TestCode input = $$"""<Image Source="~/images/$${{fileName}}" />""";
+
+        var document = CreateProjectAndRazorDocument(input.Text, additionalFiles:
+            [(FilePath("Image.cs"), """
+                namespace Microsoft.AspNetCore.Components
+                {
+                    [System.AttributeUsage(System.AttributeTargets.Property)]
+                    public sealed class AssetPathAttribute : System.Attribute { }
+                }
+
+                namespace SomeProject
+                {
+                    public class Image : Microsoft.AspNetCore.Components.ComponentBase
+                    {
+                        [Microsoft.AspNetCore.Components.Parameter]
+                        [Microsoft.AspNetCore.Components.AssetPath]
+                        public string Source { get; set; }
+                    }
+                }
+                """)]);
+        SetFileSystem([(FilePath($"wwwroot/images/{fileName}"), "")]);
+
+        // Verify the ~/ rewrite is active so navigation must work without a C# source mapping.
+        var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
+        var codeDocument = await snapshotManager.GetSnapshot(document).GetGeneratedOutputAsync(DisposalToken);
+        Assert.Contains($$"""Assets[@"images/{{fileName}}"]""", codeDocument.GetRequiredImplCSharpDocument().Text.ToString());
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
+
+        Contract.ThrowIfNull(result);
+        var location = Assert.Single(result.Value.Second);
+        Assert.Equal(FileUri($"wwwroot/images/{fileName}"), location.DocumentUri);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData("""<img src="~/images/mi$$ssing.png" />""")]
+    [InlineData("""<img src="~/images/@name/lo$$go.png" />""")]
+    [InlineData("""<img sr$$c="~/images/logo.png" />""")]
+    [InlineData("""<img src="https://example.com/lo$$go.png" />""")]
+    public async Task LiteralAttribute_NotFileReference_CallsHtml(string input)
+    {
+        TestCode testCode = input;
+        var document = CreateProjectAndRazorDocument(testCode.Text, RazorFileKind.Legacy);
+        SetFileSystem([(FilePath("wwwroot/images/logo.png"), ""), (FilePath("wwwroot/images/@name/logo.png"), "")]);
+
+        var response = await GetRemoteGoToDefinitionResponseAsync(document, testCode);
+
+        Assert.Equal(RemoteResponse<GoToDefinitionResponse?>.CallHtml, response);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/86072")]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public async Task LiteralAttribute_ProtocolRelativeUrl_CallsHtml(RazorFileKind fileKind)
+    {
+        TestCode input = """<script src="//cdn.example.com/js/si$$te.js"></script>""";
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
+        var fileSystem = SetFileSystem([]);
+
+        var response = await GetRemoteGoToDefinitionResponseAsync(document, input);
+
+        Assert.Empty(fileSystem.FileExistsCalls);
+        Assert.Equal(RemoteResponse<GoToDefinitionResponse?>.CallHtml, response);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/razor/issues/4325")]
     [InlineData("~/Pages/Counter")]
     [InlineData("Not a file")]
     [InlineData("~/Program.cs")]
     [InlineData("File.razor is cool")]
+    [InlineData("~/images/missing.png")]
+    [InlineData("https://example.com/site.css")]
+    [InlineData("invalid\\0path")]
     public async Task StringLiteral_NotFileReference(string literalContents)
     {
         var input = $$"""
@@ -967,7 +1267,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
 
         var result = await GetGoToDefinitionResultAsync(input);
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -1022,7 +1322,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
 
         var result = await GetGoToDefinitionResultCoreAsync(componentDocument, component, htmlResponse: null);
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
         var location = Assert.Single(locations);
@@ -1031,6 +1331,32 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
+    }
+
+    private async Task VerifyFilePathDefinitionAsync(
+        TestCode input,
+        RazorFileKind fileKind,
+        string expectedFileName,
+        (string filePath, string contents)[] additionalFiles,
+        string? documentFilePath = null)
+    {
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, documentFilePath: documentFilePath);
+        SetFileSystem(additionalFiles);
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
+
+        Contract.ThrowIfNull(result);
+        var location = Assert.Single(result.Value.Second);
+        Assert.Equal(FileUri(expectedFileName), location.DocumentUri);
+        Assert.Equal(LspFactory.DefaultRange, location.Range);
+    }
+
+    private TestFileSystem SetFileSystem((string filePath, string contents)[] files)
+    {
+        var testFileSystem = new TestFileSystem(files);
+        var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
+        fileSystem.GetTestAccessor().SetFileSystem(testFileSystem);
+        return testFileSystem;
     }
 
     private async Task VerifyGoToDefinitionAsync(
@@ -1042,7 +1368,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var document = razorDocument ?? CreateProjectAndRazorDocument(input.Text, fileKind);
         var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse);
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
 
         Assert.NotNull(result.Value.Second);
         var locations = result.Value.Second;
@@ -1076,7 +1402,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                 ? []
                 : [(Methods.TextDocumentDefinitionName, htmlResponse)]);
 
-        var endpoint = new CohostGoToDefinitionEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, FilePathService);
+        var endpoint = new CohostGoToDefinitionEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
 
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
@@ -1085,5 +1411,17 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(textDocumentPositionParams, document, DisposalToken);
+    }
+
+    private async Task<RemoteResponse<GoToDefinitionResponse?>> GetRemoteGoToDefinitionResponseAsync(TextDocument document, TestCode input)
+    {
+        var inputText = await document.GetTextAsync(DisposalToken);
+        var position = inputText.GetPosition(input.Position);
+
+        return await RemoteServiceInvoker.TryInvokeAsync<IRemoteGoToDefinitionService, RemoteResponse<GoToDefinitionResponse?>>(
+            document.Project.Solution,
+            (service, solutionInfo, cancellationToken) =>
+                service.GetDefinitionsAsync(solutionInfo, document.Id, position, cancellationToken),
+            DisposalToken);
     }
 }

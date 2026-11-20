@@ -6,7 +6,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -6040,6 +6039,22 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85982")]
+    public Task FormatSwitchExpression_EmptyBlockLambdaDoesNotMoveCommaToNextLine()
+        => AssertNoFormattingChangesAsync("""
+            class C
+            {
+                void M()
+                {
+                    _ = this switch
+                    {
+                        1 => () => { },
+                        _ => () => { }
+                    };
+                }
+            }
+            """);
+
     [Fact]
     public Task FormatSwitchExpression_ArmCommaPreservesLines()
         => AssertFormatAsync("""
@@ -6738,6 +6753,175 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """, changingOptions);
     }
+
+    #region Labeled iteration_statement formatting (documents current behavior)
+
+    private static OptionsCollection LabelPositioningOptions(LabelPositionOptions value)
+        => new(LanguageNames.CSharp) { { CSharpFormattingOptions2.LabelPositioning, value } };
+
+    [Fact]
+    public Task LabeledForeach_SameLine_OneLess()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                outer: foreach (var x in new[] { 1 })
+                    {
+                        System.Console.Write(x);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                outer: foreach (var x in new[] { 1 })
+                {
+                System.Console.Write(x);
+                }
+                }
+            }
+            """, LabelPositioningOptions(LabelPositionOptions.OneLess));
+
+    [Fact]
+    public Task LabeledForeach_SameLine_LeftMost()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+            outer: foreach (var x in new[] { 1 })
+                    {
+                        System.Console.Write(x);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                outer: foreach (var x in new[] { 1 })
+                {
+                System.Console.Write(x);
+                }
+                }
+            }
+            """, LabelPositioningOptions(LabelPositionOptions.LeftMost));
+
+    [Fact]
+    public Task LabeledForeach_SameLine_NoIndent()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    outer: foreach (var x in new[] { 1 })
+                    {
+                        System.Console.Write(x);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                outer: foreach (var x in new[] { 1 })
+                {
+                System.Console.Write(x);
+                }
+                }
+            }
+            """, LabelPositioningOptions(LabelPositionOptions.NoIndent));
+
+    [Fact]
+    public Task LabeledForeach_NextLine_OneLess()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                outer:
+                    foreach (var x in new[] { 1 })
+                    {
+                        System.Console.Write(x);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                outer:
+                foreach (var x in new[] { 1 })
+                {
+                System.Console.Write(x);
+                }
+                }
+            }
+            """, LabelPositioningOptions(LabelPositionOptions.OneLess));
+
+    [Fact]
+    public Task LabeledForeach_NextLine_LeftMost()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+            outer:
+                    foreach (var x in new[] { 1 })
+                    {
+                        System.Console.Write(x);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                outer:
+                foreach (var x in new[] { 1 })
+                {
+                System.Console.Write(x);
+                }
+                }
+            }
+            """, LabelPositioningOptions(LabelPositionOptions.LeftMost));
+
+    [Fact]
+    public Task LabeledForeach_NextLine_NoIndent()
+        => AssertFormatAsync("""
+            class C
+            {
+                void M()
+                {
+                    outer:
+                    foreach (var x in new[] { 1 })
+                    {
+                        System.Console.Write(x);
+                    }
+                }
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                outer:
+                foreach (var x in new[] { 1 })
+                {
+                System.Console.Write(x);
+                }
+                }
+            }
+            """, LabelPositioningOptions(LabelPositionOptions.NoIndent));
+
+    #endregion
 
     [Fact, WorkItem(707064, "DevDiv_Projects/Roslyn")]
     public Task Bugfix_707064_SpaceAfterSecondSemiColonInFor()
@@ -11081,7 +11265,7 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             """
             union  U  <  T   >   (  T ,string   )  {  }
             """,
-            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersionExtensions.CSharpNext));
+            parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp15));
 
     [Fact]
     public async Task FormatListPattern()

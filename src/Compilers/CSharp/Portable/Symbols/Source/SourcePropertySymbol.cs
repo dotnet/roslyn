@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -167,6 +168,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             PartialImplementationPart?.ForceComplete(locationOpt, filter, cancellationToken);
             base.ForceComplete(locationOpt, filter, cancellationToken);
+        }
+
+        public sealed override bool IsDefinedInSourceTree(
+            SyntaxTree tree,
+            TextSpan? definedWithinSpan,
+            CancellationToken cancellationToken = default)
+        {
+            // Since only the declaring (and not the implementing) part of a partial property appears in the member
+            // list, we need to ensure we complete the implementation part when needed.
+            Debug.Assert(this.DeclaringSyntaxReferences.Length == 1);
+            return
+                IsDefinedInSourceTree(this.SyntaxReference, tree, definedWithinSpan) ||
+                this.SourcePartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
         private TypeSyntax GetTypeSyntax(SyntaxNode syntax) => ((BasePropertyDeclarationSyntax)syntax).Type;
@@ -452,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Safe;
 
             bool hasExplicitAccessMod;
-            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isOrdinaryMethod: false, isForInterfaceMember: isInterface,
+            var mods = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(isForInterfaceMember: isInterface,
                                                                         modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors, out hasExplicitAccessMod);
 
             if ((mods & DeclarationModifiers.Partial) != 0)
@@ -469,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 
-            containingType.CheckUnsafeModifier(mods, location, diagnostics);
+            containingType.CheckUnsafeOptionForModifiers(mods, diagnostics, modifiers, location);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(accessorsHaveImplementation, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -827,20 +841,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
 
-        internal override CallerUnsafeMode CallerUnsafeMode
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
+            if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                if (ContainingModule.UseUpdatedMemorySafetyRules)
-                {
-                    return HasUnsafeModifier
-                        ? CallerUnsafeMode.Explicit
-                        : CallerUnsafeMode.None;
-                }
-
-                return this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer()
-                    ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                return HasUnsafeModifier
+                    ? RequiresUnsafeMode.Explicit
+                    : RequiresUnsafeMode.None;
             }
+
+            return this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer()
+                ? RequiresUnsafeMode.Implicit : RequiresUnsafeMode.None;
         }
 
         public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;

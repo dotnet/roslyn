@@ -23,7 +23,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ConsoleUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CommandLineUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\CompilerOptionParseUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\Portable\InternalUtilities\ReflectionUtilities.cs" />
@@ -47,7 +46,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)PropertyDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RCWForCurrentContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ShowMessageForImplicitlySkipAnalyzers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TaskBuildEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TaskCompilerServerLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TaskEnvironmentExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateBootstrap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Vbc.cs" />
@@ -59,7 +60,12 @@
       <PackageCopyToOutput>true</PackageCopyToOutput>
       <PackagePath>contentFiles\any\any</PackagePath>
     </Content>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.MSBuildMT.txt" />
   </ItemGroup>
 
   <Import Project="$(MSBuildThisFileDirectory)..\..\..\NuGet\Microsoft.CodeAnalysis.BuildClient.Package\Microsoft.CodeAnalysis.BuildClient.targets" />
+
+  <ItemGroup>
+    <Compile Remove="$(MSBuildThisFileDirectory)..\..\Shared\StandardBuildEnvironment.cs" />
+  </ItemGroup>
 </Project>

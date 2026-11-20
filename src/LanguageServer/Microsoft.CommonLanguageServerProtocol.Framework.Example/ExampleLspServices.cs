@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.Example;
@@ -47,9 +48,8 @@ internal sealed class ExampleLspServices : ILspServices
         return _serviceProvider.GetServices<TService>();
     }
 
-    public void Dispose()
-    {
-    }
+    public ValueTask DisposeAsync()
+        => ValueTask.CompletedTask;
 
     public IEnumerable<T> GetRequiredServices<T>()
     {

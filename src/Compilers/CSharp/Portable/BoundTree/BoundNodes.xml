@@ -40,6 +40,7 @@
   <ValueType Name="AccessorKind" />
   <ValueType Name="SafeContext" />
   <ValueType Name="InConversionGroupFlags" />
+  <ValueType Name="UnionMatchingMode" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -185,6 +186,16 @@
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
+    <!-- 
+    Optimizer can inject a BoundDup node that is never meant to be translated into 
+    any IL instruction. This happens because optimizer predicts that the value is not used
+    (referenced in a side effect only context). In a case like this, there actually might be
+    nothing on the stack to dup, because optimizer decides that the last use happens 
+    before this node is reached. Therefore, it would be popped off the stack at that time
+    without leaving any copy on the stack. Or, perhaps, some unrelated value could be on the stack.
+    Nodes like that have IsAlive set to false.
+    -->
+    <Field Name="IsAlive" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <!-- Wrapper node used to prevent passing the underlying expression by direct reference -->
@@ -391,7 +402,9 @@
          However, managed (GC-tracked) pointers have some limited support
          at IL level and could be used in lowering of certain kinds
          of unsafe code - such as fixed field indexing. -->
-    <Field Name="IsManaged" Type="bool"/>  
+    <Field Name="IsManaged" Type="bool"/>
+    <!-- True when an unassigned operand requires an unsafe context at this location. -->
+    <Field Name="RequiresAssignedOperand" Type="bool"/>
   </Node>
   <!-- Represents an AddressOf operator that has not yet been assigned to a
        target-type. It has no natural type. -->
@@ -411,22 +424,14 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Operand" Type="BoundExpression"/>
-    <!-- Used by emit to determine whether this pointer indirection is by value or by ref. If true, emit
-         will emit the address of the target, and not actually perform an indirect load (in practice this just
-         means emitting the Operand alone). -->
-    <Field Name="RefersToLocation" Type="bool"/>
   </Node>
-  <Node Name="BoundPointerElementAccess" Base="BoundExpression">
+  <Node Name="BoundPointerElementAccess" Base="BoundExpression" DoesNotSurvive="LocalRewriting">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Index" Type="BoundExpression"/>
     <Field Name="Checked" Type="bool"/>
-    <!-- Used by emit to determine whether this pointer element access is by value or by ref. If true, emit
-         will emit the address of the target, and not actually perform an indirect load (in practice this just
-         means emitting the Operand alone). -->
-    <Field Name="RefersToLocation" Type="bool"/>
   </Node>
 
   <Node Name="BoundFunctionPointerInvocation" Base="BoundExpression">
@@ -671,12 +676,13 @@
   </Node>
 
   <!--
-    Represents an array access that comes from the RHS of an unused ref (non-readonly) assignment.
-    Needed so we can emit with correct side effects (runtime element type check).
+    Represents an expression that comes from the RHS of an unused ref assignment.
+    Needed so we can emit with correct side effects (runtime array element type check, etc.).
   -->
-  <Node Name="BoundRefArrayAccess" Base="BoundExpression">
-    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
-    <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
+  <Node Name="BoundRefAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="RefKind" Type="RefKind"/>
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
   </Node>
 
   <!--
@@ -1177,11 +1183,35 @@
   </Node>
 
   <Node Name="BoundBreakStatement" Base="BoundStatement">
+    <!-- The compiler-generated label that the break jumps to (e.g. the loop's "break" label). -->
     <Field Name="Label" Type="LabelSymbol" />
+    <!--
+    For a labeled break (e.g. "break outer;" targeting "outer: while (true) { ... }"), holds the
+    bound node for the "outer" identifier; null for an ordinary unlabeled "break;".  Stored so
+    that:
+      * the bound tree contains a BoundLabel whose Syntax is the "outer" IdentifierNameSyntax,
+        which is what SemanticModel.GetSymbolInfo walks to find the LabelSymbol referenced by
+        that identifier; and
+      * ControlFlowPass can mark the LabelSymbol as referenced (otherwise the "outer:"
+        declaration would be reported as WRN_UnreferencedLabel).
+    -->
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
   </Node>
 
   <Node Name="BoundContinueStatement" Base="BoundStatement">
+    <!-- The compiler-generated label that the continue jumps to (e.g. the loop's "continue" label). -->
     <Field Name="Label" Type="LabelSymbol" />
+    <!--
+    For a labeled continue (e.g. "continue outer;" targeting "outer: for (...) { ... }"), holds
+    the bound node for the "outer" identifier; null for an ordinary unlabeled "continue;".
+    Stored so that:
+      * the bound tree contains a BoundLabel whose Syntax is the "outer" IdentifierNameSyntax,
+        which is what SemanticModel.GetSymbolInfo walks to find the LabelSymbol referenced by
+        that identifier; and
+      * ControlFlowPass can mark the LabelSymbol as referenced (otherwise the "outer:"
+        declaration would be reported as WRN_UnreferencedLabel).
+    -->
+    <Field Name="LabelExpressionOpt" Type="BoundLabel?" />
   </Node>
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
@@ -2437,7 +2467,7 @@
   <Node Name="BoundConstantPattern" Base="BoundPattern" HasValidate="true">
     <Field Name="Value" Type="BoundExpression"/>
     <Field Name="ConstantValue" Type="ConstantValue" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
+    <Field Name="UnionMatchingMode" Type="UnionMatchingMode"/>
   </Node>
 
   <!--
@@ -2446,7 +2476,7 @@
       of any bound node, except another BoundPatternWithUnionMatching node. In which case,
       it must be the LeftOfPendingConjunction child.
 
-      The ValueProperty and ValuePattern represents a Union matching operation
+      The ValueProperty and ValuePattern represent a Union matching operation
       pending a rewrite to a BoundRecursivePattern. 
 
       The BoundPatternWithUnionMatching node represents either a standalone Union matching operation
@@ -2463,15 +2493,15 @@
       Etc.
 
       InputType is LeftOfPendingConjunction.InputType ?? UnionMatchingInputType 
-      NarrowedType is Pattern.NarrowedType
+      NarrowedType is ValuePattern.NarrowedType
   -->
   <Node Name="BoundPatternWithUnionMatching" Base="BoundPattern" HasValidate="true" DoesNotSurvive="InitialBinding">
     <!-- The Union or Nullable<Union> type matched -->
     <Field Name="UnionMatchingInputType" Type="TypeSymbol" Null="disallow"/>
     <Field Name="LeftOfPendingConjunction" Type="BoundPattern?"/>
-    <!-- Info for the corresponding IUnion.Value property -->    
+    <!-- Info for the corresponding union Value property -->    
     <Field Name="ValueProperty" Type="BoundPropertySubpatternMember"/>
-    <!-- The pattern to match against the IUnion.Value property -->
+    <!-- The pattern to match against the union Value property -->
     <Field Name="ValuePattern" Type="BoundPattern"/>
   </Node>
 
@@ -2491,13 +2521,13 @@
          https://github.com/dotnet/roslyn/issues/13960 . When that is fixed this field can be
          removed. -->
     <Field Name="VariableAccess" Type="BoundExpression?"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </AbstractNode>
 
   <!-- NarrowedType is the DeclaredType if given, or an InputType -->
   <Node Name="BoundDeclarationPattern" Base="BoundObjectPattern" HasValidate="true">
     <Field Name="DeclaredType" Type="BoundTypeExpression" Null="disallow"/>
     <Field Name="IsVar" Type="bool"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2510,6 +2540,7 @@
     <Field Name="Deconstruction" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="allow"/>
     <Field Name="Properties" Type="ImmutableArray&lt;BoundPropertySubpattern&gt;" Null="allow"/>
     <Field Name="IsExplicitNotNullTest" Type="bool"/>
+    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <!--
@@ -2556,7 +2587,6 @@
     <Field Name="GetLengthMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="GetItemMethod" Type="MethodSymbol" Null="disallow"/>
     <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundPositionalSubpattern&gt;" Null="disallow"/>
-    <Field Name="IsUnionMatching" Type="bool" PropertyOverrides="true"/>
   </Node>
 
   <AbstractNode Name="BoundSubpattern" Base="BoundNode" HasValidate="true">

@@ -77,6 +77,7 @@ public sealed class CompletionProviderOrderTests
             typeof(PackageAppDirectiveCompletionProvider),
             typeof(ProjectAppDirectiveCompletionProvider),
             typeof(IncludeAppDirectiveCompletionProvider),
+            typeof(RefAppDirectiveCompletionProvider),
 
             // Marker for end of built-in completion providers
             typeof(LastBuiltInCompletionProvider),

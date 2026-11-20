@@ -293,7 +293,8 @@ public sealed class GoToTypeDefinitionTests : AbstractLanguageServerProtocolTest
 
     private static async Task<Workspace> GetWorkspaceForDocument(TestLspServer testLspServer, DocumentUri fileUri)
     {
-        var (lspWorkspace, _, _) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri }, CancellationToken.None);
-        return lspWorkspace;
+        var context = await testLspServer.CaptureLspDocumentContextAsync(new LSP.TextDocumentIdentifier { DocumentUri = fileUri });
+        Assert.NotNull(context);
+        return context.Value.Workspace;
     }
 }
