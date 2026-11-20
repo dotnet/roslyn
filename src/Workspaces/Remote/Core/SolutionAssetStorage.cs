@@ -12,10 +12,12 @@ using System.Threading.Tasks;
 namespace Microsoft.CodeAnalysis.Remote;
 
 /// <summary>
-/// Stores solution snapshots available to remote services.
+/// Stores solution snapshots and analyzer-reference inputs available to remote services.
 /// </summary>
 internal sealed partial class SolutionAssetStorage
 {
+    private static readonly Checksum s_analyzerReferencesScopeChecksum = Checksum.Create(nameof(StoreAnalyzerReferences));
+
     /// <summary>
     /// Lock over <see cref="_checksumToScope"/>.  Note: We could consider making this a SemaphoreSlim if
     /// the locking proves to be a problem. However, it would greatly complicate the implementation and consumption
@@ -86,6 +88,32 @@ internal sealed partial class SolutionAssetStorage
             }
 
             scope = new Scope(this, checksum, projectCone, compilationState);
+            _checksumToScope[checksum] = scope;
+            return scope;
+        }
+    }
+
+    /// <summary>
+    /// Pins only analyzer references. The scope identifier is not a solution checksum and must not be
+    /// passed to services that reconstruct a solution.
+    /// </summary>
+    public Scope StoreAnalyzerReferences(SolutionCompilationState compilationState, ProjectId projectId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var projectState = compilationState.SolutionState.GetRequiredProjectState(projectId);
+        var analyzerChecksums = projectState.GetAnalyzerReferenceChecksums(cancellationToken);
+        var checksum = Checksum.Create(s_analyzerReferencesScopeChecksum, analyzerChecksums.Checksum);
+
+        lock (_gate)
+        {
+            if (_checksumToScope.TryGetValue(checksum, out var scope))
+            {
+                Contract.ThrowIfTrue(scope.RefCount <= 0);
+                scope.RefCount++;
+                return scope;
+            }
+
+            scope = new Scope(this, checksum, projectCone: null, compilationState: null, analyzerProject: projectState);
             _checksumToScope[checksum] = scope;
             return scope;
         }
