@@ -757,8 +757,8 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class FailingRemoteHostClientProvider() : IRemoteHostClientProvider
     {
-        public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
-            => Task.FromResult<RemoteHostClient?>(new FailingRemoteHostClient());
+        public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
+            => Task.FromResult<RemoteHostClient>(new FailingRemoteHostClient());
 
         public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
             => Task.CompletedTask;
@@ -769,7 +769,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             {
             }
 
-            public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
+            public override RemoteServiceConnection<T> CreateConnection<T>(object callbackTarget)
                 => new FailingRemoteServiceConnection<T>();
         }
 
