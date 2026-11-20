@@ -137,6 +137,16 @@
         <target state="translated">键入时设置格式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription">
+        <source>If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</source>
+        <target state="translated">如果为 true，则保留包含 Razor 语句、块、指令、注释、模板或独立表达式的脚本和样式块内的源缩进</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName">
+        <source>Ignore indentation in script or style blocks with complex Razor</source>
+        <target state="translated">忽略包含复杂 Razor 的脚本或样式块中的缩进</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_LogLevelCritical">
         <source>Critical</source>
         <target state="translated">严重</target>

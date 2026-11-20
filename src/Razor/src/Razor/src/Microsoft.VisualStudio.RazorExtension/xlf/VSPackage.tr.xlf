@@ -137,6 +137,16 @@
         <target state="translated">Yazarken biçimlendir</target>
         <note />
       </trans-unit>
+      <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription">
+        <source>If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</source>
+        <target state="translated">Doğruysa Razor deyimleri, blokları, yönergeleri, yorumları, şablonları veya tek başına ifadeleri içeren betik ve stil bloklarındaki kaynak girintisini korur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName">
+        <source>Ignore indentation in script or style blocks with complex Razor</source>
+        <target state="translated">Karmaşık Razor içeren betik veya stil bloklarında girintiyi yok say</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Setting_LogLevelCritical">
         <source>Critical</source>
         <target state="translated">Kritik</target>
