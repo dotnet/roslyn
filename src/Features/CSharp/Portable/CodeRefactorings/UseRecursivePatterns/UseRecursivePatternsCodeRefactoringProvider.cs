@@ -107,6 +107,14 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
         {
             Debug.Assert(leftTarget == isPatternExpression.Pattern);
             Debug.Assert(leftReceiver == isPatternExpression.Expression);
+
+            if (containingPattern is VarPatternSyntax { Designation: SingleVariableDesignationSyntax designation } &&
+                model.GetDeclaredSymbol(designation) is ILocalSymbol local &&
+                IsReadWhenConditionMayBeFalse(logicalAnd, local, model))
+            {
+                return null;
+            }
+
             return root =>
             {
                 var rightPattern = CreatePattern(rightReceiver, rightTarget, rightFlipped);
@@ -157,6 +165,28 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
                 replacement = leftExpression.WithRight(replacement);
             return replacement.ConvertToSingleLine().WithAdditionalAnnotations(Formatter.Annotation);
         }
+    }
+
+    private static bool IsReadWhenConditionMayBeFalse(BinaryExpressionSyntax logicalAnd, ILocalSymbol local, SemanticModel model)
+    {
+        var condition = logicalAnd.WalkUpParentheses();
+        while (condition.Parent is BinaryExpressionSyntax(LogicalAndExpression) parent && parent.Left == condition)
+            condition = parent.WalkUpParentheses();
+
+        var whenTrue = condition.Parent is IfStatementSyntax ifStatement ? ifStatement.Statement : null;
+        var scope = logicalAnd.FirstAncestorOrSelf<StatementSyntax>()?.Parent ?? condition;
+        foreach (var identifier in scope.DescendantNodes().OfType<IdentifierNameSyntax>())
+        {
+            if (identifier.Identifier.ValueText == local.Name &&
+                !condition.Span.Contains(identifier.Span) &&
+                whenTrue?.Span.Contains(identifier.Span) != true &&
+                local.Equals(model.GetSymbolInfo(identifier).Symbol))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static Func<SyntaxNode, SyntaxNode>? CombineWhenClauseCondition(PatternSyntax switchPattern, ExpressionSyntax condition, SemanticModel model)
