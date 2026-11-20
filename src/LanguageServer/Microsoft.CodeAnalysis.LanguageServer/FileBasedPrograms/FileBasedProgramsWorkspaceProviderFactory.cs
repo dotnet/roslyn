@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class FileBasedProgramsWorkspaceProviderFactory(
     IGlobalOptionService globalOptionService,
+    IDiagnosticsRefresher diagnosticsRefresher,
     IAsynchronousOperationListenerProvider listenerProvider,
     ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
 {
@@ -27,6 +29,7 @@ internal sealed class FileBasedProgramsWorkspaceProviderFactory(
         return new FileBasedProgramsProjectSystem(
             lspServices,
             globalOptionService,
+            diagnosticsRefresher,
             lspServices.GetRequiredService<ILoggerFactory>(),
             listenerProvider,
             serverConfigurationFactory,

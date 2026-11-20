@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 internal abstract partial class VersionedPullCache<TVersion, TState, TComputedData>
 {
     /// <summary>
-    /// Internal cache item that updates state for a particular <see cref="Workspace"/> and <see cref="ProjectOrDocumentId"/> in <see cref="VersionedPullCache{TVersion, TState, TComputedData}"/>
+    /// Internal cache item that updates state for a particular <see cref="Workspace"/> and <see cref="DiagnosticScope"/> in <see cref="VersionedPullCache{TVersion, TState, TComputedData}"/>
     /// This type ensures that the state for a particular key is never updated concurrently for the same key (but different key states can be concurrent).
     /// </summary>
     private sealed class CacheItem(string uniqueKey)

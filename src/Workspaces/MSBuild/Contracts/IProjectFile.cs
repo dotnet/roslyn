@@ -13,7 +13,11 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 /// </summary>
 internal interface IProjectFile : IDisposable
 {
-    DiagnosticLogItem[] GetDiagnosticLogItems();
+    /// <summary>
+    /// Gets the diagnostics reported while evaluating the project file, which apply to every target. Diagnostics specific to a
+    /// target are on that target's <see cref="ProjectFileInfo.Diagnostics"/>.
+    /// </summary>
+    DiagnosticLogItem[] GetEvaluationDiagnosticLogItems();
     Task<ProjectFileInfo[]> GetProjectFileInfosAsync(CancellationToken cancellationToken);
     void AddDocument(string filePath, string? logicalPath);
     void RemoveDocument(string filePath);

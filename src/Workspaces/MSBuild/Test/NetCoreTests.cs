@@ -197,7 +197,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
             </Project>
             """,
             LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
-        Assert.Empty(await project.GetDiagnosticLogItemsAsync(CancellationToken.None));
+        Assert.Empty(await project.GetEvaluationDiagnosticLogItemsAsync(CancellationToken.None));
 
         if (cleanCache)
         {
@@ -207,7 +207,7 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
                 GetSolutionFileName("Unrelated.csproj"), physicalFilePath: null, "<Project />",
                 LanguageNames.CSharp, globalProperties: null, CancellationToken.None))
             {
-                Assert.Empty(await unrelatedProject.GetDiagnosticLogItemsAsync(CancellationToken.None));
+                Assert.Empty(await unrelatedProject.GetEvaluationDiagnosticLogItemsAsync(CancellationToken.None));
             }
 
             await buildHost.TestOnly_ForceGarbageCollectionAsync(CancellationToken.None);
@@ -215,12 +215,69 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
 
         Assert.False(File.Exists(referencedProjectFilePath));
         var projectFileInfo = Assert.Single(await project.GetProjectFileInfosAsync(CancellationToken.None));
-        Assert.Empty(await project.GetDiagnosticLogItemsAsync(CancellationToken.None));
+        Assert.Empty(projectFileInfo.Diagnostics);
         Assert.Contains(reloadProject ? "/define:REFERENCED_PROJECT_BUILT_1" : "/define:REFERENCED_PROJECT_BUILT_0", projectFileInfo.CommandLineArgs);
         if (reloadProject)
         {
             Assert.DoesNotContain("/define:REFERENCED_PROJECT_BUILT_0", projectFileInfo.CommandLineArgs);
         }
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestEvaluationErrorIsReportedAtItsPosition()
+    {
+        await using var buildHostProcessManager = new BuildHostProcessManager(knownCommandLineParserLanguages: [LanguageNames.CSharp]);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+
+        var projectFilePath = GetSolutionFileName("Project.csproj");
+        await using var project = await buildHost.LoadProjectAsync(
+            projectFilePath, physicalFilePath: null,
+            "<Project>\r\n  <PropertyGroup />\r\n  <Bogus />\r\n</Project>",
+            LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
+
+        var diagnostic = Assert.Single(await project.GetEvaluationDiagnosticLogItemsAsync(CancellationToken.None));
+        Assert.Equal(DiagnosticLogItemKind.Error, diagnostic.Kind);
+        Assert.Equal(3, diagnostic.LineNumber);
+        Assert.Equal("MSB4067", diagnostic.Code);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestEvaluationFailureForOneTargetFrameworkIsReportedForJustThatTarget()
+    {
+        // The property function is only evaluated once a target framework is chosen, so loading the project itself succeeds.
+        var projectFilePath = GetSolutionFileName("Project.csproj");
+        File.WriteAllText(
+            projectFilePath,
+            """
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+              </PropertyGroup>
+              <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+                <Broken>$(TargetFrameworks.Bogus())</Broken>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        await using var buildHostProcessManager = new BuildHostProcessManager(knownCommandLineParserLanguages: [LanguageNames.CSharp]);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+        await using var project = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
+        Assert.Empty(await project.GetEvaluationDiagnosticLogItemsAsync(CancellationToken.None));
+
+        var projectFileInfos = await project.GetProjectFileInfosAsync(CancellationToken.None);
+        Assert.Equal(2, projectFileInfos.Length);
+
+        Assert.Equal("net8.0", projectFileInfos[0].TargetFramework);
+        Assert.Empty(projectFileInfos[0].Diagnostics);
+
+        Assert.Equal("net9.0", projectFileInfos[1].TargetFramework);
+        var diagnostic = Assert.Single(projectFileInfos[1].Diagnostics);
+        Assert.Equal(DiagnosticLogItemKind.Error, diagnostic.Kind);
+        Assert.Equal("MSB4184", diagnostic.Code);
     }
 
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

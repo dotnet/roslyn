@@ -38,12 +38,12 @@ internal sealed class MSBuildDiagnosticLogger : MSB.Framework.ILogger
         => _logsBySubmissionId.TryRemove(submissionId, out _);
 
     private void OnErrorRaised(object sender, MSB.Framework.BuildErrorEventArgs e)
-        => AddLogItem(DiagnosticLogItemKind.Error, e.BuildEventContext, e.ProjectFile, e.Message, e.File, e.LineNumber, e.ColumnNumber);
+        => AddLogItem(DiagnosticLogItemKind.Error, e.BuildEventContext, e.ProjectFile, e.Message, e.File, e.LineNumber, e.ColumnNumber, e.Code);
 
     private void OnWarningRaised(object sender, MSB.Framework.BuildWarningEventArgs e)
-        => AddLogItem(DiagnosticLogItemKind.Warning, e.BuildEventContext, e.ProjectFile, e.Message, e.File, e.LineNumber, e.ColumnNumber);
+        => AddLogItem(DiagnosticLogItemKind.Warning, e.BuildEventContext, e.ProjectFile, e.Message, e.File, e.LineNumber, e.ColumnNumber, e.Code);
 
-    private void AddLogItem(DiagnosticLogItemKind kind, MSB.Framework.BuildEventContext? buildEventContext, string? projectFile, string? message, string? file, int lineNumber, int columnNumber)
+    private void AddLogItem(DiagnosticLogItemKind kind, MSB.Framework.BuildEventContext? buildEventContext, string? projectFile, string? message, string? file, int lineNumber, int columnNumber, string? code)
     {
         // A build error or warning is always raised in the context of a building submission whose log we
         // registered before executing it, so we expect a context and a log registered for its submission.
@@ -58,7 +58,15 @@ internal sealed class MSBuildDiagnosticLogger : MSB.Framework.ILogger
             return;
         }
 
-        log.Add(new MSBuildDiagnosticLogItem(kind, projectFile ?? "", message ?? "", file ?? "", lineNumber, columnNumber));
+        // MSBuild reports an empty file, an empty code and a position of 0 when they're unknown.
+        log.Add(new DiagnosticLogItem(
+            kind,
+            message ?? "",
+            projectFile ?? "",
+            string.IsNullOrEmpty(file) ? null : file,
+            lineNumber > 0 ? lineNumber : null,
+            columnNumber > 0 ? columnNumber : null,
+            string.IsNullOrEmpty(code) ? null : code));
     }
 
     public void Initialize(MSB.Framework.IEventSource eventSource)

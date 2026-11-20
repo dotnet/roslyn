@@ -281,7 +281,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
                 DocumentUri = textDocument.GetURI()
             };
 
-            public ProjectOrDocumentId GetId() => new(textDocument.Id);
+            public DiagnosticScope GetScope() => new(textDocument.Id);
 
             public Project GetProject() => textDocument.Project;
 

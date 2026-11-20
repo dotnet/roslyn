@@ -25,7 +25,7 @@ internal sealed class HotReloadDiagnosticSource(IHotReloadDiagnosticSource sourc
     }
 
     public TextDocumentIdentifier? GetDocumentIdentifier() => new() { DocumentUri = textDocument.GetURI() };
-    public ProjectOrDocumentId GetId() => new(textDocument.Id);
+    public DiagnosticScope GetScope() => new(textDocument.Id);
     public Project GetProject() => textDocument.Project;
     public string ToDisplayString() => $"{this.GetType().Name}: {textDocument.FilePath ?? textDocument.Name} in {textDocument.Project.Name}";
 }

@@ -26,7 +26,7 @@ internal abstract class AbstractProjectDiagnosticSource(Project project)
 
     public abstract Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken);
 
-    public ProjectOrDocumentId GetId() => new(Project.Id);
+    public DiagnosticScope GetScope() => new(Project.Id);
     public Project GetProject() => Project;
     public TextDocumentIdentifier? GetDocumentIdentifier()
         => !string.IsNullOrEmpty(Project.FilePath)

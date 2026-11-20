@@ -81,6 +81,11 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     public event EventHandler<string>? NeedsReload;
 
     /// <summary>
+    /// Raised when the diagnostics from loading any of this project's targets have changed.
+    /// </summary>
+    public event EventHandler? LoadDiagnosticsChanged;
+
+    /// <summary>
     /// Waits for the initial project load to settle.
     /// </summary>
     /// <returns>
@@ -176,6 +181,17 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
+    /// <summary>
+    /// Gets the diagnostics from the latest load of all targets, along with the projects in the workspace for the targets.
+    /// </summary>
+    public async ValueTask<(ImmutableArray<ProjectId> ProjectIds, ImmutableArray<DiagnosticLogItem> Diagnostics)> GetLoadDiagnosticsAsync(CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            return ([.. _targets.Select(static target => target.ProjectId)], [.. _targets.SelectMany(static target => target.LoadDiagnostics)]);
+        }
+    }
+
     public async ValueTask<ImmutableArray<string>> GetProjectReferencePathsAsync(CancellationToken cancellationToken)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken))
@@ -218,6 +234,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// Updates the list of targets for this project given the set of loaded project infos, creating and removing targets as necessary. If there is a primordial project
     /// for this loaded project, it will be removed from the workspace once all targets have been created and added to the workspace.
     /// </summary>
+    /// <param name="evaluationDiagnostics">Diagnostics from evaluating the project, which apply to every target.</param>
     /// <param name="cancellationToken">
     /// A cancellation token that if cancelled will cancel the updating of the projects. There is no particular guarantee of what would be left and not left if the cancellation is
     /// raised, but the expectation is a later called to this method with the same data should still be allowed and bring everything up to date.
@@ -227,6 +244,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// </returns>
     public async ValueTask<bool> TryApplyLoadedProjectInfosAsync(
         ImmutableArray<ProjectFileInfo> loadedProjectInfos,
+        ImmutableArray<DiagnosticLogItem> evaluationDiagnostics,
         bool isMiscellaneousFile,
         bool hasAllInformation,
         ProjectSystemProjectFactory projectFactory,
@@ -237,6 +255,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         CancellationToken cancellationToken,
         bool onlyIfNoTargets = false)
     {
+        var diagnosticsChanged = false;
+
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             // We already unloaded this project -- we're not going to resurrect it.
@@ -254,11 +274,13 @@ internal sealed partial class LoadedProject : IAsyncDisposable
                     loadedProjectInfo, projectFactory, projectCapabilityManager, workspaceFactory, cancellationToken);
                 staleTargets.Remove(target);
                 await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, logger);
+                diagnosticsChanged |= target.SetLoadDiagnostics([.. evaluationDiagnostics, .. loadedProjectInfo.Diagnostics]);
             }
 
             // Now that we've created or updated projects, we can now remove any old projects that went away
             foreach (var staleTarget in staleTargets)
             {
+                diagnosticsChanged |= !staleTarget.LoadDiagnostics.IsEmpty;
                 staleTarget.Dispose();
                 _targets.Remove(staleTarget);
             }
@@ -272,9 +294,13 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
                 _primordialProjectInfo = null;
             }
-
-            return true;
         }
+
+        // Raise this outside the lock
+        if (diagnosticsChanged)
+            LoadDiagnosticsChanged?.Invoke(this, EventArgs.Empty);
+
+        return true;
     }
 
     private async Task<Target> GetOrCreateProjectTargetAsync(
@@ -368,6 +394,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// <returns></returns>
     public async ValueTask DisposeAsync()
     {
+        var diagnosticsChanged = false;
+
         using (await _gate.DisposableWaitAsync())
         {
             if (_disposed)
@@ -379,7 +407,10 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             _projectFileChangeContext.Dispose();
 
             foreach (var target in _targets)
+            {
+                diagnosticsChanged |= !target.LoadDiagnostics.IsEmpty;
                 target.Dispose();
+            }
 
             _targets.Clear();
 
@@ -391,6 +422,10 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             _disposed = true;
         }
+
+        // Raise this outside the lock
+        if (diagnosticsChanged)
+            LoadDiagnosticsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     internal TestAccessor GetTestAccessor() => new(this);

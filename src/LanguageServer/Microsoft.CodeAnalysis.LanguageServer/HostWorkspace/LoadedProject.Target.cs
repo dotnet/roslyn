@@ -93,6 +93,21 @@ internal sealed partial class LoadedProject
 
         public ProjectId ProjectId => _projectSystemProject.Id;
 
+        /// <summary>
+        /// The diagnostics from the most recent load of this target.
+        /// </summary>
+        public ImmutableArray<DiagnosticLogItem> LoadDiagnostics { get; private set; } = [];
+
+        /// <returns><see langword="true"/> if the diagnostics changed.</returns>
+        public bool SetLoadDiagnostics(ImmutableArray<DiagnosticLogItem> diagnostics)
+        {
+            if (LoadDiagnostics.SequenceEqual(diagnostics))
+                return false;
+
+            LoadDiagnostics = diagnostics;
+            return true;
+        }
+
         public IEnumerable<ProjectFileReference> GetProjectReferences() => _mostRecentFileInfo?.ProjectReferences ?? [];
 
         /// <summary>

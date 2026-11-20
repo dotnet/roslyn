@@ -498,13 +498,13 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         var documentPath = """git:/repo/Test.cs?{"path":"/repo/Test.cs","ref":"~"}""";
         var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, Path.Combine(TempRoot.Root, "Canonical.csproj")) with
         {
-            CommandLineArgs = ["/target:library"],
             Documents = [new DocumentFileInfo(documentPath, "Test.cs", isLinked: false, isGenerated: false, folders: [])],
         };
         await using var loadedProject = new LoadedProject(documentPath, projectFactory.FileChangeWatcher);
 
         Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
             [projectInfo],
+            evaluationDiagnostics: [],
             isMiscellaneousFile: true,
             hasAllInformation: false,
             projectFactory,

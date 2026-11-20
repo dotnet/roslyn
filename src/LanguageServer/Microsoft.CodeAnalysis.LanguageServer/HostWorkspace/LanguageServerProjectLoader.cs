@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
@@ -20,7 +21,6 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using RoslynTelemetry = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry;
 using Roslyn.Utilities;
-using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
@@ -59,7 +59,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     private readonly ProjectTargetFrameworkManager _projectTargetFrameworkManager;
     private readonly ProjectCapabilityManager _projectCapabilityManager;
     private readonly IFileChangeWatcher _fileChangeWatcher;
-    private readonly IClientLanguageServerManager _clientLanguageServerManager;
+    private readonly IDiagnosticsRefresher _diagnosticsRefresher;
     private readonly WorkDoneProgressManager _workDoneProgressManager;
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
@@ -108,9 +108,15 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     protected virtual ValueTask<ImmutableArray<string>> GetPathsToRestoreAsync(ImmutableArray<string> projectsThatNeedRestore, CancellationToken cancellationToken)
         => new(projectsThatNeedRestore);
 
+    /// <summary>
+    /// Gets the language of a project that failed to load.
+    /// </summary>
+    protected abstract string GetLanguageForFailedProject(string projectPath);
+
     protected LanguageServerProjectLoader(
         ILspServices lspServices,
         IGlobalOptionService globalOptionService,
+        IDiagnosticsRefresher diagnosticsRefresher,
         ILoggerFactory loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
         ServerConfigurationFactory serverConfigurationFactory,
@@ -121,7 +127,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         _projectTargetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
         _projectCapabilityManager = lspServices.GetRequiredService<ProjectCapabilityManager>();
         _fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
-        _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        _diagnosticsRefresher = diagnosticsRefresher;
         _workDoneProgressManager = lspServices.GetRequiredService<WorkDoneProgressManager>();
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
@@ -161,21 +167,6 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         return properties;
     }
 
-    private sealed class ToastErrorReporter(IClientLanguageServerManager clientLanguageServerManager)
-    {
-        private int _displayedToast = 0;
-
-        public async Task ReportErrorAsync(LSP.MessageType errorKind, string message, CancellationToken cancellationToken)
-        {
-            // We should display a toast when the value of displayedToast is 0.  This will also update the value to 1 meaning we won't send any more toasts.
-            var shouldShowToast = Interlocked.CompareExchange(ref _displayedToast, value: 1, comparand: 0) == 0;
-            if (shouldShowToast)
-            {
-                await clientLanguageServerManager.ShowToastNotificationAsync(errorKind, message, cancellationToken, ShowToastNotification.ShowCSharpLogsCommand);
-            }
-        }
-    }
-
     private async ValueTask ReloadProjectsAsync(AsyncPriorityWorkQueue<ProjectLoadWorkItem>.WorkToProcess projectsToLoadOrReload, CancellationToken cancellationToken)
     {
         // A batch runs on the context of whichever AddWork caller started it, which may be a file-change
@@ -198,8 +189,6 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 maxNodeCount: MaxNodeCount,
                 loggerFactory: LoggerFactory))
             {
-                var toastErrorReporter = new ToastErrorReporter(_clientLanguageServerManager);
-
                 // Kick off a bunch of tasks in parallel to do the reloading; since our priority queue isn't a standard enumerator we can't use the built-in parallel helpers
                 var parallelTasks = new Task[MaxNodeCount];
                 for (int i = 0; i < parallelTasks.Length; i++)
@@ -220,7 +209,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                             else
                             {
                                 var projectToRestorePath = await ReloadProjectAsync(
-                                    workItem.ProjectPath, toastErrorReporter, buildHostProcessManager, cancellationToken);
+                                    workItem.ProjectPath, buildHostProcessManager, cancellationToken);
 
                                 if (projectToRestorePath is not null)
                                     projectsThatNeedRestore.Add(projectToRestorePath);
@@ -253,7 +242,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     internal sealed record RemoteProjectLoadResult
     {
         public required ImmutableArray<ProjectFileInfo> ProjectFileInfos { get; init; }
-        public required ImmutableArray<DiagnosticLogItem> DiagnosticLogItems { get; init; }
+        public required ImmutableArray<DiagnosticLogItem> EvaluationDiagnosticLogItems { get; init; }
         public required string? ProjectRestorePath { get; init; }
         public required ProjectSystemProjectFactory ProjectFactory { get; init; }
         public required bool IsFileBasedProgram { get; init; }
@@ -276,9 +265,8 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         => null;
 
     /// <returns>The project file path that needs a NuGet restore, if any.</returns>
-    private async Task<string?> ReloadProjectAsync(string projectPath, ToastErrorReporter toastErrorReporter, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
+    private async Task<string?> ReloadProjectAsync(string projectPath, BuildHostProcessManager buildHostProcessManager, CancellationToken cancellationToken)
     {
-        BuildHostProcessKind? preferredBuildHostKindThatWeDidNotGet = null;
         LoadedProject? loadedProject;
 
         // Before doing any work, check if the project has already been unloaded
@@ -297,17 +285,6 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
             var projectFactory = remoteProjectLoadResult.ProjectFactory;
             var preferredBuildHostKind = remoteProjectLoadResult.PreferredBuildHostKind;
-            if (preferredBuildHostKind != remoteProjectLoadResult.ActualBuildHostKind)
-                preferredBuildHostKindThatWeDidNotGet = preferredBuildHostKind;
-
-            var diagnosticLogItems = remoteProjectLoadResult.DiagnosticLogItems;
-            if (diagnosticLogItems.Any(item => item.Kind is DiagnosticLogItemKind.Error))
-            {
-                await LogDiagnosticsAsync(diagnosticLogItems);
-                // We have total failures in evaluation, no point in continuing.
-                return null;
-            }
-
             var loadedProjectInfos = remoteProjectLoadResult.ProjectFileInfos;
 
             // The out-of-proc build host supports more languages than we may actually have Workspace binaries for, so ensure we can actually process that
@@ -316,8 +293,24 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             if (projectLanguage != null && projectFactory.Workspace.Services.GetLanguageService<ICommandLineParserService>(projectLanguage) == null)
                 return null;
 
+            // If there's nothing to load, an empty project stands in to hold the diagnostics
+            if (loadedProjectInfos.IsEmpty)
+                loadedProjectInfos = [ProjectFileInfo.CreateEmpty(GetLanguageForFailedProject(projectPath), projectPath)];
+
+            // Evaluation diagnostics apply to every target, while each target's own diagnostics came from building it
+            var evaluationDiagnostics = remoteProjectLoadResult.EvaluationDiagnosticLogItems;
+            ImmutableArray<DiagnosticLogItem> diagnosticLogItems = [.. evaluationDiagnostics, .. loadedProjectInfos.SelectMany(static info => info.Diagnostics)];
+
+            // Each target reports its own diagnostics from building it, along with the ones from evaluating the project
+            if (preferredBuildHostKind != remoteProjectLoadResult.ActualBuildHostKind
+                && GetMissingBuildHostDiagnostic(diagnosticLogItems, preferredBuildHostKind, projectPath) is { } missingBuildHostDiagnostic)
+            {
+                evaluationDiagnostics = [missingBuildHostDiagnostic, .. evaluationDiagnostics];
+            }
+
             var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
                 loadedProjectInfos,
+                evaluationDiagnostics,
                 isMiscellaneousFile: remoteProjectLoadResult.IsMiscellaneousFile,
                 hasAllInformation: remoteProjectLoadResult.HasAllInformation,
                 projectFactory,
@@ -326,6 +319,11 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 _workspaceFactory,
                 _logger,
                 cancellationToken);
+
+            LogDiagnostics(diagnosticLogItems);
+
+            if (remoteProjectLoadResult.ProjectFileInfos.IsEmpty)
+                return null;
 
             // We might have unloaded in the mean time, just skip
             if (!applied)
@@ -339,23 +337,16 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 isFileBasedProgram: remoteProjectLoadResult.IsFileBasedProgram,
                 hasFileBasedAppDirectives: remoteProjectLoadResult.HasFileBasedAppDirectives);
 
-            if (diagnosticLogItems.Any())
-            {
-                await LogDiagnosticsAsync(diagnosticLogItems);
-            }
-            else
-            {
+            if (diagnosticLogItems.IsEmpty)
                 _logger.LogInformation(string.Format(LanguageServerResources.Successfully_completed_load_of_0, projectPath));
-            }
 
             return await loadedProject.NeedsRestoreAsync() ? remoteProjectLoadResult.ProjectRestorePath : null;
         }
         catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken)) // Cancellation is only expected when we're shutting down, in which case there's no reason to do a report.
         {
-            // Since our LogDiagnosticsAsync helper takes DiagnosticLogItems, let's just make one for this
-            var message = string.Format(LanguageServerResources.Exception_thrown_0, e);
-            var diagnosticLogItem = new DiagnosticLogItem(DiagnosticLogItemKind.Error, message, projectPath);
-            await LogDiagnosticsAsync([diagnosticLogItem]);
+            // Something very unexpected happened, just log to the error log. We could try to push this diagnostic into a LoadedProject, but at this point we're likely here if
+            // that project state is corrupted. Trying to report it might just result in more exceptions.
+            _logger.LogError(e, "Exception thrown while loading {ProjectPath}", projectPath);
 
             return null;
         }
@@ -364,27 +355,30 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             loadedProject.CompleteInitialLoad();
         }
 
-        async Task LogDiagnosticsAsync(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
+        void LogDiagnostics(ImmutableArray<DiagnosticLogItem> diagnosticLogItems)
         {
             foreach (var logItem in diagnosticLogItems)
             {
-                var projectName = Path.GetFileName(projectPath);
-                _logger.Log(logItem.Kind is DiagnosticLogItemKind.Error ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {logItem.Message}");
+                var message = logItem.Code is { } code ? $"{code}: {logItem.Message}" : logItem.Message;
+                _logger.Log(logItem.Kind is DiagnosticLogItemKind.Error ? LogLevel.Error : LogLevel.Warning, $"{logItem.Kind} while loading {logItem.ProjectFilePath}: {message}");
             }
-
-            var worstLspMessageKind = diagnosticLogItems.Any(logItem => logItem.Kind is DiagnosticLogItemKind.Error) ? LSP.MessageType.Error : LSP.MessageType.Warning;
-
-            string message;
-
-            if (preferredBuildHostKindThatWeDidNotGet == BuildHostProcessKind.NetFramework)
-                message = LanguageServerResources.Projects_failed_to_load_because_MSBuild_could_not_be_found;
-            else if (preferredBuildHostKindThatWeDidNotGet == BuildHostProcessKind.Mono)
-                message = LanguageServerResources.Projects_failed_to_load_because_Mono_could_not_be_found;
-            else
-                message = string.Format(LanguageServerResources.There_were_problems_loading_project_0_See_log_for_details, Path.GetFileName(projectPath));
-
-            await toastErrorReporter.ReportErrorAsync(worstLspMessageKind, message, cancellationToken);
         }
+    }
+
+    private static DiagnosticLogItem? GetMissingBuildHostDiagnostic(ImmutableArray<DiagnosticLogItem> diagnostics, BuildHostProcessKind preferredBuildHostKindThatWeDidNotGet, string projectPath)
+    {
+        var message = preferredBuildHostKindThatWeDidNotGet switch
+        {
+            BuildHostProcessKind.NetFramework => LanguageServerResources.Projects_failed_to_load_because_MSBuild_could_not_be_found,
+            BuildHostProcessKind.Mono => LanguageServerResources.Projects_failed_to_load_because_Mono_could_not_be_found,
+            _ => null,
+        };
+
+        if (message is null || diagnostics.IsEmpty)
+            return null;
+
+        var kind = diagnostics.Any(static diagnostic => diagnostic.Kind is DiagnosticLogItemKind.Error) ? DiagnosticLogItemKind.Error : DiagnosticLogItemKind.Warning;
+        return new DiagnosticLogItem(kind, message, projectPath);
     }
 
     protected async ValueTask<ImmutableArray<Project>> GetOrLoadProjectAsync(string projectPath, ProjectSystemProjectFactory primordialProjectFactory, Func<ProjectSystemProjectFactory, string, ProjectInfo> createPrimordialProjectInfo, bool doDesignTimeBuild)
@@ -403,6 +397,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             _loadedProjects.Add(projectPath, newLoadedProject);
             var newProject = await newLoadedProject.CreatePrimordialProjectAsync(primordialProjectFactory, primordialProjectInfo);
 
+            newLoadedProject.LoadDiagnosticsChanged += LoadedProject_LoadDiagnosticsChanged;
             if (doDesignTimeBuild)
             {
                 newLoadedProject.NeedsReload += LoadedProject_NeedsReload;
@@ -440,6 +435,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             loadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
             _loadedProjects.Add(projectPath, loadedProject);
 
+            loadedProject.LoadDiagnosticsChanged += LoadedProject_LoadDiagnosticsChanged;
             loadedProject.NeedsReload += LoadedProject_NeedsReload;
 
             _projectsToReload.AddWork(
@@ -474,6 +470,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
                 var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
                     cachedProjectState,
+                    evaluationDiagnostics: [],
                     isMiscellaneousFile: false,
                     hasAllInformation: true,
                     projectFactory,
@@ -508,6 +505,9 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         _projectsToReload.AddWork(new(loadedProject.ProjectFilePath, LoadFromCache: false), priority: (int)ProjectReloadPriority.RegularLoad);
     }
 
+    private void LoadedProject_LoadDiagnosticsChanged(object? sender, EventArgs e)
+        => _diagnosticsRefresher.RequestWorkspaceRefresh();
+
     internal static async Task WaitForProjectLoadsAsync(
         ImmutableArray<LoadedProject> loadedProjects,
         WorkDoneProgressTracker? progressTracker = null,
@@ -530,6 +530,30 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     {
         var currentProjectLoads = await CaptureCurrentProjectLoadsAsync(cancellationToken);
         await currentProjectLoads;
+    }
+
+    /// <summary>
+    /// Gets the diagnostics from the latest load of each project that has any, along with the path of its project file and the
+    /// projects in the workspace for its targets.
+    /// </summary>
+    public async ValueTask<ImmutableArray<(string ProjectFilePath, ImmutableArray<ProjectId> ProjectIds, ImmutableArray<DiagnosticLogItem> Diagnostics)>> GetLoadDiagnosticsAsync(
+        CancellationToken cancellationToken)
+    {
+        ImmutableArray<LoadedProject> loadedProjects;
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            loadedProjects = [.. _loadedProjects.Values];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<(string, ImmutableArray<ProjectId>, ImmutableArray<DiagnosticLogItem>)>();
+        foreach (var loadedProject in loadedProjects)
+        {
+            var (projectIds, diagnostics) = await loadedProject.GetLoadDiagnosticsAsync(cancellationToken);
+            if (!diagnostics.IsEmpty)
+                builder.Add((loadedProject.ProjectFilePath, projectIds, diagnostics));
+        }
+
+        return builder.ToImmutable();
     }
 
     /// <summary>

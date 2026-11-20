@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -60,14 +61,12 @@ internal sealed class BuildHostProjectFileInfoProvider(
 
         await using var _ = projectFile.ConfigureAwait(false);
 
-        // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
-        var diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-        if (diagnosticItems.Any(d => d.Kind == DiagnosticLogItemKind.Error))
-        {
-            diagnosticReporter.Report(diagnosticItems);
+        var evaluationDiagnostics = await projectFile.GetEvaluationDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
+        diagnosticReporter.Report(evaluationDiagnostics);
 
-            return [ProjectFileInfo.CreateEmpty(languageName, projectPath)];
-        }
+        // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
+        if (evaluationDiagnostics.Any(d => d.Kind == DiagnosticLogItemKind.Error))
+            return [ProjectFileInfo.CreateEmpty(languageName, projectPath) with { Diagnostics = [.. evaluationDiagnostics] }];
 
         var projectFileInfos = await progress.DoOperationAndReportProgressAsync(
             ProjectLoadOperation.Build,
@@ -76,9 +75,8 @@ internal sealed class BuildHostProjectFileInfoProvider(
             () => projectFile.GetProjectFileInfosAsync(cancellationToken)
         ).ConfigureAwait(false);
 
-        // We'll go check for any further diagnostics and report them
-        diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-        diagnosticReporter.Report(diagnosticItems);
+        // A problem from building can apply to more than one target, so only report each distinct diagnostic once.
+        diagnosticReporter.Report(projectFileInfos.SelectMany(static info => info.Diagnostics).Distinct());
 
         return projectFileInfos;
     }

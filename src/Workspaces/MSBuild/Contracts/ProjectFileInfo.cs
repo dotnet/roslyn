@@ -173,6 +173,14 @@ internal sealed record ProjectFileInfo
     [DataMember]
     public required FileGlobs[] FileGlobs { get; init; }
 
+    /// <summary>
+    /// The errors and warnings specific to this target: those reported while building it or, if the project couldn't be evaluated for
+    /// this target, the failure to do so. This does not include the diagnostics from evaluating the project file as a whole, which
+    /// apply to every target: see <see cref="IProjectFile.GetEvaluationDiagnosticLogItems"/>.
+    /// </summary>
+    [DataMember]
+    public DiagnosticLogItem[] Diagnostics { get; init; } = [];
+
     public override string ToString()
         => string.IsNullOrWhiteSpace(TargetFramework)
             ? FilePath ?? string.Empty

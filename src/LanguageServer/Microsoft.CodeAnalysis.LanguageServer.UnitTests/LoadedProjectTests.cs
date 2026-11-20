@@ -36,7 +36,6 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
         {
             var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
             {
-                CommandLineArgs = ["/target:library"],
                 Documents = [new DocumentFileInfo(documentPath, documentPath, isLinked: false, isGenerated: false, folders)],
                 AdditionalDocuments = [new DocumentFileInfo(additionalPath, additionalPath, isLinked: false, isGenerated: false, folders)],
             };
@@ -66,7 +65,6 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
         var analyzerConfigPath = Path.Combine(directory.Path, ".editorconfig");
         var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
         {
-            CommandLineArgs = ["/target:library"],
             Documents = CreateDuplicateDocuments(documentPath),
             AdditionalDocuments = CreateDuplicateDocuments(additionalPath),
             AnalyzerConfigDocuments = CreateDuplicateDocuments(analyzerConfigPath),
@@ -109,7 +107,6 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
         var analyzerPath = Path.Combine(directory.Path, "Analyzer.dll");
         var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
         {
-            CommandLineArgs = ["/target:library"],
             MetadataReferences = [new MetadataReferenceItem(metadataPath, ["global", "Interop"], EmbedInteropTypes: true)],
             AnalyzerReferences = [analyzerPath],
         };
@@ -176,6 +173,7 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
         var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
         Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
             [projectInfo],
+            evaluationDiagnostics: [],
             isMiscellaneousFile: false,
             hasAllInformation: true,
             workspaceFactory.HostProjectFactory,

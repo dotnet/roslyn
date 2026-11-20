@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 internal interface IDiagnosticSource
 {
     Project GetProject();
-    ProjectOrDocumentId GetId();
+    DiagnosticScope GetScope();
     TextDocumentIdentifier? GetDocumentIdentifier();
     string ToDisplayString();
     Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
