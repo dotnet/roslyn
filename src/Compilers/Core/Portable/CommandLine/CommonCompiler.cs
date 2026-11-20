@@ -1793,8 +1793,10 @@ namespace Microsoft.CodeAnalysis
         /// inputs. Override in server compiler subclasses to provide caching. Return a non-null
         /// value to short-circuit compilation with a cached exit code.
         /// </summary>
-        /// <param name="cacheState">Opaque state to be passed to <see cref="OnCompilationSucceeded"/> on success.
-        /// A non-null value also requests capture of the diagnostic output skipped by a cache hit.</param>
+        /// <param name="cacheState">
+        /// When non-null, tells the caller to capture diagnostic output and pass it,
+        /// along with this opaque state, to <see cref="OnCompilationSucceeded"/>.
+        /// </param>
         protected virtual int? CheckCache(
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,

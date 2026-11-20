@@ -268,13 +268,18 @@ namespace Microsoft.CodeAnalysis
                             WriteAnalyzerConfigSectionBindings(writer, "sourceFiles", sectionBindings, 0, syntaxTrees.Length, cancellationToken);
                             WriteAnalyzerConfigSectionBindings(writer, "additionalFiles", sectionBindings, syntaxTrees.Length, additionalTexts.Length, cancellationToken);
 
-                            // Preserve whether an absolute section can match a future generated filename, before applying PathMap.
+                            // This is the global section's target relative to the generated-source base, before PathMap.
+                            // At cache lookup, generated filenames are unknown, so we cannot bind the section to them yet.
+                            // The mapped section name alone cannot capture changes in matching when the generated-source base moves.
                             writer.Write("generatedFileName", generatedFileName);
                             writer.WriteObjectEnd();
                         }
                         writer.WriteArrayEnd();
 
-                        // Both directions retain directory names that an upward-only relative path would otherwise discard.
+                        // Ordinary editorconfig patterns are relative to the config directory.
+                        // Record where generated files will be placed relative to that directory, since their names are unknown at cache lookup.
+                        // Keep both directions: if the config moves from generated/a to generated/b, the path to the generated base is ".." in both cases;
+                        // only the reverse path distinguishes "a" from "b".
                         writer.WriteKey("generatedSourceDirectory");
                         if (mayMatchGenerated && analyzerConfigSet?.HasNamedSections == true)
                         {
@@ -511,6 +516,18 @@ namespace Microsoft.CodeAnalysis
             writer.WriteObjectEnd();
         }
 
+        /// <summary>
+        /// Populates <paramref name="bindings"/> with the inputs each original named analyzer-config section applies to, using the inputs' unmapped paths.
+        /// </summary>
+        /// <param name="bindings">
+        /// <c>InputIndex</c> indexes <paramref name="syntaxTrees"/> followed by <paramref name="additionalTexts"/>,
+        /// so additional-text indices are offset by the number of syntax trees.
+        /// <c>Order</c> indexes that input's final list of matching named sections, across applicable config files.
+        /// The list can contain multiple sections per config and excludes parent sections discarded by <c>root = true</c>.
+        /// Higher indices apply later.
+        /// Keys are the original section instances from <paramref name="configs"/>.
+        /// Original sections contributing to the same merged global section receive the same order.
+        /// </param>
         private static void AddAnalyzerConfigSectionBindings(
             ImmutableArray<AnalyzerConfig> configs,
             AnalyzerConfigSet configSet,
