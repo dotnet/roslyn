@@ -18,8 +18,8 @@
 
       We should try to keep this version in sync with the version of app-local runtime in VS.
     -->
-    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.13</MicrosoftNetCoreAppRuntimePackagesVersion>
-    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.13</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
+    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.15</MicrosoftNetCoreAppRuntimePackagesVersion>
+    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.15</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <!-- SQLitePCLRaw.bundle_green is discontinued at 2.1.11, so keep its managed dependencies aligned. -->
     <SqliteManagedVersion>2.1.11</SqliteManagedVersion>

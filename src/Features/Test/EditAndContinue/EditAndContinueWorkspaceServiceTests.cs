@@ -2616,6 +2616,56 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Contains("System.InvalidOperationException: Source generator failed", generatorDiagnostics.Single().GetMessage());
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task GetProjectDifferences_SourceGeneratorDiagnostics_CurrentSnapshotOnly(bool oldHasError, bool newHasError)
+    {
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var log = new TraceLog("Test");
+        var oldInput = oldHasError ? "old_error" : "old_clean";
+        var newInput = newHasError ? "new_error" : "new_clean";
+        var descriptor = new DiagnosticDescriptor("TEST001", "Generator error", "{0}", "Test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context =>
+            {
+                var input = context.AdditionalFiles.Single().GetText(context.CancellationToken).ToString();
+                context.AddSource("generated.cs", SourceText.From($"class C {{ string M() => \"{input}\"; }}", Encoding.UTF8, SourceHashAlgorithm.Sha256));
+
+                if (input.Contains("error"))
+                {
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, Location.None, input));
+                }
+            }
+        };
+
+        var project = solution
+            .AddTestProject("A")
+            .AddAdditionalDocument("A.txt", oldInput, filePath: Path.Combine(TempRoot.Root, "A.txt"))
+            .Project;
+
+        var projectId = project.Id;
+        solution = project.Solution.AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+        var oldProject = solution.GetRequiredProject(projectId);
+        var generatedDocumentId = (await oldProject.GetSourceGeneratedDocumentsAsync()).Single().Id;
+
+        solution = solution.WithAdditionalDocumentText(oldProject.AdditionalDocumentIds.Single(), CreateText(newInput));
+        project = solution.GetRequiredProject(projectId);
+
+        using var differences = new ProjectDifferences();
+        var diagnostics = new ArrayBuilder<Diagnostic>();
+        await EditSession.GetProjectDifferencesAsync(log, oldProject, project, differences, diagnostics, EditAndContinueDiagnosticLevel.None, CancellationToken.None);
+
+        AssertEx.Equal(newHasError ? [newInput] : [], diagnostics.Select(d => d.GetMessage()));
+        AssertEx.Equal([generatedDocumentId], differences.ChangedOrAddedDocuments.Select(d => d.Id));
+        Assert.Empty(differences.DeletedDocuments);
+    }
+
     [Fact]
     public async Task HasChanges_Settings()
     {
@@ -3727,6 +3777,76 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         AssertEx.SetEqual([0x02000002, 0x02000003, 0x02000004, 0x02000005], delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
 
         debuggingSession.DiscardSolutionUpdate();
+        EndDebuggingSession(debuggingSession);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/79898")]
+    public async Task DeleteAddedMethodAfterDependencyUpdate()
+    {
+        var appSource1 = """
+            class App { public static string Get() => "app-v1 " + Lib.Get(); }
+            class C { }
+            """;
+        var appSource2 = """
+            class App { public static string Get() => "app-v2 " + Lib.Get(); }
+            class C { }
+            """;
+        var appSource3 = """
+            class App { public static string Get() => "app-v2 " + Lib.Get(); }
+            class C { public string Added() => "added"; }
+            """;
+        var libSource1 = """public class Lib { public static string Get() => "lib-v1"; }""";
+        var libSource2 = """public class Lib { public static string Get() => "lib-v2"; }""";
+
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        solution = solution
+            .AddTestProject("App", out var appProjectId)
+                .AddTestDocument(appSource1, "App.cs", out var appDocumentId).Project.Solution
+            .AddTestProject("Lib", out var libProjectId)
+                .AddTestDocument(libSource1, "Lib.cs", out var libDocumentId).Project.Solution
+            .AddProjectReference(appProjectId, new ProjectReference(libProjectId));
+
+        var appModuleId = LoadLibraryToDebuggee(EmitLibrary(appProjectId, await solution.GetRequiredProject(appProjectId).GetCompilationAsync()));
+        var libModuleId = LoadLibraryToDebuggee(EmitLibrary(libProjectId, await solution.GetRequiredProject(libProjectId).GetCompilationAsync()));
+
+        var debuggingSession = StartDebuggingSession(service, solution);
+
+        // Establish an App emit baseline with a method body update.
+        solution = solution.WithDocumentText(appDocumentId, CreateText(appSource2));
+        var results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(results.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Equal(appModuleId, results.ModuleUpdates.Updates.Single().Module);
+        CommitSolutionUpdate(debuggingSession);
+
+        solution = solution.WithDocumentText(appDocumentId, CreateText(appSource3));
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(results.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Equal(appModuleId, results.ModuleUpdates.Updates.Single().Module);
+        CommitSolutionUpdate(debuggingSession);
+
+        // Fork the App compilation through its project reference without updating its emit baseline.
+        solution = solution.WithDocumentText(libDocumentId, CreateText(libSource2));
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(results.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        Assert.Equal(libModuleId, results.ModuleUpdates.Updates.Single().Module);
+        CommitSolutionUpdate(debuggingSession);
+
+        // Delete the method added before the dependency update.
+        solution = solution.WithDocumentText(appDocumentId, CreateText(appSource2));
+        results = await EmitSolutionUpdateAsync(debuggingSession, solution);
+        Assert.Empty(results.Diagnostics);
+        Assert.Equal(ModuleUpdateStatus.Ready, results.ModuleUpdates.Status);
+        var delta = results.ModuleUpdates.Updates.Single();
+        Assert.Equal(appModuleId, delta.Module);
+        Assert.NotEmpty(delta.ILDelta);
+        Assert.NotEmpty(delta.MetadataDelta);
+        CommitSolutionUpdate(debuggingSession);
+
         EndDebuggingSession(debuggingSession);
     }
 

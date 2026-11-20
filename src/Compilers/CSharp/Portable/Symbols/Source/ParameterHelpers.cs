@@ -557,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 extensionParameter.Type.FindTypeParameters(usedTypeParameters);
 
-                if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
+                if (usedTypeParameters.Count == extensionArity + extensionMemberArity)
                 {
                     return;
                 }
@@ -566,10 +566,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     parameter.Type.FindTypeParameters(usedTypeParameters);
 
-                    if (usedTypeParameters.Count == extensionArity && extensionMemberArity == 0)
+                    if (usedTypeParameters.Count == extensionArity + extensionMemberArity)
                     {
                         return;
                     }
+                }
+
+                if (usedTypeParameters.Count != 0 && extension.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureTypeParameterInferenceFromConstraints))
+                {
+                    var seen = ArrayBuilder<TypeParameterSymbol>.GetInstance(extensionArity + extensionMemberArity);
+                    PooledHashSet<TypeParameterSymbol>? usedInConstraintsTypeParameters = null;
+
+                    seen.AddRange(usedTypeParameters);
+
+                    for (int i = 0; i < seen.Count; i++)
+                    {
+                        TypeParameterSymbol typeParameter = seen[i];
+                        foreach (var constraintType in typeParameter.ConstraintTypesNoUseSiteDiagnostics)
+                        {
+                            usedInConstraintsTypeParameters ??= PooledHashSet<TypeParameterSymbol>.GetInstance();
+                            constraintType.FindTypeParameters(usedInConstraintsTypeParameters);
+
+                            foreach (var possiblyNotSeenTypeParameter in usedInConstraintsTypeParameters)
+                            {
+                                if (usedTypeParameters.Add(possiblyNotSeenTypeParameter))
+                                {
+                                    if (usedTypeParameters.Count == extensionArity + extensionMemberArity)
+                                    {
+                                        seen.Free();
+                                        usedInConstraintsTypeParameters.Free();
+                                        return;
+                                    }
+
+                                    seen.Add(possiblyNotSeenTypeParameter);
+                                }
+                            }
+
+                            usedInConstraintsTypeParameters.Clear();
+                        }
+                    }
+
+                    seen.Free();
+                    usedInConstraintsTypeParameters?.Free();
                 }
 
                 foreach (var typeParameter in extension.TypeParameters)

@@ -23292,6 +23292,220 @@ public class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_90_Conversion()
+        {
+            var src = @"
+#nullable enable
+
+public union U(string, int);
+
+public class C
+{
+    public static void M()
+    {
+        for (int i = 0; i < 1; i++)
+        {
+#line 100
+            U value = (string?)null;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            comp.VerifyEmitDiagnostics(
+                // (100,23): warning CS8604: Possible null reference argument for parameter 'value' in 'U.U(string value)'.
+                //             U value = (string?)null;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("value", "U.U(string value)").WithLocation(100, 23)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_91_Conversion()
+        {
+            var src = @"
+#nullable enable
+
+public union U(string?, int);
+
+public class C
+{
+    static void M((string?, int) input)
+    {
+        for (int i = 0; i < 1; i++)
+        {
+#line 100
+            (U, int) value = input;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_92_Conversion_ValueState(bool assignNull)
+        {
+            var src = $$"""
+ #nullable enable
+ public union U(string?, int);
+ public class C
+ {
+     static void M()
+     {
+         string? source = "";
+         (string?, int) input = ("", 0);
+         for (int i = 0; i < 2; i++)
+         {
+             U direct = source;
+             (U, int) tuple = input;
+ #line 100
+             direct.Value.ToString();
+ #line 200
+             tuple.Item1.Value.ToString();
+             source = {{(assignNull ? "null" : "\"\"")}};
+             input.Item1 = source;
+         }
+     }
+ }
+ """;
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+            if (assignNull)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (100,13): warning CS8602: Dereference of a possibly null reference.
+                    //             direct.Value.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "direct.Value").WithLocation(100, 13),
+                    // (200,13): warning CS8602: Dereference of a possibly null reference.
+                    //             tuple.Item1.Value.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple.Item1.Value").WithLocation(200, 13)
+                    );
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_93_Conversion_TuplePostCondition()
+        {
+            var src = @"
+ #nullable enable
+ [System.Runtime.CompilerServices.Union]
+ struct U
+ {
+     public U(int value) => throw null!;
+     public U([System.Diagnostics.CodeAnalysis.NotNull] string? value) => throw null!;
+     public object? Value => throw null!;
+ }
+ class C
+ {
+     static void M((string?, int) input)
+     {
+         for (int i = 0; i < 2; i++)
+         {
+             (U, int) value = input;
+             input.Item1.ToString();
+             input.Item1 = null;
+         }
+     }
+ }
+ ";
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_94_Conversion_NullableUnion_BackEdge(bool assignNull)
+        {
+            var src = $$"""
+#nullable enable
+
+public union U(string?, int);
+
+public class C
+{
+    static void M()
+    {
+        string? source = "";
+        (string?, int) input = ("", 0);
+        for (int i = 0; i < 2; i++)
+        {
+            U? direct = source;
+            (U?, int) tuple = input;
+#line 100
+            direct.Value.Value.ToString();
+#line 200
+            tuple.Item1.Value.Value.ToString();
+            source = {{(assignNull ? "null" : "\"\"")}};
+            input.Item1 = source;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            if (assignNull)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (100,13): warning CS8602: Dereference of a possibly null reference.
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "direct.Value.Value").WithLocation(100, 13),
+                    // (200,13): warning CS8602: Dereference of a possibly null reference.
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple.Item1.Value.Value").WithLocation(200, 13)
+                    );
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
+        public void NullableAnalysis_95_Conversion_TupleMultipleElements()
+        {
+            var src = """
+#nullable enable
+
+public union U(string?, int?);
+
+public class C
+{
+    static void M()
+    {
+        (string?, int?) input = ("", 0);
+        for (int i = 0; i < 2; i++)
+        {
+            (U, U) converted = input;
+#line 300
+            converted.Item1.Value.ToString();
+#line 400
+            converted.Item2.Value.ToString();
+            input.Item1 = null;
+            input.Item2 = 1;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            comp.VerifyEmitDiagnostics(
+                // (300,13): warning CS8602: Dereference of a possibly null reference.
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "converted.Item1.Value").WithLocation(300, 13)
+                );
+        }
+
+        [Fact]
         public void NullableAnalysis_MemberProvider_01_State_From_Default()
         {
             var src = @"

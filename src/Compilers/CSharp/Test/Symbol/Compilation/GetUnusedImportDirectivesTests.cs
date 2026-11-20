@@ -488,5 +488,58 @@ namespace X
                 compilation.VerifyDiagnostics();
             }
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86250")]
+        public void UnusedUsing_PartialMemberImplementation()
+        {
+            var source1 = """
+                using N1;
+                using N2;
+                using N3;
+                using N4;
+                using N5;
+                using N6;
+                using N7;
+
+                namespace N1 { public class Attr1Attribute : System.Attribute; }
+                namespace N2 { public class Helper2 { public static void M() { } } }
+                namespace N3 { public class Attr3Attribute : System.Attribute; }
+                namespace N4 { public class Helper4 { public static int M() => 1; } }
+                namespace N5 { public class Attr5Attribute : System.Attribute; }
+                namespace N6 { public class Helper6 { public static void M() { } } }
+                namespace N7 { public class Attr7Attribute : System.Attribute; }
+
+                public partial class C
+                {
+                    [Attr1]
+                    public partial C() { Helper2.M(); }
+
+                    [Attr3]
+                    public partial int P => Helper4.M();
+
+                    [Attr5]
+                    public partial event System.Action E1
+                    {
+                        add { Helper6.M(); }
+                        remove { }
+                    }
+
+                    [method: Attr7]
+                    public extern partial event System.Action E2;
+                }
+                """;
+            var source2 = """
+                public partial class C
+                {
+                    public partial C();
+                    public partial int P { get; }
+                    public partial event System.Action E1;
+                    public partial event System.Action E2;
+                }
+                """;
+
+            var comp = CreateCompilation([source1, source2]);
+            comp.GetSemanticModel(comp.SyntaxTrees[0]).GetDiagnostics().Verify();
+        }
     }
 }

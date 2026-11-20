@@ -127,6 +127,22 @@ public static class UnsupportedProjectDataMarker
 			$"inputsFingerprint={ComputeAncestorInputsFingerprintCore(projectFilePath, environment, CancellationToken.None)}\n" +
 			$"reason={reason}\n";
 
+		try
+		{
+			if (File.Exists(absoluteMarkerPath) &&
+				string.Equals(File.ReadAllText(absoluteMarkerPath), content, StringComparison.Ordinal))
+			{
+				return markerPath;
+			}
+		}
+		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+		{
+			System.Diagnostics.Trace.TraceInformation(
+				"[lscache] Could not compare existing unsupported-project marker for {0}; writing it: {1}",
+				projectFilePath,
+				ex.Message);
+		}
+
 		WriteAllTextAtomically(absoluteMarkerPath, content);
 		return markerPath;
 	}

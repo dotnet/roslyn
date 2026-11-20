@@ -1856,7 +1856,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // this code has no effect except in region analysis APIs such as DataFlowsOut where we unassign things
+                // Every parameter other than an 'out' parameter is definitely assigned on entry ('out' parameters are an
+                // error in async methods, so they are treated as assigned there). For a struct parameter this also
+                // assigns its fields, which would otherwise be reported as unassigned when they are read.
                 if (slot > 0) SetSlotState(slot, true);
                 NoteWrite(parameter, value: null, read: true, isRef: parameter.RefKind != RefKind.None);
             }

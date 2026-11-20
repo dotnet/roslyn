@@ -64,6 +64,7 @@
     </ProjectReference>
     <PackageReference Include="Nerdbank.Streams" />
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
+    <PackageReference Include="System.IO.Hashing" />
   </ItemGroup>
 
   <ItemGroup>

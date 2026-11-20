@@ -213,6 +213,7 @@ internal sealed partial class FormattingContext
         {
             InsertSpaces = options.InsertSpaces,
             TabSize = options.TabSize,
+            IndentSize = options.IndentSize,
             CodeBlockBraceOnNextLine = options.CodeBlockBraceOnNextLine,
             AttributeIndentStyle = options.AttributeIndentStyle,
             IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,

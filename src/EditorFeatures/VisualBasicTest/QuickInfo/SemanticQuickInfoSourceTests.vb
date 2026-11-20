@@ -2631,6 +2631,21 @@ End Class
                 MainDescription($"Sub C.M(a As Integer, ParamArray b As Integer()) (+ 1 {FeaturesResources.overload})"))
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86345")>
+        Public Async Function Method_UnqualifiedInSharedContextIgnoresInstanceOverload() As Task
+            Await TestInClassAsync("
+Shared Sub M()
+End Sub
+
+Sub M(i As Integer)
+End Sub
+
+Shared Sub Test()
+    $$M()
+End Sub",
+                MainDescription("Sub C.M()"))
+        End Function
+
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/61320")>
         Public Async Function TestSingleTupleType() As Task
             Await TestInClassAsync(

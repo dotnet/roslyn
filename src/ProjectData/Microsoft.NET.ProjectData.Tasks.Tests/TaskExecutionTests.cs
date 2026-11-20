@@ -206,6 +206,12 @@ public class TaskExecutionTests
 			{
 				string marker = Assert.Single(Directory.EnumerateFiles(cacheDirectory, "*.unsupported", SearchOption.AllDirectories));
 				Assert.Contains("reason=CompilerCommandLineArgumentsEmpty\n", File.ReadAllText(marker));
+				File.SetLastWriteTimeUtc(marker, new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+				DateTime timestamp = File.GetLastWriteTimeUtc(marker);
+
+				Assert.True(task.Execute());
+
+				Assert.Equal(timestamp, File.GetLastWriteTimeUtc(marker));
 			}
 
 			Assert.Empty(engine.Warnings);

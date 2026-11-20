@@ -3869,7 +3869,7 @@ public class BaseClass<TMember>
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
             var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
-            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
+            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, System.Int32>(System.Int32 NewValue)", setMember.ToTestDisplayString());
             Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
         }
 
@@ -3961,7 +3961,7 @@ public class BaseClass<TMember> : I1<TMember>
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
             var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
-            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
+            Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, System.Int32>(System.Int32 NewValue)", setMember.ToTestDisplayString());
             Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
         }
 

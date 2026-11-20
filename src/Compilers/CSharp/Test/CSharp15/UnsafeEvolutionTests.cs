@@ -7453,6 +7453,50 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M").WithArguments("C2.M()", "A.M()").WithLocation(16, 33));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86386")]
+    public void Member_Method_Override_NullableTypeParameterInGenericReturnType()
+    {
+        var source = """
+            #nullable enable
+            using System.Threading.Tasks;
+
+            abstract class Base
+            {
+                public abstract Task<T?> M<T>();
+            }
+
+            sealed class Derived : Base
+            {
+                public override Task<T?> M<T>() where T : default => null!;
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86386")]
+    public void Member_Method_Override_NullableTypeParameterInGenericParameterType()
+    {
+        var source = """
+            #nullable enable
+            using System.Threading.Tasks;
+
+            abstract class Base
+            {
+                public abstract void M<T>(Task<T?> value);
+            }
+
+            sealed class Derived : Base
+            {
+                public override void M<T>(Task<T?> value) where T : default { }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
     [Fact]
     public void Member_Method_Implementation()
     {
@@ -7630,6 +7674,50 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // c.M2(null);
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M2(null)").WithArguments("B<D>.M2(D)").WithLocation(3, 1),
             ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86386")]
+    public void Member_Method_ExplicitImplementation_NullableTypeParameterInGenericReturnType()
+    {
+        var source = """
+            #nullable enable
+            using System.Threading.Tasks;
+
+            interface I
+            {
+                Task<T?> M<T>();
+            }
+
+            sealed class C : I
+            {
+                Task<T?> I.M<T>() where T : default => null!;
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86386")]
+    public void Member_Method_ExplicitImplementation_NullableTypeParameterInGenericParameterType()
+    {
+        var source = """
+            #nullable enable
+            using System.Threading.Tasks;
+
+            interface I
+            {
+                void M<T>(Task<T?> value);
+            }
+
+            sealed class C : I
+            {
+                void I.M<T>(Task<T?> value) where T : default { }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
     }
 
     [Fact]

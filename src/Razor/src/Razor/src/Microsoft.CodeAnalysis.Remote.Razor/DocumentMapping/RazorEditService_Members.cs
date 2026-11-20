@@ -180,7 +180,7 @@ internal partial class RazorEditService
             {
                 // New indentation is the Roslyn indentation, minus the baseline indentation, plus our desired indentation, which is just one
                 // level, to nest inside the @code block.
-                var newIndentation = options.TabSize + currentIndentation - initialIndentation.GetValueOrDefault();
+                var newIndentation = options.IndentSize + currentIndentation - initialIndentation.GetValueOrDefault();
                 builder.Append(FormattingUtilities.GetIndentationString(Math.Max(0, newIndentation), options.InsertSpaces, options.TabSize));
                 builder.Append(sourceText.ToString(TextSpan.FromBounds(line.Start + offset, line.End)));
             }
