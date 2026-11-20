@@ -43,7 +43,6 @@ public static class CacheFileReader
 	private const string CacheFileExtension = ".lscache";
 
 	private const string VersionLinePrefix = "version=";
-	private const int ProjectReferenceMetadataMinorVersion = 1;
 
 	/// <summary>
 	/// The wire-format version header is <c>version=&lt;major&gt;[.&lt;minor&gt;]</c>. The reader
@@ -345,19 +344,9 @@ public static class CacheFileReader
 
 	private static bool HasAuthoritativeProjectReferenceDefaults(string? versionHeader)
 	{
-		if (versionHeader is null || !versionHeader.StartsWith(VersionLinePrefix, StringComparison.Ordinal))
-		{
-			return false;
-		}
-
-		ReadOnlySpan<char> value = versionHeader.AsSpan(VersionLinePrefix.Length);
-		int dot = value.IndexOf('.');
-		if (dot < 0 || !int.TryParse(value[(dot + 1)..], out int minor))
-		{
-			return false;
-		}
-
-		return minor >= ProjectReferenceMetadataMinorVersion;
+		// Version 2.1 established that omitted ReferenceOutputAssembly means true.
+		// Version 3 retains that contract even though its minor version resets to zero.
+		return TryParseMajorVersion(versionHeader, out int major) && major >= 3;
 	}
 
 	/// <summary>
@@ -496,8 +485,11 @@ public static class CacheFileReader
 				case CacheFormat.Sections.FrameworkPacks:
 					currentSlice.FrameworkPacks.Add(line);
 					break;
-				case CacheFormat.Sections.SdkAnalyzerPacks:
-					currentSlice.SdkAnalyzerPacks.Add(line);
+				case CacheFormat.Sections.FrameworkAnalyzerReferences:
+					currentSlice.FrameworkAnalyzerReferences.Add(line);
+					break;
+				case CacheFormat.Sections.SdkAnalyzerPackageReferences:
+					currentSlice.SdkAnalyzerPackageReferences.Add(line);
 					break;
 				case CacheFormat.Sections.SdkAnalyzerConfigPolicy:
 					currentSlice.SdkAnalyzerConfigPolicy.Add(line);
@@ -747,7 +739,8 @@ public static class CacheFileReader
 		public List<string> EmbeddedResourceLines = [];
 		public List<string> ProjectReferenceLines = [];
 		public List<string> FrameworkPacks = [];
-		public List<string> SdkAnalyzerPacks = [];
+		public List<string> FrameworkAnalyzerReferences = [];
+		public List<string> SdkAnalyzerPackageReferences = [];
 		public List<string> SdkAnalyzerConfigPolicy = [];
 		public List<string> Capabilities = [];
 
@@ -775,8 +768,9 @@ public static class CacheFileReader
 
 		public CachedSliceData Build(string projectFilePath)
 		{
-			(ImmutableArray<string> packManagedRefs, ImmutableArray<string> packAnalyzerRefs) = this.ExpandFrameworkPacks();
-			ImmutableArray<string> sdkPackAnalyzerRefs = this.ExpandSdkAnalyzerPacks();
+			ImmutableArray<string> packManagedRefs = this.ExpandFrameworkPacks();
+			ImmutableArray<string> packAnalyzerRefs = this.ExpandSelectedPackAnalyzers(this.FrameworkAnalyzerReferences, isFrameworkPack: true);
+			ImmutableArray<string> sdkPackAnalyzerRefs = this.ExpandSelectedPackAnalyzers(this.SdkAnalyzerPackageReferences, isFrameworkPack: false);
 			ImmutableArray<string> analyzerRefs = packAnalyzerRefs.AddRange(sdkPackAnalyzerRefs);
 
 			return new CachedSliceData
@@ -828,17 +822,16 @@ public static class CacheFileReader
 			return builder.ToImmutable();
 		}
 
-		private (ImmutableArray<string> Managed, ImmutableArray<string> Analyzers) ExpandFrameworkPacks()
+		private ImmutableArray<string> ExpandFrameworkPacks()
 		{
 			if (this.FrameworkPacks.Count == 0)
 			{
-				return ([], []);
+				return [];
 			}
 
 			string? targetFramework = this.GetTargetFramework();
 
 			ImmutableArray<string>.Builder managed = ImmutableArray.CreateBuilder<string>();
-			ImmutableArray<string>.Builder analyzers = ImmutableArray.CreateBuilder<string>();
 
 			// Probe both SDK install and NuGet locations. The writer always emits canonical
 			// pack names (e.g. Microsoft.NETCore.App.Ref) here regardless of where they were
@@ -848,43 +841,49 @@ public static class CacheFileReader
 				packName => this.resolver.FindRefPackDirectory(packName, targetFramework)
 					?? this.resolver.FindNuGetFrameworkPackDirectory(packName, targetFramework),
 				managed,
-				analyzers,
 				this.cancellationToken);
 
-			return (managed.ToImmutable(), analyzers.ToImmutable());
+			return managed.ToImmutable();
 		}
 
-		private ImmutableArray<string> ExpandSdkAnalyzerPacks()
+		private ImmutableArray<string> ExpandSelectedPackAnalyzers(List<string> lines, bool isFrameworkPack)
 		{
-			if (this.SdkAnalyzerPacks.Count == 0)
-			{
-				return [];
-			}
-
 			string? targetFramework = this.GetTargetFramework();
-
 			ImmutableArray<string>.Builder analyzerRefs = ImmutableArray.CreateBuilder<string>();
-			foreach (string packageId in this.SdkAnalyzerPacks)
+			Dictionary<string, string?> packDirectories = new(StringComparer.OrdinalIgnoreCase);
+			foreach ((string selection, Dictionary<string, string>? _) in ExpandCompressedPaths(lines, this.cancellationToken))
 			{
-				if (string.IsNullOrWhiteSpace(packageId)) continue;
-				string? packageDir = this.resolver.FindSdkAnalyzerPackDirectory(packageId, targetFramework);
-				if (packageDir is null) continue;
-
-				string analyzerDir = Path.Join(packageDir, "analyzers", "dotnet", "cs");
-				if (!Directory.Exists(analyzerDir)) continue;
-
-				List<string> analyzerPaths = [];
-				foreach (string analyzerPath in Directory.EnumerateFiles(analyzerDir, "*.dll", SearchOption.AllDirectories))
+				this.cancellationToken.ThrowIfCancellationRequested();
+				int separator = selection.IndexOf('/');
+				if (separator <= 0
+					|| !selection.AsSpan(separator + 1).StartsWith("analyzers/", StringComparison.OrdinalIgnoreCase)
+					|| selection.IndexOfAny(['\\', ':']) >= 0
+					|| selection.Split('/').Any(static part => part is "" or "." or ".."))
 				{
-					this.cancellationToken.ThrowIfCancellationRequested();
-					analyzerPaths.Add(analyzerPath);
+					System.Diagnostics.Trace.TraceWarning("[lscache] Invalid pack analyzer selection: {0}", selection);
+					continue;
 				}
 
-				analyzerPaths.Sort(StringComparer.OrdinalIgnoreCase);
-				foreach (string analyzerPath in analyzerPaths)
+				string packName = selection[..separator];
+				if (!packDirectories.TryGetValue(packName, out string? packDirectory))
 				{
-					analyzerRefs.Add(this.Pool(analyzerPath));
+					packDirectory = isFrameworkPack
+						? this.resolver.FindRefPackDirectory(packName, targetFramework)
+							?? this.resolver.FindNuGetFrameworkPackDirectory(packName, targetFramework)
+						: this.resolver.FindSdkAnalyzerPackDirectory(packName, targetFramework);
+					packDirectories.Add(packName, packDirectory);
 				}
+				if (packDirectory is null)
+					continue;
+
+				string analyzerPath = Path.Join(packDirectory, selection[(separator + 1)..].Replace('/', Path.DirectorySeparatorChar));
+				if (!File.Exists(analyzerPath))
+				{
+					System.Diagnostics.Trace.TraceWarning("[lscache] Selected pack analyzer is missing: {0}", analyzerPath);
+					continue;
+				}
+
+				analyzerRefs.Add(this.Pool(analyzerPath));
 			}
 
 			return analyzerRefs.ToImmutable();
@@ -894,7 +893,6 @@ public static class CacheFileReader
 			List<string> packNames,
 			Func<string, string?> resolvePackDirectory,
 			ImmutableArray<string>.Builder managed,
-			ImmutableArray<string>.Builder analyzers,
 			CancellationToken cancellationToken)
 		{
 			foreach (string packName in packNames)
@@ -906,7 +904,6 @@ public static class CacheFileReader
 
 				FrameworkListExpander.ExpansionResult result = FrameworkListExpander.Expand(packDir, cancellationToken);
 				managed.AddRange(result.ManagedAssemblyPaths);
-				analyzers.AddRange(result.AnalyzerCsPaths);
 			}
 		}
 
@@ -995,16 +992,10 @@ public static class CacheFileReader
 				return explicitRefs;
 			}
 
-			// NuGet-wins conflict resolution: skip any framework analyzer whose filename
-			// collides with an explicit entry. The cache file holds no exclusion list.
-			HashSet<string> explicitBasenames = BuildBasenameSet(explicitRefs);
-
 			ImmutableArray<string>.Builder result = ImmutableArray.CreateBuilder<string>(explicitRefs.Length + packAnalyzerRefs.Length);
 			result.AddRange(explicitRefs);
 			foreach (string packRef in packAnalyzerRefs)
 			{
-				string filename = Path.GetFileName(packRef);
-				if (explicitBasenames.Contains(filename)) continue;
 				result.Add(this.Pool(packRef));
 			}
 			return result.ToImmutable();
@@ -1192,16 +1183,6 @@ public static class CacheFileReader
 				});
 			}
 			return result.ToImmutable();
-		}
-
-		private static HashSet<string> BuildBasenameSet(ImmutableArray<string> paths)
-		{
-			HashSet<string> set = new(StringComparer.OrdinalIgnoreCase);
-			foreach (string p in paths)
-			{
-				set.Add(Path.GetFileName(p));
-			}
-			return set;
 		}
 
 		private ImmutableArray<CachedEmbeddedResource> BuildEmbeddedResources()
