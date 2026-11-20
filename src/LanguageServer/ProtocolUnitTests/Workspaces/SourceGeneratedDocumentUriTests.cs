@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -21,28 +22,46 @@ public sealed class SourceGeneratedDocumentUrisTests : AbstractLanguageServerPro
     public void SchemeComparisonIsCaseInsensitive()
         => Assert.True(ProtocolConversions.IsSourceGeneratedScheme(SourceGeneratedDocumentUri.Scheme.ToUpperInvariant()));
 
-    [Fact]
-    public async Task UrisRoundTrip()
+    [Theory]
+    [InlineData("Generated.cs", null)]
+    [InlineData("Generated.cs", @"C:\Generators\Generator.dll")]
+    [InlineData("Hint Name.cs", "Generator Path.dll")]
+    [InlineData("Hint&Name.cs", "Generator&Path.dll")]
+    [InlineData("Hint+Name.cs", "Generator+Path.dll")]
+    [InlineData("Hint=Name.cs", "Generator=Path.dll")]
+    [InlineData("Hint#Name.cs", "Generator#Path.dll")]
+    [InlineData("Hint%26Name.cs", "Generator%2BPath.dll")]
+    [InlineData("Hint%Name.cs", "Generator%Path.dll")]
+    [InlineData("Hint\u00e9\u4e2d.cs", "Generator\u00e9\u4e2d.dll")]
+    public async Task UrisRoundTrip(string hintName, string? assemblyPath)
     {
         await using var testLspServer = await CreateTestLspServerAsync("", false);
 
         // Create up an identity to test with; we'll use the real project ID since we implicitly look for that when deserializing to get the
         // project's debug name, but everything else we'll generate here to ensure we don't assume it exists during deserialization.
-        const string HintName = "Hint&Name.cs";
+        var generatedDocumentId = DocumentId.CreateFromSerialized(testLspServer.TestWorkspace.Projects.Single().Id, Guid.NewGuid(), isSourceGenerated: true, debugName: hintName);
 
-        var generatedDocumentId = DocumentId.CreateFromSerialized(testLspServer.TestWorkspace.Projects.Single().Id, Guid.NewGuid(), isSourceGenerated: true, debugName: HintName);
-
-        var identity = new SourceGeneratedDocumentIdentity(generatedDocumentId, HintName,
-            new SourceGeneratorIdentity("GeneratorAssembly", "Generator+Path.dll", new Version(1, 0), "GeneratorType+Nested"), HintName);
+        var identity = new SourceGeneratedDocumentIdentity(generatedDocumentId, hintName,
+            new SourceGeneratorIdentity("Generator" + hintName, assemblyPath, new Version(1, 0), "GeneratorType+Nested" + hintName), hintName);
 
         var uri = SourceGeneratedDocumentUri.Create(identity);
-        Assert.Equal(SourceGeneratedDocumentUri.Scheme, uri.GetRequiredParsedUri().Scheme);
-        var deserialized = SourceGeneratedDocumentUri.DeserializeIdentity(testLspServer.TestWorkspace.CurrentSolution, uri.GetRequiredParsedUri());
+        var parsedUri = ParsedUri.Parse(uri.UriString);
+        Assert.Equal(SourceGeneratedDocumentUri.Scheme, parsedUri.Scheme);
+        Assert.Equal("/" + hintName, parsedUri.Path);
 
-        Assert.NotNull(deserialized);
-        Assert.Equal(identity, deserialized.Value);
+        AssertRoundTrip(parsedUri);
 
-        // Debug name is not considered as a the usual part of equality, but we want to ensure we pass this through too
-        Assert.Equal(generatedDocumentId.DebugName, deserialized.Value.DocumentId.DebugName);
+        // The new client parses the server URI and serializes it with vscode-uri's default encoding.
+        AssertRoundTrip(ParsedUri.Parse(parsedUri.ToString(skipEncoding: false)));
+
+        void AssertRoundTrip(ParsedUri documentUri)
+        {
+            var deserialized = SourceGeneratedDocumentUri.DeserializeIdentity(testLspServer.TestWorkspace.CurrentSolution, documentUri);
+            Assert.NotNull(deserialized);
+            Assert.Equal(identity, deserialized.Value);
+
+            // Debug name is not considered as a usual part of equality.
+            Assert.Equal(generatedDocumentId.DebugName, deserialized.Value.DocumentId.DebugName);
+        }
     }
 }
