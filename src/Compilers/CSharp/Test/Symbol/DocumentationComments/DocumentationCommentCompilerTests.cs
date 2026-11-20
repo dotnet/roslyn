@@ -9076,5 +9076,53 @@ record Rec(string Item)
 </doc>";
             AssertEx.Equal(expected, actual);
         }
+
+        [Fact]
+        [WorkItem(27150, "https://github.com/dotnet/roslyn/issues/27150")]
+        public void CDataInCodeElementPreservesAuthoredIndentation()
+        {
+            var source = """
+                /// <summary>This is the Summary</summary>
+                /// <example>
+                /// <code language="c#">
+                /// <![CDATA[
+                /// // No Indent
+                ///     // four spaces
+                ///         // eight spaces
+                /// ]]>
+                /// </code>
+                /// </example>
+                public class C
+                {
+                }
+                """;
+
+            var comp = CreateCompilationUtil(source);
+            var actual = GetDocumentationCommentText(comp).NormalizeLineEndings();
+            var expected = """
+                <?xml version="1.0"?>
+                <doc>
+                    <assembly>
+                        <name>Test</name>
+                    </assembly>
+                    <members>
+                        <member name="T:C">
+                            <summary>This is the Summary</summary>
+                            <example>
+                            <code language="c#">
+                            <![CDATA[
+                // No Indent
+                    // four spaces
+                        // eight spaces
+                ]]>
+                            </code>
+                            </example>
+                        </member>
+                    </members>
+                </doc>
+                """.NormalizeLineEndings();
+
+            AssertEx.Equal(expected, actual);
+        }
     }
 }
