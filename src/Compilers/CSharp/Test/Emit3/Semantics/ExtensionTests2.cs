@@ -42216,6 +42216,99 @@ extension<T>(T)
         AssertEx.Equal("void <G>$8048A6C8BE30A622530249B904B537EB<System.Object>.M()", reduced.ToTestDisplayString());
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86458")]
+    [InlineData("T2 : T1", "C1", "C2")]
+    [InlineData("T1 : T2", "C2", "C1")]
+    public void ReduceExtensionMember_15_MethodGroup_PartiallyInferred_WithConstraints(string constraint, string receiverType, string argumentType)
+    {
+        var src = $$"""
+using System;
+
+var r = new {{receiverType}}();
+Action<{{argumentType}}> a = r.M1;
+Action<{{argumentType}}> b = r.M2;
+a(new {{argumentType}}());
+b(new {{argumentType}}());
+r.M1(new {{argumentType}}());
+r.M2(new {{argumentType}}());
+
+static class Extensions
+{
+    public static void M1<T1, T2>(this T1 t, T2 x) where {{constraint}}
+        => Console.Write("1");
+
+    extension<T1, T2>(T1 t) where {{constraint}}
+    {
+        public void M2(T2 x) => Console.Write("2");
+    }
+}
+
+class C1;
+class C2 : C1;
+""";
+        CompileAndVerify(src, expectedOutput: "1212").VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "1212", parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CompileAndVerify(src, expectedOutput: "1212", parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86458")]
+    public void ReduceExtensionMember_16_PartiallyInferred_WithConstraints()
+    {
+        var src = """
+public static class Extensions
+{
+    extension<T1, T2>(T1 t) where T1 : class where T2 : T1
+    {
+        public void M(T2 x) { }
+    }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+
+        var extension = comp.GlobalNamespace.GetTypeMember("Extensions").GetTypeMembers().Single();
+        var method = extension.GetMember<MethodSymbol>("M").GetPublicSymbol();
+        var reduced = method.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_String).GetPublicSymbol());
+        var displayOptions = SymbolDisplayFormat.TestFormat.WithCompilerInternalOptions(SymbolDisplayCompilerInternalOptions.None);
+        AssertEx.Equal("void Extensions.extension<System.String, T2>(System.String).M(T2 x)", reduced.ToDisplayString(displayOptions));
+        Assert.Null(method.ReduceExtensionMember(comp.GetSpecialType(SpecialType.System_Int32).GetPublicSymbol()));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86458")]
+    [InlineData("T2 : T1")]
+    [InlineData("T1 : T2")]
+    public void ReduceExtensionMember_17_MethodGroup_PartiallyInferred_WithConstraints(string constraint)
+    {
+        var src = $$"""
+using System;
+
+var r = new C1();
+Action<C2> a = r.M1;
+Action<C2> b = r.M2;
+
+static class Extensions
+{
+    public static void M1<T1, T2>(this T1 t, T2 x) where {{constraint}} { }
+
+    extension<T1, T2>(T1 t) where {{constraint}}
+    {
+        public void M2(T2 x) { }
+    }
+}
+
+class C1;
+class C2;
+""";
+        CreateCompilation(src).VerifyEmitDiagnostics(
+            // (4,16): error CS0411: The type arguments for method 'Extensions.M1<T1, T2>(T1, T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // Action<C2> a = r.M1;
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "r.M1").WithArguments("Extensions.M1<T1, T2>(T1, T2)").WithLocation(4, 16),
+            // (5,16): error CS0411: The type arguments for method 'Extensions.extension<T1, T2>(T1).M2(T2)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            // Action<C2> b = r.M2;
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "r.M2").WithArguments("Extensions.extension<T1, T2>(T1).M2(T2)").WithLocation(5, 16)
+            );
+    }
+
     [Fact]
     public void ReportDiagnostics_01()
     {
