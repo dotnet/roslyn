@@ -114,6 +114,29 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             return This;
         }
 
+        /// <summary>
+        /// Replaces the compilation of the last generation with a new compilation of the same source without emitting a delta.
+        /// Simulates a solution snapshot moving forward without any changes to the project (e.g. when a dependency is updated),
+        /// so that old symbols of the next generation's edits belong to a compilation newer than the baseline compilation.
+        /// </summary>
+        internal TSelf AddCompilationWithoutDelta()
+        {
+            Assert.NotEmpty(_generations);
+
+            var previousGeneration = _generations[^1];
+            var compilation = previousGeneration.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(previousGeneration.Compilation.SyntaxTrees);
+
+            _generations[^1] = new GenerationInfo(
+                compilation,
+                previousGeneration.MetadataReader,
+                previousGeneration.CompilationDifference,
+                previousGeneration.CompilationVerifier,
+                previousGeneration.Baseline,
+                previousGeneration.Verifier);
+
+            return This;
+        }
+
         internal TSelf Verify()
         {
             _hasVerified = true;
