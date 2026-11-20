@@ -48,6 +48,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="UIAutomationProvider" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" /> 

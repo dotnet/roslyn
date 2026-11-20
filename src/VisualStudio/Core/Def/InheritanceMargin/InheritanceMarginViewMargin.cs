@@ -110,12 +110,16 @@ internal sealed class InheritanceMarginViewMargin : IWpfTextViewMargin
         _glyphManager.SetSnapshotAndUpdate(
             _textView.TextSnapshot,
             e.NewOrReformattedLines,
-            e.VerticalTranslation ? _textView.TextViewLines : e.TranslatedLines);
+            e.VerticalTranslation || e.OldViewState.ViewportHeight != e.NewViewState.ViewportHeight
+                ? _textView.TextViewLines
+                : e.TranslatedLines);
 
         IList<ITextViewLine> lines = _refreshAllGlyphs ? _textView.TextViewLines : e.NewOrReformattedLines;
         foreach (var line in lines)
         {
-            _glyphManager.RemoveGlyphs(line.Extent);
+            if (_refreshAllGlyphs)
+                _glyphManager.RemoveGlyphs(line.Extent);
+
             RefreshGlyphsOver(line);
         }
 
