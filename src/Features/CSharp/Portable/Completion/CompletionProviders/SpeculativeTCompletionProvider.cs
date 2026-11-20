@@ -69,6 +69,13 @@ internal sealed class SpeculativeTCompletionProvider : LSPCompletionProvider
             return false;
         }
 
+        // Case-insensitive clients may otherwise rank the synthetic `T` first when the user types lowercase `t`.
+        if (completionContext.CompletionListSpan is { Length: > 0 } completionListSpan &&
+            syntaxTree.GetText(cancellationToken)[completionListSpan.Start] == 't')
+        {
+            return false;
+        }
+
         var context = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
 
         if (context.IsTaskLikeTypeContext)
