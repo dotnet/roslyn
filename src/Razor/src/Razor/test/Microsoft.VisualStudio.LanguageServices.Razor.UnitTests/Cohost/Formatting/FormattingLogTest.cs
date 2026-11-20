@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
@@ -143,8 +144,19 @@ public partial class FormattingLogTest(ITestOutputHelper testOutput) : DocumentF
         {
         }
 
-        var legacyOptions = JsonSerializer.Deserialize<LegacyRazorFormattingOptions>(optionsFile, JsonHelpers.JsonSerializerOptions);
+        // This test-only compatibility model isn't part of the current Razor wire contracts.
+        var legacySerializerOptions = new JsonSerializerOptions(JsonHelpers.JsonSerializerOptions);
+        legacySerializerOptions.TypeInfoResolverChain.Insert(0, new LegacyFormattingLogTypeInfoResolver());
+        var legacyOptions = JsonSerializer.Deserialize<LegacyRazorFormattingOptions>(optionsFile, legacySerializerOptions);
         return legacyOptions.ToRazorFormattingOptions();
+    }
+
+    private sealed class LegacyFormattingLogTypeInfoResolver : IJsonTypeInfoResolver
+    {
+        private readonly DefaultJsonTypeInfoResolver _resolver = new();
+
+        public JsonTypeInfo? GetTypeInfo(Type type, JsonSerializerOptions options)
+            => type.DeclaringType == typeof(FormattingLogTest) ? _resolver.GetTypeInfo(type, options) : null;
     }
 
     private static bool HasCSharpSyntaxFormattingOptions(string optionsFile)

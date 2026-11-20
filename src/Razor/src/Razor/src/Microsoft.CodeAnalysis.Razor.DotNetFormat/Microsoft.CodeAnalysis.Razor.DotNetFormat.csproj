@@ -21,6 +21,7 @@
   <ItemGroup>
     <!-- Keep the adapter payload small by compiling the required Razor sources rather than referencing Razor Workspaces. -->
     <Compile Include="..\Microsoft.VisualStudioCode.RazorExtension\ExternalAccess\Razor\RazorAnalyzerAssemblyResolver.cs" Link="RazorAnalyzerAssemblyResolver.cs" />
+    <Compile Include="..\..\..\..\..\LanguageServer\Protocol\Protocol\ReflectionFallbackJsonTypeInfoResolver.cs" Link="ReflectionFallbackJsonTypeInfoResolver.cs" />
     <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
     <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.DotNetFormat.UnitTests" Key="$(RazorKey)" />

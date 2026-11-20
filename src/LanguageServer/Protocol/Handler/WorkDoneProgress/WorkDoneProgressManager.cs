@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -111,6 +111,10 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
         }
     }
 
+    internal record struct ProgressReportType(
+        [property: JsonPropertyName("token")] string Token,
+        [property: JsonPropertyName("value")] WorkDoneProgress Value);
+
     private class WorkDoneProgressReporter : IWorkDoneProgressReporter
     {
         private int _ended = 0;
@@ -212,9 +216,6 @@ class WorkDoneProgressManager(IClientLanguageServerManager clientLanguageServerM
             }
         }
 
-        private record struct ProgressReportType(
-            [property: JsonPropertyName("token")] string Token,
-            [property: JsonPropertyName("value")] WorkDoneProgress Value);
     }
 
     private record struct NoOpProgressReporter(CancellationToken cancellationToken) : IWorkDoneProgressReporter

@@ -299,12 +299,14 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         public void AddSnippetCompletions(ref PooledArrayBuilder<VSInternalCompletionItem> builder, RazorLanguageKind projectedKind, string? triggerCharacter, ICollection<string> validElementNames, RazorCompletionOptions options, bool isStartTagContext)
         {
             Assert.Equal(RazorLanguageKind.Html, projectedKind);
+            var data = new SnippetCompletionData("SnippetPath").ToJsonElement();
+            Assert.Equal("""{"__razor_snippet_path":"SnippetPath"}""", data.GetRawText());
             builder.Add(new VSInternalCompletionItem()
             {
                 Label = "SnippetItem",
                 InsertText = "SnippetItem",
                 InsertTextFormat = InsertTextFormat.Snippet,
-                Data = new SnippetCompletionData("SnippetPath")
+                Data = data
             });
         }
 
@@ -336,7 +338,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
                 InsertText = "table",
                 InsertTextFormat = InsertTextFormat.Snippet,
                 Kind = CompletionItemKind.Snippet,
-                Data = new SnippetCompletionData("TableSnippetPath")
+                Data = new SnippetCompletionData("TableSnippetPath").ToJsonElement()
             });
         }
 

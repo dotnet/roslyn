@@ -3,7 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using System.Reflection;
+using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
@@ -18,6 +22,57 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 /// </summary>
 public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerMefHost(testOutputHelper)
 {
+    [Fact]
+    public void HostProtocolContractsHaveGeneratedMetadata()
+    {
+        var options = LanguageServerHost.CreateJsonMessageFormatter().JsonSerializerOptions;
+        Assert.Same(ReflectionFallbackJsonTypeInfoResolver.Instance, options.TypeInfoResolverChain[options.TypeInfoResolverChain.Count - 1]);
+        options.MakeReadOnly();
+        Assert.Throws<NotSupportedException>(() => options.GetTypeInfo(typeof(ServerInitializationTests)));
+
+        var pending = new Queue<Type>(
+        [
+            typeof(ProjectLoadTelemetryEvent),
+            typeof(ShowToastNotification.ShowToastNotificationParams),
+        ]);
+        foreach (var type in typeof(LanguageServerHost).Assembly.GetTypes())
+        {
+            foreach (var contract in type.GetInterfaces().Where(contract => contract.IsGenericType))
+            {
+                var definition = contract.GetGenericTypeDefinition();
+                if (definition == typeof(IRequestHandler<,,>) || definition == typeof(IRequestHandler<,>) ||
+                    definition == typeof(INotificationHandler<,>))
+                {
+                    foreach (var argument in contract.GenericTypeArguments.Take(contract.GenericTypeArguments.Length - 1))
+                        pending.Enqueue(argument);
+                }
+            }
+        }
+
+        var visited = new HashSet<Type>();
+        var missing = new SortedSet<string>();
+        while (pending.TryDequeue(out var type))
+        {
+            if (type.ContainsGenericParameters || !visited.Add(type))
+                continue;
+
+            if (!options.TryGetTypeInfo(type, out _))
+                missing.Add(type.ToString());
+
+            if (type.HasElementType)
+                pending.Enqueue(type.GetElementType()!);
+            foreach (var argument in type.GenericTypeArguments)
+                pending.Enqueue(argument);
+            foreach (var property in type.GetProperties())
+            {
+                if (property.GetCustomAttribute<JsonPropertyNameAttribute>() is not null)
+                    pending.Enqueue(property.PropertyType);
+            }
+        }
+
+        Assert.True(missing.Count == 0, "Missing generated host metadata:\n" + string.Join("\n", missing));
+    }
+
     [Fact]
     public async Task TestServerHandlesTextSyncRequestsAsync()
     {

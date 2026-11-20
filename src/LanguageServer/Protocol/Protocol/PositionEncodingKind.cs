@@ -16,8 +16,10 @@ using System.Text.Json.Serialization;
 /// </summary>
 [JsonConverter(typeof(StringEnumConverter<PositionEncodingKind>))]
 [TypeConverter(typeof(StringEnumConverter<PositionEncodingKind>.TypeConverter))]
-internal readonly record struct PositionEncodingKind(string Value) : IStringEnum
+internal readonly record struct PositionEncodingKind(string Value) : IStringEnum<PositionEncodingKind>
 {
+    PositionEncodingKind IStringEnum<PositionEncodingKind>.Create(string value) => new(value);
+
     /// <summary>
     /// Character offsets count UTF-8 code units (e.g bytes).
     /// </summary>
