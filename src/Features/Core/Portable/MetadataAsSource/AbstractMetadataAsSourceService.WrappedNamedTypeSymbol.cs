@@ -26,7 +26,10 @@ internal abstract partial class AbstractMetadataAsSourceService
             _symbol = symbol;
 
             var allMembers = _symbol.GetMembers();
+            var extensionImplementationMembers = GetExtensionImplementationMembers(allMembers);
             var filteredMembers = from m in allMembers
+                                  where extensionImplementationMembers.Count == 0 ||
+                                        !extensionImplementationMembers.Contains(m.OriginalDefinition)
                                   where !m.HasUnsupportedMetadata
                                   where m.DeclaredAccessibility is Accessibility.Public or
                                         Accessibility.Protected or
@@ -39,6 +42,39 @@ internal abstract partial class AbstractMetadataAsSourceService
                                   select WrapMember(m, canImplementImplicitly, docCommentFormattingService);
 
             _members = [.. filteredMembers];
+        }
+
+        private static HashSet<ISymbol> GetExtensionImplementationMembers(ImmutableArray<ISymbol> allMembers)
+        {
+            var extensionImplementationMembers = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+
+            foreach (var member in allMembers)
+            {
+                if (member is INamedTypeSymbol { IsExtension: true } extensionType)
+                {
+                    foreach (var extensionMember in extensionType.GetMembers())
+                    {
+                        switch (extensionMember)
+                        {
+                            case IMethodSymbol method:
+                                AddExtensionImplementation(extensionImplementationMembers, method.AssociatedExtensionImplementation);
+                                break;
+                            case IPropertySymbol property:
+                                AddExtensionImplementation(extensionImplementationMembers, property.GetMethod?.AssociatedExtensionImplementation);
+                                AddExtensionImplementation(extensionImplementationMembers, property.SetMethod?.AssociatedExtensionImplementation);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            return extensionImplementationMembers;
+        }
+
+        private static void AddExtensionImplementation(HashSet<ISymbol> extensionImplementationMembers, IMethodSymbol implementation)
+        {
+            if (implementation != null)
+                extensionImplementationMembers.Add(implementation.OriginalDefinition);
         }
 
         private static ISymbol WrapMember(ISymbol m, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService)
