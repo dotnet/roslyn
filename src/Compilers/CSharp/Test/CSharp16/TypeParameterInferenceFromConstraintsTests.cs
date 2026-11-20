@@ -1918,7 +1918,6 @@ static void M<T, U>(T t, (int, Func<T, U>) fs, U y)
 }
 """;
 
-
             string expected = """
 System.Int32
 System.Object
