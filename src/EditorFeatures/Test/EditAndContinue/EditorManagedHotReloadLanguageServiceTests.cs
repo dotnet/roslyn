@@ -435,8 +435,11 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             };
         };
 
+        var projectFilePath = project.FilePath;
+        Assert.NotNull(projectFilePath);
+
         var runningProjectInfo = new DebuggerContracts.RunningProjectInfo(
-            new DebuggerContracts.ProjectInstanceId(project.FilePath, "net10.0"),
+            new DebuggerContracts.ProjectInstanceId(projectFilePath, "net10.0"),
             restartAutomatically: false);
 
         var updates = await localService.GetUpdatesAsync([runningProjectInfo], CancellationToken.None);
