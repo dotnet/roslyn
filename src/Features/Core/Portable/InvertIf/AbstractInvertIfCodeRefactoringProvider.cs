@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InvertIf;
@@ -49,7 +50,16 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
 
     protected abstract string GetTitle();
 
-    protected abstract SyntaxList<TStatementSyntax> GetStatements(SyntaxNode node);
+    /// <summary>
+    /// Returns the statements of a node for which <see cref="IsStatementContainer"/> returns <see langword="true"/>.
+    /// </summary>
+    protected abstract IReadOnlyList<TStatementSyntax> GetStatements(SyntaxNode node);
+
+    /// <summary>
+    /// Returns the node whose <see cref="GetStatements"/> contains <paramref name="statement"/>.
+    /// </summary>
+    protected abstract SyntaxNode GetStatementContainer(TStatementSyntax statement);
+
     protected abstract TStatementSyntax? GetNextStatement(TStatementSyntax node);
 
     protected abstract TStatementSyntax GetJumpStatement(TSyntaxKind kind);
@@ -459,12 +469,12 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
         singleExitPoint = flow.ExitPoints.Length == 1 ? flow.ExitPoints[0] : null;
     }
 
-    private static bool SubsequentStatementsAreInTheSameBlock(
+    private bool SubsequentStatementsAreInTheSameBlock(
         TIfStatementSyntax ifNode,
         ImmutableArray<StatementRange> subsequentStatementRanges)
     {
         return subsequentStatementRanges.Length == 1 &&
-               ifNode.Parent == subsequentStatementRanges[0].Parent;
+               GetStatementContainer(ifNode) == GetStatementContainer(subsequentStatementRanges[0].FirstStatement);
     }
 
     private TSyntaxKind GetNearestParentJumpStatementKind(SyntaxNode ifNode)
@@ -483,7 +493,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
     {
         if (!statementRange.IsEmpty)
         {
-            var parent = statementRange.Parent;
+            var parent = GetStatementContainer(statementRange.FirstStatement);
             if (!IsStatementContainer(parent))
             {
                 Debug.Assert(statementRange.FirstStatement == statementRange.LastStatement);
@@ -514,7 +524,10 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
         {
             var nextStatement = GetNextStatement(innerStatement);
             if (nextStatement != null && IsStatementContainer(node))
+            {
+                Debug.Assert(GetStatementContainer(nextStatement) == node);
                 builder.Add(new StatementRange(nextStatement, GetStatements(node).Last()));
+            }
 
             if (!CanControlFlowOut(node))
             {
@@ -578,7 +591,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
 
             case InvertIfStyle.IfWithoutElse_SwapIfBodyWithSubsequentStatements:
                 {
-                    var currentParent = ifNode.GetRequiredParent();
+                    var currentParent = GetStatementContainer(ifNode);
                     var statements = GetStatements(currentParent);
                     var index = statements.IndexOf(ifNode);
 
@@ -621,7 +634,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
 
             case InvertIfStyle.IfWithoutElse_WithNearmostJumpStatement:
                 {
-                    var currentParent = ifNode.GetRequiredParent();
+                    var currentParent = GetStatementContainer(ifNode);
                     var statements = GetStatements(currentParent);
                     var index = statements.IndexOf(ifNode);
 
@@ -647,7 +660,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                 {
                     Debug.Assert(subsequentSingleExitPoint is TStatementSyntax);
 
-                    var currentParent = ifNode.GetRequiredParent();
+                    var currentParent = GetStatementContainer(ifNode);
                     var statements = GetStatements(currentParent);
                     var index = statements.IndexOf(ifNode);
 
@@ -671,7 +684,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
 
             case InvertIfStyle.IfWithoutElse_MoveSubsequentStatementsToIfBody:
                 {
-                    var currentParent = ifNode.GetRequiredParent();
+                    var currentParent = GetStatementContainer(ifNode);
                     var statements = GetStatements(currentParent);
                     var index = statements.IndexOf(ifNode);
 
@@ -704,7 +717,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
 
             case InvertIfStyle.IfWithoutElse_WithElseClause:
                 {
-                    var currentParent = ifNode.GetRequiredParent();
+                    var currentParent = GetStatementContainer(ifNode);
                     var statements = GetStatements(currentParent);
                     var index = statements.IndexOf(ifNode);
 
