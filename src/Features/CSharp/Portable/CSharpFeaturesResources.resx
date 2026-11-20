@@ -641,4 +641,568 @@
   <data name="unsafe_block" xml:space="preserve">
     <value>unsafe block</value>
   </data>
+  <data name="Format_example_heading" xml:space="preserve">
+    <value>Example</value>
+    <comment>A heading above a generated sample or an omitted preview.</comment>
+  </data>
+  <data name="Format_preview_heading" xml:space="preserve">
+    <value>Preview</value>
+    <comment>A heading above formatted output from a statically resolved value.</comment>
+  </data>
+  <data name="Format_0_for_1" xml:space="preserve">
+    <value>{1} format "{0}"</value>
+    <comment>A heading that labels the type and format string.</comment>
+  </data>
+  <data name="Microsoft_Learn_format_strings" xml:space="preserve">
+    <value>Microsoft Learn: format strings</value>
+    <comment>A link label for the official format documentation.</comment>
+  </data>
+  <data name="Format_example_omitted" xml:space="preserve">
+    <value>Example omitted: the requested output is too large for a hover preview.</value>
+    <comment>UI text when a valid format requests an output that is too large for a hover.</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0042" xml:space="preserve">
+    <value>A binary string.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"B\" or \"b\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0042" xml:space="preserve">
+    <value>Number of digits in the result string.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"B\" or \"b\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_support_u0042" xml:space="preserve">
+    <value>Integral types only (.NET 8+).</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"B\" or \"b\"", "column": "Description", "field": "Supported by"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0043" xml:space="preserve">
+    <value>A currency value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"C\" or \"c\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0043" xml:space="preserve">
+    <value>Number of decimal digits.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"C\" or \"c\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0044" xml:space="preserve">
+    <value>Integer digits with optional negative sign.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"D\" or \"d\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0044" xml:space="preserve">
+    <value>Minimum number of digits.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"D\" or \"d\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0045" xml:space="preserve">
+    <value>Exponential notation.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\"E\" or \"e\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0045" xml:space="preserve">
+    <value>Number of decimal digits.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\"E\" or \"e\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0046" xml:space="preserve">
+    <value>Integral and decimal digits with optional negative sign.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"F\" or \"f\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0046" xml:space="preserve">
+    <value>Number of decimal digits.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"F\" or \"f\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0047" xml:space="preserve">
+    <value>The more compact of either fixed-point or scientific notation.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"G\" or \"g\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0047" xml:space="preserve">
+    <value>Number of significant digits.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"G\" or \"g\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u004E" xml:space="preserve">
+    <value>Integral and decimal digits, group separators, and a decimal separator with optional negative sign.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"N\" or \"n\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u004E" xml:space="preserve">
+    <value>Desired number of decimal places.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"N\" or \"n\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0050" xml:space="preserve">
+    <value>Number multiplied by 100 and displayed with a percent symbol.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"P\" or \"p\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0050" xml:space="preserve">
+    <value>Desired number of decimal places.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"P\" or \"p\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0052" xml:space="preserve">
+    <value>A string that can round-trip to an identical number.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "\"R\" or \"r\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0052" xml:space="preserve">
+    <value>Ignored.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "\"R\" or \"r\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_standard_u0058" xml:space="preserve">
+    <value>A hexadecimal string.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "\"X\" or \"x\"", "column": "Description", "field": "Result"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_precision_u0058" xml:space="preserve">
+    <value>Number of digits in the result string.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "\"X\" or \"x\"", "column": "Description", "field": "Precision specifier"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u0030" xml:space="preserve">
+    <value>Replaces the zero with the corresponding digit if one is present; otherwise, zero appears in the result string.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"0\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u0023" xml:space="preserve">
+    <value>Replaces the "#" symbol with the corresponding digit if one is present; otherwise, no digit appears in the result string. Note that no digit appears in the result string if the corresponding digit in the input string is a non-significant 0. For example, 0003 ("####") -&gt; 3.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"#\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u002E" xml:space="preserve">
+    <value>Determines the location of the decimal separator in the result string.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\".\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u002C" xml:space="preserve">
+    <value>Serves as both a group separator and a number scaling specifier. As a group separator, it inserts a localized group separator character between each group. As a number scaling specifier, it divides a number by 1000 for each comma specified.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\",\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u0025" xml:space="preserve">
+    <value>Multiplies a number by 100 and inserts a localized percentage symbol in the result string.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"%\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u2030" xml:space="preserve">
+    <value>Multiplies a number by 1000 and inserts a localized per mille symbol in the result string.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"‰\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u0045_u0030" xml:space="preserve">
+    <value>If followed by at least one 0 (zero), formats the result using exponential notation. The case of "E" or "e" indicates the case of the exponent symbol in the result string. The number of zeros following the "E" or "e" character determines the minimum number of digits in the exponent. A plus sign (+) indicates that a sign character always precedes the exponent. A minus sign (-) indicates that a sign character precedes only negative exponents.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"E0\"&lt;br /&gt;&lt;br /&gt; \"E+0\"&lt;br /&gt;&lt;br /&gt; \"E-0\"&lt;br /&gt;&lt;br /&gt; \"e0\"&lt;br /&gt;&lt;br /&gt; \"e+0\"&lt;br /&gt;&lt;br /&gt; \"e-0\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u0065_u0073_u0063_u0061_u0070_u0065" xml:space="preserve">
+    <value>Causes the next character to be interpreted as a literal rather than as a custom format specifier.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"\\\\\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u0071_u0075_u006F_u0074_u0065_u0064" xml:space="preserve">
+    <value>Indicates that the enclosed characters should be copied to the result string unchanged.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "'*string*'&lt;br /&gt;&lt;br /&gt; \"*string*\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u003B" xml:space="preserve">
+    <value>Defines sections with separate format strings for positive, negative, and zero numbers.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 9, "specifier": ";", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C" xml:space="preserve">
+    <value>The character is copied to the result string unchanged.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 10, "specifier": "Other", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0064" xml:space="preserve">
+    <value>Short date pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"d\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0044" xml:space="preserve">
+    <value>Long date pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"D\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0066" xml:space="preserve">
+    <value>Full date/time pattern (short time).</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"f\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0046" xml:space="preserve">
+    <value>Full date/time pattern (long time).</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\"F\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0067" xml:space="preserve">
+    <value>General date/time pattern (short time).</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"g\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0047" xml:space="preserve">
+    <value>General date/time pattern (long time).</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"G\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u004D" xml:space="preserve">
+    <value>Month/day pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"M\", \"m\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u004F" xml:space="preserve">
+    <value>round-trip date/time pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"O\", \"o\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0052" xml:space="preserve">
+    <value>RFC1123 pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "\"R\", \"r\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0073" xml:space="preserve">
+    <value>Sortable date/time pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "\"s\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0074" xml:space="preserve">
+    <value>Short time pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 10, "specifier": "\"t\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0054" xml:space="preserve">
+    <value>Long time pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 11, "specifier": "\"T\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0075" xml:space="preserve">
+    <value>Universal sortable date/time pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 12, "specifier": "\"u\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0055" xml:space="preserve">
+    <value>Universal full date/time pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 13, "specifier": "\"U\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_standard_u0059" xml:space="preserve">
+    <value>Year month pattern.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 14, "specifier": "\"Y\", \"y\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0064" xml:space="preserve">
+    <value>The day of the month, from 1 to 31.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"d\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0064_u0064" xml:space="preserve">
+    <value>The day of the month, from 01 to 31.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"dd\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0064_u0064_u0064" xml:space="preserve">
+    <value>The abbreviated name of the day of the week.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"ddd\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0064_u0064_u0064_u0064" xml:space="preserve">
+    <value>The full name of the day of the week.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\"dddd\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0066" xml:space="preserve">
+    <value>The tenths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"f\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0066_u0066" xml:space="preserve">
+    <value>The hundredths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"ff\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0066_u0066_u0066" xml:space="preserve">
+    <value>The milliseconds in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"fff\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0066_u0066_u0066_u0066" xml:space="preserve">
+    <value>The ten thousandths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"ffff\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066" xml:space="preserve">
+    <value>The hundred thousandths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "\"fffff\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066_u0066" xml:space="preserve">
+    <value>The millionths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "\"ffffff\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066_u0066_u0066" xml:space="preserve">
+    <value>The ten millionths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 10, "specifier": "\"fffffff\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0046" xml:space="preserve">
+    <value>If non-zero, the tenths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 11, "specifier": "\"F\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0046_u0046" xml:space="preserve">
+    <value>If non-zero, the hundredths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 12, "specifier": "\"FF\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0046_u0046_u0046" xml:space="preserve">
+    <value>If non-zero, the milliseconds in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 13, "specifier": "\"FFF\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0046_u0046_u0046_u0046" xml:space="preserve">
+    <value>If non-zero, the ten thousandths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 14, "specifier": "\"FFFF\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046" xml:space="preserve">
+    <value>If non-zero, the hundred thousandths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 15, "specifier": "\"FFFFF\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046_u0046" xml:space="preserve">
+    <value>If non-zero, the millionths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 16, "specifier": "\"FFFFFF\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046_u0046_u0046" xml:space="preserve">
+    <value>If non-zero, the ten millionths of a second in a date and time value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 17, "specifier": "\"FFFFFFF\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0067" xml:space="preserve">
+    <value>The period or era.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 18, "specifier": "\"g\", \"gg\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0068" xml:space="preserve">
+    <value>The hour, using a 12-hour clock from 1 to 12.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 19, "specifier": "\"h\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0068_u0068" xml:space="preserve">
+    <value>The hour, using a 12-hour clock from 01 to 12.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 20, "specifier": "\"hh\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0048" xml:space="preserve">
+    <value>The hour, using a 24-hour clock from 0 to 23.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 21, "specifier": "\"H\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0048_u0048" xml:space="preserve">
+    <value>The hour, using a 24-hour clock from 00 to 23.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 22, "specifier": "\"HH\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u004B" xml:space="preserve">
+    <value>Time zone information.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 23, "specifier": "\"K\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u006D" xml:space="preserve">
+    <value>The minute, from 0 to 59.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 24, "specifier": "\"m\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u006D_u006D" xml:space="preserve">
+    <value>The minute, from 00 to 59.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 25, "specifier": "\"mm\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u004D" xml:space="preserve">
+    <value>The month, from 1 to 12.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 26, "specifier": "\"M\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u004D_u004D" xml:space="preserve">
+    <value>The month, from 01 to 12.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 27, "specifier": "\"MM\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u004D_u004D_u004D" xml:space="preserve">
+    <value>The abbreviated name of the month. When used with "d" or "dd" specifiers, uses genitive names, except with .NET Framework. (This is known issue that's fixed in .NET.)</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 28, "specifier": "\"MMM\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u004D_u004D_u004D_u004D" xml:space="preserve">
+    <value>The full name of the month. When used with "d" or "dd" specifiers, uses genitive names.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 29, "specifier": "\"MMMM\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0073" xml:space="preserve">
+    <value>The second, from 0 to 59.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 30, "specifier": "\"s\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0073_u0073" xml:space="preserve">
+    <value>The second, from 00 to 59.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 31, "specifier": "\"ss\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0074" xml:space="preserve">
+    <value>The first character of the AM/PM designator.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 32, "specifier": "\"t\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0074_u0074" xml:space="preserve">
+    <value>The AM/PM designator.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 33, "specifier": "\"tt\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0079" xml:space="preserve">
+    <value>The year, from 0 to 99.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 34, "specifier": "\"y\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0079_u0079" xml:space="preserve">
+    <value>The year, from 00 to 99.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 35, "specifier": "\"yy\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0079_u0079_u0079" xml:space="preserve">
+    <value>The year, with a minimum of three digits.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 36, "specifier": "\"yyy\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0079_u0079_u0079_u0079" xml:space="preserve">
+    <value>The year as a four-digit number.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 37, "specifier": "\"yyyy\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0079_u0079_u0079_u0079_u0079" xml:space="preserve">
+    <value>The year as a five-digit number.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 38, "specifier": "\"yyyyy\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u007A" xml:space="preserve">
+    <value>Hours offset from UTC, with no leading zeros.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 39, "specifier": "\"z\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u007A_u007A" xml:space="preserve">
+    <value>Hours offset from UTC, with a leading zero for a single-digit value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 40, "specifier": "\"zz\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u007A_u007A_u007A" xml:space="preserve">
+    <value>Hours and minutes offset from UTC.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 41, "specifier": "\"zzz\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u003A" xml:space="preserve">
+    <value>The time separator.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 42, "specifier": "\":\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u002F" xml:space="preserve">
+    <value>The date separator.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 43, "specifier": "\"/\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0071_u0075_u006F_u0074_u0065_u0064" xml:space="preserve">
+    <value>Literal string delimiter.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 44, "specifier": "\"*string*\"&lt;br /&gt;&lt;br /&gt; '*string*'", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0025" xml:space="preserve">
+    <value>Defines the following character as a custom format specifier.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 45, "specifier": "%", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0065_u0073_u0063_u0061_u0070_u0065" xml:space="preserve">
+    <value>The escape character.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 46, "specifier": "&amp;#92;", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C" xml:space="preserve">
+    <value>The character is copied to the result string unchanged.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 47, "specifier": "Any other character", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_standard_u0063" xml:space="preserve">
+    <value>This specifier is not culture-sensitive. It takes the form [-][d'.']hh':'mm':'ss['.'fffffff]. (The "t" and "T" format strings produce the same results.)</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"c\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_standard_u0067" xml:space="preserve">
+    <value>This specifier outputs only what is needed. It is culture-sensitive and takes the form [-][d':']h':'mm':'ss[.FFFFFFF].</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"g\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_standard_u0047" xml:space="preserve">
+    <value>This specifier always outputs days and seven fractional digits. It is culture-sensitive and takes the form [-]d':'hh':'mm':'ss.fffffff.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"G\"", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0064" xml:space="preserve">
+    <value>The number of whole days in the time interval.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "`\"d\"`, `\"%d\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0064_u0064" xml:space="preserve">
+    <value>The number of whole days in the time interval, padded with leading zeros as needed.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "`\"dd\"`-`\"dddddddd\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0068" xml:space="preserve">
+    <value>The number of whole hours in the time interval that aren't counted as part of days. Single-digit hours don't have a leading zero.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "`\"h\"`, `\"%h\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0068_u0068" xml:space="preserve">
+    <value>The number of whole hours in the time interval that aren't counted as part of days. Single-digit hours have a leading zero.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "`\"hh\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u006D" xml:space="preserve">
+    <value>The number of whole minutes in the time interval that aren't included as part of hours or days. Single-digit minutes don't have a leading zero.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "`\"m\"`, `\"%m\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u006D_u006D" xml:space="preserve">
+    <value>The number of whole minutes in the time interval that aren't included as part of hours or days. Single-digit minutes have a leading zero.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "`\"mm\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0073" xml:space="preserve">
+    <value>The number of whole seconds in the time interval that aren't included as part of hours, days, or minutes. Single-digit seconds don't have a leading zero.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "`\"s\"`, `\"%s\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0073_u0073" xml:space="preserve">
+    <value>The number of whole seconds in the time interval that aren't included as part of hours, days, or minutes. Single-digit seconds have a leading zero.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "`\"ss\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0066" xml:space="preserve">
+    <value>The tenths of a second in a time interval.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "`\"f\"`, `\"%f\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0066_u0066" xml:space="preserve">
+    <value>The hundredths of a second in a time interval.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "`\"ff\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0066_u0066_u0066" xml:space="preserve">
+    <value>The milliseconds in a time interval.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 10, "specifier": "`\"fff\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0066_u0066_u0066_u0066" xml:space="preserve">
+    <value>The ten-thousandths of a second in a time interval.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 11, "specifier": "`\"ffff\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066" xml:space="preserve">
+    <value>The hundred-thousandths of a second in a time interval.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 12, "specifier": "`\"fffff\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066_u0066" xml:space="preserve">
+    <value>The millionths of a second in a time interval.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 13, "specifier": "`\"ffffff\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066_u0066_u0066" xml:space="preserve">
+    <value>The ten-millionths of a second (or the fractional ticks) in a time interval.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 14, "specifier": "`\"fffffff\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0046" xml:space="preserve">
+    <value>The tenths of a second in a time interval. Nothing is displayed if the digit is zero.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 15, "specifier": "`\"F\"`, `\"%F\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0046_u0046" xml:space="preserve">
+    <value>The hundredths of a second in a time interval. Any fractional trailing zeros or two zero digits aren't included.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 16, "specifier": "`\"FF\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0046_u0046_u0046" xml:space="preserve">
+    <value>The milliseconds in a time interval. Any fractional trailing zeros aren't included.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 17, "specifier": "`\"FFF\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0046_u0046_u0046_u0046" xml:space="preserve">
+    <value>The ten-thousandths of a second in a time interval. Any fractional trailing zeros aren't included.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 18, "specifier": "`\"FFFF\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046" xml:space="preserve">
+    <value>The hundred-thousandths of a second in a time interval. Any fractional trailing zeros aren't included.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 19, "specifier": "`\"FFFFF\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046_u0046" xml:space="preserve">
+    <value>The millionths of a second in a time interval. Any fractional trailing zeros aren't displayed.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 20, "specifier": "`\"FFFFFF\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046_u0046_u0046" xml:space="preserve">
+    <value>The ten-millions of a second in a time interval. Any fractional trailing zeros or seven zeros aren't displayed.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 21, "specifier": "`\"FFFFFFF\"`", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0071_u0075_u006F_u0074_u0065_u0064" xml:space="preserve">
+    <value>Literal string delimiter.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 22, "specifier": "'*string*'", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u0065_u0073_u0063_u0061_u0070_u0065" xml:space="preserve">
+    <value>The escape character.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 23, "specifier": "&amp;#92;", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_duration_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C" xml:space="preserve">
+    <value>Any other unescaped character is interpreted as a custom format specifier.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 24, "specifier": "Any other character", "column": "Description"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_hex_float_u0058" xml:space="preserve">
+    <value>double, float, and Half can now be formatted and parsed in their hexadecimal IEEE-754 form.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/core/whats-new/dotnet-11/libraries.md Selector: {"heading": "### Floating-point hex formatting and parsing", "paragraph": 0, "sentence": 0}</comment>
+  </data>
+  <data name="FormatDoc_guid_u004E" xml:space="preserve">
+    <value>32 digits:</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 0, "column": "Format of return value"}</comment>
+  </data>
+  <data name="FormatDoc_guid_u0044" xml:space="preserve">
+    <value>32 digits separated by hyphens:</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 1, "column": "Format of return value"}</comment>
+  </data>
+  <data name="FormatDoc_guid_u0042" xml:space="preserve">
+    <value>32 digits separated by hyphens, enclosed in braces:</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 2, "column": "Format of return value"}</comment>
+  </data>
+  <data name="FormatDoc_guid_u0050" xml:space="preserve">
+    <value>32 digits separated by hyphens, enclosed in parentheses:</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 3, "column": "Format of return value"}</comment>
+  </data>
+  <data name="FormatDoc_guid_u0058" xml:space="preserve">
+    <value>Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 4, "column": "Format of return value"}</comment>
+  </data>
+  <data name="FormatDoc_enum_u0047" xml:space="preserve">
+    <value>Displays the enumeration entry as a string value, if possible, and otherwise displays the integer value of the current instance. If the enumeration is defined with the System.FlagsAttribute set, the string values of each valid entry are concatenated together, separated by commas. If the Flags attribute isn't set, an invalid value is displayed as a numeric entry.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md Selector: {"heading": "## G or g", "paragraph": 0}</comment>
+  </data>
+  <data name="FormatDoc_enum_u0046" xml:space="preserve">
+    <value>Displays the enumeration entry as a string value, if possible. If the value can be displayed as a summation of the entries in the enumeration (even if the Flags attribute isn't present), the string values of each valid entry are concatenated together, separated by commas. If the value can't be determined by the enumeration entries, then the value is formatted as the integer value.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md Selector: {"heading": "## F or f", "paragraph": 0}</comment>
+  </data>
+  <data name="FormatDoc_enum_u0044" xml:space="preserve">
+    <value>Displays the enumeration entry as an integer value in the shortest representation possible.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md Selector: {"heading": "## D or d", "paragraph": 0}</comment>
+  </data>
+  <data name="FormatDoc_enum_u0058" xml:space="preserve">
+    <value>Displays the enumeration entry as a hexadecimal value. The value is represented with leading zeros as necessary, to ensure that the result string has two characters for each byte in the enumeration type's underlying numeric type.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md Selector: {"heading": "## X or x", "paragraph": 0}</comment>
+  </data>
+  <data name="FormatDoc_interpolation_u006E_u0075_u006C_u006C" xml:space="preserve">
+    <value>When the expression is null, the output is the empty string (System.String.Empty).</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/csharp/language-reference/tokens/interpolated.md Selector: {"table": 0, "row_key": "interpolationExpression", "column": "Description", "sentence_prefix": "When the expression is `null`"}</comment>
+  </data>
+  <data name="FormatDoc_numeric_special_u0047_u0030" xml:space="preserve">
+    <value>If the precision specifier is omitted or zero, the type of the number determines the default precision, as indicated in the following table.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"sentence_prefix": "If the precision specifier is omitted or zero,"}</comment>
+  </data>
+  <data name="FormatDoc_date_custom_u0065_u0078_u0074_u0065_u006E_u0064_u0065_u0064_u002D_u0079_u0065_u0061_u0072" xml:space="preserve">
+    <value>If there are additional "y" specifiers, the number is padded with as many leading zeros as necessary to produce the number of "y" specifiers.</value>
+    <comment>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"sentence_prefix": "If there are additional \"y\" specifiers,"}</comment>
+  </data>
 </root>

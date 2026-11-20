@@ -247,6 +247,706 @@
         <target state="translated">Habilitar tipos de referência anuláveis na solução</target>
         <note />
       </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0025">
+        <source>Defines the following character as a custom format specifier.</source>
+        <target state="new">Defines the following character as a custom format specifier.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 45, "specifier": "%", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u002F">
+        <source>The date separator.</source>
+        <target state="new">The date separator.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 43, "specifier": "\"/\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u003A">
+        <source>The time separator.</source>
+        <target state="new">The time separator.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 42, "specifier": "\":\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0046">
+        <source>If non-zero, the tenths of a second in a date and time value.</source>
+        <target state="new">If non-zero, the tenths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 11, "specifier": "\"F\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0046_u0046">
+        <source>If non-zero, the hundredths of a second in a date and time value.</source>
+        <target state="new">If non-zero, the hundredths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 12, "specifier": "\"FF\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0046_u0046_u0046">
+        <source>If non-zero, the milliseconds in a date and time value.</source>
+        <target state="new">If non-zero, the milliseconds in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 13, "specifier": "\"FFF\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0046_u0046_u0046_u0046">
+        <source>If non-zero, the ten thousandths of a second in a date and time value.</source>
+        <target state="new">If non-zero, the ten thousandths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 14, "specifier": "\"FFFF\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046">
+        <source>If non-zero, the hundred thousandths of a second in a date and time value.</source>
+        <target state="new">If non-zero, the hundred thousandths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 15, "specifier": "\"FFFFF\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046_u0046">
+        <source>If non-zero, the millionths of a second in a date and time value.</source>
+        <target state="new">If non-zero, the millionths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 16, "specifier": "\"FFFFFF\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046_u0046_u0046">
+        <source>If non-zero, the ten millionths of a second in a date and time value.</source>
+        <target state="new">If non-zero, the ten millionths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 17, "specifier": "\"FFFFFFF\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0048">
+        <source>The hour, using a 24-hour clock from 0 to 23.</source>
+        <target state="new">The hour, using a 24-hour clock from 0 to 23.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 21, "specifier": "\"H\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0048_u0048">
+        <source>The hour, using a 24-hour clock from 00 to 23.</source>
+        <target state="new">The hour, using a 24-hour clock from 00 to 23.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 22, "specifier": "\"HH\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u004B">
+        <source>Time zone information.</source>
+        <target state="new">Time zone information.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 23, "specifier": "\"K\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u004D">
+        <source>The month, from 1 to 12.</source>
+        <target state="new">The month, from 1 to 12.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 26, "specifier": "\"M\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u004D_u004D">
+        <source>The month, from 01 to 12.</source>
+        <target state="new">The month, from 01 to 12.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 27, "specifier": "\"MM\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u004D_u004D_u004D">
+        <source>The abbreviated name of the month. When used with "d" or "dd" specifiers, uses genitive names, except with .NET Framework. (This is known issue that's fixed in .NET.)</source>
+        <target state="new">The abbreviated name of the month. When used with "d" or "dd" specifiers, uses genitive names, except with .NET Framework. (This is known issue that's fixed in .NET.)</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 28, "specifier": "\"MMM\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u004D_u004D_u004D_u004D">
+        <source>The full name of the month. When used with "d" or "dd" specifiers, uses genitive names.</source>
+        <target state="new">The full name of the month. When used with "d" or "dd" specifiers, uses genitive names.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 29, "specifier": "\"MMMM\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0064">
+        <source>The day of the month, from 1 to 31.</source>
+        <target state="new">The day of the month, from 1 to 31.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"d\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0064_u0064">
+        <source>The day of the month, from 01 to 31.</source>
+        <target state="new">The day of the month, from 01 to 31.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"dd\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0064_u0064_u0064">
+        <source>The abbreviated name of the day of the week.</source>
+        <target state="new">The abbreviated name of the day of the week.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"ddd\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0064_u0064_u0064_u0064">
+        <source>The full name of the day of the week.</source>
+        <target state="new">The full name of the day of the week.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\"dddd\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0065_u0073_u0063_u0061_u0070_u0065">
+        <source>The escape character.</source>
+        <target state="new">The escape character.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 46, "specifier": "&amp;#92;", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0065_u0078_u0074_u0065_u006E_u0064_u0065_u0064_u002D_u0079_u0065_u0061_u0072">
+        <source>If there are additional "y" specifiers, the number is padded with as many leading zeros as necessary to produce the number of "y" specifiers.</source>
+        <target state="new">If there are additional "y" specifiers, the number is padded with as many leading zeros as necessary to produce the number of "y" specifiers.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"sentence_prefix": "If there are additional \"y\" specifiers,"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0066">
+        <source>The tenths of a second in a date and time value.</source>
+        <target state="new">The tenths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"f\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0066_u0066">
+        <source>The hundredths of a second in a date and time value.</source>
+        <target state="new">The hundredths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"ff\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0066_u0066_u0066">
+        <source>The milliseconds in a date and time value.</source>
+        <target state="new">The milliseconds in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"fff\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0066_u0066_u0066_u0066">
+        <source>The ten thousandths of a second in a date and time value.</source>
+        <target state="new">The ten thousandths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"ffff\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066">
+        <source>The hundred thousandths of a second in a date and time value.</source>
+        <target state="new">The hundred thousandths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "\"fffff\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066_u0066">
+        <source>The millionths of a second in a date and time value.</source>
+        <target state="new">The millionths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "\"ffffff\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066_u0066_u0066">
+        <source>The ten millionths of a second in a date and time value.</source>
+        <target state="new">The ten millionths of a second in a date and time value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 10, "specifier": "\"fffffff\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0067">
+        <source>The period or era.</source>
+        <target state="new">The period or era.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 18, "specifier": "\"g\", \"gg\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0068">
+        <source>The hour, using a 12-hour clock from 1 to 12.</source>
+        <target state="new">The hour, using a 12-hour clock from 1 to 12.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 19, "specifier": "\"h\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0068_u0068">
+        <source>The hour, using a 12-hour clock from 01 to 12.</source>
+        <target state="new">The hour, using a 12-hour clock from 01 to 12.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 20, "specifier": "\"hh\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C">
+        <source>The character is copied to the result string unchanged.</source>
+        <target state="new">The character is copied to the result string unchanged.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 47, "specifier": "Any other character", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u006D">
+        <source>The minute, from 0 to 59.</source>
+        <target state="new">The minute, from 0 to 59.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 24, "specifier": "\"m\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u006D_u006D">
+        <source>The minute, from 00 to 59.</source>
+        <target state="new">The minute, from 00 to 59.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 25, "specifier": "\"mm\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0071_u0075_u006F_u0074_u0065_u0064">
+        <source>Literal string delimiter.</source>
+        <target state="new">Literal string delimiter.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 44, "specifier": "\"*string*\"&lt;br /&gt;&lt;br /&gt; '*string*'", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0073">
+        <source>The second, from 0 to 59.</source>
+        <target state="new">The second, from 0 to 59.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 30, "specifier": "\"s\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0073_u0073">
+        <source>The second, from 00 to 59.</source>
+        <target state="new">The second, from 00 to 59.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 31, "specifier": "\"ss\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0074">
+        <source>The first character of the AM/PM designator.</source>
+        <target state="new">The first character of the AM/PM designator.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 32, "specifier": "\"t\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0074_u0074">
+        <source>The AM/PM designator.</source>
+        <target state="new">The AM/PM designator.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 33, "specifier": "\"tt\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0079">
+        <source>The year, from 0 to 99.</source>
+        <target state="new">The year, from 0 to 99.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 34, "specifier": "\"y\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0079_u0079">
+        <source>The year, from 00 to 99.</source>
+        <target state="new">The year, from 00 to 99.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 35, "specifier": "\"yy\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0079_u0079_u0079">
+        <source>The year, with a minimum of three digits.</source>
+        <target state="new">The year, with a minimum of three digits.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 36, "specifier": "\"yyy\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0079_u0079_u0079_u0079">
+        <source>The year as a four-digit number.</source>
+        <target state="new">The year as a four-digit number.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 37, "specifier": "\"yyyy\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u0079_u0079_u0079_u0079_u0079">
+        <source>The year as a five-digit number.</source>
+        <target state="new">The year as a five-digit number.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 38, "specifier": "\"yyyyy\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u007A">
+        <source>Hours offset from UTC, with no leading zeros.</source>
+        <target state="new">Hours offset from UTC, with no leading zeros.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 39, "specifier": "\"z\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u007A_u007A">
+        <source>Hours offset from UTC, with a leading zero for a single-digit value.</source>
+        <target state="new">Hours offset from UTC, with a leading zero for a single-digit value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 40, "specifier": "\"zz\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_custom_u007A_u007A_u007A">
+        <source>Hours and minutes offset from UTC.</source>
+        <target state="new">Hours and minutes offset from UTC.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md Selector: {"table": 0, "row": 41, "specifier": "\"zzz\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0044">
+        <source>Long date pattern.</source>
+        <target state="new">Long date pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"D\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0046">
+        <source>Full date/time pattern (long time).</source>
+        <target state="new">Full date/time pattern (long time).</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\"F\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0047">
+        <source>General date/time pattern (long time).</source>
+        <target state="new">General date/time pattern (long time).</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"G\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u004D">
+        <source>Month/day pattern.</source>
+        <target state="new">Month/day pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"M\", \"m\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u004F">
+        <source>round-trip date/time pattern.</source>
+        <target state="new">round-trip date/time pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"O\", \"o\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0052">
+        <source>RFC1123 pattern.</source>
+        <target state="new">RFC1123 pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "\"R\", \"r\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0054">
+        <source>Long time pattern.</source>
+        <target state="new">Long time pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 11, "specifier": "\"T\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0055">
+        <source>Universal full date/time pattern.</source>
+        <target state="new">Universal full date/time pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 13, "specifier": "\"U\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0059">
+        <source>Year month pattern.</source>
+        <target state="new">Year month pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 14, "specifier": "\"Y\", \"y\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0064">
+        <source>Short date pattern.</source>
+        <target state="new">Short date pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"d\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0066">
+        <source>Full date/time pattern (short time).</source>
+        <target state="new">Full date/time pattern (short time).</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"f\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0067">
+        <source>General date/time pattern (short time).</source>
+        <target state="new">General date/time pattern (short time).</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"g\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0073">
+        <source>Sortable date/time pattern.</source>
+        <target state="new">Sortable date/time pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "\"s\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0074">
+        <source>Short time pattern.</source>
+        <target state="new">Short time pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 10, "specifier": "\"t\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_date_standard_u0075">
+        <source>Universal sortable date/time pattern.</source>
+        <target state="new">Universal sortable date/time pattern.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md Selector: {"table": 0, "row": 12, "specifier": "\"u\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0046">
+        <source>The tenths of a second in a time interval. Nothing is displayed if the digit is zero.</source>
+        <target state="new">The tenths of a second in a time interval. Nothing is displayed if the digit is zero.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 15, "specifier": "`\"F\"`, `\"%F\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0046_u0046">
+        <source>The hundredths of a second in a time interval. Any fractional trailing zeros or two zero digits aren't included.</source>
+        <target state="new">The hundredths of a second in a time interval. Any fractional trailing zeros or two zero digits aren't included.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 16, "specifier": "`\"FF\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0046_u0046_u0046">
+        <source>The milliseconds in a time interval. Any fractional trailing zeros aren't included.</source>
+        <target state="new">The milliseconds in a time interval. Any fractional trailing zeros aren't included.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 17, "specifier": "`\"FFF\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0046_u0046_u0046_u0046">
+        <source>The ten-thousandths of a second in a time interval. Any fractional trailing zeros aren't included.</source>
+        <target state="new">The ten-thousandths of a second in a time interval. Any fractional trailing zeros aren't included.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 18, "specifier": "`\"FFFF\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046">
+        <source>The hundred-thousandths of a second in a time interval. Any fractional trailing zeros aren't included.</source>
+        <target state="new">The hundred-thousandths of a second in a time interval. Any fractional trailing zeros aren't included.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 19, "specifier": "`\"FFFFF\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046_u0046">
+        <source>The millionths of a second in a time interval. Any fractional trailing zeros aren't displayed.</source>
+        <target state="new">The millionths of a second in a time interval. Any fractional trailing zeros aren't displayed.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 20, "specifier": "`\"FFFFFF\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046_u0046_u0046">
+        <source>The ten-millions of a second in a time interval. Any fractional trailing zeros or seven zeros aren't displayed.</source>
+        <target state="new">The ten-millions of a second in a time interval. Any fractional trailing zeros or seven zeros aren't displayed.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 21, "specifier": "`\"FFFFFFF\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0064">
+        <source>The number of whole days in the time interval.</source>
+        <target state="new">The number of whole days in the time interval.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "`\"d\"`, `\"%d\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0064_u0064">
+        <source>The number of whole days in the time interval, padded with leading zeros as needed.</source>
+        <target state="new">The number of whole days in the time interval, padded with leading zeros as needed.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "`\"dd\"`-`\"dddddddd\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0065_u0073_u0063_u0061_u0070_u0065">
+        <source>The escape character.</source>
+        <target state="new">The escape character.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 23, "specifier": "&amp;#92;", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0066">
+        <source>The tenths of a second in a time interval.</source>
+        <target state="new">The tenths of a second in a time interval.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "`\"f\"`, `\"%f\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0066_u0066">
+        <source>The hundredths of a second in a time interval.</source>
+        <target state="new">The hundredths of a second in a time interval.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "`\"ff\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0066_u0066_u0066">
+        <source>The milliseconds in a time interval.</source>
+        <target state="new">The milliseconds in a time interval.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 10, "specifier": "`\"fff\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0066_u0066_u0066_u0066">
+        <source>The ten-thousandths of a second in a time interval.</source>
+        <target state="new">The ten-thousandths of a second in a time interval.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 11, "specifier": "`\"ffff\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066">
+        <source>The hundred-thousandths of a second in a time interval.</source>
+        <target state="new">The hundred-thousandths of a second in a time interval.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 12, "specifier": "`\"fffff\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066_u0066">
+        <source>The millionths of a second in a time interval.</source>
+        <target state="new">The millionths of a second in a time interval.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 13, "specifier": "`\"ffffff\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066_u0066_u0066">
+        <source>The ten-millionths of a second (or the fractional ticks) in a time interval.</source>
+        <target state="new">The ten-millionths of a second (or the fractional ticks) in a time interval.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 14, "specifier": "`\"fffffff\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0068">
+        <source>The number of whole hours in the time interval that aren't counted as part of days. Single-digit hours don't have a leading zero.</source>
+        <target state="new">The number of whole hours in the time interval that aren't counted as part of days. Single-digit hours don't have a leading zero.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "`\"h\"`, `\"%h\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0068_u0068">
+        <source>The number of whole hours in the time interval that aren't counted as part of days. Single-digit hours have a leading zero.</source>
+        <target state="new">The number of whole hours in the time interval that aren't counted as part of days. Single-digit hours have a leading zero.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "`\"hh\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C">
+        <source>Any other unescaped character is interpreted as a custom format specifier.</source>
+        <target state="new">Any other unescaped character is interpreted as a custom format specifier.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 24, "specifier": "Any other character", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u006D">
+        <source>The number of whole minutes in the time interval that aren't included as part of hours or days. Single-digit minutes don't have a leading zero.</source>
+        <target state="new">The number of whole minutes in the time interval that aren't included as part of hours or days. Single-digit minutes don't have a leading zero.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "`\"m\"`, `\"%m\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u006D_u006D">
+        <source>The number of whole minutes in the time interval that aren't included as part of hours or days. Single-digit minutes have a leading zero.</source>
+        <target state="new">The number of whole minutes in the time interval that aren't included as part of hours or days. Single-digit minutes have a leading zero.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "`\"mm\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0071_u0075_u006F_u0074_u0065_u0064">
+        <source>Literal string delimiter.</source>
+        <target state="new">Literal string delimiter.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 22, "specifier": "'*string*'", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0073">
+        <source>The number of whole seconds in the time interval that aren't included as part of hours, days, or minutes. Single-digit seconds don't have a leading zero.</source>
+        <target state="new">The number of whole seconds in the time interval that aren't included as part of hours, days, or minutes. Single-digit seconds don't have a leading zero.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "`\"s\"`, `\"%s\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_custom_u0073_u0073">
+        <source>The number of whole seconds in the time interval that aren't included as part of hours, days, or minutes. Single-digit seconds have a leading zero.</source>
+        <target state="new">The number of whole seconds in the time interval that aren't included as part of hours, days, or minutes. Single-digit seconds have a leading zero.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "`\"ss\"`", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_standard_u0047">
+        <source>This specifier always outputs days and seven fractional digits. It is culture-sensitive and takes the form [-]d':'hh':'mm':'ss.fffffff.</source>
+        <target state="new">This specifier always outputs days and seven fractional digits. It is culture-sensitive and takes the form [-]d':'hh':'mm':'ss.fffffff.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"G\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_standard_u0063">
+        <source>This specifier is not culture-sensitive. It takes the form [-][d'.']hh':'mm':'ss['.'fffffff]. (The "t" and "T" format strings produce the same results.)</source>
+        <target state="new">This specifier is not culture-sensitive. It takes the form [-][d'.']hh':'mm':'ss['.'fffffff]. (The "t" and "T" format strings produce the same results.)</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"c\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_duration_standard_u0067">
+        <source>This specifier outputs only what is needed. It is culture-sensitive and takes the form [-][d':']h':'mm':'ss[.FFFFFFF].</source>
+        <target state="new">This specifier outputs only what is needed. It is culture-sensitive and takes the form [-][d':']h':'mm':'ss[.FFFFFFF].</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"g\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_enum_u0044">
+        <source>Displays the enumeration entry as an integer value in the shortest representation possible.</source>
+        <target state="new">Displays the enumeration entry as an integer value in the shortest representation possible.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md Selector: {"heading": "## D or d", "paragraph": 0}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_enum_u0046">
+        <source>Displays the enumeration entry as a string value, if possible. If the value can be displayed as a summation of the entries in the enumeration (even if the Flags attribute isn't present), the string values of each valid entry are concatenated together, separated by commas. If the value can't be determined by the enumeration entries, then the value is formatted as the integer value.</source>
+        <target state="new">Displays the enumeration entry as a string value, if possible. If the value can be displayed as a summation of the entries in the enumeration (even if the Flags attribute isn't present), the string values of each valid entry are concatenated together, separated by commas. If the value can't be determined by the enumeration entries, then the value is formatted as the integer value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md Selector: {"heading": "## F or f", "paragraph": 0}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_enum_u0047">
+        <source>Displays the enumeration entry as a string value, if possible, and otherwise displays the integer value of the current instance. If the enumeration is defined with the System.FlagsAttribute set, the string values of each valid entry are concatenated together, separated by commas. If the Flags attribute isn't set, an invalid value is displayed as a numeric entry.</source>
+        <target state="new">Displays the enumeration entry as a string value, if possible, and otherwise displays the integer value of the current instance. If the enumeration is defined with the System.FlagsAttribute set, the string values of each valid entry are concatenated together, separated by commas. If the Flags attribute isn't set, an invalid value is displayed as a numeric entry.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md Selector: {"heading": "## G or g", "paragraph": 0}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_enum_u0058">
+        <source>Displays the enumeration entry as a hexadecimal value. The value is represented with leading zeros as necessary, to ensure that the result string has two characters for each byte in the enumeration type's underlying numeric type.</source>
+        <target state="new">Displays the enumeration entry as a hexadecimal value. The value is represented with leading zeros as necessary, to ensure that the result string has two characters for each byte in the enumeration type's underlying numeric type.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md Selector: {"heading": "## X or x", "paragraph": 0}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_guid_u0042">
+        <source>32 digits separated by hyphens, enclosed in braces:</source>
+        <target state="new">32 digits separated by hyphens, enclosed in braces:</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 2, "column": "Format of return value"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_guid_u0044">
+        <source>32 digits separated by hyphens:</source>
+        <target state="new">32 digits separated by hyphens:</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 1, "column": "Format of return value"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_guid_u004E">
+        <source>32 digits:</source>
+        <target state="new">32 digits:</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 0, "column": "Format of return value"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_guid_u0050">
+        <source>32 digits separated by hyphens, enclosed in parentheses:</source>
+        <target state="new">32 digits separated by hyphens, enclosed in parentheses:</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 3, "column": "Format of return value"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_guid_u0058">
+        <source>Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:</source>
+        <target state="new">Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml Selector: {"xml_member": "ToString", "parameters": ["System.String"], "element": "Docs/remarks", "table": 0, "row": 4, "column": "Format of return value"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_interpolation_u006E_u0075_u006C_u006C">
+        <source>When the expression is null, the output is the empty string (System.String.Empty).</source>
+        <target state="new">When the expression is null, the output is the empty string (System.String.Empty).</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/csharp/language-reference/tokens/interpolated.md Selector: {"table": 0, "row_key": "interpolationExpression", "column": "Description", "sentence_prefix": "When the expression is `null`"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u0023">
+        <source>Replaces the "#" symbol with the corresponding digit if one is present; otherwise, no digit appears in the result string. Note that no digit appears in the result string if the corresponding digit in the input string is a non-significant 0. For example, 0003 ("####") -&gt; 3.</source>
+        <target state="new">Replaces the "#" symbol with the corresponding digit if one is present; otherwise, no digit appears in the result string. Note that no digit appears in the result string if the corresponding digit in the input string is a non-significant 0. For example, 0003 ("####") -&gt; 3.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"#\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u0025">
+        <source>Multiplies a number by 100 and inserts a localized percentage symbol in the result string.</source>
+        <target state="new">Multiplies a number by 100 and inserts a localized percentage symbol in the result string.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"%\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u002C">
+        <source>Serves as both a group separator and a number scaling specifier. As a group separator, it inserts a localized group separator character between each group. As a number scaling specifier, it divides a number by 1000 for each comma specified.</source>
+        <target state="new">Serves as both a group separator and a number scaling specifier. As a group separator, it inserts a localized group separator character between each group. As a number scaling specifier, it divides a number by 1000 for each comma specified.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\",\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u002E">
+        <source>Determines the location of the decimal separator in the result string.</source>
+        <target state="new">Determines the location of the decimal separator in the result string.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\".\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u0030">
+        <source>Replaces the zero with the corresponding digit if one is present; otherwise, zero appears in the result string.</source>
+        <target state="new">Replaces the zero with the corresponding digit if one is present; otherwise, zero appears in the result string.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"0\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u003B">
+        <source>Defines sections with separate format strings for positive, negative, and zero numbers.</source>
+        <target state="new">Defines sections with separate format strings for positive, negative, and zero numbers.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 9, "specifier": ";", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u0045_u0030">
+        <source>If followed by at least one 0 (zero), formats the result using exponential notation. The case of "E" or "e" indicates the case of the exponent symbol in the result string. The number of zeros following the "E" or "e" character determines the minimum number of digits in the exponent. A plus sign (+) indicates that a sign character always precedes the exponent. A minus sign (-) indicates that a sign character precedes only negative exponents.</source>
+        <target state="new">If followed by at least one 0 (zero), formats the result using exponential notation. The case of "E" or "e" indicates the case of the exponent symbol in the result string. The number of zeros following the "E" or "e" character determines the minimum number of digits in the exponent. A plus sign (+) indicates that a sign character always precedes the exponent. A minus sign (-) indicates that a sign character precedes only negative exponents.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"E0\"&lt;br /&gt;&lt;br /&gt; \"E+0\"&lt;br /&gt;&lt;br /&gt; \"E-0\"&lt;br /&gt;&lt;br /&gt; \"e0\"&lt;br /&gt;&lt;br /&gt; \"e+0\"&lt;br /&gt;&lt;br /&gt; \"e-0\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u0065_u0073_u0063_u0061_u0070_u0065">
+        <source>Causes the next character to be interpreted as a literal rather than as a custom format specifier.</source>
+        <target state="new">Causes the next character to be interpreted as a literal rather than as a custom format specifier.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"\\\\\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C">
+        <source>The character is copied to the result string unchanged.</source>
+        <target state="new">The character is copied to the result string unchanged.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 10, "specifier": "Other", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u0071_u0075_u006F_u0074_u0065_u0064">
+        <source>Indicates that the enclosed characters should be copied to the result string unchanged.</source>
+        <target state="new">Indicates that the enclosed characters should be copied to the result string unchanged.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "'*string*'&lt;br /&gt;&lt;br /&gt; \"*string*\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_custom_u2030">
+        <source>Multiplies a number by 1000 and inserts a localized per mille symbol in the result string.</source>
+        <target state="new">Multiplies a number by 1000 and inserts a localized per mille symbol in the result string.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"‰\"", "column": "Description"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_hex_float_u0058">
+        <source>double, float, and Half can now be formatted and parsed in their hexadecimal IEEE-754 form.</source>
+        <target state="new">double, float, and Half can now be formatted and parsed in their hexadecimal IEEE-754 form.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/core/whats-new/dotnet-11/libraries.md Selector: {"heading": "### Floating-point hex formatting and parsing", "paragraph": 0, "sentence": 0}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0042">
+        <source>Number of digits in the result string.</source>
+        <target state="new">Number of digits in the result string.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"B\" or \"b\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0043">
+        <source>Number of decimal digits.</source>
+        <target state="new">Number of decimal digits.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"C\" or \"c\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0044">
+        <source>Minimum number of digits.</source>
+        <target state="new">Minimum number of digits.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"D\" or \"d\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0045">
+        <source>Number of decimal digits.</source>
+        <target state="new">Number of decimal digits.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\"E\" or \"e\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0046">
+        <source>Number of decimal digits.</source>
+        <target state="new">Number of decimal digits.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"F\" or \"f\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0047">
+        <source>Number of significant digits.</source>
+        <target state="new">Number of significant digits.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"G\" or \"g\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u004E">
+        <source>Desired number of decimal places.</source>
+        <target state="new">Desired number of decimal places.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"N\" or \"n\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0050">
+        <source>Desired number of decimal places.</source>
+        <target state="new">Desired number of decimal places.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"P\" or \"p\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0052">
+        <source>Ignored.</source>
+        <target state="new">Ignored.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "\"R\" or \"r\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_precision_u0058">
+        <source>Number of digits in the result string.</source>
+        <target state="new">Number of digits in the result string.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "\"X\" or \"x\"", "column": "Description", "field": "Precision specifier"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_special_u0047_u0030">
+        <source>If the precision specifier is omitted or zero, the type of the number determines the default precision, as indicated in the following table.</source>
+        <target state="new">If the precision specifier is omitted or zero, the type of the number determines the default precision, as indicated in the following table.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"sentence_prefix": "If the precision specifier is omitted or zero,"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0042">
+        <source>A binary string.</source>
+        <target state="new">A binary string.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"B\" or \"b\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0043">
+        <source>A currency value.</source>
+        <target state="new">A currency value.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 1, "specifier": "\"C\" or \"c\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0044">
+        <source>Integer digits with optional negative sign.</source>
+        <target state="new">Integer digits with optional negative sign.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 2, "specifier": "\"D\" or \"d\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0045">
+        <source>Exponential notation.</source>
+        <target state="new">Exponential notation.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 3, "specifier": "\"E\" or \"e\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0046">
+        <source>Integral and decimal digits with optional negative sign.</source>
+        <target state="new">Integral and decimal digits with optional negative sign.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 4, "specifier": "\"F\" or \"f\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0047">
+        <source>The more compact of either fixed-point or scientific notation.</source>
+        <target state="new">The more compact of either fixed-point or scientific notation.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 5, "specifier": "\"G\" or \"g\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u004E">
+        <source>Integral and decimal digits, group separators, and a decimal separator with optional negative sign.</source>
+        <target state="new">Integral and decimal digits, group separators, and a decimal separator with optional negative sign.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 6, "specifier": "\"N\" or \"n\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0050">
+        <source>Number multiplied by 100 and displayed with a percent symbol.</source>
+        <target state="new">Number multiplied by 100 and displayed with a percent symbol.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 7, "specifier": "\"P\" or \"p\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0052">
+        <source>A string that can round-trip to an identical number.</source>
+        <target state="new">A string that can round-trip to an identical number.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 8, "specifier": "\"R\" or \"r\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_standard_u0058">
+        <source>A hexadecimal string.</source>
+        <target state="new">A hexadecimal string.</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 9, "specifier": "\"X\" or \"x\"", "column": "Description", "field": "Result"}</note>
+      </trans-unit>
+      <trans-unit id="FormatDoc_numeric_support_u0042">
+        <source>Integral types only (.NET 8+).</source>
+        <target state="new">Integral types only (.NET 8+).</target>
+        <note>Microsoft Learn (CC-BY-4.0). https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md Selector: {"table": 0, "row": 0, "specifier": "\"B\" or \"b\"", "column": "Description", "field": "Supported by"}</note>
+      </trans-unit>
+      <trans-unit id="Format_0_for_1">
+        <source>{1} format "{0}"</source>
+        <target state="new">{1} format "{0}"</target>
+        <note>A heading that labels the type and format string.</note>
+      </trans-unit>
+      <trans-unit id="Format_example_heading">
+        <source>Example</source>
+        <target state="new">Example</target>
+        <note>A heading above a generated sample or an omitted preview.</note>
+      </trans-unit>
+      <trans-unit id="Format_example_omitted">
+        <source>Example omitted: the requested output is too large for a hover preview.</source>
+        <target state="new">Example omitted: the requested output is too large for a hover preview.</target>
+        <note>UI text when a valid format requests an output that is too large for a hover.</note>
+      </trans-unit>
+      <trans-unit id="Format_preview_heading">
+        <source>Preview</source>
+        <target state="new">Preview</target>
+        <note>A heading above formatted output from a statically resolved value.</note>
+      </trans-unit>
       <trans-unit id="Global_using_directives">
         <source>Global 'using' directives</source>
         <target state="translated">Diretivas 'using' global</target>
@@ -261,6 +961,11 @@
         <source>Make private fields readonly when possible</source>
         <target state="translated">Tornar os campos privados somente leitura quando possível</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Microsoft_Learn_format_strings">
+        <source>Microsoft Learn: format strings</source>
+        <target state="new">Microsoft Learn: format strings</target>
+        <note>A link label for the official format documentation.</note>
       </trans-unit>
       <trans-unit id="Package_name">
         <source>Name</source>

@@ -182,6 +182,7 @@ internal static class TaggedTextExtensions
             TextTags.RecordStruct => ClassificationTypeNames.RecordStructName,
             // These tags are not visible so classify them as whitespace
             TextTags.ContainerStart or TextTags.ContainerEnd or TextTags.CodeBlockStart or TextTags.CodeBlockEnd => ClassificationTypeNames.WhiteSpace,
+            TextTags.Heading => ClassificationTypeNames.Text,
             _ => throw ExceptionUtilities.UnexpectedValue(taggedTextTag),
         };
 

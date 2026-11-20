@@ -65,4 +65,9 @@ public static class TextTags
     /// </summary>
     internal const string CodeBlockStart = nameof(CodeBlockStart);
     internal const string CodeBlockEnd = nameof(CodeBlockEnd);
+
+    /// <summary>
+    /// Indicates a second-level heading in LSP markup.
+    /// </summary>
+    internal const string Heading = nameof(Heading);
 }
