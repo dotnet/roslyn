@@ -150,6 +150,180 @@ class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85891")]
+        public void AllowGoToForwardOutOfBlockContainingUsingDeclaration()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void M(bool b)
+    {
+        {
+            if (b) goto label1;
+            using var x = (IDisposable)null;
+        }
+
+        label1:
+        return;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85891")]
+        public void AllowGoToForwardOutOfTryBlockContainingUsingDeclaration()
+        {
+            var source = @"
+using System.IO;
+class C
+{
+    static void M(int i)
+    {
+        try
+        {
+            if (i == 1)
+            {
+                goto label1;
+            }
+            using var stream = new MemoryStream();
+        }
+        catch
+        {
+        }
+
+        label1:
+        i++;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85891")]
+        public void AllowGoToForwardFromNestedBlockOutOfBlockContainingUsingDeclaration()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void M(bool b)
+    {
+        {
+            {
+                if (b) goto label1;
+            }
+            using var x = (IDisposable)null;
+        }
+
+        label1:
+        return;
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85891")]
+        public void GoToForwardOutOfBlockContainingUsingDeclaration_Execution()
+        {
+            var source = @"
+using System;
+class D : IDisposable
+{
+    public void Dispose() => Console.Write(""Disposed; "");
+}
+class C
+{
+    static void Main()
+    {
+        M(true);
+        M(false);
+    }
+
+    static void M(bool b)
+    {
+        {
+            if (b) goto label1;
+            using var x = new D();
+            Console.Write(""Body; "");
+        }
+
+        label1:
+        Console.Write(""After; "");
+    }
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "After; Body; Disposed; After; ");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85891")]
+        public void AllowGoToCaseOutOfBlockContainingUsingDeclaration()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void M(int i)
+    {
+        switch (i)
+        {
+            case 1:
+            {
+                if (i > 0) goto case 2;
+                using var x = (IDisposable)null;
+                break;
+            }
+            case 2:
+                break;
+        }
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85891")]
+        public void AllowGoToForwardOutOfBlockContainingUsingDeclaration_TopLevelStatements()
+        {
+            var source = @"
+using System;
+{
+    if (args.Length == 0) goto label1;
+    using var x = (IDisposable)null;
+}
+label1:
+Console.Write(1);
+";
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85891")]
+        public void DisallowGoToForwardAcrossUsingDeclaration_TopLevelStatements()
+        {
+            var source = @"
+using System;
+if (args.Length == 0) goto label1;
+using var x = (IDisposable)null;
+label1:
+Console.Write(1);
+";
+            CreateCompilation(source, options: TestOptions.DebugExe).VerifyDiagnostics(
+                // (3,23): error CS8648: A goto cannot jump to a location after a using declaration.
+                // if (args.Length == 0) goto label1;
+                Diagnostic(ErrorCode.ERR_GoToForwardJumpOverUsingVar, "goto label1;").WithLocation(3, 23)
+                );
+        }
+
+        [Fact]
         public void DisallowGoToBackwardsAcrossUsingDeclarationsWhenLabelIsInTheSameScope()
         {
             var source = @"
