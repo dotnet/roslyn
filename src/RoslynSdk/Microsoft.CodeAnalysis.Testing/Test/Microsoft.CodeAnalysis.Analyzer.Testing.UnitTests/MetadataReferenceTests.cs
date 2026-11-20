@@ -636,6 +636,13 @@ namespace Microsoft.CodeAnalysis.Testing
         [InlineData("net10.0-macos")]
         [InlineData("net10.0-maccatalyst")]
         [InlineData("net10.0-tvos")]
+        [InlineData("net11.0")]
+        [InlineData("net11.0-windows")]
+        [InlineData("net11.0-android")]
+        [InlineData("net11.0-ios")]
+        [InlineData("net11.0-macos")]
+        [InlineData("net11.0-maccatalyst")]
+        [InlineData("net11.0-tvos")]
 #endif
         [InlineData("netstandard1.0")]
         [InlineData("netstandard1.1")]
@@ -691,6 +698,35 @@ class TestClass {
                 TestCode = testCode,
                 ReferenceAssemblies = ReferenceAssembliesForTargetFramework(targetFramework)
                     .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Collections.Immutable", "8.0.0"))),
+            }.RunAsync();
+        }
+
+        [Theory]
+        [WorkItem(86477, "https://github.com/dotnet/roslyn/issues/86477")]
+        [InlineData("net11.0", "System.Object")]
+        [InlineData("net11.0-windows", "System.Windows.Window")]
+        [InlineData("net11.0-android", "Android.App.Activity")]
+        [InlineData("net11.0-ios", "UIKit.UIView")]
+        [InlineData("net11.0-macos", "AppKit.NSView")]
+        [InlineData("net11.0-maccatalyst", "UIKit.UIView")]
+        [InlineData("net11.0-tvos", "UIKit.UIView")]
+        public async Task ResolveUnionTypesInNet110(string targetFramework, string platformType)
+        {
+            var testCode = $$"""
+                using System.Runtime.CompilerServices;
+
+                class TestClass
+                {
+                    IUnion TestMethod() => throw null;
+                    UnionAttribute TestAttribute() => throw null;
+                    {{platformType}} TestPlatform() => throw null;
+                }
+                """;
+
+            await new CSharpTest()
+            {
+                TestCode = testCode,
+                ReferenceAssemblies = ReferenceAssembliesForTargetFramework(targetFramework),
             }.RunAsync();
         }
 
@@ -753,6 +789,13 @@ class TestClass {
                 "net10.0-macos" => ReferenceAssemblies.Net.Net100MacOS,
                 "net10.0-maccatalyst" => ReferenceAssemblies.Net.Net100MacCatalyst,
                 "net10.0-tvos" => ReferenceAssemblies.Net.Net100TvOS,
+                "net11.0" => ReferenceAssemblies.Net.Net110,
+                "net11.0-windows" => ReferenceAssemblies.Net.Net110Windows,
+                "net11.0-android" => ReferenceAssemblies.Net.Net110Android,
+                "net11.0-ios" => ReferenceAssemblies.Net.Net110iOS,
+                "net11.0-macos" => ReferenceAssemblies.Net.Net110MacOS,
+                "net11.0-maccatalyst" => ReferenceAssemblies.Net.Net110MacCatalyst,
+                "net11.0-tvos" => ReferenceAssemblies.Net.Net110TvOS,
                 "netstandard1.0" => ReferenceAssemblies.NetStandard.NetStandard10,
                 "netstandard1.1" => ReferenceAssemblies.NetStandard.NetStandard11,
                 "netstandard1.2" => ReferenceAssemblies.NetStandard.NetStandard12,
