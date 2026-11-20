@@ -245,7 +245,7 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
         AddIndentBlockOperation(list, bracePair.openBrace.GetNextToken(includeZeroWidth: true), bracePair.closeBrace.GetPreviousToken(includeZeroWidth: true));
     }
 
-    private static void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
+    private void AddBracketIndentationOperation(List<IndentBlockOperation> list, SyntaxNode node)
     {
         // Indentation inside the pattern of a switch statement is handled by AddBlockIndentationOperation. This continue ensures that bracket-specific
         // operations are skipped for switch patterns, as they are not formatted like blocks.
@@ -283,6 +283,10 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
                 return;
 
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
+
+            // If the '[' of a list pattern starts its own line, indent the contents relative to it.
+            if (node.Kind() == SyntaxKind.ListPattern && _options.Indentation.HasFlag(IndentationPlacement.ListPatternContents) && !FormattingHelpers.AreOnSameLine(baseToken, firstToken))
+                SetAlignmentBlockOperation(list, firstToken, firstToken.GetNextToken(includeZeroWidth: true), lastToken, option);
         }
     }
 

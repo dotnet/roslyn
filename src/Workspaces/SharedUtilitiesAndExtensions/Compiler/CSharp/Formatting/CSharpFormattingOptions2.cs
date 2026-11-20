@@ -211,6 +211,10 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.SwitchCaseContentsWhenBlock))
         .WithPublicOption(PublicFeatureName, "IndentSwitchCaseSectionWhenBlock");
 
+    public static Option2<bool> IndentListPatternContents { get; } = CreateOption(
+        CSharpFormattingOptionGroups.Indentation, "csharp_indent_list_pattern_contents",
+        CSharpSyntaxFormattingOptions.IndentationDefault.HasFlag(IndentationPlacement.ListPatternContents));
+
     public static Option2<LabelPositionOptionsInternal> LabelPositioning { get; } = CreateOption(
         CSharpFormattingOptionGroups.Indentation, "csharp_indent_labels",
         CSharpSyntaxFormattingOptions.Default.LabelPositioning,
