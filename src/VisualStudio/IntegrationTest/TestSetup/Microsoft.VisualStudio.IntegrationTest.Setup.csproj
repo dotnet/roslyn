@@ -22,9 +22,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" Name="ExpressionEvaluatorPackage" Private="false" />
+    <ProjectReference Include="..\..\..\ExpressionEvaluator\Package\ExpressionEvaluatorPackage.csproj" Private="false" />
     <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" Private="false" />
-    <ProjectReference Include="..\..\Setup\Roslyn.VisualStudio.Setup.csproj" Name="VisualStudioSetup" Private="false" />
+    <ProjectReference Include="..\..\Setup\Roslyn.VisualStudio.Setup.csproj" Private="false" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.New.IntegrationTests" />

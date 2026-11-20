@@ -1857,16 +1857,16 @@ class C
 
             verifier.VerifyIL("C.Repro", @"
 {
-  // Code size       21 (0x15)
+  // Code size       23 (0x17)
   .maxstack  2
   .locals init (NotASpan V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  dup
-  IL_0003:  initobj    ""NotASpan""
-  IL_0009:  dup
-  IL_000a:  call       ""int NotASpan.Length.get""
-  IL_000f:  call       ""int NotASpan.this[int].get""
-  IL_0014:  ret
+  IL_0002:  initobj    ""NotASpan""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       ""int NotASpan.Length.get""
+  IL_0011:  call       ""int NotASpan.this[int].get""
+  IL_0016:  ret
 }
 ");
         }
@@ -1886,21 +1886,21 @@ class C
 
             verifier.VerifyIL("C.Repro", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       31 (0x1f)
   .maxstack  3
   .locals init (System.Span<byte> V_0)
-  IL_0000:  ldc.i4.0
-  IL_0001:  newarr     ""byte""
-  IL_0006:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_000b:  stloc.0
-  IL_000c:  ldloca.s   V_0
-  IL_000e:  dup
-  IL_000f:  call       ""int System.Span<byte>.Length.get""
-  IL_0014:  ldc.i4.1
-  IL_0015:  sub
-  IL_0016:  call       ""ref byte System.Span<byte>.this[int].get""
-  IL_001b:  ldind.u1
-  IL_001c:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  newarr     ""byte""
+  IL_0008:  call       ""System.Span<byte>..ctor(byte[])""
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""int System.Span<byte>.Length.get""
+  IL_0016:  ldc.i4.1
+  IL_0017:  sub
+  IL_0018:  call       ""ref byte System.Span<byte>.this[int].get""
+  IL_001d:  ldind.u1
+  IL_001e:  ret
 }
 ");
         }
@@ -5072,6 +5072,3767 @@ class Program
   IL_0014:  ret
 }
 """);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_01()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Length { get { System.Console.Write($""length:{F1} ""); Helper.Assign(in F1, F1 + 1); return 3; } }
+    public readonly int this[int i] { get { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1); return 0; } }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (S1& V_0,
+            System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""System.Index Program.GetIndex()""
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""readonly int S1.Length.get""
+  IL_0012:  call       ""int System.Index.GetOffset(int)""
+  IL_0017:  call       ""readonly int S1.this[int].get""
+  IL_001c:  pop
+  IL_001d:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_02()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Length
+    {
+        get
+        {
+            System.Console.Write($""length:{F1} {F2} "");
+            Program.F.F1++;
+            Helper.Assign(in F2, 5);
+            return 3;
+        }
+    }
+    public readonly int this[int i]
+    {
+        get
+        {
+            System.Console.Write($""get:{F1} {F2} "");
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        _ = GetTarget()[GetIndex()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (S1 V_0,
+            System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""readonly int S1.Length.get""
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  call       ""readonly int S1.this[int].get""
+  IL_0022:  pop
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_03()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Length { get { System.Console.Write($""length:{F1} ""); Helper.Assign(in F1, F1 + 1); return 3; } }
+    public readonly int this[int i] { get { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1); return 0; } set { System.Console.Write($""set:{F1} ""); Helper.Assign(in F1, F1 + 1); }}
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static void Test3(in S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+    public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (S1& V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""System.Index Program.GetIndex()""
+  IL_0008:  stloc.2
+  IL_0009:  ldloca.s   V_2
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""readonly int S1.Length.get""
+  IL_0011:  call       ""int System.Index.GetOffset(int)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""readonly int S1.this[int].get""
+  IL_0020:  call       ""int Program.GetValue()""
+  IL_0025:  add
+  IL_0026:  call       ""readonly void S1.this[int].set""
+  IL_002b:  nop
+  IL_002c:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_04()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Length
+    {
+        get
+        {
+            System.Console.Write($""length:{F1} {F2} "");
+            Program.F.F1++;
+            Helper.Assign(in F2, 5);
+            return 3;
+        }
+    }
+    public readonly int this[int i]
+    {
+        get
+        {
+            System.Console.Write($""get:{F1} {F2} "");
+            Helper.Assign(in F2, 6);
+            return 0;
+        }
+        set
+        {
+            System.Console.Write($""set:{F1} {F2} "");
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        GetTarget()[GetIndex()] += GetValue();
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+    public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 5 GetValue:5 set:3 6 final:6").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  4
+  .locals init (S1 V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index Program.GetIndex()""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""readonly int S1.Length.get""
+  IL_0016:  call       ""int System.Index.GetOffset(int)""
+  IL_001b:  stloc.1
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldloc.1
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.1
+  IL_0022:  call       ""readonly int S1.this[int].get""
+  IL_0027:  call       ""int Program.GetValue()""
+  IL_002c:  add
+  IL_002d:  call       ""readonly void S1.this[int].set""
+  IL_0032:  nop
+  IL_0033:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_05()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Length { get { System.Console.Write($""length:{F1} ""); Helper.Assign(in F1, F1 + 1); return 3; } }
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i] { get { System.Console.Write($""get:{x.F1} ""); return 0; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (S1& V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""System.Index Program.GetIndex()""
+  IL_0008:  stloc.2
+  IL_0009:  ldloca.s   V_2
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""readonly int S1.Length.get""
+  IL_0011:  call       ""int System.Index.GetOffset(int)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.0
+  IL_0018:  ldobj      ""S1""
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""int E.get_Item(S1, int)""
+  IL_0023:  pop
+  IL_0024:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_06()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Length
+    {
+        get
+        {
+            System.Console.Write($""length:{F1} {F2} "");
+            Program.F.F1++;
+            Helper.Assign(in F2, 5);
+            return 3;
+        }
+    }
+}
+
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write($""get:{x.F1} {x.F2} "");
+                return 0;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        _ = GetTarget()[GetIndex()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index Program.GetIndex()""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""readonly int S1.Length.get""
+  IL_0016:  call       ""int System.Index.GetOffset(int)""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""int E.get_Item(S1, int)""
+  IL_0023:  pop
+  IL_0024:  ret
+}
+");
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_IndexIndexer_07([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Length { get { System.Console.Write($""length:{F1} ""); Helper.Assign(in F1, F1 + 1); return 3; } }
+}
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int this[int i] { get { System.Console.Write($""get:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 0; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (S1& V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""System.Index Program.GetIndex()""
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""readonly int S1.Length.get""
+  IL_0012:  call       ""int System.Index.GetOffset(int)""
+  IL_0017:  call       ""int E.get_Item(" + modifier + @"S1, int)""
+  IL_001c:  pop
+  IL_001d:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_IndexIndexer_08([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Length
+    {
+        get
+        {
+            System.Console.Write($""length:{F1} {F2} "");
+            Program.F.F1++;
+            Helper.Assign(in F2, 5);
+            return 3;
+        }
+    }
+}
+
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write($""get:{x.F1} {x.F2} "");
+                return 0;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+#pragma warning disable CS9193 // Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+        _ = GetTarget()[GetIndex()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (S1 V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""readonly int S1.Length.get""
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  call       ""int E.get_Item(" + modifier + @"S1, int)""
+  IL_0022:  pop
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_09()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int this[int i] { get { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1); return 0; } }
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Program.F.F1++; return 3; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  .locals init (S1& V_0,
+            System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""System.Index Program.GetIndex()""
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldloc.0
+  IL_000d:  ldobj      ""S1""
+  IL_0012:  call       ""int E.get_Length(S1)""
+  IL_0017:  call       ""int System.Index.GetOffset(int)""
+  IL_001c:  call       ""readonly int S1.this[int].get""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_10()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int this[int i]
+    {
+        get
+        {
+            System.Console.Write($""get:{F1} {F2} "");
+            return 0;
+        }
+    }
+}
+
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        _ = GetTarget()[GetIndex()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 0 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  .locals init (S1 V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""int E.get_Length(S1)""
+  IL_0017:  call       ""int System.Index.GetOffset(int)""
+  IL_001c:  call       ""readonly int S1.this[int].get""
+  IL_0021:  pop
+  IL_0022:  ret
+}
+");
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_IndexIndexer_11([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int this[int i] { get { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1);return 0; } }
+}
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 3; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (S1& V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""System.Index Program.GetIndex()""
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0012:  call       ""int System.Index.GetOffset(int)""
+  IL_0017:  call       ""readonly int S1.this[int].get""
+  IL_001c:  pop
+  IL_001d:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_IndexIndexer_12([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int this[int i]
+    {
+        get
+        {
+            System.Console.Write($""get:{F1} {F2} "");
+            return 0;
+        }
+    }
+}
+
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+#pragma warning disable CS9193 // Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+        _ = GetTarget()[GetIndex()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (S1 V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  call       ""readonly int S1.this[int].get""
+  IL_0022:  pop
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_13()
+        {
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Program.F.F1++; return 3; } }
+        public int this[int i] { get { System.Console.Write($""get:{x.F1} ""); return 0; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  .locals init (S1& V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""System.Index Program.GetIndex()""
+  IL_0008:  stloc.2
+  IL_0009:  ldloca.s   V_2
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  call       ""int E.get_Length(S1)""
+  IL_0016:  call       ""int System.Index.GetOffset(int)""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  ldobj      ""S1""
+  IL_0022:  ldloc.1
+  IL_0023:  call       ""int E.get_Item(S1, int)""
+  IL_0028:  pop
+  IL_0029:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_14()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+}
+
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write($""get:{x.F1} {x.F2} "");
+                return 0;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        _ = GetTarget()[GetIndex()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 0 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1,
+                System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index Program.GetIndex()""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  call       ""int E.get_Length(S1)""
+  IL_0015:  call       ""int System.Index.GetOffset(int)""
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldloc.1
+  IL_001d:  call       ""int E.get_Item(S1, int)""
+  IL_0022:  pop
+  IL_0023:  ret
+}
+");
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_IndexIndexer_15([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+}
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 3; } }
+        public int this[int i] { get { System.Console.Write($""get:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 0; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+GetIndex:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (S1& V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  call       ""System.Index Program.GetIndex()""
+  IL_0009:  stloc.1
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  ldloc.0
+  IL_000d:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0012:  call       ""int System.Index.GetOffset(int)""
+  IL_0017:  call       ""int E.get_Item(" + modifier + @"S1, int)""
+  IL_001c:  pop
+  IL_001d:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_IndexIndexer_16([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+}
+
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write($""get:{x.F1} {x.F2} "");
+                return 0;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+#pragma warning disable CS9193 // Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+        _ = GetTarget()[GetIndex()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (S1 V_0,
+                System.Index V_1)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  call       ""int E.get_Item(" + modifier + @"S1, int)""
+  IL_0022:  pop
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_17()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int this[int i] { get { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1); return 0; } set { System.Console.Write($""set:{F1} ""); Helper.Assign(in F1, F1 + 1); }}
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Program.F.F1++; return 3; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static void Test3(in S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+    public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       50 (0x32)
+  .maxstack  4
+  .locals init (S1& V_0,
+            int V_1,
+            System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""System.Index Program.GetIndex()""
+  IL_0008:  stloc.2
+  IL_0009:  ldloca.s   V_2
+  IL_000b:  ldloc.0
+  IL_000c:  ldobj      ""S1""
+  IL_0011:  call       ""int E.get_Length(S1)""
+  IL_0016:  call       ""int System.Index.GetOffset(int)""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.0
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""readonly int S1.this[int].get""
+  IL_0025:  call       ""int Program.GetValue()""
+  IL_002a:  add
+  IL_002b:  call       ""readonly void S1.this[int].set""
+  IL_0030:  nop
+  IL_0031:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_IndexIndexer_18()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int this[int i]
+    {
+        get
+        {
+            System.Console.Write($""get:{F1} {F2} "");
+            Helper.Assign(in F2, 6);
+            return 0;
+        }
+        set
+        {
+            System.Console.Write($""set:{F1} {F2} "");
+        }
+    }
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} {x.F2} ""); Program.F.F1++; return 3; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        GetTarget()[GetIndex()] += GetValue();
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+    public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 0 GetValue:5 set:3 6 final:6").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       51 (0x33)
+  .maxstack  4
+  .locals init (S1 V_0,
+            int V_1,
+            System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index Program.GetIndex()""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  call       ""int E.get_Length(S1)""
+  IL_0015:  call       ""int System.Index.GetOffset(int)""
+  IL_001a:  stloc.1
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloc.1
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  ldloc.1
+  IL_0021:  call       ""readonly int S1.this[int].get""
+  IL_0026:  call       ""int Program.GetValue()""
+  IL_002b:  add
+  IL_002c:  call       ""readonly void S1.this[int].set""
+  IL_0031:  nop
+  IL_0032:  ret
+}
+");
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_IndexIndexer_19([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int this[int i] { get { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1); return 0; } set { System.Console.Write($""set:{F1} ""); Helper.Assign(in F1, F1 + 1); }}
+}
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 3; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static void Test3(in S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+    public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (S1& V_0,
+            int V_1,
+            System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""System.Index Program.GetIndex()""
+  IL_0008:  stloc.2
+  IL_0009:  ldloca.s   V_2
+  IL_000b:  ldloc.0
+  IL_000c:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0011:  call       ""int System.Index.GetOffset(int)""
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""readonly int S1.this[int].get""
+  IL_0020:  call       ""int Program.GetValue()""
+  IL_0025:  add
+  IL_0026:  call       ""readonly void S1.this[int].set""
+  IL_002b:  nop
+  IL_002c:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_IndexIndexer_20([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int this[int i]
+    {
+        get
+        {
+            System.Console.Write($""get:{F1} {F2} "");
+            Helper.Assign(in F2, 6);
+            return 0;
+        }
+        set
+        {
+            System.Console.Write($""set:{F1} {F2} "");
+        }
+    }
+}
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+#pragma warning disable CS9193 // Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+        GetTarget()[GetIndex()] += GetValue();
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
+    public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetIndex:3 length:3 0 get:3 5 GetValue:5 set:3 6 final:6").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       52 (0x34)
+  .maxstack  4
+  .locals init (S1 V_0,
+            int V_1,
+            System.Index V_2)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index Program.GetIndex()""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0016:  call       ""int System.Index.GetOffset(int)""
+  IL_001b:  stloc.1
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldloc.1
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  ldloc.1
+  IL_0022:  call       ""readonly int S1.this[int].get""
+  IL_0027:  call       ""int Program.GetValue()""
+  IL_002c:  add
+  IL_002d:  call       ""readonly void S1.this[int].set""
+  IL_0032:  nop
+  IL_0033:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_RangeIndexer_01()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Length { get { System.Console.Write($""length:{F1} ""); Helper.Assign(in F1, F1 + 1); return 3; } }
+    public readonly int Slice(int start, int length) { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1); return 0; }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""System.Range Program.GetRange()""
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  call       ""readonly int S1.Length.get""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""System.Index System.Range.Start.get""
+  IL_0016:  stloc.s    V_4
+  IL_0018:  ldloca.s   V_4
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""int System.Index.GetOffset(int)""
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""System.Index System.Range.End.get""
+  IL_0028:  stloc.s    V_4
+  IL_002a:  ldloca.s   V_4
+  IL_002c:  ldloc.1
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  ldloc.2
+  IL_0033:  sub
+  IL_0034:  stloc.3
+  IL_0035:  ldloc.2
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""readonly int S1.Slice(int, int)""
+  IL_003c:  pop
+  IL_003d:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_RangeIndexer_02()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Length
+    {
+        get
+        {
+            System.Console.Write($""length:{F1} {F2} "");
+            Program.F.F1++;
+            Helper.Assign(in F2, 5);
+            return 3;
+        }
+    }
+    public readonly int Slice(int start, int length)
+    {
+        System.Console.Write($""get:{F1} {F2} "");
+        return 0;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        _ = GetTarget()[GetRange()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetRange:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (S1 V_0,
+            System.Range V_1,
+            int V_2,
+            int V_3,
+            int V_4,
+            System.Index V_5)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""readonly int S1.Length.get""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""readonly int S1.Slice(int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_RangeIndexer_05()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Length { get { System.Console.Write($""length:{F1} ""); Helper.Assign(in F1, F1 + 1); return 3; } }
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Slice(int start, int length) { System.Console.Write($""get:{x.F1} ""); return 0; }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       67 (0x43)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""System.Range Program.GetRange()""
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  call       ""readonly int S1.Length.get""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""System.Index System.Range.Start.get""
+  IL_0016:  stloc.s    V_4
+  IL_0018:  ldloca.s   V_4
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""int System.Index.GetOffset(int)""
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""System.Index System.Range.End.get""
+  IL_0028:  stloc.s    V_4
+  IL_002a:  ldloca.s   V_4
+  IL_002c:  ldloc.1
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  ldloc.2
+  IL_0033:  sub
+  IL_0034:  stloc.3
+  IL_0035:  ldobj      ""S1""
+  IL_003a:  ldloc.2
+  IL_003b:  ldloc.3
+  IL_003c:  call       ""int E.Slice(S1, int, int)""
+  IL_0041:  pop
+  IL_0042:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_RangeIndexer_06()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Length
+    {
+        get
+        {
+            System.Console.Write($""length:{F1} {F2} "");
+            Program.F.F1++;
+            Helper.Assign(in F2, 5);
+            return 3;
+        }
+    }
+}
+
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Slice(int start, int length)
+        {
+            System.Console.Write($""get:{x.F1} {x.F2} "");
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        _ = GetTarget()[GetRange()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetRange:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (S1 V_0,
+                System.Range V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                System.Index V_5)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""readonly int S1.Length.get""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloc.0
+  IL_003d:  ldloc.3
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  call       ""int E.Slice(S1, int, int)""
+  IL_0045:  pop
+  IL_0046:  ret
+}
+");
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_RangeIndexer_07([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Length { get { System.Console.Write($""length:{F1} ""); Helper.Assign(in F1, F1 + 1); return 3; } }
+}
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Slice(int start, int length) { System.Console.Write($""get:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 0; }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (System.Range V_0,
+            int V_1,
+            int V_2,
+            int V_3,
+            System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""System.Range Program.GetRange()""
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  call       ""readonly int S1.Length.get""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""System.Index System.Range.Start.get""
+  IL_0016:  stloc.s    V_4
+  IL_0018:  ldloca.s   V_4
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""int System.Index.GetOffset(int)""
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""System.Index System.Range.End.get""
+  IL_0028:  stloc.s    V_4
+  IL_002a:  ldloca.s   V_4
+  IL_002c:  ldloc.1
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  ldloc.2
+  IL_0033:  sub
+  IL_0034:  stloc.3
+  IL_0035:  ldloc.2
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
+  IL_003c:  pop
+  IL_003d:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_RangeIndexer_08([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Length
+    {
+        get
+        {
+            System.Console.Write($""length:{F1} {F2} "");
+            Program.F.F1++;
+            Helper.Assign(in F2, 5);
+            return 3;
+        }
+    }
+}
+
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Slice(int start, int length)
+        {
+            System.Console.Write($""get:{x.F1} {x.F2} "");
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+#pragma warning disable CS9193 // Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+        _ = GetTarget()[GetRange()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetRange:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (S1 V_0,
+                System.Range V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                System.Index V_5)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""readonly int S1.Length.get""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_RangeIndexer_09()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Slice(int start, int length) { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1); return 0; }
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Program.F.F1++; return 3; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       67 (0x43)
+  .maxstack  3
+  .locals init (System.Range V_0,
+            int V_1,
+            int V_2,
+            int V_3,
+            System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""System.Range Program.GetRange()""
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  ldobj      ""S1""
+  IL_000e:  call       ""int E.get_Length(S1)""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       ""System.Index System.Range.Start.get""
+  IL_001b:  stloc.s    V_4
+  IL_001d:  ldloca.s   V_4
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""int System.Index.GetOffset(int)""
+  IL_0025:  stloc.2
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  call       ""System.Index System.Range.End.get""
+  IL_002d:  stloc.s    V_4
+  IL_002f:  ldloca.s   V_4
+  IL_0031:  ldloc.1
+  IL_0032:  call       ""int System.Index.GetOffset(int)""
+  IL_0037:  ldloc.2
+  IL_0038:  sub
+  IL_0039:  stloc.3
+  IL_003a:  ldloc.2
+  IL_003b:  ldloc.3
+  IL_003c:  call       ""readonly int S1.Slice(int, int)""
+  IL_0041:  pop
+  IL_0042:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_RangeIndexer_10()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Slice(int start, int length)
+    {
+        System.Console.Write($""get:{F1} {F2} "");
+        return 0;
+    }
+}
+
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        _ = GetTarget()[GetRange()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetRange:3 length:3 0 get:3 0 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       71 (0x47)
+  .maxstack  3
+  .locals init (S1 V_0,
+            System.Range V_1,
+            int V_2,
+            int V_3,
+            int V_4,
+            System.Index V_5)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""int E.get_Length(S1)""
+  IL_0013:  stloc.2
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""System.Index System.Range.Start.get""
+  IL_001b:  stloc.s    V_5
+  IL_001d:  ldloca.s   V_5
+  IL_001f:  ldloc.2
+  IL_0020:  call       ""int System.Index.GetOffset(int)""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  call       ""System.Index System.Range.End.get""
+  IL_002d:  stloc.s    V_5
+  IL_002f:  ldloca.s   V_5
+  IL_0031:  ldloc.2
+  IL_0032:  call       ""int System.Index.GetOffset(int)""
+  IL_0037:  ldloc.3
+  IL_0038:  sub
+  IL_0039:  stloc.s    V_4
+  IL_003b:  ldloca.s   V_0
+  IL_003d:  ldloc.3
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  call       ""readonly int S1.Slice(int, int)""
+  IL_0045:  pop
+  IL_0046:  ret
+}
+");
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_RangeIndexer_11([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public readonly int Slice(int start, int length) { System.Console.Write($""get:{F1} ""); Helper.Assign(in F1, F1 + 1); return 0; }
+}
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 3; } }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (System.Range V_0,
+            int V_1,
+            int V_2,
+            int V_3,
+            System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""System.Range Program.GetRange()""
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""System.Index System.Range.Start.get""
+  IL_0016:  stloc.s    V_4
+  IL_0018:  ldloca.s   V_4
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""int System.Index.GetOffset(int)""
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""System.Index System.Range.End.get""
+  IL_0028:  stloc.s    V_4
+  IL_002a:  ldloca.s   V_4
+  IL_002c:  ldloc.1
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  ldloc.2
+  IL_0033:  sub
+  IL_0034:  stloc.3
+  IL_0035:  ldloc.2
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""readonly int S1.Slice(int, int)""
+  IL_003c:  pop
+  IL_003d:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_RangeIndexer_12([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+    public readonly int Slice(int start, int length)
+    {
+        System.Console.Write($""get:{F1} {F2} "");
+        return 0;
+    }
+}
+
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+#pragma warning disable CS9193 // Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+        _ = GetTarget()[GetRange()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetRange:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (S1 V_0,
+            System.Range V_1,
+            int V_2,
+            int V_3,
+            int V_4,
+            System.Index V_5)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""readonly int S1.Slice(int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_RangeIndexer_13()
+        {
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Program.F.F1++; return 3; } }
+        public int Slice(int start, int length) { System.Console.Write($""get:{x.F1} ""); return 0; }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (System.Range V_0,
+            int V_1,
+            int V_2,
+            int V_3,
+            System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""System.Range Program.GetRange()""
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  ldobj      ""S1""
+  IL_000e:  call       ""int E.get_Length(S1)""
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  call       ""System.Index System.Range.Start.get""
+  IL_001b:  stloc.s    V_4
+  IL_001d:  ldloca.s   V_4
+  IL_001f:  ldloc.1
+  IL_0020:  call       ""int System.Index.GetOffset(int)""
+  IL_0025:  stloc.2
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  call       ""System.Index System.Range.End.get""
+  IL_002d:  stloc.s    V_4
+  IL_002f:  ldloca.s   V_4
+  IL_0031:  ldloc.1
+  IL_0032:  call       ""int System.Index.GetOffset(int)""
+  IL_0037:  ldloc.2
+  IL_0038:  sub
+  IL_0039:  stloc.3
+  IL_003a:  ldobj      ""S1""
+  IL_003f:  ldloc.2
+  IL_0040:  ldloc.3
+  IL_0041:  call       ""int E.Slice(S1, int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        public void ReadOnlyTarget_RangeIndexer_14()
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+}
+
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+        public int Slice(int start, int length)
+        {
+            System.Console.Write($""get:{x.F1} {x.F2} "");
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+        _ = GetTarget()[GetRange()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetRange:3 length:3 0 get:3 0 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (System.Range V_0,
+            int V_1,
+            int V_2,
+            int V_3,
+            System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  call       ""System.Range Program.GetRange()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  call       ""int E.get_Length(S1)""
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       ""System.Index System.Range.Start.get""
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int System.Index.GetOffset(int)""
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""System.Index System.Range.End.get""
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.1
+  IL_0031:  call       ""int System.Index.GetOffset(int)""
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.2
+  IL_003a:  ldloc.3
+  IL_003b:  call       ""int E.Slice(S1, int, int)""
+  IL_0040:  pop
+  IL_0041:  ret
+}
+");
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_RangeIndexer_15([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+}
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length { get { System.Console.Write($""length:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 3; } }
+        public int Slice(int start, int length) { System.Console.Write($""get:{x.F1} ""); Helper.Assign(in x.F1, x.F1 + 1); return 0; }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2(ref F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test3(in F);
+        System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2(ref S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test3(in S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+GetRange:3 length:4 get:5 final:6
+").VerifyDiagnostics();
+
+            var expectedIL = @"
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (System.Range V_0,
+            int V_1,
+            int V_2,
+            int V_3,
+            System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""System.Range Program.GetRange()""
+  IL_0007:  stloc.0
+  IL_0008:  dup
+  IL_0009:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""System.Index System.Range.Start.get""
+  IL_0016:  stloc.s    V_4
+  IL_0018:  ldloca.s   V_4
+  IL_001a:  ldloc.1
+  IL_001b:  call       ""int System.Index.GetOffset(int)""
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  call       ""System.Index System.Range.End.get""
+  IL_0028:  stloc.s    V_4
+  IL_002a:  ldloca.s   V_4
+  IL_002c:  ldloc.1
+  IL_002d:  call       ""int System.Index.GetOffset(int)""
+  IL_0032:  ldloc.2
+  IL_0033:  sub
+  IL_0034:  stloc.3
+  IL_0035:  ldloc.2
+  IL_0036:  ldloc.3
+  IL_0037:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
+  IL_003c:  pop
+  IL_003d:  ret
+}
+";
+
+            verifier.VerifyIL("Program.Test2", expectedIL);
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
+        }
+
+        [Theory]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86181")]
+        [CombinatorialData]
+        public void ReadOnlyTarget_RangeIndexer_16([CombinatorialValues("in ", "ref readonly ")] string modifier)
+        {
+            var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+            var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+            var text1 = @"
+public struct S1
+{
+    public int F1;
+    public int F2;
+}
+
+
+static class E
+{
+    extension(" + modifier + @"S1 x)
+    {
+        public int Length
+        {
+            get
+            {
+                System.Console.Write($""length:{x.F1} {x.F2} "");
+                Program.F.F1++;
+                Helper.Assign(in x.F2, 5);
+                return 3;
+            }
+        }
+        public int Slice(int start, int length)
+        {
+            System.Console.Write($""get:{x.F1} {x.F2} "");
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 3 };
+        Test2();
+        System.Console.Write($""final:{F.F1}"");
+    }
+
+    static void Test2()
+    {
+#pragma warning disable CS9193 // Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+        _ = GetTarget()[GetRange()];
+    }
+
+    public static S1 GetTarget() { return F; }
+    public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
+}
+";
+            var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp1, expectedOutput: @"GetRange:3 length:3 0 get:3 5 final:5").VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Test2", @"
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (S1 V_0,
+                System.Range V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                System.Index V_5)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
+  IL_003e:  ldloc.3
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
+}
+");
         }
     }
 }

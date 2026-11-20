@@ -4,10 +4,12 @@
 
 using System.Collections.Immutable;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.RoslynTools.Extensions;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 
@@ -47,8 +49,8 @@ internal sealed partial class SdkReleaseTagger(ILogger logger)
 
             var mainVersion = match.Groups["mainVersion"].Value;
             var majorVersion = int.Parse(mainVersion.Split('.')[0]);
-            // Only return tags for .NET 8+
-            if (majorVersion < 8)
+            // Only return tags for .NET 10+
+            if (majorVersion < 10)
             {
                 continue;
             }
@@ -72,7 +74,7 @@ internal sealed partial class SdkReleaseTagger(ILogger logger)
     public override async Task<SdkBuildInformation?> TryGetBuildAsync(RemoteConnections connections, IProduct product, SdkReleaseInformation release)
     {
         var versionDetailsXml = await connections.GitHubClient
-            .GetStringAsync($"https://raw.githubusercontent.com/dotnet/sdk/refs/tags/{release.SdkTagName}/eng/Version.Details.xml");
+            .GetGitHubFileContentAsync("dotnet/sdk", "eng/Version.Details.xml", $"refs/tags/{release.SdkTagName}");
         var versionDetails = XDocument.Parse(versionDetailsXml);
 
         var dependencyElement = versionDetails.Descendants("Dependency")
@@ -121,8 +123,9 @@ internal sealed partial class SdkReleaseTagger(ILogger logger)
 
         try
         {
-            sourceManifest = await connections.GitHubClient
-                .GetFromJsonAsync<VmrSourceManifest?>($"https://raw.githubusercontent.com/dotnet/dotnet/{vmrBuild.CommitSha}/src/source-manifest.json");
+            var sourceManifestJson = await connections.GitHubClient
+                .GetGitHubFileContentAsync("dotnet/dotnet", "src/source-manifest.json", vmrBuild.CommitSha);
+            sourceManifest = JsonSerializer.Deserialize<VmrSourceManifest>(sourceManifestJson);
         }
         catch (Exception ex)
         {

@@ -99,6 +99,7 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
         }
 
         using var mappedResults = new PooledArrayBuilder<SumType<VSInternalReferenceItem, LspLocation>>(results.Length);
+        using var _ = HashSetPool<(DocumentUri DocumentUri, LinePositionSpan Range)>.GetPooledObject(out var seenLocations);
 
         // Map the C# locations back to the Razor file.
         foreach (var result in results)
@@ -124,6 +125,12 @@ internal sealed class RemoteFindAllReferencesService(in ServiceArgs args) : Razo
             if (mappedUri.IsRazorCSharpDocumentUri(snapshot.TextDocument.Project.Solution))
             {
                 // Couldn't map, so probably a hidden part of the code-gen, let's skip it.
+                continue;
+            }
+
+            // Multiple generated C# references can map to the same Razor source span.
+            if (!seenLocations.Add((mappedUri, mappedRange)))
+            {
                 continue;
             }
 

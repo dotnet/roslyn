@@ -66,7 +66,7 @@ End Class
                     CompilerServerHost.SharedAssemblyReferenceProvider,
                     responseFile: null,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
+                    new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory()),
                     s_libDirectory,
                     loader,
                     driverCache: null);
@@ -117,7 +117,7 @@ End Class
                     CompilerServerHost.SharedAssemblyReferenceProvider,
                     responseFile: null,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
-                    new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Path.GetTempPath()),
+                    new BuildPaths(clientDirectory, _baseDirectory, RuntimeEnvironment.GetRuntimeDirectory()),
                     s_libDirectory,
                     loader,
                     driverCache: null);

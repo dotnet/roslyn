@@ -19,26 +19,89 @@ internal partial class RazorEditService
 {
     public async Task MapWorkspaceEditAsync(Solution solution, WorkspaceEdit workspaceEdit, CancellationToken cancellationToken)
     {
-        // Collect both workspace edit shapes into TextDocumentEdits so URI coalescing and duplicate
-        // edit handling run once across the whole edit.
+        // Collect all edits and combine duplicates for each generated document before mapping to Razor.
         using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
 
         if (workspaceEdit.DocumentChanges is not null)
         {
             foreach (var edit in workspaceEdit.EnumerateEdits())
             {
-                if (edit.TryGetFirst(out var textDocumentEdit))
-                {
-                    await MapTextDocumentEditAsync(solution, textDocumentEdit, cancellationToken).ConfigureAwait(false);
-                }
-
                 builder.Add(edit);
             }
         }
 
         if (workspaceEdit.Changes is { } changeMap)
         {
-            builder.AddRange(await MapDocumentEditsAsync(solution, changeMap, cancellationToken).ConfigureAwait(false));
+            foreach (var (uri, edits) in changeMap)
+            {
+                builder.Add(CreateTextDocumentEdit(new DocumentUri(uri), edits.AsSpan()));
+            }
+        }
+
+        var documentChanges = NormalizeDocumentChanges(builder.ToArrayAndClear());
+        using var _ = DictionaryPool<DocumentId, (RemoteDocumentSnapshot Snapshot, ImmutableArray<GeneratedDocumentChanges> Changes, TextDocumentEdit Entry)>
+            .GetPooledObject(out var changesByRazorDocument);
+
+        foreach (var edit in documentChanges)
+        {
+            if (!edit.TryGetFirst(out var entry))
+            {
+                builder.Add(edit);
+                continue;
+            }
+
+            var generatedDocumentUri = entry.TextDocument.DocumentUri;
+            if (generatedDocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
+            {
+                entry.TextDocument = new OptionalVersionedTextDocumentIdentifier { DocumentUri = razorDocumentUri };
+                builder.Add(entry);
+                continue;
+            }
+
+            // For either workspace edit shape, preserve edits we can't map rather than silently dropping them.
+            if (!generatedDocumentUri.IsRazorCSharpDocumentUri(solution) ||
+                await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false) is not { } razorDocument)
+            {
+                builder.Add(entry);
+                continue;
+            }
+
+            var snapshot = _snapshotManager.GetSnapshot(razorDocument);
+            var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+            if (!codeDocument.TryGetCSharpDocumentForGeneratedUri(solution, generatedDocumentUri, out var csharpDocument))
+            {
+                builder.Add(entry);
+                continue;
+            }
+
+            if (!changesByRazorDocument.TryGetValue(razorDocument.Id, out var razorChanges))
+            {
+                razorChanges = (snapshot, [], CreateTextDocumentEdit(razorDocument.GetURI(), []));
+                builder.Add(razorChanges.Entry);
+            }
+
+            // Resolve ranges against this generated document's original C# text; impl and decl have different offsets.
+            // AnnotatedTextEdit derives from TextEdit, so either edit shape can use the same conversion.
+            var textChanges = entry.Edits.SelectAsArray(e => csharpDocument.Text.GetRazorTextChange((TextEdit)e));
+            var syntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(csharpDocument.IsDeclarationDocument, cancellationToken).ConfigureAwait(false);
+            razorChanges.Changes = razorChanges.Changes.Add(new(textChanges, syntaxTree, csharpDocument.IsDeclarationDocument));
+            changesByRazorDocument[razorDocument.Id] = razorChanges;
+        }
+
+        // Map both generated C# documents for a Razor document together. In particular, its shared using
+        // directives must be rendered only after collecting changes from both impl and decl.
+        foreach (var (snapshot, changes, entry) in changesByRazorDocument.Values)
+        {
+            // The snapshot cached this output while collecting changes above, so this doesn't regenerate it.
+            var codeDocument = await snapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+            var mappedChanges = await MapCSharpEditsAsync(
+                snapshot.TextDocument,
+                changes,
+                codeDocument,
+                includeCSharpLanguageFeatureEdits: true,
+                directlyMappedEditFilter: null,
+                cancellationToken).ConfigureAwait(false);
+            entry.Edits = mappedChanges.SelectAsPlainArray(c => new SumType<TextEdit, AnnotatedTextEdit>(codeDocument.Source.Text.GetTextEdit(c)));
         }
 
         var normalizedDocumentChanges = NormalizeDocumentChanges(builder.ToArrayAndClear());
@@ -98,106 +161,6 @@ internal partial class RazorEditService
         return normalizedDocumentChanges;
     }
 
-    private async Task MapTextDocumentEditAsync(Solution solution, TextDocumentEdit entry, CancellationToken cancellationToken)
-    {
-
-        // For Html we just map the Uri, the range will be the same
-        if (entry.TextDocument.DocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
-        {
-            entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
-            {
-                DocumentUri = razorDocumentUri,
-            };
-            return;
-        }
-
-        // Check if the edit is actually for a generated document, because if not we don't need to do anything
-        if (!entry.TextDocument.DocumentUri.IsRazorCSharpDocumentUri(solution))
-        {
-            // This location doesn't point to a background razor file. No need to map.
-            return;
-        }
-
-        var generatedDocumentUri = entry.TextDocument.DocumentUri;
-        var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
-        if (razorDocument is null)
-        {
-            return;
-        }
-
-        var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-        var codeDocument = await razorDocumentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-        if (!codeDocument.TryGetCSharpDocumentForGeneratedUri(solution, generatedDocumentUri, out var csharpDocument))
-        {
-            return;
-        }
-
-        var edits = new TextEdit[entry.Edits.Length];
-        for (var i = 0; i < entry.Edits.Length; i++)
-        {
-            // entry.Edits is SumType<TextEdit, AnnotatedTextEdit> but AnnotatedTextEdit inherits from TextEdit, so we can just cast
-            edits[i] = (TextEdit)entry.Edits[i];
-        }
-
-        var mappedEdits = await GetMappedTextEditsAsync(razorDocumentSnapshot, csharpDocument, edits, cancellationToken).ConfigureAwait(false);
-
-        // Update the entry in-place
-        entry.TextDocument = new OptionalVersionedTextDocumentIdentifier()
-        {
-            DocumentUri = razorDocument.GetURI(),
-        };
-        entry.Edits = mappedEdits.SelectAsPlainArray(static e => new SumType<TextEdit, AnnotatedTextEdit>(e));
-    }
-
-    private async Task<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]> MapDocumentEditsAsync(Solution solution, Dictionary<string, TextEdit[]> changes, CancellationToken cancellationToken)
-    {
-        // Map legacy Changes into TextDocumentEdits so MapWorkspaceEditAsync can normalize both shapes together.
-        using var builder = new PooledArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>(changes.Count);
-
-        foreach (var (uriString, edits) in changes)
-        {
-            var generatedDocumentUri = new DocumentUri(uriString);
-
-            // For Html we just map the Uri, the range will be the same
-            if (generatedDocumentUri.IsRazorHtmlDocumentUri(out var razorDocumentUri))
-            {
-                builder.Add(CreateTextDocumentEdit(razorDocumentUri, edits.AsSpan()));
-                continue;
-            }
-
-            // Check if the edit is actually for a generated document, because if not we don't need to do anything
-            if (!generatedDocumentUri.IsRazorCSharpDocumentUri(solution))
-            {
-                builder.Add(CreateTextDocumentEdit(generatedDocumentUri, edits.AsSpan()));
-                continue;
-            }
-
-            var razorDocument = await _snapshotManager.TryGetRazorDocumentAsync(solution, generatedDocumentUri, cancellationToken).ConfigureAwait(false);
-            if (razorDocument is null)
-            {
-                continue;
-            }
-
-            var razorDocumentSnapshot = _snapshotManager.GetSnapshot(razorDocument);
-            var codeDocument = await razorDocumentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-            if (!codeDocument.TryGetCSharpDocumentForGeneratedUri(solution, generatedDocumentUri, out var csharpDocument))
-            {
-                continue;
-            }
-
-            var mappedEdits = await GetMappedTextEditsAsync(razorDocumentSnapshot, csharpDocument, edits, cancellationToken).ConfigureAwait(false);
-            if (mappedEdits.Length == 0)
-            {
-                // Nothing to do.
-                continue;
-            }
-
-            builder.Add(CreateTextDocumentEdit(razorDocument.GetURI(), mappedEdits.AsSpan()));
-        }
-
-        return builder.ToArrayAndClear();
-    }
-
     private static TextDocumentEdit CreateTextDocumentEdit(DocumentUri documentUri, ReadOnlySpan<TextEdit> edits)
     {
         var textEdits = new SumType<TextEdit, AnnotatedTextEdit>[edits.Length];
@@ -234,16 +197,6 @@ internal partial class RazorEditService
         }
 
         return changes;
-    }
-
-    private async Task<ImmutableArray<TextEdit>> GetMappedTextEditsAsync(RemoteDocumentSnapshot snapshot, RazorCSharpDocument csharpDocument, TextEdit[] edits, CancellationToken cancellationToken)
-    {
-        var razorSourceText = csharpDocument.CodeDocument.Source.Text;
-        var csharpSourceText = csharpDocument.Text;
-        var textChanges = edits.SelectAsArray(csharpSourceText.GetRazorTextChange);
-        var mappedEdits = await MapCSharpEditsAsync(textChanges, snapshot, csharpDocument.IsDeclarationDocument, includeCSharpLanguageFeatureEdits: true, directlyMappedEditFilter: null, cancellationToken).ConfigureAwait(false);
-
-        return mappedEdits.SelectAsArray(razorSourceText.GetTextEdit);
     }
 
     private static void DeduplicateTextDocumentEdit(TextDocumentEdit entry)

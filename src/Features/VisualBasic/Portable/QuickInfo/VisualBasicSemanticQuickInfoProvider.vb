@@ -149,6 +149,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.QuickInfo
             Return False
         End Function
 
+        Protected Overrides Function FilterMemberGroup(
+                semanticModel As SemanticModel,
+                bindableParent As SyntaxNode,
+                memberGroup As ImmutableArray(Of ISymbol),
+                cancellationToken As CancellationToken) As ImmutableArray(Of ISymbol)
+            Dim expression = If(TryCast(bindableParent, InvocationExpressionSyntax)?.Expression, bindableParent)
+
+            If TypeOf expression Is SimpleNameSyntax AndAlso
+               Not TypeOf expression.Parent Is MemberAccessExpressionSyntax AndAlso
+               Not TypeOf expression.Parent Is QualifiedNameSyntax AndAlso
+               expression.IsInStaticContext() Then
+                Return memberGroup.WhereAsArray(Function(m) m.IsStatic)
+            End If
+
+            Return memberGroup
+        End Function
+
         Private Overloads Shared Async Function BuildContentAsync(
                 services As SolutionServices,
                 semanticModel As SemanticModel,

@@ -38,10 +38,10 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 
     internal static async Task<BrokeredServiceContainer> CreateAsync(
         ExportProvider exportProvider,
-        ILoggerFactory loggerFactory,
+        TraceSource traceSource,
         CancellationToken cancellationToken)
     {
-        var container = new BrokeredServiceContainer(BrokeredServiceTraceListener.CreateTraceSource(loggerFactory));
+        var container = new BrokeredServiceContainer(traceSource);
 
         container.ProfferIntrinsicService(
             FrameworkServices.Authorization,

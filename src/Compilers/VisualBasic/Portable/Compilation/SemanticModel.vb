@@ -3440,6 +3440,21 @@ _Default:
             Return importScopes.ToImmutableAndFree()
         End Function
 
+        Private Protected NotOverridable Overrides Function GetIterationTypeCore(position As Integer, type As ITypeSymbol, cancellationToken As CancellationToken) As ITypeSymbol
+            CheckPosition(position)
+
+            If type Is Nothing Then
+                Throw New ArgumentNullException(NameOf(type))
+            End If
+
+            Dim binder = Me.GetEnclosingBinder(position)
+            If binder Is Nothing Then
+                Return Nothing
+            End If
+
+            Return binder.GetForEachIterationType(Root, type.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(type)))
+        End Function
+
         Private Shared Sub AddImportScopes(binder As Binder, scopes As ArrayBuilder(Of IImportScope))
             ' The binder chain has the following in it (walking from the innermost level outwards)
             '

@@ -5,7 +5,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.Extensions.Internal;
 
@@ -26,16 +25,6 @@ internal record ClientSettings(
     [property: JsonPropertyName("advancedSettings")] ClientAdvancedSettings AdvancedSettings)
 {
     public static readonly ClientSettings Default = new(ClientSpaceSettings.Default, ClientCompletionSettings.Default, ClientAdvancedSettings.Default);
-
-    public RazorFormattingOptions ToRazorFormattingOptions()
-        => new()
-        {
-            InsertSpaces = !ClientSpaceSettings.IndentWithTabs,
-            TabSize = ClientSpaceSettings.IndentSize,
-            CodeBlockBraceOnNextLine = AdvancedSettings.CodeBlockBraceOnNextLine,
-            AttributeIndentStyle = AdvancedSettings.AttributeIndentStyle,
-            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = AdvancedSettings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
-        };
 }
 
 internal sealed record ClientCompletionSettings(

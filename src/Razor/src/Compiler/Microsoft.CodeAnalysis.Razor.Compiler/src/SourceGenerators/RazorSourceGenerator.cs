@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -95,24 +94,22 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                     var projectEngine = GetGenerationProjectEngine(sourceItem, imports, razorSourceGeneratorOptions);
                     var document = projectEngine.ProcessInitialParse(sourceItem, cancellationToken);
 
-                    // A component the split couldn't partition needs its full descriptor from the separate
-                    // declaration engine (the fallback discovery path); the split phase records its type
-                    // name. Its discovery-only decl is added to the augmented discovery compilation but
-                    // never emitted -- the single impl already carries the whole class, and any type shell
-                    // for resolution is emitted from GetDeclCSharpDocument() below.
+                    // A component the split couldn't partition needs its full declaration for discovery (the
+                    // fallback discovery path); the split phase marks it by recording its type name. Its
+                    // discovery-only decl is added to the augmented discovery compilation but never
+                    // emitted -- the single impl already carries the whole class, and any type shell for
+                    // resolution is emitted from GetDeclCSharpDocument() below.
                     RazorCSharpDocument? fallbackDecl = null;
-                    string? fallbackTypeName = null;
-                    if (document.CodeDocument.GetRequiredDocumentNode().FallbackComponentTypeName is { } typeName &&
+                    if (document.CodeDocument.GetRequiredDocumentNode().FallbackComponentTypeName is not null &&
                         FileUtilities.IsRazorComponentFilePath(sourceItem.FilePath, StringComparison.OrdinalIgnoreCase))
                     {
                         RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStart(sourceItem.FilePath);
                         fallbackDecl = GetFallbackDiscoveryDeclDocument(document.CodeDocument, sourceItem, imports, razorSourceGeneratorOptions, cancellationToken);
-                        fallbackTypeName = typeName;
                         RazorSourceGeneratorEventSource.Log.GenerateDeclarationCodeStop(sourceItem.FilePath);
                     }
 
                     RazorSourceGeneratorEventSource.Log.ParseRazorDocumentStop(sourceItem.RelativePhysicalPath);
-                    return (projectEngine, path: sourceItem.RelativePhysicalPath, document, fallbackDecl, fallbackTypeName);
+                    return (projectEngine, path: sourceItem.RelativePhysicalPath, document, fallbackDecl);
                 })
                 .WithTrackingName("ProcessedDocuments");
 
@@ -153,7 +150,7 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 // Match the split-decl path (DeclSources): a fallback component's discovery decl is
                 // markup-free and checksum-suppressed, so a markup-only edit leaves it byte-identical.
                 // Comparing on text keeps a new-but-equal instance from re-parsing here and, through the
-                // Collect below, from re-running slow discovery over every fallback component.
+                // Collect below, from re-running slow discovery over the whole augmented assembly.
                 .WithLambdaComparer(static (a, b) => a!.Text.ContentEquals(b!.Text))
                 .Combine(parseOptions)
                 .Select(static (pair, ct) =>
@@ -162,12 +159,20 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithTrackingName("FallbackDeclTrees");
 
             // fastDiscovery: tag helpers in the standard compilation, which -- once the split decls are
-            // added via pre-compilation output -- already contains every splittable component.
+            // added via pre-compilation output -- already contains every splittable component. It only runs
+            // when nothing fell back: a fallback type's pre-compilation shell has no base type or members,
+            // so components that inherit from it (or use its nested types) would be discovered wrongly
+            // here. slowDiscovery owns the whole assembly in that case.
             var fastTagHelpers = compilation
                 .Combine(razorSourceGeneratorOptions)
+                .Combine(fallbackDeclTrees)
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var (compilation, razorSourceGeneratorOptions) = pair;
+                    var ((compilation, razorSourceGeneratorOptions), fallbackTrees) = pair;
+                    if (!fallbackTrees.IsDefaultOrEmpty)
+                    {
+                        return TagHelperCollection.Empty;
+                    }
 
                     RazorSourceGeneratorEventSource.Log.DiscoverTagHelpersFromCompilationStart();
                     var tagHelperFeature = GetStaticTagHelperFeature(compilation);
@@ -179,40 +184,17 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
                 .WithLambdaComparer(static (a, b) => a!.SequenceEqual(b!))
                 .WithTrackingName("FastTagHelpers");
 
-            // The namespace-qualified names (no generic arity) of the fallback components' types, collected
-            // from the IR-derived name captured while each document was processed. A fallback type can also
-            // be declared partially in the main compilation (a component-as-tag-helper partial), so this
-            // drives excluding those types from fastDiscovery -- slowDiscovery discovers them completely over
-            // the augmented compilation instead.
-            var fallbackTypeNames = processedDocuments
-                .Select(static (item, _) => item.fallbackTypeName)
-                .Collect()
-                .Select(static (names, _) =>
-                {
-                    var builder = ImmutableHashSet.CreateBuilder<string>(StringComparer.Ordinal);
-                    foreach (var name in names)
-                    {
-                        if (name is not null)
-                        {
-                            builder.Add(name);
-                        }
-                    }
-
-                    return builder.ToImmutable();
-                })
-                .WithTrackingName("FallbackTypeNames");
-
             // slowDiscovery: only runs when something fell back. Augment the compilation with the fallback
-            // decl trees, discover over it, and keep just the fallback components' types (the augmented
-            // assembly also contains the split decls and user source that fastDiscovery covers). A fallback
-            // type is discovered here completely -- including any half declared in a partial C# file -- so
-            // slowDiscovery, not fastDiscovery, owns the full descriptor for it.
+            // decl trees and discover over the whole augmented assembly. Discovering just the fallback types
+            // isn't enough: their full declarations can change other components' base classes, inherited
+            // parameters, and nested types, and fastDiscovery's view of those components was built against
+            // the incomplete shells. The cost is re-walking every splittable component whenever anything
+            // falls back, rather than mixing descriptors from the two compilations.
             var slowTagHelpers = fallbackDeclTrees
                 .Combine(compilation)
-                .Combine(fallbackTypeNames)
                 .Select(static (pair, cancellationToken) =>
                 {
-                    var ((fallbackTrees, compilation), fallbackTypeNames) = pair;
+                    var (fallbackTrees, compilation) = pair;
                     if (fallbackTrees.IsDefaultOrEmpty)
                     {
                         return TagHelperCollection.Empty;
@@ -220,46 +202,20 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
                     var augmented = compilation.AddSyntaxTrees(fallbackTrees);
 
-                    // Discover only the fallback components' own types rather than re-walking the whole
-                    // augmented assembly. fastDiscovery already covered every splittable component, so the
-                    // full walk here would rediscover all of them just to keep the few fallback types. The
-                    // fallback types are exactly the ones declared by the discovery-only decl trees we just
-                    // added, and tag-helper producers examine each type independently, so discovering just
-                    // those yields the same descriptors the full walk would for them.
-                    var fallbackTypes = ResolveFallbackTypes(augmented, fallbackTypeNames, cancellationToken);
-                    if (fallbackTypes.IsDefaultOrEmpty)
-                    {
-                        return TagHelperCollection.Empty;
-                    }
-
                     var tagHelperFeature = GetStaticTagHelperFeature(augmented);
-                    var discovered = tagHelperFeature.GetTagHelpers(fallbackTypes, cancellationToken);
-                    if (discovered.IsEmpty)
-                    {
-                        return TagHelperCollection.Empty;
-                    }
-
-                    // A resolved type can be a partial that also produces a non-fallback descriptor name;
-                    // keep only the fallback components' types, matching the ownership split with fastDiscovery.
-                    return discovered.Where(fallbackTypeNames, static (descriptor, names) => names.Contains(StripGenericArity(GetOwningTypeName(descriptor))));
+                    return tagHelperFeature.GetTagHelpers(augmented.Assembly, cancellationToken);
                 })
                 .WithLambdaComparer(static (a, b) => a!.SequenceEqual(b!))
                 .WithTrackingName("SlowTagHelpers");
 
-            // fastDiscovery covers the standard compilation (split decls + user types); slowDiscovery owns
-            // the fallback types completely. Exclude the fallback types from fastDiscovery so a fallback
-            // type that is also a compilation partial isn't emitted twice (or with fastDiscovery's
-            // incomplete, partial-only descriptor).
+            // Exactly one of fastDiscovery and slowDiscovery produces descriptors, depending on whether
+            // anything fell back, so merging them never duplicates or mixes a type's descriptors.
             var tagHelpersFromCompilation = fastTagHelpers
                 .Combine(slowTagHelpers)
-                .Combine(fallbackTypeNames)
                 .Select(static (pair, _) =>
                 {
-                    var ((fast, slow), fallbackTypeNames) = pair;
-                    var fastOwned = fallbackTypeNames.IsEmpty
-                        ? fast
-                        : fast.Where(fallbackTypeNames, static (descriptor, names) => !names.Contains(StripGenericArity(GetOwningTypeName(descriptor))));
-                    return TagHelperCollection.Merge(fastOwned, slow);
+                    var (fast, slow) = pair;
+                    return TagHelperCollection.Merge(fast, slow);
                 })
                 .WithTrackingName("TagHelpersFromCompilation");
 

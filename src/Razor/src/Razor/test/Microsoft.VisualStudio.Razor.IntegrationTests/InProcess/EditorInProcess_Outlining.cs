@@ -4,6 +4,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Threading;
@@ -65,7 +66,7 @@ internal partial class EditorInProcess
         await TestServices.JoinableTaskFactory.SwitchToMainThreadAsync();
         var outliningService = await TestServices.Shell.GetComponentModelServiceAsync<IOutliningManagerService>(cancellationToken);
         var manager = outliningService.GetOutliningManager(textView);
-        Assumes.NotNull(manager);
+        Contract.ThrowIfNull(manager);
         return manager;
     }
 }

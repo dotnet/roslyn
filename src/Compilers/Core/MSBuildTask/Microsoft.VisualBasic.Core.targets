@@ -76,7 +76,7 @@
          EnvironmentVariables="$(VbcEnvironment)"
          ErrorLog="$(ErrorLog)"
          ErrorReport="$(ErrorReport)"
-         Features="$(Features)"
+         Features="$(_RoslynCompilerCacheFeature);$(Features)"
          FileAlignment="$(FileAlignment)"
          GenerateDocumentation="$(GenerateDocumentation)"
          GeneratedFilesOutputPath="$(CompilerGeneratedFilesOutputPath)"
@@ -174,6 +174,7 @@
        probably won't be any worse than having no options at all. -->
   <PropertyGroup>
     <CommandLineArgsForDesignTimeEvaluation>-langversion:$(LangVersion)</CommandLineArgsForDesignTimeEvaluation>
+    <CommandLineArgsForDesignTimeEvaluation Condition="'$(_RoslynCompilerCacheFeature)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -features:$(_RoslynCompilerCacheFeature)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(ChecksumAlgorithm)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -checksumalgorithm:$(ChecksumAlgorithm)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(FinalDefineConstants)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -define:$(FinalDefineConstants)</CommandLineArgsForDesignTimeEvaluation>
     <CommandLineArgsForDesignTimeEvaluation Condition="'$(Features)' != ''">$(CommandLineArgsForDesignTimeEvaluation) -features:$(Features)</CommandLineArgsForDesignTimeEvaluation>

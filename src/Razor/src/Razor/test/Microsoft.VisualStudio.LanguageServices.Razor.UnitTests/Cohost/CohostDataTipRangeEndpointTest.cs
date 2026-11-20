@@ -4,6 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -155,7 +156,7 @@ public sealed class CohostDataTipRangeEndpointTest(ITestOutputHelper testOutputH
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, DisposalToken);
 
-        Assumes.NotNull(result);
+        Contract.ThrowIfNull(result);
 
         var expectedExpressionSpan = input.GetNamedSpans("expression")[0];
         var expectedExpressionRange = inputText.GetRange(expectedExpressionSpan);

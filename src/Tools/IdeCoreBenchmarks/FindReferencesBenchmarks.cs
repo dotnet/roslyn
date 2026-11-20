@@ -40,7 +40,7 @@ namespace IdeCoreBenchmarks
 
         private static void RestoreCompilerSolution()
         {
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            var roslynRoot = Program.RoslynRootPath;
             var solutionPath = Path.Combine(roslynRoot, "Compilers.slnf");
             var restoreOperation = Process.Start("dotnet", $"restore /p:UseSharedCompilation=false /p:BuildInParallel=false /m:1 /p:Deterministic=true /p:Optimize=true {solutionPath}");
             restoreOperation.WaitForExit();
@@ -50,7 +50,7 @@ namespace IdeCoreBenchmarks
 
         private async Task LoadSolutionAsync()
         {
-            var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
+            var roslynRoot = Program.RoslynRootPath;
             var solutionPath = Path.Combine(roslynRoot, "Compilers.slnf");
 
             if (!File.Exists(solutionPath))

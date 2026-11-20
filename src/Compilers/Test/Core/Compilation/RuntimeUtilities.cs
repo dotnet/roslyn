@@ -42,21 +42,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal static bool IsCoreClr9OrHigherRuntime
             => CoreClrRuntimeVersion is { } v && v >= 9;
 
-        internal static BuildPaths CreateBuildPaths(string workingDirectory, string? sdkDirectory = null, string? tempDirectory = null)
+        internal static BuildPaths CreateBuildPaths(string workingDirectory, string? sdkDirectory = null)
         {
-            tempDirectory ??= Path.GetTempPath();
 #if NET472
             return new BuildPaths(
                 clientDir: Path.GetDirectoryName(typeof(BuildPathsUtil).Assembly.Location),
                 workingDir: workingDirectory,
-                sdkDir: sdkDirectory ?? RuntimeEnvironment.GetRuntimeDirectory(),
-                tempDir: tempDirectory);
+                sdkDir: sdkDirectory ?? RuntimeEnvironment.GetRuntimeDirectory());
 #else
             return new BuildPaths(
                 clientDir: AppContext.BaseDirectory,
                 workingDir: workingDirectory,
-                sdkDir: sdkDirectory,
-                tempDir: tempDirectory);
+                sdkDir: sdkDirectory);
 #endif
         }
 

@@ -28,12 +28,29 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 {
     private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
 
-    private readonly AsyncPriorityWorkQueue<string> _projectsToReload;
+    private readonly AsyncPriorityWorkQueue<ProjectLoadWorkItem> _projectsToReload;
     internal enum ProjectReloadPriority
     {
-        Low = 0,
-        Medium = 1,
-        High = 2,
+        /// <summary>Refreshing a project whose state was already applied from the cache.</summary>
+        BackgroundRefresh = 0,
+
+        /// <summary>Loading or reloading a project in response to project or file changes.</summary>
+        RegularLoad = 1,
+
+        /// <summary>Loading a project a user is waiting on, such as for an opened file.</summary>
+        UserRequestedLoad = 2,
+
+        /// <summary>Loading a project's cached state, which we want to always happen first.</summary>
+        CacheLoad = 3,
+    }
+
+    private readonly record struct ProjectLoadWorkItem(string ProjectPath, bool LoadFromCache)
+    {
+        public bool Equals(ProjectLoadWorkItem other)
+            => LoadFromCache == other.LoadFromCache && PathUtilities.Comparer.Equals(ProjectPath, other.ProjectPath);
+
+        public override int GetHashCode()
+            => HashCode.Combine(PathUtilities.Comparer.GetHashCode(ProjectPath), LoadFromCache);
     }
 
     private bool _isDisposed;
@@ -117,11 +134,11 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
         AdditionalProperties = BuildAdditionalProperties(serverConfigurationFactory.ServerConfiguration);
 
-        _projectsToReload = new AsyncPriorityWorkQueue<string>(
-            maximumPriority: (int)ProjectReloadPriority.High,
+        _projectsToReload = new AsyncPriorityWorkQueue<ProjectLoadWorkItem>(
+            maximumPriority: (int)ProjectReloadPriority.CacheLoad,
             TimeSpan.FromMilliseconds(100),
             ReloadProjectsAsync,
-            PathUtilities.Comparer,
+            EqualityComparer<ProjectLoadWorkItem>.Default,
             Listener);
     }
 
@@ -159,7 +176,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         }
     }
 
-    private async ValueTask ReloadProjectsAsync(AsyncPriorityWorkQueue<string>.WorkToProcess projectsToLoadOrReload, CancellationToken cancellationToken)
+    private async ValueTask ReloadProjectsAsync(AsyncPriorityWorkQueue<ProjectLoadWorkItem>.WorkToProcess projectsToLoadOrReload, CancellationToken cancellationToken)
     {
         // A batch runs on the context of whichever AddWork caller started it, which may be a file-change
         // notification or other non-request caller that carries no ambient instance of its own.
@@ -189,16 +206,29 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 {
                     parallelTasks[i] = Task.Run(async () =>
                     {
-                        while (await projectsToLoadOrReload.TryProcessNextItemAsync(async projectPath =>
+                        while (await projectsToLoadOrReload.TryProcessNextItemAsync(async workItem =>
                         {
-                            var projectToRestorePath = await ReloadProjectAsync(
-                              projectPath, toastErrorReporter, buildHostProcessManager, cancellationToken);
+                            if (workItem.LoadFromCache)
+                            {
+                                if (await TryApplyCachedProjectInfoAsync(workItem.ProjectPath, cancellationToken))
+                                {
+                                    // The cached state is enough for now, so the design-time build is only a background refresh.
+                                    _projectsToReload.LowerWorkPriorityIfScheduled(
+                                        new(workItem.ProjectPath, LoadFromCache: false), (int)ProjectReloadPriority.BackgroundRefresh);
+                                }
+                            }
+                            else
+                            {
+                                var projectToRestorePath = await ReloadProjectAsync(
+                                    workItem.ProjectPath, toastErrorReporter, buildHostProcessManager, cancellationToken);
 
-                            if (projectToRestorePath is not null)
-                                projectsThatNeedRestore.Add(projectToRestorePath);
+                                if (projectToRestorePath is not null)
+                                    projectsThatNeedRestore.Add(projectToRestorePath);
+
+                                Interlocked.Increment(ref totalReloads);
+                            }
                         }))
                         {
-                            Interlocked.Increment(ref totalReloads);
                         }
                     }, cancellationToken);
                 }
@@ -235,6 +265,9 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     }
 
     /// <summary>Loads a project in the MSBuild host.</summary>
+    /// <returns>
+    /// The load result, or null if the project should not be loaded. Implementations that return null are responsible for logging why.
+    /// </returns>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
@@ -260,14 +293,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         {
             var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (remoteProjectLoadResult is null)
-            {
-                // Example cases where this might occur:
-                // - Loading VB projects
-                // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
-                //   making the file no longer a file-based app entry point.
-                _logger.LogDebug("Reload of '{ProjectPath}' was canceled.", projectPath);
                 return null;
-            }
 
             var projectFactory = remoteProjectLoadResult.ProjectFactory;
             var preferredBuildHostKind = remoteProjectLoadResult.PreferredBuildHostKind;
@@ -380,7 +406,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             if (doDesignTimeBuild)
             {
                 newLoadedProject.NeedsReload += LoadedProject_NeedsReload;
-                _projectsToReload.AddWork(newLoadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Medium);
+                _projectsToReload.AddWork(new(newLoadedProject.ProjectFilePath, LoadFromCache: false), priority: (int)ProjectReloadPriority.RegularLoad);
             }
             else
             {
@@ -396,7 +422,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     /// </summary>
     internal async Task<LoadedProject> BeginLoadingProjectAsync(
         string projectPath,
-        ProjectReloadPriority reloadPriority = ProjectReloadPriority.Medium)
+        ProjectReloadPriority reloadPriority = ProjectReloadPriority.RegularLoad)
     {
         projectPath = NormalizeProjectPath(projectPath);
         LoadedProject? loadedProject;
@@ -407,7 +433,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
             if (_loadedProjects.TryGetValue(projectPath, out loadedProject))
             {
-                _projectsToReload.RaiseWorkPriorityIfScheduled(loadedProject.ProjectFilePath, (int)reloadPriority);
+                _projectsToReload.RaiseWorkPriorityIfScheduled(new(loadedProject.ProjectFilePath, LoadFromCache: false), (int)reloadPriority);
                 return loadedProject;
             }
 
@@ -416,57 +442,62 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
             loadedProject.NeedsReload += LoadedProject_NeedsReload;
 
-            // Schedule the project with a low priority until we have checked whether it can be loaded from the cache.
-            _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Low);
+            _projectsToReload.AddWork(
+                new(projectPath, LoadFromCache: true),
+                priority: (int)ProjectReloadPriority.CacheLoad);
+            _projectsToReload.AddWork(
+                new(projectPath, LoadFromCache: false),
+                priority: (int)reloadPriority);
+
+            return loadedProject;
+        }
+    }
+
+    private async Task<bool> TryApplyCachedProjectInfoAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        LoadedProject? loadedProject;
+
+        // The project may have been unloaded since the cache load was queued
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            if (!_loadedProjects.TryGetValue(projectPath, out loadedProject))
+                return false;
         }
 
-        // Try to load the contents from the project cache if we have one; we'll do this outside the lock
-        var applied = await TryApplyCachedProjectInfoAsync(loadedProject);
-        if (!applied)
+        try
         {
-            // Since we were unable to load from the cache, we can raise its priority to ensure it gets reloaded.
-            _projectsToReload.RaiseWorkPriorityIfScheduled(loadedProject.ProjectFilePath, (int)reloadPriority);
-        }
+            var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, cancellationToken);
 
-        return loadedProject;
-
-        async Task<bool> TryApplyCachedProjectInfoAsync(LoadedProject loadedProject)
-        {
-            try
+            if (cachedProjectStateAndFactory is not null)
             {
-                var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
+                var (cachedProjectState, projectFactory) = cachedProjectStateAndFactory.Value;
 
-                if (cachedProjectStateAndFactory is not null)
+                var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
+                    cachedProjectState,
+                    isMiscellaneousFile: false,
+                    hasAllInformation: true,
+                    projectFactory,
+                    _projectTargetFrameworkManager,
+                    _projectCapabilityManager,
+                    _workspaceFactory,
+                    _logger,
+                    cancellationToken,
+                    onlyIfNoTargets: true);
+
+                if (applied)
                 {
-                    var (cachedProjectState, projectFactory) = cachedProjectStateAndFactory.Value;
-
-                    var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
-                        cachedProjectState,
-                        isMiscellaneousFile: false,
-                        hasAllInformation: true,
-                        projectFactory,
-                        _projectTargetFrameworkManager,
-                        _projectCapabilityManager,
-                        _workspaceFactory,
-                        _logger,
-                        CancellationToken.None,
-                        onlyIfNoTargets: true);
-
-                    if (applied)
-                    {
-                        // We'll count the cached load as sufficient for this project being fully loaded
-                        loadedProject.CompleteInitialLoad();
-                        return true;
-                    }
+                    // We'll count the cached load as sufficient for this project being fully loaded
+                    loadedProject.CompleteInitialLoad();
+                    return true;
                 }
             }
-            catch (Exception e)
-            {
-                _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
-            }
-
-            return false;
         }
+        catch (Exception e) when (!ExceptionUtilities.IsCurrentOperationBeingCancelled(e, cancellationToken))
+        {
+            _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
+        }
+
+        return false;
     }
 
     protected void LoadedProject_NeedsReload(object? sender, string triggeringFilePath)
@@ -474,7 +505,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         var loadedProject = (LoadedProject)sender!;
 
         _logger.LogTrace("Project {ProjectPath} needs reload due to change in {TriggeringFilePath}", loadedProject.ProjectFilePath, triggeringFilePath);
-        _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Medium);
+        _projectsToReload.AddWork(new(loadedProject.ProjectFilePath, LoadFromCache: false), priority: (int)ProjectReloadPriority.RegularLoad);
     }
 
     internal static async Task WaitForProjectLoadsAsync(
@@ -569,4 +600,17 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     protected static string NormalizeProjectPath(string projectPath)
         => PathUtilities.IsAbsolute(projectPath) ? IOUtilities.PerformIO(() => Path.GetFullPath(projectPath), projectPath) : projectPath;
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LanguageServerProjectLoader loader)
+    {
+        public async ValueTask<ImmutableArray<string>> GetLoadedProjectPathsAsync()
+        {
+            using (await loader._gate.DisposableWaitAsync(CancellationToken.None))
+            {
+                return [.. loader._loadedProjects.Keys];
+            }
+        }
+    }
 }
