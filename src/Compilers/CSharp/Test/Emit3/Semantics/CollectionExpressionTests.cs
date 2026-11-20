@@ -28767,6 +28767,242 @@ partial class Program
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84145")]
+        public void RuntimeHelpers_CreateSpan_Utf8LiteralSpread()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<byte> bytes = [(byte)'H', .. "ello"u8, (byte)' ', .. "World"u8, (byte)'!'];
+                        bytes.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensionsWithSpan],
+                targetFramework: TargetFramework.Net80,
+                expectedOutput: IncludeExpectedOutput("[72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33],"),
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<byte> V_0) //bytes
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldsflda    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.7F83B1657FF1FC53B92DC18148A1D65DFC2D4B1FA3D677284ADDD200126D9069"
+                  IL_0007:  ldc.i4.s   12
+                  IL_0009:  call       "System.ReadOnlySpan<byte>..ctor(void*, int)"
+                  IL_000e:  ldloca.s   V_0
+                  IL_0010:  call       "void CollectionExtensions.Report<byte>(in System.ReadOnlySpan<byte>)"
+                  IL_0015:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84145")]
+        public void RuntimeHelpers_CreateSpan_Utf8LiteralSpread_MissingPointerConstructor()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<byte> bytes = [(byte)'H', .. "ello"u8, (byte)' ', .. "World"u8, (byte)'!'];
+                        bytes.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionExtensionsWithSpan], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: IncludeExpectedOutput("[72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33],"),
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       33 (0x21)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<byte> V_0) //bytes
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.s   12
+                  IL_0004:  newarr     "byte"
+                  IL_0009:  dup
+                  IL_000a:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.7F83B1657FF1FC53B92DC18148A1D65DFC2D4B1FA3D677284ADDD200126D9069"
+                  IL_000f:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_0014:  call       "System.ReadOnlySpan<byte>..ctor(byte[])"
+                  IL_0019:  ldloca.s   V_0
+                  IL_001b:  call       "void CollectionExtensions.Report<byte>(in System.ReadOnlySpan<byte>)"
+                  IL_0020:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84145")]
+        public void RuntimeHelpers_CreateSpan_Utf8LiteralSpread_MissingPointerConstructorAndInitializeArray()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<byte> bytes = [(byte)'H', .. "ello"u8, (byte)' ', .. "World"u8, (byte)'!'];
+                        bytes.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, s_collectionExtensionsWithSpan], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle);
+
+            var verifier = CompileAndVerify(
+                comp,
+                expectedOutput: IncludeExpectedOutput("[72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100, 33],"),
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       85 (0x55)
+                  .maxstack  5
+                  .locals init (System.ReadOnlySpan<byte> V_0) //bytes
+                  IL_0000:  ldloca.s   V_0
+                  IL_0002:  ldc.i4.s   12
+                  IL_0004:  newarr     "byte"
+                  IL_0009:  dup
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  ldc.i4.s   72
+                  IL_000d:  stelem.i1
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldc.i4.s   101
+                  IL_0012:  stelem.i1
+                  IL_0013:  dup
+                  IL_0014:  ldc.i4.2
+                  IL_0015:  ldc.i4.s   108
+                  IL_0017:  stelem.i1
+                  IL_0018:  dup
+                  IL_0019:  ldc.i4.3
+                  IL_001a:  ldc.i4.s   108
+                  IL_001c:  stelem.i1
+                  IL_001d:  dup
+                  IL_001e:  ldc.i4.4
+                  IL_001f:  ldc.i4.s   111
+                  IL_0021:  stelem.i1
+                  IL_0022:  dup
+                  IL_0023:  ldc.i4.5
+                  IL_0024:  ldc.i4.s   32
+                  IL_0026:  stelem.i1
+                  IL_0027:  dup
+                  IL_0028:  ldc.i4.6
+                  IL_0029:  ldc.i4.s   87
+                  IL_002b:  stelem.i1
+                  IL_002c:  dup
+                  IL_002d:  ldc.i4.7
+                  IL_002e:  ldc.i4.s   111
+                  IL_0030:  stelem.i1
+                  IL_0031:  dup
+                  IL_0032:  ldc.i4.8
+                  IL_0033:  ldc.i4.s   114
+                  IL_0035:  stelem.i1
+                  IL_0036:  dup
+                  IL_0037:  ldc.i4.s   9
+                  IL_0039:  ldc.i4.s   108
+                  IL_003b:  stelem.i1
+                  IL_003c:  dup
+                  IL_003d:  ldc.i4.s   10
+                  IL_003f:  ldc.i4.s   100
+                  IL_0041:  stelem.i1
+                  IL_0042:  dup
+                  IL_0043:  ldc.i4.s   11
+                  IL_0045:  ldc.i4.s   33
+                  IL_0047:  stelem.i1
+                  IL_0048:  call       "System.ReadOnlySpan<byte>..ctor(byte[])"
+                  IL_004d:  ldloca.s   V_0
+                  IL_004f:  call       "void CollectionExtensions.Report<byte>(in System.ReadOnlySpan<byte>)"
+                  IL_0054:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84145")]
+        public void RuntimeHelpers_CreateSpan_Utf8LiteralSpread_MissingAllApplicableSpanConstructors()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<byte> bytes = [(byte)'H', .. "ello"u8, (byte)' ', .. "World"u8, (byte)'!'];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer);
+            comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
+
+            comp.VerifyEmitDiagnostics(
+                // (7,36): error CS0656: Missing compiler required member 'System.ReadOnlySpan`1..ctor'
+                //         ReadOnlySpan<byte> bytes = [(byte)'H', .. "ello"u8, (byte)' ', .. "World"u8, (byte)'!'];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[(byte)'H', .. ""ello""u8, (byte)' ', .. ""World""u8, (byte)'!']").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(7, 36));
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84145")]
+        public void RuntimeHelpers_CreateSpan_Utf8LiteralSpread_InvalidUtf8()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ReadOnlySpan<byte> bytes = [.. "\uD801"u8];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,40): error CS9026: The input string cannot be converted into the equivalent UTF-8 byte representation. Unable to translate Unicode character \\uD801 at index 0 to specified code page.
+                //         ReadOnlySpan<byte> bytes = [.. "\uD801"u8];
+                Diagnostic(ErrorCode.ERR_CannotBeConvertedToUtf8, @"""\uD801""u8").WithArguments(@"Unable to translate Unicode character \\uD801 at index 0 to specified code page.").WithLocation(7, 40));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84145")]
+        public void ReadOnlySpan_Utf8Spread_DoesNotEscape()
+        {
+            var source = """
+                using System;
+
+                class C
+                {
+                    ReadOnlySpan<byte> M() => [.. "Hello World"u8, (byte)'!'];
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics();
+        }
+
         [Fact]
         public void ReadOnlySpan_Constant_01()
         {
