@@ -392,7 +392,14 @@ internal sealed class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
                 //     int? x = conditional ? (int?)trueValue : null;
                 //
                 // Once you remove the cast, the conditional has no type itself, but is being converted to int? by a conditional
-                // expression conversion.
+                // expression conversion. The original conditional may also be target-typed (for example, after the cast
+                // reducer has already removed such a cast), so handle both sides.
+                if (originalExpressionType == null &&
+                    this.OriginalSemanticModel.GetConversion(originalExpression, this.CancellationToken).IsConditionalExpression)
+                {
+                    originalExpressionType = originalExpressionTypeInfo.ConvertedType;
+                }
+
                 if (newExpressionType == null &&
                     this.SpeculativeSemanticModel.GetConversion(newExpression, this.CancellationToken).IsConditionalExpression)
                 {
