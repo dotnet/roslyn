@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
@@ -21,7 +22,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -196,10 +199,10 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         return service;
     }
 
-    private static TestServiceBroker CreateServiceBroker()
+    private static TestServiceBroker CreateServiceBroker(DebuggerContracts.IHotReloadLogger logger = null)
         => new((_, t) => t switch
         {
-            _ when t == typeof(DebuggerContracts.IHotReloadLogger) => new MockHotReloadLogger(),
+            _ when t == typeof(DebuggerContracts.IHotReloadLogger) => logger ?? new MockHotReloadLogger(),
             _ when t == typeof(HR.IManagedHotReloadState) => new TestManagedHotReloadService(["Baseline"]),
             _ => throw ExceptionUtilities.UnexpectedValue(t)
         });
@@ -696,5 +699,125 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         Assert.Equal(source1, document.GetTextSynchronously(CancellationToken.None).ToString());
 
         await eventListener.OnHotReloadDeactivatedAsync(CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Remote startup that returns no debugging session logs an internal error, disables Hot Reload,
+    /// and makes a later update request return no updates instead of throwing because there is no session.
+    /// </summary>
+    [Fact]
+    public async Task OnHotReloadActivatedAsync_DisablesHotReloadWhenDebuggingSessionFailsToStart()
+    {
+        var composition = EditorTestCompositions.LanguageServerProtocolEditorFeatures
+            .AddExcludedPartTypes(typeof(EditAndContinueService.WorkspaceServiceFactory))
+            .AddParts(
+                typeof(NoCompilationLanguageService),
+                typeof(MockHostWorkspaceProvider),
+                typeof(MockServiceBrokerProvider),
+                typeof(MockEditAndContinueServiceFactory),
+                typeof(MockManagedHotReloadService),
+                typeof(FailingRemoteHostClientProvider));
+
+        var logger = new TestHotReloadLogger();
+        var serviceBroker = CreateServiceBroker(logger);
+
+        using var workspace = CreateWorkspace(composition);
+        using var sourceTextProvider = new PdbMatchingSourceTextProvider(workspace);
+        var service = await CreateServiceAsync(serviceBroker, workspace, sourceTextProvider);
+        try
+        {
+            await serviceBroker.HotReloadEventListener.OnHotReloadActivatedAsync(CancellationToken.None);
+            await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.EditAndContinue).ExpeditedWaitAsync();
+
+            AssertEx.Equal(
+            [
+                $"{DebuggerContracts.HotReloadDiagnosticErrorLevel.Error}: {FeaturesResources.Internal_error_Failed_to_start_a_debugging_session}",
+                $"{DebuggerContracts.HotReloadDiagnosticErrorLevel.Info}: {FeaturesResources.Hot_Reload_has_been_disabled}",
+            ], logger.Messages.Select(static message => $"{message.ErrorLevel}: {message.Message}"));
+
+            var updates = await service.GetUpdatesAsync([], CancellationToken.None);
+
+            Assert.Empty(updates.Updates);
+            Assert.Empty(updates.Diagnostics);
+            Assert.Empty(updates.ProjectInstancesToRebuild);
+            Assert.Empty(updates.ProjectInstancesToRestart);
+            Assert.False(updates.HasPendingUpdates);
+        }
+        finally
+        {
+            service.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Presents a remote host whose debugging-session call completes without a session id.
+    /// </summary>
+    [ExportWorkspaceService(typeof(IRemoteHostClientProvider), ServiceLayer.Test), Shared, PartNotDiscoverable]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class FailingRemoteHostClientProvider() : IRemoteHostClientProvider
+    {
+        public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
+            => Task.FromResult<RemoteHostClient?>(new FailingRemoteHostClient());
+
+        public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        private sealed class FailingRemoteHostClient : RemoteHostClient
+        {
+            public override void Dispose()
+            {
+            }
+
+            public override RemoteServiceConnection<T> CreateConnection<T>(object? callbackTarget)
+                => new FailingRemoteServiceConnection<T>();
+        }
+
+        private sealed class FailingRemoteServiceConnection<TService> : RemoteServiceConnection<TService>
+            where TService : class
+        {
+            public override void Dispose()
+            {
+            }
+
+            public override ValueTask<bool> TryInvokeAsync(Func<TService, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<TService, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(Func<TService, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+
+            public override ValueTask<Optional<TResult>> TryInvokeAsync<TResult>(SolutionCompilationState compilationState, ProjectId projectId, Func<TService, Checksum, RemoteServiceCallbackId, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken)
+                => new(default(Optional<TResult>));
+
+            public override ValueTask<bool> TryInvokeAsync(SolutionCompilationState compilationState1, SolutionCompilationState compilationState2, Func<TService, Checksum, Checksum, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken)
+                => new(false);
+        }
     }
 }
