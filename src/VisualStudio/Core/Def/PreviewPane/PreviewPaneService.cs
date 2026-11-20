@@ -107,7 +107,7 @@ internal sealed class PreviewPaneService : IPreviewPaneService, IWorkspaceServic
             optionPageGuid: optionPageGuid);
     }
 
-    private static Guid GetOptionPageGuidForOptionName(string optionName, string optionLanguage)
+    internal static Guid GetOptionPageGuidForOptionName(string optionName, string optionLanguage)
     {
         if (optionName == nameof(NamingStyleOptions.NamingPreferences))
         {
@@ -128,7 +128,7 @@ internal sealed class PreviewPaneService : IPreviewPaneService, IWorkspaceServic
             }
             else if (optionLanguage == LanguageNames.VisualBasic)
             {
-                return Guid.Parse(Guids.VisualBasicOptionPageVBSpecificIdString);
+                return Guid.Parse(Guids.VisualBasicOptionPageCodeStyleIdString);
             }
         }
 

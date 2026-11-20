@@ -42,6 +42,21 @@
         <target state="translated">Deyimi noktalı virgülle otomatik olarak tamamla</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_block_on_close_brace">
+        <source>Automatically format block on }</source>
+        <target state="translated">} girildiğinde bloğu otomatik biçimlendir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_paste">
+        <source>Automatically format on paste</source>
+        <target state="translated">Yapıştırırken otomatik olarak biçimlendir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format statement on ;</source>
+        <target state="translated">; girildiğinde deyimi otomatik biçimlendir</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="translated">Bağımsız değişken listelerinde tamamlama listesini otomatik olarak göster</target>
@@ -92,20 +107,30 @@
         <target state="translated">Renk düzenini düzenle</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter outlining mode when files open</source>
+        <target state="translated">Dosyalar açıldığında ana hat oluşturma moduna gir</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">Dosya kapsama alındı</target>
         <note />
       </trans-unit>
-      <trans-unit id="General">
-        <source>General</source>
-        <target state="translated">Genel</target>
-        <note>Title of the control group on the General Formatting options page</note>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>Generate XML documentation comments for ///</source>
+        <target state="translated">/// için XML belge açıklamaları üret</target>
+        <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">İlişkisel işleçleri içinde: &lt;&gt; = &lt;&gt; = == gibi! =</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
+        <source>Insert * at the start of new lines when writing /* */ comments</source>
+        <target state="translated">/* */ açıklamaları yazarken her yeni satırın başına ekle *</target>
+        <note />
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
@@ -132,6 +157,11 @@
         <target state="translated">Hiçbir zaman using ekleme</target>
         <note />
       </trans-unit>
+      <trans-unit id="On_type_formatting">
+        <source>On-type Formatting</source>
+        <target state="new">On-type Formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Only_add_using_if_explicitly_completed">
         <source>Only add using if explicitly completed (via TAB or double-click)</source>
         <target state="translated">using'i yalnızca açıkça tamamlandığında (SEKME tuşu veya çift tıklama ile) ekle</target>
@@ -140,6 +170,11 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Desen eşleştirme tercihleri:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
+        <source>Place 'System' directives first when sorting usings</source>
+        <target state="translated">using deyimlerini sıralarken 'System' yönergelerini ilk sıraya yerleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -202,6 +237,16 @@
         <target state="translated">Yeni kod parçacığı deneyimini göster (deneysel)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_string_literals_on_enter">
+        <source>Split string literals on enter</source>
+        <target state="translated">Enter tuşuna basıldığında dize değişmez değerlerini böl</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
+        <source>Suggest usings for types in NuGet packages</source>
+        <target state="translated">NuGet paketlerinde türler için using öner</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">.NET Framework bütünleştirilmiş kodlarında türler için using öner</target>
@@ -210,21 +255,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Şununla Çevrele</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace">
-        <source>Automatically format _block on }</source>
-        <target state="translated">} girildiğinde _bloğu otomatik biçimlendir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_on_paste">
-        <source>Automatically format on _paste</source>
-        <target state="translated">_Yapıştırırken otomatik olarak biçimlendir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">; girildiğinde _deyimi otomatik biçimlendir</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
@@ -502,29 +532,9 @@
         <target state="translated">Anahtar sözcükler için yeni satır seçenekleri</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>Enter _outlining mode when files open</source>
-        <target state="translated">Dosyalar açıldığında a_na hat oluşturma moduna gir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for ///</source>
-        <target state="translated">/// için _XML belge açıklamaları üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
-        <source>_Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">_/* */ açıklamaları yazarken her yeni satırın başına _ekle *</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Using_Directives">
         <source>Using Directives</source>
         <target state="translated">Using Yönergeleri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings">
-        <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">using deyimlerini sıralarken 'System' yönergelerini ilk sıraya _yerleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -550,11 +560,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">Özellikler, dizin oluşturucular ve olaylar için yeni satıra açık ayraç yerleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
-        <source>Suggest usings for types in _NuGet packages</source>
-        <target state="translated">_NuGet paketlerinde türler için using öner</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -635,11 +640,6 @@
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
         <target state="translated">Önceden tanımlanmış tür tercihleri:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter">
-        <source>Split string literals on _enter</source>
-        <target state="translated">_Enter tuşuna basıldığında dize değişmez değerlerini böl</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">
