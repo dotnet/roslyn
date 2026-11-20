@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
@@ -77,7 +76,7 @@ public abstract partial class TestWorkspace<TDocument, TProject, TSolution> : Wo
         bool disablePartialSolutions = true,
         bool ignoreUnchangeableDocumentsWhenApplyingChanges = true,
         WorkspaceConfigurationOptions? configurationOptions = null)
-        : base(VisualStudioMefHostServices.Create(exportProvider), workspaceKind ?? WorkspaceKind.Host)
+        : base(ExportProviderCache.GetOrCreateHostServices(exportProvider), workspaceKind ?? WorkspaceKind.Host)
     {
         this.ExportProvider = exportProvider;
 
