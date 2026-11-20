@@ -29,7 +29,7 @@ internal static class DirectiveVerifier
     private static void AssertDirectiveSnippet(CompletionItem completionItem, string directive)
     {
         Assert.StartsWith(directive, completionItem.InsertText);
-        Assert.Equal(DirectiveCompletionItemProvider.SingleLineDirectiveSnippets[directive].InsertText, completionItem.InsertText);
+        Assert.Equal(DirectiveCompletionItemProvider.DirectiveSnippets[directive].InsertText, completionItem.InsertText);
         Assert.Equal(CompletionItemKind.Snippet, completionItem.Kind);
     }
 }

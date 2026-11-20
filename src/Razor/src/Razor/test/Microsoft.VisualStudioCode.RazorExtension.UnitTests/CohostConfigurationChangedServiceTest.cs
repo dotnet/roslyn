@@ -21,16 +21,18 @@ public class CohostConfigurationChangedServiceTest(ITestOutputHelper testOutput)
         // If the defaults for these settings change, the json parsing could break and we might not know
         Assert.False(settings.CodeBlockBraceOnNextLine);
         Assert.Equal(AttributeIndentStyle.AlignWithFirst, settings.AttributeIndentStyle);
+        Assert.True(settings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
         Assert.True(settings.CommitElementsWithSpace);
 
         var json = (JsonArray)JsonNode.Parse("""
-            ["true", "indentByOne", "false"]
+            ["true", "indentByOne", "false", "false"]
             """).AssumeNotNull();
 
         var updatedSettings = CohostConfigurationChangedService.TestAccessor.UpdateSettingsFromJson(settings, json);
 
         Assert.True(updatedSettings.CodeBlockBraceOnNextLine);
         Assert.Equal(AttributeIndentStyle.IndentByOne, updatedSettings.AttributeIndentStyle);
+        Assert.False(updatedSettings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
         Assert.False(updatedSettings.CommitElementsWithSpace);
     }
 
@@ -44,25 +46,27 @@ public class CohostConfigurationChangedServiceTest(ITestOutputHelper testOutput)
 
         // Test with autoClosingTags set to false
         var json = (JsonArray)JsonNode.Parse("""
-            ["true", "indentByOne", "false", "false"]
+            ["true", "indentByOne", "false", "false", "false"]
             """).AssumeNotNull();
 
         var updatedSettings = CohostConfigurationChangedService.TestAccessor.UpdateSettingsFromJson(settings, json);
 
         Assert.True(updatedSettings.CodeBlockBraceOnNextLine);
         Assert.Equal(AttributeIndentStyle.IndentByOne, updatedSettings.AttributeIndentStyle);
+        Assert.False(updatedSettings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
         Assert.False(updatedSettings.CommitElementsWithSpace);
         Assert.False(updatedSettings.AutoClosingTags);
 
         // Test with autoClosingTags set to true
         var json2 = (JsonArray)JsonNode.Parse("""
-            ["false", "alignWithFirst", "true", "true"]
+            ["false", "alignWithFirst", "true", "true", "true"]
             """).AssumeNotNull();
 
         var updatedSettings2 = CohostConfigurationChangedService.TestAccessor.UpdateSettingsFromJson(settings, json2);
 
         Assert.False(updatedSettings2.CodeBlockBraceOnNextLine);
         Assert.Equal(AttributeIndentStyle.AlignWithFirst, updatedSettings2.AttributeIndentStyle);
+        Assert.True(updatedSettings2.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
         Assert.True(updatedSettings2.CommitElementsWithSpace);
         Assert.True(updatedSettings2.AutoClosingTags);
     }

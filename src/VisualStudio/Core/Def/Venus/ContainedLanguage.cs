@@ -99,13 +99,14 @@ internal partial class ContainedLanguage
 
         if (this.Project != null)
         {
-            documentId = this.Project.AddSourceTextContainer(
+            documentId = this.Project.AddVirtualDocument(
                 SubjectBuffer.AsTextContainer(),
                 filePath,
                 sourceCodeKind: SourceCodeKind.Regular,
                 folders: default,
                 designTimeOnly: true,
-                documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
+                documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer),
+                openDocument: true);
         }
         else
         {
@@ -144,7 +145,7 @@ internal partial class ContainedLanguage
 
         if (this.Project != null)
         {
-            this.Project.RemoveSourceTextContainer(SubjectBuffer.AsTextContainer());
+            this.Project.RemoveVirtualDocument(this.ContainedDocument.Id);
         }
         else
         {

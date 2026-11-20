@@ -5,13 +5,6 @@
     <IsPackable>false</IsPackable>
     <TargetFramework>netstandard2.0</TargetFramework>
 
-    <!-- Declare Platforms so EnableDynamicPlatformResolution (set globally in
-         server/Directory.Build.props) doesn't emit MSB3982 when this project is
-         referenced as an analyzer from a project that targets a specific platform
-         (e.g. Microsoft.NET.ProjectData.Tasks). The SetPlatform="" on the
-         ProjectReference is insufficient on its own. -->
-    <Platforms>AnyCPU</Platforms>
-
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <EnableAotAnalyzer>false</EnableAotAnalyzer>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
@@ -29,5 +22,4 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Common" PrivateAssets="all" />
     <PackageReference Include="System.Text.Json" PrivateAssets="all" />
   </ItemGroup>
-
 </Project>

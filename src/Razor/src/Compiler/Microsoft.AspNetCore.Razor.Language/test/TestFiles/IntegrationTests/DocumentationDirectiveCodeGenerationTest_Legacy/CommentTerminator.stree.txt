@@ -1,0 +1,38 @@
+﻿RazorDocument - [0..83)::83 - [@documentation {LF    <summary>*/ [System.Obsolete] /*</summary>LF}LF<p>After</p>LF]
+    MarkupBlock - [0..83)::83
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..69)::69
+            RazorDocumentationDirective - [0..67)::67 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring} [RZ1047(31:1,13 [2] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/CommentTerminator.cshtml)]
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..67)::66
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..67)::53
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..66)::50
+                            CSharpStatementLiteral - [16..66)::50 - [LF    <summary>*/ [System.Obsolete] /*</summary>LF] - Gen<Stmt>
+                                Text;[LF    <summary>*/ [System.Obsolete] /*</summary>LF];
+                        RazorMetaCode - [66..67)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [67..69)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [69..81)::12
+            MarkupStartTag - [69..72)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [72..77)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [77..81)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [81..83)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

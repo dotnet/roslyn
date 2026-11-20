@@ -263,4 +263,8 @@
   <data name="Use_explicit_array" xml:space="preserve">
     <value>Use explicit array</value>
   </data>
+  <data name="Add_safety_documentation" xml:space="preserve">
+    <value>Add '&lt;safety&gt;' documentation</value>
+    <comment>{Locked="&lt;safety&gt;"} "safety" is an XML documentation element name and should not be localized.</comment>
+  </data>
 </root>

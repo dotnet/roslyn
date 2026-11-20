@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
@@ -22,11 +21,11 @@ internal sealed class CSharpFormatter
     private const string MarkerId = "RazorMarker";
 
     internal static IndentationOptions GetIndentationOptions(
-        RazorFormattingOptions options,
+        FormattingEngineOptions options,
         AutoFormattingOptions autoFormattingOptions,
         FormattingOptions2.IndentStyle indentStyle)
     {
-        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(options);
+        var resolvedCSharpSyntaxFormattingOptions = options.GetResolvedCSharpSyntaxFormattingOptions();
 
         return new(resolvedCSharpSyntaxFormattingOptions)
         {
@@ -69,7 +68,7 @@ internal sealed class CSharpFormatter
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var formattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(context.Options);
+        var formattingOptions = context.Options.GetResolvedCSharpSyntaxFormattingOptions();
         var formattedRoot = Formatter.Format(
             root,
             hostWorkspaceServices.SolutionServices,

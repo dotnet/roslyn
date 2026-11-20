@@ -8,6 +8,7 @@ is reported when its level is less than or equal to the configured `RazorWarning
 
 | Diagnostic | Warning level | Message | When reported |
 |------------|---------------|---------|---------------|
+| `RZ1048` | 11 | `The '@documentation' syntax will be treated as a directive in Razor 12.0. Use an explicit expression ('@(...)') to preserve the current meaning.` | A Razor language version below 12 parses an implicit expression starting with `documentation` where Razor 12 would recognise the directive, and `RazorWarningLevel` is 11 or higher. |
 | `RZ3907` | 11 | `The '@model' directive is not applied to the generated base class because the '@inherits' directive does not contain '<TModel>'.` | An MVC view has an explicit `@model` directive and an `@inherits` directive without the literal `<TModel>` placeholder. |
 | `RZ10025` | 11 | `The component '{0}' does not have a parameter named '{1}'.` | An explicit attribute on a resolved component does not bind to a known component parameter, and no valid capture-unmatched-values parameter can accept it. |
 | `RZ10026` | 11 | `The bind attribute '{0}' does not match any parameter on component '{1}'.` | A component `@bind-*` attribute has a statically known target name that does not match a component parameter. |

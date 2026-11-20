@@ -34642,9 +34642,9 @@ public class X
             var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             compilation.VerifyDiagnostics(
-                // (10,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (10,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void Test1()
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test1").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(10, 5),
                 // (12,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         fixed (int[TakeOutParam(true, out var x1), x1] d = null)
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x1), x1]").WithLocation(12, 19),
@@ -34660,9 +34660,9 @@ public class X
                 // (14,19): error CS0165: Use of unassigned local variable 'x1'
                 //             Dummy(x1);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(14, 19),
-                // (18,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (18,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void Test2()
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test2").WithLocation(18, 17),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(18, 5),
                 // (20,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         fixed (int[TakeOutParam(true, out var x2), x2] d = null)
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x2), x2]").WithLocation(20, 19),
@@ -34678,9 +34678,9 @@ public class X
                 // (21,19): error CS0165: Use of unassigned local variable 'x2'
                 //             Dummy(x2);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(21, 19),
-                // (24,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (24,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void Test3()
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Test3").WithLocation(24, 17),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(24, 5),
                 // (29,19): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         fixed (int[TakeOutParam(true, out var x3), x3] d = null)
                 Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "[TakeOutParam(true, out var x3), x3]").WithLocation(29, 19),

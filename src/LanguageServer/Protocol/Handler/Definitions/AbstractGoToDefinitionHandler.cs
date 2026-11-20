@@ -42,9 +42,9 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
         RequestContext context,
         CancellationToken cancellationToken)
     {
-        var workspace = await context.GetWorkspaceAsync(cancellationToken).ConfigureAwait(false);
+        var workspace = await context.GetRequiredWorkspaceAsync(cancellationToken).ConfigureAwait(false);
         var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
-        if (workspace is null || document is null)
+        if (document is null)
             return null;
 
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);

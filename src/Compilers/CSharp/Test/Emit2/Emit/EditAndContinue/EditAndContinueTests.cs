@@ -19371,7 +19371,7 @@ class C
                         g.VerifyIL("""
                             F
                             {
-                              // Code size       29 (0x1d)
+                              // Code size       34 (0x22)
                               .maxstack  2
                               IL_0000:  newobj     0x0A000011
                               IL_0005:  stloc.0
@@ -19384,8 +19384,9 @@ class C
                               IL_0010:  ldloc.0
                               IL_0011:  ldflda     0x0A000012
                               IL_0016:  callvirt   0x0A000013
-                              IL_001b:  pop
-                              IL_001c:  ret
+                              IL_001b:  ldobj      0x1B000005
+                              IL_0020:  pop
+                              IL_0021:  ret
                             }
                             <F>g__N|0#3_1#3
                             {

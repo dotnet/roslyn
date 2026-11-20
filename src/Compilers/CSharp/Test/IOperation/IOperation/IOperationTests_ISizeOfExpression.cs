@@ -65,7 +65,7 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(C)").WithArguments("C").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             string expectedPreviewOperationTree = @"
 ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32) (Syntax: 'sizeof(C)')
   TypeOperand: C
@@ -132,7 +132,7 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(UndefinedType)").WithArguments("UndefinedType").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             var expectedPreviewDiagnostics = new[]
             {
                 // (8,30): error CS0246: The type or namespace name 'UndefinedType' could not be found (are you missing a using directive or an assembly reference?)
@@ -171,7 +171,7 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(i)").WithArguments("i").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             var expectedPreviewDiagnostics = new[]
             {
                 // (8,30): error CS0118: 'i' is a variable but is used like a type
@@ -223,7 +223,7 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'sizeof(M
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(M2").WithArguments("M2").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             var expectedPreviewDiagnostics = new[]
             {
                 // (8,32): error CS1026: ) expected
@@ -271,7 +271,7 @@ ISizeOfOperation (OperationKind.SizeOf, Type: System.Int32, IsInvalid) (Syntax: 
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof()").WithArguments("?").WithLocation(8, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<SizeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             var expectedPreviewDiagnostics = new[]
             {
                 // (8,30): error CS1031: Type expected

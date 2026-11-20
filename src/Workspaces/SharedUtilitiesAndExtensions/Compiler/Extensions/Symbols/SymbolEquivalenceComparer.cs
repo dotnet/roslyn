@@ -43,9 +43,9 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
     private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-    public static readonly SymbolEquivalenceComparer Instance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
-    public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
-    public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
+    public static readonly SymbolEquivalenceComparer Instance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
+    public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
+    public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
 
     private readonly IEqualityComparer<IAssemblySymbol>? _assemblyComparer;
 
@@ -54,6 +54,7 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     private readonly bool _ignoreNullableAnnotations;
     private readonly bool _objectAndDynamicCompareEqually;
     private readonly bool _arrayAndReadOnlySpanCompareEqually;
+    private readonly bool _distinguishPartialParts;
 
     public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
     public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
@@ -64,7 +65,8 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         bool tupleNamesMustMatch,
         bool ignoreNullableAnnotations,
         bool objectAndDynamicCompareEqually,
-        bool arrayAndReadOnlySpanCompareEqually)
+        bool arrayAndReadOnlySpanCompareEqually,
+        bool distinguishPartialParts)
     {
         _assemblyComparer = assemblyComparer;
         _distinguishRefFromOut = distinguishRefFromOut;
@@ -72,6 +74,7 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         _ignoreNullableAnnotations = ignoreNullableAnnotations;
         _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
         _arrayAndReadOnlySpanCompareEqually = arrayAndReadOnlySpanCompareEqually;
+        _distinguishPartialParts = distinguishPartialParts;
 
         this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
         this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);
@@ -101,9 +104,10 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         bool tupleNamesMustMatch,
         bool ignoreNullableAnnotations,
         bool objectAndDynamicCompareEqually,
-        bool arrayAndReadOnlySpanCompareEqually)
+        bool arrayAndReadOnlySpanCompareEqually,
+        bool distinguishPartialParts)
     {
-        return new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut, tupleNamesMustMatch, ignoreNullableAnnotations, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually);
+        return new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut, tupleNamesMustMatch, ignoreNullableAnnotations, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually, distinguishPartialParts);
     }
 
     public SymbolEquivalenceComparer With(
@@ -111,15 +115,17 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         Optional<bool> tupleNamesMustMatch = default,
         Optional<bool> ignoreNullableAnnotations = default,
         Optional<bool> objectAndDynamicCompareEqually = default,
-        Optional<bool> arrayAndReadOnlySpanCompareEqually = default)
+        Optional<bool> arrayAndReadOnlySpanCompareEqually = default,
+        Optional<bool> distinguishPartialParts = default)
     {
         var newDistinguishRefFromOut = distinguishRefFromOut.HasValue ? distinguishRefFromOut.Value : _distinguishRefFromOut;
         var newTupleNamesMustMatch = tupleNamesMustMatch.HasValue ? tupleNamesMustMatch.Value : _tupleNamesMustMatch;
         var newIgnoreNullableAnnotations = ignoreNullableAnnotations.HasValue ? ignoreNullableAnnotations.Value : _ignoreNullableAnnotations;
         var newObjectAndDynamicCompareEqually = objectAndDynamicCompareEqually.HasValue ? objectAndDynamicCompareEqually.Value : _objectAndDynamicCompareEqually;
         var newArrayAndReadOnlySpanCompareEqually = arrayAndReadOnlySpanCompareEqually.HasValue ? arrayAndReadOnlySpanCompareEqually.Value : _arrayAndReadOnlySpanCompareEqually;
+        var newDistinguishPartialParts = distinguishPartialParts.HasValue ? distinguishPartialParts.Value : _distinguishPartialParts;
 
-        return new(_assemblyComparer, newDistinguishRefFromOut, newTupleNamesMustMatch, newIgnoreNullableAnnotations, newObjectAndDynamicCompareEqually, newArrayAndReadOnlySpanCompareEqually);
+        return new(_assemblyComparer, newDistinguishRefFromOut, newTupleNamesMustMatch, newIgnoreNullableAnnotations, newObjectAndDynamicCompareEqually, newArrayAndReadOnlySpanCompareEqually, newDistinguishPartialParts);
     }
 
     // Very subtle logic here.  When checking if two parameters are the same, we can end up with
@@ -228,31 +234,42 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         return OneOrMany.Create(builder.ToImmutableAndClear());
     }
 
-    private static bool IsPartialMethodDefinitionPart(IMethodSymbol symbol)
-        => symbol.PartialImplementationPart != null;
+    private enum PartialPart
+    {
+        None,
+        Definition,
+        Implementation,
+    }
 
-    private static bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
-        => symbol.PartialDefinitionPart != null;
-
-    private static bool IsPartialPropertyDefinitionPart(IPropertySymbol symbol)
-        => symbol.PartialImplementationPart != null;
-
-    private static bool IsPartialPropertyImplementationPart(IPropertySymbol symbol)
-        => symbol.PartialDefinitionPart != null;
-
-    private static bool IsPartialEventDefinitionPart(IEventSymbol symbol)
+    private static PartialPart GetPartialPart(ISymbol symbol)
+        => symbol switch
+        {
+            IMethodSymbol { PartialImplementationPart: not null } => PartialPart.Definition,
+            IMethodSymbol { PartialDefinitionPart: not null } => PartialPart.Implementation,
+            IPropertySymbol { PartialImplementationPart: not null } => PartialPart.Definition,
+            IPropertySymbol { PartialDefinitionPart: not null } => PartialPart.Implementation,
 #if !OLDER_ROSLYN
-        => symbol.PartialImplementationPart != null;
-#else
-        => false;
+            IEventSymbol { PartialImplementationPart: not null } => PartialPart.Definition,
+            IEventSymbol { PartialDefinitionPart: not null } => PartialPart.Implementation,
 #endif
+            _ => PartialPart.None,
+        };
 
-    private static bool IsPartialEventImplementationPart(IEventSymbol symbol)
-#if !OLDER_ROSLYN
-        => symbol.PartialDefinitionPart != null;
-#else
-        => false;
-#endif
+    /// <summary>
+    /// Whether <paramref name="x"/> and <paramref name="y"/> are the same part of a partial member: both the definition
+    /// part, both the implementation part, or neither.  Always true when partial parts aren't distinguished, so the
+    /// definition part, the implementation part, and a symbol that exposes no parts (such as a retargeting symbol) all
+    /// compare alike.
+    /// </summary>
+    private bool PartialPartsMatch(ISymbol x, ISymbol y)
+        => !_distinguishPartialParts || GetPartialPart(x) == GetPartialPart(y);
+
+    /// <summary>
+    /// The hash code contribution of which part of a partial member <paramref name="symbol"/> is, consistent with <see
+    /// cref="PartialPartsMatch"/>: zero when partial parts aren't distinguished.
+    /// </summary>
+    private int GetPartialPartsHashCode(ISymbol symbol)
+        => _distinguishPartialParts ? (int)GetPartialPart(symbol) : 0;
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)
         => x.TypeKind switch

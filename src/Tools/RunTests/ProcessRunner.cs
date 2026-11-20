@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace RunTests
@@ -63,28 +62,22 @@ namespace RunTests
             bool displayWindow = true,
             Dictionary<string, string>? environmentVariables = null,
             Action<Process>? onProcessStartHandler = null,
-            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
-            CancellationToken cancellationToken = default)
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null)
             => CreateProcess(
                 CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
                 lowPriority: lowPriority,
                 onProcessStartHandler: onProcessStartHandler,
-                onOutputDataReceived: onOutputDataReceived,
-                cancellationToken: cancellationToken);
+                onOutputDataReceived: onOutputDataReceived);
 
         public static ProcessInfo CreateProcess(
             ProcessStartInfo processStartInfo,
             bool lowPriority = false,
             Action<Process>? onProcessStartHandler = null,
-            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
-            CancellationToken cancellationToken = default)
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null)
         {
             var errorLines = new List<string>();
             var outputLines = new List<string>();
             var process = new Process();
-            var tcs = new TaskCompletionSource<ProcessResult>();
-
-            process.EnableRaisingEvents = true;
             process.StartInfo = processStartInfo;
 
             process.OutputDataReceived += (s, e) =>
@@ -104,58 +97,6 @@ namespace RunTests
                 }
             };
 
-            process.Exited += (s, e) =>
-            {
-                // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
-                // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
-                // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
-                Task.Run(async () =>
-                {
-                    int exitCode;
-                    try
-                    {
-                        exitCode = await GetExitCodeAsync(process);
-                    }
-                    catch (Exception ex)
-                    {
-                        tcs.TrySetException(ex);
-                        throw;
-                    }
-
-                    var result = new ProcessResult(
-                        process,
-                        exitCode,
-                        new ReadOnlyCollection<string>(outputLines),
-                        new ReadOnlyCollection<string>(errorLines));
-                    tcs.TrySetResult(result);
-
-                    static async ValueTask<int> GetExitCodeAsync(Process process)
-                    {
-                        await process.WaitForExitAsync();
-                        return process.ExitCode;
-                    }
-                }, cancellationToken);
-            };
-
-            var registration = cancellationToken.Register(() =>
-            {
-                if (tcs.TrySetCanceled())
-                {
-                    // If the underlying process is still running, we should kill it
-                    if (!process.HasExited)
-                    {
-                        try
-                        {
-                            process.Kill();
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // Ignore, since the process is already dead
-                        }
-                    }
-                }
-            });
-
             process.Start();
             onProcessStartHandler?.Invoke(process);
 
@@ -174,7 +115,14 @@ namespace RunTests
                 process.BeginErrorReadLine();
             }
 
-            return new ProcessInfo(process, processStartInfo, tcs.Task);
+            return new ProcessInfo(process, processStartInfo, CompleteAsync());
+
+            async Task<ProcessResult> CompleteAsync()
+            {
+                await process.WaitForExitAsync().ConfigureAwait(false);
+                return new ProcessResult(process, process.ExitCode,
+                    new ReadOnlyCollection<string>(outputLines), new ReadOnlyCollection<string>(errorLines));
+            }
         }
 
         public static ProcessStartInfo CreateProcessStartInfo(

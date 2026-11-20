@@ -528,6 +528,53 @@ public class RazorDocumentMappingServiceTest(ITestOutputHelper testOutput) : Too
     }
 
     [Fact]
+    public void TryMapToCSharpDocumentLinePosition_SelectsImplementationOrDeclaration()
+    {
+        var service = CreateMappingService();
+        var codeDocument = CreateCodeDocumentWithCSharpProjection(
+            razorSource: "foo",
+            projectedCSharpSource: "\nfoo",
+            sourceMappings: [new SourceMapping(new SourceSpan(0, 3), new SourceSpan(1, 3))]);
+        var declDocument = TestRazorCSharpDocument.Create(
+            codeDocument,
+            "\n\nfoo",
+            [new SourceMapping(new SourceSpan(0, 3), new SourceSpan(2, 3))]);
+        codeDocument = codeDocument.WithDeclCSharpDocument(declDocument);
+
+        Assert.True(service.TryMapToCSharpDocumentLinePosition(codeDocument, 0, out var position, out var index, out var inDeclDocument));
+        Assert.Equal(new LinePosition(1, 0), position);
+        Assert.Equal(1, index);
+        Assert.False(inDeclDocument);
+
+        var implDocument = TestRazorCSharpDocument.Create(codeDocument, "\nfoo", sourceMappings: []);
+        codeDocument = codeDocument.WithImplCSharpDocument(implDocument);
+
+        Assert.True(service.TryMapToCSharpDocumentLinePosition(codeDocument, 0, out position, out index, out inDeclDocument));
+        Assert.Equal(new LinePosition(2, 0), position);
+        Assert.Equal(2, index);
+        Assert.True(inDeclDocument);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TryMapToCSharpDocumentLinePosition_UnmappedPosition_PreservesFailureOutputs(bool hasDeclarationDocument)
+    {
+        var service = CreateMappingService();
+        var codeDocument = CreateCodeDocumentWithCSharpProjection("foo", "\nfoo", []);
+        if (hasDeclarationDocument)
+        {
+            codeDocument = codeDocument.WithDeclCSharpDocument(
+                TestRazorCSharpDocument.Create(codeDocument, "\n\nfoo", sourceMappings: []));
+        }
+
+        Assert.False(service.TryMapToCSharpDocumentLinePosition(codeDocument, 1, out var position, out var index, out var inDeclDocument));
+        Assert.Equal(default, position);
+        Assert.Equal(default, index);
+        Assert.True(inDeclDocument);
+    }
+
+    [Fact]
     public void TryMapToHostDocumentPosition_NotMatchingAnyMapping()
     {
         // Arrange

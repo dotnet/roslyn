@@ -25,6 +25,29 @@ public class CohostOnTypeFormattingEndpointTest(HtmlFormattingFixture htmlFormat
     : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirectiveDoesNotFormatXmlAsCode()
+    {
+        await VerifyOnTypeFormattingAsync(
+            input: """
+                    @documentation {
+                        <example><code>
+                    if(true){}$$
+                        </code></example>
+                    }
+                    """,
+            expected: """
+                    @documentation {
+                        <example><code>
+                    if(true){}
+                        </code></example>
+                    }
+                    """,
+            triggerCharacter: '}',
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
     public async Task InvalidTrigger()
     {
         await VerifyOnTypeFormattingAsync(

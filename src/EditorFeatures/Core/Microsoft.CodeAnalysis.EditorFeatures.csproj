@@ -29,7 +29,7 @@
     <ProjectReference Include="..\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" />
+    <PackageReference Include="Microsoft.VisualStudio.HotReload.Components" />
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" />
     <PackageReference Include="Microsoft.VisualStudio.Language" />

@@ -321,6 +321,7 @@ internal abstract class VisualStudioOptionStorage
         {"csharp_insert_block_comment_start_string", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.Auto Insert Block Comment Start String")},
         {"csharp_complete_statement_on_semicolon", new RoamingProfileStorage("TextEditor.AutomaticallyCompleteStatementOnSemicolon")},
         {"dotnet_fix_string_contents_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.AutomaticallyFixStringContentsOnPaste")},
+        {"csharp_fix_cref_on_paste", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.FixCrefOnPaste")},
         {"visual_basic_insert_abstract_or_interface_members_on_return", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoRequiredMemberInsert")},
         {"visual_basic_generate_end_construct", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.AutoEndInsert")},
         {"dotnet_combine_inheritance_and_indicator_margins", new RoamingProfileStorage("TextEditor.InheritanceMarginCombinedWithIndicatorMargin")},

@@ -71,7 +71,7 @@ internal sealed class RoslynCSharpTokenizer : CSharpTokenizer
         for (int i = Source.Position - 1; i >= 0; i--)
         {
             var currentChar = Source.SourceText[i];
-            if (currentChar is '\n' or '\r')
+            if (SyntaxFacts.IsNewLine(currentChar))
             {
                 break;
             }

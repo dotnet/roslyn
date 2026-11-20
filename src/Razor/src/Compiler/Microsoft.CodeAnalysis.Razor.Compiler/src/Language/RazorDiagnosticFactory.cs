@@ -397,6 +397,31 @@ internal static class RazorDiagnosticFactory
     public static RazorDiagnostic CreateParsing_DefineAndUndefNotAllowed(SourceSpan location)
         => RazorDiagnostic.Create(Parsing_DefineAndUndefNotAllowed, location);
 
+    internal static readonly RazorDiagnosticDescriptor Parsing_DocumentationCommentTerminator =
+        new($"{DiagnosticPrefix}1047",
+            Resources.DocumentationCommentTerminator,
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateParsing_DocumentationCommentTerminator(SourceSpan location)
+        => RazorDiagnostic.Create(Parsing_DocumentationCommentTerminator, location);
+
+    internal static readonly RazorDiagnosticDescriptor Parsing_DocumentationDirectiveWillChangeMeaning =
+        new($"{DiagnosticPrefix}1048",
+            Resources.DocumentationDirectiveWillChangeMeaning,
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
+
+    public static RazorDiagnostic CreateParsing_DocumentationDirectiveWillChangeMeaning(SourceSpan location)
+        => RazorDiagnostic.Create(Parsing_DocumentationDirectiveWillChangeMeaning, location);
+
+    internal static readonly RazorDiagnosticDescriptor Parsing_DocumentationShouldStartWithTag =
+        new($"{DiagnosticPrefix}1049",
+            Resources.DocumentationShouldStartWithTag,
+            RazorDiagnosticSeverity.Warning);
+
+    public static RazorDiagnostic CreateParsing_DocumentationShouldStartWithTag(SourceSpan location)
+        => RazorDiagnostic.Create(Parsing_DocumentationShouldStartWithTag, location);
+
     #endregion
 
     #region Semantic Errors

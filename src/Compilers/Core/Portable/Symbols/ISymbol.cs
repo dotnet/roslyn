@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis
         /// <description>The metadata name of explicit interface names have spaces removed, compared to
         /// the name property.</description>
         /// </item>
-        /// <item>
-        /// <description>The length of names is limited to not exceed metadata restrictions.</description>
-        /// </item>
         /// </list>
         /// </summary>
+        /// <remarks>
+        /// Metadata length restrictions are not enforced by this property.
+        /// </remarks>
         string MetadataName { get; }
 
         /// <summary>
@@ -216,7 +216,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets a <see cref="Accessibility"/> indicating the declared accessibility for the symbol.
-        /// Returns NotApplicable if no accessibility is declared.
+        /// Includes the language's default accessibility when no accessibility modifier is specified.
+        /// Returns <see cref="Accessibility.NotApplicable"/> for symbols that do not have accessibility,
+        /// such as parameters and local variables.
         /// </summary>
         Accessibility DeclaredAccessibility { get; }
 

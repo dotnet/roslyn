@@ -87,7 +87,7 @@ If the PR is a pure or targeted revert of an earlier commit, adjust the review s
 9. **Ensure code suggestions are valid.** Any code you suggest must be syntactically correct and complete. Ensure any suggestion would result in working code.
 10. **Label in-scope vs. follow-up.** Distinguish between issues the PR should fix and out-of-scope improvements. Be explicit when a suggestion is a follow-up rather than a blocker.
 11. **Enforce reviewable scope.** Verify that the PR addresses one coherent concern. Flag unrelated cleanup, behavior changes mixed with broad refactoring, or independently mergeable/revertible work combined into one diff. Judge size by reviewer cognitive load and validation boundaries, not an arbitrary line count; generated files and mechanical updates may legitimately be large.
-12. **Require validation evidence.** Check that the PR reports the applicable formatting, lint/analyzer, affected build, targeted tests, generated/resource/API updates, and documentation freshness work. Treat missing targeted tests for a behavior change or required validation that was skipped without explanation as merge-blocking. Do not demand product builds or tests for documentation-only changes.
+12. **Check test coverage and validation outcomes.** Verify appropriate regression tests for behavior changes and use CI results for routine validation. Treat missing regression coverage or known, unexplained validation gaps beyond CI as merge-blocking. Do not require a routine validation checklist in the PR description. Do not demand product builds or tests for documentation-only changes.
 
 ### Step 4: Documentation Freshness Check (sub-agent)
 
@@ -294,6 +294,7 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Always add regression tests for bug fixes and behavior changes.** Prefer adding test cases to existing test files rather than creating new files.
 
+- **Require evidence that regression tests detect the bug.** For bug fixes, check the fail-before/pass-after evidence required by the [Definition of Done](../../copilot-instructions.md#definition-of-done). A test that already passes without the fix does not establish regression coverage for that bug. If the check was not performed, flag regression-test efficacy as unverified.
 
 - **Test all relevant `LangVersion` boundaries.** When testing language-version-specific behavior, include: the version *before* the feature (a specific version string that disallows it), the version *after* (using `TestOptions.RegularNext` or a specific version that allows it), and the *preview* version (which always rolls forward with nightly builds). Similarily for IDE features, completions and refactorings may be gated on language version, so test the same boundaries.
 
@@ -310,7 +311,11 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Suppress expected unrelated warnings in tests with `#pragma`.** When test code intentionally triggers unrelated warnings (e.g., CS0649 for unassigned fields), suppress them with `#pragma warning disable` to keep test output clean.
 
-- **Every code path in the changed function should have dedicated test coverage.** Include both positive and negative outcomes. If logic is copied from another place, mention the source.
+- **Assess coverage by observable behavior and regression risk, not by
+  implementation branch count.** Prefer scenario-level tests through production
+  entry points. Request distinct positive, negative, or boundary cases only when
+  they represent materially different behavior worth protecting. If logic is
+  copied from another place, mention the source.
 
 - **Verify that test assertions are strong enough to detect regressions.** Use `SequenceEqual` when order matters, `SetEqual` when it doesn't, but be aware that `SetEqual` may not flag duplicate entries.
 

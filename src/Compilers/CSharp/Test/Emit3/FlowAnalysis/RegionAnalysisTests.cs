@@ -14270,5 +14270,98 @@ class B
             Assert.Equal("c, y", GetSymbolNamesJoined(flowAnalysis.ReadInside));
             Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86099")]
+        public void Repro_86099()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    string M(int x) => Get(x).ToString();
+                    static int Get(int x) => x;
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "Get(x)");
+            var flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.DataFlowsIn));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86099")]
+        public void CallChainReceivers()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    C M(int x) => this;
+
+                    private static void Repro(C c)
+                    {
+                        int i = 1, j = 2, k = 3;
+                        _ = c.M(i).M(j).M(k);
+                    }
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var calls = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(3, calls.Length);
+
+            var call = calls[0];
+            Assert.Equal("c.M(i).M(j).M(k)", call.ToString());
+            var flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("c, i, j, k", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+
+            call = calls[1];
+            Assert.Equal("c.M(i).M(j)", call.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("c, i, j", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+
+            call = calls[2];
+            Assert.Equal("c.M(i)", call.ToString());
+            flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("c, i", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86099")]
+        public void CallChainReceiverWithOutArgument()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    C M(out int x) { x = 0; return this; }
+                    C N(int x) => this;
+
+                    private static void Repro(C c)
+                    {
+                        int x;
+                        _ = c.M(out x).N(x);
+                    }
+                }
+                """);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.CommonSyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "c.M(out x)");
+            var flowAnalysis = model.AnalyzeDataFlow(call);
+            Assert.True(flowAnalysis.Succeeded);
+            Assert.Equal("c", GetSymbolNamesJoined(flowAnalysis.ReadInside));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.WrittenInside));
+            Assert.Equal("x", GetSymbolNamesJoined(flowAnalysis.DataFlowsOut));
+        }
     }
 }

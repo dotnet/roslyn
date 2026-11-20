@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, isExplicitInterfaceImplementation, location, diagnostics);
 
-            containingType.CheckUnsafeModifier(mods, location, diagnostics);
+            containingType.CheckUnsafeOptionForModifiers(mods, diagnostics, modifiers, location);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(accessorsHaveImplementation, mods,
                                                                         defaultInterfaceImplementationModifiers,
@@ -827,17 +827,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static BaseParameterListSyntax? GetParameterListSyntax(CSharpSyntaxNode syntax)
             => (syntax as IndexerDeclarationSyntax)?.ParameterList;
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
                 return HasUnsafeModifier
-                    ? CallerUnsafeMode.Explicit
-                    : CallerUnsafeMode.None;
+                    ? RequiresUnsafeMode.Explicit
+                    : RequiresUnsafeMode.None;
             }
 
             return this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer()
-                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                ? RequiresUnsafeMode.Implicit : RequiresUnsafeMode.None;
         }
 
         public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : HasExternModifier;

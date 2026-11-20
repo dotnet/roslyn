@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
