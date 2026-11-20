@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _nextSourceIncludeElementIndex = 0;
             }
 
-            public static void ProcessIncludes(
+            public static string ProcessIncludes(
                 string unprocessed,
                 Symbol memberSymbol,
                 ImmutableArray<CSharpSyntaxNode> sourceIncludeElementNodes,
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         writer.Write(unprocessed);
                     }
-                    return;
+                    return unprocessed;
                 }
 
                 XDocument doc;
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         writer.Write(unprocessed);
                     }
-                    return;
+                    return unprocessed;
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -122,14 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics,
                     cancellationToken);
 
+                using var pooled = PooledStringBuilder.GetInstance(out var builder);
+                using var expandedWriter = new StringWriter(builder);
                 foreach (XNode node in expander.Rewrite(doc, currentXmlFilePath: null, originatingSyntax: null))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-
-                    if (writer != null)
-                    {
-                        writer.Write(node);
-                    }
+                    expandedWriter.Write(node);
                 }
 
                 Debug.Assert(expander._nextSourceIncludeElementIndex == expander._sourceIncludeElementNodes.Length);
@@ -137,6 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 documentedParameters = expander._documentedParameters;
                 documentedTypeParameters = expander._documentedTypeParameters;
                 includedFileCache = expander._includedFileCache;
+                string expandedXml = expandedWriter.ToString();
+                writer?.Write(expandedXml);
+                return expandedXml;
             }
 
             /// <remarks>
@@ -523,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void BindName(XAttribute attribute, CSharpSyntaxNode originatingSyntax, bool isParameter, bool isTypeParameterRef)
             {
-                XmlNameAttributeSyntax attrSyntax = ParseNameAttribute(attribute.ToString(), attribute.Parent.Name.LocalName);
+                XmlNameAttributeSyntax attrSyntax = DocumentationCommentCompiler.ParseNameAttribute(attribute.ToString(), attribute.Parent.Name.LocalName);
 
                 // CONSIDER: It would be easy to construct an XmlLocation from the XAttribute, so that
                 // we could point the user at the actual problem.
@@ -608,24 +609,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return binder;
-            }
-
-            private static XmlNameAttributeSyntax ParseNameAttribute(string attributeText, string elementName)
-            {
-                // NOTE: Rather than introducing a new code path that will have to be kept in 
-                // sync with other mode changes distributed throughout Lexer, SyntaxParser, and 
-                // DocumentationCommentParser, we'll just wrap the text in some lexable syntax
-                // and then extract the piece we want.
-                string commentText = string.Format(@"/// <{0} {1}/>", elementName, attributeText);
-
-                SyntaxTriviaList leadingTrivia = SyntaxFactory.ParseLeadingTrivia(commentText, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
-                Debug.Assert(leadingTrivia.Count == 1);
-                SyntaxTrivia trivia = leadingTrivia.ElementAt(0);
-                DocumentationCommentTriviaSyntax structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
-                Debug.Assert(structure.Content.Count == 2);
-                XmlEmptyElementSyntax elementSyntax = (XmlEmptyElementSyntax)structure.Content[1];
-                Debug.Assert(elementSyntax.Attributes.Count == 1);
-                return (XmlNameAttributeSyntax)elementSyntax.Attributes[0];
             }
 
             /// <remarks>
