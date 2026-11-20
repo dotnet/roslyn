@@ -520,7 +520,7 @@ internal static class ClassificationHelpers
         var text2 = text.ToString(textSpan);
         var tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition: textSpan.Start);
 
-        Worker.CollectClassifiedSpans(tokens, textSpan, result, cancellationToken);
+        Worker.CollectClassifiedSpans(text, tokens, textSpan, result, cancellationToken);
     }
 
     internal static ClassifiedSpan AdjustStaleClassification(SourceText rawText, ClassifiedSpan classifiedSpan)

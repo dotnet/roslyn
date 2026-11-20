@@ -23,21 +23,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification;
 /// </summary>
 internal readonly ref partial struct Worker
 {
+    /// <summary>
+    /// Original document text when classifying detached tokens.
+    /// <see langword="null"/> when traversing an owning syntax tree, whose text is retrieved lazily.
+    /// </summary>
+    private readonly SourceText? _sourceText;
     private readonly TextSpan _textSpan;
     private readonly SegmentedList<ClassifiedSpan> _result;
     private readonly CancellationToken _cancellationToken;
 
-    private Worker(TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+    private Worker(SourceText? sourceText, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
+        _sourceText = sourceText;
         _result = result;
         _textSpan = textSpan;
         _cancellationToken = cancellationToken;
     }
 
     internal static void CollectClassifiedSpans(
-        IEnumerable<SyntaxToken> tokens, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
+        SourceText sourceText, IEnumerable<SyntaxToken> tokens, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
-        var worker = new Worker(textSpan, result, cancellationToken);
+        var worker = new Worker(sourceText, textSpan, result, cancellationToken);
         foreach (var tk in tokens)
             worker.ClassifyToken(tk);
     }
@@ -45,7 +51,7 @@ internal readonly ref partial struct Worker
     internal static void CollectClassifiedSpans(
         SyntaxNode node, TextSpan textSpan, SegmentedList<ClassifiedSpan> result, CancellationToken cancellationToken)
     {
-        var worker = new Worker(textSpan, result, cancellationToken);
+        var worker = new Worker(sourceText: null, textSpan, result, cancellationToken);
         worker.ClassifyNode(node);
     }
 
@@ -281,10 +287,9 @@ internal readonly ref partial struct Worker
         {
             // for the ======== add a comment for the first line, and then lex all
             // subsequent lines up until the end of the conflict marker.
-            foreach (var token in SyntaxFactory.ParseTokens(text: trivia.ToFullString(), initialTokenPosition: trivia.SpanStart))
-            {
-                ClassifyToken(token);
-            }
+            var tokens = SyntaxFactory.ParseTokens(text: trivia.ToFullString(), initialTokenPosition: trivia.SpanStart);
+            var sourceText = _sourceText ?? trivia.Token.GetRequiredParent().SyntaxTree.GetText(_cancellationToken);
+            CollectClassifiedSpans(sourceText, tokens, _textSpan, _result, _cancellationToken);
         }
         else
         {

@@ -2,9 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Classification;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
@@ -13,6 +19,93 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 [Trait(Traits.Feature, Traits.Features.Classification)]
 public partial class SyntacticClassifierTests
 {
+    [Theory, CombinatorialData]
+    public void FileBasedApps_Lexical_QuotedDirective(bool classifyEntireFile)
+    {
+        const string header = "// A header that is longer than the entire quoted directive below.\n";
+        var text = SourceText.From(header + """
+            #:package Pkg@"1.0" Note="x"
+            """);
+        var offset = header.Length;
+        var textSpan = TextSpan.FromBounds(classifyEntireFile ? 0 : offset, text.Length);
+        var actual = new SegmentedList<ClassifiedSpan>();
+
+        ClassificationHelpers.AddLexicalClassifications(text, textSpan, actual, CancellationToken.None);
+
+        ClassifiedSpan[] expected =
+        [
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(offset, 1)),
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(offset + 1, 1)),
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(offset + 2, 7)),
+            new(ClassificationTypeNames.Identifier, new TextSpan(offset + 10, 3)),
+            new(ClassificationTypeNames.Punctuation, new TextSpan(offset + 13, 1)),
+            new(ClassificationTypeNames.StringLiteral, new TextSpan(offset + 14, 5)),
+            new(ClassificationTypeNames.Identifier, new TextSpan(offset + 20, 4)),
+            new(ClassificationTypeNames.Punctuation, new TextSpan(offset + 24, 1)),
+            new(ClassificationTypeNames.StringLiteral, new TextSpan(offset + 25, 3)),
+        ];
+
+        if (classifyEntireFile)
+        {
+            expected = [new(ClassificationTypeNames.Comment, new TextSpan(0, header.Length - 1)), .. expected];
+        }
+
+        AssertEx.Equal(expected, actual, itemInspector: span => $"{span.ClassificationType} {span.TextSpan}: {text.ToString(span.TextSpan)}");
+    }
+
+    [Theory, CombinatorialData]
+    public void FileBasedApps_Lexical_TruncatedQuotedDirective([CombinatorialValues(16, 27)] int length)
+    {
+        var text = SourceText.From("""
+            #:package Pkg@"1.0" Note="x"
+            """);
+        var actual = new SegmentedList<ClassifiedSpan>();
+
+        ClassificationHelpers.AddLexicalClassifications(text, new TextSpan(0, length), actual, CancellationToken.None);
+
+        ClassifiedSpan[] expected =
+        [
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(0, 1)),
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(1, 1)),
+            new(ClassificationTypeNames.PreprocessorKeyword, new TextSpan(2, 7)),
+            new(ClassificationTypeNames.StringLiteral, new TextSpan(10, length - 10)),
+        ];
+
+        AssertEx.Equal(expected, actual, itemInspector: span => $"{span.ClassificationType} {span.TextSpan}: {text.ToString(span.TextSpan)}");
+    }
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Conflict_QuotedDirective(TestHost testHost)
+        => TestAsync("""
+            <<<<<<< Current
+            #:package Pkg@"1.0" Note="current"
+            =======
+            #:package Pkg@"2.0" Note="incoming"
+            >>>>>>> Incoming
+            """,
+            testHost,
+            Comment("<<<<<<< Current"),
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Punctuation.Text("@"),
+            String("\"1.0\""),
+            Identifier("Note"),
+            Punctuation.Text("="),
+            String("\"current\""),
+            Comment("======="),
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Punctuation.Text("@"),
+            String("\"2.0\""),
+            Identifier("Note"),
+            Punctuation.Text("="),
+            String("\"incoming\""),
+            Comment(">>>>>>> Incoming"));
+
     [Theory, CombinatorialData]
     public Task FileBasedApps_Sdk_01(TestHost testHost)
         => TestAsync("""
@@ -211,6 +304,135 @@ public partial class SyntacticClassifierTests
             String("13.0.3"));
 
     [Theory, CombinatorialData]
+    public Task FileBasedApps_Package_Metadata(TestHost testHost)
+        => TestAsync("""
+            #:package Microsoft.Build@18.0.2 ExcludeAssets=runtime PrivateAssets=all
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Microsoft"),
+            Punctuation.Text("."),
+            Identifier("Build"),
+            Punctuation.Text("@"),
+            String("18.0.2"),
+            Identifier("ExcludeAssets"),
+            Punctuation.Text("="),
+            String("runtime"),
+            Identifier("PrivateAssets"),
+            Punctuation.Text("="),
+            String("all"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Package_MetadataWithoutVersion(TestHost testHost)
+        => TestAsync("""
+            #:package Pkg PrivateAssets=all Note=
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Identifier("PrivateAssets"),
+            Punctuation.Text("="),
+            String("all"),
+            Identifier("Note"),
+            Punctuation.Text("="));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Package_MetadataWithEmptyVersion(TestHost testHost)
+        => TestAsync("""
+            #:package Pkg@ PrivateAssets=all
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Punctuation.Text("@"),
+            Identifier("PrivateAssets"),
+            Punctuation.Text("="),
+            String("all"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Path_Metadata(
+        TestHost testHost,
+        [CombinatorialValues("project", "ref", "include")] string kind)
+        => TestAsync($$"""
+            // Header
+              #:  {{kind}} "../my path" Aliases=Lib
+            """,
+            testHost,
+            Comment("// Header"),
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword(kind),
+            String("\"../my path\""),
+            Identifier("Aliases"),
+            Punctuation.Text("="),
+            String("Lib"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_QuotedNameAndValue(
+        TestHost testHost,
+        [CombinatorialValues("sdk", "package", "property")] string kind)
+        => TestAsync($$"""
+            #:{{kind}} "My.Name" {{(kind == "property" ? "=" : "@")}} "a\tb c"
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword(kind),
+            String("\"My.Name\""),
+            Punctuation.Text(kind == "property" ? "=" : "@"),
+            String("""
+                "a\tb c"
+                """));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Metadata_QuotedValue(TestHost testHost)
+        => TestAsync("""
+            #:package Pkg@"1.0" Note = "a\"b=c" "Other" = ""
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            Identifier("Pkg"),
+            Punctuation.Text("@"),
+            String("\"1.0\""),
+            Identifier("Note"),
+            Punctuation.Text("="),
+            String("""
+                "a\"b=c"
+                """),
+            String("\"Other\""),
+            Punctuation.Text("="),
+            String("\"\""));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Metadata_PartialSpan(TestHost testHost)
+        => TestAsync("""
+            #:package Pkg@1.0 [|PrivateAssets=all|]
+            """,
+            testHost,
+            Identifier("PrivateAssets"),
+            Punctuation.Text("="),
+            String("all"));
+
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_InvalidQuote(
+        TestHost testHost,
+        [CombinatorialValues("Pkg@1.0 Note=\"unterminated", "Pkg@1.0 Note=\"x\"y")] string content)
+        => TestAsync($"#:package {content} \t",
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword("package"),
+            String(content));
+
+    [Theory, CombinatorialData]
     public Task FileBasedApps_Property_01(TestHost testHost)
         => TestAsync("""
             #:property LangVersion=preview
@@ -350,6 +572,15 @@ public partial class SyntacticClassifierTests
             PPKeyword("property"));
 
     [Theory, CombinatorialData]
+    public Task FileBasedApps_NoKind(
+        TestHost testHost,
+        [CombinatorialValues("", " ", "\t")] string content)
+        => TestAsync($"#:{content}",
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"));
+
+    [Theory, CombinatorialData]
     public Task FileBasedApps_Unknown_01(TestHost testHost)
         => TestAsync("""
             #:unknown // comment
@@ -384,6 +615,19 @@ public partial class SyntacticClassifierTests
             Punctuation.CloseParen,
             Punctuation.Semicolon);
 
+    [Theory, CombinatorialData]
+    public Task FileBasedApps_Unknown_Metadata(
+        TestHost testHost,
+        [CombinatorialValues("unknown", "Package")] string kind)
+        => TestAsync($$"""
+            #:{{kind}} Pkg@1.0 PrivateAssets=all
+            """,
+            testHost,
+            PPKeyword("#"),
+            PPKeyword(":"),
+            PPKeyword(kind),
+            String("Pkg@1.0 PrivateAssets=all"));
+
     // Space between `#` and `:` causes the directive to not be treated as an ignored/FBA directive.
     [Theory, CombinatorialData]
     public Task FileBasedApps_Spaces_01(TestHost testHost)
@@ -404,7 +648,7 @@ public partial class SyntacticClassifierTests
             PPKeyword("#"),
             PPKeyword(":"),
             PPKeyword("property"),
-            Identifier("name "),
+            Identifier("name"),
             PunctuationText("="),
-            String(" value"));
+            String("value"));
 }
