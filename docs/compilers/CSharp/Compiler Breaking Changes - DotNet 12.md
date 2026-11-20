@@ -137,7 +137,7 @@ See [the type parameter inference from constraints proposal](https://github.com/
 
 ## Taking the address of an element of a captured inline array is disallowed
 
-***Introduced in Visual Studio 2026 version 18.14***
+***Introduced in Visual Studio 2026 version 18.15***
 
 The compiler now reports CS1686 when the address of an inline-array element is taken
 and the containing local or parameter is captured by a lambda expression, anonymous method, or local function.
