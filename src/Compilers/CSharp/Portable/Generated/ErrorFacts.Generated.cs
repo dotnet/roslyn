@@ -346,6 +346,7 @@
                 case ErrorCode.WRN_UnscopedRefAttributeOldRules:
                 case ErrorCode.WRN_InterceptsLocationAttributeUnsupportedSignature:
                 case ErrorCode.WRN_RedundantPattern:
+                case ErrorCode.WRN_DeprecatedFeatureFlag:
                     return true;
                 default:
                     return false;

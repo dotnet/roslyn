@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -131,6 +132,9 @@ internal sealed class InteractiveSession : IDisposable
     private void ProcessInitialized(InteractiveHostPlatformInfo platformInfo, InteractiveHostOptions options, RemoteExecutionResult result)
     {
         Contract.ThrowIfFalse(result.InitializationResult != null);
+
+        Logger.Log(FunctionId.Interactive_Host_Initialized,
+            KeyValueLogMessage.Create(static (m, platform) => m.Add("HostPlatform", platform.ToString()), options.Platform));
 
         _workQueue.AddWork(async () =>
         {

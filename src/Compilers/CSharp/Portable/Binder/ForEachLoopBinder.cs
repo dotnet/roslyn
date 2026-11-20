@@ -718,6 +718,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return gotInfo;
         }
 
+        internal bool TryGetForEachIterationType(SyntaxNode syntax, TypeSymbol collectionType, bool isAsync, out TypeWithAnnotations iterationType)
+        {
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            return GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax, ref collectionExpr, isAsync, isSpread: false, BindingDiagnosticBag.Discarded, out iterationType, out _);
+        }
+
         private BoundExpression UnwrapCollectionExpressionIfNullable(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)
         {
             TypeSymbol collectionExprType = collectionExpr.Type;

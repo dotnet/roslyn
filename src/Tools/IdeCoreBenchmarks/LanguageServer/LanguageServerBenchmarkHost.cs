@@ -21,6 +21,9 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
     internal Task WarmCompositionCacheAsync()
         => WarmCompositionCacheCoreAsync();
 
+    internal async Task<TestServer> CreateServerAsync()
+        => Wrap(await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit));
+
     internal async Task<BenchmarkTestDaemon> CreateDaemonAsync()
     {
         var daemon = await CreateDaemonServerAsync();

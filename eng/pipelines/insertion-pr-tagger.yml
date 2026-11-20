@@ -37,12 +37,21 @@ extends:
       jobs:
       - job: runPRTagger
         steps:
-        - checkout: none
+        - checkout: self
         - task: UseDotNet@2
           displayName: Install .NET 10 SDK
           inputs:
             packageType: sdk
             version: 10.0.x
+        - template: /eng/common/core-templates/steps/get-github-app-token.yml@self
+          parameters:
+            is1ESPipeline: true
+            azureSubscription: 'Roslyn PRTagger: DevDiv'
+            keyVaultName: 'EngKeyVault'
+            appIdSecretName: 'dotnet-roslyn-issue-tagger-app-id'
+            appPrivateKeySecretName: 'dotnet-roslyn-issue-tagger-app-private-key'
+            installationOwner: 'dotnet'
+            outputVariableName: 'GitHubAppInstallationToken'
         - task: AzureCLI@2
           displayName: Run PR Tagger
           inputs:
@@ -75,4 +84,4 @@ extends:
 
               & dnx @arguments
           env:
-            GitHubToken: $(roslyn-dotnet-bot-issue-w-pat)
+            GitHubToken: $(GitHubAppInstallationToken)

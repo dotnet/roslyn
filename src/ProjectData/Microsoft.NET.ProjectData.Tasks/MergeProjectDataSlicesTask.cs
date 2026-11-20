@@ -42,10 +42,11 @@ public sealed class MergeProjectDataSlicesTask : Microsoft.Build.Utilities.Task
 	public string ProjectFilePath { get; set; } = string.Empty;
 
 	/// <summary>
-	/// Project intermediate output directory (<c>$(IntermediateOutputPath)</c>). Transient
-	/// <c>.tmp</c> side-files for the atomic write are placed here (when on the same volume as the
-	/// output) so they never appear next to committed source. Optional; falls back to the output
-	/// directory.
+	/// Project intermediate output directory (<c>$(IntermediateOutputPath)</c>). Supplied only when
+	/// writing a project-folder <c>.lscache</c> file so transient <c>.tmp</c> side-files for the
+	/// atomic write are placed under <c>obj/</c> (when on the same volume) instead of next to
+	/// committed source. Omitted for user-folder cache writes, which already live outside the
+	/// source tree and stage <c>.tmp</c> files directly in the output directory.
 	/// </summary>
 	public string IntermediateOutputPath { get; set; } = string.Empty;
 
@@ -176,9 +177,10 @@ public sealed class MergeProjectDataSlicesTask : Microsoft.Build.Utilities.Task
 			// ``KeyNotFoundException`` from a missing slice property) to fail the
 			// build instead of degrading to a stale-cache warning.
 			this.Log.LogWarning(
-				"ProjectData: failed to merge slices for {0}: {1}",
-				string.IsNullOrEmpty(this.OutputPath) ? this.ProjectFilePath : this.OutputPath,
-				ex.Message);
+				"ProjectData: failed to merge slices into '{0}' for '{1}': {2}",
+				this.ResolvedOutputPath,
+				this.ProjectFilePath,
+				ex);
 		}
 		return true;
 	}

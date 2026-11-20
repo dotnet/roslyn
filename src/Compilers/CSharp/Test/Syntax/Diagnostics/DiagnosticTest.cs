@@ -260,6 +260,7 @@ class X
                         case ErrorCode.WRN_DelaySignButNoKey:
                         case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                         case ErrorCode.WRN_UnimplementedCommandLineSwitch:
+                        case ErrorCode.WRN_DeprecatedFeatureFlag:
                         case ErrorCode.WRN_CallerFilePathPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
                         case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
@@ -3017,6 +3018,8 @@ class Program
                     case ErrorCode.ERR_EncReferenceToAddedMember:
                     case ErrorCode.ERR_EncUpdateRequiresEmittingExplicitInterfaceImplementationNotSupportedByTheRuntime:
                     case ErrorCode.ERR_AbstractBaseRecordImplementation:
+                    case ErrorCode.ERR_WrongArityAsyncReturn:
+                    case ErrorCode.ERR_BadAsyncMethodBuilderTaskProperty:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

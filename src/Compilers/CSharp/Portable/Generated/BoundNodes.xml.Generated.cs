@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAddressOfOperator : BoundExpression
     {
-        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, bool isManaged, TypeSymbol type, bool hasErrors = false)
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, bool isManaged, bool requiresAssignedOperand, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.AddressOfOperator, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -1303,20 +1303,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Operand = operand;
             this.IsManaged = isManaged;
+            this.RequiresAssignedOperand = requiresAssignedOperand;
         }
 
         public new TypeSymbol Type => base.Type!;
         public BoundExpression Operand { get; }
         public bool IsManaged { get; }
+        public bool RequiresAssignedOperand { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitAddressOfOperator(this);
 
-        public BoundAddressOfOperator Update(BoundExpression operand, bool isManaged, TypeSymbol type)
+        public BoundAddressOfOperator Update(BoundExpression operand, bool isManaged, bool requiresAssignedOperand, TypeSymbol type)
         {
-            if (operand != this.Operand || isManaged != this.IsManaged || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (operand != this.Operand || isManaged != this.IsManaged || requiresAssignedOperand != this.RequiresAssignedOperand || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundAddressOfOperator(this.Syntax, operand, isManaged, type, this.HasErrors);
+                var result = new BoundAddressOfOperator(this.Syntax, operand, isManaged, requiresAssignedOperand, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11273,7 +11275,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(operand, node.IsManaged, type);
+            return node.Update(operand, node.IsManaged, node.RequiresAssignedOperand, type);
         }
         public override BoundNode? VisitUnconvertedAddressOfOperator(BoundUnconvertedAddressOfOperator node)
         {
@@ -13065,12 +13067,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(operand, node.IsManaged, infoAndType.Type!);
+                updatedNode = node.Update(operand, node.IsManaged, node.RequiresAssignedOperand, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(operand, node.IsManaged, node.Type);
+                updatedNode = node.Update(operand, node.IsManaged, node.RequiresAssignedOperand, node.Type);
             }
             return updatedNode;
         }
@@ -15712,6 +15714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
             new TreeDumperNode("isManaged", node.IsManaged, null),
+            new TreeDumperNode("requiresAssignedOperand", node.RequiresAssignedOperand, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)

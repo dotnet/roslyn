@@ -2616,6 +2616,56 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         Assert.Contains("System.InvalidOperationException: Source generator failed", generatorDiagnostics.Single().GetMessage());
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task GetProjectDifferences_SourceGeneratorDiagnostics_CurrentSnapshotOnly(bool oldHasError, bool newHasError)
+    {
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var log = new TraceLog("Test");
+        var oldInput = oldHasError ? "old_error" : "old_clean";
+        var newInput = newHasError ? "new_error" : "new_clean";
+        var descriptor = new DiagnosticDescriptor("TEST001", "Generator error", "{0}", "Test", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context =>
+            {
+                var input = context.AdditionalFiles.Single().GetText(context.CancellationToken).ToString();
+                context.AddSource("generated.cs", SourceText.From($"class C {{ string M() => \"{input}\"; }}", Encoding.UTF8, SourceHashAlgorithm.Sha256));
+
+                if (input.Contains("error"))
+                {
+                    context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(descriptor, Location.None, input));
+                }
+            }
+        };
+
+        var project = solution
+            .AddTestProject("A")
+            .AddAdditionalDocument("A.txt", oldInput, filePath: Path.Combine(TempRoot.Root, "A.txt"))
+            .Project;
+
+        var projectId = project.Id;
+        solution = project.Solution.AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+        var oldProject = solution.GetRequiredProject(projectId);
+        var generatedDocumentId = (await oldProject.GetSourceGeneratedDocumentsAsync()).Single().Id;
+
+        solution = solution.WithAdditionalDocumentText(oldProject.AdditionalDocumentIds.Single(), CreateText(newInput));
+        project = solution.GetRequiredProject(projectId);
+
+        using var differences = new ProjectDifferences();
+        var diagnostics = new ArrayBuilder<Diagnostic>();
+        await EditSession.GetProjectDifferencesAsync(log, oldProject, project, differences, diagnostics, EditAndContinueDiagnosticLevel.None, CancellationToken.None);
+
+        AssertEx.Equal(newHasError ? [newInput] : [], diagnostics.Select(d => d.GetMessage()));
+        AssertEx.Equal([generatedDocumentId], differences.ChangedOrAddedDocuments.Select(d => d.Id));
+        Assert.Empty(differences.DeletedDocuments);
+    }
+
     [Fact]
     public async Task HasChanges_Settings()
     {

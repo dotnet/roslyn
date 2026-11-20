@@ -38,7 +38,15 @@ namespace RunTests
             }
 
             fileContentsBuilder.AppendLine($@"/Platform:{options.Architecture}");
-            fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={xmlResultsFilePath}");
+            if (options.TestResultsFormat == "trx")
+            {
+                fileContentsBuilder.AppendLine($@"/Logger:trx;LogFileName=""{Path.GetFullPath(xmlResultsFilePath)}""");
+            }
+            else
+            {
+                fileContentsBuilder.AppendLine($@"/Logger:xunit;LogFilePath={xmlResultsFilePath}");
+            }
+
             if (htmlResultsFilePath != null)
             {
                 fileContentsBuilder.AppendLine($@"/Logger:html;LogFileName={htmlResultsFilePath}");
@@ -101,8 +109,9 @@ namespace RunTests
             return vsTestConsolePath;
         }
 
-        public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
+        public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string? suffix = null)
         {
+            suffix ??= options.TestResultsFormat == "trx" ? "trx" : "xml";
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(options.TestResultsDirectory, fileName);
         }
@@ -299,6 +308,12 @@ namespace RunTests
 
                 static void writeSyntheticFailure(string resultsFilePath, string displayName, string message)
                 {
+                    if (Path.GetExtension(resultsFilePath) == ".trx")
+                    {
+                        WriteTrxFailure(GetSyntheticFailurePath(resultsFilePath), displayName, displayName, "WorkItemFailure", message, stackTrace: null);
+                        return;
+                    }
+
                     var escapedDisplayName = SecurityElement.Escape(displayName);
                     var xml = $"""
                         <?xml version="1.0" encoding="utf-8"?>
@@ -325,7 +340,7 @@ namespace RunTests
 
         private static string GetSyntheticFailurePath(string resultsFilePath)
             => Path.Combine(Path.GetDirectoryName(resultsFilePath)!,
-                Path.GetFileNameWithoutExtension(resultsFilePath) + "_synthetic_failure.xml");
+                Path.GetFileNameWithoutExtension(resultsFilePath) + "_synthetic_failure" + Path.GetExtension(resultsFilePath));
 
         private static bool ContainsFailedTest(string? resultsFilePath)
         {
@@ -337,8 +352,21 @@ namespace RunTests
                 using var reader = XmlReader.Create(resultsFilePath, new XmlReaderSettings { XmlResolver = null });
                 while (reader.Read())
                 {
-                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "test" && reader.GetAttribute("result") == "Fail")
+                    if (reader.NodeType != XmlNodeType.Element)
+                        continue;
+
+                    if (Path.GetExtension(resultsFilePath) == ".trx" &&
+                        reader.LocalName == "UnitTestResult" &&
+                        reader.GetAttribute("outcome") == "Failed")
+                    {
                         return true;
+                    }
+
+                    if (reader.Name == "test" &&
+                        reader.GetAttribute("result") == "Fail")
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception ex)
@@ -347,6 +375,53 @@ namespace RunTests
             }
 
             return false;
+        }
+
+        private static void WriteTrxFailure(
+            string resultsFilePath,
+            string displayName,
+            string testName,
+            string failureType,
+            string message,
+            string? stackTrace)
+        {
+            var escapedDisplayName = SecurityElement.Escape(displayName);
+            var escapedTestName = SecurityElement.Escape(testName);
+            var escapedFailureType = SecurityElement.Escape(failureType);
+            var escapedMessage = SecurityElement.Escape(message);
+            var escapedStackTrace = SecurityElement.Escape(stackTrace);
+            var testRunId = Guid.NewGuid();
+            var testId = Guid.NewGuid();
+            var executionId = Guid.NewGuid();
+            var testSettingsId = Guid.NewGuid();
+            var timestamp = DateTime.UtcNow.ToString("o");
+            var xml = $"""
+                    <?xml version="1.0" encoding="utf-8"?>
+                    <TestRun id="{testRunId}" name="{escapedDisplayName}" runUser="{SecurityElement.Escape(Environment.UserName)}" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+                      <Times creation="{timestamp}" queuing="{timestamp}" start="{timestamp}" finish="{timestamp}" />
+                      <TestSettings name="default" id="{testSettingsId}" />
+                      <Results>
+                        <UnitTestResult executionId="{executionId}" testId="{testId}" testName="{escapedTestName}" computerName="{SecurityElement.Escape(Environment.MachineName)}" duration="00:00:00" startTime="{timestamp}" endTime="{timestamp}" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed">
+                          <Output>
+                            <ErrorInfo>
+                              <Message>{escapedMessage}</Message>
+                              <StackTrace>{escapedStackTrace}</StackTrace>
+                            </ErrorInfo>
+                          </Output>
+                        </UnitTestResult>
+                      </Results>
+                      <TestDefinitions>
+                        <UnitTest name="{escapedTestName}" storage="RunTests" id="{testId}">
+                          <Execution id="{executionId}" />
+                          <TestMethod codeBase="RunTests" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="RunTests.{escapedFailureType}" name="{escapedTestName}" />
+                        </UnitTest>
+                      </TestDefinitions>
+                      <ResultSummary outcome="Failed">
+                        <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="1" inProgress="0" pending="0" />
+                      </ResultSummary>
+                    </TestRun>
+                    """;
+            File.WriteAllText(resultsFilePath, xml);
         }
 
         /// <summary>
@@ -463,6 +538,15 @@ namespace RunTests
                     var testName = crashingTest ?? "Unknown";
                     var dumpFileNames = string.Join(", ", dumpFiles.Select(Path.GetFileName));
                     var dumpFilePaths = string.Join("\n", dumpFiles);
+
+                    if (Path.GetExtension(resultsFilePath) == ".trx")
+                    {
+                        WriteTrxFailure(GetSyntheticFailurePath(resultsFilePath), displayName, $"[{failureType}] {testName}",
+                            $"TestHost{failureType}Exception",
+                            $"{timeoutMessage} Test host {failureType.ToLower()} detected. Test running at time of {failureType.ToLower()}: {testName}. Dump files: {dumpFileNames}",
+                            $"Dump files collected:{Environment.NewLine}{dumpFilePaths}");
+                        return;
+                    }
 
                     var escapedWorkItemName = SecurityElement.Escape(displayName);
                     var escapedTestName = SecurityElement.Escape(testName);

@@ -15,4 +15,4 @@ decimal
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.TestComponent<decimal, decimal>. Data ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.List<(decimal Domain, decimal Value)>>( null ))
+[0001] AddComponentParameter(nameof(global::Test.TestComponent< decimal , decimal >. Data ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.List<(decimal Domain, decimal Value)>>( null ))

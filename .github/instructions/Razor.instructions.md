@@ -15,6 +15,9 @@ their original sub-tree layout
   The bug is more likely in existing logic than a missing feature.
 - **Helpers**: Review existing helpers (`UsingDirectiveHelper`, `AddUsingsHelper`, etc.)
   before writing new utility methods. Don't duplicate.
+- **Language versions**: When adding or changing a version-gated Razor language feature, update
+  the corresponding entry in [`docs/razor/language-versions.md`](../../docs/razor/language-versions.md),
+  including any minimum C# language version the feature requires.
 - **Warning levels**: Track warnings with non-zero `RazorWarningLevel` values in
   [`docs/razor/warning-levels.md`](../../docs/razor/warning-levels.md), including the diagnostic
   ID, warning level, exact message, and trigger condition.
@@ -65,9 +68,9 @@ their original sub-tree layout
   embedded quotes are escaped without changing their values.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
-- **Formatting options across OOP**: Cohost endpoints must resolve
-  `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options with
-  `razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken)`.
+- **Formatting options across OOP**: Cohost endpoints use
+  `razorDocument.GetRazorFormattingOptions(clientSettings, cancellationToken)` to resolve
+  Razor preferences and `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options.
   This applies `.editorconfig` sections matching the `.razor` or `.cshtml` path and falls back to
   the user's global C# options. Include the resolved options in `RazorFormattingOptions` sent to
   remote formatting consumers; remote `IClientSettingsManager` state does not contain the user's

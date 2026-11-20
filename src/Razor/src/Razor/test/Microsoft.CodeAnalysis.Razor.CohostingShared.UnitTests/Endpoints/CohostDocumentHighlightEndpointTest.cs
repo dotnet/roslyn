@@ -380,10 +380,52 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         await VerifyDocumentHighlightsAsync(input, fileKind: RazorFileKind.Legacy);
     }
 
-    private async Task VerifyDocumentHighlightsAsync(string input, DocumentHighlight[]? htmlResponse = null, RazorFileKind? fileKind = null)
+    [Fact]
+    public Task TypeParameter_FromComponentTypeArgument()
+        => VerifyDocumentHighlightsAsync(
+            input: """
+                @typeparam [|TItem|]
+
+                <GenericComponent TItem="[|TI$$tem|]" Value="default" Title="First" />
+                <GenericComponent TItem="[|TItem|]" Value="default" Title="Second" />
+                """,
+            additionalFiles: GetGenericComponentFiles());
+
+    [Fact]
+    public Task TypeParameter_FromDirective()
+        => VerifyDocumentHighlightsAsync(
+            input: """
+                @typeparam [|TI$$tem|]
+
+                <GenericComponent TItem="[|TItem|]" Value="default" Title="First" />
+                <GenericComponent TItem="[|TItem|]" Value="default" Title="Second" />
+                """,
+            additionalFiles: GetGenericComponentFiles());
+
+    private static (string fileName, string contents)[] GetGenericComponentFiles() =>
+        [
+            (FilePath("GenericComponent.razor"), """
+                @typeparam TItem
+
+                @code
+                {
+                    [Parameter]
+                    public TItem Value { get; set; }
+
+                    [Parameter]
+                    public string Title { get; set; }
+                }
+                """)
+        ];
+
+    private async Task VerifyDocumentHighlightsAsync(
+        string input,
+        DocumentHighlight[]? htmlResponse = null,
+        RazorFileKind? fileKind = null,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
         TestFileMarkupParser.GetPositionAndSpans(input, out var source, out int cursorPosition, out ImmutableArray<TextSpan> spans);
-        var document = CreateProjectAndRazorDocument(source, fileKind: fileKind);
+        var document = CreateProjectAndRazorDocument(source, fileKind: fileKind, additionalFiles: additionalFiles);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(cursorPosition);
 
@@ -406,6 +448,7 @@ public class CohostDocumentHighlightEndpointTest(ITestOutputHelper testOutputHel
         }
 
         Assert.NotNull(result);
+        Assert.Equal(spans.Length, result.Length);
 
         var actual = TestFileMarkupParser.CreateTestFile(source, cursorPosition, result.SelectAsArray(h => inputText.GetTextSpan(h.Range)));
 

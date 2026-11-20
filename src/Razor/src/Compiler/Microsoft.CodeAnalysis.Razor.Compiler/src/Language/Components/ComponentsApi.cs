@@ -35,6 +35,12 @@ internal static class ComponentsApi
         public const string FullTypeName = "Microsoft.AspNetCore.Components.LayoutAttribute";
     }
 
+    public static class LayoutComponentBase
+    {
+        public const string FullTypeName = "Microsoft.AspNetCore.Components.LayoutComponentBase";
+        public const string Body = nameof(Body);
+    }
+
     public static class InjectAttribute
     {
         public const string FullTypeName = "Microsoft.AspNetCore.Components.InjectAttribute";

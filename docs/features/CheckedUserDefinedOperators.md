@@ -9,7 +9,7 @@ C# should support defining `checked` variants of the following user-defined oper
 
 Proposal: 
 - https://github.com/dotnet/csharplang/issues/4665
-- https://github.com/dotnet/csharplang/blob/main/proposals/checked-user-defined-operators.md
+- https://github.com/dotnet/csharplang/blob/main/proposals/csharp-11.0/checked-user-defined-operators.md
 
 Feature branch: https://github.com/dotnet/roslyn/tree/features/CheckedUserDefinedOperators
 

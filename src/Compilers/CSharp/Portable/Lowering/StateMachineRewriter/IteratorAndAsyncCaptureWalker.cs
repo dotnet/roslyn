@@ -219,10 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch (variable)
                 {
-                    case ParameterSymbol { RefKind: RefKind.None }:
-                    case LocalSymbol { RefKind: RefKind.None }:
-                    case FieldSymbol { RefKind: RefKind.None }:
-                        // Runtime async only needs to preserve by-ref captures
+                    case ParameterSymbol { RefKind: RefKind.None } parameter when !parameter.Type.IsRestrictedType():
+                    case LocalSymbol { RefKind: RefKind.None } local when !local.Type.IsRestrictedType():
+                        // Runtime async only needs to preserve by-ref captures. Restricted types (ref structs,
+                        // TypedReference, ...) still cannot be preserved across a suspension point, so they fall
+                        // through to be reported as CS4007.
                         return;
                 }
             }
