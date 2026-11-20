@@ -50,6 +50,21 @@ internal partial class DocumentState
 
         public bool TryGetValue([NotNullWhen(true)] out TreeAndVersion? value)
             => lazyComputation.TryGetValue(out value);
+
+        public bool TryGetVersion(out VersionStamp version)
+        {
+            if (TryGetValue(out var treeAndVersion))
+            {
+                version = treeAndVersion.Version;
+                return true;
+            }
+
+            version = default;
+            return false;
+        }
+
+        public async ValueTask<VersionStamp> GetVersionAsync(CancellationToken cancellationToken)
+            => (await GetValueAsync(cancellationToken).ConfigureAwait(false)).Version;
     }
 
     /// <summary>
