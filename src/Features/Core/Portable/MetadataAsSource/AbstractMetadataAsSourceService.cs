@@ -7,9 +7,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -61,7 +63,28 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
             cancellationToken).ConfigureAwait(false);
 
         var reducers = GetReducers();
-        return await Simplifier.ReduceAsync(formattedDoc, reducers, cancellationToken).ConfigureAwait(false);
+        var simplifiedDoc = await Simplifier.ReduceAsync(formattedDoc, reducers, cancellationToken).ConfigureAwait(false);
+
+        // Simplification can introduce CRLF trivia after formatting, even when the document uses LF.
+        // Normalize line-ending trivia without changing string or character literals.
+        formattingOptions ??= await simplifiedDoc.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var simplifiedRoot = await simplifiedDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var generator = simplifiedDoc.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+        var endOfLineKind = generator.SyntaxFacts.SyntaxKinds.EndOfLineTrivia;
+        var endOfLine = generator.EndOfLine(formattingOptions.NewLine);
+        using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var triviaToReplace);
+        foreach (var trivia in simplifiedRoot.DescendantTrivia(descendIntoTrivia: true))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (trivia.RawKind == endOfLineKind && trivia.ToFullString() != formattingOptions.NewLine)
+                triviaToReplace.Add(trivia);
+        }
+
+        if (triviaToReplace.Count == 0)
+            return simplifiedDoc;
+
+        return simplifiedDoc.WithSyntaxRoot(simplifiedRoot.ReplaceTrivia(
+            triviaToReplace, (original, _) => original.CopyAnnotationsTo(endOfLine)));
     }
 
     protected abstract Task<Document> AddNullableRegionsAsync(Document document, CancellationToken cancellationToken);
