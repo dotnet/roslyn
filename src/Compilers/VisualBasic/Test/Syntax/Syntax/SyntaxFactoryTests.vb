@@ -173,5 +173,41 @@ Integer
             Assert.Equal(SyntaxKind.SingleLineSubLambdaExpression, lambda.Kind())
             Assert.Equal(SyntaxKind.SubLambdaHeader, lambda.SubOrFunctionHeader.Kind())
         End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69258")>
+        Public Sub RegionDirectiveTrivia_WithoutArguments()
+            Dim region = SyntaxFactory.RegionDirectiveTrivia()
+
+            Assert.Equal(SyntaxKind.RegionDirectiveTrivia, region.Kind())
+            Assert.Equal(SyntaxKind.StringLiteralToken, region.Name.Kind())
+            Assert.Equal("""""", region.Name.Text)
+            Assert.Equal("", region.Name.ValueText)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69258")>
+        Public Sub FactoriesWithDefaultedValueTokens_DoNotThrow()
+            Dim externalSource = SyntaxFactory.ExternalSourceDirectiveTrivia()
+            Assert.Equal(SyntaxKind.StringLiteralToken, externalSource.ExternalSource.Kind())
+            Assert.Equal(SyntaxKind.IntegerLiteralToken, externalSource.LineStart.Kind())
+            Assert.Equal("0", externalSource.LineStart.Text)
+
+            Dim externalChecksum = SyntaxFactory.ExternalChecksumDirectiveTrivia()
+            Assert.Equal(SyntaxKind.StringLiteralToken, externalChecksum.ExternalSource.Kind())
+            Assert.Equal(SyntaxKind.StringLiteralToken, externalChecksum.Guid.Kind())
+            Assert.Equal(SyntaxKind.StringLiteralToken, externalChecksum.Checksum.Kind())
+
+            Assert.Equal(SyntaxKind.StringLiteralToken, SyntaxFactory.ReferenceDirectiveTrivia().File.Kind())
+            Assert.Equal(SyntaxKind.IntegerLiteralToken, SyntaxFactory.NumericLabel().LabelToken.Kind())
+
+            Assert.Equal(SyntaxKind.XmlNameToken, SyntaxFactory.XmlName().LocalName.Kind())
+            Assert.Equal(SyntaxKind.XmlNameToken, SyntaxFactory.XmlPrefix().Name.Kind())
+            Assert.Equal(SyntaxKind.XmlNameToken, SyntaxFactory.XmlPrefixName().Name.Kind())
+            Assert.Equal(SyntaxKind.XmlNameToken, SyntaxFactory.XmlProcessingInstruction().Name.Kind())
+            Assert.Equal(SyntaxKind.XmlNameToken, SyntaxFactory.XmlDeclarationOption(SyntaxFactory.XmlString(SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken), SyntaxFactory.Token(SyntaxKind.DoubleQuoteToken))).Name.Kind())
+
+            Assert.Equal(SyntaxKind.XmlTextLiteralToken, SyntaxFactory.XmlText().TextTokens.Single().Kind())
+            Assert.Equal(SyntaxKind.XmlTextLiteralToken, SyntaxFactory.XmlComment().TextTokens.Single().Kind())
+            Assert.Equal(SyntaxKind.XmlTextLiteralToken, SyntaxFactory.XmlCDataSection().TextTokens.Single().Kind())
+        End Sub
     End Class
 End Namespace
