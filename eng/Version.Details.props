@@ -30,7 +30,7 @@ This file should be imported by eng/Versions.props
     <SystemConfigurationConfigurationManagerPackageVersion>10.0.10</SystemConfigurationConfigurationManagerPackageVersion>
     <SystemDiagnosticsDiagnosticSourcePackageVersion>10.0.10</SystemDiagnosticsDiagnosticSourcePackageVersion>
     <SystemDiagnosticsEventLogPackageVersion>10.0.10</SystemDiagnosticsEventLogPackageVersion>
-    <SystemIOHashingPackageVersion>10.0.10</SystemIOHashingPackageVersion>
+    <SystemIOHashingPackageVersion>10.0.14</SystemIOHashingPackageVersion>
     <SystemIOPipelinesPackageVersion>10.0.10</SystemIOPipelinesPackageVersion>
     <SystemReflectionMetadataPackageVersion>10.0.10</SystemReflectionMetadataPackageVersion>
     <SystemResourcesExtensionsPackageVersion>10.0.10</SystemResourcesExtensionsPackageVersion>
