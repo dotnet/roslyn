@@ -193,11 +193,12 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         }
 
         INamedTypeSymbol? suppressMessageAttribute = null;
+        INamedTypeSymbol? unconditionalSuppressMessageAttribute = null;
         if (!skipSuppressMessage)
         {
             var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             suppressMessageAttribute = compilation.SuppressMessageAttributeType();
-            skipSuppressMessage = suppressMessageAttribute == null || !suppressMessageAttribute.IsAttribute();
+            unconditionalSuppressMessageAttribute = compilation.UnconditionalSuppressMessageAttributeType();
         }
 
         var lazyFormattingOptions = (SyntaxFormattingOptions?)null;
@@ -207,7 +208,8 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             if (!diagnostic.IsSuppressed)
             {
                 using var nestedActions = TemporaryArray<NestedSuppressionCodeAction>.Empty;
-                if (diagnostic.Location.IsInSource && documentOpt != null)
+                var requiresUnconditional = SuppressionHelpers.RequiresUnconditionalSuppressMessageAttribute(diagnostic);
+                if (!requiresUnconditional && diagnostic.Location.IsInSource && documentOpt != null)
                 {
                     // pragma warning disable.
                     lazyFormattingOptions ??= await documentOpt.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -215,11 +217,12 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 }
 
                 // SuppressMessageAttribute suppression is not supported for compiler diagnostics.
-                if (!skipSuppressMessage && SuppressionHelpers.CanBeSuppressedWithAttribute(diagnostic))
+                var attribute = requiresUnconditional ? unconditionalSuppressMessageAttribute : suppressMessageAttribute;
+                if (attribute != null && attribute.IsAttribute() && SuppressionHelpers.CanBeSuppressedWithAttribute(diagnostic))
                 {
                     // global assembly-level suppress message attribute.
                     nestedActions.Add(new GlobalSuppressMessageCodeAction(
-                        suppressionTargetInfo.TargetSymbol, suppressMessageAttribute!, project, diagnostic, this));
+                        suppressionTargetInfo.TargetSymbol, attribute, project, diagnostic, this));
 
                     // local suppress message attribute
                     // please note that in order to avoid issues with existing unit tests referencing the code fix
@@ -227,7 +230,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     if (suppressionTargetInfo.TargetMemberNode != null && suppressionTargetInfo.TargetSymbol.Kind != SymbolKind.Namespace)
                     {
                         nestedActions.Add(new LocalSuppressMessageCodeAction(
-                            this, suppressionTargetInfo.TargetSymbol, suppressMessageAttribute, suppressionTargetInfo.TargetMemberNode, documentOpt, diagnostic));
+                            this, suppressionTargetInfo.TargetSymbol, attribute, suppressionTargetInfo.TargetMemberNode, documentOpt, diagnostic));
                     }
                 }
 

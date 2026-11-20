@@ -25,16 +25,19 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
     internal sealed class GlobalSuppressMessageFixAllCodeAction : AbstractGlobalSuppressMessageCodeAction
     {
         private readonly INamedTypeSymbol _suppressMessageAttribute;
+        private readonly INamedTypeSymbol _unconditionalSuppressMessageAttribute;
         private readonly IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> _diagnosticsBySymbol;
 
         private GlobalSuppressMessageFixAllCodeAction(
             AbstractSuppressionCodeFixProvider fixer,
             INamedTypeSymbol suppressMessageAttribute,
+            INamedTypeSymbol unconditionalSuppressMessageAttribute,
             IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> diagnosticsBySymbol,
             Project project)
             : base(fixer, project)
         {
             _suppressMessageAttribute = suppressMessageAttribute;
+            _unconditionalSuppressMessageAttribute = unconditionalSuppressMessageAttribute;
             _diagnosticsBySymbol = diagnosticsBySymbol;
         }
 
@@ -83,7 +86,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     var diagnosticsBySymbol = await CreateDiagnosticsBySymbolAsync(fixer, grouping, cancellationToken).ConfigureAwait(false);
                     if (diagnosticsBySymbol.Any())
                     {
-                        var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(fixer, supressMessageAttribute, diagnosticsBySymbol, currentProject);
+                        var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(fixer, supressMessageAttribute, compilation.UnconditionalSuppressMessageAttributeType(), diagnosticsBySymbol, currentProject);
                         var newDocument = await projectCodeAction.GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
                         currentSolution = newDocument.Project.Solution;
                     }
@@ -112,7 +115,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                     if (diagnosticsBySymbol.Any())
                     {
                         var projectCodeAction = new GlobalSuppressMessageFixAllCodeAction(
-                            fixer, suppressMessageAttribute, diagnosticsBySymbol, currentProject);
+                            fixer, suppressMessageAttribute, compilation.UnconditionalSuppressMessageAttributeType(), diagnosticsBySymbol, currentProject);
                         var newDocument = await projectCodeAction.GetChangedSuppressionDocumentAsync(cancellationToken).ConfigureAwait(false);
                         currentSolution = newDocument.Project.Solution;
                     }
@@ -138,8 +141,14 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 foreach (var diagnostic in diagnostics)
                 {
                     Contract.ThrowIfFalse(!diagnostic.IsSuppressed);
+                    var attribute = SuppressionHelpers.RequiresUnconditionalSuppressMessageAttribute(diagnostic)
+                        ? _unconditionalSuppressMessageAttribute
+                        : _suppressMessageAttribute;
+                    if (attribute is null)
+                        continue;
+
                     suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
-                        suppressionsRoot, targetSymbol, _suppressMessageAttribute, diagnostic,
+                        suppressionsRoot, targetSymbol, attribute, diagnostic,
                         services, cleanupOptions.FormattingOptions, addImportsService, cancellationToken);
                 }
             }
