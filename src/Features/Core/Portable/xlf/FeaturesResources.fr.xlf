@@ -910,6 +910,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Générer pour '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Hot_Reload_has_been_disabled">
+        <source>Hot Reload has been disabled.</source>
+        <target state="new">Hot Reload has been disabled.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
         <source>Illegal \ at end of pattern</source>
         <target state="translated">Caractère \ non autorisé à la fin du modèle</target>
@@ -1013,6 +1018,11 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
       <trans-unit id="Intercepted_by_0">
         <source>Intercepted by '{0}'.</source>
         <target state="translated">Intercepté par « {0} ».</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Internal_error_Failed_to_start_a_debugging_session">
+        <source>Internal error: Failed to start a debugging session.</source>
+        <target state="new">Internal error: Failed to start a debugging session.</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_constant">
