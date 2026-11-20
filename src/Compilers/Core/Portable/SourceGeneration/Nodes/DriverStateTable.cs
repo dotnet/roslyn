@@ -80,10 +80,13 @@ namespace Microsoft.CodeAnalysis
             }
 
             public void SetCompilation(Compilation compilation)
+                => SetCompilation(compilation, _syntaxInputNodes);
+
+            public void SetCompilation(Compilation compilation, ImmutableArray<SyntaxInputNode> syntaxInputNodes)
             {
                 Debug.Assert(_compilation is null, "SetCompilation should only be called once.");
                 _compilation = compilation;
-                _syntaxStore = DriverState.SyntaxStore.ToBuilder(compilation, _syntaxInputNodes, DriverState.TrackIncrementalSteps, _cancellationToken);
+                _syntaxStore = DriverState.SyntaxStore.ToBuilder(compilation, syntaxInputNodes, DriverState.TrackIncrementalSteps, _cancellationToken);
             }
 
             public NodeStateTable<T> GetLatestStateTableForNode<T>(IIncrementalGeneratorNode<T> source)
