@@ -2853,7 +2853,7 @@ end class
             Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y, z", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <Fact()>
@@ -3090,7 +3090,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <Fact()>
@@ -3127,7 +3127,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <Fact()>
@@ -3164,7 +3164,7 @@ end class
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
             Assert.Equal("y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
-            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
         <Fact()>
@@ -6517,7 +6517,7 @@ End Class
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside))
             Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside))
-            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside))
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside))
         End Sub
 
@@ -10024,6 +10024,116 @@ End Module
             Assert.Equal("i + j", nodes(2).ToString())
             dataFlowResults = model.AnalyzeDataFlow(nodes(2))
             Assert.Equal("i, j", GetSymbolNamesJoined(dataFlowResults.ReadInside))
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68286")>
+        <Fact()>
+        Public Sub MethodCallOnIntrinsicParameter_NotWrittenInside()
+            Dim analysis = CompileAndAnalyzeDataFlow(
+      <compilation>
+          <file name="a.vb">
+Public Class C
+    Public Sub Test(i As Integer)
+        [|Dim s = i.ToString()|]
+    End Sub
+End Class
+        </file>
+      </compilation>)
+
+            Assert.True(analysis.Succeeded)
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.ReadInside))
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside))
+            Assert.Equal("Me, i", GetSymbolNamesJoined(analysis.WrittenOutside))
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.AlwaysAssigned))
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68286")>
+        <Fact()>
+        Public Sub MethodCallOnIntrinsicAndEnumLocals_NotWrittenInside()
+            Dim analysis = CompileAndAnalyzeDataFlow(
+      <compilation>
+          <file name="a.vb">
+Imports System
+
+Public Class C
+    Public Sub Test()
+        Dim d As Date = Date.Now
+        Dim m As Decimal = 1D
+        Dim k As DayOfWeek = DayOfWeek.Monday
+        [|Console.WriteLine(d.ToString() &amp; m.ToString() &amp; k.HasFlag(DayOfWeek.Sunday).ToString())|]
+    End Sub
+End Class
+        </file>
+      </compilation>)
+
+            Assert.True(analysis.Succeeded)
+            Assert.Equal("d, m, k", GetSymbolNamesJoined(analysis.ReadInside))
+            Assert.Null(GetSymbolNamesJoined(analysis.WrittenInside))
+            Assert.Null(GetSymbolNamesJoined(analysis.AlwaysAssigned))
+            Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsOut))
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68286")>
+        <Fact()>
+        Public Sub MethodCallOnStructureLocal_StillWrittenInside()
+            ' A structure's methods can change its fields, so calling one is still treated as a write.
+            Dim analysis = CompileAndAnalyzeDataFlow(
+      <compilation>
+          <file name="a.vb">
+Public Structure S
+    Public F As Integer
+    Public Sub Increment()
+        F += 1
+    End Sub
+End Structure
+
+Public Class C
+    Public Sub Test(s As S)
+        [|s.Increment()|]
+        System.Console.WriteLine(s.F)
+    End Sub
+End Class
+        </file>
+      </compilation>)
+
+            Assert.True(analysis.Succeeded)
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.ReadInside))
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.WrittenInside))
+        End Sub
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/68286")>
+        <Fact()>
+        Public Sub ExtensionMethodCallOnIntrinsicLocal()
+            ' An extension method can still write to an intrinsic receiver through a ByRef parameter.
+            Dim analysis = CompileAndAnalyzeDataFlow(
+      <compilation>
+          <file name="a.vb">
+Imports System.Runtime.CompilerServices
+
+Public Module Extensions
+    &lt;Extension&gt;
+    Public Sub Increment(ByRef x As Integer)
+        x += 1
+    End Sub
+
+    &lt;Extension&gt;
+    Public Function Twice(x As Integer) As Integer
+        Return x * 2
+    End Function
+End Module
+
+Public Class C
+    Public Sub Test(i As Integer, j As Integer)
+        [|i.Increment()
+        Dim t = j.Twice()|]
+    End Sub
+End Class
+        </file>
+      </compilation>)
+
+            Assert.True(analysis.Succeeded)
+            Assert.Equal("i, j", GetSymbolNamesJoined(analysis.ReadInside))
+            Assert.Equal("i, t", GetSymbolNamesJoined(analysis.WrittenInside))
         End Sub
 
 #End Region
