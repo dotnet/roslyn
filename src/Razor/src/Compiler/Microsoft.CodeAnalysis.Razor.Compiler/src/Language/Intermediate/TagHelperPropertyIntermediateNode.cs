@@ -12,6 +12,10 @@ public sealed class TagHelperPropertyIntermediateNode : IntermediateNode
 
     public SourceSpan? OriginalAttributeSpan { get; init; }
 
+    // Shared by the bindings for one source attribute so component lowering can restore
+    // its original unbound value if none of those bindings belongs to the selected component.
+    internal TagHelperHtmlAttributeIntermediateNode? UnboundAttribute { get; init; }
+
     public bool IsIndexerNameMatch => _match.IsIndexerMatch;
 
     public BoundAttributeDescriptor BoundAttribute => _match.Attribute;

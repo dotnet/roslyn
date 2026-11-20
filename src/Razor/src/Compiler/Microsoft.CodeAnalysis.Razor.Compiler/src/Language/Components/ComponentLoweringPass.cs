@@ -171,7 +171,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                 if (nonGenericCandidates.Count == 1 && genericCandidates.Count >= 1)
                 {
                     var nonGenericComponent = nonGenericCandidates[0];
-                    
+
                     // Check for ambiguity with any generic component
                     foreach (var genericComponent in genericCandidates)
                     {
@@ -179,18 +179,18 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                         {
                             // Report an ambiguity error and return null
                             node.AddDiagnostic(ComponentDiagnosticFactory.Create_AmbiguousComponentSelection(
-                                node.Source, 
-                                node.TagName, 
-                                genericComponent, 
+                                node.Source,
+                                node.TagName,
+                                genericComponent,
                                 nonGenericComponent));
                             return null;
                         }
                     }
-                    
+
                     // No ambiguity with any generic variant, use the non-generic component
                     return nonGenericComponent;
                 }
-                
+
                 // Can't disambiguate - either no non-generic or multiple non-generic components
                 return null;
             }
@@ -198,11 +198,11 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             // Type parameters are provided - find the generic component that matches
             TagHelperDescriptor bestMatch = null;
             var providedTypeParametersArray = providedTypeParameters.ToArray();
-            
+
             foreach (var candidate in genericCandidates)
             {
                 using var candidateTypeParams = GetTypeParameterNames(candidate);
-                
+
                 // Check if all provided type parameters exist in this candidate's type parameters
                 var allProvidedMatch = true;
                 foreach (var provided in providedTypeParametersArray)
@@ -213,12 +213,12 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                         break;
                     }
                 }
-                
+
                 if (!allProvidedMatch)
                 {
                     continue;
                 }
-                
+
                 // All provided type parameters match this candidate
                 // Check if this is a complete match (all type parameters provided)
                 if (providedTypeParameters.Count == candidateTypeParams.Count)
@@ -226,7 +226,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                     // Exact match - this is the component to use
                     return candidate;
                 }
-                
+
                 // Partial match - could be this component (type inference will handle the rest)
                 // Keep track of it as a potential match
                 if (bestMatch == null)
@@ -248,7 +248,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
         static PooledHashSet<string> GetProvidedTypeParameters(TagHelperIntermediateNode node)
         {
             var result = new PooledHashSet<string>(StringComparer.Ordinal);
-            
+
             foreach (var child in node.Children)
             {
                 if (child is TagHelperPropertyIntermediateNode property)
@@ -271,7 +271,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                     }
                 }
             }
-            
+
             return result;
         }
 
@@ -461,6 +461,7 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
     {
         private readonly ComponentIntermediateNode _component;
         private readonly IntermediateNodeCollection _children;
+        private HashSet<TagHelperHtmlAttributeIntermediateNode> _unboundAttributes;
 
         public ComponentRewriteVisitor(ComponentIntermediateNode component)
         {
@@ -717,6 +718,30 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
             if (node.TagHelper.Kind != TagHelperKind.Component)
             {
                 _children.Add(node);
+                return;
+            }
+
+            if (!ReferenceEquals(node.TagHelper, _component.Component))
+            {
+                // Multiple generic components with the same tag name can bind one source attribute.
+                // Keep the selected component's binding, and treat bindings unique to other candidates
+                // as unbound attributes so they still get the usual unknown-parameter handling.
+                if (TagHelperMatchingConventions.TryGetFirstBoundAttributeMatch(_component.Component, node.AttributeName, out _))
+                {
+                    return;
+                }
+
+                // Multiple rejected candidates can bind the same source attribute. The shared
+                // fallback identifies that occurrence without hiding actual duplicate attributes.
+                var unboundAttribute = node.UnboundAttribute ?? throw new InvalidOperationException("The original unbound attribute is missing.");
+                _unboundAttributes ??= new();
+                if (_unboundAttributes.Add(unboundAttribute))
+                {
+                    // This fallback wasn't part of the tree when complex content was checked.
+                    ComponentComplexAttributeContentPass.ProcessAttribute(unboundAttribute, node.AttributeName);
+                    VisitTagHelperHtmlAttribute(unboundAttribute);
+                }
+
                 return;
             }
 
