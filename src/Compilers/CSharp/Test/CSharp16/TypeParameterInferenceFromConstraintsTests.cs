@@ -561,12 +561,12 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
-                // (19,29): error CS1061: 'List<int>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'List<int>' could be found (are you missing a using directive or an assembly reference?)
+                // (19,27): error CS0411: The type arguments for method 'Extensions.extension<TElement, TEnumerable>(TEnumerable).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         System.Action a = l.M;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("System.Collections.Generic.List<int>", "M").WithLocation(19, 29),
-                // (21,19): error CS1061: 'List<int>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'List<int>' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "l.M").WithArguments("Extensions.extension<TElement, TEnumerable>(TEnumerable).M()").WithLocation(19, 27),
+                // (21,17): error CS8917: The delegate type could not be inferred.
                 //         var b = l.M;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("System.Collections.Generic.List<int>", "M").WithLocation(21, 19)
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "l.M").WithLocation(21, 17)
                 );
 
             comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
@@ -608,28 +608,20 @@ class C
 }
 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15);
-            comp.VerifyDiagnostics(
-                // (22,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
-                //         _ = nameof(l.M1);
-                Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "l.M1").WithLocation(22, 20),
-
-                // The following error is unexpected, likely caused by https://github.com/dotnet/roslyn/issues/86458
-
-                // (23,22): error CS1061: 'List<int>' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'List<int>' could be found (are you missing a using directive or an assembly reference?)
-                //         _ = nameof(l.M2);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("System.Collections.Generic.List<int>", "M2").WithLocation(23, 22)
-                );
-
-            comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
+            var expected = new[] {
                 // (22,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //         _ = nameof(l.M1);
                 Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "l.M1").WithLocation(22, 20),
                 // (23,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //         _ = nameof(l.M2);
                 Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "l.M2").WithLocation(23, 20)
-                );
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(expected);
         }
 
         [Fact]
