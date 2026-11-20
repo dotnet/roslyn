@@ -38,6 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="BuildValidator.UnitTests" />
     <EmbeddedResource Update="BuildValidatorResources.resx" GenerateSource="true" />
   </ItemGroup>
   <Import Project="$(RepositoryEngineeringDir)targets\ILDAsm.targets" />
