@@ -197,7 +197,7 @@ internal abstract class AbstractCodeCleanupService(ICodeFixService codeFixServic
         Document document, string diagnosticId, DiagnosticSeverity minimumSeverity, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
         var fixCollection = await _codeFixService.GetDocumentFixAllForIdInSpanAsync(
-            document, textSpan: null, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
+            document, textSpan: null, diagnosticId, minimumSeverity, includeInteractive: true, cancellationToken).ConfigureAwait(false);
         if (fixCollection == null)
         {
             return document;

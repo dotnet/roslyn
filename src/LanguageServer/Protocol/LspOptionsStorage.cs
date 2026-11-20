@@ -35,6 +35,11 @@ internal sealed class LspOptionsStorage
     private static readonly OptionGroup s_testingOptionGroup = new(name: "testing", description: "");
 
     private static readonly OptionGroup s_autoInsertOptionGroup = new(name: "auto_insert", description: "");
+    private static readonly OptionGroup s_codeActionOptionGroup = new(name: "code_action", description: "");
+
+    public static readonly Option2<DiagnosticSeverity> FixAllMinimumSeverity = new(
+        "dotnet_fix_all_minimum_severity", defaultValue: DiagnosticSeverity.Warning, group: s_codeActionOptionGroup,
+        serializer: EditorConfigValueSerializer.CreateSerializerForEnum<DiagnosticSeverity>());
 
     /// <summary>
     /// Flag indicating whether or not references should be returned in LSP codelens.

@@ -27,7 +27,11 @@ internal sealed class CodeActionResolveData
 
     public ImmutableArray<string> CustomTags { get; }
 
-    public LSP.Range Range { get; }
+    /// <summary>
+    /// The selection used to recompute actions. Null selects the entire current document, not a caret position.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public LSP.Range? Range { get; }
 
     public LSP.TextDocumentIdentifier TextDocument { get; }
 
@@ -36,17 +40,21 @@ internal sealed class CodeActionResolveData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string[]? FixAllFlavors { get; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool FixAllInDocument { get; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ImmutableArray<LSP.CodeAction>? NestedCodeActions { get; }
 
     public CodeActionResolveData(
         string uniqueIdentifier,
         ImmutableArray<string> customTags,
-        LSP.Range range,
+        LSP.Range? range,
         LSP.TextDocumentIdentifier textDocument,
         string[] codeActionPath,
         string[]? fixAllFlavors,
-        ImmutableArray<LSP.CodeAction>? nestedCodeActions)
+        ImmutableArray<LSP.CodeAction>? nestedCodeActions,
+        bool fixAllInDocument = false)
     {
         UniqueIdentifier = uniqueIdentifier;
         CustomTags = customTags;
@@ -54,6 +62,7 @@ internal sealed class CodeActionResolveData
         TextDocument = textDocument;
         CodeActionPath = codeActionPath;
         FixAllFlavors = fixAllFlavors;
+        FixAllInDocument = fixAllInDocument;
         NestedCodeActions = nestedCodeActions;
     }
 }

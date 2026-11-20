@@ -153,7 +153,7 @@ internal sealed partial class CodeFixService : ICodeFixService
 
             await foreach (var collection in StreamFixesAsync(
                 document, spanToDiagnostics, fixAllForInSpan: false,
-                priority, cancellationToken).ConfigureAwait(false))
+                priority, includeInteractive: true, cancellationToken).ConfigureAwait(false))
             {
                 // Stop at the result error we see.
                 return collection;
@@ -211,7 +211,7 @@ internal sealed partial class CodeFixService : ICodeFixService
             {
                 await foreach (var collection in StreamFixesAsync(
                     document, spanToDiagnostics, fixAllForInSpan: false,
-                    priority, cancellationToken).ConfigureAwait(false))
+                    priority, includeInteractive: true, cancellationToken).ConfigureAwait(false))
                 {
                     yield return collection;
                 }
@@ -263,7 +263,8 @@ internal sealed partial class CodeFixService : ICodeFixService
     }
 
     public async Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
-        Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity minimumSeverity, CancellationToken cancellationToken)
+        Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity minimumSeverity,
+        bool includeInteractive, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -300,7 +301,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         };
 
         await foreach (var collection in StreamFixesAsync(
-            document, spanToDiagnostics, fixAllForInSpan: true, priority: null, cancellationToken).ConfigureAwait(false))
+            document, spanToDiagnostics, fixAllForInSpan: true, priority: null, includeInteractive, cancellationToken).ConfigureAwait(false))
         {
             if (collection.FixAllState is not null && collection.SupportedScopes.Contains(FixAllScope.Document))
             {
@@ -324,7 +325,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         cancellationToken.ThrowIfCancellationRequested();
 
         var fixCollection = await GetDocumentFixAllForIdInSpanAsync(
-            document, textSpan, diagnosticId, severity, cancellationToken).ConfigureAwait(false);
+            document, textSpan, diagnosticId, severity, includeInteractive: true, cancellationToken).ConfigureAwait(false);
         if (fixCollection == null)
             return document;
 
@@ -418,6 +419,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         SortedDictionary<TextSpan, List<DiagnosticData>> spanToDiagnostics,
         bool fixAllForInSpan,
         CodeActionRequestPriority? priority,
+        bool includeInteractive,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -499,6 +501,17 @@ internal sealed partial class CodeFixService : ICodeFixService
                 if (!await MatchesPriorityAsync(fixer).ConfigureAwait(false))
                     continue;
 
+                if (fixAllForInSpan)
+                {
+                    Contract.ThrowIfNull(extensionManager);
+
+                    // Unsupported providers must not claim equivalence keys before a document-capable provider can register fixes.
+                    var fixAllProviderInfo = extensionManager.PerformFunction(
+                        fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
+                    if (fixAllProviderInfo is null || !fixAllProviderInfo.SupportedScopes.Contains(FixAllScope.Document))
+                        continue;
+                }
+
                 foreach (var (span, diagnostics) in fixerToRangesAndDiagnostics[fixer])
                 {
                     // Log an individual telemetry event for slow codefix computations to
@@ -531,12 +544,12 @@ internal sealed partial class CodeFixService : ICodeFixService
                                     var primaryDiagnostic = dxs.First();
                                     return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata,
                                         [primaryDiagnostic], uniqueDiagnosticToEquivalenceKeysMap,
-                                        diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
+                                        diagnosticAndEquivalenceKeyToFixersMap, includeInteractive, cancellationToken);
                                 }
                                 else
                                 {
                                     return GetCodeFixesAsync(document, span, fixer, fixerMetadata, dxs,
-                                        uniqueDiagnosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
+                                        uniqueDiagnosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap, includeInteractive, cancellationToken);
                                 }
                             }
                         },
@@ -634,11 +647,30 @@ internal sealed partial class CodeFixService : ICodeFixService
             _fixers);
     }
 
+    internal static CodeAction? GetFirstNonInteractiveAction(CodeAction action)
+    {
+        // Batch execution cannot prompt for options or include known non-document changes.
+        if (action is CodeActionWithOptions || action.Tags.Contains(CodeAction.RequiresNonDocumentChange))
+            return null;
+
+        if (action.NestedActions.IsEmpty)
+            return action;
+
+        foreach (var nestedAction in action.NestedActions)
+        {
+            if (GetFirstNonInteractiveAction(nestedAction) is { } nested)
+                return nested;
+        }
+
+        return null;
+    }
+
     private static async Task<ImmutableArray<CodeFix>> GetCodeFixesAsync(
         TextDocument document, TextSpan span, CodeFixProvider fixer, CodeChangeProviderMetadata? fixerMetadata,
         ImmutableArray<Diagnostic> diagnostics,
         Dictionary<Diagnostic, PooledHashSet<string?>> uniqueDiagosticToEquivalenceKeysMap,
         Dictionary<(Diagnostic diagnostic, string? equivalenceKey), CodeFixProvider> diagnosticAndEquivalenceKeyToFixersMap,
+        bool includeInteractive,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -651,6 +683,10 @@ internal sealed partial class CodeFixService : ICodeFixService
                 // Serialize access for thread safety - we don't know what thread the fix provider will call this delegate from.
                 lock (fixes)
                 {
+                    // Ineligible actions must not claim equivalence keys and hide a later usable provider.
+                    if (!includeInteractive && GetFirstNonInteractiveAction(action) is null)
+                        return;
+
                     // Filter out applicable diagnostics which already have a registered code action with same equivalence key.
                     applicableDiagnostics = FilterApplicableDiagnostics(applicableDiagnostics, action.EquivalenceKey,
                         fixer, uniqueDiagosticToEquivalenceKeysMap, diagnosticAndEquivalenceKeyToFixersMap);

@@ -247,6 +247,7 @@ public sealed class VisualStudioOptionStorageTests
             "dotnet_use_semantic_test_discovery",                                           // VSCode only option.  Does not apply to VS.
             "dotnet_enable_auto_insert",                                                    // VSCode only option.  Does not apply to VS.
             "dotnet_organize_imports_on_format",                                            // VSCode only option.  Does not apply to VS.
+            "dotnet_fix_all_minimum_severity",                                             // LSP-only option; does not apply to VS.
             "end_of_line",                                                                  // persisted by the editor
             "ExtensionManagerOptions_DisableCrashingExtensions",                            // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "FeatureOnOffOptions_RefactoringVerification",                                  // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
