@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -120,10 +121,13 @@ internal static class PropertyGenerator
 
         var isExplicit = explicitInterfaceSpecifier is not null;
         var accessorList = GenerateAccessorList(property, destination, info, cancellationToken);
+        // Changing the generated accessor bodies can add or remove backing storage.
+        var hasBackingField = accessorList?.Accessors.Any(a => a.Body is null && a.ExpressionBody is null) == true;
+        hasBackingField |= accessorList?.DescendantNodes().Any(n => n.IsKind(SyntaxKind.FieldExpression)) == true;
 
         var propertyDeclaration = PropertyDeclaration(
             attributeLists: GenerateAttributes(property, isExplicit, info),
-            modifiers: GenerateModifiers(property, destination, info),
+            modifiers: GenerateModifiers(property, destination, info, hasBackingField),
             type: GenerateTypeSyntax(property),
             explicitInterfaceSpecifier: explicitInterfaceSpecifier,
             identifier: property.Name.ToIdentifierToken(),
@@ -182,7 +186,9 @@ internal static class PropertyGenerator
             accessorList?.Accessors.Count == 1)
         {
             var accessor = accessorList.Accessors[0];
-            if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration))
+            // A property expression body has nowhere to keep an accessor's safety modifier.
+            var hasSafetyModifier = accessor.Modifiers.Any(SyntaxKind.UnsafeKeyword);
+            if (accessor.IsKind(SyntaxKind.GetAccessorDeclaration) && !hasSafetyModifier)
             {
                 return TryGetArrowExpressionBody(
                     baseProperty.Kind(), accessor, languageVersion, preference, cancellationToken,
@@ -354,11 +360,16 @@ internal static class PropertyGenerator
         if (hasNonReadOnlyAccessor && accessor.IsReadOnly)
             modifiers.Add(ReadOnlyKeyword);
 
+#if !OLDER_ROSLYN
+        if (info.LanguageVersion.IsCSharp16OrAbove() && property.RequiresAccessorSafetyModifiers() && accessor.RequiresUnsafeContext)
+            modifiers.Add(UnsafeKeyword);
+#endif
+
         return [.. modifiers];
     }
 
     private static SyntaxTokenList GenerateModifiers(
-        IPropertySymbol property, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info)
+        IPropertySymbol property, CodeGenerationDestination destination, CSharpCodeGenerationContextInfo info, bool hasBackingField = false)
     {
         var tokens = ArrayBuilder<SyntaxToken>.GetInstance();
 
@@ -414,8 +425,7 @@ internal static class PropertyGenerator
             }
         }
 
-        if (CodeGenerationPropertyInfo.GetIsUnsafe(property))
-            tokens.Add(UnsafeKeyword);
+        AddSafetyModifierTokens(property, tokens, info, emitUnsafeForVersion1Rules: CodeGenerationPropertyInfo.GetIsUnsafe(property), hasBackingField: hasBackingField);
 
         return [.. tokens];
     }

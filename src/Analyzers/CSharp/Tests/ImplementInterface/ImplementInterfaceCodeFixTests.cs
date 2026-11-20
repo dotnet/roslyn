@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
@@ -120,6 +121,13 @@ public sealed class ImplementInterfaceCodeFixTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
 
+    private static Solution EnableMemorySafetyRulesVersion2(Solution solution, ProjectId projectId)
+    {
+        var options = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
+        return solution.WithProjectCompilationOptions(
+            projectId, options.WithAllowUnsafe(true).WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2));
+    }
+
     [Fact]
     public Task TestMethod()
         => TestWithAllCodeStyleOptionsOffAsync(
@@ -147,6 +155,224 @@ public sealed class ImplementInterfaceCodeFixTests
                 }
             }
             """);
+
+    [Fact]
+    public Task TestImplementationDoesNotCopyUnsafeModifiers()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                interface I
+                {
+                    unsafe int P { get; set; }
+                    int Q { unsafe get; set; }
+                    unsafe void M();
+                }
+
+                class C : {|CS0535:{|CS0535:{|CS0535:I|}|}|}
+                {
+                }
+                """,
+            FixedCode = """
+                interface I
+                {
+                    unsafe int P { get; set; }
+                    int Q { unsafe get; set; }
+                    unsafe void M();
+                }
+
+                class C : I
+                {
+                    public int P
+                    {
+                        get
+                        {
+                            throw new System.NotImplementedException();
+                        }
+
+                        set
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    }
+
+                    public int Q
+                    {
+                        get
+                        {
+                            throw new System.NotImplementedException();
+                        }
+
+                        set
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    }
+
+                    public void M()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            Options = { AllOptionsOff },
+            SolutionTransforms = { EnableMemorySafetyRulesVersion2 },
+        }.RunAsync();
+
+    [Fact]
+    public Task TestVersion1PointerPropertySafety()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                unsafe interface I
+                {
+                    int* P { get; set; }
+                }
+
+                class C : {|CS0535:I|}
+                {
+                }
+                """,
+            FixedCode = """
+                unsafe interface I
+                {
+                    int* P { get; set; }
+                }
+
+                class C : I
+                {
+                    public unsafe int* P
+                    {
+                        get
+                        {
+                            throw new System.NotImplementedException();
+                        }
+
+                        set
+                        {
+                            throw new System.NotImplementedException();
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp15,
+            Options = { AllOptionsOff },
+            SolutionTransforms =
+            {
+                (solution, projectId) =>
+                {
+                    var options = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
+                    return solution.WithProjectCompilationOptions(
+                        projectId, options.WithAllowUnsafe(true).WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1));
+                },
+            },
+        }.RunAsync();
+
+    [Theory]
+    [InlineData(LanguageVersion.CSharp15, true)]
+    [InlineData(LanguageVersion.Preview, false)]
+    public Task TestSafePointerSignatureFromVersion2RulesMetadata(LanguageVersion languageVersion, bool needsUnsafe)
+    {
+        var metadataReference = CSharpCompilation.Create("Interface",
+            [CSharpSyntaxTree.ParseText("public interface I { int* M(); unsafe void N(); }", new CSharpParseOptions(LanguageVersion.Preview))],
+            [NetFramework.mscorlib],
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)
+                .WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2)).EmitToImageReference();
+        var unsafeModifier = needsUnsafe ? "unsafe " : "";
+        return new VerifyCS.Test
+        {
+            TestCode = """
+                class C : {|CS0535:{|CS0535:I|}|}
+                {
+                }
+                """,
+            FixedCode = $$"""
+                class C : I
+                {
+                    public {{unsafeModifier}}int* M()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+
+                    public void N()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            TestState =
+            {
+                AdditionalReferences = { metadataReference },
+            },
+            LanguageVersion = languageVersion,
+            Options = { AllOptionsOff },
+            SolutionTransforms =
+            {
+                (solution, projectId) =>
+                {
+                    var options = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
+                    return solution.WithProjectCompilationOptions(
+                        projectId, options.WithAllowUnsafe(true).WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1));
+                },
+            },
+        }.RunAsync();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public Task TestInterfaceSafetyConflictingContracts(bool unsafeFirst)
+    {
+        var interfaces = unsafeFirst ? "IUnsafe, ISafe" : "ISafe, IUnsafe";
+        return new VerifyCS.Test
+        {
+            TestCode = $$"""
+                interface IUnsafe
+                {
+                    unsafe void M();
+                }
+
+                interface ISafe
+                {
+                    void M();
+                }
+
+                interface I : {{interfaces}}
+                {
+                }
+
+                class C : {|CS0535:{|CS0535:I|}|}
+                {
+                }
+                """,
+            FixedCode = $$"""
+                interface IUnsafe
+                {
+                    unsafe void M();
+                }
+
+                interface ISafe
+                {
+                    void M();
+                }
+
+                interface I : {{interfaces}}
+                {
+                }
+
+                class C : I
+                {
+                    public void M()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            Options = { AllOptionsOff },
+            SolutionTransforms = { EnableMemorySafetyRulesVersion2 },
+        }.RunAsync();
+    }
 
     [Fact]
     public Task TestMethodInRecord()

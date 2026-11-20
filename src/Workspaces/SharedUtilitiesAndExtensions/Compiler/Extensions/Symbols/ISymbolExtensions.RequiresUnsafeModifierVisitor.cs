@@ -15,7 +15,7 @@ internal static partial class ISymbolExtensions
     /// <summary>
     /// Visits types or members that have signatures (i.e. methods, fields, etc.) and determines
     /// if any of them reference a pointer type and should thus have the <see
-    /// langword="unsafe"/> modifier on them.
+    /// langword="unsafe"/> modifier on them under version 1 memory safety rules.
     /// </summary>
     private sealed class RequiresUnsafeModifierVisitor : SymbolVisitor<bool>
     {

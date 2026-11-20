@@ -21,7 +21,9 @@ internal sealed class CodeGenerationConstructedMethodSymbol : CodeGenerationAbst
                constructedFrom.DeclaredAccessibility,
                constructedFrom.Modifiers,
                constructedFrom.Name,
-               constructedFrom.GetReturnTypeAttributes())
+               constructedFrom.GetReturnTypeAttributes(),
+               requiresUnsafeContext: constructedFrom.RequiresUnsafeContext,
+               usesMemorySafetyRulesVersion2: constructedFrom.UsesMemorySafetyRulesVersion2)
     {
         _constructedFrom = constructedFrom;
         this.OriginalDefinition = _constructedFrom.OriginalDefinition;

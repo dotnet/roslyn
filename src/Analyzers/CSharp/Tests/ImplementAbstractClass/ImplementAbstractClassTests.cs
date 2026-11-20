@@ -14,12 +14,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass;
+
+using VerifyCS = CSharpCodeFixVerifier<EmptyDiagnosticAnalyzer, CSharpImplementAbstractClassCodeFixProvider>;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
 public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger) : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
@@ -53,6 +57,114 @@ public sealed partial class ImplementAbstractClassTests(ITestOutputHelper logger
             expectedMarkup,
             index: index,
             new(options: options, parseOptions: parseOptions));
+    }
+
+    [Fact]
+    public Task TestAbstractImplementationDoesNotCopyUnsafeModifiers()
+        => TestInRegularAndScriptAsync(
+            """
+            public abstract class B
+            {
+                public abstract unsafe void M();
+                public abstract unsafe int P { get; set; }
+                public abstract int Q { unsafe get; set; }
+            }
+
+            class [|C|] : B
+            {
+            }
+            """,
+            """
+            public abstract class B
+            {
+                public abstract unsafe void M();
+                public abstract unsafe int P { get; set; }
+                public abstract int Q { unsafe get; set; }
+            }
+
+            class C : B
+            {
+                public override int P
+                {
+                    get
+                    {
+                        throw new System.NotImplementedException();
+                    }
+
+                    set
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+
+                public override int Q
+                {
+                    get
+                    {
+                        throw new System.NotImplementedException();
+                    }
+
+                    set
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+
+                public override void M()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+            """,
+            new(
+                options: AllOptionsOff,
+                parseOptions: TestOptions.RegularPreview,
+                compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                    .WithAllowUnsafe(true)
+                    .WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2)));
+
+    [Theory]
+    [InlineData(LanguageVersion.CSharp15, true)]
+    [InlineData(LanguageVersion.Preview, false)]
+    public Task TestAbstractSafePointerSignatureFromVersion2RulesMetadata(LanguageVersion languageVersion, bool needsUnsafe)
+    {
+        var metadataReference = CSharpCompilation.Create("AbstractBase",
+            [CSharpSyntaxTree.ParseText("public abstract class B { public abstract int* M(); }",
+                new CSharpParseOptions(LanguageVersion.Preview))],
+            [NetFramework.mscorlib],
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)
+                .WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2)).EmitToImageReference();
+        var unsafeModifier = needsUnsafe ? "unsafe " : "";
+        return new VerifyCS.Test
+        {
+            TestCode = """
+                class {|CS0534:C|} : B
+                {
+                }
+                """,
+            FixedCode = $$"""
+                class C : B
+                {
+                    public override {{unsafeModifier}}int* M()
+                    {
+                        throw new System.NotImplementedException();
+                    }
+                }
+                """,
+            TestState = { AdditionalReferences = { metadataReference } },
+            LanguageVersion = languageVersion,
+            Options = { AllOptionsOff },
+            SolutionTransforms =
+            {
+                (solution, projectId) =>
+                {
+                    var options = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
+                    return solution.WithProjectCompilationOptions(
+                        projectId, options.WithAllowUnsafe(needsUnsafe).WithMemorySafetyRulesVersion(
+                            needsUnsafe ? MemorySafetyRulesVersion.Version1 : MemorySafetyRulesVersion.Version2));
+                },
+            },
+        }.RunAsync();
     }
 
     [Fact]

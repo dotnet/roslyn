@@ -16,7 +16,9 @@ internal sealed class CodeGenerationOperatorSymbol(
     CodeGenerationOperatorKind operatorKind,
     ImmutableArray<IParameterSymbol> parameters,
     ImmutableArray<AttributeData> returnTypeAttributes,
-    string? documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
+    string? documentationCommentXml,
+    bool requiresUnsafeContext,
+    bool usesMemorySafetyRulesVersion2) : CodeGenerationMethodSymbol(containingType,
          attributes,
          accessibility,
          modifiers,
@@ -27,6 +29,8 @@ internal sealed class CodeGenerationOperatorSymbol(
          typeParameters: [],
          parameters,
          returnTypeAttributes,
+         requiresUnsafeContext,
+         usesMemorySafetyRulesVersion2,
          documentationCommentXml)
 {
     public override MethodKind MethodKind => MethodKind.UserDefinedOperator;
