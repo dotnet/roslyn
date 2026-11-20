@@ -18,7 +18,6 @@ internal interface IPreviewDialogService : IWorkspaceService
     /// <param name="title">The title of the preview changes dialog.</param>
     /// <param name="helpString">The keyword used by F1 help in the dialog.</param>
     /// <param name="description">Text to display above the treeview in the dialog.</param>
-    /// <param name="topLevelName">The name of the root item in the treeview in the dialog.</param>
     /// <param name="topLevelGlyph">The <see cref="Glyph"/> of the root item in the treeview.</param>
     /// <param name="newSolution">The changes to preview.</param>
     /// <param name="oldSolution">The baseline solution.</param>
@@ -29,7 +28,6 @@ internal interface IPreviewDialogService : IWorkspaceService
         string title,
         string helpString,
         string description,
-        string topLevelName,
         Glyph topLevelGlyph,
         Solution newSolution,
         Solution oldSolution,

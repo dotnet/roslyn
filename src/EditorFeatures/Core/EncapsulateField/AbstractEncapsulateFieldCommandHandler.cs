@@ -112,7 +112,6 @@ internal abstract class AbstractEncapsulateFieldCommandHandler(
                  string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Encapsulate_Field),
                  "vs.csharp.refactoring.preview",
                  EditorFeaturesResources.Encapsulate_Field_colon,
-                 result.Name,
                  result.Glyph,
                  finalSolution,
                  solution);

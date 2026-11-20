@@ -23,7 +23,6 @@ internal sealed class EditorFeaturesFixAllGetFixesService() : AbstractFixAllGetF
             string.Format(EditorFeaturesResources.Preview_Changes_0, fixAllPreviewChangesTitle),
             "vs.codefix.fixall",
             fixAllTopLevelHeader,
-            fixAllPreviewChangesTitle,
             glyph,
             newSolution,
             currentSolution);
