@@ -3269,7 +3269,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypeParameterInferenceFromConstraints">
         <source>type parameter inference from constraints</source>
-        <target state="new">type parameter inference from constraints</target>
+        <target state="translated">Ableitung von Typparametern aus Einschränkungen</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
