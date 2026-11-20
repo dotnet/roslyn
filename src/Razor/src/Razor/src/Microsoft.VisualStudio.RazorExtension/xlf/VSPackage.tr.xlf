@@ -48,13 +48,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDescription">
-        <source>Defines how Html and component tag attributes should be indented</source>
-        <target state="translated">Html ve bileşen etiketi özniteliklerinin nasıl girintileneceğini belirler</target>
+        <source>Defines how HTML and component tag attributes should be indented</source>
+        <target state="needs-review-translation">Html ve bileşen etiketi özniteliklerinin nasıl girintileneceğini belirler</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDisplayName">
-        <source>Attribute Indent Style</source>
-        <target state="translated">Öznitelik Girinti Stili</target>
+        <source>Attribute indent style</source>
+        <target state="needs-review-translation">Öznitelik Girinti Stili</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleIndentByOne">
@@ -158,13 +158,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDescription">
-        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
-        <target state="translated">Çıkış Penceresinin Razor Günlük Çıkış kategorisinde gösterilecek günlüğe kaydetme düzeyini ayarlar.</target>
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output window.</source>
+        <target state="needs-review-translation">Çıkış Penceresinin Razor Günlük Çıkış kategorisinde gösterilecek günlüğe kaydetme düzeyini ayarlar.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDisplayName">
-        <source>Output Window Log Level</source>
-        <target state="translated">Çıkış Penceresi Günlük Düzeyi</target>
+        <source>Output window log level</source>
+        <target state="needs-review-translation">Çıkış Penceresi Günlük Düzeyi</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelError">
@@ -213,13 +213,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDescription">
-        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
-        <target state="translated">Razor dosyasına eklenecek kod parçacıkları. Özel olarak ayarlanırsa, yalnızca Visual Studio’ya dahil edilmemiş kod parçacıkları gösterilir. </target>
+        <source>What snippets to include in a Razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="needs-review-translation">Razor dosyasına eklenecek kod parçacıkları. Özel olarak ayarlanırsa, yalnızca Visual Studio’ya dahil edilmemiş kod parçacıkları gösterilir. </target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDisplayName">
-        <source>Included Snippets</source>
-        <target state="translated">Dahil Edilen Kod Parçacıkları</target>
+        <source>Included snippets</source>
+        <target state="needs-review-translation">Dahil Edilen Kod Parçacıkları</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsNone">

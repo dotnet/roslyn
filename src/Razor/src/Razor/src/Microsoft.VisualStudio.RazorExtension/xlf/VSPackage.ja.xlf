@@ -48,13 +48,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDescription">
-        <source>Defines how Html and component tag attributes should be indented</source>
-        <target state="translated">HTML 属性とコンポーネント タグ属性をインデントする方法を定義します</target>
+        <source>Defines how HTML and component tag attributes should be indented</source>
+        <target state="needs-review-translation">HTML 属性とコンポーネント タグ属性をインデントする方法を定義します</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDisplayName">
-        <source>Attribute Indent Style</source>
-        <target state="translated">属性のインデント スタイル</target>
+        <source>Attribute indent style</source>
+        <target state="needs-review-translation">属性のインデント スタイル</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleIndentByOne">
@@ -158,13 +158,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDescription">
-        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
-        <target state="translated">出力ウィンドウの Razor Logger 出力カテゴリに表示するログ記録のレベルを設定します。</target>
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output window.</source>
+        <target state="needs-review-translation">出力ウィンドウの Razor Logger 出力カテゴリに表示するログ記録のレベルを設定します。</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDisplayName">
-        <source>Output Window Log Level</source>
-        <target state="translated">出力ウィンドウ ログ レベル</target>
+        <source>Output window log level</source>
+        <target state="needs-review-translation">出力ウィンドウ ログ レベル</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelError">
@@ -213,13 +213,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDescription">
-        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
-        <target state="translated">Razor ファイルに含めるスニペット。カスタムに設定すると、Visual Studioに含まれていないスニペットのみが表示されます。 </target>
+        <source>What snippets to include in a Razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="needs-review-translation">Razor ファイルに含めるスニペット。カスタムに設定すると、Visual Studioに含まれていないスニペットのみが表示されます。 </target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDisplayName">
-        <source>Included Snippets</source>
-        <target state="translated">含まれているスニペット</target>
+        <source>Included snippets</source>
+        <target state="needs-review-translation">含まれているスニペット</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsNone">

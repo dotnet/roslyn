@@ -48,13 +48,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDescription">
-        <source>Defines how Html and component tag attributes should be indented</source>
-        <target state="translated">Définit la manière dont les attributs des balises HTML et des composants doivent être mis en retrait</target>
+        <source>Defines how HTML and component tag attributes should be indented</source>
+        <target state="needs-review-translation">Définit la manière dont les attributs des balises HTML et des composants doivent être mis en retrait</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleDisplayName">
-        <source>Attribute Indent Style</source>
-        <target state="translated">Style de retrait des attributs</target>
+        <source>Attribute indent style</source>
+        <target state="needs-review-translation">Style de retrait des attributs</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_AttributeIndentStyleIndentByOne">
@@ -158,13 +158,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDescription">
-        <source>Sets the level of logging to show in the Razor Logger Output category of the Output Window.</source>
-        <target state="translated">Définit le niveau de journalisation à afficher dans la catégorie Sortie Razor Logger de la fenêtre de sortie.</target>
+        <source>Sets the level of logging to show in the Razor Logger Output category of the Output window.</source>
+        <target state="needs-review-translation">Définit le niveau de journalisation à afficher dans la catégorie Sortie Razor Logger de la fenêtre de sortie.</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelDisplayName">
-        <source>Output Window Log Level</source>
-        <target state="translated">Fenêtre Sortie niveau du journal</target>
+        <source>Output window log level</source>
+        <target state="needs-review-translation">Fenêtre Sortie niveau du journal</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelError">
@@ -213,13 +213,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDescription">
-        <source>What snippets to include in a razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
-        <target state="translated">Extraits de code à inclure dans un fichier Razor. Si la valeur est personnalisée, seuls les extraits de code qui ne sont pas inclus dans Visual Studio sont affichés. </target>
+        <source>What snippets to include in a Razor file. If set to custom, only snippets that are not included with Visual Studio will be shown. </source>
+        <target state="needs-review-translation">Extraits de code à inclure dans un fichier Razor. Si la valeur est personnalisée, seuls les extraits de code qui ne sont pas inclus dans Visual Studio sont affichés. </target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsDisplayName">
-        <source>Included Snippets</source>
-        <target state="translated">Extraits de code inclus</target>
+        <source>Included snippets</source>
+        <target state="needs-review-translation">Extraits de code inclus</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_SnippetsNone">
