@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void NoteRead(BoundNode fieldOrEventAccess)
+        private void NoteRead(BoundNode fieldOrEventAccess, bool useSyntaxForRead = false)
         {
             Debug.Assert(fieldOrEventAccess.Kind == BoundKind.FieldAccess || fieldOrEventAccess.Kind == BoundKind.EventAccess);
             BoundNode n = fieldOrEventAccess;
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)n;
-                            NoteRead(fieldAccess.FieldSymbol);
+                            NoteRead(fieldAccess.FieldSymbol, readSyntax: useSyntaxForRead ? n.Syntax : null);
 
                             if (MayRequireTracking(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol))
                             {
@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             FieldSymbol associatedField = eventAccess.EventSymbol.AssociatedField;
                             if ((object)associatedField != null)
                             {
-                                NoteRead(associatedField);
+                                NoteRead(associatedField, readSyntax: useSyntaxForRead ? n.Syntax : null);
 
                                 if (MayRequireTracking(eventAccess.ReceiverOpt, associatedField))
                                 {
@@ -785,15 +785,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                     case BoundKind.ThisReference:
-                        NoteRead(MethodThisParameter);
+                        NoteRead(MethodThisParameter, readSyntax: useSyntaxForRead ? n.Syntax : null);
                         return;
 
                     case BoundKind.Local:
-                        NoteRead(((BoundLocal)n).LocalSymbol);
+                        NoteRead(((BoundLocal)n).LocalSymbol, readSyntax: useSyntaxForRead ? n.Syntax : null);
                         return;
 
                     case BoundKind.Parameter:
-                        NoteRead(((BoundParameter)n).ParameterSymbol);
+                        NoteRead(((BoundParameter)n).ParameterSymbol, readSyntax: useSyntaxForRead ? n.Syntax : null);
                         return;
 
                     case BoundKind.InlineArrayAccess:
@@ -1329,14 +1329,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
+        protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node, bool useSyntaxForRead = false)
         {
             if (this.State.Reachable && !IsAssigned(expr, out int unassignedSlot))
             {
                 ReportUnassignedIfNotCapturedInLocalFunction(fieldSymbol, node, unassignedSlot);
             }
 
-            NoteRead(expr);
+            NoteRead(expr, useSyntaxForRead);
         }
 
         private bool IsAssigned(BoundExpression node, out int unassignedSlot)
@@ -2628,7 +2628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected void CheckAssigned(BoundExpression expr, SyntaxNode node, bool useSyntaxForRead = false)
         {
             Debug.Assert(node is not null);
-            if (!this.State.Reachable) return;
+            if (!this.State.Reachable && !useSyntaxForRead) return;
             int slot = MakeSlot(expr);
             switch (expr.Kind)
             {
@@ -2643,7 +2643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var symbol = field.FieldSymbol;
                     if (!symbol.IsFixedSizeBuffer && MayRequireTracking(field.ReceiverOpt, symbol))
                     {
-                        CheckAssigned(expr, symbol, node);
+                        CheckAssigned(expr, symbol, node, useSyntaxForRead);
                     }
                     break;
                 case BoundKind.EventAccess:
@@ -2651,7 +2651,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol associatedField = @event.EventSymbol.AssociatedField;
                     if ((object)associatedField != null && MayRequireTracking(@event.ReceiverOpt, associatedField))
                     {
-                        CheckAssigned(@event, associatedField, node);
+                        CheckAssigned(@event, associatedField, node, useSyntaxForRead);
                     }
                     break;
                 case BoundKind.ThisReference:

@@ -142,9 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.NoteWrite(variable, value, read: read, isRef: isRef);
         }
 
-        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
+        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node, bool useSyntaxForRead = false)
         {
-            base.CheckAssigned(expr, fieldSymbol, node);
+            base.CheckAssigned(expr, fieldSymbol, node, useSyntaxForRead);
             if (!IsInside && node.Span.Contains(RegionSpan) && (expr.Kind == BoundKind.FieldAccess))
             {
                 NoteReceiverRead((BoundFieldAccess)expr);

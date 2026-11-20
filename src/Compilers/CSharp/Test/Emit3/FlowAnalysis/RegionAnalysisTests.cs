@@ -1731,6 +1731,86 @@ class Program
             Assert.Equal("x, px", GetSymbolNamesJoined(analysis.WrittenOutside));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void TestAddressOfStructFieldOperandRegion()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void M()
+                    {
+                        S s = default;
+                        int* p = &s.F;
+                    }
+                }
+
+                public struct S
+                {
+                    public int F;
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf.Operand);
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+            Assert.Equal("s", GetSymbolNamesJoined(analysis.DataFlowsIn));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void TestAddressOfUnreachableLocal()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void Assigned()
+                    {
+                        int x = 0;
+                        return;
+                #line 100
+                        int* p = &x;
+                    }
+
+                    static void Unassigned()
+                    {
+                        int x;
+                        return;
+                #line 200
+                        int* p = &x;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics(
+                // (100,9): warning CS0162: Unreachable code detected
+                //         int* p = &x;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(100, 9),
+                // (200,9): warning CS0162: Unreachable code detected
+                //         int* p = &x;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "int").WithLocation(200, 9));
+
+            var tree = comp.SyntaxTrees.Single();
+            var addresses = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().ToArray();
+            Assert.Equal(2, addresses.Length);
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (var address in addresses)
+            {
+                var analysis = model.AnalyzeDataFlow(address);
+                Assert.True(analysis.Succeeded);
+                Assert.Equal("x", GetSymbolNamesJoined(analysis.ReadInside));
+                Assert.Null(GetSymbolNamesJoined(analysis.ReadOutside));
+                Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            }
+        }
+
         [WorkItem(543987, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543987")]
         [Fact]
         public void TestAddressOfUnassignedStructField()
