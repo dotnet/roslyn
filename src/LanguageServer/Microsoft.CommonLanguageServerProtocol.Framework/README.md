@@ -30,6 +30,13 @@ To get started with CLaSP you may follow the following steps
     1. `MutatesSolutionState` should be `true` for Handlers like `textDocument/didChange` which change solution state because this affects the queuing behavior required in order to ensure that the correct document version is being operated on.
     1. `HandleNotificationAsync` and `HandleRequestAsync`. These implement your actual handler behavior but it's very important that if they require access to the current state of a TextDocument that this information be gathered by `IRequestContextFactory` and put on the `RequestContext` object rather than retrieved here. If you fail to follow this stipulation you may run into document sync issues because requests which mutate document state are not guaranteed to happen in a particular order. This means that document state might change while your `HandleRequestAsync` request is executing, but the `IRequestContextFactory` is guaranteed to operate in a thread-safe manner.
 
+## Waiting for finite request work in tests
+
+Queues can override `CreateRequestOperationScope` in [RequestExecutionQueue.cs](RequestExecutionQueue.cs) to supply an operation-listener scope before enqueueing.
+The scope remains active through context creation and actual handler execution, even when the client's response task is cancelled earlier.
+Cancellation before processing and failures before dispatch release the scope without running the handler.
+Long-polling subscriptions should not create these scopes, since waiting for them would require a future change or shutdown rather than completion of the current operation.
+
 ## More complex examples
 
 - [Roslyn](https://github.com/dotnet/roslyn/tree/main/src/Features/LanguageServer/Protocol) is the original implementor of CLaSP.
