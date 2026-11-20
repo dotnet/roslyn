@@ -50,10 +50,9 @@ internal static class InitializeParameterHelpers
         // We're updating an exiting field/prop.
         if (fieldOrProperty is IPropertySymbol property)
         {
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var initializeParameterService = document.GetRequiredLanguageService<IInitializeParameterService>();
-            var isThrowNotImplementedProperty = initializeParameterService.IsThrowNotImplementedProperty(
-                compilation, property, cancellationToken);
+            var isThrowNotImplementedProperty = await initializeParameterService.IsThrowNotImplementedPropertyAsync(
+                solution, property, cancellationToken).ConfigureAwait(false);
 
             foreach (var syntaxRef in property.DeclaringSyntaxReferences)
             {

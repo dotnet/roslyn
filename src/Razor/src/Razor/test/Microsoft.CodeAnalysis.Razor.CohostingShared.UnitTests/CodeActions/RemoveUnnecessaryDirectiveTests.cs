@@ -53,6 +53,92 @@ public class RemoveUnnecessaryDirectiveTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public async Task NotOfferedWithDuplicateUsingAlias()
+    {
+        // With CS1537 we can't trust which alias is reported as unused, so we don't offer to remove anything,
+        // not even System.Buffers which really is unused.
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Buffers
+                @using Alias = System.Text.StringBuilder
+                @using Alias = System.Console
+
+                <div>
+                    Hello World
+                </div>
+
+                @code
+                {
+                    public void M(Alias a)
+                    {
+                    }
+                }
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task DuplicateUsingNamespace_Removed()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using [||]System.Text
+
+                <div>
+                    Hello World
+                </div>
+
+                @code
+                {
+                    public void M(StringBuilder b)
+                    {
+                    }
+                }
+                """,
+            expected: """
+                @using System.Text
+
+                <div>
+                    Hello World
+                </div>
+
+                @code
+                {
+                    public void M(StringBuilder b)
+                    {
+                    }
+                }
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task DuplicateUnusedUsingNamespace_BothRemoved()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using [||]System.Text
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            expected: """
+
+                <div>
+                    Hello World
+                </div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.RemoveUnnecessaryDirectives,
+            makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
     public async Task NotOfferedWhenCursorIsNotOnDirective()
     {
         await VerifyCodeActionAsync(
