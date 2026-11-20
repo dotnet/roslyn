@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Test.Legacy;
@@ -224,5 +226,38 @@ public class CSharpCodeParserTest
         ];
 
         _ = new CSharpCodeParser(directiveDescriptors, context);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void UsingAlias_ParsesEscapedAliasAndTargetIdentifiers()
+    {
+        Assert.Equal("@id=X", GetParsedUsing("@using @id = X"));
+        Assert.Equal("Foo.@class", GetParsedUsing("@using Foo.@class"));
+        Assert.Equal("UI=global::@namespace", GetParsedUsing("@using UI = global::@namespace"));
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85411")]
+    public void UsingTypeName_DoesNotConsumeFollowingTransition()
+    {
+        Assert.Equal("Foo", GetParsedUsing("@using Foo@code { }"));
+    }
+
+    private static string GetParsedUsing(string content)
+    {
+        var tree = RazorSyntaxTree.Parse(TestRazorSourceDocument.Create(content));
+        CSharpStatementLiteralSyntax? statement = null;
+        foreach (var node in tree.Root.DescendantNodes().OfType<CSharpStatementLiteralSyntax>())
+        {
+            if (node.ChunkGenerator is AddImportChunkGenerator)
+            {
+                Assert.Null(statement);
+                statement = node;
+            }
+        }
+
+        Assert.NotNull(statement);
+        return Assert.IsType<AddImportChunkGenerator>(statement.ChunkGenerator).ParsedNamespace;
     }
 }

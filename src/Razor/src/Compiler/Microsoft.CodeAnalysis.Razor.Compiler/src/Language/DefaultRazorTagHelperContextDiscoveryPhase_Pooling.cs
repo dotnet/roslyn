@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -43,7 +44,17 @@ internal partial class DefaultRazorTagHelperContextDiscoveryPhase
             var componentDirectiveVisitor = s_componentDirectiveVisitorPool.Get();
 
             codeDocument.TryGetNamespace(fallbackToRootNamespace: true, out var currentNamespace);
-            componentDirectiveVisitor.Initialize(tagHelpers, filePath, currentNamespace, cancellationToken);
+            // Keep legacy binding disabled without cloning the whole document for this phase.
+            var aliasTargets = codeDocument.ParserOptions.LanguageVersion < RazorLanguageVersion.Version_12_0
+                ? ComponentAliasTargetMap.Empty
+                : codeDocument.GetComponentAliasTargets();
+            componentDirectiveVisitor.Initialize(
+                tagHelpers,
+                filePath,
+                currentNamespace,
+                codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_12_0,
+                aliasTargets,
+                cancellationToken);
 
             visitor = componentDirectiveVisitor;
         }

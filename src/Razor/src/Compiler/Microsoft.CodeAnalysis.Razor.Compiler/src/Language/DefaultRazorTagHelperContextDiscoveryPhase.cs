@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -11,6 +12,7 @@ using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -31,6 +33,14 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             }
 
             tagHelpers = tagHelperFeature.GetTagHelpers(cancellationToken);
+        }
+
+        if (codeDocument.ParserOptions.LanguageVersion >= RazorLanguageVersion.Version_12_0 &&
+            codeDocument.GetComponentAliasTargets() is null &&
+            Engine.TryGetFeature(out IComponentAliasTargetFeature? aliasTargetFeature) &&
+            aliasTargetFeature.GetAliasTargets(codeDocument, cancellationToken) is { } aliasTargets)
+        {
+            codeDocument = codeDocument.WithComponentAliasTargets(aliasTargets);
         }
 
         using var _ = GetPooledVisitor(codeDocument, tagHelpers, cancellationToken, out var visitor);
@@ -54,7 +64,7 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         var tagHelperPrefix = visitor.TagHelperPrefix;
 
         var directiveContributions = visitor.GetDirectiveTagHelperContributions();
-        var context = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, visitor.GetResults());
+        var context = TagHelperDocumentContext.GetOrCreate(tagHelperPrefix, visitor.GetResults(), visitor.GetAliases());
         return codeDocument
             .WithTagHelperContext(context)
             .WithDirectiveTagHelperContributions(directiveContributions);
@@ -105,7 +115,9 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             Visit(tree.Root);
         }
 
-        public TagHelperCollection GetResults() => _matches?.ToCollection() ?? [];
+        public virtual TagHelperCollection GetResults() => _matches?.ToCollection() ?? [];
+
+        public virtual List<TagHelperAlias>? GetAliases() => null;
 
         public ImmutableArray<DirectiveTagHelperContribution> GetDirectiveTagHelperContributions()
             => _directiveContributions is { Count: > 0 }
@@ -417,6 +429,12 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         // The list values in this dictionary are pooled and are returned in Reset.
         private readonly Dictionary<ReadOnlyMemory<char>, List<TagHelperDescriptor>> _namespaceToComponentsMap = new(ReadOnlyMemoryOfCharComparer.Instance);
 
+        private readonly HashSet<ReadOnlyMemory<char>> _aliases = new(ReadOnlyMemoryOfCharComparer.Instance);
+        private List<TagHelperAlias>? _aliasBindings;
+        private ReadOnlyMemory<char> _currentNamespace;
+        private ComponentAliasTargetMap? _aliasTargets;
+        private bool _supportsComponentAliases;
+
         // A list of components that don't have a namespace.
         // This list is pooled and is returned in Reset.
         private List<TagHelperDescriptor>? _componentsWithoutNamespace;
@@ -425,9 +443,15 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             TagHelperCollection tagHelpers,
             string? filePath,
             string? currentNamespace,
+            bool supportsComponentAliases,
+            ComponentAliasTargetMap? aliasTargets = null,
             CancellationToken cancellationToken = default)
         {
             Debug.Assert(!IsInitialized);
+
+            _currentNamespace = currentNamespace.AsMemory();
+            _aliasTargets = aliasTargets;
+            _supportsComponentAliases = supportsComponentAliases;
 
             foreach (var component in tagHelpers)
             {
@@ -476,6 +500,12 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
         public override void Reset()
         {
+            _aliases.Clear();
+            _aliasBindings?.Clear();
+            _currentNamespace = default;
+            _aliasTargets = null;
+            _supportsComponentAliases = false;
+
             if (_componentsWithoutNamespace != null)
             {
                 TagHelperCollection.TagHelperDescriptorListPool.Default.Return(_componentsWithoutNamespace);
@@ -492,6 +522,45 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
             base.Reset();
         }
 
+        public override TagHelperCollection GetResults()
+        {
+            var results = base.GetResults();
+            if (_aliases.Count == 0)
+            {
+                return results;
+            }
+
+            // Apply alias precedence after visiting all imports, so directive order doesn't matter.
+            // An alias also shadows a real namespace with the same name in a qualified component tag.
+            // Slice the existing names rather than allocating a first-identifier string per candidate.
+            var removed = false;
+            foreach (var component in results)
+            {
+                if (!IsComponentTypeDescriptor(component))
+                {
+                    continue;
+                }
+
+                foreach (var rule in component.TagMatchingRules)
+                {
+                    var tagName = (rule.ParentTag ?? rule.TagName).AsMemory();
+                    var dotIndex = tagName.Span.IndexOf('.');
+                    var identifier = dotIndex >= 0 ? tagName[..dotIndex] : tagName;
+                    if (_aliases.Contains(identifier))
+                    {
+                        RemoveMatch(component);
+                        removed = true;
+                        break;
+                    }
+                }
+            }
+
+            return removed ? base.GetResults() : results;
+        }
+
+        public override List<TagHelperAlias>? GetAliases()
+            => _aliasBindings;
+
         protected override void ProcessChunkGenerator(BaseRazorDirectiveSyntax node, ISpanChunkGenerator chunkGenerator)
         {
             switch (chunkGenerator)
@@ -506,9 +575,10 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
         {
             // Get the namespace from the using statement.
             var @namespace = addImport.ParsedNamespace;
-            if (@namespace.Contains('='))
+            var equalsIndex = @namespace.IndexOf('=');
+            if (equalsIndex >= 0)
             {
-                // We don't support usings with alias.
+                ProcessAlias(node, @namespace, equalsIndex);
                 return;
             }
 
@@ -545,6 +615,207 @@ internal sealed partial class DefaultRazorTagHelperContextDiscoveryPhase : Razor
 
             RecordDirectiveTagHelperContribution(node, contributedTagHelpers);
         }
+
+        private void ProcessAlias(BaseRazorDirectiveSyntax node, string directive, int equalsIndex)
+        {
+            // ParsedNamespace has already had whitespace and comments removed by the parser.
+            var alias = directive.AsMemory(0, equalsIndex);
+            if (alias.Span.StartsWith('@'))
+            {
+                alias = alias[1..];
+            }
+
+            if (alias.IsEmpty)
+            {
+                RecordDirectiveTagHelperContribution(node, TagHelperCollection.Empty);
+                return;
+            }
+
+            var aliasName = alias.ToString();
+
+            // From Razor 12, an alias hides ordinary component matches that start with the same identifier.
+            if (_supportsComponentAliases)
+            {
+                _aliases.Add(alias);
+            }
+            var target = directive.AsMemory(equalsIndex + 1);
+            if (_aliasTargets is { } targets)
+            {
+                using var resolvedContributions = new PooledArrayBuilder<TagHelperDescriptor>();
+                if (targets.TryGetTarget(_currentNamespace.ToString(), target.ToString(), out var resolved) &&
+                    resolved.Name is { } name)
+                {
+                    TryAddAliasMatches(name.AsMemory(), directive, aliasName, ref resolvedContributions.AsRef(), typeAlias: resolved.IsType);
+                }
+
+                // A missing/error/non-component target is authoritative too: never search an outer scope
+                // just because the nearer declaration did not produce component descriptors.
+                RecordDirectiveTagHelperContribution(node, TagHelperCollection.Create(resolvedContributions.ToImmutableAndClear()));
+                return;
+            }
+
+            var isGlobal = target.Span.StartsWith("global::".AsSpan(), StringComparison.Ordinal);
+            if (isGlobal)
+            {
+                target = target["global::".Length..];
+            }
+
+            // Incomplete targets occur while typing. An empty type name would otherwise select
+            // the namespace-alias path and incorrectly expose every component in that namespace.
+            if (target.IsEmpty || target.Span[^1] == '.')
+            {
+                RecordDirectiveTagHelperContribution(node, TagHelperCollection.Empty);
+                return;
+            }
+
+            using var contributions = new PooledArrayBuilder<TagHelperDescriptor>();
+
+            // Generated usings are inside the document namespace. Search that namespace and its
+            // parents before global scope, reusing a buffer rather than allocating qualified names.
+            if (!isGlobal && !_currentNamespace.IsEmpty)
+            {
+                var firstDot = target.Span.IndexOf('.');
+                var firstIdentifierLength = firstDot >= 0 ? firstDot : target.Length;
+                var buffer = ArrayPool<char>.Shared.Rent(_currentNamespace.Length + 1 + target.Length);
+                try
+                {
+                    var scope = _currentNamespace;
+                    while (!scope.IsEmpty)
+                    {
+                        scope.Span.CopyTo(buffer);
+                        buffer[scope.Length] = '.';
+                        target.Span.CopyTo(buffer.AsSpan(scope.Length + 1));
+                        var qualifiedTarget = buffer.AsMemory(0, scope.Length + 1 + target.Length);
+                        if (TryAddAliasMatches(qualifiedTarget, directive, aliasName, ref contributions.AsRef(),
+                            qualifiedTarget[..(scope.Length + 1 + firstIdentifierLength)]))
+                        {
+                            RecordDirectiveTagHelperContribution(node, TagHelperCollection.Create(contributions.ToImmutableAndClear()));
+                            return;
+                        }
+
+                        var dot = scope.Span.LastIndexOf('.');
+                        scope = dot >= 0 ? scope[..dot] : default;
+                    }
+                }
+                finally
+                {
+                    ArrayPool<char>.Shared.Return(buffer);
+                }
+            }
+
+            TryAddAliasMatches(target, directive, aliasName, ref contributions.AsRef());
+            RecordDirectiveTagHelperContribution(node, TagHelperCollection.Create(contributions.ToImmutableAndClear()));
+        }
+
+        private bool TryAddAliasMatches(
+            ReadOnlyMemory<char> target,
+            string directive,
+            string alias,
+            ref PooledArrayBuilder<TagHelperDescriptor> contributions,
+            ReadOnlyMemory<char> firstIdentifier = default,
+            bool? typeAlias = null)
+        {
+            var matched = false;
+
+            // A type alias only needs the descriptors in its declaring namespace. Do not build
+            // fully qualified names for every component just to reject almost all of them.
+            var lastDot = target.Span.LastIndexOf('.');
+            if (typeAlias != false && lastDot >= 0 && _namespaceToComponentsMap.TryGetValue(target[..lastDot], out var typeComponents))
+            {
+                matched = AddAliasedComponents(typeComponents, alias, target[(lastDot + 1)..], default, ref contributions);
+            }
+            else if (typeAlias != false && lastDot < 0 && _componentsWithoutNamespace is { } componentsWithoutNamespace)
+            {
+                matched = AddAliasedComponents(componentsWithoutNamespace, alias, target, default, ref contributions);
+            }
+
+            // Namespace aliases include subnamespaces, but unrelated namespaces require no descriptor work.
+            if (typeAlias == true)
+            {
+                return matched;
+            }
+
+            foreach (var (typeNamespace, components) in _namespaceToComponentsMap)
+            {
+                // Once the first identifier resolves in a nearer scope, C# does not retry the
+                // remaining path in outer scopes, even if it doesn't name a component here.
+                if (!firstIdentifier.IsEmpty && IsNamespaceOrChildNamespace(typeNamespace.Span, firstIdentifier.Span))
+                {
+                    matched = true;
+                }
+
+                if (IsNamespaceOrChildNamespace(typeNamespace.Span, target.Span))
+                {
+                    AddAliasedComponents(components, alias, default, typeNamespace[target.Length..], ref contributions);
+                    matched = true;
+                }
+            }
+
+            return matched;
+        }
+
+        private static bool IsNamespaceOrChildNamespace(ReadOnlySpan<char> typeNamespace, ReadOnlySpan<char> target)
+            => typeNamespace.Equals(target, StringComparison.Ordinal) ||
+               (typeNamespace.Length > target.Length &&
+                typeNamespace.StartsWith(target, StringComparison.Ordinal) &&
+                typeNamespace[target.Length] == '.');
+
+        private bool AddAliasedComponents(
+            List<TagHelperDescriptor> components,
+            string alias,
+            ReadOnlyMemory<char> typeName,
+            ReadOnlyMemory<char> namespaceSuffix,
+            ref PooledArrayBuilder<TagHelperDescriptor> contributions)
+        {
+            var matched = false;
+            // Tag matching rules omit C# identifier escapes even when the alias target needs one.
+            var unescapedTypeName = typeName.Span.StartsWith('@') ? typeName[1..] : typeName;
+            // A type alias supplies typeName; a namespace alias keeps the namespaceSuffix between
+            // the alias and the component name, such as ".Controls" in UI.Controls.Button.
+            foreach (var component in components)
+            {
+                CancellationToken.ThrowIfCancellationRequested();
+
+                // Component-specific bind and child-content descriptors follow the component.
+                if (!IsComponentTypeDescriptor(component) ||
+                    component.TagMatchingRules is not [var firstRule, ..] ||
+                    firstRule.TagName == "*")
+                {
+                    continue;
+                }
+
+                var componentTagName = firstRule.ParentTag ?? firstRule.TagName;
+                // Matching names omit arity, so Widget would otherwise also match Widget<T>.
+                // Check the type name because bind/child-content metadata doesn't carry IsGeneric.
+                if (!typeName.IsEmpty)
+                {
+                    if (!componentTagName.AsSpan().Equals(unescapedTypeName.Span, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    matched = true;
+                    if (component.TypeName.AsSpan().IndexOf('<') >= 0)
+                    {
+                        continue;
+                    }
+                }
+
+                (_aliasBindings ??= []).Add(new(component, alias, namespaceSuffix.Length, IsTypeAlias: !typeName.IsEmpty));
+                matched = true;
+                if (IsSourceDocument)
+                {
+                    contributions.Add(component);
+                }
+            }
+
+            return matched;
+        }
+
+        // HTML bind helpers only classify attributes. Aliases must not rename or shadow <input>, etc.
+        private static bool IsComponentTypeDescriptor(TagHelperDescriptor descriptor)
+            => descriptor.IsComponentOrChildContentTagHelper() ||
+               descriptor is { Kind: TagHelperKind.Bind, ClassifyAttributesOnly: false };
 
         // Check if a type's namespace is already in scope given the namespace of the current document.
         // E.g,

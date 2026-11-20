@@ -53,7 +53,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             ? new ComponentTagHelperResolver()
             : new LegacyTagHelperResolver();
 
-        if (tagHelperContext == null || tagHelperContext.TagHelpers is [])
+        if (tagHelperContext == null || (tagHelperContext.TagHelpers is [] && !tagHelperContext.HasAliases))
         {
             // No tag helpers discovered - unwrap all UnresolvedElement nodes to their fallback.
             UnwrapAllElements(documentNode, resolver, documentNode);

@@ -17,4 +17,4 @@ Later versions include the features from earlier versions.
 | **9.0** | None |
 | **10.0** | None |
 | **11.0** | [Tilde path expansion](tilde-path-expansion.md) for `~/`-prefixed string literal values in HTML attributes and component parameters that accept asset paths. |
-| **12.0** | [`@documentation { ... }`](documentation-directive.md) for XML documentation on components and views. `@layout null` for rendering components without a layout, overriding imported layouts, inherited layout attributes and the router's default layout (requires C# 11 or later). |
+| **12.0** | Component binding through type and namespace `@using` aliases. Multiple [exact generic component matches](Compiler%20Breaking%20Changes%20-%20DotNet%2011.md#ambiguous-generic-component-matches) report an ambiguity error. [`@documentation { ... }`](documentation-directive.md) for XML documentation on components and views. `@layout null` for rendering components without a layout, overriding imported layouts, inherited layout attributes and the router's default layout (requires C# 11 or later). |
