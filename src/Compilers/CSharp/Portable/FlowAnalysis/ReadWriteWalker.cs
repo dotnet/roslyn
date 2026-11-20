@@ -127,11 +127,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="variable">The variable</param>
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
-        protected override void NoteRead(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null)
+        protected override void NoteRead(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter = null, SyntaxNode readSyntax = null)
         {
             if ((object)variable == null) return;
-            if (variable.Kind != SymbolKind.Field) (IsInside ? _readInside : _readOutside).Add(variable);
-            base.NoteRead(variable, rangeVariableUnderlyingParameter);
+            bool isInside = readSyntax is null ? IsInside : RegionContains(readSyntax.Span);
+            if (variable.Kind != SymbolKind.Field) (isInside ? _readInside : _readOutside).Add(variable);
+            base.NoteRead(variable, rangeVariableUnderlyingParameter, readSyntax);
         }
 
         protected override void NoteWrite(Symbol variable, BoundExpression value, bool read, bool isRef)
@@ -141,9 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.NoteWrite(variable, value, read: read, isRef: isRef);
         }
 
-        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
+        protected override void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node, bool useSyntaxForRead = false)
         {
-            base.CheckAssigned(expr, fieldSymbol, node);
+            base.CheckAssigned(expr, fieldSymbol, node, useSyntaxForRead);
             if (!IsInside && node.Span.Contains(RegionSpan) && (expr.Kind == BoundKind.FieldAccess))
             {
                 NoteReceiverRead((BoundFieldAccess)expr);

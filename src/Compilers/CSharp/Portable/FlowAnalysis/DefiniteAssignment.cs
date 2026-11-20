@@ -665,12 +665,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="variable">The variable to be checked</param>
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
-        private void CheckCaptured(Symbol variable, ParameterSymbol? rangeVariableUnderlyingParameter = null)
+        /// <param name="readSyntax">The syntax used to determine whether the read is inside the analyzed region.</param>
+        private void CheckCaptured(Symbol variable, ParameterSymbol? rangeVariableUnderlyingParameter = null, SyntaxNode? readSyntax = null)
         {
             if (CurrentSymbol is SourceMethodSymbol sourceMethod &&
                 Symbol.IsCaptured(rangeVariableUnderlyingParameter ?? variable, sourceMethod))
             {
-                NoteCaptured(variable);
+                NoteCaptured(variable, readSyntax);
             }
         }
 #nullable disable
@@ -679,9 +680,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Add the variable to the captured set. For range variables we only add it if inside the region.
         /// </summary>
         /// <param name="variable"></param>
-        private void NoteCaptured(Symbol variable)
+        private void NoteCaptured(Symbol variable, SyntaxNode readSyntax = null)
         {
-            if (this.regionPlace == RegionPlace.Inside)
+            if (readSyntax is null ? this.regionPlace == RegionPlace.Inside : RegionContains(readSyntax.Span))
             {
                 _capturedInside.Add(variable);
                 _capturedVariables.Add(variable);
@@ -712,7 +713,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         protected virtual void NoteRead(
             Symbol variable,
-            ParameterSymbol rangeVariableUnderlyingParameter = null)
+            ParameterSymbol rangeVariableUnderlyingParameter = null,
+            SyntaxNode readSyntax = null)
         {
             var local = variable as LocalSymbol;
             if ((object)local != null)
@@ -737,11 +739,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     write: false);
                 }
 
-                CheckCaptured(variable, rangeVariableUnderlyingParameter);
+                CheckCaptured(variable, rangeVariableUnderlyingParameter, readSyntax);
             }
         }
 
-        private void NoteRead(BoundNode fieldOrEventAccess)
+        private void NoteRead(BoundNode fieldOrEventAccess, bool useSyntaxForRead = false)
         {
             Debug.Assert(fieldOrEventAccess.Kind == BoundKind.FieldAccess || fieldOrEventAccess.Kind == BoundKind.EventAccess);
             BoundNode n = fieldOrEventAccess;
@@ -752,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)n;
-                            NoteRead(fieldAccess.FieldSymbol);
+                            NoteRead(fieldAccess.FieldSymbol, readSyntax: useSyntaxForRead ? n.Syntax : null);
 
                             if (MayRequireTracking(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol))
                             {
@@ -771,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             FieldSymbol associatedField = eventAccess.EventSymbol.AssociatedField;
                             if ((object)associatedField != null)
                             {
-                                NoteRead(associatedField);
+                                NoteRead(associatedField, readSyntax: useSyntaxForRead ? n.Syntax : null);
 
                                 if (MayRequireTracking(eventAccess.ReceiverOpt, associatedField))
                                 {
@@ -783,15 +785,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                     case BoundKind.ThisReference:
-                        NoteRead(MethodThisParameter);
+                        NoteRead(MethodThisParameter, readSyntax: useSyntaxForRead ? n.Syntax : null);
                         return;
 
                     case BoundKind.Local:
-                        NoteRead(((BoundLocal)n).LocalSymbol);
+                        NoteRead(((BoundLocal)n).LocalSymbol, readSyntax: useSyntaxForRead ? n.Syntax : null);
                         return;
 
                     case BoundKind.Parameter:
-                        NoteRead(((BoundParameter)n).ParameterSymbol);
+                        NoteRead(((BoundParameter)n).ParameterSymbol, readSyntax: useSyntaxForRead ? n.Syntax : null);
                         return;
 
                     case BoundKind.InlineArrayAccess:
@@ -1110,12 +1112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the given variable is definitely assigned.  If not, produce an error.
         /// </summary>
-        protected void CheckAssigned(Symbol symbol, SyntaxNode node)
+        protected void CheckAssigned(Symbol symbol, SyntaxNode node, SyntaxNode readSyntax = null)
         {
             Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
             {
-                NoteRead(symbol);
+                NoteRead(symbol, readSyntax: readSyntax);
 
                 if (this.State.Reachable)
                 {
@@ -1327,14 +1329,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
+        protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node, bool useSyntaxForRead = false)
         {
             if (this.State.Reachable && !IsAssigned(expr, out int unassignedSlot))
             {
                 ReportUnassignedIfNotCapturedInLocalFunction(fieldSymbol, node, unassignedSlot);
             }
 
-            NoteRead(expr);
+            NoteRead(expr, useSyntaxForRead);
         }
 
         private bool IsAssigned(BoundExpression node, out int unassignedSlot)
@@ -1454,6 +1456,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (fieldSymbol.ContainingType.IsReferenceType || fieldSymbol.IsStatic) return null;
                             expression = fieldAccess.ReceiverOpt;
                             continue;
+                        }
+                    case BoundKind.InlineArrayAccess:
+                        {
+                            var elementAccess = (BoundInlineArrayAccess)expression;
+                            if (elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__get_Item or WellKnownMember.System_ReadOnlySpan_T__get_Item)
+                            {
+                                expression = elementAccess.Expression;
+                                continue;
+                            }
+                            Debug.Assert(elementAccess.GetItemOrSliceHelper is WellKnownMember.System_Span_T__Slice_Int_Int or WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int);
+                            goto default;
                         }
                     case BoundKind.Local:
                         var result = ((BoundLocal)expression).LocalSymbol;
@@ -2566,13 +2579,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitAddressOfOperandAndReportSafetyDiagnostics(BoundExpression operand, bool shouldReadOperand, BoundAddressOfOperator addressOfOpt)
         {
+            VisitLvalue(operand);
             if (shouldReadOperand)
             {
-                VisitRvalue(operand);
-            }
-            else
-            {
-                VisitLvalue(operand);
+                CheckAssigned(operand, operand.Syntax, useSyntaxForRead: true);
             }
 
             // Operand evaluation can assign the variable, for example in an inline array index.
@@ -2617,24 +2627,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
+        protected void CheckAssigned(BoundExpression expr, SyntaxNode node, bool useSyntaxForRead = false)
         {
-            if (!this.State.Reachable) return;
+            Debug.Assert(node is not null);
+            if (!this.State.Reachable && !useSyntaxForRead) return;
             int slot = MakeSlot(expr);
             switch (expr.Kind)
             {
                 case BoundKind.Local:
-                    CheckAssigned(((BoundLocal)expr).LocalSymbol, node);
+                    CheckAssigned(((BoundLocal)expr).LocalSymbol, node, readSyntax: useSyntaxForRead ? expr.Syntax : null);
                     break;
                 case BoundKind.Parameter:
-                    CheckAssigned(((BoundParameter)expr).ParameterSymbol, node);
+                    CheckAssigned(((BoundParameter)expr).ParameterSymbol, node, readSyntax: useSyntaxForRead ? expr.Syntax : null);
                     break;
                 case BoundKind.FieldAccess:
                     var field = (BoundFieldAccess)expr;
                     var symbol = field.FieldSymbol;
                     if (!symbol.IsFixedSizeBuffer && MayRequireTracking(field.ReceiverOpt, symbol))
                     {
-                        CheckAssigned(expr, symbol, node);
+                        CheckAssigned(expr, symbol, node, useSyntaxForRead);
                     }
                     break;
                 case BoundKind.EventAccess:
@@ -2642,16 +2653,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     FieldSymbol associatedField = @event.EventSymbol.AssociatedField;
                     if ((object)associatedField != null && MayRequireTracking(@event.ReceiverOpt, associatedField))
                     {
-                        CheckAssigned(@event, associatedField, node);
+                        CheckAssigned(@event, associatedField, node, useSyntaxForRead);
                     }
                     break;
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                    CheckAssigned(MethodThisParameter, node);
+                    CheckAssigned(MethodThisParameter, node, readSyntax: useSyntaxForRead ? expr.Syntax : null);
                     break;
 
                 case BoundKind.InlineArrayAccess:
-                    CheckAssigned(((BoundInlineArrayAccess)expr).Expression, node);
+                    var receiver = ((BoundInlineArrayAccess)expr).Expression;
+                    CheckAssigned(receiver, useSyntaxForRead ? receiver.Syntax : node, useSyntaxForRead);
                     break;
             }
         }
