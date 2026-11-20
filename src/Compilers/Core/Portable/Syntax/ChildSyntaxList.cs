@@ -327,8 +327,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Returns the index of <paramref name="child"/> in the children of <paramref name="parent"/>, or -1 if
-        /// <paramref name="child"/> is not one of them.
+        /// Returns the index of <paramref name="child"/> in the children of <paramref name="parent"/>.
         /// </summary>
         /// <remarks>
         /// Walks the parent's slots by position without materializing earlier slots, and uses position-based lookup
@@ -336,14 +335,11 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal static int IndexOf(SyntaxNode parent, SyntaxNode child)
         {
+            Debug.Assert(child.Parent == parent);
+
             GreenNode green = parent.Green;
             int targetPosition = child.Position;
-            int position = parent.Position;
-            if (targetPosition < position)
-            {
-                return -1;
-            }
-
+            int slotPosition = parent.Position;
             int index = 0;
             for (int slot = 0, slotCount = green.SlotCount; slot < slotCount; slot++)
             {
@@ -353,8 +349,10 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                // A zero-width child can sit at the end of one slot or at the start of the next one, so both get checked.
-                int endPosition = position + greenChild.FullWidth;
+                // A slot that ends at targetPosition can still hold the child, when the child is zero-width and is
+                // the slot itself or the list's last element. If it doesn't, the child is in a later slot, which
+                // starts at the same position.
+                int endPosition = slotPosition + greenChild.FullWidth;
                 if (targetPosition <= endPosition)
                 {
                     if (!greenChild.IsList)
@@ -364,9 +362,10 @@ namespace Microsoft.CodeAnalysis
                             return index;
                         }
                     }
+                    // GetNodeSlot returns null for a list of tokens (modifiers, for example), which can't hold a node.
                     else if (greenChild.SlotCount > 0 && parent.GetNodeSlot(slot) is { } redList)
                     {
-                        int indexInList = indexOfInList(greenChild, redList, targetPosition - position, child);
+                        int indexInList = indexOfInList(greenChild, redList, targetPosition - slotPosition, child);
                         if (indexInList >= 0)
                         {
                             return index + indexInList;
@@ -374,41 +373,41 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                position = endPosition;
-                if (targetPosition < position)
-                {
-                    // This slot covers the child's position but does not hold the child, and later slots start after
-                    // it, so the child is not one of the parent's children.
-                    break;
-                }
-
+                slotPosition = endPosition;
                 index += Occupancy(greenChild);
             }
 
-            return -1;
+            throw ExceptionUtilities.Unreachable();
 
             static int indexOfInList(GreenNode greenList, SyntaxNode redList, int offset, SyntaxNode child)
             {
-                // Start with the element that contains the offset (or the last one, when the child is a zero-width element
-                // at the end of the list). Zero-width elements just before it start at the same offset, so look at those too.
+                Debug.Assert(0 <= offset && offset <= greenList.FullWidth);
+
+                // Start with the element that contains the offset, or with the last element when the offset is the end
+                // of the list (a zero-width child there can be that element).
                 int elementIndex = offset < greenList.FullWidth
                     ? greenList.FindSlotIndexContainingOffset(offset)
                     : greenList.SlotCount - 1;
 
                 for (; elementIndex >= 0; elementIndex--)
                 {
-                    GreenNode? greenElement = greenList.GetSlot(elementIndex);
+                    GreenNode greenElement = greenList.GetSlot(elementIndex)!;
+                    Debug.Assert(!greenElement.IsList);
                     if (greenElement == child.Green && redList.GetNodeSlot(elementIndex) == child)
                     {
                         return elementIndex;
                     }
 
-                    if (elementIndex == 0 || greenList.GetSlot(elementIndex - 1)?.FullWidth != 0)
+                    // Only zero-width elements just before this one start at the same offset. Once the previous
+                    // element has a width, the child can't be any earlier.
+                    if (elementIndex == 0 || greenList.GetSlot(elementIndex - 1)!.FullWidth != 0)
                     {
                         break;
                     }
                 }
 
+                // The offset is the end of the list and the child is not its last element: the child is a zero-width
+                // node at the start of a later slot.
                 return -1;
             }
         }
