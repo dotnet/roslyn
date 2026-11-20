@@ -1357,6 +1357,226 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         AssertTildePathExpanded(result);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86444")]
+    public async Task Component_InheritsComponent()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86444")]
+    public async Task Component_InheritsComponentWithMarkupFieldInitializer()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+
+                @code {
+                    // Markup in a field initializer forces this component to use fallback discovery.
+                    private RenderFragment _fragment = @<div>Hi</div>;
+                }
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
+    [Fact, WorkItem("https://developercommunity.visualstudio.com/t/Razor-class-library-fails-to-build-after/11180609")]
+    public async Task Component_InheritsAbstractPartialComponentWithMarkupFieldInitializer()
+    {
+        // The report describes an abstract partial base class. The markup field is one way to make
+        // that component fall back, though it isn't known whether the reported component has one.
+        var project = CreateTestProject(new()
+        {
+            ["ColumnBase.razor"] = """
+                @code {
+                    private RenderFragment _fragment = @<div>Hi</div>;
+                }
+                """,
+            ["PropertyColumn.razor"] = """
+                @inherits ColumnBase
+                <span>Column</span>
+                """,
+            ["Index.razor"] = """
+                <PropertyColumn />
+                """,
+        }, new()
+        {
+            ["ColumnBase.razor.cs"] = """
+                namespace MyApp;
+
+                public abstract partial class ColumnBase
+                {
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var indexSource = result.ImplGeneratedSources().Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.PropertyColumn>(0);", indexSource);
+    }
+
+    [Fact]
+    public async Task Component_InheritsComponentWithMarkupProperty()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+
+                @code {
+                    // A property must stay in the declaration, but its markup needs component discovery.
+                    private RenderFragment Fragment => @<div>Hi</div>;
+                }
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
+    [Fact]
+    public async Task Component_InheritsComponentWithMarkupPropertyInitializer()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+
+                @code {
+                    private RenderFragment Fragment { get; set; } = @<div>Hi</div>;
+                }
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
+    [Fact]
+    public async Task Component_InheritsComponentWithConditionalMarkupMethod()
+    {
+        var project = CreateTestProject(new()
+        {
+            ["WebsiteLayout.razor"] = """
+                <div>Website layout</div>
+                """,
+            ["MasterLayout.razor"] = """
+                @typeparam TModel
+                @inherits WebsiteLayout
+
+                @code {
+                #if true
+                    // Without the directive, Razor can move this method to the implementation.
+                    private RenderFragment MakeFragment() => @<div>Hi</div>;
+                #endif
+                }
+                """,
+            ["GeneralLayout.razor"] = """
+                @typeparam TModel
+                @inherits MasterLayout<TModel>
+
+                <div>General layout</div>
+                """,
+            ["HomePage.razor"] = """
+                <GeneralLayout TModel="string" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        var result = RunGenerator(compilation!, ref driver);
+
+        result.Diagnostics.Verify();
+        var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
+        Assert.Contains("__builder.OpenComponent<global::MyApp.GeneralLayout<", homePageSource);
+    }
+
     [Fact(Skip = "Fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
     public async Task Component_BindValue_NestedDelegateInFallbackComponent()
     {

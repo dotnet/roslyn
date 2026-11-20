@@ -3917,4 +3917,132 @@ public sealed class PartialEventsAndConstructorsTests : CSharpTestBase
             //     [method: Obsolete] public partial event Action H;
             Diagnostic(ErrorCode.ERR_AttributeNotOnEventAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate").WithLocation(35, 14));
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86250")]
+    public void PartialConstructorImplementationDiagnostics()
+    {
+        var sources = new[]
+        {
+            """
+            public partial class C
+            {
+                public partial C();
+                public partial C(int x);
+            }
+            """,
+            """
+            public partial class C
+            {
+                public partial C() { Missing(); }
+
+                [MissingAttr]
+                public partial C(int x) : this(MissingInit()) { }
+            }
+            """,
+        };
+
+        DiagnosticDescription[] expected =
+        [
+            // (3,26): error CS0103: The name 'Missing' does not exist in the current context
+            //     public partial C() { Missing(); }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "Missing").WithArguments("Missing").WithLocation(3, 26),
+            // (5,6): error CS0246: The type or namespace name 'MissingAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [MissingAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAttr").WithArguments("MissingAttrAttribute").WithLocation(5, 6),
+            // (5,6): error CS0246: The type or namespace name 'MissingAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [MissingAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAttr").WithArguments("MissingAttr").WithLocation(5, 6),
+            // (6,36): error CS0103: The name 'MissingInit' does not exist in the current context
+            //     public partial C(int x) : this(MissingInit()) { }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingInit").WithArguments("MissingInit").WithLocation(6, 36),
+        ];
+
+        CreateCompilation(sources).VerifyDiagnostics(expected);
+
+        var compilation0 = CreateCompilation(sources);
+        compilation0.GetSemanticModel(compilation0.SyntaxTrees[0]).GetDiagnostics().Verify();
+
+        var compilation1 = CreateCompilation(sources);
+        compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86250")]
+    public void PartialEventImplementationDiagnostics()
+    {
+        var sources = new[]
+        {
+            """
+            using System;
+
+            public partial class C
+            {
+                public partial event Action E1;
+                public partial event Action E2;
+            }
+            """,
+            """
+            using System;
+
+            public partial class C
+            {
+                [MissingEventAttr]
+                public partial event Action E1
+                {
+                    [MissingAccessorAttr]
+                    add { MissingAdd(); }
+                    remove { MissingRemove(); }
+                }
+
+                [method: MissingExternAttr]
+                public extern partial event Action E2;
+            }
+            """,
+        };
+
+        DiagnosticDescription[] expected =
+        [
+            // (5,6): error CS0246: The type or namespace name 'MissingEventAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [MissingEventAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingEventAttr").WithArguments("MissingEventAttrAttribute").WithLocation(5, 6),
+            // (5,6): error CS0246: The type or namespace name 'MissingEventAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [MissingEventAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingEventAttr").WithArguments("MissingEventAttr").WithLocation(5, 6),
+            // (8,10): error CS0246: The type or namespace name 'MissingAccessorAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //         [MissingAccessorAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAccessorAttr").WithArguments("MissingAccessorAttrAttribute").WithLocation(8, 10),
+            // (8,10): error CS0246: The type or namespace name 'MissingAccessorAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //         [MissingAccessorAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingAccessorAttr").WithArguments("MissingAccessorAttr").WithLocation(8, 10),
+            // (9,15): error CS0103: The name 'MissingAdd' does not exist in the current context
+            //         add { MissingAdd(); }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingAdd").WithArguments("MissingAdd").WithLocation(9, 15),
+            // (10,18): error CS0103: The name 'MissingRemove' does not exist in the current context
+            //         remove { MissingRemove(); }
+            Diagnostic(ErrorCode.ERR_NameNotInContext, "MissingRemove").WithArguments("MissingRemove").WithLocation(10, 18),
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttrAttribute").WithLocation(13, 14),
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttr").WithLocation(13, 14),
+        ];
+
+        CreateCompilation(sources).VerifyDiagnostics(expected);
+
+        var compilation0 = CreateCompilation(sources);
+        compilation0.GetSemanticModel(compilation0.SyntaxTrees[0]).GetDiagnostics().Verify();
+
+        var compilation1 = CreateCompilation(sources);
+        compilation1.GetSemanticModel(compilation1.SyntaxTrees[1]).GetDiagnostics().Verify(expected);
+
+        var compilation2 = CreateCompilation(sources);
+        var externAttributeSpan = compilation2.SyntaxTrees[1].GetRoot().DescendantNodes().OfType<AttributeListSyntax>().Last().Span;
+        compilation2.GetSemanticModel(compilation2.SyntaxTrees[1]).GetDeclarationDiagnostics(externAttributeSpan).Verify(
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttrAttribute' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttrAttribute").WithLocation(13, 14),
+            // (13,14): error CS0246: The type or namespace name 'MissingExternAttr' could not be found (are you missing a using directive or an assembly reference?)
+            //     [method: MissingExternAttr]
+            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "MissingExternAttr").WithArguments("MissingExternAttr").WithLocation(13, 14));
+    }
 }

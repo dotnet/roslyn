@@ -1,0 +1,40 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_CodeGenerationIntegrationTest_SectionsAndContentInTagHelper - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            DefaultTagHelperRuntime - 
+            FieldDeclaration -  - private - global::DivTagHelper - __DivTagHelper
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                TagHelper - (31:1,0 [155] SectionsAndContentInTagHelper.cshtml) - div - TagMode.StartTagAndEndTag
+                    DefaultTagHelperBody - 
+                        HtmlContent - (36:1,5 [14] SectionsAndContentInTagHelper.cshtml)
+                            LazyIntermediateToken - (36:1,5 [14] SectionsAndContentInTagHelper.cshtml) - Html - \n    before\n
+                        Section -  - first
+                            HtmlContent - (70:3,20 [29] SectionsAndContentInTagHelper.cshtml)
+                                LazyIntermediateToken - (70:3,20 [29] SectionsAndContentInTagHelper.cshtml) - Html - \n        First section\n    
+                        HtmlContent - (102:6,0 [13] SectionsAndContentInTagHelper.cshtml)
+                            LazyIntermediateToken - (102:6,0 [13] SectionsAndContentInTagHelper.cshtml) - Html -     between\n
+                        Section -  - second
+                            HtmlContent - (136:7,21 [30] SectionsAndContentInTagHelper.cshtml)
+                                LazyIntermediateToken - (136:7,21 [30] SectionsAndContentInTagHelper.cshtml) - Html - \n        Second section\n    
+                        HtmlContent - (169:10,0 [11] SectionsAndContentInTagHelper.cshtml)
+                            LazyIntermediateToken - (169:10,0 [11] SectionsAndContentInTagHelper.cshtml) - Html -     after\n
+                    DefaultTagHelperCreate -  - DivTagHelper
+                    DefaultTagHelperExecute - 
+                HtmlContent - (186:11,6 [2] SectionsAndContentInTagHelper.cshtml)
+                    LazyIntermediateToken - (186:11,6 [2] SectionsAndContentInTagHelper.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
