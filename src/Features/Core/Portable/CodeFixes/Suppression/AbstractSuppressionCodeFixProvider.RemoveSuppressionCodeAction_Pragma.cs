@@ -166,11 +166,11 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             {
                 if (isStartToken)
                 {
-                    return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true, cancellationToken);
+                    return PragmaHelpers.GetNewStartTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, _options.NewLine, isRemoveSuppression: true, cancellationToken);
                 }
                 else
                 {
-                    return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, isRemoveSuppression: true, cancellationToken);
+                    return PragmaHelpers.GetNewEndTokenWithAddedPragma(token, currentDiagnosticSpan, _diagnostic, Fixer, FormatNode, _options.NewLine, isRemoveSuppression: true, cancellationToken);
                 }
             }
 

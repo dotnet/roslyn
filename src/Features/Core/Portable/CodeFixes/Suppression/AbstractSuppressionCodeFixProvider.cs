@@ -44,8 +44,8 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
     public bool IsFixableDiagnostic(Diagnostic diagnostic)
         => SuppressionHelpers.CanBeSuppressed(diagnostic) || SuppressionHelpers.CanBeUnsuppressed(diagnostic);
 
-    protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken);
-    protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken);
+    protected abstract SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, string newLine, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken);
+    protected abstract SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, string newLine, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken);
 
     protected abstract SyntaxNode AddGlobalSuppressMessageAttribute(
         SyntaxNode newRoot,
