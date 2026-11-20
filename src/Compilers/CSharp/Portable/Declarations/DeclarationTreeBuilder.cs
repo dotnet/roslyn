@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            //Script class is not static and contains no extensions.
+            //Script class is not static. It can still act as the container for extension methods and extension blocks declared at script top level.
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
             var membernames = GetNonTypeMemberNames(compilationUnit, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members, ref declFlags);
             rootChildren.Add(
