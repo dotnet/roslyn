@@ -222,6 +222,13 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task, 
 
 	private string GetFolderPath(Environment.SpecialFolder folder)
 	{
+		if (OperatingSystem.IsWindows() &&
+			folder == Environment.SpecialFolder.LocalApplicationData &&
+			WindowsLocalApplicationData.TryGetPath() is { Length: > 0 } knownFolderPath)
+		{
+			return knownFolderPath;
+		}
+
 		string? path = this.TaskEnvironment.GetEnvironmentVariable(folder switch
 		{
 			Environment.SpecialFolder.UserProfile => OperatingSystem.IsWindows() ? "USERPROFILE" : "HOME",

@@ -135,7 +135,7 @@ public class TaskExecutionTests
 	}
 
 	[Fact]
-	public void WriteTask_UsesTaskLocalPlatformCacheDirectory()
+	public void WriteTask_UsesPlatformDefaultCacheDirectory()
 	{
 		using var tempRoot = new TempRoot();
 		string projectDirectory = tempRoot.CreateDirectory().Path;
@@ -155,16 +155,26 @@ public class TaskExecutionTests
 			CommandLineArguments = ["/noconfig"],
 		};
 
-		Assert.True(task.Execute());
-		Assert.True(task.Succeeded);
-		string expectedRoot = OperatingSystem.IsWindows()
-			? Path.Combine(profileDirectory, "Microsoft", "dotnet-projectdata")
-			: OperatingSystem.IsMacOS()
-				? Path.Combine(profileDirectory, "Library", "Caches", "dotnet-projectdata")
-				: Path.Combine(profileDirectory, ".cache", "dotnet-projectdata");
-		Assert.StartsWith(expectedRoot + Path.DirectorySeparatorChar, task.ResolvedOutputPath);
-		Assert.True(File.Exists(task.ResolvedOutputPath));
-		Assert.Empty(((BuildEngineStub)task.BuildEngine).Warnings);
+		try
+		{
+			Assert.True(task.Execute());
+			Assert.True(task.Succeeded);
+			string expectedRoot = OperatingSystem.IsWindows()
+				? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "dotnet-projectdata")
+				: OperatingSystem.IsMacOS()
+					? Path.Combine(profileDirectory, "Library", "Caches", "dotnet-projectdata")
+					: Path.Combine(profileDirectory, ".cache", "dotnet-projectdata");
+			Assert.StartsWith(expectedRoot + Path.DirectorySeparatorChar, task.ResolvedOutputPath);
+			Assert.True(File.Exists(task.ResolvedOutputPath));
+			Assert.Empty(((BuildEngineStub)task.BuildEngine).Warnings);
+		}
+		finally
+		{
+			if (File.Exists(task.ResolvedOutputPath))
+			{
+				File.Delete(task.ResolvedOutputPath);
+			}
+		}
 	}
 
 	[Theory]
@@ -220,6 +230,76 @@ public class TaskExecutionTests
 		finally
 		{
 			Directory.SetCurrentDirectory(originalDirectory);
+		}
+	}
+
+	[ConditionalTheory(typeof(WindowsOnly))]
+	[InlineData(false, false)]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	[InlineData(true, true)]
+	public void WriteTask_UsesWindowsKnownFolderForDefaultCache(bool isolatedEnvironment, bool localAppDataSet)
+	{
+		using var tempRoot = new TempRoot();
+		string projectDirectory = tempRoot.CreateDirectory().Path;
+		string decoyDirectory = tempRoot.CreateDirectory().Path;
+		string projectFilePath = Path.Combine(projectDirectory, "App.csproj");
+		File.WriteAllText(projectFilePath, "<Project />");
+		string? originalLocalAppData = Environment.GetEnvironmentVariable("LOCALAPPDATA");
+		string? originalCache = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		string? expectedOutputPath = null;
+		try
+		{
+			Environment.SetEnvironmentVariable("LOCALAPPDATA", localAppDataSet ? decoyDirectory : null);
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", null);
+			expectedOutputPath = UserFolderCachePath.Compute(projectFilePath);
+			var environmentVariables = new Dictionary<string, string>();
+			if (localAppDataSet)
+			{
+				environmentVariables["LOCALAPPDATA"] = decoyDirectory;
+			}
+
+			var engine = new BuildEngineStub();
+			var task = new WriteProjectDataSliceTask
+			{
+				BuildEngine = engine,
+				TaskEnvironment = isolatedEnvironment
+					? TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory, environmentVariables)
+					: TaskEnvironment.Fallback,
+				ProjectFilePath = projectFilePath,
+				CommandLineArguments = ["/noconfig"],
+				IsPrimary = true,
+				CoreCompileForced = true,
+			};
+
+			Assert.True(task.Execute());
+			Assert.True(task.Succeeded, string.Join(Environment.NewLine, engine.Warnings.Select(warning => warning.Message)));
+			Assert.Equal(expectedOutputPath, task.ResolvedOutputPath);
+			Assert.True(File.Exists(expectedOutputPath));
+
+			task.CommandLineArguments = [];
+			Assert.True(task.Execute());
+
+			Assert.False(task.Succeeded);
+			Assert.True(UnsupportedProjectDataMarker.TryReadValid(projectFilePath, TestContext.Current.CancellationToken, out _));
+			Assert.Empty(engine.Warnings);
+			Assert.Empty(Directory.EnumerateFileSystemEntries(decoyDirectory));
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("LOCALAPPDATA", originalLocalAppData);
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCache);
+			if (expectedOutputPath is not null)
+			{
+				if (File.Exists(expectedOutputPath))
+				{
+					File.Delete(expectedOutputPath);
+				}
+				if (File.Exists(expectedOutputPath + ".unsupported"))
+				{
+					File.Delete(expectedOutputPath + ".unsupported");
+				}
+			}
 		}
 	}
 
