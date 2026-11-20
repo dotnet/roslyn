@@ -3304,4 +3304,70 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                 }
             }
             """);
+
+    [Fact]
+    public Task TestNotWhenPassedByRefFromNestedType()
+        => TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                int P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+
+                class Nested
+                {
+                    void M(Class c)
+                    {
+                        System.Threading.Interlocked.Increment(ref c.i);
+                    }
+                }
+            }
+            """, new(parseOptions: CSharp12));
+
+    [Fact]
+    public Task TestReadFromNestedType()
+        => TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                int P
+                {
+                    get
+                    {
+                        return i;
+                    }
+                }
+
+                class Nested
+                {
+                    int M(Class c)
+                    {
+                        return c.i;
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int P { get; }
+
+                class Nested
+                {
+                    int M(Class c)
+                    {
+                        return c.P;
+                    }
+                }
+            }
+            """, new(parseOptions: CSharp12));
 }
