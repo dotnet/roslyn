@@ -37,11 +37,13 @@ jobs:
   steps:
     - template: checkout-windows-task.yml
 
+    - template: download-caching-compiler.yml
+
     - task: PowerShell@2
       displayName: Restore
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -warnAsError:$${{ parameters.warnAsError }} -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -warnAsError:$${{ parameters.warnAsError }} -restore -binaryLogName Restore.binlog ${{ parameters.restoreArguments }} "/p:BootstrapBuildPath=$(RoslynTestToolsetPath)"
 
     - template: cache-roslyn-outputs.yml
       parameters:
@@ -51,7 +53,7 @@ jobs:
       displayName: Build
       inputs:
         filePath: eng/build.ps1
-        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -warnAsError:$${{ parameters.warnAsError }} -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }}
+        arguments: -configuration ${{ parameters.configuration }} -prepareMachine -ci -warnAsError:$${{ parameters.warnAsError }} -build -binaryLogName Build.binlog -skipDocumentation ${{ parameters.buildArguments }} "/p:BootstrapBuildPath=$(RoslynTestToolsetPath)"
 
     - template: post-cache-roslyn-outputs.yml
       parameters:

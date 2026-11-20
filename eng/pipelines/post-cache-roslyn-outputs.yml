@@ -19,9 +19,8 @@ steps:
           exit 1
         }
 
-        # Some jobs (such as the Windows integration test build) only produce the net472 compiler server.
-        $compilerServerDirectory = [System.IO.Path]::Combine("$(Build.SourcesDirectory)", "artifacts", "bin", "VBCSCompiler", "${{ parameters.configuration }}")
-        $coreCompilerServerPath = [System.IO.Path]::Combine($compilerServerDirectory, "net10.0", "VBCSCompiler.dll")
+        $compilerServerDirectory = [System.IO.Path]::Combine("$(RoslynTestToolsetPath)", "tasks")
+        $coreCompilerServerPath = [System.IO.Path]::Combine($compilerServerDirectory, "netcore", "bincore", "VBCSCompiler.dll")
         $frameworkCompilerServerPath = [System.IO.Path]::Combine($compilerServerDirectory, "net472", "VBCSCompiler.exe")
         if (Test-Path -LiteralPath $coreCompilerServerPath) {
           $compilerServerExecutable = "dotnet"

@@ -1,0 +1,29 @@
+# Toolset from https://github.com/dotnet/roslyn/pull/86263.
+steps:
+  - task: DownloadBuildArtifacts@1
+    displayName: Download PR 86263 Bootstrap Compiler
+    inputs:
+      buildType: specific
+      project: public
+      pipeline: 95
+      buildVersionToDownload: specific
+      buildId: 1692052
+      downloadType: single
+      artifactName: 'Bootstrap Compiler - Default'
+      downloadPath: '$(Pipeline.Workspace)/pr-toolset'
+      checkDownloadedFiles: true
+
+  - task: PowerShell@2
+    displayName: Select PR 86263 Bootstrap Compiler
+    inputs:
+      targetType: inline
+      script: |
+        $toolsetPath = "$(Pipeline.Workspace)/pr-toolset/Bootstrap Compiler - Default"
+        $propsPath = Join-Path $toolsetPath 'build/Microsoft.Net.Compilers.Toolset.props'
+        if (-not (Test-Path -LiteralPath $propsPath)) {
+          throw "PR 86263 toolset props not found at '$propsPath'."
+        }
+        Write-Host "Using PR 86263 toolset from build 1692052: $toolsetPath"
+        Write-Host "##vso[task.setvariable variable=RoslynTestToolsetPath]$toolsetPath"
+        # Keep commit IDs out of generated assembly versions for the empty-commit cache test.
+        Write-Host "##vso[task.setvariable variable=UseRoslynCompilerCache]true"
