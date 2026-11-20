@@ -14836,6 +14836,41 @@ class B
             Assert.Equal("b", GetSymbolNamesJoined(analysis.DataFlowsIn));
             Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
+
+            var receiver = ((ElementAccessExpressionSyntax)addressOf.Operand).Expression;
+            var receiverAnalysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(receiver);
+            Assert.True(receiverAnalysis.Succeeded);
+            Assert.Equal("b", GetSymbolNamesJoined(receiverAnalysis.ReadInside));
+            Assert.Equal("b", GetSymbolNamesJoined(receiverAnalysis.DataFlowsIn));
+            Assert.Null(GetSymbolNamesJoined(receiverAnalysis.ReadOutside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void InlineArrays_ReadIndexAssignsReceiver()
+        {
+            var source = """
+                class C
+                {
+                    static void M()
+                    {
+                        Buffer2 b;
+                #line 100
+                        _ = b[Initialize(out b)];
+                    }
+
+                    static int Initialize(out Buffer2 b)
+                    {
+                        b = default;
+                        return 0;
+                    }
+                }
+                """ + InlineArray2Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(
+                // (100,13): error CS0165: Use of unassigned local variable 'b'
+                //         _ = b[Initialize(out b)];
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "b").WithArguments("b").WithLocation(100, 13));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
@@ -14900,10 +14935,57 @@ class B
             var analysis = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf);
 
             Assert.True(analysis.Succeeded);
-            Assert.Null(GetSymbolNamesJoined(analysis.ReadInside));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.ReadInside));
             Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+            Assert.Equal("b", GetSymbolNamesJoined(analysis.AlwaysAssigned));
             Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
             Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]
+        public void InlineArrays_AddressOfIndexAssignsReceiver()
+        {
+            var source = """
+                unsafe class C
+                {
+                    static void Unassigned()
+                    {
+                        Buffer2 b;
+                        int* p = &b[Initialize(out b)];
+                    }
+
+                    static void Assigned()
+                    {
+                        Buffer2 b = default;
+                        int* p = &b[Initialize(out b)];
+                    }
+
+                    static int Initialize(out Buffer2 b)
+                    {
+                        b = default;
+                        return 0;
+                    }
+                }
+                """ + InlineArray2Definition;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.UnsafeReleaseDll);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var addresses = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().ToArray();
+            Assert.Equal(2, addresses.Length);
+            var model = comp.GetSemanticModel(tree);
+
+            foreach (var address in addresses)
+            {
+                var analysis = model.AnalyzeDataFlow(address);
+                Assert.True(analysis.Succeeded);
+                Assert.Equal("b", GetSymbolNamesJoined(analysis.ReadInside));
+                Assert.Null(GetSymbolNamesJoined(analysis.DataFlowsIn));
+                Assert.Equal("b", GetSymbolNamesJoined(analysis.AlwaysAssigned));
+                Assert.Equal("b", GetSymbolNamesJoined(analysis.WrittenInside));
+                Assert.Equal("b", GetSymbolNamesJoined(analysis.UnsafeAddressTaken));
+            }
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86179")]

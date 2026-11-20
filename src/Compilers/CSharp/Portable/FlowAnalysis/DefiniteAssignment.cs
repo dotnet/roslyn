@@ -665,12 +665,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="variable">The variable to be checked</param>
         /// <param name="rangeVariableUnderlyingParameter">If variable.Kind is RangeVariable, its underlying lambda parameter. Else null.</param>
-        private void CheckCaptured(Symbol variable, ParameterSymbol? rangeVariableUnderlyingParameter = null)
+        /// <param name="readSyntax">The syntax used to determine whether the read is inside the analyzed region.</param>
+        private void CheckCaptured(Symbol variable, ParameterSymbol? rangeVariableUnderlyingParameter = null, SyntaxNode? readSyntax = null)
         {
             if (CurrentSymbol is SourceMethodSymbol sourceMethod &&
                 Symbol.IsCaptured(rangeVariableUnderlyingParameter ?? variable, sourceMethod))
             {
-                NoteCaptured(variable);
+                NoteCaptured(variable, readSyntax);
             }
         }
 #nullable disable
@@ -679,9 +680,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Add the variable to the captured set. For range variables we only add it if inside the region.
         /// </summary>
         /// <param name="variable"></param>
-        private void NoteCaptured(Symbol variable)
+        private void NoteCaptured(Symbol variable, SyntaxNode readSyntax = null)
         {
-            if (this.regionPlace == RegionPlace.Inside)
+            if (readSyntax is null ? this.regionPlace == RegionPlace.Inside : RegionContains(readSyntax.Span))
             {
                 _capturedInside.Add(variable);
                 _capturedVariables.Add(variable);
@@ -712,7 +713,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         protected virtual void NoteRead(
             Symbol variable,
-            ParameterSymbol rangeVariableUnderlyingParameter = null)
+            ParameterSymbol rangeVariableUnderlyingParameter = null,
+            SyntaxNode readSyntax = null)
         {
             var local = variable as LocalSymbol;
             if ((object)local != null)
@@ -737,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     write: false);
                 }
 
-                CheckCaptured(variable, rangeVariableUnderlyingParameter);
+                CheckCaptured(variable, rangeVariableUnderlyingParameter, readSyntax);
             }
         }
 
@@ -1110,12 +1112,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Check that the given variable is definitely assigned.  If not, produce an error.
         /// </summary>
-        protected void CheckAssigned(Symbol symbol, SyntaxNode node)
+        protected void CheckAssigned(Symbol symbol, SyntaxNode node, SyntaxNode readSyntax = null)
         {
             Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
             {
-                NoteRead(symbol);
+                NoteRead(symbol, readSyntax: readSyntax);
 
                 if (this.State.Reachable)
                 {
@@ -2575,13 +2577,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitAddressOfOperandAndReportSafetyDiagnostics(BoundExpression operand, bool shouldReadOperand, BoundAddressOfOperator addressOfOpt)
         {
+            VisitLvalue(operand);
             if (shouldReadOperand)
             {
-                VisitRvalue(operand);
-            }
-            else
-            {
-                VisitLvalue(operand);
+                CheckAssigned(operand, operand.Syntax, useSyntaxForRead: true);
             }
 
             // Operand evaluation can assign the variable, for example in an inline array index.
@@ -2626,17 +2625,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #nullable disable
 
-        protected void CheckAssigned(BoundExpression expr, SyntaxNode node)
+        protected void CheckAssigned(BoundExpression expr, SyntaxNode node, bool useSyntaxForRead = false)
         {
+            Debug.Assert(node is not null);
             if (!this.State.Reachable) return;
             int slot = MakeSlot(expr);
             switch (expr.Kind)
             {
                 case BoundKind.Local:
-                    CheckAssigned(((BoundLocal)expr).LocalSymbol, node);
+                    CheckAssigned(((BoundLocal)expr).LocalSymbol, node, readSyntax: useSyntaxForRead ? expr.Syntax : null);
                     break;
                 case BoundKind.Parameter:
-                    CheckAssigned(((BoundParameter)expr).ParameterSymbol, node);
+                    CheckAssigned(((BoundParameter)expr).ParameterSymbol, node, readSyntax: useSyntaxForRead ? expr.Syntax : null);
                     break;
                 case BoundKind.FieldAccess:
                     var field = (BoundFieldAccess)expr;
@@ -2656,11 +2656,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 case BoundKind.ThisReference:
                 case BoundKind.BaseReference:
-                    CheckAssigned(MethodThisParameter, node);
+                    CheckAssigned(MethodThisParameter, node, readSyntax: useSyntaxForRead ? expr.Syntax : null);
                     break;
 
                 case BoundKind.InlineArrayAccess:
-                    CheckAssigned(((BoundInlineArrayAccess)expr).Expression, node);
+                    var receiver = ((BoundInlineArrayAccess)expr).Expression;
+                    CheckAssigned(receiver, useSyntaxForRead ? receiver.Syntax : node, useSyntaxForRead);
                     break;
             }
         }
