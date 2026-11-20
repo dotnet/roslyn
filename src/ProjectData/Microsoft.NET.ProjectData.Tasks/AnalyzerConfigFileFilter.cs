@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Build.Framework;
 using Microsoft.NET.ProjectData;
 
@@ -192,6 +193,7 @@ internal static class AnalyzerConfigFileFilter
 			&& normalizedDescendant.StartsWith(normalizedCandidate, StringComparisons.Paths);
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Both paths have already been resolved by CachePathResolver; GetFullPath only canonicalizes them.")]
 	private static bool PathsEqual(string left, string right)
 	{
 		string normalizedLeft = Path.GetFullPath(left).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
@@ -205,6 +207,7 @@ internal static class AnalyzerConfigFileFilter
 		return normalized + Path.DirectorySeparatorChar;
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The path has already been resolved by CachePathResolver; GetFullPath only canonicalizes it.")]
 	private static string NormalizePathForComparison(string path)
 		=> Path.GetFullPath(path).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
 

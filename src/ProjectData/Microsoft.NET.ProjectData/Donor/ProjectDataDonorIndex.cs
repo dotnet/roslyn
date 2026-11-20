@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
@@ -29,6 +30,15 @@ public static partial class ProjectDataDonorIndex
 		string cacheFilePath,
 		ProjectDataDonorWriteOptions? options,
 		out string? message)
+		=> TryRecordWrite(projectFilePath, cacheFilePath, options, out message, ProjectDataEnvironment.Default);
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The task resolves cacheFilePath before recording the write; index and workspace paths use the supplied environment.")]
+	internal static bool TryRecordWrite(
+		string projectFilePath,
+		string cacheFilePath,
+		ProjectDataDonorWriteOptions? options,
+		out string? message,
+		ProjectDataEnvironment environment)
 	{
 		message = null;
 		if (string.IsNullOrEmpty(projectFilePath) || string.IsNullOrEmpty(cacheFilePath) || !File.Exists(cacheFilePath))
@@ -36,7 +46,7 @@ public static partial class ProjectDataDonorIndex
 			return false;
 		}
 
-		options ??= new ProjectDataDonorWriteOptions();
+		options ??= new ProjectDataDonorWriteOptions(environment);
 		if (!options.Enabled)
 		{
 			return false;
@@ -49,7 +59,8 @@ public static partial class ProjectDataDonorIndex
 				options.WorkspaceRoot,
 				options.IndexPath,
 				out string workspaceRoot,
-				out string indexPath))
+				out string indexPath,
+				environment))
 			{
 				return false;
 			}
@@ -57,10 +68,10 @@ public static partial class ProjectDataDonorIndex
 			lock (WriteGate)
 			{
 				using FileStream indexLock = AcquireIndexLock(indexPath);
-				ProjectDataDonorIndexFile index = ReadIndexForWrite(indexPath, out string? recoveryMessage);
-				ProjectDataDonorIndexEntry entry = CreateWrittenEntry(workspaceRoot, cacheFilePath);
+				ProjectDataDonorIndexFile index = ReadIndexForWrite(indexPath, out string? recoveryMessage, environment);
+				ProjectDataDonorIndexEntry entry = CreateWrittenEntry(workspaceRoot, cacheFilePath, environment);
 
-				index.UpsertEntry(entry);
+				index.UpsertEntry(entry, environment);
 				WriteIndex(indexPath, index);
 				OnIndexUpdated();
 				message = recoveryMessage;
@@ -75,6 +86,7 @@ public static partial class ProjectDataDonorIndex
 		}
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "TryResolveIndexContext resolves indexPath through the supplied ProjectDataEnvironment.")]
 	private static FileStream AcquireIndexLock(string indexPath)
 	{
 		string lockPath = indexPath + ".lock";
@@ -99,7 +111,7 @@ public static partial class ProjectDataDonorIndex
 
 	internal static string? TryResolveDefaultIndexPath(string projectFilePath)
 	{
-		return TryFindRepositoryInfo(projectFilePath, out _, out string? gitCommonDirectory)
+		return TryFindRepositoryInfo(projectFilePath, out _, out string? gitCommonDirectory, ProjectDataEnvironment.Default)
 			? Path.Combine(gitCommonDirectory, IndexDirectoryName, IndexFileName)
 			: null;
 	}
@@ -110,20 +122,29 @@ public static partial class ProjectDataDonorIndex
 		string? indexPathOverride,
 		out string workspaceRoot,
 		out string indexPath)
+		=> TryResolveIndexContext(projectFilePath, workspaceRootOverride, indexPathOverride, out workspaceRoot, out indexPath, ProjectDataEnvironment.Default);
+
+	private static bool TryResolveIndexContext(
+		string projectFilePath,
+		string? workspaceRootOverride,
+		string? indexPathOverride,
+		out string workspaceRoot,
+		out string indexPath,
+		ProjectDataEnvironment environment)
 	{
 		workspaceRoot = string.Empty;
 		indexPath = string.Empty;
 
 		string? candidateWorkspaceRoot = workspaceRootOverride is { Length: > 0 }
-			? NormalizePath(workspaceRootOverride)
+			? NormalizePath(workspaceRootOverride, environment)
 			: null;
 		string? candidateIndexPath = indexPathOverride is { Length: > 0 }
-			? Path.GetFullPath(indexPathOverride)
+			? environment.GetFullPath(indexPathOverride)
 			: null;
 
 		if (candidateWorkspaceRoot is null || candidateIndexPath is null)
 		{
-			if (!TryFindRepositoryInfo(projectFilePath, out string? discoveredWorkspaceRoot, out string? gitCommonDirectory))
+			if (!TryFindRepositoryInfo(projectFilePath, out string? discoveredWorkspaceRoot, out string? gitCommonDirectory, environment))
 			{
 				return false;
 			}
@@ -132,7 +153,7 @@ public static partial class ProjectDataDonorIndex
 			candidateIndexPath ??= Path.Combine(gitCommonDirectory, IndexDirectoryName, IndexFileName);
 		}
 
-		workspaceRoot = NormalizePath(candidateWorkspaceRoot);
+		workspaceRoot = NormalizePath(candidateWorkspaceRoot, environment);
 		indexPath = candidateIndexPath;
 		return true;
 	}
@@ -165,33 +186,42 @@ public static partial class ProjectDataDonorIndex
 	private static bool PathsEqual(string left, string right)
 		=> string.Equals(NormalizePath(left), NormalizePath(right), PathComparison);
 
+	private static bool PathsEqual(string left, string right, ProjectDataEnvironment environment)
+		=> string.Equals(NormalizePath(left, environment), NormalizePath(right, environment), PathComparison);
+
 	private static string NormalizePath(string path)
+		=> NormalizePath(path, ProjectDataEnvironment.Default);
+
+	private static string NormalizePath(string path, ProjectDataEnvironment environment)
 	{
-		string fullPath = Path.GetFullPath(path);
+		string fullPath = environment.GetFullPath(path);
 		string root = Path.GetPathRoot(fullPath) ?? string.Empty;
 		return fullPath.Length > root.Length
 			? fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
 			: fullPath;
 	}
 
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The task resolves cacheFilePath before recording the write.")]
 	private static ProjectDataDonorIndexEntry CreateWrittenEntry(
 		string workspaceRoot,
-		string cacheFilePath)
+		string cacheFilePath,
+		ProjectDataEnvironment environment)
 	{
 		return new ProjectDataDonorIndexEntry
 		{
-			Path = NormalizePath(workspaceRoot),
+			Path = NormalizePath(workspaceRoot, environment),
 			NewestMtimeMs = ToUnixTimeMilliseconds(File.GetLastWriteTimeUtc(cacheFilePath)),
 			UpdatedUtc = DateTimeOffset.UtcNow,
 		};
 	}
 
-	private static bool TryFindRepositoryInfo(string projectFilePath, out string workspaceRoot, out string gitCommonDirectory)
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Discovery walks absolute ancestors of the project path resolved through the supplied ProjectDataEnvironment.")]
+	private static bool TryFindRepositoryInfo(string projectFilePath, out string workspaceRoot, out string gitCommonDirectory, ProjectDataEnvironment environment)
 	{
 		workspaceRoot = string.Empty;
 		gitCommonDirectory = string.Empty;
 
-		string? current = Path.GetDirectoryName(Path.GetFullPath(projectFilePath));
+		string? current = Path.GetDirectoryName(environment.GetFullPath(projectFilePath));
 		while (!string.IsNullOrEmpty(current))
 		{
 			string currentDirectory = current!;
@@ -203,10 +233,10 @@ public static partial class ProjectDataDonorIndex
 				return true;
 			}
 
-			if (File.Exists(gitPath) && TryReadGitFile(gitPath, out string gitDirectory))
+			if (File.Exists(gitPath) && TryReadGitFile(gitPath, out string gitDirectory, environment))
 			{
 				workspaceRoot = currentDirectory;
-				gitCommonDirectory = ResolveCommonGitDirectory(gitDirectory);
+				gitCommonDirectory = ResolveCommonGitDirectory(gitDirectory, environment);
 				return true;
 			}
 
@@ -217,6 +247,10 @@ public static partial class ProjectDataDonorIndex
 	}
 
 	private static bool TryReadGitFile(string gitFilePath, out string gitDirectory)
+		=> TryReadGitFile(gitFilePath, out gitDirectory, ProjectDataEnvironment.Default);
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Repository discovery supplies an absolute gitFilePath.")]
+	private static bool TryReadGitFile(string gitFilePath, out string gitDirectory, ProjectDataEnvironment environment)
 	{
 		gitDirectory = string.Empty;
 		try
@@ -229,9 +263,7 @@ public static partial class ProjectDataDonorIndex
 			}
 
 			string value = content.Substring(Prefix.Length).Trim();
-			gitDirectory = Path.IsPathRooted(value)
-				? Path.GetFullPath(value)
-				: Path.GetFullPath(Path.Combine(Path.GetDirectoryName(gitFilePath)!, value));
+			gitDirectory = environment.GetFullPath(Path.Combine(Path.GetDirectoryName(gitFilePath)!, value));
 			return true;
 		}
 		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -241,6 +273,10 @@ public static partial class ProjectDataDonorIndex
 	}
 
 	private static string ResolveCommonGitDirectory(string gitDirectory)
+		=> ResolveCommonGitDirectory(gitDirectory, ProjectDataEnvironment.Default);
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Repository discovery resolves gitDirectory through the supplied ProjectDataEnvironment.")]
+	private static string ResolveCommonGitDirectory(string gitDirectory, ProjectDataEnvironment environment)
 	{
 		string commonDirFilePath = Path.Combine(gitDirectory, "commondir");
 		try
@@ -248,9 +284,7 @@ public static partial class ProjectDataDonorIndex
 			if (File.Exists(commonDirFilePath))
 			{
 				string commonDir = File.ReadAllText(commonDirFilePath).Trim();
-				return Path.IsPathRooted(commonDir)
-					? Path.GetFullPath(commonDir)
-					: Path.GetFullPath(Path.Combine(gitDirectory, commonDir));
+				return environment.GetFullPath(Path.Combine(gitDirectory, commonDir));
 			}
 		}
 		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
