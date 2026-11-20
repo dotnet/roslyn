@@ -126,6 +126,20 @@ internal static class SourceTextExtensions
         return i == textEnd && j == otherEnd;
     }
 
+    /// <summary>
+    /// Gets the span to remove to delete a directive. If the directive is the only non-whitespace content on its line,
+    /// the span covers the entire line including the line break. Otherwise, the span covers only the directive.
+    /// </summary>
+    public static TextSpan GetDirectiveRemovalSpan(this SourceText text, TextSpan directiveSpan)
+    {
+        var directiveLineNumber = text.GetLinePosition(directiveSpan.Start).Line;
+        var lineSpan = text.Lines[directiveLineNumber].SpanIncludingLineBreak;
+
+        return text.NonWhitespaceContentEquals(text, lineSpan.Start, lineSpan.End, directiveSpan.Start, directiveSpan.End)
+            ? lineSpan
+            : directiveSpan;
+    }
+
     public static bool TryGetFirstNonWhitespaceOffset(this SourceText text, out int offset)
         => text.TryGetFirstNonWhitespaceOffset(new TextSpan(0, text.Length), out offset);
 
