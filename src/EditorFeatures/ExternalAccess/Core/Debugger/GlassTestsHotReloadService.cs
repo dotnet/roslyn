@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Debugger;
 
 internal sealed class GlassTestsHotReloadService(HostWorkspaceServices services, IManagedHotReloadService debuggerService)
 {
-    internal sealed class ServiceWrapper(IManagedHotReloadService service) : InternalContracts.IManagedHotReloadService
+    internal sealed class ServiceWrapper(IManagedHotReloadService service) : InternalContracts.IManagedHotReloadState
     {
         public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellation)
             => (await service.GetActiveStatementsAsync(cancellation).ConfigureAwait(false)).SelectAsArray(a => a.ToContract());
@@ -24,7 +24,7 @@ internal sealed class GlassTestsHotReloadService(HostWorkspaceServices services,
         public async ValueTask<InternalContracts.ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellation)
             => (await service.GetAvailabilityAsync(module, cancellation).ConfigureAwait(false)).ToContract();
 
-        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellation)
+        public ValueTask<ImmutableArray<string>> GetUpdateCapabilitiesAsync(CancellationToken cancellation)
             => service.GetCapabilitiesAsync(cancellation);
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellation)

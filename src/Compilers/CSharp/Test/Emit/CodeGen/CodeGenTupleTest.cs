@@ -15870,22 +15870,6 @@ namespace System
             Assert.False(m1thisGet.IsImplicitlyDeclared);
         }
 
-        private class SyntaxReferenceEqualityComparer : IEqualityComparer<SyntaxReference>
-        {
-            public static readonly SyntaxReferenceEqualityComparer Instance = new SyntaxReferenceEqualityComparer();
-            private SyntaxReferenceEqualityComparer() { }
-
-            public bool Equals(SyntaxReference x, SyntaxReference y)
-            {
-                return x.GetSyntax().Equals(y.GetSyntax());
-            }
-
-            public int GetHashCode(SyntaxReference obj)
-            {
-                return obj.GetHashCode();
-            }
-        }
-
         [Fact]
         public void EventsAsMembers_01()
         {

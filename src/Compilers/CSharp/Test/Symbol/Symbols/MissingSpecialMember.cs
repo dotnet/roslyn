@@ -622,6 +622,7 @@ namespace System
                     case WellKnownType.System_ReadOnlySpan_T:
                     case WellKnownType.System_Memory_T:
                     case WellKnownType.System_ReadOnlyMemory_T:
+                    case WellKnownType.System_Collections_Immutable_ImmutableArray:
                     case WellKnownType.System_Collections_Immutable_ImmutableArray_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
                     case WellKnownType.System_Index:
@@ -1116,6 +1117,10 @@ namespace System
                     case WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T:
                     case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan:
                     case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_OneElement:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_TwoElements:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_FourElements:
                     case WellKnownMember.System_Span_T__ctor_ref_T:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T:
                     case WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32:

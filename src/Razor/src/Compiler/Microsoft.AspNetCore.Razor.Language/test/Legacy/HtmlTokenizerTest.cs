@@ -4,6 +4,7 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -109,6 +110,108 @@ public class HtmlTokenizerTest : HtmlTokenizerTestBase
     public void Transition_Is_Recognized()
     {
         TestSingleToken("@", SyntaxKind.Transition);
+    }
+
+    [Theory]
+    [InlineData("@value")]
+    [InlineData("@@value")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void IgnoredRazorTransitionsRemainLiteralAfterReset(string text)
+    {
+        using var source = new SeekableTextReader(text, filePath: null);
+        using var tokenizer = new TokenizerView<HtmlTokenizer>(new HtmlTokenizer(source) { IgnoreRazorTransitions = true });
+
+        Assert.True(tokenizer.Next());
+        Assert.Equal(SyntaxKind.Text, tokenizer.Current.Kind);
+        Assert.Equal(text, tokenizer.Current.Content);
+        Assert.False(tokenizer.Next());
+
+        tokenizer.Reset(0);
+        Assert.True(tokenizer.Next());
+        Assert.Equal(SyntaxKind.Text, tokenizer.Current.Kind);
+        Assert.Equal(text, tokenizer.Current.Content);
+
+        tokenizer.Tokenizer.IgnoreRazorTransitions = false;
+        tokenizer.Reset(0);
+        Assert.True(tokenizer.Next());
+        Assert.Equal("@", tokenizer.Current.Content);
+        Assert.Equal(SyntaxKind.Transition, tokenizer.Current.Kind);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void IgnoredRazorCommentsRemainLiteralAfterReset()
+    {
+        const string text = "@*value*@";
+        using var source = new SeekableTextReader(text, filePath: null);
+        using var tokenizer = new TokenizerView<HtmlTokenizer>(new HtmlTokenizer(source) { IgnoreRazorTransitions = true });
+
+        Assert.True(tokenizer.Next());
+        Assert.Equal(SyntaxKind.Text, tokenizer.Current.Kind);
+        Assert.Equal(text, tokenizer.Current.Content);
+        Assert.False(tokenizer.Next());
+
+        tokenizer.Reset(0);
+        Assert.True(tokenizer.Next());
+        Assert.Equal(SyntaxKind.Text, tokenizer.Current.Kind);
+        Assert.Equal(text, tokenizer.Current.Content);
+
+        tokenizer.Tokenizer.IgnoreRazorTransitions = false;
+        tokenizer.Reset(0);
+        Assert.True(tokenizer.Next());
+        Assert.Equal("@", tokenizer.Current.Content);
+        Assert.Equal(SyntaxKind.RazorCommentTransition, tokenizer.Current.Kind);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void LeadingStarsAreText(bool ignoreRazorTransitions)
+    {
+        using var source = new SeekableTextReader("\n  *** <summary>", filePath: null);
+        using var tokenizer = new HtmlTokenizer(source) { IgnoreRazorTransitions = ignoreRazorTransitions };
+
+        Assert.Equal(SyntaxKind.NewLine, tokenizer.NextToken().Kind);
+        Assert.Equal("  ", tokenizer.NextToken().Content);
+        var stars = tokenizer.NextToken();
+        Assert.Equal(SyntaxKind.Text, stars.Kind);
+        Assert.Equal("***", stars.Content);
+        Assert.Equal(" ", tokenizer.NextToken().Content);
+        Assert.Equal(SyntaxKind.OpenAngle, tokenizer.NextToken().Kind);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void StarFollowedBySlashIsText()
+    {
+        using var source = new SeekableTextReader("\n*/", filePath: null);
+        using var tokenizer = new HtmlTokenizer(source);
+
+        Assert.Equal(SyntaxKind.NewLine, tokenizer.NextToken().Kind);
+        var star = tokenizer.NextToken();
+        Assert.Equal(SyntaxKind.Text, star.Kind);
+        Assert.Equal("*", star.Content);
+        Assert.Equal(SyntaxKind.ForwardSlash, tokenizer.NextToken().Kind);
+        Assert.Null(tokenizer.NextToken());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void IgnoringRazorTransitionsPreservesLeadingStars()
+    {
+        using var source = new SeekableTextReader("\n* @value", filePath: null);
+        using var tokenizer = new HtmlTokenizer(source) { IgnoreRazorTransitions = true };
+
+        Assert.Equal(SyntaxKind.NewLine, tokenizer.NextToken().Kind);
+        var star = tokenizer.NextToken();
+        Assert.Equal(SyntaxKind.Text, star.Kind);
+        Assert.Equal("*", star.Content);
+        Assert.Equal(SyntaxKind.Whitespace, tokenizer.NextToken().Kind);
+        var text = tokenizer.NextToken();
+        Assert.Equal(SyntaxKind.Text, text.Kind);
+        Assert.Equal("@value", text.Content);
+        Assert.Null(tokenizer.NextToken());
     }
 
     [Fact]

@@ -21650,216 +21650,815 @@ class Program
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
-        public void NullableAnalysis_90_Conversion()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_64_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_65_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_66_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_67_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(int i = 0) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_68_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_69_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = default;
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = default;
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_70_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    class Result<TSuccess, TFailure>
+    {
+        public object? Value => throw null!;
+        public Result(TSuccess x) => throw null!;
+        public Result(TFailure x) => throw null!;
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_71_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"", null => ""null"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_72_State_From_Call()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    U M1() => 42;
+
+    void M2()
+    {
+#line 100
+        M1().Value.ToString();
+    }
+
+    void M3()
+    {
+        U u = M1();
+#line 200
+        u.Value.ToString();
+    }
+}
+
+union U(string, int);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_73_State_From_Constructor()
         {
             var src = @"
 #nullable enable
 
-public union U(string, int);
+class C1 { public static implicit operator C1?(string s) => null; }
 
-public class C
+[System.Runtime.CompilerServices.Union]
+class S1
 {
-    public static void M()
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
     {
-        for (int i = 0; i < 1; i++)
-        {
+        var s = new S1("""");
 #line 100
-            U value = (string?)null;
-        }
-    }
+        _ = s.Value.ToString();
+    } 
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
-
-            comp.VerifyEmitDiagnostics(
-                // (100,23): warning CS8604: Possible null reference argument for parameter 'value' in 'U.U(string value)'.
-                //             U value = (string?)null;
-                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(string?)null").WithArguments("value", "U.U(string value)").WithLocation(100, 23)
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
                 );
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
-        public void NullableAnalysis_91_Conversion()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_74_State_From_Constructor()
         {
             var src = @"
 #nullable enable
 
-public union U(string?, int);
+class C1 { public static implicit operator C1(string? s) => new C1(); }
 
-public class C
+[System.Runtime.CompilerServices.Union]
+class S1
 {
-    static void M((string?, int) input)
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
     {
-        for (int i = 0; i < 1; i++)
-        {
+        var s = new S1((string?)null);
 #line 100
-            (U, int) value = input;
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_75_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1?(string s) => null; }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1 x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        var s = new S1("""");
+#line 150
+        _ = s.Value.ToString();
+    } 
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1(null);
+#line 250
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,24): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(C1 x)'.
+                //         var s = new S1("");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, @"""""").WithArguments("x", "S1.S1(C1 x)").WithLocation(100, 24),
+                // (150,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(150, 13),
+                // (200,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         var s = new S1(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(200, 24),
+                // (250,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(250, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_76_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1?(string s) => null; }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        S1 s = new("""");
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_77_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1(string? s) => new C1(); }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        S1 s = new((string?)null);
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86057")]
+        public void NullableAnalysis_78_State_From_Constructor_PostCondition()
+        {
+            var src = @"
+#nullable enable
+class C1
+{
+    public static implicit operator C1? (string s) => null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] C1? x)
+    {
+        if (x is null)
+            throw new System.ArgumentNullException(nameof(x));
+        Value = x;
+    }
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2(string? x)
+    {
+        var s = new S2(x);
+#line 200
+        _ = x.ToString();
+    }
+}
+
+class S2
+{
+    public S2([System.Diagnostics.CodeAnalysis.NotNull] C2? x)
+    {
+        if (x is null)
+            throw new System.ArgumentNullException(nameof(x));
+    }
+}
+
+class C2
+{
+    public static implicit operator C2? (string? s) => """";
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
+            // Diagnostic at line 100 is not expected, but it is expected at line 200 - https://github.com/dotnet/roslyn/issues/86057
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        public void NullableAnalysis_79_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+class C1
+{
+    public static implicit operator C1? (string s) => null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params C1?[]? x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
     }
 }
 ";
-            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
-
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
-        public void NullableAnalysis_92_Conversion_ValueState(bool assignNull)
-        {
-            var src = $$"""
- #nullable enable
- public union U(string?, int);
- public class C
- {
-     static void M()
-     {
-         string? source = "";
-         (string?, int) input = ("", 0);
-         for (int i = 0; i < 2; i++)
-         {
-             U direct = source;
-             (U, int) tuple = input;
- #line 100
-             direct.Value.ToString();
- #line 200
-             tuple.Item1.Value.ToString();
-             source = {{(assignNull ? "null" : "\"\"")}};
-             input.Item1 = source;
-         }
-     }
- }
- """;
-            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
-            if (assignNull)
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (100,13): warning CS8602: Dereference of a possibly null reference.
-                    //             direct.Value.ToString();
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "direct.Value").WithLocation(100, 13),
-                    // (200,13): warning CS8602: Dereference of a possibly null reference.
-                    //             tuple.Item1.Value.ToString();
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple.Item1.Value").WithLocation(200, 13)
-                    );
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics();
-            }
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
-        public void NullableAnalysis_93_Conversion_TuplePostCondition()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        public void NullableAnalysis_80_State_From_Constructor_Params()
         {
             var src = @"
- #nullable enable
- [System.Runtime.CompilerServices.Union]
- struct U
- {
-     public U(int value) => throw null!;
-     public U([System.Diagnostics.CodeAnalysis.NotNull] string? value) => throw null!;
-     public object? Value => throw null!;
- }
- class C
- {
-     static void M((string?, int) input)
-     {
-         for (int i = 0; i < 2; i++)
-         {
-             (U, int) value = input;
-             input.Item1.ToString();
-             input.Item1 = null;
-         }
-     }
- }
- ";
-            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Theory]
-        [CombinatorialData]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
-        public void NullableAnalysis_94_Conversion_NullableUnion_BackEdge(bool assignNull)
-        {
-            var src = $$"""
 #nullable enable
 
-public union U(string?, int);
-
-public class C
+[System.Runtime.CompilerServices.Union]
+class S1
 {
-    static void M()
+    public S1(params string?[]? x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
     {
-        string? source = "";
-        (string?, int) input = ("", 0);
-        for (int i = 0; i < 2; i++)
-        {
-            U? direct = source;
-            (U?, int) tuple = input;
+        var s = new S1("""");
 #line 100
-            direct.Value.Value.ToString();
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+        var s = new S1((string?)null);
 #line 200
-            tuple.Item1.Value.Value.ToString();
-            source = {{(assignNull ? "null" : "\"\"")}};
-            input.Item1 = source;
-        }
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+        var s = new S1();
+#line 300
+        _ = s.Value.ToString();
     }
 }
-""";
-            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
-
-            if (assignNull)
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (100,13): warning CS8602: Dereference of a possibly null reference.
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "direct.Value.Value").WithLocation(100, 13),
-                    // (200,13): warning CS8602: Dereference of a possibly null reference.
-                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "tuple.Item1.Value.Value").WithLocation(200, 13)
-                    );
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics();
-            }
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/86491")]
-        public void NullableAnalysis_95_Conversion_TupleMultipleElements()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86064")]
+        public void NullableAnalysis_81_State_From_Constructor_Params()
         {
-            var src = """
+            var src = @"
 #nullable enable
 
-public union U(string?, int?);
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
-public class C
+[System.Runtime.CompilerServices.Union]
+class S1
 {
-    static void M()
+    public S1(params MyCollection x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
     {
-        (string?, int?) input = ("", 0);
-        for (int i = 0; i < 2; i++)
-        {
-            (U, U) converted = input;
+#line 100
+        var s = new S1("""");
+#line 150
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1((string?)null);
+#line 250
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
 #line 300
-            converted.Item1.Value.ToString();
+        var s = new S1();
+#line 350
+        _ = s.Value.ToString();
+    }
+
+    static void Test4()
+    {
 #line 400
-            converted.Item2.Value.ToString();
-            input.Item1 = null;
-            input.Item2 = 1;
-        }
+        _ = new S1([""""]);
+#line 500
+        _ = new S1([null]);
+#line 600
+        _ = new S1([]);
     }
 }
-""";
-            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
-            comp.VerifyEmitDiagnostics(
-                // (300,13): warning CS8602: Dereference of a possibly null reference.
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "converted.Item1.Value").WithLocation(300, 13)
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    private readonly List<object?> _list;
+    public MyCollection(List<object?> list) { _list = list; }
+    public IEnumerator<object?> GetEnumerator() => _list.GetEnumerator();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection? Create(ReadOnlySpan<object?> items)
+    {
+        return new MyCollection(new List<object?>(items.ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
+
+            // Note, expecting warnings for lines 100, 150, 200, 250, 300, 350. Tracked by https://github.com/dotnet/roslyn/issues/86064
+            comp.VerifyDiagnostics(
+                // (400,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([""]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, @"[""""]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(400, 20),
+                // (500,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([null]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[null]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(500, 20),
+                // (600,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(600, 20)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86064")]
+        public void NullableAnalysis_82_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params MyCollection? x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+        var s = new S1((string?)null);
+#line 200
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+        var s = new S1();
+#line 300
+        _ = s.Value.ToString();
+    }
+}
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    private readonly List<object?> _list;
+    public MyCollection(List<object?> list) { _list = list; }
+    public IEnumerator<object?> GetEnumerator() => _list.GetEnumerator();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection? Create(ReadOnlySpan<object?> items)
+    {
+        return new MyCollection(new List<object?>(items.ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
+
+            // Note, expecting warnings for lines 100, 200, 300. Tracked by https://github.com/dotnet/roslyn/issues/86064
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_83_State_From_Conversion_Params()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params string?[] x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = """";
+#line 150
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+#line 200
+        S1 s = (string?)null;
+#line 250
+        _ = s.Value.ToString();
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            comp.VerifyDiagnostics(
+                // (100,16): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //         S1 s = "";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "S1").WithLocation(100, 16),
+                // (200,16): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //         S1 s = (string?)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string?)null").WithArguments("string", "S1").WithLocation(200, 16),
+                // (200,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         S1 s = (string?)null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string?)null").WithLocation(200, 16),
+                // (250,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(250, 13)
                 );
         }
 
@@ -25022,6 +25621,299 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_46_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_47_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_48_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_49_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(int i = 0) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_50_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_51_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = default;
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = default;
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_52_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    class Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
         }
 
@@ -47769,6 +48661,12 @@ union S1(System.ArgIterator, int);
             Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
             VerifyCaseTypes(comp, "S1", ["System.ArgIterator", "System.Int32"]);
 
+            comp.GetDeclarationDiagnostics().Verify(
+                // (100,10): error CS9371: Cannot convert type 'ArgIterator' to 'object' via an implicit reference or boxing conversion
+                // union S1(System.ArgIterator, int);
+                Diagnostic(ErrorCode.ERR_NoImplicitConversionToObject, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(100, 10)
+                );
+
             comp.VerifyEmitDiagnostics(
                 // (100,10): error CS9371: Cannot convert type 'ArgIterator' to 'object' via an implicit reference or boxing conversion
                 // union S1(System.ArgIterator, int);
@@ -48747,6 +49645,180 @@ union S2(int, bool)
             VerifyCaseTypes(comp, "S1", ["System.String"]);
             Assert.True(comp.GetTypeByMetadataName("S2").IsUnionType);
             VerifyCaseTypes(comp, "S2", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
+        public void UnionDeclaration_39()
+        {
+            var src1 = @"
+partial union S1(int, bool)
+{
+}
+";
+            var src2 = @"
+partial union S1
+{
+}
+";
+            var comp = CreateCompilation([(src1, "src1.cs"), (src2, "src2.cs"), UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86005")]
+        public void UnionDeclaration_40()
+        {
+            var src1 = @"
+partial union S1
+{
+}
+";
+            var src2 = @"
+partial union S1(int, bool)
+{
+}
+";
+            var comp = CreateCompilation([(src1, "src1.cs"), (src2, "src2.cs"), UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnionDeclaration_41()
+        {
+            var src1 = @"
+partial union S1(int, bool);
+";
+            var src2 = @"
+partial union S1;
+";
+            var comp = CreateCompilation([(src1, "src1.cs"), (src2, "src2.cs"), UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86005")]
+        public void UnionDeclaration_42()
+        {
+            var src1 = @"
+partial union S1;
+";
+            var src2 = @"
+partial union S1(int, bool);
+";
+            var comp = CreateCompilation([(src1, "src1.cs"), (src2, "src2.cs"), UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+
+            var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+
+            verifier.VerifyMethodBody("S1..ctor(int)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  // sequence point: <hidden>
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  box        ""int""
+  IL_0007:  stfld      ""object S1.<Value>k__BackingField""
+  // sequence point: int
+  IL_000c:  nop
+  IL_000d:  ret
+}
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86075")]
+        public void UnionDeclaration_43_Recursive()
+        {
+            var source = """
+union U1(U1, U2);
+union U2(U1, U2);
+""";
+
+            var comp = CreateEmptyCompilation(
+                [source, UnionAttributeSource, IUnionSource],
+                options: TestOptions.ReleaseDll.WithConcurrentBuild(false),
+                skipUsesIsNullable: true);
+
+            comp.GetDiagnostics();
+            VerifyCaseTypes(comp, "U1", ["U1", "U2"]);
+            VerifyCaseTypes(comp, "U2", ["U1", "U2"]);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86075")]
+        public void UnionDeclaration_44_Recursive()
+        {
+            var source = """
+union U1(U1, U2);
+union U2(U1, U2);
+""";
+
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource]);
+            comp.MakeTypeMissing(SpecialType.System_Object);
+            VerifyCaseTypes(comp, "U1", ["U1", "U2"]);
+            VerifyCaseTypes(comp, "U2", ["U1", "U2"]);
         }
 
         [Fact]

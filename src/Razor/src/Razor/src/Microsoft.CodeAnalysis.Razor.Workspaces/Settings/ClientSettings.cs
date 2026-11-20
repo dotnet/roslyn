@@ -34,6 +34,7 @@ internal record ClientSettings(
             TabSize = ClientSpaceSettings.IndentSize,
             CodeBlockBraceOnNextLine = AdvancedSettings.CodeBlockBraceOnNextLine,
             AttributeIndentStyle = AdvancedSettings.AttributeIndentStyle,
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = AdvancedSettings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
         };
 }
 
@@ -58,6 +59,7 @@ internal sealed record ClientAdvancedSettings(
     [property: JsonPropertyName("colorBackground")] bool ColorBackground,
     [property: JsonPropertyName("codeBlockBraceOnNextLine")] bool CodeBlockBraceOnNextLine,
     [property: JsonPropertyName("attributeIndentStyle")] AttributeIndentStyle AttributeIndentStyle,
+    [property: JsonPropertyName("ignoreIndentationInScriptOrStyleBlocksWithComplexRazor")] bool IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
     [property: JsonPropertyName("commitElementsWithSpace")] bool CommitElementsWithSpace,
     [property: JsonPropertyName("snippetSetting")] SnippetSetting SnippetSetting,
     [property: JsonPropertyName("logLevel")] LogLevel LogLevel,
@@ -71,6 +73,7 @@ internal sealed record ClientAdvancedSettings(
                                                                 ColorBackground: false,
                                                                 CodeBlockBraceOnNextLine: false,
                                                                 AttributeIndentStyle: AttributeIndentStyle.AlignWithFirst,
+                                                                IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor: true,
                                                                 CommitElementsWithSpace: true,
                                                                 SnippetSetting.All,
                                                                 LogLevel.Warning,
@@ -87,6 +90,7 @@ internal sealed record ClientAdvancedSettings(
             ColorBackground == other.ColorBackground &&
             CodeBlockBraceOnNextLine == other.CodeBlockBraceOnNextLine &&
             AttributeIndentStyle == other.AttributeIndentStyle &&
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor == other.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor &&
             CommitElementsWithSpace == other.CommitElementsWithSpace &&
             SnippetSetting == other.SnippetSetting &&
             LogLevel == other.LogLevel &&
@@ -104,6 +108,7 @@ internal sealed record ClientAdvancedSettings(
         hash.Add(ColorBackground);
         hash.Add(CodeBlockBraceOnNextLine);
         hash.Add(AttributeIndentStyle);
+        hash.Add(IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
         hash.Add(CommitElementsWithSpace);
         hash.Add(SnippetSetting);
         hash.Add(LogLevel);

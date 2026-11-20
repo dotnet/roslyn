@@ -5023,9 +5023,9 @@ class C
                 // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // global using unsafe X = int*;
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 14),
-                // (4,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe X Goo() => default;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo").WithLocation(4, 14));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(4, 5));
         }
 
         [Fact]
@@ -5060,7 +5060,7 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (4,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     X Goo() => default;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "X").WithLocation(4, 5));
@@ -5083,7 +5083,7 @@ class C
 }
 ";
 
-            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(new[] { source1, source2 }, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (2,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // global using X = int*;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 18));

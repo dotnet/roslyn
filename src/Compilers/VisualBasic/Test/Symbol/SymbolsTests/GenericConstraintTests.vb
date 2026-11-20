@@ -13,6 +13,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class GenericConstraintTests
         Inherits BasicTestBase
 
+        <Theory>
+        <InlineData(False)>
+        <InlineData(True)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/85937")>
+        Public Sub TypeParameterInterfaces(fromMetadata As Boolean)
+            Dim compilation = CompilationUtils.CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Interface IA
+End Interface
+Public Interface IB
+    Inherits IA
+End Interface
+Public Interface IG(Of T)
+End Interface
+Public Class Base
+    Implements IB
+End Class
+Public Class C(Of TNone, TDirect As IA, TExtends As IB, TIndirect As TExtends, TClass As Base, TGeneric As IG(Of Integer), TStruct As {Structure, IA})
+End Class
+    </file>
+</compilation>)
+            compilation.VerifyEmitDiagnostics()
+            If fromMetadata Then
+                compilation = CompilationUtils.CreateCompilation(
+<compilation></compilation>, references:={compilation.EmitToImageReference()})
+            End If
+
+            Dim publicCompilation As Compilation = compilation
+            Dim type = publicCompilation.GetTypeByMetadataName("C`7")
+            Dim expectedConstraints = {"", "IA", "IB", "TExtends", "Base", "IG(Of Integer)", "IA"}
+            Assert.Equal(expectedConstraints.Length, type.TypeParameters.Length)
+            For i = 0 To type.TypeParameters.Length - 1
+                Dim parameter As ITypeParameterSymbol = type.TypeParameters(i)
+                Assert.Null(parameter.BaseType)
+                Assert.Empty(parameter.Interfaces)
+                Assert.Empty(parameter.AllInterfaces)
+                Assert.Equal(expectedConstraints(i), String.Join(", ", parameter.ConstraintTypes.Select(Function(t) t.ToDisplayString())))
+            Next
+
+            Assert.True(type.TypeParameters(6).HasValueTypeConstraint)
+            AssertEx.Equal({"IA"}, publicCompilation.GetTypeByMetadataName("IB").AllInterfaces.Select(Function(t) t.ToDisplayString()))
+            AssertEx.Equal({"IB", "IA"}, publicCompilation.GetTypeByMetadataName("Base").AllInterfaces.Select(Function(t) t.ToDisplayString()))
+        End Sub
+
         <Fact()>
         Public Sub ConstraintWithContainingType()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(

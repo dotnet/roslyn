@@ -48,7 +48,7 @@
 | `/reportanalyzer` | Report additional analyzer information, such as execution time.
 | **LANGUAGE**
 | `/checked`{`+`&#124;`-`} | Generate overflow checks
-| `/unsafe`{`+`&#124;`-`} | Allow 'unsafe' code
+| `/unsafe`{`+`&#124;`-`} | Allow 'unsafe' code and 'safe' modifiers
 | `/define:`*symbol list* | Define conditional compilation symbol(s) (Short form: `/d`)
 | `/langversion:?` | Display the allowed values for language version
 | `/langversion`:*string* | Specify language version such as `default` (latest major version), or `latest` (latest version, including minor versions)

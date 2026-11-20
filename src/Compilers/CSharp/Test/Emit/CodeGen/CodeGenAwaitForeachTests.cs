@@ -2720,7 +2720,7 @@ unsafe class C
         public int* Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
                 // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await foreach (var i in new C())
@@ -4277,7 +4277,7 @@ class C
                 ILVerifyMessage = """
                     [Main]: Return value missing on the stack. { Offset = 0x8c }
                     [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x65, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<bool>' }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                     """
             });
             verifier.VerifyIL("C.Main()", """
@@ -14407,8 +14407,8 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
-                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                         """
                 });
                 verifier.VerifyIL("C.Main()", """
@@ -14544,8 +14544,8 @@ struct AsyncEnumerator : IAsyncDisposable
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
-                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                         """
                 });
                 verifier.VerifyIL("C.Main()", """
@@ -14683,8 +14683,8 @@ struct AsyncEnumerator : IAsyncEnumerator<int>
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x61 }
-                        [System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-                        [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        [System.Collections.Generic.IAsyncEnumerator<System.Int32>.MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                        [System.IAsyncDisposable.DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                         """
                 });
                 verifier.VerifyIL("C.Main()", """
@@ -14879,8 +14879,8 @@ struct AsyncEnumerator : IAsyncEnumerator<(int, int)>
                 {
                     ILVerifyMessage = """
                         [Main]: Return value missing on the stack. { Offset = 0x5b }
-                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x25, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
-                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x2e }
+                        [MoveNextAsync]: Unexpected type on the stack. { Offset = 0x2c, Found = Int32, Expected = value '[System.Runtime]System.Threading.Tasks.ValueTask`1<bool>' }
+                        [DisposeAsync]: Return value missing on the stack. { Offset = 0x35 }
                         """
                 });
                 verifier.VerifyIL("C.Main()", """

@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Library is consumed by the server (and source-linked into Tasks); not packaged on its own. -->
-    <IsPackable>false</IsPackable>
-    <IsTrimmable>true</IsTrimmable>
+    <!-- Library is consumed by DevKit (and source-linked into Tasks) so it must be AOT/trim-ready. -->
+    <IsPackable>true</IsPackable>
+    <IsAotCompatible>true</IsAotCompatible>
     <!-- Keep additions and removals from the shared public contract intentional in all configurations. -->
     <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017</WarningsAsErrors>
     <!-- Preserve mirrored overload, parameter-ordering, and unused-public-parameter shapes without inline suppressions that would diverge shared sources. -->
@@ -21,8 +21,15 @@
     <Analyzer Include="$(PkgSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" />
 
     <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
-    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.UnitTests" Key="$(VsPublicKey)" />
-    <InternalsVisibleTo Include="CSDevKit.Tests" Key="$(VsPublicKey)" />
+
+    <!-- CDK uses the same project-data-schema.json for code gen in the extension. -->
+    <None Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" Pack="true" PackagePath="schema\project-data-schema.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.Tasks.UnitTests" />
+    <InternalsVisibleTo Include="CSDevKit" Key="$(VisualStudioKey)" />
   </ItemGroup>
 
   <ItemGroup>

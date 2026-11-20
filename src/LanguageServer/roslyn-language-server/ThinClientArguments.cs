@@ -41,7 +41,7 @@ internal sealed class ThinClientArguments
         EditorTransportKind? editorTransportKind = null;
         string? editorPipeName = null;
         int? clientProcessId = null;
-        string? telemetryLevel = null;
+        var telemetryLevel = "all";
         var serverArguments = new List<string>(args.Length);
 
         for (var i = 0; i < args.Length; i++)

@@ -47,7 +47,24 @@ internal readonly struct ProjectInstanceReader
 
     public ProjectFileInfo CreateProjectFileInfo()
     {
-        var commandLineArgs = TryGetCommandLineArgs(_projectInstance);
+        var commandLineArgs = _commandLineProvider?.GetCompilerCommandLineArgs(_projectInstance)
+            .Select(item => item.ItemSpec)
+            .ToArray() ?? [];
+        MetadataReferenceItem[]? metadataReferences = null;
+        string[]? analyzerReferences = null;
+
+        // If the compiler didn't provide arguments, pass references separately and recover
+        // the remaining options from the evaluated project.
+        if (commandLineArgs.Length == 0)
+        {
+            var projectInstance = _projectInstance;
+            metadataReferences = projectInstance.GetMetadataReferences().ToArray();
+            analyzerReferences = projectInstance.GetAnalyzers()
+                .Select(static item => item.ItemSpec)
+                .Select(GetAbsolutePathRelativeToProject)
+                .ToArray();
+            commandLineArgs = _commandLineProvider?.ReadCommandLineArgs(projectInstance) ?? [];
+        }
 
         var outputFilePath = _projectInstance.ReadPropertyString(PropertyNames.TargetPath);
         if (!RoslynString.IsNullOrWhiteSpace(outputFilePath))
@@ -106,9 +123,6 @@ internal readonly struct ProjectInstanceReader
 
         var packageReferences = _projectInstance.GetPackageReferences();
 
-        // Do not pass metadata references if we have command line args that already specify them.
-        var metadataReferences = commandLineArgs.Length == 0 ? _projectInstance.GetMetadataReferences().ToArray() : [];
-
         var projectCapabilities = _projectInstance.GetItems(ItemNames.ProjectCapability).Select(item => item.ToString()).ToArray();
         var contentFileInfo = GetContentFiles(_projectInstance);
         var codePage = _projectInstance.ReadCodePage();
@@ -142,6 +156,7 @@ internal readonly struct ProjectInstanceReader
             ProjectReferences = [.. _projectInstance.GetProjectReferences()],
             PackageReferences = packageReferences,
             MetadataReferences = metadataReferences,
+            AnalyzerReferences = analyzerReferences,
             CodePage = codePage,
             ChecksumAlgorithm = checksumAlgorithm,
             ProjectCapabilities = projectCapabilities,
@@ -165,29 +180,6 @@ internal readonly struct ProjectInstanceReader
             .Select(item => item.GetMetadataValue(MetadataNames.FullPath))
             .ToArray();
         return contentFiles;
-    }
-
-    private string[] TryGetCommandLineArgs(MSB.Execution.ProjectInstance project)
-    {
-        if (_commandLineProvider == null)
-        {
-            return [];
-        }
-
-        var commandLineArgs = _commandLineProvider.GetCompilerCommandLineArgs(project)
-            .Select(item => item.ItemSpec)
-            .ToArray();
-
-        if (commandLineArgs.Length == 0)
-        {
-            // We didn't get any command-line args, which likely means that the build
-            // was not successful. In that case, try to read the command-line args from
-            // the ProjectInstance that we have. This is a best effort to provide something
-            // meaningful for the user, though it will likely be incomplete.
-            commandLineArgs = _commandLineProvider.ReadCommandLineArgs(project);
-        }
-
-        return commandLineArgs;
     }
 
     private static bool IsNotTemporaryGeneratedFile(MSB.Framework.ITaskItem item)

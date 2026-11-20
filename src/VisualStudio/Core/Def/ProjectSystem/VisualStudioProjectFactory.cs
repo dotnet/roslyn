@@ -125,6 +125,6 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
             ProjectGuid = projectGuid,
         };
         var visualStudioProject = await this.CreateAndAddToWorkspaceAsync(projectSystemName, language, projectInfo, cancellationToken).ConfigureAwait(false);
-        return new VSTypeScriptVisualStudioProjectWrapper(visualStudioProject);
+        return new VSTypeScriptVisualStudioProjectWrapper(visualStudioProject, _visualStudioWorkspaceImpl);
     }
 }

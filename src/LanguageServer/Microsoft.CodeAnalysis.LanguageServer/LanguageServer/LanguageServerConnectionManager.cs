@@ -24,6 +24,20 @@ internal sealed class LanguageServerConnectionManager
     public long ConnectionsAccepted => Interlocked.Read(ref _connectionsAccepted);
 
     /// <summary>
+    /// The number of servers currently registered (starting or running).
+    /// </summary>
+    public int ActiveConnections
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _servers.Length;
+            }
+        }
+    }
+
+    /// <summary>
     /// Runs an independent language server for each connection yielded by <paramref name="connectionSource"/>.
     /// A <see cref="SingleLanguageServerConnectionSource"/> yields exactly one connection and then completes, so
     /// this returns once that server exits. The daemon listener yields connections until its internally managed idle

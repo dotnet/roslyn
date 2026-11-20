@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                   MakeModifiersAndFlags(
                       containingType, syntax, methodKind, isNullableAnalysisEnabled, syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer, location, diagnostics, out bool modifierErrors, out bool report_ERR_StaticConstructorWithAccessModifiers))
         {
-            this.CheckUnsafeModifier(DeclarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(DeclarationModifiers, diagnostics, syntax.Modifiers);
 
             if (report_ERR_StaticConstructorWithAccessModifiers)
             {
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
         internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
-        internal sealed override bool CanBeCallerUnsafe => MethodKind != MethodKind.StaticConstructor;
+        internal sealed override bool CanRequireUnsafe => MethodKind != MethodKind.StaticConstructor;
 
         protected override bool AllowRefOrOut
         {

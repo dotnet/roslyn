@@ -161,7 +161,7 @@ public sealed class AsyncPriorityWorkQueueTests
     [InlineData(2, 0)]
     [InlineData(0, 0)]
     [InlineData(2, 2)]
-    public async Task ChangePriorityMovesScheduledItemWithoutDuplicating(int originalPriority, int newPriority)
+    public async Task RaisePriorityDoesNotLowerScheduledItem(int originalPriority, int newPriority)
     {
         var processed = new List<string>();
         var listener = new AsynchronousOperationListener();
@@ -174,15 +174,16 @@ public sealed class AsyncPriorityWorkQueueTests
 
         queue.AddWork("item", originalPriority);
         queue.AddWork("middle", priority: 1);
-        queue.ChangeWorkPriorityIfScheduled("item", newPriority);
+        queue.RaiseWorkPriorityIfScheduled("item", newPriority);
 
         await listener.ExpeditedWaitAsync();
 
-        Assert.Equal(newPriority > 1 ? new[] { "item", "middle" } : new[] { "middle", "item" }, processed);
+        var effectivePriority = Math.Max(originalPriority, newPriority);
+        Assert.Equal(effectivePriority > 1 ? new[] { "item", "middle" } : new[] { "middle", "item" }, processed);
     }
 
     [Fact]
-    public async Task ChangePriorityUsesEqualityComparer()
+    public async Task RaisePriorityUsesEqualityComparer()
     {
         var processed = new List<string>();
         var listener = new AsynchronousOperationListener();
@@ -193,17 +194,17 @@ public sealed class AsyncPriorityWorkQueueTests
             equalityComparer: StringComparer.OrdinalIgnoreCase,
             asyncListener: listener);
 
-        queue.AddWork("item", priority: 3);
+        queue.AddWork("item", priority: 0);
         queue.AddWork("middle", priority: 1);
-        queue.ChangeWorkPriorityIfScheduled("ITEM", newPriority: 0);
+        queue.RaiseWorkPriorityIfScheduled("ITEM", newPriority: 3);
 
         await listener.ExpeditedWaitAsync();
 
-        Assert.Equal(new[] { "middle", "item" }, processed, StringComparer.OrdinalIgnoreCase);
+        Assert.Equal(new[] { "item", "middle" }, processed, StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public async Task ChangePriorityDoesNotScheduleAbsentItem()
+    public async Task RaisePriorityDoesNotScheduleAbsentItem()
     {
         var processed = new List<string>();
         var callbackCount = 0;
@@ -219,12 +220,12 @@ public sealed class AsyncPriorityWorkQueueTests
             equalityComparer: EqualityComparer<string>.Default,
             asyncListener: listener);
 
-        queue.ChangeWorkPriorityIfScheduled("absent", newPriority: 3);
+        queue.RaiseWorkPriorityIfScheduled("absent", newPriority: 3);
         await listener.ExpeditedWaitAsync();
         Assert.Equal(0, callbackCount);
 
         queue.AddWork("scheduled", priority: 0);
-        queue.ChangeWorkPriorityIfScheduled("absent", newPriority: 3);
+        queue.RaiseWorkPriorityIfScheduled("absent", newPriority: 3);
         await listener.ExpeditedWaitAsync();
 
         Assert.Equal(1, callbackCount);
@@ -234,7 +235,7 @@ public sealed class AsyncPriorityWorkQueueTests
     [Theory]
     [InlineData(-1)]
     [InlineData(4)]
-    public void ChangePriorityRejectsOutOfRangePriority(int newPriority)
+    public void RaisePriorityRejectsOutOfRangePriority(int newPriority)
     {
         using var queue = new AsyncPriorityWorkQueue<int>(
             maximumPriority: 3,
@@ -243,11 +244,11 @@ public sealed class AsyncPriorityWorkQueueTests
             equalityComparer: EqualityComparer<int>.Default,
             asyncListener: AsynchronousOperationListenerProvider.NullListener);
 
-        Assert.Throws<ArgumentOutOfRangeException>("newPriority", () => queue.ChangeWorkPriorityIfScheduled(1, newPriority));
+        Assert.Throws<ArgumentOutOfRangeException>("newPriority", () => queue.RaiseWorkPriorityIfScheduled(1, newPriority));
     }
 
     [Fact]
-    public async Task ChangePriorityAfterDisposeDoesNotRun()
+    public async Task RaisePriorityAfterDisposeDoesNotRun()
     {
         var processed = false;
         var listener = new AsynchronousOperationListener();
@@ -260,7 +261,7 @@ public sealed class AsyncPriorityWorkQueueTests
 
         queue.AddWork(1, priority: 0);
         queue.Dispose();
-        queue.ChangeWorkPriorityIfScheduled(1, newPriority: 3);
+        queue.RaiseWorkPriorityIfScheduled(1, newPriority: 3);
 
         await listener.ExpeditedWaitAsync();
 

@@ -6039,6 +6039,22 @@ public sealed class FormattingTests : CSharpFormattingTestBase
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85982")]
+    public Task FormatSwitchExpression_EmptyBlockLambdaDoesNotMoveCommaToNextLine()
+        => AssertNoFormattingChangesAsync("""
+            class C
+            {
+                void M()
+                {
+                    _ = this switch
+                    {
+                        1 => () => { },
+                        _ => () => { }
+                    };
+                }
+            }
+            """);
+
     [Fact]
     public Task FormatSwitchExpression_ArmCommaPreservesLines()
         => AssertFormatAsync("""

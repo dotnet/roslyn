@@ -131,9 +131,10 @@ internal partial class CodeGenerator
                 return true;
 
             case BoundKind.Call:
-                var methodRefKind = ((BoundCall)expression).Method.RefKind;
-                return methodRefKind == RefKind.Ref ||
-                       (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
+                return callHasHome(addressKind, ((BoundCall)expression).Method.RefKind);
+
+            case BoundKind.FunctionPointerInvocation:
+                return callHasHome(addressKind, ((BoundFunctionPointerInvocation)expression).FunctionPointer.Signature.RefKind);
 
             case BoundKind.Dup:
                 //NB: Dup represents locals that do not need IL slot
@@ -174,9 +175,16 @@ internal partial class CodeGenerator
                 return lhsRefKind == RefKind.Ref ||
                     (IsAnyReadOnly(addressKind) && lhsRefKind is RefKind.RefReadOnly or RefKind.RefReadOnlyParameter);
 
-            case BoundKind.RefArrayAccess:
-                var right = (BoundRefArrayAccess)expression;
-                return HasHome(right.ArrayAccess, AddressKind.Writeable, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
+            case BoundKind.RefAccess:
+                var right = (BoundRefAccess)expression;
+
+                if (!IsAnyReadOnly(addressKind) && right.RefKind is (RefKind.RefReadOnly or RefKindExtensions.StrictIn))
+                {
+                    Debug.Assert(false, "Please add a unit-test that observes effect of this code path.");
+                    return false;
+                }
+
+                return HasHome(right.Expression, RefAssignmentValueAddressKind(right.RefKind), containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
 
             case BoundKind.ComplexConditionalReceiver:
                 Debug.Assert(HasHome(
@@ -215,6 +223,12 @@ internal partial class CodeGenerator
 
             default:
                 return false;
+        }
+
+        static bool callHasHome(AddressKind addressKind, RefKind methodRefKind)
+        {
+            return methodRefKind == RefKind.Ref ||
+                   (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
         }
     }
 

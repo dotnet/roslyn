@@ -12078,7 +12078,7 @@ namespace System.Reflection
             var expectedIL =
 @"
 {
-  // Code size       30 (0x1e)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (System.ReadOnlySpan<char> V_0,
                 int V_1)
@@ -12086,20 +12086,21 @@ namespace System.Reflection
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
   IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0013
+  IL_0004:  br.s       IL_0014
   IL_0006:  ldloca.s   V_0
   IL_0008:  ldloc.1
   IL_0009:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-  IL_000e:  pop
-  IL_000f:  ldloc.1
-  IL_0010:  ldc.i4.1
-  IL_0011:  add
-  IL_0012:  stloc.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  call       ""int System.ReadOnlySpan<char>.Length.get""
-  IL_001b:  blt.s      IL_0006
-  IL_001d:  ret
+  IL_000e:  ldind.u2
+  IL_000f:  pop
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.1
+  IL_0012:  add
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_001c:  blt.s      IL_0006
+  IL_001e:  ret
 }
 ";
 
@@ -12277,28 +12278,29 @@ namespace System.Reflection
             var expectedIL =
         @"
 {
-  // Code size       30 (0x1e)
+  // Code size       31 (0x1f)
   .maxstack  2
   .locals init (System.Span<char> V_0,
-                int V_1)
+            int V_1)
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldc.i4.0
   IL_0003:  stloc.1
-  IL_0004:  br.s       IL_0013
+  IL_0004:  br.s       IL_0014
   IL_0006:  ldloca.s   V_0
   IL_0008:  ldloc.1
   IL_0009:  call       ""ref char System.Span<char>.this[int].get""
-  IL_000e:  pop
-  IL_000f:  ldloc.1
-  IL_0010:  ldc.i4.1
-  IL_0011:  add
-  IL_0012:  stloc.1
-  IL_0013:  ldloc.1
-  IL_0014:  ldloca.s   V_0
-  IL_0016:  call       ""int System.Span<char>.Length.get""
-  IL_001b:  blt.s      IL_0006
-  IL_001d:  ret
+  IL_000e:  ldind.u2
+  IL_000f:  pop
+  IL_0010:  ldloc.1
+  IL_0011:  ldc.i4.1
+  IL_0012:  add
+  IL_0013:  stloc.1
+  IL_0014:  ldloc.1
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  call       ""int System.Span<char>.Length.get""
+  IL_001c:  blt.s      IL_0006
+  IL_001e:  ret
 }
 ";
 

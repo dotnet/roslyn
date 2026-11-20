@@ -10820,7 +10820,7 @@ public struct Buffer2<T>
     IL_0058:  stfld      "C Program.<Produce>d__1.<>s__4"
     IL_005d:  ldarg.0
     IL_005e:  ldfld      "C Program.<Produce>d__1.<>s__4"
-    IL_0063:  ldfld      "Buffer2<int> C.F"
+    IL_0063:  ldflda     "Buffer2<int> C.F"
     IL_0068:  pop
     IL_0069:  ldarg.0
     IL_006a:  ldc.i4.0

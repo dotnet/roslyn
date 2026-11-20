@@ -145,6 +145,7 @@ internal sealed class HelixTestRunner
             options.HelixQueueName,
             options.ArtifactsDirectory,
             payloadsDir,
+            options.EnvironmentVariables,
             timeout);
 
         var helixFilePath = Path.Combine(options.ArtifactsDirectory, "helix.proj");
@@ -224,6 +225,7 @@ internal sealed class HelixTestRunner
         string helixQueueName,
         string artifactsDir,
         string payloadsDir,
+        Dictionary<string, string> environmentVariables,
         TimeSpan timeout)
     {
         // Setup the environment variables that are required for the helix project.
@@ -267,7 +269,7 @@ internal sealed class HelixTestRunner
 
         foreach (var helixWorkItem in helixWorkItems)
         {
-            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS, timeout);
+            AppendHelixWorkItemProject(builder, helixWorkItem, platform, artifactsDir, payloadsDir, testOS, environmentVariables, timeout);
         }
 
         builder.AppendLine("""
@@ -289,6 +291,7 @@ internal sealed class HelixTestRunner
             string artifactsDir,
             string payloadsDir,
             TestOS testOS,
+            Dictionary<string, string> environmentVariables,
             TimeSpan timeout)
         {
             var isUnix = testOS != TestOS.Windows;
@@ -328,7 +331,7 @@ internal sealed class HelixTestRunner
                 path: Path.Combine(workItemPayloadDir, "NuGet.config"),
                 pathToTarget: Path.Combine(artifactsDir, "..", "NuGet.config"));
 
-            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS);
+            var (commandFileName, commandContent) = GetHelixCommandContent(assemblyRelativeFilePaths, rspFileName, testOS, environmentVariables);
             File.WriteAllText(Path.Combine(workItemPayloadDir, commandFileName), commandContent);
 
             var (postCommandFileName, postCommandContent) = GetHelixPostCommandContent(testOS);
@@ -349,7 +352,8 @@ internal sealed class HelixTestRunner
         static (string FileName, string Content) GetHelixCommandContent(
             IEnumerable<string> assemblyRelativeFilePaths,
             string vstestRspFileName,
-            TestOS testOS)
+            TestOS testOS,
+            Dictionary<string, string> environmentVariables)
         {
             var isUnix = testOS != TestOS.Windows;
             var isMac = testOS == TestOS.Mac;
@@ -361,19 +365,9 @@ internal sealed class HelixTestRunner
             command.AppendLine(isUnix ? $"ls -l" : $"dir");
             command.AppendLine("dotnet --info");
 
-            string[] knownEnvironmentVariables =
-            [
-                IOperationEnvironmentVariable,
-                UsedAssembliesEnvironmentVariable,
-                RuntimeAsyncEnvironmentVariable
-            ];
-
-            foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
+            foreach (var (key, value) in environmentVariables)
             {
-                if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string { Length: > 0 } value)
-                {
-                    command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}={value}");
-                }
+                command.AppendLine($"{setEnvironmentVariable} {key}={value}");
             }
 
             // OSX produces extremely large dump files that commonly exceed the limits of Helix 
@@ -484,7 +478,7 @@ internal sealed class HelixTestRunner
         {
             TestRuntime.Core => "CoreClr",
             TestRuntime.Framework => "Desktop",
-            TestRuntime.Both => "Both",
+            TestRuntime.Core | TestRuntime.Framework => "Both",
             _ => throw new ArgumentOutOfRangeException(nameof(options.TestRuntime)),
         };
 
@@ -503,7 +497,7 @@ internal sealed class HelixTestRunner
 
         void AddEnvironmentVariableToken(string environmentVariable, string token)
         {
-            if (Environment.GetEnvironmentVariable(environmentVariable) is { Length: > 0 })
+            if (options.EnvironmentVariables.TryGetValue(environmentVariable, out var value) && value.Length > 0)
             {
                 nameParts.Add(token);
             }

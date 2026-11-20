@@ -22,7 +22,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup Label="PkgDef">
-    <!-- Cannot load in background until the VisualBasicPackage constructor has no more UI dependencies -->
     <Content Include="Microsoft.VisualStudio.LanguageServices.VisualBasic.Extra.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup Label="Project References">

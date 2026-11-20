@@ -30,6 +30,8 @@ internal sealed class Descriptors
 
     // Descriptors for local services.
 
+    private static readonly ServiceRegistration s_serviceRegistration = new(ServiceAudience.Local, profferingPackageId: null, allowGuestClients: false);
+
     /// <summary>
     /// The set of remote services that we register to our container.
     /// </summary>
@@ -39,26 +41,27 @@ internal sealed class Descriptors
     /// </remarks>
     public static ImmutableDictionary<ServiceMoniker, ServiceRegistration> RemoteServicesToRegister = new Dictionary<ServiceMoniker, ServiceRegistration>
     {
-        { RemoteModelService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { RemoteProjectInitializationStatusService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.SolutionSnapshotProvider.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { RemoteModelService.Moniker, s_serviceRegistration },
+        { RemoteProjectInitializationStatusService.Moniker, s_serviceRegistration },
+        { BrokeredServiceDescriptors.SolutionSnapshotProvider.Moniker, s_serviceRegistration },
+
+        // Hot Reload services:
+        { new("Microsoft.VisualStudio.HotReload.HotReloadEventSubscriber", new Version(3, 0)), s_serviceRegistration },
+        { new("Microsoft.VisualStudio.HotReload.ManagedHotReloadUpdatesProviderRegistration", new Version(3, 0)), s_serviceRegistration },
+        { new("Microsoft.VisualStudio.HotReload.ManagedHotReloadState", new Version(3, 0)), s_serviceRegistration },        
 
         // TODO: https://github.com/dotnet/roslyn/issues/84158
         // Registered so the XAML diagnostics component in the C# extension for VS Code can call them.
-        { new("Microsoft.VisualStudio.Debugger.HotReloadSessionNotificationService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { new("Microsoft.VisualStudio.Debugger.ManagedHotReloadAgentManagerService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { new("Microsoft.VisualStudio.Debugger.GenericHotReloadAgentManagerService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { new("Microsoft.VisualStudio.Debugger.HotReloadOptionService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { new("Microsoft.VisualStudio.Maui.MauiLaunchCustomizerService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { new("Microsoft.VisualStudio.WebTools.CssVisualDiagnosticsService", new(0, 1)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { new("Microsoft.VisualStudio.HotReload.ProjectHotReloadSession", new(2, 0)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { new("Microsoft.VisualStudio.HotReload.ProcessTrackingService", new(2, 0)), new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { new("Microsoft.VisualStudio.HotReload.ProcessTrackingService", new Version(3, 0)), s_serviceRegistration },
+        { new("Microsoft.VisualStudio.HotReload.ProjectHotReloadSession", new Version(3, 0)), s_serviceRegistration },
+        { new("Microsoft.VisualStudio.Debugger.HotReloadOptionService", new(0, 1)), s_serviceRegistration },
+        { new("Microsoft.VisualStudio.Maui.MauiLaunchCustomizerService", new(0, 1)), s_serviceRegistration },
+        { new("Microsoft.VisualStudio.WebTools.CssVisualDiagnosticsService", new(0, 1)), s_serviceRegistration },
 
-        { BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.DebuggerSymbolLocatorService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.DebuggerSourceLinkService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
-        { BrokeredServiceDescriptors.ProjectSystemQueryExecutionService.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) },
+        { BrokeredServiceDescriptors.HotReloadLoggerServiceLegacy.Moniker, s_serviceRegistration },
+        { BrokeredServiceDescriptors.DebuggerSymbolLocatorService.Moniker, s_serviceRegistration },
+        { BrokeredServiceDescriptors.DebuggerSourceLinkService.Moniker, s_serviceRegistration },
+        { BrokeredServiceDescriptors.ProjectSystemQueryExecutionService.Moniker, s_serviceRegistration },
     }.ToImmutableDictionary();
 
     public static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker serviceMoniker) => new(

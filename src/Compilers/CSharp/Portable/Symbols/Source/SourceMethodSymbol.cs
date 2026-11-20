@@ -119,28 +119,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Whether the method can require callers to be in an unsafe context
-        /// (i.e., can have <see cref="CallerUnsafeMode.Explicit"/>).
+        /// (i.e., can have <see cref="RequiresUnsafeMode.Explicit"/>).
         /// </summary>
-        internal abstract bool CanBeCallerUnsafe { get; }
+        internal abstract bool CanRequireUnsafe { get; }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(fieldsBeingBound) != CallerUnsafeMode.Implicit);
+                Debug.Assert(AssociatedSymbol?.GetRequiresUnsafeMode(fieldsBeingBound) != RequiresUnsafeMode.Implicit);
 
-                if (!CanBeCallerUnsafe)
+                if (!CanRequireUnsafe)
                 {
-                    return CallerUnsafeMode.None;
+                    return RequiresUnsafeMode.None;
                 }
 
-                return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.GetCallerUnsafeMode(fieldsBeingBound) == CallerUnsafeMode.Explicit)
-                    ? CallerUnsafeMode.Explicit
-                    : CallerUnsafeMode.None;
+                return HasUnsafeModifier || (!HasSafeModifier && AssociatedSymbol?.GetRequiresUnsafeMode(fieldsBeingBound) == RequiresUnsafeMode.Explicit)
+                    ? RequiresUnsafeMode.Explicit
+                    : RequiresUnsafeMode.None;
             }
 
             return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer()
-                ? CallerUnsafeMode.Implicit : CallerUnsafeMode.None;
+                ? RequiresUnsafeMode.Implicit : RequiresUnsafeMode.None;
         }
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = target.DeclaringCompilation;
 
-            if (target.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+            if (target.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.TrySynthesizeRequiresUnsafeAttribute());
             }
