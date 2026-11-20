@@ -15529,15 +15529,293 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
             expected: """
                 <div>
                     <button @onclick="() =>
-                                          {
-                                              Show(1);
-                                          }"
+                                      {
+                                          Show(1);
+                                      }"
                             class="x">
                         y
                     </button>
                 </div>
                 """,
             fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86427")]
+    public async Task MultilineBlockBodiedLambdaInDirectiveAttribute_DoesNotMoveWhenFormatted()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                            class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86427")]
+    public async Task MultilineBlockBodiedLambdaInDirectiveAttribute_ContentOnOwnLines_DoesNotMoveWhenFormatted()
+    {
+        var code = """
+            <div>
+                <button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                        class="x">
+                    y
+                </button>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86427")]
+    public async Task MultilineBlockBodiedLambdaInDirectiveAttribute_MovesWithTag_IndentByOne()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                        class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                        class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByOne,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86427")]
+    public async Task MultilineBlockBodiedLambdaInDirectiveAttribute_MovesWithTag_IndentByTwo()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                            class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <button @onclick="() =>
+                                      {
+                                          Show(1);
+                                      }"
+                            class="x">
+                        y
+                    </button>
+                </div>
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86427")]
+    public async Task MultilineBlockBodiedLambdaInDirectiveAttribute_MovesWithTag_Tabs()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                   class="x">y</button>
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                	<button @onclick="() =>
+                                  {
+                                      Show(1);
+                                  }"
+                			class="x">
+                		y
+                	</button>
+                </div>
+                """,
+            dotNetFormatExpected: """
+                <div>
+                	<button @onclick="() =>
+                					  {
+                						  Show(1);
+                					  }"
+                			class="x">y</button>
+                </div>
+                """,
+            expected: """
+                <div>
+                	<button @onclick="() =>
+                					  {
+                						  Show(1);
+                					  }"
+                			class="x">
+                		y
+                	</button>
+                </div>
+                """,
+            insertSpaces: false,
+            fileKind: RazorFileKind.Component);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86427")]
+    public async Task MultilineBlockBodiedLambdaInComponentAttribute_MovesWithTag()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                <div>
+                <CheckBoxButton OnClick="() =>
+                                {
+                                    Show(1);
+                                }"
+                   ImgSize=24 />
+                </div>
+                """,
+            htmlFormatted: """
+                <div>
+                    <CheckBoxButton OnClick="() =>
+                                {
+                                    Show(1);
+                                }"
+                                    ImgSize=24 />
+                </div>
+                """,
+            expected: """
+                <div>
+                    <CheckBoxButton OnClick="() =>
+                                    {
+                                        Show(1);
+                                    }"
+                                    ImgSize=24 />
+                </div>
+                """,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86427")]
+    public async Task MultilineBlockBodiedLambdaInComponentAttribute_Nested_DoesNotMoveWhenFormatted()
+    {
+        var code = """
+            <div>
+                <div>
+                    <CheckBoxButton OnClick="() =>
+                                    {
+                                        Show(1);
+                                    }"
+                                    ImgSize=24 />
+                </div>
+            </div>
+            """;
+
+        await RunFormattingTestAsync(
+            input: code,
+            htmlFormatted: code,
+            expected: code,
+            fileKind: RazorFileKind.Component,
+            additionalFiles: GetCheckBoxButtonComponentFiles());
     }
 
     [Fact]
