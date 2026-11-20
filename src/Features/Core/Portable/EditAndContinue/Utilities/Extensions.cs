@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -82,7 +83,18 @@ internal static partial class Extensions
 
         if (project.SupportsCompilation && !project.CompilationOutputInfo.HasEffectiveGeneratedFilesOutputDirectory)
         {
-            LogReason("no generated files output directory");
+            if (log != null)
+            {
+                if (IsVenusDesignTimeProject(project, out var displayName))
+                {
+                    log.Write($"'{displayName}' ignored for EnC: changes applied by ASP.NET runtime on save");
+                }
+                else
+                {
+                    LogReason("no generated files output directory");
+                }
+            }
+
             return true;
         }
 
@@ -90,6 +102,49 @@ internal static partial class Extensions
             => log?.Write($"Project {project.GetLogDisplay()} ignored for EnC: {message}");
 
         return false;
+    }
+
+    /// <summary>
+    /// Implements heuristics to avoid reporting misleading diagnostics.
+    /// The Venus implementation names synthesized projects for ASP pages "{number}_{app-relative URL}",
+    /// replacing '/' and '\' with '_'. For example, if the relative URL is Default.aspx, the name could be 1_Default.aspx;
+    /// the number depends on creation order. The returned display name is that URL and retains the underscores.
+    /// The page document is the project document whose name ends with ".__projection.g.cs" or ".__projection.g.vb".
+    /// </summary>
+    internal static bool IsVenusDesignTimeProject(Project project, [NotNullWhen(true)] out string? displayName)
+    {
+        displayName = null;
+        var name = project.Name;
+        var separator = name.IndexOf('_');
+        if (separator <= 0 ||
+            separator == name.Length - 1 ||
+            !int.TryParse(name[..separator], NumberStyles.None, CultureInfo.InvariantCulture, out var number) ||
+            number <= 0)
+        {
+            return false;
+        }
+
+        // WebTools names the contained buffer "{disk path}.__projection.g.{extension}".
+        var documentNameSuffix = project.Language switch
+        {
+            LanguageNames.CSharp => ".__projection.g.cs",
+            LanguageNames.VisualBasic => ".__projection.g.vb",
+            _ => null
+        };
+
+        if (documentNameSuffix is null)
+        {
+            return false;
+        }
+
+        var pageDocument = project.Documents.FirstOrDefault(d => d.State.Attributes.DesignTimeOnly && d.Name.EndsWith(documentNameSuffix, StringComparison.OrdinalIgnoreCase));
+        if (pageDocument == null)
+        {
+            return false;
+        }
+
+        displayName = pageDocument.Name[..^documentNameSuffix.Length];
+        return true;
     }
 
     public static string GetLogDisplay(this Project project)
