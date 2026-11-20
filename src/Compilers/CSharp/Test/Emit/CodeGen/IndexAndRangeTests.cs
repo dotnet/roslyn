@@ -4685,9 +4685,6 @@ public record class C
 
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net100);
             comp.VerifyEmitDiagnostics(
-                // (1,20): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                // _ = new C() with { [1..] = 42 };
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[1..]").WithLocation(1, 20),
                 // (1,20): error CS0747: Invalid initializer member declarator
                 // _ = new C() with { [1..] = 42 };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[1..] = 42").WithLocation(1, 20));
