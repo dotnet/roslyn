@@ -2,6 +2,7 @@
 
 # C# files
 [*.cs]
+charset = utf-8-bom
 
 # Reset to defaults by ignoring the editorconfigs higher up
 # Tracked by: https://github.com/dotnet/razor-compiler/issues/246
