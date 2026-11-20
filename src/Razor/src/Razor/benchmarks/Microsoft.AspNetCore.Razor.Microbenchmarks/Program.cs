@@ -14,8 +14,7 @@ using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Reports;
 using BenchmarkDotNet.Running;
-using BenchmarkDotNet.Toolchains;
-using BenchmarkDotNet.Toolchains.CsProj;
+using BenchmarkDotNet.Toolchains.Framework;
 using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 
 namespace Microsoft.AspNetCore.Razor.Microbenchmarks;
@@ -71,9 +70,14 @@ internal class Program
                 .DontEnforcePowerPlan());
         }
 
+        // Keep project outputs separated by target framework when BenchmarkDotNet builds the runner.
+        var job = Job.Default
+            .WithMsBuildArguments("/p:UseArtifactsOutput=false")
+            .DontEnforcePowerPlan();
+
         config = config
-            .AddJob(Job.Default.DontEnforcePowerPlan()) // use the current runtime with Roslyn's shared BenchmarkDotNet defaults
-            .AddJob(GetJob(CsProjClassicNetToolchain.Net472));
+            .AddJob(job)
+            .AddJob(job.WithToolchain(CsProjFrameworkToolchain.Net472));
 
         if (getDiffableDisasm)
         {
@@ -82,11 +86,6 @@ internal class Program
 
         return config;
     }
-
-    private static Job GetJob(IToolchain toolchain)
-        => Job.Default
-            .WithToolchain(toolchain)
-            .DontEnforcePowerPlan(); // make sure BDN does not try to enforce High Performance power plan on Windows
 
     private static DisassemblyDiagnoser CreateDisassembler()
         => new(new DisassemblyDiagnoserConfig(

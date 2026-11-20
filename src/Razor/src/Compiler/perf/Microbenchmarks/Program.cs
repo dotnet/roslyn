@@ -33,11 +33,6 @@ partial class Program
 
             foreach (var report in summary.Reports)
             {
-                if (!report.BuildResult.IsGenerateSuccess)
-                {
-                    return Fail(report, nameof(report.BuildResult.IsGenerateSuccess));
-                }
-
                 if (!report.BuildResult.IsBuildSuccess)
                 {
                     return Fail(report, nameof(report.BuildResult.IsBuildSuccess));
