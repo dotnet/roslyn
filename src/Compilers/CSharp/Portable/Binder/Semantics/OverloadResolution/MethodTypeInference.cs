@@ -794,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   the algorithm must terminate with no more repetitions than the number
             // SPEC:   of type parameters.
 
-            InitializeDependencies();
+            InitializeDependencies(binder);
             while (true)
             {
                 var res = DoSecondPhase(binder, ref useSiteInfo);
@@ -880,9 +880,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void MakeOutputTypeInferences(Binder binder, BoundExpression argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (argument.Kind == BoundKind.TupleLiteral && (object)argument.Type == null)
+            if (argument.Kind == BoundKind.TupleLiteral)
             {
-                MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, formalType, ref useSiteInfo);
+                if ((object)argument.Type == null)
+                {
+                    MakeOutputTypeInferences(binder, (BoundTupleLiteral)argument, formalType, ref useSiteInfo);
+                }
             }
             else if (argument.Kind == BoundKind.UnconvertedCollectionExpression)
             {
@@ -901,14 +904,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void MakeOutputTypeInferences(Binder binder, BoundUnconvertedCollectionExpression argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static bool TryGetFormalCollectionElementType(Binder binder, BoundUnconvertedCollectionExpression argument, TypeSymbol formalType, out TypeWithAnnotations targetElementType)
         {
             if (argument.Elements.Length == 0)
             {
-                return;
+                targetElementType = default;
+                return false;
             }
 
-            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType.Type, out TypeWithAnnotations targetElementType))
+            return binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType, out targetElementType);
+        }
+
+        private void MakeOutputTypeInferences(Binder binder, BoundUnconvertedCollectionExpression argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            if (!TryGetFormalCollectionElementType(binder, argument, formalType.Type, out TypeWithAnnotations targetElementType))
             {
                 return;
             }
@@ -922,26 +931,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void MakeOutputTypeInferences(Binder binder, BoundTupleLiteral argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private static ImmutableArray<TypeWithAnnotations> TryGetFormalTupleElementTypes(BoundTupleLiteral argument, TypeSymbol formalType)
         {
-            if (formalType.Type.Kind != SymbolKind.NamedType)
+            if (formalType.Kind != SymbolKind.NamedType)
             {
                 // tuples can only match to tuples or tuple underlying types.
-                return;
+                return default;
             }
 
-            var destination = (NamedTypeSymbol)formalType.Type;
+            var destination = (NamedTypeSymbol)formalType;
 
             Debug.Assert((object)argument.Type == null, "should not need to dig into elements if tuple has natural type");
-            var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            if (!destination.IsTupleTypeOfCardinality(sourceArguments.Length))
+            if (!destination.IsTupleTypeOfCardinality(argument.Arguments.Length))
+            {
+                return default;
+            }
+
+            return destination.TupleElementTypesWithAnnotations;
+        }
+
+        private void MakeOutputTypeInferences(Binder binder, BoundTupleLiteral argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            ImmutableArray<TypeWithAnnotations> destTypes = TryGetFormalTupleElementTypes(argument, formalType.Type);
+            if (destTypes.IsDefault)
             {
                 return;
             }
 
-            var destTypes = destination.TupleElementTypesWithAnnotations;
+            var sourceArguments = argument.Arguments;
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             for (int i = 0; i < sourceArguments.Length; i++)
@@ -1063,6 +1082,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         //
         private static bool DoesInputTypeContain(BoundExpression argument, TypeSymbol formalParameterType, TypeParameterSymbol typeParameter)
         {
+            Debug.Assert(argument.Kind != BoundKind.TupleLiteral);
+            Debug.Assert(argument.Kind != BoundKind.UnconvertedCollectionExpression);
+
             // SPEC: If E is a method group or an anonymous function and T is a delegate
             // SPEC: type or expression tree type then all the parameter types of T are
             // SPEC: input types of E with type T.
@@ -1119,6 +1141,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool DoesOutputTypeContain(BoundExpression argument, TypeSymbol formalParameterType,
             TypeParameterSymbol typeParameter)
         {
+            Debug.Assert(argument.Kind != BoundKind.TupleLiteral);
+            Debug.Assert(argument.Kind != BoundKind.UnconvertedCollectionExpression);
+
             // SPEC: If E is a method group or an anonymous function and T is a delegate
             // SPEC: type or expression tree type then the return type of T is an output type
             // SPEC: of E with type T.
@@ -1177,7 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Dependence
         //
 
-        private bool DependsDirectlyOn(int iParam, int jParam)
+        private bool DependsDirectlyOn(Binder binder, int iParam, int jParam)
         {
             Debug.Assert(ValidIndex(iParam));
             Debug.Assert(ValidIndex(jParam));
@@ -1200,8 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var formalParameterType = _formalParameterTypes[iArg].Type;
                 var argument = _arguments[iArg];
-                if (DoesInputTypeContain(argument, formalParameterType, _methodTypeParameters[jParam]) &&
-                    DoesOutputTypeContain(argument, formalParameterType, _methodTypeParameters[iParam]))
+                if (DependsDirectlyOn(binder, iParam, jParam, argument, formalParameterType))
                 {
                     return true;
                 }
@@ -1214,6 +1238,68 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (IsFeatureTypeParameterInferenceFromConstraintsEnabled && DependsDirectlyOnThroughConstraints(iParam, jParam))
             {
                 return true;
+            }
+
+            return false;
+        }
+
+        private readonly bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundExpression argument, TypeSymbol formalType)
+        {
+            if (argument.Kind == BoundKind.TupleLiteral)
+            {
+                return (object)argument.Type == null && DependsDirectlyOn(binder, iParam, jParam, (BoundTupleLiteral)argument, formalType);
+            }
+            else if (argument.Kind == BoundKind.UnconvertedCollectionExpression)
+            {
+                return DependsDirectlyOn(binder, iParam, jParam, (BoundUnconvertedCollectionExpression)argument, formalType);
+            }
+            else
+            {
+                return DoesInputTypeContain(argument, formalType, _methodTypeParameters[jParam]) &&
+                       DoesOutputTypeContain(argument, formalType, _methodTypeParameters[iParam]);
+            }
+        }
+
+        private readonly bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundTupleLiteral argument, TypeSymbol formalType)
+        {
+            ImmutableArray<TypeWithAnnotations> destTypes = TryGetFormalTupleElementTypes(argument, formalType);
+            if (destTypes.IsDefault)
+            {
+                return false;
+            }
+
+            var sourceArguments = argument.Arguments;
+            Debug.Assert(sourceArguments.Length == destTypes.Length);
+
+            for (int i = 0; i < sourceArguments.Length; i++)
+            {
+                var sourceArgument = sourceArguments[i];
+                var destType = destTypes[i];
+                if (DependsDirectlyOn(binder, iParam, jParam, sourceArgument, destType.Type))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private readonly bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundUnconvertedCollectionExpression argument, TypeSymbol formalType)
+        {
+            if (!TryGetFormalCollectionElementType(binder, argument, formalType, out TypeWithAnnotations targetElementType))
+            {
+                return false;
+            }
+
+            foreach (var element in argument.Elements)
+            {
+                if (element is BoundExpression expression)
+                {
+                    if (DependsDirectlyOn(binder, iParam, jParam, expression, targetElementType.Type))
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;
@@ -1239,7 +1325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private void InitializeDependencies()
+        private void InitializeDependencies(Binder binder)
         {
             // We track dependencies by a two-d square array that gives the known
             // relationship between every pair of type parameters. The relationship
@@ -1285,7 +1371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
                 {
-                    if (iParam != jParam && DependsDirectlyOn(iParam, jParam))
+                    if (iParam != jParam && DependsDirectlyOn(binder, iParam, jParam))
                     {
                         _dependencies[iParam, jParam] = Dependency.Direct;
                     }
