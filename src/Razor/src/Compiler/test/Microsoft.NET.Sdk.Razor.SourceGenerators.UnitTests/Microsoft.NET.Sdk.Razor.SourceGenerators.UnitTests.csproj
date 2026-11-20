@@ -92,6 +92,7 @@
     <None Include="$(AspNetCoreRuntimeAssemblyDirectory)\*.dll"
           Exclude="$(AspNetCoreRuntimeAssemblyDirectory)\System.Diagnostics.EventLog.dll;
                    $(AspNetCoreRuntimeAssemblyDirectory)\System.Security.Cryptography.Pkcs.dll;
+                   $(AspNetCoreRuntimeAssemblyDirectory)\Microsoft.Extensions.FileSystemGlobbing.dll;
                    $(AspNetCoreRuntimeAssemblyDirectory)\Microsoft.Extensions.Logging.Abstractions.dll;
                    $(AspNetCoreRuntimeAssemblyDirectory)\Microsoft.Extensions.DependencyInjection.Abstractions.dll"
           CopyToOutputDirectory="PreserveNewest"

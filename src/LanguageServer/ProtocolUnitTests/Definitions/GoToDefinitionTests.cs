@@ -4,15 +4,20 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -121,6 +126,813 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
             }
             """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include {|caret:|}Util.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_EndOfLine(bool mutatingLspWorkspace)
+    {
+        // Navigate if on a trivia of a directive such as end of line.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include Util.cs{|caret:|}
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [ConditionalTheory(typeof(DesktopOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_Desktop(bool mutatingLspWorkspace)
+    {
+        // Normalization of file paths containing globs throws on .NET Framework.
+        // Specifically, 'Path.GetFullPath()' throws when the path has '*' in it on .NET Framework.
+        // This test is here to demonstrate why the other glob tests are only run on .NET Core.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Files/Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_01(bool mutatingLspWorkspace)
+    {
+        // Note: 'Document FilePath="..."' needs to use separators which work across platforms
+        // in order for 'Path.Combine()' etc to work properly within the test harness.
+        // But backslashes are expected to work within '#:<directive> <path>' on all platforms.
+        // Therefore we tend to test using forward slashes for Document FilePaths and backslashes for directive paths.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Files/Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_02(bool mutatingLspWorkspace)
+    {
+        // A '*' glob does not match a file in nested folder
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Files/Nested/Util.cs">class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_03(bool mutatingLspWorkspace)
+    {
+        // A '**' glob does match a file in a nested folder
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include Files\{|caret:|}**\*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Files/Nested/Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_04(bool mutatingLspWorkspace)
+    {
+        // Globs can match multiple files
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Files/Util1.cs">{|definition:|}class Util1;</Document>
+                    <Document FilePath="Files/Util2.cs">{|definition:|}class Util2;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Equal(2, results.Length);
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly), typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_05_Windows(bool mutatingLspWorkspace)
+    {
+        // Test a directive path which is both absolute in source and uses a glob
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="C:\App.cs">
+                        #:include C:\Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="C:\Files\Util1.cs">{|definition:|}class Util1;</Document>
+                    <Document FilePath="C:\Files\Util2.cs">{|definition:|}class Util2;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly), typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_05_Windows_MultiDrive(bool mutatingLspWorkspace)
+    {
+        // A directive path can refer to a different drive and also use a glob
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="C:\App.cs">
+                        #:include D:\Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="D:\Files\Util1.cs">{|definition:|}class Util1;</Document>
+                    <Document FilePath="D:\Files\Util2.cs">{|definition:|}class Util2;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [ConditionalTheory(typeof(UnixLikeOnly), typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_05_Unix(bool mutatingLspWorkspace)
+    {
+        // Test a directive path which is both absolute in source and uses a glob
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="/App.cs">
+                        #:include /Files/{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="/Files/Util1.cs">{|definition:|}class Util1;</Document>
+                    <Document FilePath="/Files/Util2.cs">{|definition:|}class Util2;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirectiveDirectory(bool mutatingLspWorkspace)
+    {
+        // An include directive referring to a directory, doesn't end up including anything
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include {|caret:|}Files
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Files/Util.cs">class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveDirectory(bool mutatingLspWorkspace)
+    {
+        // A project can be referenced by referencing its containing directory
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:project {|caret:|}Lib
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Library</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Library.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var result = Assert.Single(results);
+        var projectFilePath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Library.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(projectFilePath), result.DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveDirectoryWithMultipleProjects(bool mutatingLspWorkspace)
+    {
+        // For '#:project Lib', return all projects directly contained in 'Lib/'.
+        // Note: this doesn't actually verify whether the project system would give us such a structure.
+        // An error at an earlier stage might block us from observing this in a real world project.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:project {|caret:|}Lib
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>First</ProjectReference>
+                    <ProjectReference>Second</ProjectReference>
+                    <ProjectReference>Third</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/First.csproj" AssemblyName="First" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+                <Project FilePath="Lib/Second.csproj" AssemblyName="Second" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+                <Project FilePath="Lib/Nested/Third.csproj" AssemblyName="Third" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Equal(2, results.Length);
+
+        var firstProjectPath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "First.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(firstProjectPath), results[0].DocumentUri);
+        var secondProjectPath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Second.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(secondProjectPath), results[1].DocumentUri);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveDirectoryWithMultipleProjects_Glob(bool mutatingLspWorkspace)
+    {
+        // Globs can also match multiple project files
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:project {|caret:|}Lib/*.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>First</ProjectReference>
+                    <ProjectReference>Second</ProjectReference>
+                    <ProjectReference>Third</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/First.csproj" AssemblyName="First" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+                <Project FilePath="Lib/Second.csproj" AssemblyName="Second" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+                <Project FilePath="Lib/Nested/Third.csproj" AssemblyName="Third" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Equal(2, results.Length);
+
+        var firstProjectPath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "First.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(firstProjectPath), results[0].DocumentUri);
+        var secondProjectPath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Second.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(secondProjectPath), results[1].DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveFile(bool mutatingLspWorkspace)
+    {
+        // A project can be referenced by exact path
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:project {|caret:|}Lib\Library.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Library</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Library.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var result = Assert.Single(results);
+        var projectFilePath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Library.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(projectFilePath), result.DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveFile_WithRootLevelReference(bool mutatingLspWorkspace)
+    {
+        var root = Path.GetPathRoot(TestWorkspace.RootDirectory);
+        var appFilePath = Path.Combine(root, "App.cs");
+        var projectFilePath = Path.Combine(root, "Lib", "Lib.csproj");
+        var otherProjectFilePath = Path.Combine(root, "Other.csproj");
+        var markup =
+            $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="{{appFilePath}}">
+                        #:project {|caret:|}Lib/Lib.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Lib</ProjectReference>
+                    <ProjectReference>Other</ProjectReference>
+                </Project>
+                <Project FilePath="{{projectFilePath}}" AssemblyName="Lib" Language="C#" CommonReferences="true" />
+                <Project FilePath="{{otherProjectFilePath}}" AssemblyName="Other" Language="C#" CommonReferences="true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var result = Assert.Single(results);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(projectFilePath), result.DocumentUri);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveFile_WithRootLevelDirective_Windows(bool mutatingLspWorkspace)
+    {
+        var markup =
+            $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:project {|caret:|}D:\
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Lib</ProjectReference>
+                    <ProjectReference>Other</ProjectReference>
+                </Project>
+                <Project FilePath="D:\Lib.csproj" AssemblyName="Lib" Language="C#" CommonReferences="true" />
+                <Project FilePath="D:\Nested\Other.csproj" AssemblyName="Other" Language="C#" CommonReferences="true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var result = Assert.Single(results);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(@"D:\Lib.csproj"), result.DocumentUri);
+    }
+
+    [ConditionalTheory(typeof(UnixLikeOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveFile_WithRootLevelDirective_Unix(bool mutatingLspWorkspace)
+    {
+        var markup =
+            $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:project {|caret:|}/
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Lib</ProjectReference>
+                    <ProjectReference>Other</ProjectReference>
+                </Project>
+                <Project FilePath="/Lib.csproj" AssemblyName="Lib" Language="C#" CommonReferences="true" />
+                <Project FilePath="/Nested/Other.csproj" AssemblyName="Other" Language="C#" CommonReferences="true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var result = Assert.Single(results);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri("/Lib.csproj"), result.DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramRefDirective(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:ref {|caret:|}Util.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Util</ProjectReference>
+                </Project>
+                <Project FilePath="Util.cs" AssemblyName="Util" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramRefDirective_Directory(bool mutatingLspWorkspace)
+    {
+        // A ref directive cannot refer to containing folder of the file to reference.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:ref {|caret:|}Files
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Util</ProjectReference>
+                </Project>
+                <Project FilePath="Files/Util.cs" AssemblyName="Util" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="Files/Util.cs">class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramRefDirective_Glob(bool mutatingLspWorkspace)
+    {
+        // A ref directive can refer to multiple files via glob
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:ref {|caret:|}Files\*
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Util1</ProjectReference>
+                    <ProjectReference>Util2</ProjectReference>
+                </Project>
+                <Project FilePath="Files/Util1.cs" AssemblyName="Util1" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="Files/Util1.cs">{|definition:|}class Util1;</Document>
+                </Project>
+                <Project FilePath="Files/Util2.cs" AssemblyName="Util2" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="Files/Util2.cs">{|definition:|}class Util2;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Equal(2, results.Length);
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirective_Glob(bool mutatingLspWorkspace)
+    {
+        // A glob will not result in a project file being included in the result set multiple times
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:project {|caret:|}**\Lib*
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Lib</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Lib.csproj" AssemblyName="Lib" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="Folder/Lib/Util1.cs">{|definition:|}class Util1;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var projectFilePath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Lib.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(projectFilePath), results.Single().DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirective_MSBuildVariable(
+        bool mutatingLspWorkspace)
+    {
+        // MSBuild variables and globs are not expanded for navigation.
+        // We could consider this as a future improvement to the feature.
+        var markup =
+            $$"""
+            <Workspace>
+                <Project FilePath="App.csproj" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="Program.cs">
+                        #:include {|caret:|}$(MSBuildProjectDirectory)/Util.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="Util.cs">class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirectiveCaretNotOnPath_01(bool mutatingLspWorkspace)
+    {
+        // Navigation works even when the caret is on the "directive name" part of the trivia.
+        // We could consider a future improvement to only navigate on the part of the content which represents the path.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:{|caret:|}project Lib\Library.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Library</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Library.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var projectFilePath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Library.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(projectFilePath), results.Single().DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirectiveCaretNotOnPath_02(bool mutatingLspWorkspace)
+    {
+        // Navigate when the caret is on the '#:' part of the token.
+        // Note: we could consider a future refinement where only F12 on the path part of the content will navigate. But it's not strictly necessary.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #{|caret:|}:project Lib\Library.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Library</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Library.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var projectFilePath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Library.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(projectFilePath), results.Single().DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirectiveSemicolonDelimited(bool mutatingLspWorkspace)
+    {
+        // Semicolon could theoretically delimit multiple items in a directive path.
+        // We do not support navigating to such directives.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #{|caret:|}:project Lib\Library.csproj;Lib2\Library2.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Library</ProjectReference>
+                    <ProjectReference>Library2</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Library.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+                <Project FilePath="Lib2/Library2.csproj" AssemblyName="Library2" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirective_QuestionMarkPattern(bool mutatingLspWorkspace)
+    {
+        // '?' is a pattern in msbuild matching a single character.
+        // This is uncommon and we don't support navigating to directives which use it.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #{|caret:|}:project Lib\Library?.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Library</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Library1.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirectiveMissingTarget(bool mutatingLspWorkspace)
+    {
+        // Cannot navigate to a target that is not actually being referenced.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:{|caret:|}project Lib\Library.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                </Project>
+                <Project FilePath="Lib/Library.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirective_NotInFileBasedProgram(bool mutatingLspWorkspace)
+    {
+        // Cannot navigate via directive if not in a file-based program.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document FilePath="App.cs">
+                        #:{|caret:|}project Lib\Library.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Library</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Library.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramWithCurrentDriveRootedDirectivePath(bool mutatingLspWorkspace)
+    {
+        // A path such as '\Path\To\File.cs' resolves against the source document's drive.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="D:\App.cs">
+                        #:ref {|caret:|}\Files\Util.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Util</ProjectReference>
+                </Project>
+                <Project FilePath="D:\Files\Util.cs" AssemblyName="Util" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="D:\Files\Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgram_WindowsRootCasing(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="D:\App.cs">
+                        #:ref {|caret:|}d:\Files\Util.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Util</ProjectReference>
+                </Project>
+                <Project FilePath="D:\Files\Util.cs" AssemblyName="Util" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="D:\Files\Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        // https://github.com/dotnet/runtime/issues/119117
+        // Unexpected failure to navigate to 'D:\Files\Util.cs'.
+        // This is fixed in .NET 11. When we move the library version forward, we can update this test (delete below Assert and replace with commented-out code).
+        Assert.Empty(results);
+        // AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgram_FileNotInWorkspace(bool mutatingLspWorkspace)
+    {
+        // Can't navigate to a json file even if it exists on disk, because it's not part of the workspace Project model.
+        using var tempRoot = new TempRoot();
+        var tempDir = tempRoot.CreateDirectory();
+        var dataJson = tempDir.CreateFile("data.json").WriteAllText("{}");
+
+        var markup =
+            $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #:include {|caret:|}{{dataJson.Path}}
+                        System.Console.WriteLine();
+                    </Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
         Assert.Empty(results);
