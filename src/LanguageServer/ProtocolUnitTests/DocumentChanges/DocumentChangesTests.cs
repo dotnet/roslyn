@@ -522,7 +522,7 @@ public sealed partial class DocumentChangesTests(ITestOutputHelper testOutputHel
 
     internal record TestVersionResponse(int Version);
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(TestVersionHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestVersionHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

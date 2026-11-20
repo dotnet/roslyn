@@ -19,7 +19,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 {
-    private readonly FrozenDictionary<string, Lazy<ILspService, LspServiceMetadataView>> _lazyMefLspServices;
+    private readonly FrozenDictionary<string, Lazy<object, LspServiceMetadataView>> _lazyMefLspServices;
+
+    /// <summary>
+    /// The MEF sharing boundary that owns every per-server service (see <see cref="ExportLspServiceAttribute"/>).
+    /// Disposing it cleans up instantiated <see cref="IDisposable"/> and <see cref="IAsyncDisposable"/> parts,
+    /// blocking until asynchronous cleanup completes.
+    /// </summary>
+    private readonly IDisposable _scope;
 
     /// <summary>
     /// A set of base services that apply to all Roslyn lsp services.
@@ -29,55 +36,30 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
     private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
-    /// <summary>
-    /// Gates access to <see cref="_servicesToDispose"/> and <see cref="_servicesToDisposeAsync"/>.
-    /// </summary>
-    private readonly object _gate = new();
-    private readonly HashSet<IDisposable> _servicesToDispose = new(ReferenceEqualityComparer.Instance);
-    private readonly HashSet<IAsyncDisposable> _servicesToDisposeAsync = new(ReferenceEqualityComparer.Instance);
-
+    /// <param name="lspServices">The LSP services that apply to this server's LSP contract (see <see cref="LspServerScope.GetServices"/>).</param>
+    /// <param name="serverKind">The kind of this server, used to pick server kind specific overrides.</param>
+    /// <param name="baseServices">Services created manually by the server, which take precedence over MEF services.</param>
+    /// <param name="scope">The MEF sharing boundary that owns the per-server services, disposed with this instance.</param>
     public LspServices(
-        ImmutableArray<Lazy<ILspService, LspServiceMetadataView>> mefLspServices,
-        ImmutableArray<Lazy<ILspServiceFactory, LspServiceMetadataView>> mefLspServiceFactories,
+        ImmutableArray<Lazy<object, LspServiceMetadataView>> lspServices,
         WellKnownLspServerKinds serverKind,
-        FrozenDictionary<string, ImmutableArray<BaseService>> baseServices)
+        FrozenDictionary<string, ImmutableArray<BaseService>> baseServices,
+        IDisposable scope)
     {
-        var serviceMap = new Dictionary<string, Lazy<ILspService, LspServiceMetadataView>>();
-
-        // Add services from factories exported for this server kind.
-        foreach (var lazyServiceFactory in mefLspServiceFactories.Where(f => f.Metadata.ServerKind == serverKind))
-            AddSpecificService(new(() => lazyServiceFactory.Value.CreateILspService(this, serverKind), lazyServiceFactory.Metadata));
+        _scope = scope;
+        var serviceMap = new Dictionary<string, Lazy<object, LspServiceMetadataView>>();
 
         // Add services exported for this server kind.
-        foreach (var lazyService in mefLspServices.Where(s => s.Metadata.ServerKind == serverKind))
-            AddSpecificService(lazyService);
-
-        // Add services from factories exported for any (if there is not already an existing service for the specific server kind).
-        foreach (var lazyServiceFactory in mefLspServiceFactories.Where(f => f.Metadata.ServerKind == WellKnownLspServerKinds.Any))
-            TryAddAnyService(new(() => lazyServiceFactory.Value.CreateILspService(this, serverKind), lazyServiceFactory.Metadata));
+        foreach (var lazyService in lspServices.Where(s => s.Metadata.ServerKind == serverKind))
+            serviceMap.Add(lazyService.Metadata.TypeRef.TypeName, lazyService);
 
         // Add services exported for any (if there is not already an existing service for the specific server kind).
-        foreach (var lazyService in mefLspServices.Where(s => s.Metadata.ServerKind == WellKnownLspServerKinds.Any))
-            TryAddAnyService(lazyService);
-
-        _lazyMefLspServices = serviceMap.ToFrozenDictionary();
-
-        _baseServices = baseServices;
-
-        void AddSpecificService(Lazy<ILspService, LspServiceMetadataView> serviceGetter)
+        foreach (var lazyService in lspServices.Where(s => s.Metadata.ServerKind == WellKnownLspServerKinds.Any))
         {
-            var metadata = serviceGetter.Metadata;
-            Contract.ThrowIfFalse(metadata.ServerKind == serverKind);
-            serviceMap.Add(metadata.TypeRef.TypeName, serviceGetter);
-        }
-
-        void TryAddAnyService(Lazy<ILspService, LspServiceMetadataView> serviceGetter)
-        {
-            var metadata = serviceGetter.Metadata;
-            Contract.ThrowIfFalse(metadata.ServerKind == WellKnownLspServerKinds.Any);
-            if (!serviceMap.TryGetValue(metadata.TypeRef.TypeName, out var existing))
+            var typeName = lazyService.Metadata.TypeRef.TypeName;
+            if (!serviceMap.TryGetValue(typeName, out var existing))
             {
-                serviceMap.Add(metadata.TypeRef.TypeName, serviceGetter);
+                serviceMap.Add(typeName, lazyService);
             }
             else
             {
@@ -86,6 +68,9 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
                 Contract.ThrowIfTrue(existing.Metadata.ServerKind == WellKnownLspServerKinds.Any);
             }
         }
+
+        _lazyMefLspServices = serviceMap.ToFrozenDictionary();
+        _baseServices = baseServices;
     }
 
     public T GetRequiredService<T>() where T : notnull
@@ -146,7 +131,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     private object? GetService(string typeName)
     {
         // We provide this ILspServices instance as a service.
-        if (typeName == typeof(ILspServices).FullName)
+        if (typeName == typeof(ILspServices).FullName || typeName == typeof(LspServices).FullName)
         {
             return this;
         }
@@ -163,28 +148,11 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
         if (_lazyMefLspServices.TryGetValue(typeName, out var lazyService))
         {
-            // If we are creating a stateful LSP service for the first time, we need to check
-            // if it is disposable after creation and keep it around to dispose of on shutdown.
-            // Stateless LSP services will be disposed of on MEF container disposal.
-            var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
-
             // A service can first be requested from a context that carries no ambient instance of its own (for
             // example a file-watcher callback or work-queue batch), so re-establish this server's instance for
-            // factories that capture RoslynTelemetry.Current.
+            // services that capture RoslynTelemetry.Current.
             using var _ = RoslynTelemetry.SetCurrent(_telemetry);
-            var lspService = lazyService.Value;
-            if (checkDisposal)
-            {
-                lock (_gate)
-                {
-                    if (lspService is IAsyncDisposable asyncDisposableService)
-                        _servicesToDisposeAsync.Add(asyncDisposableService);
-                    else if (lspService is IDisposable disposableService)
-                        _servicesToDispose.Add(disposableService);
-                }
-            }
-
-            return lspService;
+            return lazyService.Value;
         }
 
         return null;
@@ -246,38 +214,16 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        ImmutableArray<IDisposable> disposableServices;
-        ImmutableArray<IAsyncDisposable> asyncDisposableServices;
-        lock (_gate)
+        try
         {
-            disposableServices = [.. _servicesToDispose];
-            _servicesToDispose.Clear();
-            asyncDisposableServices = [.. _servicesToDisposeAsync];
-            _servicesToDisposeAsync.Clear();
+            _scope.Dispose();
+        }
+        catch (Exception ex) when (FatalError.ReportAndCatch(ex))
+        {
         }
 
-        foreach (var service in disposableServices)
-        {
-            try
-            {
-                service.Dispose();
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-            }
-        }
-
-        foreach (var service in asyncDisposableServices)
-        {
-            try
-            {
-                await service.DisposeAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-            }
-        }
+        return ValueTask.CompletedTask;
     }
 }

@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.TextDocumentContent;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
@@ -15,12 +18,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SourceGenerators;
 /// (via execution version or dependent version checks) and sends per-URI refresh notifications to the client
 /// using the LSP 3.18 <c>workspace/textDocumentContent/refresh</c> mechanism.
 /// </summary>
+[ExportCSharpVisualBasicLspService(typeof(SourceGeneratorRefreshQueue)), Shared(LspServiceComposition.SharingBoundary)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class SourceGeneratorRefreshQueue(
     IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-    LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-    LspWorkspaceManager lspWorkspaceManager,
-    IClientLanguageServerManager notificationManager)
-    : AbstractTextDocumentContentRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
+    LspService<IClientLanguageServerManager> notificationManager,
+    LspService<LspWorkspaceRegistrationService> lspWorkspaceRegistrationService,
+    LspService<LspWorkspaceManager> lspWorkspaceManager)
+    : AbstractTextDocumentContentRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService.Value, lspWorkspaceManager.Value, notificationManager.Value)
 {
     protected override string Scheme => SourceGeneratedDocumentUri.Scheme;
 

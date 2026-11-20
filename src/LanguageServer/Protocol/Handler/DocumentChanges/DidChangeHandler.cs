@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(DidChangeHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(DidChangeHandler)), Shared]
 [Method(Methods.TextDocumentDidChangeName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

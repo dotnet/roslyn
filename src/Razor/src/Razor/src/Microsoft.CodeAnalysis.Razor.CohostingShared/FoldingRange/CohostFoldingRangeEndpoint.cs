@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(Methods.TextDocumentFoldingRangeName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostFoldingRangeEndpoint))]
+[ExportRazorLspService(typeof(CohostFoldingRangeEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostFoldingRangeEndpoint(

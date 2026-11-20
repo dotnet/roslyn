@@ -16,7 +16,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CallHierarchy;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(PrepareCallHierarchyHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(PrepareCallHierarchyHandler)), Shared]
 [Method(LSP.Methods.PrepareCallHierarchyName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

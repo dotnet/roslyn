@@ -13,7 +13,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ExecuteWorkspaceCommandHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(ExecuteWorkspaceCommandHandler)), Shared]
 [Method(Methods.WorkspaceExecuteCommandName)]
 internal sealed class ExecuteWorkspaceCommandHandler : ILspServiceRequestHandler<ExecuteCommandParams, object?>
 {

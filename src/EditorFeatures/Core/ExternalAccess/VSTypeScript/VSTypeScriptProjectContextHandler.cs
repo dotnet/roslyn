@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportStatelessLspService(typeof(GetTextDocumentWithContextHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspService(typeof(GetTextDocumentWithContextHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class VSTypeScriptProjectContextHandler() : GetTextDocumentWithContextHandler;

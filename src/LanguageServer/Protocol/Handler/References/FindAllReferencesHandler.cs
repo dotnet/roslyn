@@ -20,7 +20,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(FindAllReferencesHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(FindAllReferencesHandler)), Shared]
 [Method(LSP.Methods.TextDocumentReferencesName)]
 internal sealed class FindAllReferencesHandler : ILspServiceDocumentRequestHandler<VSInternalReferenceParams, LSP.SumType<VSInternalReferenceItem, LSP.Location>[]?>
 {

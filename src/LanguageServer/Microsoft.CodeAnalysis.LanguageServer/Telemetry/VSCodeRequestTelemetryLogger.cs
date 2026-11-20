@@ -11,17 +11,11 @@ using Microsoft.CodeAnalysis.Telemetry;
 namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
 /// <summary>
-/// Exports a stateful <see cref="RequestTelemetryLogger"/> that reports server specific telemetry.
+/// A <see cref="RequestTelemetryLogger"/> that reports server specific telemetry.
 /// </summary>
-[ExportCSharpVisualBasicLspServiceFactory(typeof(RequestTelemetryLogger), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+[ExportCSharpVisualBasicLspService(typeof(RequestTelemetryLogger), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared(LspServiceComposition.SharingBoundary)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSCodeRequestTelemetryLoggerFactory() : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new VSCodeRequestTelemetryLogger();
-}
-
 internal sealed class VSCodeRequestTelemetryLogger() : RequestTelemetryLogger(WellKnownLspServerKinds.CSharpVisualBasicLspServer.ToTelemetryString())
 {
     /// <summary>

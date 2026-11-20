@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(Methods.TextDocumentDocumentColorName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostDocumentColorEndpoint))]
+[ExportRazorLspService(typeof(CohostDocumentColorEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostDocumentColorEndpoint(

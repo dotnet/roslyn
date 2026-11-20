@@ -21,7 +21,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(HoverHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(HoverHandler)), Shared]
 [Method(Methods.TextDocumentHoverName)]
 internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocumentPositionParams, Hover?>
 {

@@ -116,6 +116,10 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
+- **LSP services** (`src/LanguageServer/Protocol/LspServices/`): export with `[ExportLspService]` (pass `ProtocolConstants.AllLspContracts` for a service every LSP contract uses)/`[ExportCSharpVisualBasicLspService]` (optionally for a specific `WellKnownLspServerKinds`, which overrides the `Any` export for that kind) plus exactly one sharing attribute:
+  - `[Shared(LspServiceComposition.SharingBoundary)]` — one instance per LSP server, created in that server's vs-mef sharing boundary. Constructor-import other LSP services and base services as `LspService<T>` (`.Value`, or `.GetValueOrDefault()` when optional) and process-wide MEF parts directly. MEF owns `IDisposable`/`IAsyncDisposable` cleanup when the server exits; scope disposal is synchronous and can block waiting for async cleanup. Parts implementing both interfaces use vs-mef's selected disposal path; do not expect both methods to run.
+  - `[Shared]` (no boundary) — one stateless process-wide instance; may only import global MEF parts (never `LspService<T>`). Disposable parts are cleaned up with the MEF container, not an individual server.
+  - External-access layers use their own derived export attributes; XAML, Copilot, and CompilerDeveloperSDK expose the boundary name as `XamlLspServiceComposition`/`CopilotLspServiceComposition`/`CompilerDeveloperSdkLspServiceComposition.SharingBoundary` (the value must never change, since it is compiled into consumers). `PerServerLspServicesTests.PerServerCompositionIsWellFormed` guards these rules over the test composition.
 
 ## Common Gotchas
 

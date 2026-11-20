@@ -27,7 +27,7 @@ internal enum WellKnownLspServerKinds
     RoslynTypeScriptLspServer,
 
     /// <summary>
-    /// Flag representing any LSP server - used by <see cref="ExportLspServiceFactoryAttribute"/>
+    /// Flag representing any LSP server - used by <see cref="ExportLspServiceAttribute"/>
     /// to specify that something applies to any LSP server.
     /// </summary>
     Any,

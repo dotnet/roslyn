@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,23 +23,6 @@ using Microsoft.VisualStudio.Utilities.ServiceBroker;
 namespace Microsoft.CodeAnalysis.ExternalAccess.TestDiscovery.Internal;
 
 /// <summary>
-/// LSP service factory that constructs the per-LSP-server <see cref="TestDiscoveryServiceContributor"/>,
-/// which registers and proffers the source-based test discovery brokered service into the
-/// <see cref="GlobalBrokeredServiceContainer"/> when the service broker is initialized.
-/// </summary>
-[ExportCSharpVisualBasicLspServiceFactory(typeof(TestDiscoveryServiceContributor)), Shared]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-[method: ImportingConstructor]
-internal sealed class TestDiscoveryServiceContributorFactory() : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    {
-        var workspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
-        return new TestDiscoveryServiceContributor(workspaceRegistrationService);
-    }
-}
-
-/// <summary>
 /// Registers and proffers the source-based test discovery brokered service. The proffered service
 /// object is the <see cref="ITestDiscoveryLanguageService"/> workspace service which also implements the
 /// rich discovery RPC interface defined in the C# Dev Kit contracts assembly. The wire descriptor is
@@ -47,12 +31,15 @@ internal sealed class TestDiscoveryServiceContributorFactory() : ILspServiceFact
 /// is not present (for example, a C# extension build that does not ship the Dev Kit discovery component)
 /// nothing is registered or proffered.
 /// </summary>
+[ExportCSharpVisualBasicLspService(typeof(TestDiscoveryServiceContributor)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class TestDiscoveryServiceContributor : ILspService, IServiceBrokerInitializer
 {
     private readonly Func<ITestDiscoveryLanguageService?> _getTestDiscoveryLanguageService;
 
-    public TestDiscoveryServiceContributor(LspWorkspaceRegistrationService workspaceRegistrationService)
-        : this(() => GetHostTestDiscoveryLanguageService(workspaceRegistrationService))
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TestDiscoveryServiceContributor(LspService<LspWorkspaceRegistrationService> workspaceRegistrationService)
+        : this(() => GetHostTestDiscoveryLanguageService(workspaceRegistrationService.Value))
     {
     }
 
@@ -60,6 +47,7 @@ internal sealed class TestDiscoveryServiceContributor : ILspService, IServiceBro
     /// Test hook that allows the discovery implementation to be supplied directly, so the
     /// registration / proffer / initialization behavior can be exercised without the full LSP MEF host.
     /// </summary>
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used directly by tests")]
     public TestDiscoveryServiceContributor(Func<ITestDiscoveryLanguageService?> getTestDiscoveryLanguageService)
     {
         _getTestDiscoveryLanguageService = getTestDiscoveryLanguageService;

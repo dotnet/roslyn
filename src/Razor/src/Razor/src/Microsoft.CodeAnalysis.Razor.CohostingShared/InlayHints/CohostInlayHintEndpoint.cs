@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(Methods.TextDocumentInlayHintName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostInlayHintEndpoint))]
+[ExportRazorLspService(typeof(CohostInlayHintEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal class CohostInlayHintEndpoint(

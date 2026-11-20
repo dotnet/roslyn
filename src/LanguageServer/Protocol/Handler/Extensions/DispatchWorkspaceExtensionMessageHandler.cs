@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(DispatchWorkspaceExtensionMessageHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(DispatchWorkspaceExtensionMessageHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

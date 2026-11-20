@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(Methods.TextDocumentCodeActionName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostCodeActionsEndpoint))]
+[ExportRazorLspService(typeof(CohostCodeActionsEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostCodeActionsEndpoint(

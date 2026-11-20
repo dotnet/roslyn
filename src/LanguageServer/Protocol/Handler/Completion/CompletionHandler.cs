@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// <summary>
 /// Handle a completion request.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(CompletionHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(CompletionHandler)), Shared]
 [Method(LSP.Methods.TextDocumentCompletionName)]
 internal sealed partial class CompletionHandler : ILspServiceDocumentRequestHandler<LSP.CompletionParams, LSP.CompletionList?>
 {

@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(Methods.TextDocumentLinkedEditingRangeName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostLinkedEditingRangeEndpoint))]
+[ExportRazorLspService(typeof(CohostLinkedEditingRangeEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostLinkedEditingRangeEndpoint(

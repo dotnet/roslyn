@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -16,30 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(OnDemandProjectLoader)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class OnDemandProjectLoaderFactory(
-    IGlobalOptionService globalOptionService,
-    IAsynchronousOperationListenerProvider listenerProvider) : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    {
-        var projectSystem = lspServices.GetRequiredService<LanguageServerProjectSystem>();
-        var loggerFactory = lspServices.GetRequiredService<ILoggerFactory>();
-
-        return new OnDemandProjectLoader(
-            new OnDemandProjectLoader.ProjectDiscovery(
-                projectSystem.GetSupportedProjectFileExtensions(),
-                loggerFactory),
-            lspServices.GetRequiredService<IWorkspaceFolderTracker>(),
-            projectSystem,
-            globalOptionService,
-            listenerProvider.GetListener(FeatureAttribute.Workspace),
-            loggerFactory);
-    }
-}
-
+[ExportCSharpVisualBasicLspService(typeof(OnDemandProjectLoader)), Shared(LspServiceComposition.SharingBoundary)]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used directly by tests")]
 internal sealed partial class OnDemandProjectLoader(
     OnDemandProjectLoader.ProjectDiscovery discovery,
     IWorkspaceFolderTracker workspaceFolderTracker,
@@ -48,6 +27,24 @@ internal sealed partial class OnDemandProjectLoader(
     IAsynchronousOperationListener listener,
     ILoggerFactory loggerFactory) : IOnDemandProjectLoader, IOnServerShutdown
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public OnDemandProjectLoader(
+        LspService<LanguageServerProjectSystem> projectSystem,
+        LspService<IWorkspaceFolderTracker> workspaceFolderTracker,
+        LspService<ILoggerFactory> loggerFactory,
+        IGlobalOptionService globalOptionService,
+        IAsynchronousOperationListenerProvider listenerProvider)
+        : this(
+            new ProjectDiscovery(projectSystem.Value.GetSupportedProjectFileExtensions(), loggerFactory.Value),
+            workspaceFolderTracker.Value,
+            projectSystem.Value,
+            globalOptionService,
+            listenerProvider.GetListener(FeatureAttribute.Workspace),
+            loggerFactory.Value)
+    {
+    }
+
     private readonly ILogger _logger = loggerFactory.CreateLogger<OnDemandProjectLoader>();
     private readonly CancellationTokenSource _shutdownCancellationSource = new();
 

@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
+[ExportLspService(typeof(LspWorkspaceManager), ProtocolConstants.AllLspContracts), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
@@ -72,6 +75,26 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
     private readonly IOnDemandProjectLoader? _onDemandProjectLoader;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public LspWorkspaceManager(
+        LspService<ILspLogger> logger,
+        LspService<ILspMiscellaneousFilesWorkspaceProvider> lspMiscellaneousFilesWorkspace,
+        LspService<LspWorkspaceRegistrationService> lspWorkspaceRegistrationService,
+        LspService<ILanguageInfoProvider> languageInfoProvider,
+        LspService<RequestTelemetryLogger> requestTelemetryLogger,
+        LspService<IOnDemandProjectLoader> onDemandProjectLoader)
+        : this(
+            logger.Value,
+            lspMiscellaneousFilesWorkspace.GetValueOrDefault(),
+            lspWorkspaceRegistrationService.Value,
+            languageInfoProvider.Value,
+            requestTelemetryLogger.Value,
+            onDemandProjectLoader.GetValueOrDefault())
+    {
+    }
+
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used directly by tests")]
     public LspWorkspaceManager(
         ILspLogger logger,
         ILspMiscellaneousFilesWorkspaceProvider? lspMiscellaneousFilesWorkspace,

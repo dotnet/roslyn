@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -19,22 +20,26 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// <summary>
 /// Owns the host and miscellaneous-files <see cref="LanguageServerWorkspace"/> instances and their
 /// <see cref="ProjectSystemProjectFactory"/> objects for a single LSP server. Created once per
-/// <see cref="LspServices"/> instance by <see cref="LanguageServerWorkspaceFactoryServiceFactory"/> and
-/// disposed when the LSP server shuts down.
+/// <see cref="LspServices"/> instance and disposed when the LSP server shuts down.
 /// </summary>
+[ExportCSharpVisualBasicLspService(typeof(LanguageServerWorkspaceFactory)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspaceProvider, IDisposable
 {
     private readonly ILogger _logger;
     private readonly ImmutableArray<string> _solutionLevelAnalyzerPaths;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerWorkspaceFactory(
         HostServicesProvider hostServicesProvider,
-        ILspServices lspServices,
+        LspService<LspServices> lspServices,
         ExtensionAssemblyManager extensionManager,
-        IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
-        ILoggerFactory loggerFactory)
+        [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> assemblyRedirectors,
+        LspService<ILoggerFactory> loggerFactory)
     {
-        _logger = loggerFactory.CreateLogger(nameof(LanguageServerWorkspaceFactory));
+        var lspServicesValue = lspServices.Value;
+        var loggerFactoryValue = loggerFactory.Value;
+        _logger = loggerFactoryValue.CreateLogger(nameof(LanguageServerWorkspaceFactory));
 
         // Before we can create the workspace, let's figure out the solution-level analyzers; we'll pull in analyzers from our own binaries
         // as well as anything coming from extensions.
@@ -50,12 +55,12 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
         var analyzerReferences = CreateSolutionLevelAnalyzerReferences(hostAnalyzerLoaderProvider);
         workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(analyzerReferences), WorkspaceChangeKind.SolutionChanged);
 
-        var fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
+        var fileChangeWatcher = lspServicesValue.GetRequiredService<IFileChangeWatcher>();
         HostProjectFactory = new ProjectSystemProjectFactory(
             workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { });
         workspace.ProjectSystemProjectFactory = HostProjectFactory;
 
-        // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to 'FileBasedProgramsWorkspaceProviderFactory'.
+        // https://github.com/dotnet/roslyn/issues/78560: Move this workspace creation to FileBasedProgramsProjectSystem.
         // 'CreateSolutionLevelAnalyzerReferences' needs to be broken out into its own service for us to be able to move this.
         var miscellaneousFilesWorkspace = new LanguageServerWorkspace(hostServicesProvider.HostServices, WorkspaceKind.MiscellaneousFiles);
         Contract.ThrowIfFalse(
@@ -71,7 +76,7 @@ internal sealed class LanguageServerWorkspaceFactory : ILspService, IHostWorkspa
         // service, rather than relying on the process-wide event listener (which, in the standalone server, only
         // tracks the shared MetadataAsSource workspace). This keeps these per-server workspaces visible only to
         // this server so concurrent daemon-mode servers stay isolated from one another.
-        var workspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
+        var workspaceRegistrationService = lspServicesValue.GetRequiredService<LspWorkspaceRegistrationService>();
         workspaceRegistrationService.Register(workspace);
         workspaceRegistrationService.Register(miscellaneousFilesWorkspace);
 

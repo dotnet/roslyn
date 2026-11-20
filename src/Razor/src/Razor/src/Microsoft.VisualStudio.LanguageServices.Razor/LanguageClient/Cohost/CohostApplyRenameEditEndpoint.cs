@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 // NOTE: This has to use RazorMethod, not CohostEndpoint, because it has to use the "default" language,
 // since it has no document associated with it to get any other language.
 [Method(RazorLSPConstants.ApplyRenameEditName)]
-[ExportRazorStatelessLspService(typeof(CohostApplyRenameEditEndpoint))]
+[ExportRazorLspService(typeof(CohostApplyRenameEditEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostApplyRenameEditEndpoint(ILoggerFactory loggerFactory)

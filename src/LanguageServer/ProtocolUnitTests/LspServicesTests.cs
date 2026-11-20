@@ -19,40 +19,40 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
     [Theory, CombinatorialData]
     public async Task ReturnsSpecificLspService(bool mutatingLspWorkspace)
     {
-        var composition = base.Composition.AddParts(typeof(CSharpLspService), typeof(CSharpLspServiceFactory));
+        var composition = base.Composition.AddParts(typeof(CSharpLspService), typeof(CSharpPerServerLspService));
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
 
         var lspService = server.GetRequiredLspService<TestLspService>();
         Assert.True(lspService is CSharpLspService);
 
-        var lspServiceFromFactory = server.GetRequiredLspService<TestLspServiceFromFactory>();
-        Assert.Equal(typeof(CSharpLspServiceFactory).Name, lspServiceFromFactory.FactoryName);
+        var perServerLspService = server.GetRequiredLspService<PerServerTestLspService>();
+        Assert.IsType<CSharpPerServerLspService>(perServerLspService);
     }
 
     [Theory, CombinatorialData]
     public async Task SpecificLspServiceOverridesAny(bool mutatingLspWorkspace)
     {
-        var composition = base.Composition.AddParts(typeof(CSharpLspService), typeof(AnyLspService), typeof(CSharpLspServiceFactory), typeof(AnyLspServiceFactory));
+        var composition = base.Composition.AddParts(typeof(CSharpLspService), typeof(AnyLspService), typeof(CSharpPerServerLspService), typeof(AnyPerServerLspService));
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
 
         var lspService = server.GetRequiredLspService<TestLspService>();
         Assert.True(lspService is CSharpLspService);
 
-        var lspServiceFromFactory = server.GetRequiredLspService<TestLspServiceFromFactory>();
-        Assert.Equal(typeof(CSharpLspServiceFactory).Name, lspServiceFromFactory.FactoryName);
+        var perServerLspService = server.GetRequiredLspService<PerServerTestLspService>();
+        Assert.IsType<CSharpPerServerLspService>(perServerLspService);
     }
 
     [Theory, CombinatorialData]
     public async Task ReturnsAnyLspService(bool mutatingLspWorkspace)
     {
-        var composition = base.Composition.AddParts(typeof(AnyLspService), typeof(AnyLspServiceFactory));
+        var composition = base.Composition.AddParts(typeof(AnyLspService), typeof(AnyPerServerLspService));
         await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition);
 
         var lspService = server.GetRequiredLspService<TestLspService>();
         Assert.True(lspService is AnyLspService);
 
-        var lspServiceFromFactory = server.GetRequiredLspService<TestLspServiceFromFactory>();
-        Assert.Equal(typeof(AnyLspServiceFactory).Name, lspServiceFromFactory.FactoryName);
+        var perServerLspService = server.GetRequiredLspService<PerServerTestLspService>();
+        Assert.IsType<AnyPerServerLspService>(perServerLspService);
     }
 
     [Theory, CombinatorialData]
@@ -87,14 +87,14 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
     [Theory, CombinatorialData]
     public async Task DuplicateSpecificServicesThrow(bool mutatingLspWorkspace)
     {
-        var composition = base.Composition.AddParts(typeof(CSharpLspService), typeof(CSharpLspServiceFactory), typeof(DuplicateCSharpLspService), typeof(DuplicateCSharpLspServiceFactory));
+        var composition = base.Composition.AddParts(typeof(CSharpLspService), typeof(CSharpPerServerLspService), typeof(DuplicateCSharpLspService), typeof(DuplicateCSharpPerServerLspService));
         await Assert.ThrowsAnyAsync<Exception>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition));
     }
 
     [Theory, CombinatorialData]
     public async Task DuplicateAnyServicesThrow(bool mutatingLspWorkspace)
     {
-        var composition = base.Composition.AddParts(typeof(AnyLspService), typeof(AnyLspServiceFactory), typeof(DuplicateAnyLspService), typeof(DuplicateAnyLspServiceFactory));
+        var composition = base.Composition.AddParts(typeof(AnyLspService), typeof(AnyPerServerLspService), typeof(DuplicateAnyLspService), typeof(DuplicateAnyPerServerLspService));
         await Assert.ThrowsAnyAsync<Exception>(async () => await CreateTestLspServerAsync("", mutatingLspWorkspace, initializationOptions: new() { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition));
     }
 
@@ -115,71 +115,66 @@ public sealed class LspServicesTests(ITestOutputHelper testOutputHelper) : Abstr
 
     internal class TestLspService : ILspService { }
 
-    internal sealed record class TestLspServiceFromFactory(string FactoryName) : ILspService { }
+    internal abstract class PerServerTestLspService : ILspService { }
 
     internal interface ITestLspServiceInterface : ILspService { }
 
-    internal class TestLspServiceFactory : ILspServiceFactory
-    {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new TestLspServiceFromFactory(this.GetType().Name);
-    }
-
-    [ExportStatelessLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [ExportLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class CSharpLspService() : TestLspService { }
 
-    [ExportLspServiceFactory(typeof(TestLspServiceFromFactory), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [ExportLspService(typeof(PerServerTestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class CSharpLspServiceFactory() : TestLspServiceFactory { }
+    internal sealed class CSharpPerServerLspService() : PerServerTestLspService { }
 
-    [ExportStatelessLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared]
+    [ExportLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class AnyLspService() : TestLspService { }
 
-    [ExportStatelessLspService(typeof(ITestLspServiceInterface), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [ExportLspService(typeof(ITestLspServiceInterface), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class DirectInterfaceLspService() : ITestLspServiceInterface { }
 
-    [ExportStatelessLspService(typeof(InterfaceLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [ExportLspService(typeof(InterfaceLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class InterfaceLspService() : ITestLspServiceInterface { }
 
-    [ExportStatelessLspService(typeof(SecondInterfaceLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [ExportLspService(typeof(SecondInterfaceLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class SecondInterfaceLspService() : ITestLspServiceInterface { }
 
-    [ExportLspServiceFactory(typeof(TestLspServiceFromFactory), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared]
+    [ExportLspService(typeof(PerServerTestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class AnyLspServiceFactory() : TestLspServiceFactory { }
+    internal sealed class AnyPerServerLspService() : PerServerTestLspService { }
 
-    [ExportStatelessLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [ExportLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class DuplicateCSharpLspService() : TestLspService { }
 
-    [ExportLspServiceFactory(typeof(TestLspServiceFromFactory), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+    [ExportLspService(typeof(PerServerTestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class DuplicateCSharpLspServiceFactory() : CSharpLspServiceFactory { }
+    internal sealed class DuplicateCSharpPerServerLspService() : PerServerTestLspService { }
 
-    [ExportStatelessLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared]
+    [ExportLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class DuplicateAnyLspService() : TestLspService { }
 
-    [ExportLspServiceFactory(typeof(TestLspServiceFromFactory), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared]
+    [ExportLspService(typeof(PerServerTestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.Any), Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class DuplicateAnyLspServiceFactory() : CSharpLspServiceFactory { }
+    internal sealed class DuplicateAnyPerServerLspService() : PerServerTestLspService { }
 
-    [ExportStatelessLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
+    [ExportLspService(typeof(TestLspService), ProtocolConstants.RoslynLspLanguagesContract, WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class AlwaysActiveCSharpLspService() : TestLspService { }
