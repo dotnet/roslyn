@@ -177,7 +177,7 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetLinePosition(input.Position);
 
-        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().ClientSpaceSettings with { IndentSize = tabSize });
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().ClientSpaceSettings with { TabSize = tabSize });
         var endpoint = new CohostInlineCompletionEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientSettingsManager);
 
         var clientSettings = ClientSettingsManager.GetClientSettings();

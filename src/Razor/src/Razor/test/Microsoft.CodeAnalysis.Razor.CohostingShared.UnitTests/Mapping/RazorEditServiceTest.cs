@@ -300,7 +300,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
     [Fact]
     public Task GenerateMethod_ExistingCodeBlock_UsesTabsWithMixedIndentation()
     {
-        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 3));
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, TabSize: 3));
 
         return TestAsync(
             csharpSource: """
@@ -361,7 +361,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
     [Fact]
     public Task GenerateMethod_ExistingCodeBlock_UsesConfiguredTabSizeForTabIndentedSource()
     {
-        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 3));
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, TabSize: 3));
 
         return TestAsync(
             csharpSource: """
@@ -425,7 +425,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         // This test is a test for our indentation handling code, but the end result could be better if we knew what Roslyn
         // was using as the tabsize for C# files.
 
-        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: false, IndentSize: 2));
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: false, TabSize: 2));
 
         return TestAsync(
             csharpSource: """
@@ -916,6 +916,41 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                     indent_size = 2
                     """)
             ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86431")]
+    public Task NewMethod_NoCodeBlock_ClientIndentSize()
+    {
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: false, TabSize: 4, IndentSize: 2));
+
+        return TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                  private int UnmappedMethod()
+                  {
+                    return 5;
+                  }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                  private int UnmappedMethod()
+                  {
+                    return 5;
+                  }
+                }
+                """);
+    }
 
     [Fact]
     public Task NewMethod_ExpressionBodied_NoCodeBlock()

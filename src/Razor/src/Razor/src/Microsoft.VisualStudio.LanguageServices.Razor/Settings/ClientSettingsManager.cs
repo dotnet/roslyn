@@ -31,7 +31,7 @@ internal sealed class ClientSettingsManager : IClientSettingsManager
         // update Roslyn's global options (null in tests):
         if (globalOptions is not null)
         {
-            globalOptions.TabSize = _settings.ClientSpaceSettings.IndentSize;
+            globalOptions.TabSize = _settings.ClientSpaceSettings.TabSize;
             globalOptions.UseTabs = _settings.ClientSpaceSettings.IndentWithTabs;
         }
 
@@ -62,7 +62,7 @@ internal sealed class ClientSettingsManager : IClientSettingsManager
         // update Roslyn's global options (null in tests):
         if (_globalOptions is not null)
         {
-            _globalOptions.TabSize = updatedSettings.IndentSize;
+            _globalOptions.TabSize = updatedSettings.TabSize;
             _globalOptions.UseTabs = updatedSettings.IndentWithTabs;
         }
 

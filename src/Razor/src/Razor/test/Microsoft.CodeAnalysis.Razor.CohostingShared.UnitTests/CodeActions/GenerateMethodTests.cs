@@ -303,7 +303,7 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
     [Fact]
     public async Task GenerateMethod_FromImplicitExpression_WithoutCodeBlock_UsesTabsWhenConfigured()
     {
-        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, IndentSize: 4));
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: true, TabSize: 4));
 
         var input = """
             @New[||]Method()
@@ -353,7 +353,7 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
     [Fact]
     public async Task GenerateMethod_FromImplicitExpression_EmptyCodeBlock_UsesConfiguredIndentSize()
     {
-        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: false, IndentSize: 2));
+        ClientSettingsManager.Update(new ClientSpaceSettings(IndentWithTabs: false, TabSize: 2));
 
         var input = """
             @New[||]Method()

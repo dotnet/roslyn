@@ -28,14 +28,15 @@ internal static class RazorFormattingOptionsExtensions
         var options = RazorFormattingOptionsStorage.GetOptions(razorDocument, cancellationToken);
 
         var insertSpaces = formattingOptions?.InsertSpaces ?? !spaceSettings.IndentWithTabs;
-        var tabSize = formattingOptions?.TabSize ?? spaceSettings.IndentSize;
+        var tabSize = formattingOptions?.TabSize ?? spaceSettings.TabSize;
 
         // LSP formatting options have no indent size, so take indent_size from the Razor file's editorconfig. Without one,
-        // indent by the client's tab size, which VS Code fills from its own indent size.
+        // use the indent size the client reported in its settings (VS's Tools > Options), and failing that indent by the
+        // client's tab size, which VS Code fills from its own indent size.
         var indentSize = CSharpFormattingOptionsExtensions.GetIndentSize(
             insertSpaces,
             tabSize,
-            options.GetOption(FormattingOptions2.IndentationSize, LanguageNames.CSharp, tabSize));
+            options.GetOption(FormattingOptions2.IndentationSize, LanguageNames.CSharp, spaceSettings.IndentSize ?? tabSize));
 
         var csharpSyntaxFormattingOptions = razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken);
 

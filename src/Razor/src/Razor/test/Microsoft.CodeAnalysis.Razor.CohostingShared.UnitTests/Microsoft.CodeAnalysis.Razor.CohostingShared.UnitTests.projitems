@@ -69,6 +69,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostWillRenameEndpointTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NestedFiles\RemoteAddNestedFileServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CascadingTypeParameterFormattingTest.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ClientIndentSizeFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CodeDirectiveFormattingTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsTest_Generator.cs" />
