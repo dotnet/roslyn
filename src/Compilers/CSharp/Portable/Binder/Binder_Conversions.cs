@@ -3131,8 +3131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stackAllocType = new PointerTypeSymbol(TypeWithAnnotations.Create(elementType));
                     break;
                 case ConversionKind.StackAllocToSpanType:
-                    ReportUnsafeForUninitializedSpanStackAllocIfRequired(syntax, diagnostics, hasInitializer: boundStackAlloc.InitializerOpt is not null);
-
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructs, diagnostics);
                     stackAllocType = Compilation.GetWellKnownType(WellKnownType.System_Span_T).Construct(elementType);
                     break;
