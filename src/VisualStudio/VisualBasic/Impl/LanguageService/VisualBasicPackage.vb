@@ -32,6 +32,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '       Naming
 #Disable Warning BC40000 ' Preserve the installed-product registration.
     <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=True)>
+    <ScenarioPreloadRegistration("{" & Guids.VisualBasicProjectIdString & "}", GetType(IVbCompilerService))>
+    <ScenarioPreloadRegistration("{" & Guids.VisualBasicCpsProjectIdString & "}", GetType(IVbCompilerService))>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".bas")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".cls")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".ctl")>
