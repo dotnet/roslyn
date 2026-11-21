@@ -28,11 +28,11 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
         : AbstractWorkspaceDocumentDiagnosticSource(document)
     {
         /// <summary>
-        /// Cached mapping between a project instance and all the diagnostics computed for it.  This is used so that
-        /// once we compute the diagnostics once for a particular project, we don't need to recompute them again as we
-        /// walk every document within it.
+        /// Cached mapping between a project instance, analyzer filter, and all the diagnostics computed for them.  This
+        /// is used so that once we compute the diagnostics once for a particular project and analyzer filter, we don't
+        /// need to recompute them again as we walk every document within it.
         /// </summary>
-        private static readonly ConditionalWeakTable<Project, AsyncLazy<ILookup<DocumentId, DiagnosticData>>> s_projectToDiagnostics = new();
+        private static readonly ConditionalWeakTable<Project, ProjectDiagnosticsCache> s_projectToDiagnostics = new();
 
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(
             RequestContext context,
@@ -64,31 +64,36 @@ internal abstract class AbstractWorkspaceDocumentDiagnosticSource(TextDocument d
 
         private async ValueTask<ImmutableArray<DiagnosticData>> GetProjectDiagnosticsAsync(CancellationToken cancellationToken)
         {
-            if (!s_projectToDiagnostics.TryGetValue(Document.Project, out var lazyDiagnostics))
-            {
-                // Extracted into local to prevent captures.
-                lazyDiagnostics = GetLazyDiagnostics();
-            }
+            var diagnosticsByFilter = s_projectToDiagnostics.GetValue(Document.Project, static _ => new());
+            var lazyDiagnostics = diagnosticsByFilter.GetOrAdd(analyzerFilter, GetLazyDiagnostics);
 
             var result = await lazyDiagnostics.GetValueAsync(cancellationToken).ConfigureAwait(false);
             return [.. result[Document.Id]];
 
-            AsyncLazy<ILookup<DocumentId, DiagnosticData>> GetLazyDiagnostics()
+            AsyncLazy<ILookup<DocumentId, DiagnosticData>> GetLazyDiagnostics(AnalyzerFilter analyzerFilter)
             {
-                return s_projectToDiagnostics.GetValue(
-                    Document.Project,
-                    project => AsyncLazy.Create(
-                        async cancellationToken =>
-                        {
-                            var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
-                            var allDiagnostics = await service.GetDiagnosticsForIdsAsync(
-                                project, documentIds: default, diagnosticIds: null, analyzerFilter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
+                return AsyncLazy.Create(
+                    async cancellationToken =>
+                    {
+                        var service = this.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+                        var allDiagnostics = await service.GetDiagnosticsForIdsAsync(
+                            Document.Project, documentIds: default, diagnosticIds: null, analyzerFilter, includeLocalDocumentDiagnostics: true, cancellationToken).ConfigureAwait(false);
 
-                            // TODO(cyrusn): Should we be filtering out suppressed diagnostics here? This is how the
-                            // code has always worked, but it isn't clear if that is correct.
-                            return allDiagnostics.Where(d => !d.IsSuppressed && d.DocumentId != null).ToLookup(d => d.DocumentId!);
-                        }));
+                        // TODO(cyrusn): Should we be filtering out suppressed diagnostics here? This is how the
+                        // code has always worked, but it isn't clear if that is correct.
+                        return allDiagnostics.Where(d => !d.IsSuppressed && d.DocumentId != null).ToLookup(d => d.DocumentId!);
+                    });
             }
+        }
+
+        private sealed class ProjectDiagnosticsCache
+        {
+            private ImmutableDictionary<AnalyzerFilter, AsyncLazy<ILookup<DocumentId, DiagnosticData>>> _diagnosticsByFilter = ImmutableDictionary<AnalyzerFilter, AsyncLazy<ILookup<DocumentId, DiagnosticData>>>.Empty;
+
+            public AsyncLazy<ILookup<DocumentId, DiagnosticData>> GetOrAdd(
+                AnalyzerFilter analyzerFilter,
+                Func<AnalyzerFilter, AsyncLazy<ILookup<DocumentId, DiagnosticData>>> valueFactory)
+                => ImmutableInterlocked.GetOrAdd(ref _diagnosticsByFilter, analyzerFilter, valueFactory);
         }
     }
 

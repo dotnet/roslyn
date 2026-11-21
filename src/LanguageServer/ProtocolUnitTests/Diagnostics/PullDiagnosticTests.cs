@@ -2343,6 +2343,61 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         AssertEx.Empty(results[1].Diagnostics);
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86334")]
+    public async Task TestWorkspaceDiagnosticsForClosedFilesSwitchAnalyzerFilter(
+        bool useVSDiagnostics, bool mutatingLspWorkspace, bool switchCompilerDiagnostics)
+    {
+        await using var testLspServer = await CreateTestWorkspaceWithDiagnosticsAsync(
+            @"class A {",
+            mutatingLspWorkspace,
+            BackgroundAnalysisScope.FullSolution,
+            useVSDiagnostics,
+            additionalAnalyzers: [new CSharpSyntaxAnalyzer()]);
+
+        var options = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
+        AssertDiagnosticCodes(results, "CS1513", CSharpSyntaxAnalyzer.RuleId);
+
+        SetDiagnosticsScope(enabled: false);
+
+        results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
+        AssertDiagnosticCodes(
+            results,
+            switchCompilerDiagnostics ? CSharpSyntaxAnalyzer.RuleId : "CS1513");
+
+        SetDiagnosticsScope(enabled: true);
+
+        results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
+        AssertDiagnosticCodes(results, "CS1513", CSharpSyntaxAnalyzer.RuleId);
+
+        void SetDiagnosticsScope(bool enabled)
+        {
+            if (switchCompilerDiagnostics)
+            {
+                options.SetGlobalOption(
+                    SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
+                    LanguageNames.CSharp,
+                    enabled ? CompilerDiagnosticsScope.FullSolution : CompilerDiagnosticsScope.None);
+            }
+            else
+            {
+                options.SetGlobalOption(
+                    SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
+                    LanguageNames.CSharp,
+                    enabled ? BackgroundAnalysisScope.FullSolution : BackgroundAnalysisScope.None);
+            }
+        }
+
+        static void AssertDiagnosticCodes(
+            ImmutableArray<TestDiagnosticResult> results, params string[] expectedCodes)
+        {
+            Assert.Equal(2, results.Length);
+            AssertEx.SetEqual(expectedCodes, results[0].Diagnostics!.SelectAsArray(d => (string)d.Code!));
+            AssertEx.Empty(results[1].Diagnostics);
+        }
+    }
+
     internal static async Task InsertInClosedDocumentAsync(TestLspServer testLspServer, DocumentId documentId, string textToInsert, int? position = null)
     {
         var text = await testLspServer.GetCurrentSolution().GetDocument(documentId)!.GetTextAsync(CancellationToken.None);
