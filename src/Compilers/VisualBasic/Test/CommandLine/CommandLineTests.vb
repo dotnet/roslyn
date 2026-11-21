@@ -5065,7 +5065,7 @@ End Class
                 Dim match = Regex.Match(output, pattern)
                 Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}")
                 Assert.Equal(filePath, match.Groups("path").Value)
-                Assert.Contains("testhost", match.Groups("app").Value)
+                Assert.Equal(GetType(CommandLineTests).Assembly.GetName().Name, match.Groups("app").Value)
                 Assert.Equal(currentProcess.Id, Integer.Parse(match.Groups("pid").Value))
             End Using
 

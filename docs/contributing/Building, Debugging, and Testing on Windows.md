@@ -76,16 +76,6 @@ Tests can be run and debugged under WSL. This requires a bit of setup the first 
 
 [More details](https://docs.microsoft.com/en-us/visualstudio/debugger/debug-dotnet-core-in-wsl-2)
 
-### WPF Test Runner
-
-To debug through tests, you can right click the test project that contains your
-tests and choose **Set as Startup Project**. Then press F5. This will run the
-tests under the command line runner.  Some members of the team have been
-working on a GUI runner that allows selection of individual tests, etc.  Grab
-the source from
-[xunit.runner.wpf](https://github.com/pilchie/xunit.runner.wpf), build it and
-give it a try.
-
 ## Trying Your Changes in Visual Studio
 
 ### Deploying with command-line (recommended method)

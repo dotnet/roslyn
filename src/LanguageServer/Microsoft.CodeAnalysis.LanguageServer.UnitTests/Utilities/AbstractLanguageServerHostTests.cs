@@ -12,7 +12,6 @@ using System.IO.Pipelines;
 using System.IO.Pipes;
 using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
-using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
@@ -20,8 +19,8 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
-using Roslyn.Test.Utilities;
 using RoslynTelemetry = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -292,7 +291,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 await WaitForServerShutdownAsync();
             }
 
-            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
+            _clientRpc.Dispose();
             await DisposeTransportAsync();
         }
     }

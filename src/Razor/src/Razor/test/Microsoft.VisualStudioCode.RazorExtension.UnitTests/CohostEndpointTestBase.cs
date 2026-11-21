@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Razor.SemanticTokens;
 using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudioCode.RazorExtension.Configuration;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -29,7 +29,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected override TestComposition LocalComposition => TestComposition.RoslynFeatures
         .AddAssemblies(typeof(RazorSourceGeneratedDocumentSpanMappingService).Assembly);
 
-    protected override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

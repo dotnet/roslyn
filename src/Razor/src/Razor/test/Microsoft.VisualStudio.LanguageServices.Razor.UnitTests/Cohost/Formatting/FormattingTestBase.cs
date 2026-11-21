@@ -24,13 +24,11 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public abstract class FormattingTestBase : DocumentFormattingTestBase
 {
-    private readonly FormattingTestContext _context;
     private readonly HtmlFormattingService _htmlFormattingService;
 
-    private protected FormattingTestBase(FormattingTestContext context, HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutputHelper)
+    private protected FormattingTestBase(HtmlFormattingService htmlFormattingService, ITestOutputHelper testOutputHelper)
         : base(testOutputHelper)
     {
-        _context = context;
         _htmlFormattingService = htmlFormattingService;
     }
 
@@ -38,13 +36,18 @@ public abstract class FormattingTestBase : DocumentFormattingTestBase
         TestCode input,
         string expected,
         char triggerCharacter,
+        bool flipLineEndings,
         bool inGlobalNamespace = false,
         bool insertSpaces = true,
         int tabSize = 4,
         RazorFileKind? fileKind = null,
         int? expectedChangedLines = null)
     {
-        (input, _, expected) = ProcessFormattingContext(input, "", expected);
+        if (flipLineEndings)
+        {
+            input = new TestCode(FlipLineEndings(input.OriginalInput));
+            expected = FlipLineEndings(expected);
+        }
 
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, inGlobalNamespace: inGlobalNamespace);
         var inputText = await document.GetTextAsync(DisposalToken);
@@ -103,18 +106,25 @@ public abstract class FormattingTestBase : DocumentFormattingTestBase
         }
     }
 
-    private (TestCode, string, string) ProcessFormattingContext(TestCode input, string htmlFormatted, string expected)
+    private static string FlipLineEndings(string input)
     {
-        Assert.True(_context.CreatedByFormattingDiscoverer, "Test class is using FormattingTestContext, but not using [FormattingTestFact] or [FormattingTestTheory]");
-
-        if (_context.ShouldFlipLineEndings)
+        if (string.IsNullOrEmpty(input))
         {
-            // flip the line endings of the stings (LF to CRLF and vice versa) and run again
-            input = new TestCode(FormattingTestContext.FlipLineEndings(input.OriginalInput));
-            expected = FormattingTestContext.FlipLineEndings(expected);
-            htmlFormatted = FormattingTestContext.FlipLineEndings(htmlFormatted);
+            return input;
         }
 
-        return (input, htmlFormatted, expected);
+        var hasCRLF = input.Contains("\r\n");
+        var hasLF = !hasCRLF && input.Contains("\n");
+
+        if (hasCRLF)
+        {
+            return input.Replace("\r\n", "\n");
+        }
+        else if (hasLF)
+        {
+            return input.Replace("\n", "\r\n");
+        }
+
+        return input;
     }
 }

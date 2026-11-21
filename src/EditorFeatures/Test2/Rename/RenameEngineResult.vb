@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
-Imports Xunit.Abstractions
+Imports Xunit
 Imports Xunit.Sdk
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename

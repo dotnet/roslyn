@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly DiagnosticDescriptor InvalidAnalyzerConfigSeverityDescriptor
             = new DiagnosticDescriptor(
                 "InvalidSeverityInAnalyzerConfig",
-                CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig_Title,
-                CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig,
+                CreateLocalizableResourceString(nameof(CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig_Title)),
+                CreateLocalizableResourceString(nameof(CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig)),
                 "AnalyzerConfig",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis
         private static readonly DiagnosticDescriptor MultipleGlobalAnalyzerKeysDescriptor
             = new DiagnosticDescriptor(
                 "MultipleGlobalAnalyzerKeys",
-                CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys_Title,
-                CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys,
+                CreateLocalizableResourceString(nameof(CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys_Title)),
+                CreateLocalizableResourceString(nameof(CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys)),
                 "AnalyzerConfig",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
@@ -112,11 +112,14 @@ namespace Microsoft.CodeAnalysis
         private static readonly DiagnosticDescriptor InvalidGlobalAnalyzerSectionDescriptor
             = new DiagnosticDescriptor(
                 "InvalidGlobalSectionName",
-                CodeAnalysisResources.WRN_InvalidGlobalSectionName_Title,
-                CodeAnalysisResources.WRN_InvalidGlobalSectionName,
+                CreateLocalizableResourceString(nameof(CodeAnalysisResources.WRN_InvalidGlobalSectionName_Title)),
+                CreateLocalizableResourceString(nameof(CodeAnalysisResources.WRN_InvalidGlobalSectionName)),
                 "AnalyzerConfig",
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true);
+
+        private static LocalizableString CreateLocalizableResourceString(string nameOfLocalizableResource)
+            => new LocalizableResourceString(nameOfLocalizableResource, CodeAnalysisResources.ResourceManager, typeof(CodeAnalysisResources));
 
         public static AnalyzerConfigSet Create<TList>(TList analyzerConfigs) where TList : IReadOnlyCollection<AnalyzerConfig>
         {

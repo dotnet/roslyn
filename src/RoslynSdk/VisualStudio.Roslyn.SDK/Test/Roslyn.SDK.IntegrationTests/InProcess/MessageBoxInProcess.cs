@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         private static uint s_messageBoxServiceCookie;
 #pragma warning restore IDE0052
 
-        protected override async Task InitializeCoreAsync()
+        protected override async ValueTask InitializeCoreAsync()
         {
             await base.InitializeCoreAsync();
 

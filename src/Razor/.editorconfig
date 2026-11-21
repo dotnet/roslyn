@@ -37,7 +37,8 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
 # IDE0005 - Remove unnecessary imports
-dotnet_diagnostic.IDE0005.severity = warning
+# Disabled because test files keep `using Xunit.Abstractions;`, which only resolves through a placeholder type.
+dotnet_diagnostic.IDE0005.severity = none
 
 # IDE0052 - Private member can be removed
 dotnet_diagnostic.IDE0052.severity = warning
@@ -112,6 +113,9 @@ dotnet_diagnostic.RS0023.severity = error
 
 # xUnit1004: Test methods should not be skipped
 dotnet_diagnostic.xUnit1004.severity = refactoring
+
+# xUnit1051: Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken
+dotnet_diagnostic.xUnit1051.severity = none
 
 # Non-private static fields are PascalCase
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion

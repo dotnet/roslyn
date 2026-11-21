@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void MaxLength_Invalid()
         {
             var r = Rope.ForString("x");
-            Assert.Throws<InvalidOperationException>(() => r.ToString(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => r.ToString(-1));
         }
 
         [Fact]
