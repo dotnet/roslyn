@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -26,6 +27,7 @@ internal static class Feature
     internal const string InterceptorsNamespaces = "InterceptorsNamespaces";
     internal const string NoRefSafetyRulesAttribute = "noRefSafetyRulesAttribute";
     internal const string DisableLengthBasedSwitch = "disable-length-based-switch";
+    internal const string UseGlobalCache = CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag;
     internal const string ExperimentalDataSectionStringLiterals = "experimental-data-section-string-literals";
 
     // For testing

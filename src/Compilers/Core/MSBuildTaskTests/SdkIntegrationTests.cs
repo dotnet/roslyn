@@ -7,14 +7,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Basic.CompilerLog.Util;
 using Microsoft.Build.Logging.StructuredLogger;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
@@ -176,6 +179,152 @@ public sealed class SdkIntegrationTests : IDisposable
                 Assert.NotNull(arguments.SourceLink);
                 Assert.True(File.Exists(arguments.SourceLink));
             }
+        }
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkAvailable), typeof(CoreClrOnly)), CombinatorialData]
+    public async Task CompilerCache_ReusesAcrossWorktrees(bool razor)
+    {
+        var firstWorktree = ProjectDir.CreateDirectory("first");
+        var secondWorktree = ProjectDir.CreateDirectory("second");
+        var cachePath = ProjectDir.CreateDirectory("cache").Path;
+        var pipeName = Guid.NewGuid().ToString("N");
+        foreach (var worktree in new[] { firstWorktree, secondWorktree })
+        {
+            worktree.CreateFile("test.csproj").WriteAllText($"""
+                <Project Sdk="Microsoft.NET.Sdk{(razor ? ".Razor" : "")}">
+                  <PropertyGroup>
+                    <TargetFramework>{NetCoreTfm}</TargetFramework>
+                    <UseRoslynCompilerCache>true</UseRoslynCompilerCache>
+                    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+                  </PropertyGroup>
+                  <ItemGroup>
+                    <SourceRoot Include="$(MSBuildProjectDirectory){Path.DirectorySeparatorChar}" SourceControl="git" SourceLinkUrl="https://example.invalid/sources/*" />
+                  </ItemGroup>
+                  {(razor ? """<ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>""" : "")}
+                </Project>
+                """);
+            worktree.CreateFile("C.cs").WriteAllText("public class C { }");
+            if (razor)
+            {
+                worktree.CreateFile("Component.razor").WriteAllText("<h1>Hello from Razor</h1>");
+            }
+        }
+
+        try
+        {
+            build(firstWorktree.Path, expectCacheHit: false);
+            build(firstWorktree.Path, expectCacheHit: true);
+            build(secondWorktree.Path, expectCacheHit: true);
+        }
+        finally
+        {
+            Assert.True(await BuildServerConnection.RunServerShutdownRequestAsync(
+                pipeName, timeoutOverride: null, waitForProcess: true, EmptyCompilerServerLogger.Instance, CancellationToken.None));
+        }
+
+        ArtifactUploadUtil.SetSucceeded();
+
+        void build(string worktree, bool expectCacheHit)
+        {
+            var binlogPath = RunBuild(
+                Path.Combine(worktree, "test.csproj"),
+                additionalArguments: $"-t:Rebuild -p:SharedCompilationId={pipeName} -nodeReuse:false",
+                additionalEnvironmentVars: new Dictionary<string, string>
+                {
+                    ["ROSLYN_CACHE_PATH"] = cachePath,
+                });
+            var buildLog = BinaryLog.ReadBuild(binlogPath);
+            var messages = buildLog.FindChildrenRecursive<Message>().ToArray();
+            Assert.Contains(messages, message => message.Text.Contains("server processed compilation", StringComparison.Ordinal));
+
+            var configPath = Path.Combine(worktree, "obj", "Debug", NetCoreTfm, "test.GeneratedMSBuildEditorConfig.editorconfig");
+            TestOutputHelper.WriteLine($"Generated configuration: {configPath}");
+            foreach (var line in File.ReadLines(configPath).Where(line => line.StartsWith("build_property.ProjectDir", StringComparison.OrdinalIgnoreCase)))
+            {
+                TestOutputHelper.WriteLine(line);
+            }
+
+            if (worktree == secondWorktree.Path)
+            {
+                foreach (var extension in new[] { ".dll", ".pdb" })
+                {
+                    var relativePath = Path.Combine("bin", "Debug", NetCoreTfm, "test" + extension);
+                    Assert.Equal(
+                        File.ReadAllBytes(Path.Combine(firstWorktree.Path, relativePath)),
+                        File.ReadAllBytes(Path.Combine(secondWorktree.Path, relativePath)));
+                }
+            }
+
+            var cacheHit = messages.Any(message => message.Text == "Compilation result restored from cache.");
+            if (expectCacheHit)
+            {
+                Assert.True(cacheHit, $"Expected a compiler cache hit in worktree '{worktree}'.");
+            }
+            else
+            {
+                Assert.False(cacheHit, "The first compilation should populate an empty cache.");
+            }
+        }
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkAvailable), typeof(CoreClrOnly)), CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+    public async Task CompilerCache_ReplaysWarningsWithMSBuildWarnAsError(bool visualBasic)
+    {
+        var projectFile = ProjectDir.CreateFile(visualBasic ? "warning.vbproj" : "warning.csproj");
+        var cachePath = Path.Combine(ProjectDir.Path, "compiler-cache");
+        var pipeName = Guid.NewGuid().ToString("N");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>{NetCoreTfm}</TargetFramework>
+                <SharedCompilationId>{pipeName}</SharedCompilationId>
+                <Features>use-global-cache={cachePath}</Features>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile(visualBasic ? "C.vb" : "C.cs").WriteAllText(visualBasic
+            ? """
+            Public Class C
+                <System.Obsolete("Example warning")>
+                Public Shared Sub Old()
+                End Sub
+
+                Public Shared Sub M()
+                    Old()
+                End Sub
+            End Class
+            """
+            : """
+            public class C
+            {
+                [System.Obsolete("Example warning")]
+                public static void Old() { }
+
+                public static void M() => Old();
+            }
+            """);
+
+        var diagnosticId = visualBasic ? "BC40000" : "CS0618";
+        try
+        {
+            for (var i = 0; i < 2; i++)
+            {
+                var binlogPath = RunBuild(projectFile.Path, additionalArguments: "-t:Rebuild -warnaserror -nodeReuse:false", succeeds: false);
+                var build = BinaryLog.ReadBuild(binlogPath);
+                Assert.Contains(build.FindChildrenRecursive<Error>(), error => error.Code == diagnosticId);
+                Assert.Contains(build.FindChildrenRecursive<Message>(), message => message.Text.Contains("server processed compilation", StringComparison.Ordinal));
+                Assert.Equal(i == 1, build.FindChildrenRecursive<Message>().Any(message => message.Text == "Compilation result restored from cache."));
+            }
+        }
+        finally
+        {
+            Assert.True(await BuildServerConnection.RunServerShutdownRequestAsync(
+                pipeName, timeoutOverride: null, waitForProcess: true, EmptyCompilerServerLogger.Instance, CancellationToken.None));
         }
 
         ArtifactUploadUtil.SetSucceeded();

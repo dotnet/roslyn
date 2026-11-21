@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal ICommonCompilerFileSystem FileSystem { get; set; }
 
+        /// <summary>
+        /// The analyzer-configuration snapshot used for deterministic key generation, or <see langword="default"/> when not captured.
+        /// </summary>
+        internal ImmutableArray<AnalyzerConfig> AnalyzerConfigFiles { get; private set; }
+
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
         public abstract Compilation? CreateCompilation(
@@ -288,6 +293,9 @@ namespace Microsoft.CodeAnalysis
             [NotNullWhen(true)] out AnalyzerConfigSet? analyzerConfigSet)
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigPaths.Length);
+            var captureConfigFiles = Arguments.ParseOptions.HasFeature(Feature.DebugDeterminism)
+                || Arguments.ParseOptions.HasFeature(Feature.UseGlobalCache);
+            var configFiles = captureConfigFiles ? ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigPaths.Length) : null;
 
             var processedDirs = PooledHashSet<string>.GetInstance();
 
@@ -305,7 +313,8 @@ namespace Microsoft.CodeAnalysis
 
                 Debug.Assert(normalizedPath is object);
                 var directory = Path.GetDirectoryName(normalizedPath) ?? normalizedPath;
-                var editorConfig = AnalyzerConfig.Parse(fileContent, normalizedPath);
+                var sourceText = SourceText.From(fileContent);
+                var editorConfig = AnalyzerConfig.Parse(sourceText, normalizedPath);
 
                 if (!editorConfig.IsGlobal)
                 {
@@ -320,6 +329,7 @@ namespace Microsoft.CodeAnalysis
                     processedDirs.Add(directory);
                 }
                 configs.Add(editorConfig);
+                configFiles?.Add(editorConfig);
             }
 
             processedDirs.Free();
@@ -327,12 +337,14 @@ namespace Microsoft.CodeAnalysis
             if (diagnostics.HasAnyErrors())
             {
                 configs.Free();
+                configFiles?.Free();
                 analyzerConfigSet = null;
                 return false;
             }
 
             analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var setDiagnostics);
             configs.Free();
+            AnalyzerConfigFiles = configFiles?.ToImmutableAndFree() ?? default;
             diagnostics.AddRange(setDiagnostics);
             return true;
         }
@@ -953,7 +965,7 @@ namespace Microsoft.CodeAnalysis
 
                 var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
 
-                var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken, out var cacheState);
+                var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, analyzerConfigSet, consoleOutput, cancellationToken, out var cacheState);
                 if (cachedExitCode.HasValue)
                 {
                     consoleOutput.WriteLine("Compilation result restored from cache.");
@@ -986,7 +998,9 @@ namespace Microsoft.CodeAnalysis
                     analyzerCts.Cancel();
                 }
 
-                var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
+                using var cachedDiagnosticOutput = cacheState is null ? null : new StringWriter(CultureInfo.InvariantCulture);
+                TextWriter diagnosticOutput = cachedDiagnosticOutput is null ? consoleOutput : cachedDiagnosticOutput;
+                var exitCode = ReportDiagnostics(diagnostics, diagnosticOutput, errorLogger, compilation)
                     ? Failed
                     : Succeeded;
 
@@ -994,10 +1008,16 @@ namespace Microsoft.CodeAnalysis
                 // additional files due to forcing all additional files to fetch text
                 foreach (var additionalFile in additionalTextFiles)
                 {
-                    if (ReportDiagnostics(additionalFile.Diagnostics, consoleOutput, errorLogger, compilation))
+                    if (ReportDiagnostics(additionalFile.Diagnostics, diagnosticOutput, errorLogger, compilation))
                     {
                         exitCode = Failed;
                     }
+                }
+
+                var diagnosticText = cachedDiagnosticOutput?.ToString();
+                if (diagnosticText is not null)
+                {
+                    consoleOutput.Write(diagnosticText);
                 }
 
                 if (Arguments.ReportAnalyzer)
@@ -1014,7 +1034,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (exitCode == Succeeded)
                 {
-                    OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, cancellationToken);
+                    OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, diagnosticText, cancellationToken);
                 }
 
                 return exitCode;
@@ -1156,7 +1176,7 @@ namespace Microsoft.CodeAnalysis
                     // We pass it to the generators, which will realize any symbols they require.
                     var explicitGeneratedOutDir = Arguments.GeneratedFilesOutputDirectory;
                     var hasExplicitGeneratedOutDir = !string.IsNullOrWhiteSpace(explicitGeneratedOutDir);
-                    var baseDirectory = hasExplicitGeneratedOutDir ? explicitGeneratedOutDir! : Arguments.OutputDirectory;
+                    var baseDirectory = Arguments.GeneratedFilesBaseDirectory;
                     (compilation, generatorTimingInfo) = RunGenerators(compilation, baseDirectory, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
@@ -1301,7 +1321,9 @@ namespace Microsoft.CodeAnalysis
                         Arguments.PathMap,
                         emitOptions,
                         sourceLinkStreamDisposerOpt?.Stream,
-                        Arguments.ManifestResources);
+                        Arguments.ManifestResources,
+                        analyzerConfigSet,
+                        cancellationToken);
                 }
 
                 // Need to ensure the PDB file path validation is done on the original path as that is the
@@ -1764,12 +1786,17 @@ namespace Microsoft.CodeAnalysis
         /// inputs. Override in server compiler subclasses to provide caching. Return a non-null
         /// value to short-circuit compilation with a cached exit code.
         /// </summary>
-        /// <param name="cacheState">Opaque state to be passed to <see cref="OnCompilationSucceeded"/> on success.</param>
+        /// <param name="cacheState">
+        /// When non-null, tells the caller to capture diagnostic output and pass it,
+        /// along with this opaque state, to <see cref="OnCompilationSucceeded"/>.
+        /// </param>
         protected virtual int? CheckCache(
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
+            AnalyzerConfigSet? analyzerConfigSet,
+            TextWriter consoleOutput,
             CancellationToken cancellationToken,
             out object? cacheState)
         {
@@ -1796,12 +1823,14 @@ namespace Microsoft.CodeAnalysis
         /// compiler subclasses to store the result in a cache.
         /// </summary>
         /// <param name="cacheState">Opaque state returned from <see cref="CheckCache"/>.</param>
+        /// <param name="diagnosticOutput">Diagnostic output produced after cache lookup, or null when no capture was requested.</param>
         protected virtual void OnCompilationSucceeded(
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
             object? cacheState,
+            string? diagnosticOutput,
             CancellationToken cancellationToken)
         {
         }
@@ -1815,8 +1844,11 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions,
             Stream? sourceLinkStream,
-            ImmutableArray<ResourceDescription> resources)
+            ImmutableArray<ResourceDescription> resources,
+            AnalyzerConfigSet? analyzerConfigSet,
+            CancellationToken cancellationToken)
         {
+            Debug.Assert(Arguments.AnalyzerConfigPaths.IsEmpty || !AnalyzerConfigFiles.IsDefault);
             var key = compilation.GetDeterministicKey(
                 additionalTexts,
                 analyzers,
@@ -1824,7 +1856,11 @@ namespace Microsoft.CodeAnalysis
                 pathMap,
                 emitOptions,
                 sourceLinkStream,
-                resources);
+                resources,
+                AnalyzerConfigFiles,
+                analyzerConfigSet,
+                Arguments.GeneratedFilesBaseDirectory,
+                cancellationToken: cancellationToken);
 
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);

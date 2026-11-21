@@ -168,20 +168,34 @@ namespace Microsoft.CodeAnalysis
         public AnalyzerConfigOptionsResult GlobalConfigOptions
             => _lazyConfigOptions.Initialize(static @this => @this.ParseGlobalConfigOptions(), this);
 
-        /// <summary>
-        /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a source file. This computes which <see cref="AnalyzerConfig"/> rules applies to this file, and correctly applies
-        /// precedence rules if there are multiple rules for the same file.
-        /// </summary>
-        /// <param name="sourcePath">The path to a file such as a source file or additional file. Must be non-null.</param>
-        /// <remarks>This method is safe to call from multiple threads.</remarks>
-        public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+        internal bool HasNamedSections
         {
-            if (sourcePath == null)
+            get
             {
-                throw new ArgumentNullException(nameof(sourcePath));
-            }
+                if (!_globalConfig.NamedSections.IsEmpty)
+                {
+                    return true;
+                }
 
-            var sectionKey = _sectionKeyPool.Allocate();
+                foreach (var config in _analyzerConfigs)
+                {
+                    if (!config.NamedSections.IsEmpty)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Appends the applicable named sections in application order, after root resets.
+        /// Returns the matched merged global section, if any.
+        /// </summary>
+        internal Section? GetMatchingSections(string sourcePath, List<Section> sectionKey)
+        {
+            Debug.Assert(sectionKey.Count == 0);
 
             var normalizedPath = PathUtilities.CollapseWithForwardSlash(sourcePath.AsSpan());
             normalizedPath = PathUtilities.ExpandAbsolutePathWithRelativeParts(normalizedPath);
@@ -198,6 +212,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
             int globalConfigOptionsCount = sectionKey.Count;
+            var globalSection = globalConfigOptionsCount == 0 ? null : sectionKey[0];
 
             // The editorconfig paths are sorted from shortest to longest, so matches
             // are resolved from most nested to least nested, where last setting wins
@@ -235,6 +250,25 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+
+            return globalSection;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="AnalyzerConfigOptionsResult"/> for a source file. This computes which <see cref="AnalyzerConfig"/> rules applies to this file, and correctly applies
+        /// precedence rules if there are multiple rules for the same file.
+        /// </summary>
+        /// <param name="sourcePath">The path to a file such as a source file or additional file. Must be non-null.</param>
+        /// <remarks>This method is safe to call from multiple threads.</remarks>
+        public AnalyzerConfigOptionsResult GetOptionsForSourcePath(string sourcePath)
+        {
+            if (sourcePath == null)
+            {
+                throw new ArgumentNullException(nameof(sourcePath));
+            }
+
+            var sectionKey = _sectionKeyPool.Allocate();
+            GetMatchingSections(sourcePath, sectionKey);
 
             // Try to avoid creating extra dictionaries if we've already seen an options result with the
             // exact same options

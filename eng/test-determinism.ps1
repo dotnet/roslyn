@@ -1,7 +1,8 @@
 [CmdletBinding(PositionalBinding=$false)]
 param([string]$configuration = "Debug",
       [string]$msbuildEngine = "vs",
-      [string]$altRootDrive = "q:",
+      [ValidatePattern('^[a-zA-Z]:$')][string]$baselineRootDrive = "p:",
+      [ValidatePattern('^[a-zA-Z]:$')][string]$altRootDrive = "q:",
       [string]$bootstrapDir = "",
       [switch]$ci = $false,
       [switch]$warnAsError = $false,
@@ -15,6 +16,7 @@ function Print-Usage() {
   Write-Host "  -configuration <value>    Build configuration ('Debug' or 'Release')"
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -bootstrapDir             Directory containing the bootstrap compiler"
+  Write-Host "  -baselineRootDrive        The drive for the baseline and same-location repeat (via subst, default: p:)"
   Write-Host "  -altRootDrive             The drive we build on (via subst) for verifying pathmap implementation"
   Write-Host "  -warnAsError              Treat all warnings as errors (default: false)"
 }
@@ -257,25 +259,38 @@ function Test-Build([string]$rootDir, $dataMap, [string]$logFileName) {
 }
 
 function Run-Test() {
-  # Run the initial build so that we can populate the maps
-  Run-Build $RepoRoot -logFileName "Initial" -useBootstrap
-  $dataMap = Record-Binaries $RepoRoot
-  Test-MapContents $dataMap
+  if ($baselineRootDrive -eq $altRootDrive) {
+    throw "The baseline and alternate root drives must be different."
+  }
 
-  # Run a test against the source in the same directory location
-  Test-Build -rootDir $RepoRoot -dataMap $dataMap -logFileName "test1"
-
-  # Run another build in a different source location and verify that path mapping
-  # allows the build to be identical.  To do this we'll copy the entire source
-  # tree under the artifacts\q directory and run a build from there.
-  Write-Host "Building in a different directory"
-  Exec-Command "subst" "$altRootDrive $(Split-Path -parent $RepoRoot)"
+  # Use aliases for both builds so the fixed physical SDK/package paths have the same
+  # relationship to repository analyzer configs. Toolset initialization stays at RepoRoot.
+  Exec-Command "subst" "$baselineRootDrive `"$(Split-Path -parent $RepoRoot)`""
   try {
-    $altRootDir = Join-Path (Join-Path "$($altRootDrive)\" (Split-Path -leaf $RepoRoot)) "\"
-    Test-Build -rootDir $altRootDir -dataMap $dataMap -logFileName "test2"
+    $baselineRootDir = Join-Path (Join-Path "$($baselineRootDrive)\" (Split-Path -leaf $RepoRoot)) "\"
+    # Run the initial build so that we can populate the maps
+    Run-Build $baselineRootDir -logFileName "Initial" -useBootstrap
+    $dataMap = Record-Binaries $baselineRootDir
+    Test-MapContents $dataMap
+
+    # Run a test against the source in the same directory location
+    Test-Build -rootDir $baselineRootDir -dataMap $dataMap -logFileName "test1"
+
+    # Run another build in a different source location and verify that path mapping
+    # allows the build to be identical. To do this we'll use another drive alias
+    # for the same source tree.
+    Write-Host "Building in a different directory"
+    Exec-Command "subst" "$altRootDrive `"$(Split-Path -parent $RepoRoot)`""
+    try {
+      $altRootDir = Join-Path (Join-Path "$($altRootDrive)\" (Split-Path -leaf $RepoRoot)) "\"
+      Test-Build -rootDir $altRootDir -dataMap $dataMap -logFileName "test2"
+    }
+    finally {
+      Exec-Command "subst" "$altRootDrive /d"
+    }
   }
   finally {
-    Exec-Command "subst" "$altRootDrive /d"
+    Exec-Command "subst" "$baselineRootDrive /d"
   }
 }
 

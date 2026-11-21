@@ -128,6 +128,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public string? GeneratedFilesOutputDirectory { get; internal set; }
 
+        internal string GeneratedFilesBaseDirectory
+            => string.IsNullOrWhiteSpace(GeneratedFilesOutputDirectory) ? OutputDirectory : GeneratedFilesOutputDirectory;
+
         /// <summary>
         /// Options controlling the generation of a SARIF log file containing compilation or
         /// analysis diagnostics, or null if no log file is desired.
