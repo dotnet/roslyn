@@ -99,6 +99,7 @@
     <PackageReference Include="DiffPlex" />
     <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" />
+    <PackageReference Include="Microsoft.DotNet.ILAssembler" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" />
     <PackageReference Include="Microsoft.NETCore.Platforms" />
     <PackageReference Include="Moq" />
