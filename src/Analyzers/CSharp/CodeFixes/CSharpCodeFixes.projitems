@@ -82,6 +82,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructMemberReadOnly\CSharpMakeStructMemberReadOnlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructReadOnly\CSharpMakeStructReadOnlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypeAbstract\CSharpMakeTypeAbstractCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeTypeClosed\CSharpMakeTypeClosedCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeTypePartial\CSharpMakeTypePartialCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ArrowExpressionClausePlacement\ArrowExpressionClausePlacementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConditionalExpressionPlacement\ConditionalExpressionPlacementCodeFixProvider.cs" />
