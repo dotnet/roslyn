@@ -376,7 +376,7 @@ internal sealed class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvide
         if (firstMemberTrivia is [(kind: SyntaxKind.EndOfLineTrivia), ..])
             return node;
 
-        var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed));
+        var newFirstMember = firstMember.WithLeadingTrivia(firstMemberTrivia.Insert(0, SyntaxFactory.ElasticCarriageReturnLineFeed));
         return node.ReplaceNode(firstMember, newFirstMember);
     }
 
