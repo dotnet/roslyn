@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -118,6 +119,67 @@ public sealed class AddImportsTests
         [false],
         [true],
     ];
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85804")]
+    [InlineData(false, false, false, "\n")]
+    [InlineData(true, false, false, "\n")]
+    [InlineData(false, true, false, "\n")]
+    [InlineData(false, false, true, "\n")]
+    [InlineData(true, false, false, "\r")]
+    [InlineData(false, true, false, "\r")]
+    [InlineData(false, false, true, "\r")]
+    public async Task AddImportsWithoutExistingLineBreakUsesConfiguredNewLine(bool passOptions, bool setSolutionOptions, bool useEditorConfig, string configuredNewLine)
+    {
+        var document = await GetDocument("class C { System.Collections.Generic.List<int> F; }", withAnnotations: false);
+        var solution = document.Project.Solution.WithDocumentFilePath(document.Id, "/test/test.cs");
+
+        if (setSolutionOptions)
+            solution = solution.WithOptions(solution.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, configuredNewLine));
+
+        if (useEditorConfig)
+        {
+            solution = solution.AddAnalyzerConfigDocument(
+                DocumentId.CreateNewId(document.Project.Id), ".editorconfig",
+                SourceText.From($"root = true\n[*.cs]\nend_of_line = {(configuredNewLine == "\r" ? "cr" : "lf")}\n"),
+                filePath: "/test/.editorconfig");
+        }
+
+        document = solution.GetDocument(document.Id);
+        var options = passOptions
+            ? document.Project.Solution.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, configuredNewLine)
+            : null;
+
+        var result = await ImportAdder.AddImportsAsync(document, options);
+        var text = (await result.GetTextAsync()).ToString();
+        var newLine = passOptions || setSolutionOptions || useEditorConfig ? configuredNewLine : Environment.NewLine;
+        Assert.Contains($";{newLine}{newLine}class C", text);
+        if (newLine != "\r\n")
+            Assert.DoesNotContain(newLine == "\n" ? "\r" : "\n", text);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85804")]
+    public async Task AddImportsPreservesExistingLineBreakInsteadOfConfiguredNewLine()
+    {
+        var document = await GetDocument("class C\r\n{ System.Collections.Generic.List<int> F; }", withAnnotations: false);
+        var options = document.Project.Solution.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\n");
+
+        var result = await ImportAdder.AddImportsAsync(document, options);
+        var text = (await result.GetTextAsync()).ToString();
+        Assert.Contains(";\r\n\r\nclass C\r\n", text);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85804")]
+    public async Task AddImportsWithExistingUsingButNoLineBreakUsesConfiguredNewLine()
+    {
+        var document = await GetDocument("using System;class C { System.Collections.Generic.List<int> F; }", withAnnotations: false);
+        var options = document.Project.Solution.Options.WithChangedOption(FormattingOptions.NewLine, LanguageNames.CSharp, "\r");
+
+        var result = await ImportAdder.AddImportsAsync(document, options);
+        var text = (await result.GetTextAsync()).ToString();
+        Assert.Contains("using System;\rusing", text);
+        Assert.Contains(";\rclass C", text);
+        Assert.DoesNotContain("\n", text);
+    }
 
     [Theory, MemberData(nameof(TestAllData))]
     public Task TestAddImport(bool useSymbolAnnotations)

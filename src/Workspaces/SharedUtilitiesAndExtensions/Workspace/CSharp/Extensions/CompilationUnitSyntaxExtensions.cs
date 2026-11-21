@@ -102,6 +102,14 @@ internal static partial class CompilationUnitSyntaxExtensions
         IList<UsingDirectiveSyntax> usingDirectives,
         bool placeSystemNamespaceFirst,
         params SyntaxAnnotation[] annotations)
+        => root.AddUsingDirectives(usingDirectives, placeSystemNamespaceFirst, SyntaxFactory.ElasticCarriageReturnLineFeed, annotations);
+
+    internal static CompilationUnitSyntax AddUsingDirectives(
+        this CompilationUnitSyntax root,
+        IList<UsingDirectiveSyntax> usingDirectives,
+        bool placeSystemNamespaceFirst,
+        SyntaxTrivia fallbackEndOfLine,
+        params SyntaxAnnotation[] annotations)
     {
         if (usingDirectives.Count == 0)
         {
@@ -117,7 +125,7 @@ internal static partial class CompilationUnitSyntaxExtensions
         if (root.Externs.Count == 0)
         {
             (root, addBlankLine) = AddImportHelpers.MoveTrivia(
-                CSharpSyntaxFacts.Instance, root, root.Usings, usings);
+                CSharpSyntaxFacts.Instance, root, root.Usings, usings, fallbackEndOfLine);
         }
 
         var rootWithNewUsings = root.WithUsings(

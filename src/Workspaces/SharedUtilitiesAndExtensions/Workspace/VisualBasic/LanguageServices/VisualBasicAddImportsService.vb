@@ -108,6 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImports
             Return compilationUnit.AddImportsStatements(
                 usingDirectives.Concat(aliasDirectives).ToList(),
                 options.PlaceSystemNamespaceFirst,
+                SyntaxFactory.ElasticEndOfLine(options.NewLine),
                 Array.Empty(Of SyntaxAnnotation))
         End Function
 
