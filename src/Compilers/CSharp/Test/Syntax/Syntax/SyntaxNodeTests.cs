@@ -1381,12 +1381,37 @@ using goo.bar;
                     void P(int x, , ) { }
                     void Q(
                 """);
-            List<SyntaxToken> tokens = tree.GetCompilationUnitRoot().DescendantTokens().ToList();
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            List<SyntaxToken> tokens = root.DescendantTokens().ToList();
             Assert.Contains(tokens, t => t.Width == 0 && t.Kind() != SyntaxKind.EndOfFileToken);
-            Assert.Contains(tree.GetCompilationUnitRoot().DescendantNodes(), n => n.Width == 0);
+            Assert.Contains(root.DescendantNodes(), n => n.Width == 0);
 
-            VerifyNextAndPreviousTokens(tokens, includeZeroWidth: true);
-            VerifyNextAndPreviousTokens(tokens.Where(t => t.Width > 0).ToList(), includeZeroWidth: false);
+            verifyNextAndPreviousTokens(includeZeroWidth: true);
+            verifyNextAndPreviousTokens(includeZeroWidth: false);
+
+            void verifyNextAndPreviousTokens(bool includeZeroWidth)
+            {
+                List<SyntaxToken> expected = tokens.Where(t => includeZeroWidth || t.Width > 0).ToList();
+                for (int i = 0; i < expected.Count; i++)
+                {
+                    SyntaxToken next = expected[i].GetNextToken(includeZeroWidth);
+                    Assert.Equal(i + 1 < expected.Count ? expected[i + 1] : default, next);
+
+                    SyntaxToken previous = expected[i].GetPreviousToken(includeZeroWidth);
+                    Assert.Equal(i > 0 ? expected[i - 1] : default, previous);
+                }
+
+                // Going from token to token reaches the SyntaxNode overloads only through the parent of a token. Also
+                // start from every node, zero-width ones included, as LookupPosition does.
+                Func<SyntaxToken, bool> predicate = includeZeroWidth ? SyntaxToken.Any : SyntaxToken.NonZeroWidth;
+                foreach (SyntaxNode node in root.DescendantNodes())
+                {
+                    int first = tokens.IndexOf(node.GetFirstToken(includeZeroWidth: true));
+                    int last = tokens.IndexOf(node.GetLastToken(includeZeroWidth: true));
+                    Assert.Equal(expected.FirstOrDefault(t => tokens.IndexOf(t) > last), SyntaxNavigator.Instance.GetNextToken(node, predicate, stepInto: null));
+                    Assert.Equal(expected.LastOrDefault(t => tokens.IndexOf(t) < first), SyntaxNavigator.Instance.GetPreviousToken(node, predicate, stepInto: null));
+                }
+            }
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")]
@@ -1465,16 +1490,15 @@ using goo.bar;
                 .Single(t => t.IsKind(SyntaxKind.ShebangDirectiveTrivia))
                 .GetStructure();
 
-            // ShebangDirectiveTriviaSyntax.Content creates a synthetic token whose Parent and Index point at
-            // EndOfDirectiveToken even though the token is not actually in ChildNodesAndTokens.
+            // ShebangDirectiveTriviaSyntax.Content creates a token with the Parent and Index of EndOfDirectiveToken,
+            // which is not among the directive's children (https://github.com/dotnet/roslyn/issues/86561). Until that
+            // is fixed, GetNextToken and GetPreviousToken return default for it.
             SyntaxToken content = shebang.Content;
             Assert.Same(shebang, content.Parent);
             Assert.DoesNotContain((SyntaxNodeOrToken)content, shebang.ChildNodesAndTokens());
 
-            // Cannot trust content.Index blindly: GetPreviousToken must walk out of the directive
-            // rather than stepping to ExclamationToken inside shebang.
             Assert.Equal(default, content.GetPreviousToken(includeZeroWidth: true, includeDirectives: true));
-            Assert.Equal(SyntaxKind.ClassKeyword, content.GetNextToken(includeDirectives: true).Kind());
+            Assert.Equal(default, content.GetNextToken(includeZeroWidth: true, includeDirectives: true));
 
             SyntaxTree disabledTree = SyntaxFactory.ParseSyntaxTree("""
                 #if false
@@ -1487,20 +1511,8 @@ using goo.bar;
                 .GetStructure();
             SyntaxToken disabledContent = disabledShebang.Content;
 
-            Assert.Equal(SyntaxKind.FalseKeyword, disabledContent.GetPreviousToken(includeDirectives: true).Kind());
-            Assert.Equal(SyntaxKind.HashToken, disabledContent.GetNextToken(includeDirectives: true).Kind());
-        }
-
-        private static void VerifyNextAndPreviousTokens(List<SyntaxToken> tokens, bool includeZeroWidth)
-        {
-            for (int i = 0; i < tokens.Count; i++)
-            {
-                SyntaxToken next = tokens[i].GetNextToken(includeZeroWidth);
-                Assert.Equal(i + 1 < tokens.Count ? tokens[i + 1] : default, next);
-
-                SyntaxToken previous = tokens[i].GetPreviousToken(includeZeroWidth);
-                Assert.Equal(i > 0 ? tokens[i - 1] : default, previous);
-            }
+            Assert.Equal(default, disabledContent.GetPreviousToken(includeDirectives: true));
+            Assert.Equal(default, disabledContent.GetNextToken(includeDirectives: true));
         }
 
         [Fact]

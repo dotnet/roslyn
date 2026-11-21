@@ -2264,6 +2264,16 @@ Class C
             VerifyNextAndPreviousTokens(tokens.Where(Function(t) t.Width > 0).ToList(), includeZeroWidth:=False)
         End Sub
 
+        Private Shared Sub VerifyNextAndPreviousTokens(tokens As List(Of SyntaxToken), includeZeroWidth As Boolean)
+            For i = 0 To tokens.Count - 1
+                Dim [next] = tokens(i).GetNextToken(includeZeroWidth)
+                Assert.Equal(If(i + 1 < tokens.Count, tokens(i + 1), Nothing), [next])
+
+                Dim previous = tokens(i).GetPreviousToken(includeZeroWidth)
+                Assert.Equal(If(i > 0, tokens(i - 1), Nothing), previous)
+            Next
+        End Sub
+
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72861")>
         Public Sub TestGetNextAndPreviousTokenIntoStructuredTrivia()
             Dim tree = VisualBasicSyntaxTree.ParseText("
@@ -2323,16 +2333,6 @@ End Class
             End While
 
             Assert.Equal(expectedCount, count)
-        End Sub
-
-        Private Shared Sub VerifyNextAndPreviousTokens(tokens As List(Of SyntaxToken), includeZeroWidth As Boolean)
-            For i = 0 To tokens.Count - 1
-                Dim [next] = tokens(i).GetNextToken(includeZeroWidth)
-                Assert.Equal(If(i + 1 < tokens.Count, tokens(i + 1), Nothing), [next])
-
-                Dim previous = tokens(i).GetPreviousToken(includeZeroWidth)
-                Assert.Equal(If(i > 0, tokens(i - 1), Nothing), previous)
-            Next
         End Sub
 
         <WorkItem(755236, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755236")>

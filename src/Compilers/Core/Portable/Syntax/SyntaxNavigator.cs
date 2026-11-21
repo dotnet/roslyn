@@ -435,7 +435,8 @@ namespace Microsoft.CodeAnalysis
             while (node.Parent != null)
             {
                 // look at the children of my parent that come after me
-                SyntaxToken token = GetFirstTokenAfterChild(node.Parent, ChildSyntaxList.IndexOf(node.Parent, node), predicate, stepInto);
+                int index = ChildSyntaxList.IndexOf(node.Parent, node, out ChildSyntaxList.SlotData slotData);
+                SyntaxToken token = TryGetFirstTokenWithinParentAfterChild(node.Parent, index, slotData, predicate, stepInto);
                 if (token.RawKind != None)
                 {
                     return token;
@@ -461,7 +462,8 @@ namespace Microsoft.CodeAnalysis
             while (node.Parent != null)
             {
                 // look at the children of my parent that come before me
-                SyntaxToken token = GetLastTokenBeforeChild(node.Parent, ChildSyntaxList.IndexOf(node.Parent, node), predicate, stepInto);
+                int index = ChildSyntaxList.IndexOf(node.Parent, node, out ChildSyntaxList.SlotData slotData);
+                SyntaxToken token = TryGetLastTokenWithinParentBeforeChild(node.Parent, index, slotData, predicate, stepInto);
                 if (token.RawKind != None)
                 {
                     return token;
@@ -484,6 +486,13 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(searchInsideCurrentTokenTrailingTrivia == false || stepInto != null);
             if (current.Parent != null)
             {
+                // ShebangDirectiveTriviaSyntax.Content is not among its parent's children
+                // (https://github.com/dotnet/roslyn/issues/86561).
+                if (!ChildSyntaxList.TryGetSlotData(current, out ChildSyntaxList.SlotData slotData))
+                {
+                    return default;
+                }
+
                 // look inside trailing trivia for structure
                 if (searchInsideCurrentTokenTrailingTrivia)
                 {
@@ -495,7 +504,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // look at the children of my parent that come after me
-                SyntaxToken token = GetFirstTokenAfterChild(current.Parent, IndexOfChild(current), predicate, stepInto);
+                SyntaxToken token = TryGetFirstTokenWithinParentAfterChild(current.Parent, current.Index, slotData, predicate, stepInto);
                 if (token.RawKind != None)
                 {
                     return token;
@@ -514,6 +523,13 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(searchInsideCurrentTokenLeadingTrivia == false || stepInto != null);
             if (current.Parent != null)
             {
+                // ShebangDirectiveTriviaSyntax.Content is not among its parent's children
+                // (https://github.com/dotnet/roslyn/issues/86561).
+                if (!ChildSyntaxList.TryGetSlotData(current, out ChildSyntaxList.SlotData slotData))
+                {
+                    return default;
+                }
+
                 // look inside trailing trivia for structure
                 if (searchInsideCurrentTokenLeadingTrivia)
                 {
@@ -525,7 +541,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // look at the children of my parent that come before me
-                SyntaxToken token = GetLastTokenBeforeChild(current.Parent, IndexOfChild(current), predicate, stepInto);
+                SyntaxToken token = TryGetLastTokenWithinParentBeforeChild(current.Parent, current.Index, slotData, predicate, stepInto);
                 if (token.RawKind != None)
                 {
                     return token;
@@ -538,43 +554,11 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
-        /// <summary>
-        /// Returns the index of <paramref name="token"/> in the children of its parent, or -1 if it is not one of them.
-        /// </summary>
-        private static int IndexOfChild(in SyntaxToken token)
+        /// <param name="slotData">The <see cref="ChildSyntaxList.SlotData"/> for the slot that holds the child.</param>
+        private SyntaxToken TryGetFirstTokenWithinParentAfterChild(SyntaxNode parent, int childIndex, ChildSyntaxList.SlotData slotData, Func<SyntaxToken, bool>? predicate, Func<SyntaxTrivia, bool>? stepInto)
         {
-            Debug.Assert(token.Parent != null);
-
-            // A token knows its index in its parent's children. Tokens compare equal only when their indices match,
-            // so if the child at that index is not this token, no other child is. Verify the child matches
-            // because synthetic tokens with a Parent (for example, ShebangDirectiveTriviaSyntax.Content) are not
-            // present in ChildNodesAndTokens even though their Index falls within CountNodes(parent.Green).
-            SyntaxNode parent = token.Parent;
-            int index = token.Index;
-            if (index >= 0 && index < ChildSyntaxList.CountNodes(parent.Green))
+            for (int i = childIndex + 1; ChildSyntaxList.TryGetItemInternal(parent, i, ref slotData, out SyntaxNodeOrToken child); i++)
             {
-                SyntaxNodeOrToken child = ChildSyntaxList.ItemInternal(parent, index);
-                if (child.IsToken && child.AsToken() == token)
-                {
-                    return index;
-                }
-            }
-
-            return -1;
-        }
-
-        private SyntaxToken GetFirstTokenAfterChild(SyntaxNode parent, int childIndex, Func<SyntaxToken, bool>? predicate, Func<SyntaxTrivia, bool>? stepInto)
-        {
-            if (childIndex < 0)
-            {
-                return default;
-            }
-
-            int count = ChildSyntaxList.CountNodes(parent.Green);
-            ChildSyntaxList.SlotData slotData = new ChildSyntaxList.SlotData(parent);
-            for (int i = childIndex + 1; i < count; i++)
-            {
-                SyntaxNodeOrToken child = ChildSyntaxList.ItemInternal(parent, i, ref slotData);
                 SyntaxToken token = child.IsToken
                     ? GetFirstToken(child.AsToken(), predicate, stepInto)
                     : GetFirstToken(child.AsNode()!, predicate, stepInto);
@@ -587,11 +571,12 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
-        private SyntaxToken GetLastTokenBeforeChild(SyntaxNode parent, int childIndex, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto)
+        /// <param name="slotData">The <see cref="ChildSyntaxList.SlotData"/> for the slot that holds the child.</param>
+        private SyntaxToken TryGetLastTokenWithinParentBeforeChild(SyntaxNode parent, int childIndex, ChildSyntaxList.SlotData slotData, Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool>? stepInto)
         {
             for (int i = childIndex - 1; i >= 0; i--)
             {
-                SyntaxNodeOrToken child = ChildSyntaxList.ItemInternal(parent, i);
+                SyntaxNodeOrToken child = ChildSyntaxList.ItemInternal(parent, i, ref slotData);
                 SyntaxToken token = child.IsToken
                     ? GetLastToken(child.AsToken(), predicate, stepInto)
                     : GetLastToken(child.AsNode()!, predicate, stepInto);
