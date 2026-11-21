@@ -105,10 +105,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
             var servicesProvider = TestWorkspace.ExportProvider.GetExportedValue<VSTypeScriptLspServiceProvider>();
 
             var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
-            var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter))
-            {
-                ExceptionStrategy = ExceptionProcessing.ISerializable,
-            };
+            var jsonRpc = CreateTestJsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter));
 
             var languageServer = new RoslynLanguageServer(
                 servicesProvider, jsonRpc, messageFormatter.JsonSerializerOptions,
