@@ -24,7 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         EEMethodSymbol method,
         DiagnosticBag diagnostics,
         out ImmutableArray<LocalSymbol> declaredLocals,
-        out ResultProperties properties);
+        out ResultProperties properties,
+        out ImmutableArray<string> existingAliasNames);
 
     /// <summary>
     /// Synthesized expression evaluation method.
@@ -481,7 +482,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override void GenerateMethodBody(TypeCompilationState compilationState, BindingDiagnosticBag diagnostics)
         {
             ImmutableArray<LocalSymbol> declaredLocalsArray;
-            var body = _generateMethodBody(this, diagnostics.DiagnosticBag, out declaredLocalsArray, out _lazyResultProperties);
+            ImmutableArray<string> existingAliasNames;
+            var body = _generateMethodBody(this, diagnostics.DiagnosticBag, out declaredLocalsArray, out _lazyResultProperties, out existingAliasNames);
             var compilation = compilationState.Compilation;
 
             _lazyReturnType = TypeWithAnnotations.Create(CalculateReturnType(compilation, body));
@@ -520,6 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         declaredLocals,
                         body,
                         declaredLocalsArray,
+                        existingAliasNames,
                         diagnostics.DiagnosticBag);
 
                     // Verify local declaration names.
@@ -534,167 +537,192 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         }
                     }
 
-                    // Rewrite references to placeholder "locals".
-                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, declaredLocals, body, diagnostics.DiagnosticBag);
-
                     if (diagnostics.HasAnyErrors())
                     {
                         return;
+                    }
+
+                    var syntax = body.Syntax;
+                    var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
+                    statementsBuilder.Add(body);
+                    // Insert an implicit return statement if necessary.
+                    if (body.Kind != BoundKind.ReturnStatement)
+                    {
+                        statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null, @checked: false));
+                    }
+
+                    var localsSet = PooledHashSet<LocalSymbol>.GetInstance();
+                    try
+                    {
+                        var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+                        foreach (var local in this.LocalsForBindingOutside)
+                        {
+                            Debug.Assert(!localsSet.Contains(local));
+                            localsBuilder.Add(local);
+                            localsSet.Add(local);
+                        }
+
+                        foreach (var local in this.LocalsForBindingInside)
+                        {
+                            Debug.Assert(!localsSet.Contains(local));
+                            localsBuilder.Add(local);
+                            localsSet.Add(local);
+                        }
+
+                        foreach (var local in this.Locals)
+                        {
+                            if (localsSet.Add(local))
+                            {
+                                localsBuilder.Add(local);
+                            }
+                        }
+
+                        // Add any expression-declared locals (pattern variables, out variables)
+                        // that are not already included in the block's locals.
+                        foreach (var local in declaredLocalsArray)
+                        {
+                            if (localsSet.Add(local))
+                            {
+                                localsBuilder.Add(local);
+                            }
+                        }
+
+                        // Collect PlaceholderLocalSymbol instances (e.g., ObjectAddressLocalSymbol
+                        // for @0x123) that are created dynamically during binding and are not part
+                        // of any pre-existing local collection. These must be declared in the block
+                        // to satisfy CheckLocalsDefined in LocalRewriter.
+                        var placeholderCollector = new PlaceholderLocalCollector(localsSet, localsBuilder);
+                        placeholderCollector.Visit(body);
+
+                        body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
+
+                        Debug.Assert(!diagnostics.HasAnyErrors());
+                        Debug.Assert(!body.HasErrors);
+                        PipelinePhaseValidator.AssertAfterInitialBinding(body);
+
+                        body = LocalRewriter.Rewrite(
+                            compilation: this.DeclaringCompilation,
+                            method: this,
+                            methodOrdinal: _methodOrdinal,
+                            containingType: _container,
+                            statement: body,
+                            compilationState: compilationState,
+                            previousSubmissionFields: null,
+                            allowOmissionOfConditionalCalls: false,
+                            instrumentation: MethodInstrumentation.Empty,
+                            debugDocumentProvider: null,
+                            diagnostics: diagnostics,
+                            codeCoverageSpans: out ImmutableArray<SourceSpan> codeCoverageSpans,
+                            sawLambdas: out bool sawLambdas,
+                            sawLocalFunctions: out bool sawLocalFunctions,
+                            sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
+
+                        Debug.Assert(!sawAwaitInExceptionHandler);
+                        Debug.Assert(codeCoverageSpans.IsEmpty);
+
+                        if (body.HasErrors)
+                        {
+                            return;
+                        }
+
+                        // Rewrite references to placeholder "locals" and declared locals.
+                        // This must run after LocalRewriter so that pattern variable BoundLocal
+                        // references created during pattern lowering are rewritten to
+                        // GetVariableAddress calls.
+                        body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, declaredLocals, body, diagnostics.DiagnosticBag);
+
+                        if (diagnostics.HasAnyErrors())
+                        {
+                            return;
+                        }
+
+                        body = ExtensionMethodReferenceRewriter.Rewrite(body);
+
+                        if (body.HasErrors)
+                        {
+                            return;
+                        }
+
+                        // Variables may have been captured by lambdas in the original method
+                        // or in the expression, and we need to preserve the existing values of
+                        // those variables in the expression. This requires rewriting the variables
+                        // in the expression based on the closure classes from both the original
+                        // method and the expression, and generating a preamble that copies
+                        // values into the expression closure classes.
+                        //
+                        // Consider the original method:
+                        // static void M()
+                        // {
+                        //     int x, y, z;
+                        //     ...
+                        //     F(() => x + y);
+                        // }
+                        // and the expression in the EE: "F(() => x + z)".
+                        //
+                        // The expression is first rewritten using the closure class and local <1>
+                        // from the original method: F(() => <1>.x + z)
+                        // Then lambda rewriting introduces a new closure class that includes
+                        // the locals <1> and z, and a corresponding local <2>: F(() => <2>.<1>.x + <2>.z)
+                        // And a preamble is added to initialize the fields of <2>:
+                        //     <2> = new <>c__DisplayClass0();
+                        //     <2>.<1> = <1>;
+                        //     <2>.z = z;
+
+                        // Rewrite "this" and "base" references to parameter in this method.
+                        // Rewrite variables within body to reference existing display classes.
+                        body = (BoundStatement)CapturedVariableRewriter.Rewrite(
+                            this.GenerateThisReference,
+                            compilation.Conversions,
+                            _displayClassVariables,
+                            body,
+                            diagnostics.DiagnosticBag);
+
+                        if (body.HasErrors)
+                        {
+                            Debug.Assert(false, "Please add a test case capturing whatever caused this assert.");
+                            return;
+                        }
+
+                        if (diagnostics.HasAnyErrors())
+                        {
+                            return;
+                        }
+
+                        if (sawLambdas || sawLocalFunctions)
+                        {
+                            var closureDebugInfoBuilder = ArrayBuilder<EncClosureInfo>.GetInstance();
+                            var lambdaDebugInfoBuilder = ArrayBuilder<EncLambdaInfo>.GetInstance();
+                            var lambdaRuntimeRudeEditsBuilder = ArrayBuilder<LambdaRuntimeRudeEditInfo>.GetInstance();
+
+                            body = ClosureConversion.Rewrite(
+                                loweredBody: body,
+                                thisType: this.SubstitutedSourceMethod.ContainingType,
+                                thisParameter: _thisParameter,
+                                method: this,
+                                methodOrdinal: _methodOrdinal,
+                                substitutedSourceMethod: this.SubstitutedSourceMethod.OriginalDefinition,
+                                lambdaDebugInfoBuilder,
+                                lambdaRuntimeRudeEditsBuilder,
+                                closureDebugInfoBuilder,
+                                slotAllocator: null,
+                                compilationState: compilationState,
+                                diagnostics: diagnostics,
+                                assignLocals: localsSet);
+
+                            // we don't need this information:
+                            closureDebugInfoBuilder.Free();
+                            lambdaDebugInfoBuilder.Free();
+                            lambdaRuntimeRudeEditsBuilder.Free();
+                        }
+                    }
+                    finally
+                    {
+                        localsSet.Free();
                     }
                 }
                 finally
                 {
                     declaredLocals.Free();
-                }
-
-                var syntax = body.Syntax;
-                var statementsBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-                statementsBuilder.Add(body);
-                // Insert an implicit return statement if necessary.
-                if (body.Kind != BoundKind.ReturnStatement)
-                {
-                    statementsBuilder.Add(new BoundReturnStatement(syntax, RefKind.None, expressionOpt: null, @checked: false));
-                }
-
-                var localsSet = PooledHashSet<LocalSymbol>.GetInstance();
-                try
-                {
-                    var localsBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-                    foreach (var local in this.LocalsForBindingOutside)
-                    {
-                        Debug.Assert(!localsSet.Contains(local));
-                        localsBuilder.Add(local);
-                        localsSet.Add(local);
-                    }
-
-                    foreach (var local in this.LocalsForBindingInside)
-                    {
-                        Debug.Assert(!localsSet.Contains(local));
-                        localsBuilder.Add(local);
-                        localsSet.Add(local);
-                    }
-
-                    foreach (var local in this.Locals)
-                    {
-                        if (localsSet.Add(local))
-                        {
-                            localsBuilder.Add(local);
-                        }
-                    }
-
-                    body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
-
-                    Debug.Assert(!diagnostics.HasAnyErrors());
-                    Debug.Assert(!body.HasErrors);
-                    PipelinePhaseValidator.AssertAfterInitialBinding(body);
-
-                    body = LocalRewriter.Rewrite(
-                        compilation: this.DeclaringCompilation,
-                        method: this,
-                        methodOrdinal: _methodOrdinal,
-                        containingType: _container,
-                        statement: body,
-                        compilationState: compilationState,
-                        previousSubmissionFields: null,
-                        allowOmissionOfConditionalCalls: false,
-                        instrumentation: MethodInstrumentation.Empty,
-                        debugDocumentProvider: null,
-                        diagnostics: diagnostics,
-                        codeCoverageSpans: out ImmutableArray<SourceSpan> codeCoverageSpans,
-                        sawLambdas: out bool sawLambdas,
-                        sawLocalFunctions: out bool sawLocalFunctions,
-                        sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
-
-                    Debug.Assert(!sawAwaitInExceptionHandler);
-                    Debug.Assert(codeCoverageSpans.IsEmpty);
-
-                    if (body.HasErrors)
-                    {
-                        return;
-                    }
-
-                    body = ExtensionMethodReferenceRewriter.Rewrite(body);
-
-                    if (body.HasErrors)
-                    {
-                        return;
-                    }
-
-                    // Variables may have been captured by lambdas in the original method
-                    // or in the expression, and we need to preserve the existing values of
-                    // those variables in the expression. This requires rewriting the variables
-                    // in the expression based on the closure classes from both the original
-                    // method and the expression, and generating a preamble that copies
-                    // values into the expression closure classes.
-                    //
-                    // Consider the original method:
-                    // static void M()
-                    // {
-                    //     int x, y, z;
-                    //     ...
-                    //     F(() => x + y);
-                    // }
-                    // and the expression in the EE: "F(() => x + z)".
-                    //
-                    // The expression is first rewritten using the closure class and local <1>
-                    // from the original method: F(() => <1>.x + z)
-                    // Then lambda rewriting introduces a new closure class that includes
-                    // the locals <1> and z, and a corresponding local <2>: F(() => <2>.<1>.x + <2>.z)
-                    // And a preamble is added to initialize the fields of <2>:
-                    //     <2> = new <>c__DisplayClass0();
-                    //     <2>.<1> = <1>;
-                    //     <2>.z = z;
-
-                    // Rewrite "this" and "base" references to parameter in this method.
-                    // Rewrite variables within body to reference existing display classes.
-                    body = (BoundStatement)CapturedVariableRewriter.Rewrite(
-                        this.GenerateThisReference,
-                        compilation.Conversions,
-                        _displayClassVariables,
-                        body,
-                        diagnostics.DiagnosticBag);
-
-                    if (body.HasErrors)
-                    {
-                        Debug.Assert(false, "Please add a test case capturing whatever caused this assert.");
-                        return;
-                    }
-
-                    if (diagnostics.HasAnyErrors())
-                    {
-                        return;
-                    }
-
-                    if (sawLambdas || sawLocalFunctions)
-                    {
-                        var closureDebugInfoBuilder = ArrayBuilder<EncClosureInfo>.GetInstance();
-                        var lambdaDebugInfoBuilder = ArrayBuilder<EncLambdaInfo>.GetInstance();
-                        var lambdaRuntimeRudeEditsBuilder = ArrayBuilder<LambdaRuntimeRudeEditInfo>.GetInstance();
-
-                        body = ClosureConversion.Rewrite(
-                            loweredBody: body,
-                            thisType: this.SubstitutedSourceMethod.ContainingType,
-                            thisParameter: _thisParameter,
-                            method: this,
-                            methodOrdinal: _methodOrdinal,
-                            substitutedSourceMethod: this.SubstitutedSourceMethod.OriginalDefinition,
-                            lambdaDebugInfoBuilder,
-                            lambdaRuntimeRudeEditsBuilder,
-                            closureDebugInfoBuilder,
-                            slotAllocator: null,
-                            compilationState: compilationState,
-                            diagnostics: diagnostics,
-                            assignLocals: localsSet);
-
-                        // we don't need this information:
-                        closureDebugInfoBuilder.Free();
-                        lambdaDebugInfoBuilder.Free();
-                        lambdaRuntimeRudeEditsBuilder.Free();
-                    }
-                }
-                finally
-                {
-                    localsSet.Free();
                 }
 
                 PipelinePhaseValidator.AssertAfterClosureConversion(body);
@@ -787,5 +815,33 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         }
 
         internal override int TryGetOverloadResolutionPriority() => 0;
+
+        /// <summary>
+        /// Walks the bound tree to collect <see cref="PlaceholderLocalSymbol"/> instances
+        /// referenced as <see cref="BoundLocal"/> nodes. These are created dynamically during
+        /// binding by <see cref="PlaceholderLocalBinder"/> (e.g., ObjectAddressLocalSymbol for
+        /// @0x123) and need to be declared in the enclosing block for correctness validation.
+        /// </summary>
+        private sealed class PlaceholderLocalCollector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private readonly PooledHashSet<LocalSymbol> _localsSet;
+            private readonly ArrayBuilder<LocalSymbol> _localsBuilder;
+
+            internal PlaceholderLocalCollector(PooledHashSet<LocalSymbol> localsSet, ArrayBuilder<LocalSymbol> localsBuilder)
+            {
+                _localsSet = localsSet;
+                _localsBuilder = localsBuilder;
+            }
+
+            public override BoundNode VisitLocal(BoundLocal node)
+            {
+                if (node.LocalSymbol is PlaceholderLocalSymbol && _localsSet.Add(node.LocalSymbol))
+                {
+                    _localsBuilder.Add(node.LocalSymbol);
+                }
+
+                return base.VisitLocal(node);
+            }
+        }
     }
 }
