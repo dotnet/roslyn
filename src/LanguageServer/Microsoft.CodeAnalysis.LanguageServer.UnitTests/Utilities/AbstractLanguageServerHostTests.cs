@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
-using Roslyn.Test.Utilities;
 using RoslynTelemetry = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry;
 using Xunit;
 
@@ -292,7 +291,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 await WaitForServerShutdownAsync();
             }
 
-            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
+            _clientRpc.Dispose();
             await DisposeTransportAsync();
         }
     }
