@@ -643,7 +643,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of Object)' because 'Object' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of In T)(obj As T)'.
+BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of Object)' because 'Object' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of T)(obj As T)'.
         Dim a As Action(Of Object) = CType(Sub(i As Integer) Console.WriteLine(), Action(Of Integer))'BIND:"Dim a As Action(Of Object) = CType(Sub(i As Integer) Console.WriteLine(), Action(Of Integer))"
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
@@ -793,7 +793,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of Object)' because 'Object' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of In T)(obj As T)'.
+BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of Object)' because 'Object' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of T)(obj As T)'.
         Dim a As Action(Of Object) = CType(AddressOf M1, Action(Of Integer))'BIND:"Dim a As Action(Of Object) = CType(AddressOf M1, Action(Of Integer))"
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
@@ -1045,7 +1045,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC36754: 'Func(Of Integer)' cannot be converted to 'Func(Of String)' because 'Integer' is not derived from 'String', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function Func(Of Out TResult)() As TResult'.
+BC36754: 'Func(Of Integer)' cannot be converted to 'Func(Of String)' because 'Integer' is not derived from 'String', as required for the 'Out' generic parameter 'TResult' in 'Delegate Function Func(Of TResult)() As TResult'.
         Dim a As Func(Of String) = DirectCast(Function() 1, Func(Of Integer))'BIND:"DirectCast(Function() 1, Func(Of Integer))"
                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
@@ -1375,7 +1375,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of String)' because 'String' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of In T)(obj As T)'.
+BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of String)' because 'String' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of T)(obj As T)'.
         Dim a As Action(Of String) = TryCast(Sub(i As Integer) Console.WriteLine(), Action(Of Integer))'BIND:"TryCast(Sub(i As Integer) Console.WriteLine(), Action(Of Integer))"
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
@@ -2994,7 +2994,7 @@ IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Action(
 ]]>.Value
 
             Dim expectedDiagnostics = <![CDATA[
-BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of String)' because 'String' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of In T)(obj As T)'.
+BC36755: 'Action(Of Integer)' cannot be converted to 'Action(Of String)' because 'String' is not derived from 'Integer', as required for the 'In' generic parameter 'T' in 'Delegate Sub Action(Of T)(obj As T)'.
         Dim a As Action(Of String) = CType(AddressOf M2, Action(Of Integer))'BIND:"CType(AddressOf M2, Action(Of Integer))"
                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>.Value
