@@ -7,9 +7,11 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.VisualStudio.LiveShare;
 using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
@@ -59,29 +61,31 @@ internal abstract class AbstractLspClientServiceFactory : ICollaborationServiceF
             [StringConstants.TypeScriptLanguageName],
             new LS.LanguageServerClientMetadata(
                 true,
-                JObject.FromObject(new ServerCapabilities
-                {
-                    // Uses Roslyn client.
-                    DocumentSymbolProvider = true,
+                JObject.Parse(JsonSerializer.Serialize(
+                    new ServerCapabilities
+                    {
+                        // Uses Roslyn client.
+                        DocumentSymbolProvider = true,
 
-                    // Uses LSP SDK client.
-                    DocumentLinkProvider = null,
-                    RenameProvider = false,
-                    DocumentOnTypeFormattingProvider = null,
-                    DocumentRangeFormattingProvider = false,
-                    DocumentFormattingProvider = false,
-                    CodeLensProvider = null,
-                    CodeActionProvider = false,
-                    ExecuteCommandProvider = null,
-                    WorkspaceSymbolProvider = false,
-                    DocumentHighlightProvider = false,
-                    ReferencesProvider = false,
-                    DefinitionProvider = false,
-                    SignatureHelpProvider = null,
-                    CompletionProvider = null,
-                    HoverProvider = false,
-                    TextDocumentSync = null,
-                })));
+                        // Uses LSP SDK client.
+                        DocumentLinkProvider = null,
+                        RenameProvider = false,
+                        DocumentOnTypeFormattingProvider = null,
+                        DocumentRangeFormattingProvider = false,
+                        DocumentFormattingProvider = false,
+                        CodeLensProvider = null,
+                        CodeActionProvider = false,
+                        ExecuteCommandProvider = null,
+                        WorkspaceSymbolProvider = false,
+                        DocumentHighlightProvider = false,
+                        ReferencesProvider = false,
+                        DefinitionProvider = false,
+                        SignatureHelpProvider = null,
+                        CompletionProvider = null,
+                        HoverProvider = false,
+                        TextDocumentSync = null,
+                    },
+                    ProtocolConversions.LspJsonSerializerOptions))));
 
         var lifeTimeService = LspClientLifeTimeService;
         lifeTimeService.Disposed += (s, e) =>
