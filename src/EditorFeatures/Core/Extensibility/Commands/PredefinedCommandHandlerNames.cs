@@ -51,6 +51,11 @@ internal static class PredefinedCommandHandlerNames
     public const string DocumentationComments = "Documentation Comments Command Handler";
 
     /// <summary>
+    /// Command handler name for pasting into documentation comments.
+    /// </summary>
+    public const string DocumentationCommentsPaste = nameof(DocumentationCommentsPaste);
+
+    /// <summary>
     /// Command handler name for Encapsulate Field.
     /// </summary>
     public const string EncapsulateField = nameof(EncapsulateField);
