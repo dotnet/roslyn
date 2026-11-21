@@ -401,6 +401,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                         {
                             continue;
                         }
+
+                        // Reflection can't read a ref struct value, so skip properties of such types
+                        if (ObjectFormatterHelpers.IsByRefLikeType(property.PropertyType))
+                        {
+                            continue;
+                        }
                     }
 
                     var debuggerDisplay = GetApplicableDebuggerDisplayAttribute(member);
