@@ -895,9 +895,29 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Gerar é Igual a(...)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_Equals_and_GetHashCode_from_all_members">
+        <source>Generate Equals and GetHashCode from all members</source>
+        <target state="new">Generate Equals and GetHashCode from all members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_Equals_from_all_members">
+        <source>Generate Equals from all members</source>
+        <target state="new">Generate Equals from all members</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_GetHashCode_from_all_members">
+        <source>Generate GetHashCode from all members</source>
+        <target state="new">Generate GetHashCode from all members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Gerar operadores de comparação</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_from_all_members">
+        <source>Generate constructor from all members</source>
+        <target state="new">Generate constructor from all members</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_constructor_from_members">
@@ -908,6 +928,11 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Gerar para '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_overrides_for_all_members">
+        <source>Generate overrides for all members</source>
+        <target state="new">Generate overrides for all members</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
