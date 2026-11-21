@@ -3,6 +3,8 @@
 
 #nullable enable
 
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -1034,6 +1036,132 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
     }
 
     [Fact]
+    public async Task TagHelper_UsesEnumFromFallbackComponent()
+    {
+        var view = await GenerateViewWithFallbackAsync(
+            """
+            @addTagHelper *, TestProject
+            <choice mode="First"></choice>
+            """,
+            """
+            using Microsoft.AspNetCore.Razor.TagHelpers;
+
+            namespace MyApp;
+
+            public class ChoiceTagHelper : TagHelper
+            {
+                public Fallback.Choice Mode { get; set; }
+            }
+            """);
+
+        Assert.Contains("ChoiceTagHelper", view);
+    }
+
+    [Fact]
+    public async Task ViewComponent_InheritsInvokeFromFallbackComponent()
+    {
+        var view = await GenerateViewWithFallbackAsync(
+            """
+            @addTagHelper *, TestProject
+            <vc:derived amount="1" />
+            """,
+            """
+            namespace MyApp;
+
+            public class DerivedViewComponent : Fallback
+            {
+            }
+            """);
+
+        Assert.Contains("HtmlTargetElementAttribute(\"vc:derived\")", view);
+        Assert.Contains("amount", view);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task ViewComponent_UsesEnumFromFallbackComponent(bool nested)
+    {
+        var source = nested
+            ? """
+              namespace MyApp;
+
+              public class Container
+              {
+                  public class IndependentViewComponent
+                  {
+                      public string Invoke(Fallback.Choice choice) => choice.ToString();
+                  }
+              }
+              """
+            : """
+              namespace MyApp;
+
+              public class IndependentViewComponent
+              {
+                  public string Invoke(Fallback.Choice choice) => choice.ToString();
+              }
+              """;
+
+        var view = await GenerateViewWithFallbackAsync(
+            """
+            @addTagHelper *, TestProject
+            <vc:independent choice="First" />
+            """,
+            source);
+
+        Assert.Contains("HtmlTargetElementAttribute(\"vc:independent\")", view);
+        Assert.Contains("Fallback.Choice", view);
+    }
+
+    [Fact]
+    public async Task ViewComponent_InGlobalNamespace_UsesEnumFromFallbackComponent()
+    {
+        var view = await GenerateViewWithFallbackAsync(
+            """
+            @addTagHelper *, TestProject
+            <vc:global choice="First" />
+            """,
+            """
+            using MyApp;
+
+            public class GlobalViewComponent
+            {
+                public string Invoke(Fallback.Choice choice) => choice.ToString();
+            }
+            """);
+
+        Assert.Contains("HtmlTargetElementAttribute(\"vc:global\")", view);
+        Assert.Contains("Fallback.Choice", view);
+    }
+
+    [Fact]
+    public async Task ViewComponent_InheritsDesignationFromFallbackComponent()
+    {
+        var view = await GenerateViewWithFallbackAsync(
+            """
+            @addTagHelper *, TestProject
+            <vc:named-child amount="1" />
+            """,
+            """
+            namespace MyApp;
+
+            public class NamedChild : Fallback
+            {
+            }
+            """,
+            """
+            @attribute [Microsoft.AspNetCore.Mvc.ViewComponent]
+            @code {
+                public Microsoft.AspNetCore.Components.RenderFragment Fragment => @<span>fragment</span>;
+                public string Invoke(int amount) => "ok";
+            }
+            """);
+
+        Assert.Contains("HtmlTargetElementAttribute(\"vc:named-child\")", view);
+    }
+
+    [Fact]
     public async Task ViewComponentTagHelpers()
     {
         // Arrange
@@ -1752,5 +1880,36 @@ public sealed class RazorSourceGeneratorTagHelperTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver, out compilation);
         result.Diagnostics.Verify();
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
+    }
+
+    private static async Task<string> GenerateViewWithFallbackAsync(string view, string source, string? fallback = null)
+    {
+        var project = CreateTestProject(new()
+        {
+            ["Fallback.razor"] = fallback ?? """
+                @code {
+                    public enum Choice { First }
+                    public Microsoft.AspNetCore.Components.RenderFragment Fragment => @<span>fragment</span>;
+                    public string Invoke(int amount) => "ok";
+                }
+                """,
+            ["Views/Home/Index.cshtml"] = view,
+        }, new()
+        {
+            ["Dependent.cs"] = source,
+        });
+
+        var compilation = await project.GetCompilationAsync();
+        var (driver, _, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
+        var result = RunGenerator(compilation!, ref driver, out var output, static _ => { });
+
+        Assert.Null(result.Exception);
+        Assert.Empty(result.Diagnostics.Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        Assert.Empty(output.GetDiagnostics().Where(static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        var fallbackTrees = Assert.IsAssignableFrom<IEnumerable<SyntaxTree>>(
+            Assert.Single(Assert.Single(result.TrackedSteps["FallbackDeclTrees"]).Outputs).Value);
+        Assert.Single(fallbackTrees);
+        return result.GeneratedSources
+            .Single(source => source.HintName.EndsWith("Index_cshtml.g.cs", StringComparison.Ordinal)).SourceText.ToString();
     }
 }
