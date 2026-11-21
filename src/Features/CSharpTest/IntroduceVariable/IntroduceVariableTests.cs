@@ -7749,13 +7749,13 @@ class C
             }
             """);
 
-    [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159"), WorkItem("https://github.com/dotnet/roslyn/issues/44291")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44291")]
     public Task TestIntroduceWithAmbiguousExtensionClass()
         => TestInRegularAndScriptAsync(
             """
             <Workspace>
                 <Project Language="C#" AssemblyName="Assembly1" Name="P1" CommonReferences="true">
-                    <Document>
+                    <Document Normalize="false">
             public static class Extensions
             {
                 public static void Goo(this string s) { }
@@ -7763,7 +7763,7 @@ class C
                     </Document>
                 </Project>
                 <Project Language="C#" AssemblyName="Assembly2" Name="P2" CommonReferences="true">
-                    <Document>
+                    <Document Normalize="false">
             public static class Extensions
             {
                 public static void Bar(this string s) { }
@@ -7773,7 +7773,7 @@ class C
                 <Project Language="C#" AssemblyName="Assembly3" Name="P3" CommonReferences="true">
                     <ProjectReference>P1</ProjectReference>
                     <ProjectReference>P2</ProjectReference>
-                    <Document>public class P
+                    <Document Normalize="false">public class P
             {
                 public void M(string s)
                 {
@@ -7793,7 +7793,7 @@ class C
                     s.Bar(V);
                 }
             }
-            """);
+            """.ReplaceLineEndings("\n"));
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44656")]
     public Task ImplicitObjectCreation()
