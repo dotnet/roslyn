@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception e)
             {
-                logger.LogException(e, "Could not read AppSettings");
+                logger.LogTraceException(e, "Could not read AppSettings");
                 return ServerDispatcher.DefaultServerKeepAlive;
             }
         }
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
 
                 keepAlive ??= GetDefaultKeepAlive(_logger);
-                compilerServerHost.Logger.Log("Keep alive timeout is: {0} milliseconds.", keepAlive.Value.TotalMilliseconds);
+                compilerServerHost.Logger.LogTrace("Keep alive timeout is: {0} milliseconds.", keepAlive.Value.TotalMilliseconds);
                 FatalError.SetHandlers(FailFast.Handler, nonFatalHandler: null);
 
                 var dispatcher = new ServerDispatcher(compilerServerHost, clientConnectionHost, listener);

@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public BuildResponse RunCompilation(in RunRequest request, CancellationToken cancellationToken)
         {
-            Logger.Log($@"
+            Logger.LogTrace($@"
 Run Compilation for {request.RequestId}
   Language = {request.Language}
   CurrentDirectory = '{request.WorkingDirectory}
@@ -117,7 +117,7 @@ Run Compilation for {request.RequestId}
             if (string.IsNullOrEmpty(request.WorkingDirectory))
             {
                 var message = "Missing working directory";
-                Logger.Log($"Rejected: {request.RequestId}: {message}");
+                Logger.LogTrace($"Rejected: {request.RequestId}: {message}");
                 return new RejectedBuildResponse(message);
             }
 
@@ -125,17 +125,17 @@ Run Compilation for {request.RequestId}
             if (!TryCreateCompiler(request, buildPaths, out CommonCompiler? compiler))
             {
                 var message = $"Cannot create compiler for language id {request.Language}";
-                Logger.Log($"Rejected: {request.RequestId}: {message}");
+                Logger.LogTrace($"Rejected: {request.RequestId}: {message}");
                 return new RejectedBuildResponse(message);
             }
 
             if (!AnalyzerConsistencyChecker.Check(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, AnalyzerAssemblyLoader, Logger, out List<string>? errorMessages))
             {
-                Logger.Log($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
+                Logger.LogTrace($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
                 return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
 
-            Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
+            Logger.LogTrace($"Begin {request.RequestId} {request.Language} compiler run");
             try
             {
                 CodeAnalysisEventSource.Log.StartServerCompilation(request.RequestId);
@@ -143,7 +143,7 @@ Run Compilation for {request.RequestId}
                 TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
                 int returnCode = compiler.Run(output, cancellationToken);
                 var outputString = output.ToString();
-                Logger.Log(@$"End {request.RequestId} {request.Language} compiler run
+                Logger.LogTrace(@$"End {request.RequestId} {request.Language} compiler run
 Return code: {returnCode}
 Output:
 {outputString}");
@@ -155,7 +155,7 @@ Output:
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogException(ex, $"Failed to get telemetry events for {request.RequestId}");
+                    Logger.LogTraceException(ex, $"Failed to get telemetry events for {request.RequestId}");
                     telemetryEvents = null;
                 }
 
@@ -163,7 +163,7 @@ Output:
             }
             catch (Exception ex)
             {
-                Logger.LogException(ex, $"Running compilation for {request.RequestId}");
+                Logger.LogTraceException(ex, $"Running compilation for {request.RequestId}");
                 throw;
             }
             finally

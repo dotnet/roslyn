@@ -237,6 +237,7 @@ public abstract class IntegrationTestBase : TestBase
         }
 
         var sharedCompilationId = Guid.NewGuid().ToString();
+        var compilerServerLogPath = Path.Combine(_tempDirectory.Path, "compiler-server.log");
         ProcessResult? result;
 
         try
@@ -259,7 +260,8 @@ public abstract class IntegrationTestBase : TestBase
                             </PropertyGroup>
                         </Project>
                         """ },
-                });
+                },
+                [new("RoslynCommandLineLogFile", compilerServerLogPath)]);
         }
         finally
         {
@@ -280,6 +282,15 @@ public abstract class IntegrationTestBase : TestBase
 
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        if (useSharedCompilation)
+        {
+            var compilerServerLog = File.ReadAllText(compilerServerLogPath);
+            Assert.Contains("CommandLine = '", compilerServerLog);
+            Assert.Contains("BuildResponseFile = '", compilerServerLog);
+            Assert.DoesNotContain("CommandLine = '", result.Output);
+            Assert.DoesNotContain("BuildResponseFile = '", result.Output);
+        }
+
         Assert.Equal(ManagedToolTask.IsBuiltinToolRunningOnCoreClr, result.Output.Contains("Setting DOTNET_ROOT to"));
 
         if (useAppHost)
@@ -315,6 +326,7 @@ public abstract class IntegrationTestBase : TestBase
         }
 
         var sharedCompilationId = Guid.NewGuid().ToString();
+        var compilerServerLogPath = Path.Combine(_tempDirectory.Path, "compiler-server.log");
         ProcessResult? result;
 
         try
@@ -341,7 +353,8 @@ public abstract class IntegrationTestBase : TestBase
                             </PropertyGroup>
                         </Project>
                         """ },
-                });
+                },
+                [new("RoslynCommandLineLogFile", compilerServerLogPath)]);
         }
         finally
         {
@@ -362,6 +375,15 @@ public abstract class IntegrationTestBase : TestBase
 
         Assert.Equal(0, result.ExitCode);
         Assert.Contains(useSharedCompilation ? "server processed compilation" : "using command line tool by design", result.Output);
+        if (useSharedCompilation)
+        {
+            var compilerServerLog = File.ReadAllText(compilerServerLogPath);
+            Assert.Contains("CommandLine = '", compilerServerLog);
+            Assert.Contains("BuildResponseFile = '", compilerServerLog);
+            Assert.DoesNotContain("CommandLine = '", result.Output);
+            Assert.DoesNotContain("BuildResponseFile = '", result.Output);
+        }
+
         Assert.Equal(ManagedToolTask.IsBuiltinToolRunningOnCoreClr, result.Output.Contains("Setting DOTNET_ROOT to"));
 
         if (useAppHost)

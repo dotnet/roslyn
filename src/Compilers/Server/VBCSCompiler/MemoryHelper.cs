@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 unit = "KB";
             }
 
-            logger.Log("Free memory: {1}{0} of {2}{0}.", unit, free >> shift, max >> shift);
+            logger.LogTrace("Free memory: {1}{0} of {2}{0}.", unit, free >> shift, max >> shift);
 
             return free >= 800 << 20; // Value (500MB) is arbitrary; feel free to improve.
         }

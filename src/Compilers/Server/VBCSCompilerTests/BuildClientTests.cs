@@ -55,12 +55,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             private BuildClient CreateClient(
                 RequestLanguage? language = null,
                 CompileFunc compileFunc = null,
-                CompileOnServerFunc compileOnServerFunc = null)
+                CompileOnServerFunc compileOnServerFunc = null,
+                ICompilerServerLogger logger = null)
             {
                 language ??= RequestLanguage.CSharpCompile;
                 compileFunc ??= delegate { return 0; };
                 compileOnServerFunc ??= delegate { throw new InvalidOperationException(); };
-                return new BuildClient(_logger, language.Value, compileFunc, compileOnServerFunc);
+                return new BuildClient(logger ?? _logger, language.Value, compileFunc, compileOnServerFunc);
             }
 
             private ServerData CreateServer(string pipeName)
@@ -185,6 +186,78 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.True(ranLocal);
                 Assert.True(ranServer);
                 Assert.Equal(0, _serverDataList.Count);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void ServerResultLogsOperational(bool success)
+            {
+                var logger = new Mock<ICompilerServerLogger>();
+                logger.Setup(l => l.IsEnabled(It.IsAny<CompilerServerLogKind>())).Returns(true);
+                var serverCalls = 0;
+                var localCalls = 0;
+                var client = CreateClient(
+                    logger: logger.Object,
+                    compileFunc: (_, _, _, _) =>
+                    {
+                        localCalls++;
+                        return 0;
+                    },
+                    compileOnServerFunc: (_, _, _) =>
+                    {
+                        serverCalls++;
+                        return Task.FromResult<BuildResponse>(success
+                            ? new CompletedBuildResponse(0, utf8output: false, output: "")
+                            : new RejectedBuildResponse("test"));
+                    });
+
+                var result = client.RunCompilation(new[] { "/shared" }, _buildPaths, pipeName: _pipeName);
+
+                Assert.Equal(0, result.ExitCode);
+                Assert.Equal(success, result.RanOnServer);
+                Assert.Equal(1, serverCalls);
+                Assert.Equal(success ? 0 : 1, localCalls);
+                var completion = $"Server compilation completed: {(success ? "Completed" : "Rejected")}";
+                logger.Verify(l => l.Log(CompilerServerLogKind.Operational, completion), Times.Once);
+                logger.Verify(
+                    l => l.Log(CompilerServerLogKind.Operational, "Server build failed, falling back to local build"),
+                    success ? Times.Never() : Times.Once());
+            }
+
+            [Fact]
+            public void ServerExceptionLogsOperational()
+            {
+                var logger = new Mock<ICompilerServerLogger>();
+                logger.Setup(l => l.IsEnabled(It.IsAny<CompilerServerLogKind>())).Returns(true);
+                var serverCalls = 0;
+                var localCalls = 0;
+                var client = CreateClient(
+                    logger: logger.Object,
+                    compileFunc: (_, _, _, _) =>
+                    {
+                        localCalls++;
+                        return 0;
+                    },
+                    compileOnServerFunc: (_, _, _) =>
+                    {
+                        serverCalls++;
+                        throw new InvalidOperationException("test failure");
+                    });
+
+                var result = client.RunCompilation(new[] { "/shared" }, _buildPaths, pipeName: _pipeName);
+
+                Assert.Equal(0, result.ExitCode);
+                Assert.False(result.RanOnServer);
+                Assert.Equal(1, serverCalls);
+                Assert.Equal(1, localCalls);
+                logger.Verify(
+                    l => l.Log(CompilerServerLogKind.Operational, It.Is<string>(message =>
+                        message.Contains("Server compilation failed") && message.Contains("test failure"))),
+                    Times.Once);
+                logger.Verify(
+                    l => l.Log(CompilerServerLogKind.Operational, "Server build failed, falling back to local build"),
+                    Times.Once);
             }
         }
 

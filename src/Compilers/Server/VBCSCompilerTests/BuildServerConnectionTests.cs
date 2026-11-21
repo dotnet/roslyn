@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void LogException_NonFatal()
         {
             Logger.Messages.Clear();
-            Logger.LogException(CreateException(), "Testing");
+            Logger.LogTraceException(CreateException(), "Testing");
 
             Assert.DoesNotContain(Logger.Messages, m => m.Contains("Error:"));
             Assert.Contains(Logger.Messages, m => m.Contains("Exception: 'InvalidOperationException' 'boom' occurred during 'Testing'"));
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(buildEnvironment);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(buildEnvironment, Logger.Log) is { } dotNetRoot)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(buildEnvironment, Logger.LogTrace) is { } dotNetRoot)
             {
                 // Should have environment variables including DOTNET_ROOT
                 Assert.NotNull(envVars);
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var buildEnvironment = new TestableBuildEnvironment(Path.GetTempPath(), testEnvironment);
             var envVars = BuildServerConnection.GetServerEnvironmentVariables(buildEnvironment);
 
-            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(buildEnvironment, Logger.Log) != null)
+            if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(buildEnvironment, Logger.LogTrace) != null)
             {
                 Assert.NotNull(envVars);
 

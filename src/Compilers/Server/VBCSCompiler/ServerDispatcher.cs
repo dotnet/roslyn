@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogException(ex, $"Error disposing of {nameof(_listenTask)}");
+                            _logger.LogTraceException(ex, $"Error disposing of {nameof(_listenTask)}");
                         }
                     }
                 }
             }
-            _logger.Log($"End ListenAndDispatchConnections");
+            _logger.LogTrace($"End ListenAndDispatchConnections");
         }
 
         public void ListenAndDispatchConnectionsCore(CancellationToken cancellationToken)
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 return;
             }
 
-            _logger.Log($"Shutting down server: {reason}");
+            _logger.LogTrace($"Shutting down server: {reason}");
             Debug.Assert(_state == State.Running);
             Debug.Assert(_clientConnectionHost.IsListening);
 
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             _gcTask = null;
             var before = GC.GetTotalMemory(forceFullCollection: false);
             var after = GC.GetTotalMemory(forceFullCollection: true);
-            _logger.Log($"GC completed: before={before} bytes, after={after} bytes");
+            _logger.LogTrace($"GC completed: before={before} bytes, after={after} bytes");
         }
 
         private void MaybeCreateListenTask()
@@ -287,27 +287,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 switch (completionData.Reason)
                 {
                     case CompletionReason.RequestCompleted:
-                        _logger.Log("Client request completed");
+                        _logger.LogTrace("Client request completed");
 
                         if (completionData.NewKeepAlive is { } keepAlive)
                         {
-                            _logger.Log($"Client changed keep alive to {keepAlive}");
+                            _logger.LogTrace($"Client changed keep alive to {keepAlive}");
                             ChangeKeepAlive(keepAlive);
                         }
 
                         if (completionData.ShutdownRequest)
                         {
-                            _logger.Log("Client requested shutdown");
+                            _logger.LogTrace("Client requested shutdown");
                             shutdown = true;
                         }
 
                         break;
                     case CompletionReason.RequestError:
-                        _logger.LogError("Client request failed");
+                        _logger.LogTraceError("Client request failed");
                         shutdown = true;
                         break;
                     default:
-                        _logger.LogError("Unexpected enum value");
+                        _logger.LogTraceError("Unexpected enum value");
                         shutdown = true;
                         break;
                 }
