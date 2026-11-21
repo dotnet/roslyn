@@ -267,7 +267,12 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(token.Parent != null);
 
             slotData = new SlotData(token.Parent);
-            return GetGreenChildAt(token.Parent, token.Index, ref slotData) == token.Node;
+            bool found = GetGreenChildAt(token.Parent, token.Index, ref slotData) == token.Node;
+
+            // Catch any other token that is missing from its parent's children. Core can't reference the C# syntax
+            // kind, so compare its name.
+            Debug.Assert(found || (token.Parent.Language == LanguageNames.CSharp && token.Parent.Green.KindText == "ShebangDirectiveTrivia"));
+            return found;
         }
 
         private static SyntaxNodeOrToken ItemInSlot(SyntaxNode node, int index, GreenNode? greenChild, int slotIndex, int idx, int position)
@@ -459,6 +464,7 @@ namespace Microsoft.CodeAnalysis
 
             static int indexOfInList(GreenNode greenList, SyntaxNode redList, int offset, SyntaxNode child)
             {
+                Debug.Assert(greenList.SlotCount > 0);
                 Debug.Assert(0 <= offset && offset <= greenList.FullWidth);
 
                 // The elements that start at the offset are the element that contains it and the zero-width elements
