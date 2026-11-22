@@ -1167,6 +1167,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 boundDeclType = null;
+                // An untyped recursive pattern matches the union instance, even for an empty property pattern.
+                // See https://github.com/dotnet/csharplang/blob/main/proposals/csharp-15.0/unions.md#property-pattern.
                 // remove the nullable part of the input's type; e.g. a nullable int becomes an int in a recursive pattern
                 declTypeWithAnnotations = TypeWithAnnotations.Create(inputType.StrippedType(), NullableAnnotation.NotAnnotated);
                 isUnionMatching = false;

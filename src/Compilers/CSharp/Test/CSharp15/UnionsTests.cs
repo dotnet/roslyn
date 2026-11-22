@@ -3315,6 +3315,135 @@ class Program
                 );
         }
 
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86567")]
+        public void UnionMatching_EmptyPropertyPattern(bool useDebug)
+        {
+            var src = """
+                #nullable enable
+
+                union U(int?, string?);
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Test(default(U));
+                        Test((int?)null);
+                        Test((string?)null);
+                        Test(1);
+                        Test("value");
+                    }
+
+                    static void Test(U u)
+                    {
+                        System.Console.WriteLine($"{u is null} {u is not null} {Empty(u)} {u is object { }} {u is { Value: not null }} {Capture(u)} {CaptureAnd(u)}");
+                    }
+
+                    static bool Empty(U u) => u is { };
+
+                    static bool Capture(U u)
+                    {
+                        if (u is { } v)
+                        {
+                            U captured = v;
+                            return captured.Value is null;
+                        }
+
+                        return false;
+                    }
+
+                    static bool CaptureAnd(U u)
+                    {
+                        if (u is { } and var v)
+                        {
+                            U captured = v;
+                            return captured.Value is null;
+                        }
+
+                        return false;
+                    }
+                }
+                """;
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource], options: useDebug ? TestOptions.DebugExe : TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: """
+                True False True False False True True
+                True False True False False True True
+                True False True False False True True
+                False True True True True False False
+                False True True True True False False
+                """).VerifyDiagnostics(
+                // (36,13): warning CS8794: An expression of type 'U' always matches the provided pattern.
+                //         if (u is { } and var v)
+                Diagnostic(ErrorCode.WRN_IsPatternAlways, "u is { } and var v").WithArguments("U").WithLocation(36, 13));
+
+            if (!useDebug)
+            {
+                verifier.VerifyIL("Program.Empty", """
+                    {
+                      // Code size        2 (0x2)
+                      .maxstack  1
+                      IL_0000:  ldc.i4.1
+                      IL_0001:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory]
+        [InlineData("struct", false)]
+        [InlineData("struct", true)]
+        [InlineData("class", false)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86567")]
+        public void UnionMatching_EmptyPropertyPattern_Structural(string typeKind, bool nullableInput)
+        {
+            var src = $$$"""
+                [System.Runtime.CompilerServices.Union]
+                {{{typeKind}}} U
+                {
+                    private readonly object _value;
+                    public U(int? value) { _value = value; }
+                    public U(string value) { _value = value; }
+                    public object Value => _value;
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Test(new U((int?)null));
+                        Test(new U((string)null));
+                        Test(new U(1));
+                        Test(new U("value"));
+                        Test(default(U));
+                        {{{(nullableInput ? "Test(null);" : "")}}}
+                    }
+
+                    static void Test(U{{{(nullableInput ? "?" : "")}}} u)
+                    {
+                        System.Console.WriteLine($"{u is null} {u is not null} {u is { }} {u is object { }}");
+                    }
+                }
+                """;
+            var expectedOutput = """
+                True False True False
+                True False True False
+                False True True True
+                False True True True
+                """ + "\n" + (typeKind == "class" ? "True False False False" : "True False True False");
+            if (nullableInput)
+            {
+                expectedOutput += "\nTrue False False False";
+            }
+
+            foreach (var options in new[] { TestOptions.DebugExe, TestOptions.ReleaseExe })
+            {
+                var comp = CreateCompilation([src, UnionAttributeSource], options: options);
+                CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+            }
+        }
+
         [Fact]
         public void UnionMatching_08_Recursive_Property_01()
         {
