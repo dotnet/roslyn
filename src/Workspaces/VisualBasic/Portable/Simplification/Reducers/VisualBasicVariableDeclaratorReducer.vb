@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     ' Get type of the array literal in context without the target type
                     initializerType = semanticModel.GetSpeculativeTypeInfo(variableDeclarator.Initializer.Value.SpanStart, variableDeclarator.Initializer.Value, SpeculativeBindingOption.BindAsExpression).ConvertedType
                 Else
-                    initializerType = semanticModel.GetTypeInfo(variableDeclarator.Initializer.Value).Type
+                    initializerType = semanticModel.GetTypeInfo(variableDeclarator.Initializer.Value, cancellationToken).Type
                 End If
 
                 If Not declaredSymbolType.Equals(initializerType) Then
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         Return False
                     End If
 
-                    Dim valueType = semanticModel.GetTypeInfo(DirectCast(parent, ForStatementSyntax).ToValue).Type
+                    Dim valueType = semanticModel.GetTypeInfo(DirectCast(parent, ForStatementSyntax).ToValue, cancellationToken).Type
 
                     If Not valueType.Equals(declaredSymbolType) Then
                         Return False
