@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -18,15 +17,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseUnboundGenericTypeInNameOf;
 
-using static SyntaxFactory;
-
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseUnboundGenericTypeInNameOf), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class CSharpUseUnboundGenericTypeInNameOfCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    private static readonly SyntaxNodeOrToken s_omittedArgument = (SyntaxNodeOrToken)OmittedTypeArgument();
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
         = [IDEDiagnosticIds.UseUnboundGenericTypeInNameOfDiagnosticId];
 
@@ -50,24 +45,7 @@ internal sealed partial class CSharpUseUnboundGenericTypeInNameOfCodeFixProvider
         if (!nameofInvocation.IsNameOfInvocation())
             return;
 
-        editor.ReplaceNode(nameofInvocation, ConvertToUnboundGenericNameof(nameofInvocation));
-    }
-
-    public static TSyntax ConvertToUnboundGenericNameof<TSyntax>(TSyntax syntax)
-        where TSyntax : SyntaxNode
-    {
-        return syntax.ReplaceNodes(
-            syntax.DescendantNodes().OfType<TypeArgumentListSyntax>(),
-            (original, current) =>
-            {
-                if (current.Arguments.Any(a => a.Kind() != SyntaxKind.OmittedTypeArgument))
-                {
-                    var list = NodeOrTokenList(current.Arguments.GetWithSeparators().Select(
-                        t => t.IsToken ? t.AsToken().WithoutTrivia() : s_omittedArgument));
-                    return current.WithArguments(SeparatedList<TypeSyntax>(list));
-                }
-
-                return current;
-            });
+        editor.ReplaceNode(
+            nameofInvocation, CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer.ConvertToUnboundGenericNameof(nameofInvocation));
     }
 }

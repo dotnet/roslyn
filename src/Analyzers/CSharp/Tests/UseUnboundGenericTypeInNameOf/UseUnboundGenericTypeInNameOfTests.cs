@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.UseUnboundGenericTypeInNameOf;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseUnboundGenericTypeInNameOf;
@@ -309,6 +310,137 @@ public sealed class UseUnboundGenericTypeInNameOfTests
                 }
 
                 class Outer<T> { public class Inner<T> { } }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86572")]
+    public Task TestMemberOnUnboundType()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = [|nameof|](List<int>.Count);
+                    }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(List<>.Count);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86572")]
+    public Task TestMemberOfTypeParameterFoundThroughConstraint()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = [|nameof|](Holder<Named>.Value.Name);
+                    }
+                }
+
+                interface INamed { string Name { get; } }
+                class Named : INamed { public string Name => ""; }
+                class Holder<T> where T : INamed { public T Value; }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Holder<>.Value.Name);
+                    }
+                }
+
+                interface INamed { string Name { get; } }
+                class Named : INamed { public string Name => ""; }
+                class Holder<T> where T : INamed { public T Value; }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86572")]
+    public Task TestNotWhenFieldOfTypeParameterTypeIsDereferenced()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Holder<string>.Value.Length);
+                    }
+                }
+
+                class Holder<T> { public T Value; }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86572")]
+    public Task TestNotWhenPropertyOfTypeParameterTypeIsDereferenced()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Holder<string>.Value.Length);
+                    }
+                }
+
+                class Holder<T> { public T Value { get; set; } }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86572")]
+    public Task TestNotWhenMemberOfNestedTypeParameterTypeIsDereferenced()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = nameof(Outer<int>.Inner<string>.Value.Length);
+                    }
+                }
+
+                class Outer<T> { public class Inner<U> { public U Value; } }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86572")]
+    public Task TestNotWhenMemberOfTypeParameterTypeIsDereferencedInFieldInitializer()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    const string S = nameof(Holder<string>.Value.Length);
+                }
+
+                class Holder<T> { public T Value; }
                 """,
             LanguageVersion = LanguageVersion.CSharp14,
         }.RunAsync();

@@ -26,7 +26,7 @@ internal sealed class CSharpConvertTypeOfToNameOfCodeFixProvider()
 
     protected override SyntaxNode ConvertToUnboundGeneric(ParseOptions options, SyntaxNode nameOfSyntax)
         => options.LanguageVersion().IsCSharp14OrAbove()
-            ? CSharpUseUnboundGenericTypeInNameOfCodeFixProvider.ConvertToUnboundGenericNameof(nameOfSyntax)
+            ? CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer.ConvertToUnboundGenericNameof(nameOfSyntax)
             : nameOfSyntax;
 
     protected override SyntaxNode GetSymbolTypeExpression(SemanticModel model, MemberAccessExpressionSyntax node, CancellationToken cancellationToken)
