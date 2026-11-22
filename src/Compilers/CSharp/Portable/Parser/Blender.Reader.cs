@@ -237,6 +237,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
+                // An interpolated string expression can be converted back to this token
+                // by Cursor.MoveToFirstChild. RescanInterpolatedString does not copy
+                // lexical diagnostics, so the token must be lexed from the new text.
+                if (nodeOrToken.Kind() == SyntaxKind.InterpolatedStringToken)
+                {
+                    return false;
+                }
+
                 // don't reuse nodes or tokens with skipped text or diagnostics attached to them
                 if (nodeOrToken.ContainsDiagnostics ||
                     (nodeOrToken.IsToken && ((CSharpSyntaxNode)nodeOrToken.AsToken().Node).ContainsSkippedText && nodeOrToken.Parent.ContainsDiagnostics))
