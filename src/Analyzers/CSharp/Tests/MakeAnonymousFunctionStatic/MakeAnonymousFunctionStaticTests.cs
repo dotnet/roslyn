@@ -2,16 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.MakeAnonymousFunctionStatic;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Testing;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -409,23 +406,38 @@ public sealed class MakeAnonymousFunctionStaticTests
             }
             """);
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76222")]
-    public async Task TestSeverity()
-    {
-        var analyzer = new MakeAnonymousFunctionStaticDiagnosticAnalyzer();
-        var descriptor = analyzer.SupportedDiagnostics.First(descriptor => descriptor.Id == IDEDiagnosticIds.MakeAnonymousFunctionStaticDiagnosticId);
-        await new VerifyCS.Test
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76222")]
+    [InlineData("i => { }")]
+    [InlineData("(i) => { }")]
+    [InlineData("delegate (int i) { }")]
+    public Task TestSeverityFromOption(string anonymousFunctionSyntax)
+        => new VerifyCS.Test
         {
-            TestCode = """
+            TestCode = $$"""
                 using System;
-
+                
                 class C
                 {
                     void M()
                     {
-                        N(i => { });
+                        N({|#0:{{anonymousFunctionSyntax}}|});
                     }
-
+                
+                    void N(Action<int> a)
+                    {
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        N(static {{anonymousFunctionSyntax}});
+                    }
+                
                     void N(Action<int> a)
                     {
                     }
@@ -434,13 +446,11 @@ public sealed class MakeAnonymousFunctionStaticTests
             LanguageVersion = LanguageVersion.CSharp9,
             ExpectedDiagnostics =
             {
-                // Test0.cs(7,11): warning IDE0320: Anonymous function can be made static
-                new DiagnosticResult(descriptor).WithSeverity(DiagnosticSeverity.Warning).WithSpan(7, 11, 7, 19),
+                VerifyCS.Diagnostic().WithLocation(0).WithSeverity(DiagnosticSeverity.Warning),
             },
             Options =
             {
                 { CSharpCodeStyleOptions.PreferStaticAnonymousFunction, true, NotificationOption2.Warning },
             },
         }.RunAsync();
-    }
 }
