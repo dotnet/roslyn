@@ -448,7 +448,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Protected Overrides Function ExpressionMightReferenceMember(node As SyntaxNode) As Boolean
             Return node.IsKind(SyntaxKind.InvocationExpression) OrElse
-                node.IsKind(SyntaxKind.SimpleMemberAccessExpression)
+                node.IsKind(SyntaxKind.SimpleMemberAccessExpression) OrElse
+                node.IsKind(SyntaxKind.ObjectCreationExpression)
         End Function
 
         Protected Overrides Function GetReceiver(expression As ExpressionSyntax) As ExpressionSyntax

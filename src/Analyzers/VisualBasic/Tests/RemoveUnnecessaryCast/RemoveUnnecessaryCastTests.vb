@@ -1341,6 +1341,74 @@ End Class
             Await TestMissingAsync(markup)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86513")>
+        Public Async Function TestDoNotRemoveCastWhichWouldChangeObjectCreationOverloadResolution1() As Task
+            Dim markup =
+<File>
+Class N
+    Sub New(i As Integer)
+    End Sub
+
+    Sub New(l As Long)
+    End Sub
+
+    Shared Function M(i As Integer) As N
+        Return New N([|CLng(i)|])
+    End Function
+End Class
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86513")>
+        Public Async Function TestDoNotRemoveCastWhichWouldChangeObjectCreationOverloadResolution2() As Task
+            Dim markup =
+<File>
+Option Strict Off
+
+Enum Img
+    None
+End Enum
+
+Class P
+    Sub New(i As Img)
+    End Sub
+
+    Sub New(s As String)
+    End Sub
+
+    Shared Function M(o As Object) As P
+        Return New P([|CType(o, Img)|])
+    End Function
+End Class
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86513")>
+        Public Async Function TestDoNotRemoveCastWhichWouldChangeObjectCreationOverloadResolution3() As Task
+            Dim markup =
+<File>
+Imports System
+
+Class F
+    Sub New(f As Func(Of Integer))
+    End Sub
+
+    Sub New(f As Func(Of Long))
+    End Sub
+
+    Shared Function M(l As Long) As F
+        Return New F(Function() [|CInt(l)|])
+    End Function
+End Class
+</File>
+
+            Await TestMissingAsync(markup)
+        End Function
+
         <Fact>
         Public Async Function TestDoNotMoveTrailingComment() As Task
             Dim markup =
