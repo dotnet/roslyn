@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Dim issueSpan As TextSpan
 
             If Not TryReduceVariableDeclaratorWithoutType(
-                node, semanticModel, replacementNode, issueSpan) Then
+                node, semanticModel, replacementNode, issueSpan, cancellationToken) Then
                 Return node
             End If
 
@@ -49,7 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             variableDeclarator As VariableDeclaratorSyntax,
             semanticModel As SemanticModel,
             <Out> ByRef replacementNode As SyntaxNode,
-            <Out> ByRef issueSpan As TextSpan) As Boolean
+            <Out> ByRef issueSpan As TextSpan,
+            cancellationToken As CancellationToken) As Boolean
 
             replacementNode = Nothing
             issueSpan = Nothing
@@ -99,6 +100,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Return False
                 End If
 
+                If UsesTypeWithSameName(variableDeclarator.Initializer.Value, modifiedIdentifier, semanticModel, cancellationToken) Then
+                    Return False
+                End If
+
                 Dim newModifiedIdentifier = SyntaxFactory.ModifiedIdentifier(modifiedIdentifier.Identifier) ' LeadingTrivia is copied here
                 replacementNode = SyntaxFactory.VariableDeclarator(SyntaxFactory.SingletonSeparatedList(newModifiedIdentifier.WithTrailingTrivia(variableDeclarator.AsClause.GetTrailingTrivia())),
                                                                    asClause:=Nothing,
@@ -127,6 +132,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     If Not forEachStatementInfo.ElementConversion.IsIdentity Then
                         Return False
                     End If
+
+                    If UsesTypeWithSameName(DirectCast(parent, ForEachStatementSyntax).Expression, modifiedIdentifier, semanticModel, cancellationToken) Then
+                        Return False
+                    End If
+                End If
+
+                ' Without an As clause the control variable reuses any symbol of that name in scope that is not a type.
+                ' Look it up from the member's header, since inside the loop the name finds the loop's own local.
+                Dim memberBlock = variableDeclarator.FirstAncestorOrSelf(Of MethodBlockBaseSyntax)()
+                If memberBlock Is Nothing OrElse
+                   semanticModel.LookupSymbols(memberBlock.BlockStatement.Span.End, name:=modifiedIdentifier.Identifier.ValueText).Any(
+                       Function(s) s.Kind <> SymbolKind.NamedType AndAlso s.Kind <> SymbolKind.TypeParameter) Then
+                    Return False
                 End If
 
                 Dim newIdentifierName = SyntaxFactory.IdentifierName(modifiedIdentifier.Identifier) ' Leading Trivia is copied here
@@ -136,6 +154,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End If
 
             Return False
+        End Function
+
+        ' Without an As clause the variable is in scope in its own initializer, so a type of the same name used there would bind to the variable.
+        Private Shared Function UsesTypeWithSameName(
+            expression As ExpressionSyntax,
+            modifiedIdentifier As ModifiedIdentifierSyntax,
+            semanticModel As SemanticModel,
+            cancellationToken As CancellationToken) As Boolean
+
+            Return expression.DescendantNodesAndSelf().OfType(Of IdentifierNameSyntax)().Any(
+                Function(n) CaseInsensitiveComparison.Equals(n.Identifier.ValueText, modifiedIdentifier.Identifier.ValueText) AndAlso
+                            TypeOf semanticModel.GetSymbolInfo(n, cancellationToken).Symbol Is INamespaceOrTypeSymbol)
         End Function
 
         Private Shared Function HasValidDeclaredTypeSymbol(
