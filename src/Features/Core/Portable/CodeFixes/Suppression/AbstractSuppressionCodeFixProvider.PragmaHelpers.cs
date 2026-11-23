@@ -68,7 +68,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider
         /// </summary>
         internal static SyntaxFormattingOptions WithDocumentNewLine(SyntaxFormattingOptions options, SyntaxToken token, AbstractSuppressionCodeFixProvider fixer)
         {
-            foreach (var trivia in token.SyntaxTree.GetRoot().DescendantTrivia())
+            foreach (var trivia in token.SyntaxTree.GetRoot().DescendantTrivia(descendIntoTrivia: true))
             {
                 if (fixer.IsEndOfLine(trivia))
                     return options with { LineFormatting = options.LineFormatting with { NewLine = trivia.ToFullString() } };
