@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,48 +14,10 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
 internal static class DocCommentHelpers
 {
-    public const string TagContentGroupName = "content";
-
-    private static readonly Regex s_codeRegex = new Regex($"""<(?:c|code)>(?<{TagContentGroupName}>.*?)<\/(?:c|code)>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
-    private static readonly Regex s_crefRegex = new Regex($"""<(?:see|seealso)[\s]+cref="(?<{TagContentGroupName}>[^">]+)"[^>]*>""", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
-
     private static readonly char[] s_newLineChars = ['\n', '\r'];
-
-    public static string ReduceCrefValue(string value)
-    {
-        // cref values come in the following formats:
-        // Type = "T:Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName"
-        // Property = "P:T:Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.AspAction"
-        // Member = "M:T:Microsoft.AspNetCore.SomeTagHelpers.SomeTypeName.SomeMethod(System.Collections.Generic.List{System.String})"
-
-        if (value.Length < 2)
-        {
-            return string.Empty;
-        }
-
-        var type = value[0];
-        value = value[2..];
-
-        switch (type)
-        {
-            case 'T':
-                var reducedCrefType = ReduceTypeName(value);
-                return reducedCrefType;
-            case 'P':
-            case 'M':
-                // TypeName.MemberName
-                var reducedCrefProperty = ReduceMemberName(value);
-                return reducedCrefProperty;
-        }
-
-        return value;
-    }
 
     public static string ReduceTypeName(string content)
         => ReduceFullName(content, reduceWhenDotCount: 1);
-
-    public static string ReduceMemberName(string content)
-        => ReduceFullName(content, reduceWhenDotCount: 2);
 
     private static string ReduceFullName(string content, int reduceWhenDotCount)
     {
@@ -199,33 +160,6 @@ internal static class DocCommentHelpers
 
         summary = documentation.Substring(summaryContentStart, summaryContentLength);
         return true;
-    }
-
-    public static List<Match> ExtractCodeMatches(string summaryContent)
-    {
-        var successfulMatches = ExtractSuccessfulMatches(s_codeRegex, summaryContent);
-        return successfulMatches;
-    }
-
-    public static List<Match> ExtractCrefMatches(string summaryContent)
-    {
-        var successfulMatches = ExtractSuccessfulMatches(s_crefRegex, summaryContent);
-        return successfulMatches;
-    }
-
-    private static List<Match> ExtractSuccessfulMatches(Regex regex, string summaryContent)
-    {
-        var matches = regex.Matches(summaryContent);
-        var successfulMatches = new List<Match>();
-        foreach (Match match in matches)
-        {
-            if (match.Success)
-            {
-                successfulMatches.Add(match);
-            }
-        }
-
-        return successfulMatches;
     }
 
     public static ImmutableArray<TaggedText> FormatSummary(
