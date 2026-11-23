@@ -139,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription">
         <source>If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</source>
-        <target state="new">If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</target>
+        <target state="translated">Если присвоено значение true, сохраняются исходные отступы внутри блоков сценария и стиля, содержащих инструкции Razor, блоки, директивы, комментарии, шаблоны или отдельные выражения</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName">
         <source>Ignore indentation in script or style blocks with complex Razor</source>
-        <target state="new">Ignore indentation in script or style blocks with complex Razor</target>
+        <target state="translated">Игнорировать отступы в блоках сценария или стиля со сложными конструкциями Razor</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelCritical">
