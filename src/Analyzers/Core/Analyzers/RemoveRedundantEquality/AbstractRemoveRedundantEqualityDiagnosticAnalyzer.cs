@@ -120,9 +120,7 @@ internal abstract class AbstractRemoveRedundantEqualityDiagnosticAnalyzer(ISynta
         }
 
         if (nonLiteralOperand is IConversionOperation { Conversion.IsUserDefined: true, IsImplicit: true })
-        {
             return;
-        }
 
         context.ReportDiagnostic(Diagnostic.Create(Descriptor,
             operatorToken.GetLocation(),
