@@ -131,8 +131,11 @@ internal sealed class RemoteHoverService(in ServiceArgs args) : RazorDocumentSer
         // TODO: Remove this when solution snapshots are available in the core Razor project model.
         var componentAvailabilityService = new ComponentAvailabilityService(snapshot.ProjectSnapshot.SolutionSnapshot);
 
+        // Tag helper and component docs are formatted by Roslyn, which needs a C# document to give it some semantic context
+        var razorGeneratedDocument = await snapshot.GetGeneratedDocumentAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
+
         var razorHover = await HoverFactory
-            .GetHoverAsync(codeDocument, hostDocumentIndex, options, componentAvailabilityService, cancellationToken)
+            .GetHoverAsync(razorGeneratedDocument, codeDocument, hostDocumentIndex, options, componentAvailabilityService, cancellationToken)
             .ConfigureAwait(false);
 
         // Roslyn couldn't provide a hover, so we're done.
