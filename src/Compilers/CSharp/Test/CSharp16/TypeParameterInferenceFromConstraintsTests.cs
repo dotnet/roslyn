@@ -1918,14 +1918,14 @@ static void M<T, U>(T t, (int, Func<T, U>) fs, U y)
 }
 """;
 
-            var expected =
-                // (3,6): error CS1503: Argument 2: cannot convert from '(int, lambda expression)' to '(int, System.Func<int, string>)'
-                // M(1, (0, x => new object()), "");
-                Diagnostic(ErrorCode.ERR_BadArgType, "(0, x => new object())").WithArguments("2", "(int, lambda expression)", "(int, System.Func<int, string>)").WithLocation(3, 6);
+            string expected = """
+System.Int32
+System.Object
+""";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
-            CreateCompilation(source).VerifyDiagnostics(expected);
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1944,19 +1944,14 @@ static void M<T, U>(T t, Func<T, U>[] fs, U y)
 }
 """;
 
-            var expected = new[]
-            {
-                // (3,12): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-                // M(1, [x => new object()], "");
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new object()").WithArguments("object", "string").WithLocation(3, 12),
-                // (3,12): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                // M(1, [x => new object()], "");
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "new object()").WithArguments("lambda expression").WithLocation(3, 12)
-            };
+            string expected = """
+System.Int32
+System.Object
+""";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
-            CreateCompilation(source).VerifyDiagnostics(expected);
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1975,19 +1970,14 @@ static void M<T, U>(T t, (int, Func<T, U>) fs)
 }
 """;
 
-            var expected = new[]
-            {
-                // (3,1): error CS0411: The type arguments for method 'M<T, U>(T, (int, Func<T, U>))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                // M(1, (1, x => x.ToString()));
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("M<T, U>(T, (int, System.Func<T, U>))").WithLocation(3, 1),
-                // (5,13): warning CS8321: The local function 'M' is declared but never used
-                // static void M<T, U>(T t, (int, Func<T, U>) fs)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(5, 13)
-            };
+            string expected = """
+System.Int32
+System.String
+""";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
-            CreateCompilation(source).VerifyDiagnostics(expected);
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2006,19 +1996,14 @@ static void M<T, U>(T t, Func<T, U>[] fs)
 }
 """;
 
-            var expected = new[]
-            {
-                // (3,1): error CS0411: The type arguments for method 'M<T, U>(T, Func<T, U>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                // M(1, [x => x.ToString()]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("M<T, U>(T, System.Func<T, U>[])").WithLocation(3, 1),
-                // (5,13): warning CS8321: The local function 'M' is declared but never used
-                // static void M<T, U>(T t, Func<T, U>[] fs)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(5, 13)
-            };
+            string expected = """
+System.Int32
+System.String
+""";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
-            CreateCompilation(source).VerifyDiagnostics(expected);
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]
