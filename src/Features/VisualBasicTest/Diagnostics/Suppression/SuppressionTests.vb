@@ -6,9 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -31,10 +29,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Suppre
 
         Protected Overrides Function GetLanguage() As String
             Return LanguageNames.VisualBasic
-        End Function
-
-        Friend Function NewLineOption(endOfLine As String) As OptionsCollection
-            Return New OptionsCollection(GetLanguage()) From {{FormattingOptions2.NewLine, endOfLine}}
         End Function
 
 #Region "Pragma disable tests"
@@ -744,7 +738,7 @@ Class C
     End Sub
 End Class]]>
 
-                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine), options:=NewLineOption(endOfLine))
+                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -862,7 +856,7 @@ Class C
     End Sub
 End Class]]>
 
-                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine), options:=NewLineOption(endOfLine))
+                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[
@@ -927,7 +921,7 @@ Class C
     End Sub
 End Class]]>
 
-                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine), options:=NewLineOption(endOfLine))
+                    Await TestAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
 
                     ' Also verify that the added directive does indeed suppress the diagnostic.
                     Dim fixedSource = <![CDATA[

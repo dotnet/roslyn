@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Roslyn.Utilities;
@@ -33,8 +32,8 @@ public abstract class AbstractSuppressionDiagnosticTest_NoEditor(ITestOutputHelp
     protected virtual bool IncludeUnsuppressedDiagnostics => true;
     protected virtual bool IncludeNoLocationDiagnostics => true;
 
-    internal Task TestAsync(string initial, string expected, ParseOptions parseOptions = null, OptionsCollection options = null)
-        => TestAsync(initial, expected, new TestParameters(parseOptions, options: options, index: CodeActionIndex));
+    protected Task TestAsync(string initial, string expected, ParseOptions parseOptions = null)
+        => TestAsync(initial, expected, new TestParameters(parseOptions, index: CodeActionIndex));
 
     internal abstract Tuple<DiagnosticAnalyzer, IConfigurationFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace);
 

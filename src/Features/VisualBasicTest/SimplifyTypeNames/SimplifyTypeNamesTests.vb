@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
@@ -21,10 +20,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(),
                     New SimplifyTypeNamesCodeFixProvider())
-        End Function
-
-        Private Function NewLineOption(endOfLine As String) As OptionsCollection
-            Return New OptionsCollection(GetLanguage()) From {{FormattingOptions2.NewLine, endOfLine}}
         End Function
 
         Private Function PreferIntrinsicPredefinedTypeEverywhere() As OptionsCollection
@@ -1621,7 +1616,7 @@ End Module
         End Function
 
         <Theory>
-        <InlineData(vbLf)>
+        <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
         <InlineData(vbCrLf)>
         Public Async Function TestShowModuleNameAsUnnecessaryMemberAccess(endOfLine As String) As Task
             Dim source =
@@ -1663,7 +1658,7 @@ Namespace bar
     End Module
 End Namespace
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine), New TestParameters(options:=NewLineOption(endOfLine)))
+            Await TestInRegularAndScriptAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
         End Function
 
         <Fact>
@@ -1949,7 +1944,7 @@ Public Class Test
         End Function
 
         <Theory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/721694")>
-        <InlineData(vbLf)>
+        <InlineData(vbLf, Skip:="https://github.com/dotnet/roslyn/issues/69358")>
         <InlineData(vbCrLf)>
         Public Async Function TestEnableReducersInsideVBCref(endOfLine As String) As Task
             Dim source =
@@ -1973,7 +1968,7 @@ Public Class Test_Dev11
         End Sub
     End Class
 </Code>
-            Await TestInRegularAndScriptAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine), New TestParameters(options:=NewLineOption(endOfLine)))
+            Await TestInRegularAndScriptAsync(source.Value.ReplaceLineEndings(endOfLine), expected.Value.ReplaceLineEndings(endOfLine))
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/736377")>

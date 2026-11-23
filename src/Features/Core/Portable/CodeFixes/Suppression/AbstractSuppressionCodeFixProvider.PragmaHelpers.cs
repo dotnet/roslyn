@@ -62,6 +62,31 @@ internal abstract partial class AbstractSuppressionCodeFixProvider
             return document.WithSyntaxRoot(newRoot);
         }
 
+        /// <summary>
+        /// Adding a suppression is a local edit, so it keeps the line ending already used in the document, even when
+        /// it differs from the configured <c>end_of_line</c> (https://github.com/dotnet/roslyn/issues/69358).
+        /// </summary>
+        internal static SyntaxFormattingOptions WithDocumentNewLine(SyntaxFormattingOptions options, SyntaxToken token, AbstractSuppressionCodeFixProvider fixer)
+        {
+            foreach (var trivia in token.SyntaxTree.GetRoot().DescendantTrivia())
+            {
+                if (fixer.IsEndOfLine(trivia))
+                    return options with { LineFormatting = options.LineFormatting with { NewLine = trivia.ToFullString() } };
+            }
+
+            return options;
+        }
+
+        /// <summary>
+        /// Formats the inserted directives with <paramref name="options"/>, in place of the code action cleanup, which
+        /// would format them with the configured <c>end_of_line</c> and rewrite the line endings around them.
+        /// </summary>
+        internal static async Task<Document> FormatAddedPragmasAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+        {
+            document = await Formatter.FormatAsync(document, Formatter.Annotation, options, cancellationToken).ConfigureAwait(false);
+            return await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, options, cancellationToken).ConfigureAwait(false);
+        }
+
         private static int GetPositionForPragmaInsertion(ImmutableArray<SyntaxTrivia> triviaList, TextSpan currentDiagnosticSpan, AbstractSuppressionCodeFixProvider fixer, bool isStartToken, out SyntaxTrivia triviaAtIndex)
         {
             // Start token: Insert the #pragma disable directive just **before** the first end of line trivia prior to diagnostic location.
