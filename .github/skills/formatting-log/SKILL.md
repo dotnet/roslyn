@@ -67,7 +67,7 @@ Do **not** run `dotnet test` at the repo root.
 ## When the imported log test fails
 
 1. Commit the imported formatting log assets and `FormattingLogTest.cs` change by themselves.
-2. Reduce the failure to a focused repro in `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.CohostingShared.UnitTests\Formatting\DocumentFormattingTest.cs`.
+2. Reduce the failure to a focused repro in `src\Razor\src\Razor\test\Microsoft.CodeAnalysis.Razor.FormattingShared.UnitTests\DocumentFormattingTest.cs`.
 3. Commit the minimal repro by itself.
 4. Fix the product code.
 5. Commit the fix by itself.

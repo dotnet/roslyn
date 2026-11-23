@@ -36,7 +36,9 @@ Several core data structures are generated from XML definitions — **never edit
 - After modifying these XML files, regenerate and build:
   ```bash
   dotnet run --file eng/generate-compiler-code.cs
-  dotnet build src/Compilers/{CSharp,VisualBasic}/Portable # choose the project matching the C# or VB syntax you changed
+  # Choose the project matching the C# or VB syntax you changed:
+  dotnet build src/Compilers/CSharp/Portable/Microsoft.CodeAnalysis.CSharp.csproj
+  dotnet build src/Compilers/VisualBasic/Portable/Microsoft.CodeAnalysis.VisualBasic.vbproj
   ```
 
 ## Conventions

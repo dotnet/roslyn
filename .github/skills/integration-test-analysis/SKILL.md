@@ -7,7 +7,7 @@ description: Investigate Visual Studio integration test failures from Azure DevO
 
 Investigate Visual Studio integration test failures in the `roslyn-integration-CI` Azure DevOps pipeline. Downloads and analyzes published test artifacts including exception logs, screenshots, MEF errors, and VSIX installer logs.
 
-**Workflow**: Run the script with a BuildId → it fetches the build timeline, identifies failed/canceled integration test jobs, downloads the published test artifacts, and parses exception XMLs and error logs → read the structured output and `[INTEGRATION_TEST_SUMMARY]` JSON → synthesize root cause analysis. The script collects data; you generate the diagnosis.
+**Workflow**: Run the script with a BuildId → it fetches the build timeline and identifies failed/canceled integration test jobs. Add `-DownloadArtifacts` to download published test artifacts and parse exception XMLs and error logs → read the structured output and `[INTEGRATION_TEST_SUMMARY]` JSON → synthesize root cause analysis. The script collects data; you generate the diagnosis.
 
 ## When to Use This Skill
 
