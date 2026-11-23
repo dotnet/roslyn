@@ -16,7 +16,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Hover;
 
-public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
+public class HoverFactoryTest(ITestOutputHelper testOutput) : DocCommentFormattingTestBase(testOutput)
 {
     private static HoverDisplayOptions UseMarkdown => new(MarkupKind.Markdown, SupportsVisualStudioExtensions: false);
     private static HoverDisplayOptions UsePlainText => new(MarkupKind.PlainText, SupportsVisualStudioExtensions: false);
@@ -44,7 +44,8 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        // No documentation means we shouldn't need a generated document or its semantic model.
+        var hover = await HoverFactory.GetHoverAsync(generatedDocument: null!, codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -67,7 +68,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -90,7 +91,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -111,7 +112,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -132,7 +133,8 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        // No documentation means we shouldn't need a generated document or its semantic model.
+        var hover = await HoverFactory.GetHoverAsync(generatedDocument: null!, codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -154,7 +156,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -176,7 +178,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -194,7 +196,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -212,7 +214,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -230,7 +232,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -256,7 +258,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, "text.razor", SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -277,7 +279,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -298,7 +300,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -320,7 +322,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseMarkdown, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -338,7 +340,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -360,7 +362,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -381,7 +383,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -404,7 +406,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -428,7 +430,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -450,7 +452,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: true, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -472,7 +474,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -495,7 +497,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -513,7 +515,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UsePlainText, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.Null(hover);
@@ -531,7 +533,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseVisualStudio, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseVisualStudio, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
@@ -568,7 +570,7 @@ public class HoverFactoryTest(ITestOutputHelper testOutput) : ToolingTestBase(te
         var codeDocument = RazorCodeDocumentFactory.CreateCodeDocument(code.Text, isRazorFile: false, SimpleTagHelpers.Default);
 
         // Act
-        var hover = await HoverFactory.GetHoverAsync(codeDocument, code.Position, UseVisualStudio, CreateComponentAvailabilityService(), DisposalToken);
+        var hover = await HoverFactory.GetHoverAsync(CreateGeneratedDocument(), codeDocument, code.Position, UseVisualStudio, CreateComponentAvailabilityService(), DisposalToken);
 
         // Assert
         Assert.NotNull(hover);
