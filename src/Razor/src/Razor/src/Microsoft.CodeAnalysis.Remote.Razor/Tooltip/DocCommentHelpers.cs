@@ -170,17 +170,18 @@ internal static class DocCommentHelpers
             return false;
         }
 
-        documentation = documentation.Trim(s_newLineChars);
-
         var summaryTagStart = documentation.IndexOf(SummaryStartTag, StringComparison.OrdinalIgnoreCase);
         var summaryTagEndStart = documentation.IndexOf(SummaryEndTag, StringComparison.OrdinalIgnoreCase);
         if (summaryTagStart == -1 || summaryTagEndStart == -1)
         {
+            // Plain-text fallback should not include line breaks that only surround the documentation.
+            var trimmedDocumentation = documentation.Trim(s_newLineChars);
+
             // A really wrong but cheap way to check if this is XML
-            if (!documentation.StartsWith("<", StringComparison.Ordinal) && !documentation.EndsWith(">", StringComparison.Ordinal))
+            if (!trimmedDocumentation.StartsWith("<", StringComparison.Ordinal) && !trimmedDocumentation.EndsWith(">", StringComparison.Ordinal))
             {
                 // This doesn't look like a doc comment, we'll return it as-is.
-                summary = documentation;
+                summary = trimmedDocumentation;
                 return true;
             }
 
