@@ -185,7 +185,9 @@ internal static class HoverFactory
         var descriptionInfos = boundAttributes.SelectAsArray(boundAttribute =>
         {
             var isIndexer = TagHelperMatchingConventions.SatisfiesBoundAttributeIndexer(boundAttribute, attributeName.AsSpan());
-            return BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer);
+            // Use the descriptor's type name rather than extracting it from a display name,
+            // which can contain spaces inside generic return types.
+            return BoundAttributeDescriptionInfo.From(boundAttribute, isIndexer, boundAttribute.Parent.TypeName);
         });
 
         var attrDescriptionInfo = new AggregateBoundAttributeDescription(descriptionInfos);
