@@ -177,10 +177,16 @@ internal static class MarkupTagHelperTooltipFactory
     {
         // Let Roslyn format the doc comment, and then turn it into markdown or plain text, the same way C# tooltips do
         var parts = DocCommentHelpers.FormatSummary(summaryContent, typeName, propertyName, formattingContext!, cancellationToken);
-        return ProtocolConversions.GetDocumentationMarkupContent(
+        var content = ProtocolConversions.GetDocumentationMarkupContent(
             parts,
             LanguageNames.CSharp,
             featureSupportsMarkdown: markupKind == MarkupKind.Markdown).Value;
+
+        // Roslyn's line breaks are always "\r\n", and plain text output uses them as is, but the rest of our tooltip
+        // uses Environment.NewLine. Normalize them so we don't end up with mixed line endings on non-Windows machines.
+        return markupKind == MarkupKind.PlainText
+            ? content.Replace("\r\n", Environment.NewLine)
+            : content;
     }
 
     private static void StartOrEndBold(StringBuilder builder, MarkupKind markupKind)
