@@ -108,7 +108,9 @@ internal abstract class AbstractRemoveRedundantEqualityDiagnosticAnalyzer(ISynta
                 properties.Add(RedundantEqualityConstants.Negate, RedundantEqualityConstants.Negate);
         }
         else
+        {
             return;
+        }
 
         // If the comparison itself performs a user-defined implicit conversion to
         // bool, it isn't redundant: removing the comparison would drop the conversion

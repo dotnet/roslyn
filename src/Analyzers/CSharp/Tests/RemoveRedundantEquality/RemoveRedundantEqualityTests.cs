@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveRedundantEquality;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.RemoveRedundantEquality;
@@ -231,8 +232,12 @@ public sealed class RemoveRedundantEqualityTests
             """);
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86479")]
-    public Task TestUserDefinedImplicitConversionToBool_NoDiagnostics()
-        => VerifyCS.VerifyAnalyzerAsync("""
+    public async Task TestUserDefinedImplicitConversionToBool_NoDiagnostics()
+    {
+        // 'record' needs C# 9; the test harness defaults to C# 8.
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
             public record Flag(bool IsSet)
             {
                 public static Flag Off => new(false);
@@ -254,11 +259,20 @@ public sealed class RemoveRedundantEqualityTests
                 public static int CompareSetReversed(Flag flag)
                     => (true == flag).CompareTo(false);
             }
-            """);
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        };
+
+        await test.RunAsync();
+    }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86479")]
-    public Task TestExplicitCastToBool()
-        => VerifyCS.VerifyCodeFixAsync("""
+    public async Task TestExplicitCastToBool()
+    {
+        // 'record' needs C# 9; the test harness defaults to C# 8.
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
             public record Flag(bool IsSet)
             {
                 public static implicit operator bool(Flag flag)
@@ -272,7 +286,8 @@ public sealed class RemoveRedundantEqualityTests
                     return (bool)flag [|==|] true;
                 }
             }
-            """, """
+            """,
+            FixedCode = """
             public record Flag(bool IsSet)
             {
                 public static implicit operator bool(Flag flag)
@@ -286,7 +301,12 @@ public sealed class RemoveRedundantEqualityTests
                     return (bool)flag;
                 }
             }
-            """);
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        };
+
+        await test.RunAsync();
+    }
 
     [Fact]
     public Task TestSimpleCaseForIsFalse()
