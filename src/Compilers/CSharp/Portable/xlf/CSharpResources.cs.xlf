@@ -1184,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalUnsafeModifier">
         <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
-        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <target state="translated">Modifikátory deklarace „unsafe“ nebo „safe“ lze použít pouze při kompilaci s možností /unsafe.</target>
         <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
       </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
@@ -1544,7 +1544,7 @@
       </trans-unit>
       <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
         <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">Pole v typu s explicitním nebo rozšířeným rozložením, nenulovou velikostí balení nebo nenulovou velikostí musí být označeno jako „unsafe“ nebo „safe“.</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -2864,7 +2864,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeUnassignedAddressOf">
         <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
-        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
+        <target state="translated">Operand výrazu address-of není jednoznačně přiřazen. Ujistěte se, že je operand přiřazený, nebo použijte nebezpečný kontext.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
@@ -3269,7 +3269,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypeParameterInferenceFromConstraints">
         <source>type parameter inference from constraints</source>
-        <target state="new">type parameter inference from constraints</target>
+        <target state="translated">odvozování typových parametrů z omezení</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
@@ -3589,12 +3589,12 @@
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag">
         <source>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</source>
-        <target state="new">Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</target>
+        <target state="translated">Příznak funkce {0} je zastaralý a v některé budoucí verzi bude odebrán. Místo něj použijte vlastnost MSBuild {1} nebo možnost kompilátoru {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag_Title">
         <source>Feature flag is deprecated</source>
-        <target state="new">Feature flag is deprecated</target>
+        <target state="translated">Příznak funkce je zastaralý</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -4376,8 +4376,8 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                             Možností kompilátoru Visual C#
+        <target state="translated">
+                             Možností Kompilátoru Visual C#
 
                        - VÝSTUPNÍ SOUBORY -
 -out:&lt;file&gt;                   Zadejte název výstupního souboru (výchozí: základní název
@@ -4386,34 +4386,34 @@
                               tvar: -t:exe)
 -target:winexe                Sestavení spustitelného souboru Windows (Krátký tvar:
                               -t:winexe)
--target:library               Sestavení knihovny (Krátký tvar: -t:knihovna)
+-target:library               Sestavení knihovny (Krátký tvar: -t:library)
 -target:module                Vytvoří modul, který se dá přidat do jiného
                               sestavení (Krátký tvar: -t:module)
 -target:appcontainerexe       Sestavení spustitelného souboru kontejneru Appcontainer (Krátký tvar:
                               -t:appcontainerexe)
--target:winmdobj              Sestavení prostředí Windows Runtime zprostředkujícího souboru, který
+-target:winmdobj              Vytvoří mezilehlý soubor prostředí Windows Runtime, který
                               používá WinMDExp (Krátký tvar: -t:winmdobj)
--doc:&lt;file&gt;                       Soubor dokumentace XML do souboru generuje
+-doc:&lt;file&gt;                   Soubor dokumentace XML, který se má vygenerovat
 -refout:&lt;file&gt;                    Výstup referenčního sestavení, který se má vygenerovat
 -platform:&lt;string&gt;                Omezuje platformy, na kterých se může tento kód spouštět: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred nebo
                               anycpu. Výchozí hodnota je anycpu.
 
                        - VSTUPNÍ SOUBORY -
--recurse:&lt;wildcard&gt;               Zahrne všechny soubory v aktuálním adresáři a
-                              podadresáře podle zástupného znaku
-                              specifikace
+-recurse:&lt;wildcard&gt;               Zahrne všechny soubory v aktuálním adresáři a
+                              podadresářích podle specifikací
+                              zástupných znaků
 -reference:&lt;alias&gt;=&lt;file&gt;     Odkazuje na metadata z určeného sestavení
                               pomocí daného aliasu (Krátký tvar: -r)
 -reference:&lt;file list&gt;        Odkazuje na metadata ze zadaných souborů
                               sestavení(Krátký tvar: -r)
 -addmodule:&lt;file list&gt;        Propojte zadané moduly s tímto sestavením
--link:&lt;file list&gt;             Vloží metadata ze zadaných definičních
-                              souborů sestavení(Krátký tvar: -I)
--analyzer:&lt;file list&gt;         Spustí analyzátory z tohoto sestavení
+-link:&lt;file list&gt;             Vloží metadata ze zadaných souborů sestavení
+                              pro interoperabilitu (Krátký tvar: -l)
+-analyzer:&lt;file list&gt;         Spustí analyzátory z tohoto sestavení
                               (Krátký tvar: -a)
 -additionalfile:&lt;file list&gt;   Další soubory, které nemají přímý vliv na generování
-                              kódu, ale můžou je používat analyzátory k vytváření
+                              kódu, ale můžou je používat analyzátory k vytváření
                               chyb nebo upozornění.
 -embed                        Vložte všechny zdrojové soubory do PDB.
 -embed:&lt;file list&gt;            Vložte konkrétní soubory do PDB.
@@ -4426,7 +4426,7 @@
 -resource:&lt;resinfo&gt;           Vložte zadaný prostředek (Krátký tvar: -res)
 -linkresource:&lt;resinfo&gt;       Propojte zadaný prostředek s tímto sestavením
                               (Krátký tvar: -linkres) Kde formát resinfo
-                              je &lt;file&gt;[,&lt;string name[,veřejný|soukromý]]
+                              je &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
                        - GENEROVÁNÍ KÓDU -
 -debug[+|-]                       Generuje ladicí informace
@@ -4437,33 +4437,33 @@
                               cílového souboru .dll nebo .exe)
 -optimize[+|-]                Povolit optimalizace (Krátký tvar: -o)
 -deterministic                    Vytvoří deterministické sestavení
-                              (včetně verze modulu GUID a časového razítka)
+                              (včetně verze modulu GUID a časového razítka)
 -refonly                          Vytvoří referenční sestavení místo hlavního výstupu
 -instrument:TestCoverage          Vytvoří sestavení instrumentované ke shromažďování
-                              informací o pokrytí
--sourcelink:&lt;file&gt;                Informace o odkazu na zdroj, který se má vložit do souboru PDB.
+                              informací o pokrytí
+-sourcelink:&lt;file&gt;                Informace o odkazu na zdroj, který se má vložit do souboru PDB.
 
-                       – CHYBY A UPOZORNĚNÍ -
+                       – CHYBY A UPOZORNĚNÍ -
 -warnaserror[+|-]                 Nahlašuje všechna upozornění za chyby
 -warnaserror[+|-]:&lt;warn list&gt; Oznamovat konkrétní upozornění jako chyby
-                              (pro všechna upozornění na možnou hodnotu null použít hodnotu null)
+                              (pro všechna upozornění na možnou hodnotu null použijte nullable)
 -warn:&lt;n&gt;                     Nastavit úroveň upozornění (0 nebo vyšší) (Krátký tvar: -w)
 -nowarn:&lt;warn list&gt;           Zakázat specifická upozornění
-                              (pro všechna upozornění na možnou hodnotu null použít hodnotu null)
+                              (pro všechna upozornění na možnou hodnotu null použijte nullable)
 -ruleset:&lt;file&gt;                   Určuje soubor sady pravidel, který zakáže konkrétní
                               diagnostiku.
--errorlog:&lt;file&gt;[,verze=&lt;sarif_version&gt;]
-                              Určuje soubor k protokolování veškeré diagnostiky kompilátorů
-                              diagnostiku.
-                              sarif_version:{1|2|2.1} Výchozí hodnota je 1. 2 a 2.1
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Určuje soubor pro protokolování všech diagnostických zpráv
+                              kompilátoru a analyzátoru.
+                              sarif_version:{1|2|2.1} Výchozí hodnota je 1. 2 a 2.1
                               obě znamenají SARIF verze 2.1.0.
--reportanalyzer                   Oznámí další informace o analyzátoru, například
-                              čas spuštění.
+-reportanalyzer                   Oznámí další informace o analyzátoru, například
+                              dobu provádění.
 -skipanalyzers[+|-]               Přeskočí spuštění diagnostických analyzátorů.
 
                        - JAZYK -
 -checked[+|-]                 Generovat kontroly přetečení
--unsafe[+|-]                  Povolit nezabezpečený kód
+-unsafe[+|-]                  Povolit kód „unsafe“ a modifikátory „safe“
 -define:&lt;symbol list&gt;             Definuje symboly podmíněné kompilace (Krátký
                               tvar: -d)
 -langversion:?                Zobrazí povolené hodnoty pro verzi jazyka
@@ -4476,15 +4476,18 @@
 -nullable[+|-]                Zadejte možnost kontextu s možnou hodnotou null enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Zadejte možnost kontextu s možnou hodnotou null enable|disable|warnings|annotations.
+-memorysafetyrulesversion:&lt;n&gt;  Nastaví verzi pravidel bezpečnosti paměti na
+                              `1` (starší verze),
+                              `2` (aktualizovaná verze: členy označené unsafe vyžadují v místě použití kontext unsafe)
 
                        - ZABEZPEČENÍ –
 -delaysign[+|-]                   Zpožděné podepsání sestavení pouze pomocí veřejné
                               část klíče silného názvu
--delaysign[+|-]                   Veřejné podepsání sestavení pouze pomocí veřejné
-                              část klíče silného názvu
+-publicsign[+|-]              Veřejně podepíše sestavení pouze pomocí veřejné
+                              části klíče silného názvu
 -keyfile:&lt;file&gt;                   Určuje soubor klíče se silným názvem
 -keycontainer:&lt;string&gt;            Určuje kontejner klíče se silným názvem
--highentropyva[+|-]               Povolí technologii ASLR s vysokou entropií
+-highentropyva[+|-]               Povolí technologii ASLR s vysokou entropií
 
                        - RŮZNÉ -
 @&lt;file&gt;                       Načte další možnosti ze souboru odpovědí
@@ -4492,13 +4495,13 @@
 -nologo                       Potlačí zprávu o autorských právech kompilátoru
 -noconfig                         Nezahrne automaticky soubor CSC.RSP
 -parallel[+|-]                    Souběžné sestavení.
--version                          Zobrazí číslo verze kompilátoru a ukončí se.
+-version                          Zobrazí číslo verze kompilátoru a ukončí se.
 
                        - ROZŠÍŘENÉ -
 -baseaddress:&lt;address&gt;        Základní adresa knihovny, která se má vytvořit
 -checksumalgorithm:&lt;alg&gt;          Určuje algoritmus pro výpočet kontrolního součtu
-                              zdrojového souboru uloženého v souboru PDB. Podporované hodnoty:
-                              SHA1, SHA256 (predvolené), SHA384 alebo SHA512.
+                              zdrojového souboru uloženého v souboru PDB. Podporované hodnoty:
+                              SHA1, SHA256 (výchozí), SHA384 nebo SHA512.
 -codepage:&lt;n&gt;                 Určuje znakovou stránku, která má být použita při otevírání zdrojových
                               souborů
 -utf8output                   Výstupní zprávy kompilátoru v kódování UTF-8
@@ -4509,32 +4512,32 @@
 -filealign:&lt;n&gt;               Určuje zarovnání použité pro oddíly výstupního
                               souboru
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              Určuje mapování pro výstup názvů zdrojových cest podle
-                              kompilátoru.
+                              Určuje mapování názvů zdrojových cest, které vypisuje
+                              kompilátor.
 -pdb:&lt;file&gt;                   Zadejte název souboru informací o ladění (výchozí:
                               název výstupního souboru s příponou .pdb)
 -errorendlocation             Výstupní řádek a sloupec koncového umístění
                               každé chyby
 -preferreduilang                  Určuje preferovaný název výstupního jazyka.
 -nosdkpath                        Zakáže vyhledávání výchozí cesty sady SDK pro standardní sestavení knihovny.
--sdkpath:&lt;cesta&gt;         Cesta použitá k vyhledání standardních sestavení knihovny.
+-sdkpath:&lt;path&gt;         Cesta použitá k vyhledání sestavení standardní knihovny.
 -nostdlib[+|-]                Neodkazuje na standardní knihovnu (mscorlib.dll)
 -subsystemversion:&lt;string&gt;       Určuje verzi subsystému tohoto sestavení
 -lib:&lt;file list&gt;              Zadejte další adresáře, ve kterém chcete hledat
                               odkazy
 -errorreport:&lt;string&gt;             Určuje, jak zpracovávat interní chyby kompilátoru:
-                              výzva, odeslání, fronta nebo žádná. Výchozí hodnota je
-                              fronta.
+                              prompt, send, queue nebo none. Výchozí hodnota je
+                              queue.
 -appconfig:&lt;file&gt;             Zadejte konfigurační soubor aplikace
                               obsahující nastavení vazby sestavení
 -moduleassemblyname:&lt;string&gt;  Název sestavení, jehož součástí bude
-                              částí 
+                              tento modul
 -modulename:&lt;string&gt;          Zadejte název zdrojového modulu
 -generatedfilesout:&lt;dir&gt;          Umístí soubory vygenerované během kompilace
                               do zadaného adresáře.
--reportivts[+|-]                    Výstupní informace o všech IVT udělených tomuto
-                              sestavení podle všech závislostí a opatřit poznámkami cizí sestavení
-                              chyby přístupnosti s tím, z jakého sestavení pocházejí.
+-reportivts[+|-]                    Vypíše informace o všech oprávněních IVT udělených tomuto
+                              sestavení všemi závislostmi a k chybám přístupnosti z cizích sestavení
+                              připojí informaci o tom, ze kterého sestavení pocházejí.
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>

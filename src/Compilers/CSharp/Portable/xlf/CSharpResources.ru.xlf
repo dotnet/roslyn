@@ -1184,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalUnsafeModifier">
         <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
-        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <target state="translated">Модификаторы объявления опасности или безопасности можно использовать только при компиляции с параметром "/unsafe".</target>
         <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
       </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
@@ -1544,7 +1544,7 @@
       </trans-unit>
       <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
         <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">Поле в типе с явной или расширенной компоновкой, ненулевым размером упаковки или ненулевым размером должно быть помечено как "unsafe" или "safe".</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -2864,7 +2864,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeUnassignedAddressOf">
         <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
-        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
+        <target state="translated">Операнду выражения взятия адреса значение не было гарантированно присвоено. Убедитесь, что операнду присвоено значение, или используйте небезопасный контекст.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
@@ -3269,7 +3269,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureTypeParameterInferenceFromConstraints">
         <source>type parameter inference from constraints</source>
-        <target state="new">type parameter inference from constraints</target>
+        <target state="translated">вывод параметра типа на основе ограничений</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
@@ -3589,12 +3589,12 @@
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag">
         <source>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</source>
-        <target state="new">Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</target>
+        <target state="translated">Флаг компонента '{0}' является нерекомендуемым и будет удален в будущей версии. Используйте свойство MSBuild '{1}' или параметр компилятора '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag_Title">
         <source>Feature flag is deprecated</source>
-        <target state="new">Feature flag is deprecated</target>
+        <target state="translated">Флаг функциональности является нерекомендуемым</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -4376,19 +4376,19 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
+        <target state="translated">
                              Параметры компилятора Visual C# 
 
                        - ВЫХОДНЫЕ ФАЙЛЫ - 
 -out:&lt;файл&gt;                   Указать имя выходного файла (по умолчанию: базовое имя
-                              файл с основным классом или первый файл)
+                              файла с основным классом или первый файл)
 -target:exe                   Создать исполняемый файл консоли (по умолчанию) (краткая
                               форма: -t:exe) 
 -target:winexe                Создать исполняемый файл Windows (краткая форма:
                               -t:winexe)
 -target:library               Создать библиотеку (краткая форма: -t:library)
 -target:module                Создать модуль, который можно добавить к другой
-                              сборке (краткая форма: -t:модуль)
+                              сборке (краткая форма: -t:module)
 -target:appcontainerexe       Создать исполняемый файл Appcontainer (краткая форма:
                               -t:appcontainerexe)
 -target:winmdobj              Создать промежуточный файл среды выполнения Windows, который
@@ -4411,7 +4411,7 @@
 -link:&lt;список файлов&gt;             Внедрить метаданные из указанных файлов
                               сборки взаимодействия (краткая форма: -l)
 -analyzer:&lt;список файлов&gt;         Запустить анализаторы из этой сборки
-                              (Краткая форма: -а)
+                              (краткая форма: -а)
 -additionalfile:&lt;список файлов&gt;   Дополнительные файлы, которые не влияют непосредственно на создание
                               кода, но которые могут использоваться анализаторами для создания
                               ошибок и предупреждений.
@@ -4452,7 +4452,7 @@
                               (используйте "nullable" для всех предупреждений о допустимости значений NULL)
 -ruleset:&lt;файл&gt;               Указать файл набора правил, который отключает определенную
                               диагностику.
--errorlog:&lt;файл&gt;[,version=&lt;версия_sarif&gt;]
+-errorlog:&lt;файл&gt;[,version=&lt;sarif_version&gt;]
                               Указать файл для записи в журнал всех данных диагностики компилятора
                               и анализатора.
                               sarif_version:{1|2|2.1} По умолчанию 1. 2 и 2.1
@@ -4463,77 +4463,80 @@
 
                        - ЯЗЫК - 
 -checked[+|-]                 Создавать проверки переполнения
--unsafe[+|-]                  Разрешить "небезопасный" код
+-unsafe[+|-]                  Разрешить код "unsafe" и модификаторы "safe"
 -define:&lt;список символов&gt;         Определить символы условной компиляции (краткая
                               форма: -d)
 -langversion:?                Показать допустимые значения версии языка
 -langversion:&lt;строка&gt;         Указать версию языка, например
-                              "latest" (последняя версия, включая дополнительные версии),
-                              "default" (то же, что и "latest"),
-                              "latestmajor" (последняя версия, исключая дополнительные версии),
-                              "preview" (последняя версия, включая функции неподдерживаемой предварительной версии),
-                              или конкретные версии, например "6" или "7.1"
+                              `latest` (последняя версия, включая дополнительные версии),
+                              `default` (то же, что и `latest`),
+                              `latestmajor` (последняя версия, исключая дополнительные версии),
+                              `preview` (последняя версия, включая функции неподдерживаемой предварительной версии),
+                              или конкретные версии, например `6` или `7.1`
 -nullable[+|-]                Указать параметр контекста, допускающий значение NULL, enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Указать параметр контекста, допускающий значение NULL, enable|disable|warnings|annotations.
+-memorysafetyrulesversion:&lt;n&gt;  Установить версию правил безопасности памяти как
+                              `1` (устаревший),
+                              `2` (обновлено: небезопасные члены требуют небезопасного контекста в месте использования)
 
                        - БЕЗОПАСНОСТЬ - 
--delaysign[+|-]               Отложить подписание сборки, используя только открытую
-                              часть ключа строгого имени 
--publicsign[+|-]              Общедоступная подпись сборки с использованием только открытой
-                              части ключа строгого имени
--keyfile:&lt;файл&gt;               Указать файл ключа со строгим именем
--keycontainer:&lt;строка&gt;        Указать контейнер ключа строгого имени
--highentropyva[+|-]           Включить ASLR с высокой энтропией
+-delaysign[+|-]               Отложить подписание сборки, используя только открытый 
+                              части ключа строгого имени 
+-publicsign[+|-]              Общедоступная подпись сборки с использованием только общедоступной 
+                              части ключа строгого имени 
+-keyfile:&lt;file&gt;               Укажите файл ключа со строгим именем 
+-keycontainer:&lt;string&gt;        Укажите контейнер ключей строгого имени 
+-highentropyva[+|-]           Включить высокоэнтропийный ASLR 
 
-                       - РАЗНОЕ - 
-@&lt;файл&gt;                       Прочесть файл ответов для получения дополнительных параметров
--help                         Показать это сообщение об использовании (краткая форма: -?)
--nologo                       Подавить сообщение об авторских правах на компилятор
--nologo                       Не включать файл CSC.RSP автоматически
+                       - РАЗНОЕ -
+@&lt;file&gt;                       Прочтите файл ответов, чтобы узнать о дополнительных параметрах 
+-help                         Показать это сообщение об использовании (краткая форма: -?) 
+-nologo                       Подавить сообщение об авторских правах компилятора 
+-nologo                       Не включать автоматически файл CSC.RSP 
 -parallel[+|-]                Параллельная сборка.
 -version                      Показать номер версии компилятора и выйти.
 
-                       - РАСШИРЕННЫЕ ПАРАМЕТРЫ - 
--baseaddress:&lt;адрес&gt;        Базовый адрес для создаваемой библиотеки
--checksumalgorithm:&lt;алгоритм&gt;      Указать алгоритм вычисления контрольной суммы исходного файла,
-                              исходного файла, хранящегося в PDB. Поддерживаемые значения:
+                       - РАСШИРЕННЫЙ - 
+-baseaddress:&lt;address&gt;        Базовый адрес для создаваемой библиотеки 
+-checksumalgorithm:&lt;alg&gt;      Указать алгоритм вычисления контрольной суммы исходного файла,
+                              файла, хранящегося в PDB. Поддерживаемые значения: 
                               SHA1, SHA256 (по умолчанию), SHA384 или SHA512.
--codepage:&lt;n&gt;                 Указать кодовую страницу для использования при открытии исходных
-                              файлов
--utf8output                   Выводить сообщения компилятора в кодировке UTF-8
--main:&lt;тип&gt;                  Укажите тип, который содержит точку входа
-                              (игнорировать все прочие возможные точки входа) (краткая
-                              форма: -m)
--fullpaths                    Компилятор создает полные пути
--filealign:&lt;n&gt;                Указать выравнивание, используемое для разделов
+-codepage:&lt;n&gt;                 Укажите кодовую страницу для использования при открытии исходных 
+                              файлов 
+-utf8output                   Выводить сообщения компилятора в кодировке UTF-8 
+-main:&lt;type&gt;                  Укажите тип, который содержит точку входа 
+                              (игнорировать все другие возможные точки входа) (короткая 
+                              форма: -m) 
+-fullpaths                    Компилятор создает полные пути 
+-filealign:&lt;n&gt;                Укажите выравнивание, используемое для разделов 
                               выходного файла 
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,... 
-                              Указать сопоставление для имен исходных путей, выводимых с помощью 
+                              Укажите сопоставление для имен исходных путей, выводимых с помощью
                               компилятора.
--pdb:&lt;файл&gt;                   Указать имя информационного файла отладки (по умолчанию:
-                              имя выходного файла с расширением .pdb)
--errorendlocation             Строка вывода и столбец конечного расположения
+-pdb:&lt;file&gt;                   Указать имя файла отладочной информации (по умолчанию: 
+                              имя выходного файла с расширением .pdb) 
+-errorendlocation             Строка вывода и столбец конечного местоположения 
                               каждой ошибки
--preferreduilang              Указать предпочитаемое имя языка вывода.
--nosdkpath                    Отключить поиск стандартных библиотечных сборок по пути SDK по умолчанию. 
--sdkpath:&lt;путь&gt;         Путь, используемый для поиска стандартных сборок библиотек.
--nostdlib[+|-]                Не ссылаться на стандартную библиотеку (mscorlib.dll)
--subsystemversion:&lt;строка&gt;    Указать версию подсистемы этой сборки 
--lib:&lt;список файлов&gt;              Указать дополнительные каталоги для поиска
+-preferreduilang              Укажите предпочтительное имя языка вывода.
+-nosdkpath                    Отключить поиск стандартных библиотечных сборок по пути SDK по умолчанию.
+-sdkpath:&lt;path&gt;        Путь для поиска сборок стандартной библиотеки.
+-nostdlib[+|-]                Не ссылаться на стандартную библиотеку (mscorlib.dll) 
+-subsystemversion:&lt;string&gt;    Укажите версию подсистемы этой сборки 
+-lib:&lt;file list&gt;              Указать дополнительные каталоги для поиска 
                               ссылок 
--errorreport:&lt;строка&gt;         Указать, как обрабатывать внутренние ошибки компилятора:
-                              prompt, send, queue или none. Значение по умолчанию:
-                              queue.
--appconfig:&lt;файл&gt;             Указать файл конфигурации приложения,
+-errorreport:&lt;string&gt;         Укажите, как обрабатывать внутренние ошибки компилятора: 
+                              prompt, send, queue или none. Значение по умолчанию
+                              очередь.
+-appconfig:&lt;file&gt;             Указать файл конфигурации приложения 
                               содержащий параметры привязки сборки 
--moduleassemblyname:&lt;строка&gt;  Имя сборки, частью которой будет
-                              этот модуль
--modulename:&lt;строка&gt;          Указать имя исходного модуля 
--generatedfilesout:&lt;каталог&gt;      Поместить файлы, созданные во время компиляции, в 
+-moduleassemblyname:&lt;string&gt; Название сборки, частью которой будет 
+                              этот модуль 
+-modulename:&lt;string&gt;          Укажите имя исходного модуля 
+-generatedfilesout:&lt;dir&gt;      Поместить файлы, сгенерированные во время компиляции, в 
                               указанный каталог.
--reportivts[+|-]                    Вывести информацию обо всех IVT, предоставленных этой
-                              сборке по всем зависимостям, и аннотировать ошибки доступности 
+-reportivts[+|-]                    Вывести информацию обо всех IVT, предоставленных этой 
+                              сборке по всем зависимостям и аннотировать ошибки доступности 
                               сторонних сборок с указанием того, из какой сборки они произошли.
 </target>
         <note>Visual C# Compiler Options</note>
