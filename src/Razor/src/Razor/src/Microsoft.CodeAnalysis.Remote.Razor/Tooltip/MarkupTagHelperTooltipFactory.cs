@@ -3,11 +3,11 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
@@ -19,6 +19,7 @@ internal static class MarkupTagHelperTooltipFactory
         AggregateBoundElementDescription elementDescriptionInfo,
         IComponentAvailabilityService componentAvailabilityService,
         MarkupKind markupKind,
+        DocCommentFormattingContext? formattingContext,
         CancellationToken cancellationToken)
     {
         if (elementDescriptionInfo is null)
@@ -68,8 +69,7 @@ internal static class MarkupTagHelperTooltipFactory
             {
                 descriptionBuilder.AppendLine();
                 descriptionBuilder.AppendLine();
-                var finalSummaryContent = CleanSummaryContent(summaryContent);
-                descriptionBuilder.Append(finalSummaryContent);
+                descriptionBuilder.Append(FormatSummary(summaryContent, tagHelperType, propertyName: null, markupKind, formattingContext, cancellationToken));
             }
 
             if (documentFilePath is not null)
@@ -96,6 +96,8 @@ internal static class MarkupTagHelperTooltipFactory
     public static bool TryCreateTooltip(
         AggregateBoundAttributeDescription attributeDescriptionInfo,
         MarkupKind markupKind,
+        DocCommentFormattingContext? formattingContext,
+        CancellationToken cancellationToken,
         [NotNullWhen(true)] out MarkupContent? tooltipContent)
     {
         if (attributeDescriptionInfo is null)
@@ -153,8 +155,7 @@ internal static class MarkupTagHelperTooltipFactory
 
             descriptionBuilder.AppendLine();
             descriptionBuilder.AppendLine();
-            var finalSummaryContent = CleanSummaryContent(summaryContent);
-            descriptionBuilder.Append(finalSummaryContent);
+            descriptionBuilder.Append(FormatSummary(summaryContent, tagHelperTypeName, descriptionInfo.PropertyName, markupKind, formattingContext, cancellationToken));
         }
 
         tooltipContent = new MarkupContent
@@ -166,36 +167,20 @@ internal static class MarkupTagHelperTooltipFactory
         return true;
     }
 
-    // Internal for testing
-    internal static string CleanSummaryContent(string summaryContent)
+    private static string FormatSummary(
+        string summaryContent,
+        string typeName,
+        string? propertyName,
+        MarkupKind markupKind,
+        DocCommentFormattingContext? formattingContext,
+        CancellationToken cancellationToken)
     {
-        // Cleans out all <see cref="..." /> and <seealso cref="..." /> elements. It's possible to
-        // have additional doc comment types in the summary but none that require cleaning. For instance
-        // if there's a <para> in the summary element when it's shown in the completion description window
-        // it'll be serialized as html (wont show).
-        summaryContent = summaryContent.Trim();
-        var crefMatches = DocCommentHelpers.ExtractCrefMatches(summaryContent);
-
-        using var _ = StringBuilderPool.GetPooledObject(out var summaryBuilder);
-
-        summaryBuilder.Append(summaryContent);
-
-        for (var i = crefMatches.Count - 1; i >= 0; i--)
-        {
-            var cref = crefMatches[i];
-            if (cref.Success)
-            {
-                var value = cref.Groups[DocCommentHelpers.TagContentGroupName].Value;
-                var reducedValue = DocCommentHelpers.ReduceCrefValue(value);
-                reducedValue = reducedValue.Replace("{", "<").Replace("}", ">");
-                summaryBuilder.Remove(cref.Index, cref.Length);
-                summaryBuilder.Insert(cref.Index, $"`{reducedValue}`");
-            }
-        }
-
-        var lines = summaryBuilder.ToString().Split(new[] { '\n' }, StringSplitOptions.None).Select(line => line.Trim());
-        var finalSummaryContent = string.Join(Environment.NewLine, lines);
-        return finalSummaryContent;
+        // Let Roslyn format the doc comment, and then turn it into markdown or plain text, the same way C# tooltips do
+        var parts = DocCommentHelpers.FormatSummary(summaryContent, typeName, propertyName, formattingContext!, cancellationToken);
+        return ProtocolConversions.GetDocumentationMarkupContent(
+            parts,
+            LanguageNames.CSharp,
+            featureSupportsMarkdown: markupKind == MarkupKind.Markdown).Value;
     }
 
     private static void StartOrEndBold(StringBuilder builder, MarkupKind markupKind)
