@@ -16,8 +16,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseUnboundGenericTypeInNameOf;
 
-using static SyntaxFactory;
-
 /// <summary>
 /// Looks for code of the form:
 /// 
@@ -41,8 +39,6 @@ internal sealed class CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer()
         new LocalizableResourceString(
             nameof(CSharpAnalyzersResources.Use_unbound_generic_type), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
-    private static readonly SyntaxNodeOrToken s_omittedArgument = (SyntaxNodeOrToken)OmittedTypeArgument();
-
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
@@ -69,7 +65,7 @@ internal sealed class CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer()
             return;
 
         var invocation = (InvocationExpressionSyntax)syntaxContext.Node;
-        if (!invocation.IsNameOfInvocation())
+        if (!invocation.IsNameOfInvocation() || invocation.ArgumentList.Arguments.Count != 1)
             return;
 
         foreach (var typeArgumentList in invocation.DescendantNodesAndSelf().OfType<TypeArgumentListSyntax>())
@@ -106,31 +102,9 @@ internal sealed class CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer()
         SemanticModel semanticModel, InvocationExpressionSyntax invocation, CancellationToken cancellationToken)
     {
         var speculationAnalyzer = new SpeculationAnalyzer(
-            invocation, ConvertToUnboundGenericNameof(invocation), semanticModel, cancellationToken);
-        if (speculationAnalyzer.SpeculativeSemanticModel is not { } speculativeSemanticModel ||
-            speculationAnalyzer.ReplacedExpression is not InvocationExpressionSyntax { ArgumentList.Arguments: [var argument] })
-        {
-            return true;
-        }
-
-        return speculativeSemanticModel.GetSymbolInfo(argument.Expression, cancellationToken).GetAnySymbol() != null;
-    }
-
-    public static TSyntax ConvertToUnboundGenericNameof<TSyntax>(TSyntax syntax)
-        where TSyntax : SyntaxNode
-    {
-        return syntax.ReplaceNodes(
-            syntax.DescendantNodes().OfType<TypeArgumentListSyntax>(),
-            (original, current) =>
-            {
-                if (current.Arguments.Any(a => a.Kind() != SyntaxKind.OmittedTypeArgument))
-                {
-                    var list = NodeOrTokenList(current.Arguments.GetWithSeparators().Select(
-                        t => t.IsToken ? t.AsToken().WithoutTrivia() : s_omittedArgument));
-                    return current.WithArguments(SeparatedList<TypeSyntax>(list));
-                }
-
-                return current;
-            });
+            invocation, UseUnboundGenericTypeInNameOfHelpers.ConvertToUnboundGenericNameof(invocation), semanticModel, cancellationToken);
+        var rewrittenInvocation = (InvocationExpressionSyntax)speculationAnalyzer.ReplacedExpression;
+        var rewrittenArgument = rewrittenInvocation.ArgumentList.Arguments[0].Expression;
+        return speculationAnalyzer.SpeculativeSemanticModel.GetSymbolInfo(rewrittenArgument, cancellationToken).GetAnySymbol() != null;
     }
 }

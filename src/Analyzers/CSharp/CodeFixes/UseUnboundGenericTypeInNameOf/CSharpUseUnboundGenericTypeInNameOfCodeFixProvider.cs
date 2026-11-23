@@ -45,7 +45,6 @@ internal sealed partial class CSharpUseUnboundGenericTypeInNameOfCodeFixProvider
         if (!nameofInvocation.IsNameOfInvocation())
             return;
 
-        editor.ReplaceNode(
-            nameofInvocation, CSharpUseUnboundGenericTypeInNameOfDiagnosticAnalyzer.ConvertToUnboundGenericNameof(nameofInvocation));
+        editor.ReplaceNode(nameofInvocation, UseUnboundGenericTypeInNameOfHelpers.ConvertToUnboundGenericNameof(nameofInvocation));
     }
 }

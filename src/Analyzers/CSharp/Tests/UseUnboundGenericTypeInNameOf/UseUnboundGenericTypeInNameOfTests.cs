@@ -431,6 +431,24 @@ public sealed class UseUnboundGenericTypeInNameOfTests
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86572")]
+    public Task TestNotWithMultipleArguments()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(string[] args)
+                    {
+                        var v = {|CS0103:nameof|}({|CS0119:List<int>|}, args);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86572")]
     public Task TestNotWhenMemberOfTypeParameterTypeIsDereferencedInFieldInitializer()
         => new VerifyCS.Test
         {
