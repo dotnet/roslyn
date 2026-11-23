@@ -7154,13 +7154,7 @@ public static int AT = (new { field = 2 }).field;
 } // end of class ITest20
 ";
 
-            ImmutableArray<Byte> ilBytes;
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
-            {
-                ilBytes = ReadFromFile(reference.Path);
-            }
-
-            var moduleRef = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+            var moduleRef = GetILModuleReference(ilSource, prependDefaultHeader: false);
 
             var source =
 @"
@@ -7223,13 +7217,7 @@ interface ITest20
 } 
 ";
 
-            ImmutableArray<Byte> ilBytes;
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
-            {
-                ilBytes = ReadFromFile(reference.Path);
-            }
-
-            var moduleRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+            var moduleRef1 = GetILModuleReference(ilSource, prependDefaultHeader: false);
 
             var mod2Source =
 @"

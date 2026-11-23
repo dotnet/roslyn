@@ -1100,12 +1100,7 @@ End class
 // Image base: 0x00840000
 ]]>
 
-            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = IlasmUtilities.CreateTempAssembly(ilSource1.Value, prependDefaultHeader:=False)
-                ilBytes = ReadFromFile(reference.Path)
-            End Using
-
-            Dim modRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
+            Dim modRef1 = GetILModuleReference(ilSource1.Value, prependDefaultHeader:=False)
 
             appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef1, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
@@ -1163,11 +1158,7 @@ End class
          = {type(class 'CF1, ForwarderTargetAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null')}
 ]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(ilSource2.Value, prependDefaultHeader:=False)
-                ilBytes = ReadFromFile(reference.Path)
-            End Using
-
-            Dim modRef2 = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
+            Dim modRef2 = GetILModuleReference(ilSource2.Value, prependDefaultHeader:=False)
 
             appCompilation = CreateCompilationWithMscorlib40AndReferences(app, {modRef2, New VisualBasicCompilationReference(forwardedTypesCompilation)}, TestOptions.ReleaseDll)
 
@@ -1281,12 +1272,7 @@ End Class
 // Image base: 0x00840000
 ]]>
 
-            Dim ilBytes As ImmutableArray(Of Byte) = Nothing
-            Using reference = IlasmUtilities.CreateTempAssembly(ilSource.Value, prependDefaultHeader:=False)
-                ilBytes = ReadFromFile(reference.Path)
-            End Using
-
-            Dim modRef = ModuleMetadata.CreateFromImage(ilBytes).GetReference()
+            Dim modRef = GetILModuleReference(ilSource.Value, prependDefaultHeader:=False)
 
             Dim app =
 <compilation>

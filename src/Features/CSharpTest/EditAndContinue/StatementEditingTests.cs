@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -3957,8 +3956,7 @@ public sealed class StatementEditingTests : EditingTestBase
             }
 
             """;
-        MetadataReference delegateDefs;
-        using (var tempAssembly = IlasmUtilities.CreateTempAssembly("""
+        var delegateDefs = CommonTestBase.CompileIL("""
 
             .class public auto ansi sealed D1
                    extends [mscorlib]System.MulticastDelegate
@@ -4001,10 +3999,7 @@ public sealed class StatementEditingTests : EditingTestBase
               {
               }
             }
-            """))
-        {
-            delegateDefs = MetadataReference.CreateFromImage(File.ReadAllBytes(tempAssembly.Path));
-        }
+            """);
 
         var edits = GetTopEdits(src1, src2);
 

@@ -2741,10 +2741,7 @@ End Class
                 </compilation>
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -3069,10 +3066,7 @@ End Class
                 </compilation>
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -3171,10 +3165,7 @@ End Class
                 </compilation>
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -3434,10 +3425,7 @@ End Class
                 </compilation>
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -3548,10 +3536,7 @@ End Class
                 </compilation>
 
             ' Native compiler doesn't produce any error, but neither method is considered overridden by the runtime.
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -3658,10 +3643,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -3767,10 +3749,7 @@ End Class
                 </compilation>
 
             ' Native compiler: no errors, nothing is overridden
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -3879,10 +3858,7 @@ End Class
             ' Derived.M1
             ' Base::M1_2
             ' Roslyn's behavior looks reasonable and it has nothing to do with custom modifiers.
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -3989,10 +3965,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -4097,10 +4070,7 @@ End Class
                     </file>
                 </compilation>
 
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -4768,10 +4738,7 @@ End Class
             'Base.P2_get
             'Base.P2_set
 
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -4990,10 +4957,7 @@ End Class
             'Base.P2_get
             'Base.P2_set
 
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -5151,10 +5115,7 @@ End Class
             'Derived.P2_get
             'Derived.P2_set
 
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -5419,10 +5380,7 @@ End Class
             'Derived.P2_get
             'Derived.P2_set
 
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>
@@ -5956,10 +5914,7 @@ End Class
             'Base1.P2_get
             'Derived.P2_set
 
-            Dim reference As MetadataReference = Nothing
-            Using tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource)
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path))
-            End Using
+            Dim reference As MetadataReference = CompileIL(ilSource)
 
             Dim compilation = CreateEmptyCompilationWithReferences(vbSource, {MscorlibRef, MsvbRef, reference}, TestOptions.ReleaseExe)
             compilation.AssertTheseDiagnostics(<expected>

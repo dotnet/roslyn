@@ -13,7 +13,6 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using ILAssembler = Microsoft.DotNet.ILAssembler;
 
@@ -21,22 +20,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class IlasmUtilities
     {
-        public static DisposableFile CreateTempAssembly(string declarations, bool prependDefaultHeader = true)
-        {
-            IlasmTempAssembly(declarations, prependDefaultHeader, includePdb: false, autoInherit: true, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath);
-            Assert.NotNull(assemblyPath);
-            Assert.Null(pdbPath);
-            return new DisposableFile(assemblyPath);
-        }
-
-        public static DisposableFile CreateTempAssembly(string declarations, ImmutableArray<ILAssembler.Diagnostic> expectedDiagnostics, bool prependDefaultHeader = true)
-        {
-            IlasmTempAssembly(declarations, expectedDiagnostics, prependDefaultHeader, includePdb: false, autoInherit: true, assemblyPath: out var assemblyPath, pdbPath: out var pdbPath);
-            Assert.NotNull(assemblyPath);
-            Assert.Null(pdbPath);
-            return new DisposableFile(assemblyPath);
-        }
-
         private static string GetArchitecture()
         {
 #if NET8_0_OR_GREATER
@@ -47,31 +30,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public static readonly string Architecture = GetArchitecture();
-
-        public static void IlasmTempAssembly(string declarations, bool appendDefaultHeader, bool includePdb, bool autoInherit, out string assemblyPath, out string pdbPath)
-        {
-            assemblyPath = GetAssemblyPath();
-            var (assemblyBytes, pdbBytes) = Assemble(declarations, appendDefaultHeader, includePdb, autoInherit, default, useMarkup: true, assemblyPath);
-            WriteAssembly(assemblyBytes, pdbBytes, assemblyPath, out pdbPath);
-        }
-
-        public static void IlasmTempAssembly(string declarations, ImmutableArray<ILAssembler.Diagnostic> expectedDiagnostics, bool appendDefaultHeader, bool includePdb, bool autoInherit, out string assemblyPath, out string pdbPath)
-        {
-            assemblyPath = GetAssemblyPath();
-            var (assemblyBytes, pdbBytes) = Assemble(declarations, appendDefaultHeader, includePdb, autoInherit, expectedDiagnostics, useMarkup: false, assemblyPath);
-            WriteAssembly(assemblyBytes, pdbBytes, assemblyPath, out pdbPath);
-        }
-
-        private static void WriteAssembly(ImmutableArray<byte> assemblyBytes, ImmutableArray<byte> pdbBytes, string assemblyPath, out string pdbPath)
-        {
-            assemblyBytes.WriteToFile(assemblyPath);
-
-            pdbPath = pdbBytes.IsDefault ? null : Path.ChangeExtension(assemblyPath, "pdb");
-            if (pdbPath != null)
-            {
-                pdbBytes.WriteToFile(pdbPath);
-            }
-        }
 
         private static string GetAssemblyPath()
             => Path.Combine(TempRoot.Root, $"_{Guid.NewGuid()}.dll");

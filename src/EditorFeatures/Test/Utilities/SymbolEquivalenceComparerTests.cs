@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -1896,8 +1895,7 @@ public sealed class SymbolEquivalenceComparerTests
     [Fact]
     public void CustomModifiers_Methods1()
     {
-        MetadataReference r1, r2;
-        using (var tempAssembly = IlasmUtilities.CreateTempAssembly("""
+        CommonTestBase.EmitILToArray("""
             .class public C
             {
               .method public instance int32 [] modopt([mscorlib]System.Int64) F(         // 0
@@ -1932,12 +1930,9 @@ public sealed class SymbolEquivalenceComparerTests
                   throw
               }
             }
-            """))
-        {
-            var bytes = File.ReadAllBytes(tempAssembly.Path);
-            r1 = MetadataReference.CreateFromImage(bytes);
-            r2 = MetadataReference.CreateFromImage(bytes);
-        }
+            """, appendDefaultHeader: true, includePdb: false, out var bytes, out _);
+        var r1 = MetadataReference.CreateFromImage(bytes);
+        var r2 = MetadataReference.CreateFromImage(bytes);
 
         var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", [], [NetFramework.mscorlib, r1]);
         var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", [], [NetFramework.mscorlib, r2]);
