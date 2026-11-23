@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Return False
                 End If
 
-                If UsesTypeWithSameName(variableDeclarator.Initializer.Value, modifiedIdentifier, semanticModel, cancellationToken) Then
+                If ReferencesName(variableDeclarator.Initializer.Value, modifiedIdentifier) Then
                     Return False
                 End If
 
@@ -133,13 +133,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         Return False
                     End If
 
-                    If UsesTypeWithSameName(DirectCast(parent, ForEachStatementSyntax).Expression, modifiedIdentifier, semanticModel, cancellationToken) Then
+                    If ReferencesName(DirectCast(parent, ForEachStatementSyntax).Expression, modifiedIdentifier) Then
                         Return False
                     End If
                 End If
 
-                ' Without an As clause the control variable reuses any symbol of that name in scope that is not a type.
-                ' Look it up from the member's header, since inside the loop the name finds the loop's own local.
+                ' With Option Infer On and no As clause, the compiler only declares a new control variable when the name finds nothing
+                ' in the enclosing scope, or finds a type (see ForOrForEachBlockBinder.BuildLocals). If it finds anything
+                ' else, such as a field, property or method, the loop reuses that symbol instead. Do the same lookup here.
+                ' It is done from the member's header, because from inside the loop the name finds the loop's own local.
+                ' Locals and parameters of the member can be skipped, since they cannot share a name with this variable.
                 Dim memberBlock = variableDeclarator.FirstAncestorOrSelf(Of MethodBlockBaseSyntax)()
                 If memberBlock Is Nothing OrElse
                    semanticModel.LookupSymbols(memberBlock.BlockStatement.Span.End, name:=modifiedIdentifier.Identifier.ValueText).Any(
@@ -156,16 +159,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Return False
         End Function
 
-        ' Without an As clause the variable is in scope in its own initializer, so a type of the same name used there would bind to the variable.
-        Private Shared Function UsesTypeWithSameName(
-            expression As ExpressionSyntax,
-            modifiedIdentifier As ModifiedIdentifierSyntax,
-            semanticModel As SemanticModel,
-            cancellationToken As CancellationToken) As Boolean
-
+        ' Without an As clause the variable's type is inferred from this expression, and the variable is in scope inside it.
+        ' So every simple name in the expression that matches the variable name would bind to the variable itself, whatever
+        ' it binds to now (for example a type or namespace with the same name), and the inference would refer to itself.
+        ' Names after a dot or bang, and argument names, are not looked up in scope, so they are not affected.
+        Private Shared Function ReferencesName(expression As ExpressionSyntax, modifiedIdentifier As ModifiedIdentifierSyntax) As Boolean
             Return expression.DescendantNodesAndSelf().OfType(Of IdentifierNameSyntax)().Any(
                 Function(n) CaseInsensitiveComparison.Equals(n.Identifier.ValueText, modifiedIdentifier.Identifier.ValueText) AndAlso
-                            TypeOf semanticModel.GetSymbolInfo(n, cancellationToken).Symbol Is INamespaceOrTypeSymbol)
+                            Not n.IsRightSideOfDotOrBang() AndAlso
+                            Not n.Parent.IsKind(SyntaxKind.NameColonEquals))
         End Function
 
         Private Shared Function HasValidDeclaredTypeSymbol(

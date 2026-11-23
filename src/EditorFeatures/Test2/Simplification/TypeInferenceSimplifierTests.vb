@@ -273,6 +273,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                             Dim {|SimplifyParent:icon As Icon = Icon.FromHandle(1)|}
                             For Each {|SimplifyParent:company As String|} In Companies : Next
                             For Each {|SimplifyParent:icon2 As Icon|} In Icon.All() : Next
+                            Dim {|SimplifyParent:system As Integer = System.Math.Abs(-1)|}
+                            Dim {|SimplifyParent:count As Integer = count + 1|}
+                            Dim {|SimplifyParent:all As Icon() = Icon.All()|}
                         End Sub
 
                         Public Sub Test2()
@@ -307,6 +310,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Simplification
                             Dim icon As Icon = Icon.FromHandle(1)
                             For Each company As String In Companies : Next
                             For Each icon2 In Icon.All() : Next
+                            Dim system As Integer = System.Math.Abs(-1)
+                            Dim count As Integer = count + 1
+                            Dim all = Icon.All()
                         End Sub
 
                         Public Sub Test2()
