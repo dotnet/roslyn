@@ -262,7 +262,7 @@ public class ClassifiedTagHelperTooltipFactoryTest(ITestOutputHelper testOutput)
         var attributeDescription = new AggregateBoundAttributeDescription(
         [
             new BoundAttributeDescriptionInfo(
-                ReturnTypeName: "System.String",
+                ReturnTypeName: "System.Int32",
                 TypeName: "MyApp.Component",
                 PropertyName: "Value",
                 Documentation: "<summary>Accepts <see cref=\"T:System.String\" />.</summary>")
