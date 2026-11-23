@@ -24,8 +24,12 @@ public class MyTests
 
 ## Conventions
 
-- Use `[UseExportProvider]` for any test that depends on MEF services (a missing
-  attribute typically surfaces as an unrelated-looking failure).
+- Use `[UseExportProvider]` on every test class that constructs `AdhocWorkspace` or
+  otherwise creates MEF host services, even when the test does not explicitly request a
+  service. `AdhocWorkspace()` uses `MefHostServices.DefaultHost`. After another MEF test
+  tears down, `UseExportProviderAttribute` installs a hook that throws
+  `Cannot create host services after test tear down` unless this class entered the
+  export-provider scope.
 - Analyzer tests inherit from
   `AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor` (and the VB
   equivalents).

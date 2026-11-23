@@ -1,3 +1,5 @@
+*REMOVED*Microsoft.CodeAnalysis.Emit.SemanticEdit.NewSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
+Microsoft.CodeAnalysis.Emit.SemanticEdit.NewSymbol.get -> Microsoft.CodeAnalysis.ISymbol!
 Microsoft.CodeAnalysis.INamedTypeSymbol.TypeLayout.get -> Microsoft.CodeAnalysis.TypeLayout
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha384 = 3 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
 Microsoft.CodeAnalysis.Text.SourceHashAlgorithm.Sha512 = 4 -> Microsoft.CodeAnalysis.Text.SourceHashAlgorithm
@@ -24,7 +26,6 @@ Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructArgume
 Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpressionElementsPlaceholder(Microsoft.CodeAnalysis.Operations.ICollectionExpressionElementsPlaceholderOperation! operation, TArgument argument) -> TResult?
-
 const Microsoft.CodeAnalysis.WellKnownMemberNames.HasValuePropertyName = "HasValue" -> string!
 const Microsoft.CodeAnalysis.WellKnownMemberNames.TryGetValueMethodName = "TryGetValue" -> string!
 Microsoft.CodeAnalysis.Operations.CommonConversion.IsUnion.get -> bool

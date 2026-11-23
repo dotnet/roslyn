@@ -276,6 +276,119 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	[InlineData(false, true)]
 	[InlineData(true, false)]
 	[InlineData(true, true)]
+	public async Task Build_ProjectBecomesUnsupported_CleansCacheAndRecovers(bool multiTargeting, bool projectFolder)
+	{
+		string projectFile = this.WriteBuildProject("App.csproj", multiTargeting);
+		string[] arguments =
+		[
+			"/p:EnableProjectDataOnBuild=true",
+			$"/p:EnableProjectDataInProjectFolder={projectFolder.ToString().ToLowerInvariant()}",
+		];
+		ProcessResult first = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs: arguments,
+			useBuildCommand: true);
+		Assert.True(first.ExitCode == 0, first.Output);
+		string cacheFile = projectFolder ? projectFile + ".lscache" : GetCachePath(projectFile, unsupportedMarker: false);
+		Assert.True(File.Exists(cacheFile), first.Output);
+		AssertNoUnsupportedMarker(projectFile);
+
+		ProcessResult second = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs: [.. arguments, "/p:ExcludeFromBuild=true"],
+			useBuildCommand: true);
+
+		Assert.True(second.ExitCode == 0, second.Output);
+		Assert.Equal(projectFolder && !OperatingSystem.IsWindows(), File.Exists(cacheFile));
+		AssertUnsupportedMarker(projectFile, "ExcludeFromBuildTrue");
+
+		for (int build = 0; build < 2; build++)
+		{
+			ProcessResult supported = await RunDotnetMsbuildAsync(
+				projectFile,
+				extraArgs: build == 0 ? arguments : [.. arguments, "/v:diag"],
+				useBuildCommand: true);
+
+			Assert.True(supported.ExitCode == 0, supported.Output);
+			Assert.True(File.Exists(cacheFile), supported.Output);
+			Assert.Contains("[commandLineArguments]", File.ReadAllText(cacheFile));
+			AssertNoUnsupportedMarker(projectFile);
+			if (build == 1)
+			{
+				Assert.Contains("Skipping target \"CoreCompile\" because all output files are up-to-date", supported.Output);
+				Assert.DoesNotContain("Task \"Csc\"", supported.Output);
+			}
+		}
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task Build_InnerFrameworkBecomesUnsupported_DeletesStaleSliceAndRecovers(bool projectFolder)
+	{
+		string projectFile = this.WriteBuildProject(
+			"App.csproj",
+			multiTargeting: true,
+			extraProperties:
+			"""
+			<ExcludeFromBuild Condition="'$(TargetFramework)' == 'net11.0-windows'">$(ExcludeWindowsTarget)</ExcludeFromBuild>
+			""");
+		string[] arguments =
+		[
+			"/p:EnableProjectDataOnBuild=true",
+			$"/p:EnableProjectDataInProjectFolder={projectFolder.ToString().ToLowerInvariant()}",
+		];
+		ProcessResult first = await RunDotnetMsbuildAsync(projectFile, arguments, useBuildCommand: true);
+		Assert.True(first.ExitCode == 0, first.Output);
+		string sliceFile = Path.Combine(this.workDir, "obj", "Debug", "net11.0-windows", "App.csproj.slice");
+		string cacheFile = projectFolder ? projectFile + ".lscache" : GetCachePath(projectFile, unsupportedMarker: false);
+		Assert.True(File.Exists(sliceFile), first.Output);
+		Assert.Contains("TargetFramework=net11.0-windows", File.ReadAllText(cacheFile));
+
+		ProcessResult second = await RunDotnetMsbuildAsync(
+			projectFile,
+			[.. arguments, "/p:ExcludeWindowsTarget=true"],
+			useBuildCommand: true);
+
+		Assert.True(second.ExitCode == 0, second.Output);
+		Assert.False(File.Exists(sliceFile), second.Output);
+		string content = File.ReadAllText(cacheFile);
+		Assert.Contains("TargetFramework=net11.0", content);
+		if (projectFolder && !OperatingSystem.IsWindows())
+		{
+			// Project-adjacent caches intentionally retain slices not regenerated on this platform.
+			Assert.Contains("TargetFramework=net11.0-windows", content);
+		}
+		else
+		{
+			Assert.DoesNotContain("TargetFramework=net11.0-windows", content);
+		}
+		AssertNoUnsupportedMarker(projectFile);
+
+		for (int build = 0; build < 2; build++)
+		{
+			ProcessResult supported = await RunDotnetMsbuildAsync(
+				projectFile,
+				build == 0 ? arguments : [.. arguments, "/v:diag"],
+				useBuildCommand: true);
+
+			Assert.True(supported.ExitCode == 0, supported.Output);
+			Assert.True(File.Exists(sliceFile), supported.Output);
+			Assert.Contains("TargetFramework=net11.0-windows", File.ReadAllText(cacheFile));
+			AssertNoUnsupportedMarker(projectFile);
+			if (build == 1)
+			{
+				Assert.Contains("Skipping target \"CoreCompile\" because all output files are up-to-date", supported.Output);
+				Assert.DoesNotContain("Task \"Csc\"", supported.Output);
+			}
+		}
+	}
+
+	[Theory]
+	[InlineData(false, false)]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	[InlineData(true, true)]
 	public async Task ProjectDataBuild_PersistsHotReloadBrowserToolsEnabled_InAllWriterModes(bool multiTargeting, bool inProjectFolder)
 	{
 		string projectFile = this.WriteProject(
@@ -695,6 +808,115 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.True(hookResult.ExitCode == 0, hookResult.Output);
 		Assert.True(File.Exists(cache), $"The non-forced empty-args hook must NOT delete the existing good cache {cache}.\n{hookResult.Output}");
 		Assert.Equal(originalContent, File.ReadAllText(cache));
+		AssertNoUnsupportedMarker(projectFile);
+	}
+
+	[Theory]
+	[InlineData("NoTargets", false, false)]
+	[InlineData("NoTargets", false, true)]
+	[InlineData("NoTargets", true, true)]
+	[InlineData("VisualBasic", false, false)]
+	[InlineData("VisualBasic", false, true)]
+	[InlineData("VisualBasic", true, false)]
+	[InlineData("VisualBasic", true, true)]
+	[InlineData("Excluded", false, true)]
+	public async Task Build_UnsupportedProject_WritesMarkerOnlyWhenEnabled(string projectKind, bool multiTargeting, bool enabled)
+	{
+		string extension = projectKind == "VisualBasic" ? ".vbproj" : ".csproj";
+		string properties = projectKind switch
+		{
+			"NoTargets" => "<UsingMicrosoftNoTargetsSdk>true</UsingMicrosoftNoTargetsSdk><SkipCopyBuildProduct>true</SkipCopyBuildProduct>",
+			"Excluded" => "<ExcludeFromBuild>true</ExcludeFromBuild>",
+			_ => string.Empty,
+		};
+		// Match NoTargets' empty CoreCompile override without resolving an external SDK package.
+		string targets = projectKind == "NoTargets" ? """<Target Name="CoreCompile" />""" : string.Empty;
+		string projectFile = this.WriteBuildProject("App" + extension, multiTargeting, properties, targets);
+		string cacheFile = projectFile + ".lscache";
+		await File.WriteAllTextAsync(cacheFile, "stale", TestContext.Current.CancellationToken);
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/v:detailed",
+				$"/p:EnableProjectDataOnBuild={enabled.ToString().ToLowerInvariant()}",
+			],
+			useBuildCommand: true);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		if (enabled)
+		{
+			string expectedReason = projectKind switch
+			{
+				"NoTargets" => "MicrosoftBuildNoTargetsSdk",
+				"Excluded" => "ExcludeFromBuildTrue",
+				_ => multiTargeting ? "CannotWriteProjectData" : "LanguageNotCSharp",
+			};
+			AssertUnsupportedMarker(projectFile, expectedReason);
+			if (projectKind == "Excluded" && !OperatingSystem.IsWindows())
+			{
+				Assert.Equal("stale", File.ReadAllText(cacheFile));
+			}
+			else
+			{
+				Assert.False(File.Exists(cacheFile), result.Output);
+			}
+			Assert.Single(result.Output.Split('\n'), line => line.Contains("ProjectData: recorded unsupported marker for", StringComparison.Ordinal));
+		}
+		else
+		{
+			AssertNoUnsupportedMarker(projectFile);
+			Assert.Equal("stale", File.ReadAllText(cacheFile));
+		}
+	}
+
+	[Theory]
+	[InlineData(false, false)]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	[InlineData(true, true)]
+	public async Task Build_SupportedProject_WritesCacheWithoutMarker(bool multiTargeting, bool enabled)
+	{
+		string projectFile = this.WriteBuildProject("App.csproj", multiTargeting);
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/p:EnableProjectDataInProjectFolder=true",
+				$"/p:EnableProjectDataOnBuild={enabled.ToString().ToLowerInvariant()}",
+			],
+			useBuildCommand: true);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		Assert.Equal(enabled, File.Exists(projectFile + ".lscache"));
+		AssertNoUnsupportedMarker(projectFile);
+	}
+
+	[Theory]
+	[InlineData("App.csproj")]
+	[InlineData("App.vbproj")]
+	public async Task Build_FailureBeforeCoreCompile_WritesNeitherCacheNorMarker(string fileName)
+	{
+		string projectFile = this.WriteBuildProject(
+			fileName,
+			multiTargeting: false,
+			extraTargets:
+			"""
+			<Target Name="FailBeforeCompile" BeforeTargets="CoreCompile">
+			  <Error Text="Intentional failure before CoreCompile" />
+			</Target>
+			""");
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs: ["/p:EnableProjectDataOnBuild=true", "/p:EnableProjectDataInProjectFolder=true"],
+			useBuildCommand: true);
+
+		Assert.NotEqual(0, result.ExitCode);
+		Assert.Contains("Intentional failure before CoreCompile", result.Output);
+		Assert.False(File.Exists(projectFile + ".lscache"));
 		AssertNoUnsupportedMarker(projectFile);
 	}
 
@@ -3293,6 +3515,28 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		return psi;
 	}
 
+	private string WriteBuildProject(string fileName, bool multiTargeting, string extraProperties = "", string extraTargets = "")
+	{
+		string projectFile = Path.Combine(this.workDir, fileName);
+		string framework = multiTargeting
+			? "<TargetFrameworks>net11.0;net11.0-windows</TargetFrameworks>"
+			: "<TargetFramework>net11.0</TargetFramework>";
+		File.WriteAllText(
+			projectFile,
+			$$"""
+			<Project>
+			  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+			  <PropertyGroup>
+			    {{framework}}
+			    {{extraProperties}}
+			  </PropertyGroup>
+			  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+			  {{extraTargets}}
+			</Project>
+			""");
+		return projectFile;
+	}
+
 	private string WriteProject(
 		string fileName,
 		bool multiTargeting,
@@ -3869,6 +4113,8 @@ $@"<Project Sdk=""Microsoft.NET.Sdk"">
 	{
 		string markerPath = GetMarkerPath(projectFile);
 		Assert.True(File.Exists(markerPath), $"Expected unsupported marker at {markerPath}.");
+		Assert.False(File.Exists(projectFile + ".unsupported"));
+		Assert.False(File.Exists(projectFile + ".lscache.unsupported"));
 		string content = File.ReadAllText(markerPath);
 		Assert.Contains($"reason={expectedReason}", content);
 	}
@@ -3880,12 +4126,17 @@ $@"<Project Sdk=""Microsoft.NET.Sdk"">
 	}
 
 	private static string GetMarkerPath(string projectFile)
+		=> GetCachePath(projectFile, unsupportedMarker: true);
+
+	private static string GetCachePath(string projectFile, bool unsupportedMarker)
 	{
 		string? previous = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
 		try
 		{
 			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", GetTestCacheRoot(projectFile));
-			return UnsupportedProjectDataMarker.GetMarkerFilePath(projectFile);
+			return unsupportedMarker
+				? UnsupportedProjectDataMarker.GetMarkerFilePath(projectFile)
+				: UserFolderCachePath.Compute(projectFile);
 		}
 		finally
 		{

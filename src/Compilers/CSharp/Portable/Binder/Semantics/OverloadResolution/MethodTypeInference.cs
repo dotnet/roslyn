@@ -145,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly Dictionary<TypeParameterSymbol, int> _ordinals;
 
         private readonly (TypeWithAnnotations Type, bool FromFunctionType)[] _fixedResults;
+        private BitVector _inferenceFailed;
+
         private readonly HashSet<TypeWithAnnotations>[] _exactBounds;
         private readonly HashSet<TypeWithAnnotations>[] _upperBounds;
         private readonly HashSet<TypeWithAnnotations>[] _lowerBounds;
@@ -347,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _ordinals = ordinals;
             _fixedResults = new (TypeWithAnnotations, bool)[methodTypeParameters.Length];
+            _inferenceFailed = BitVector.Create(_methodTypeParameters.Length);
             _exactBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _upperBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
             _lowerBounds = new HashSet<TypeWithAnnotations>[methodTypeParameters.Length];
@@ -469,10 +472,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!fixedResultType.Type.IsErrorType())
                     {
-                        if (_conversions.IncludeNullability && _nullableAnnotationLowerBounds[i].IsAnnotated())
-                        {
-                            _fixedResults[i] = _fixedResults[i] with { Type = fixedResultType.AsAnnotated() };
-                        }
                         continue;
                     }
 
@@ -829,6 +828,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MakeOutputTypeInferences(binder, ref useSiteInfo);
 
+            return DoSecondPhaseFixingSteps(ref useSiteInfo);
+        }
+
+        private InferenceResult DoSecondPhaseFixingSteps(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
             // SPEC: * Whether or not the previous step actually made an inference, we
             // SPEC:   must now fix at least one type parameter, as follows:
             // SPEC: * If there exists one or more type parameters Xi such that
@@ -981,13 +985,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = InferenceResult.NoProgress;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
-                if (IsUnfixed(param) && HasBound(param) && predicate(ref this, param))
+                if (IsUnfixed(param) && !_inferenceFailed[param] && predicate(ref this, param))
                 {
-                    needsFixing[param] = true;
-                    result = InferenceResult.MadeProgress;
+                    if (HasBound(param))
+                    {
+                        needsFixing[param] = true;
+                        result = InferenceResult.MadeProgress;
+                    }
+                    else if (!DependsOnAny(param))
+                    {
+                        // No bounds and no dependencies. This type parameter cannot be fixed, so mark it as a failed inference.
+                        _inferenceFailed[param] = true;
+                        UpdateDependenciesAfterFix(param);
+
+                        // Keep going, trying to fix other type parameters
+                        // - can bind some lambdas and that might enable some useful intellisense in an incomplete code.
+                        // - can still infer enough information for successful partial type inference from first argument
+                        result = InferenceResult.MadeProgress;
+                    }
                 }
             }
 
+            if (result == InferenceResult.NoProgress)
+            {
+                return result;
+            }
+
+            bool anyFixed = false;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
                 // Fix as much as you can, even if there are errors.  That will
@@ -996,10 +1020,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (!Fix(param, ref useSiteInfo))
                     {
-                        result = InferenceResult.InferenceFailed;
+                        needsFixing[param] = false;
+
+                        // Keep going, trying to fix other type parameters
+                        // - can bind some lambdas and that might enable some useful intellisense in an incomplete code.
+                        // - can still infer enough information for successful partial type inference from first argument
+                        _inferenceFailed[param] = true;
+                        UpdateDependenciesAfterFix(param);
+                    }
+                    else
+                    {
+                        anyFixed = true;
                     }
                 }
             }
+
+            // Type parameter inference from constraints:
+            // SPEC: When Xi is fixed to V, a lower-bound inference is performed from V to
+            // SPEC: each of the types in Xi's constraints, if any. This lets the type
+            // SPEC: parameters mentioned in those constraints (which depend on Xi, and so
+            // SPEC: are fixed after Xi) pick up bounds from the type Xi was fixed to.
+            if (anyFixed && IsFeatureTypeParameterInferenceFromConstraintsEnabled && !AllFixed())
+            {
+                for (int param = 0; param < _methodTypeParameters.Length; param++)
+                {
+                    if (needsFixing[param])
+                    {
+                        foreach (var constraintType in _methodTypeParameters[param].ConstraintTypesNoUseSiteDiagnostics)
+                        {
+                            LowerBoundInference(_fixedResults[param].Type, constraintType, ref useSiteInfo);
+                        }
+                    }
+                }
+            }
+
             return result;
         }
 
@@ -1127,6 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(ValidIndex(iParam));
             Debug.Assert(ValidIndex(jParam));
+            Debug.Assert(iParam != jParam);
 
             // SPEC: An unfixed type parameter Xi depends directly on an unfixed type
             // SPEC: parameter Xj if for some argument Ek with type Tk, Xj occurs
@@ -1151,6 +1206,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
             }
+
+            // SPEC EXTENSION (type parameter inference from constraints):
+            // SPEC: Xi depends directly on Xj if Xi occurs in a constraint for Xj.
+            // This lets the type inferred for Xj contribute to the inference of the
+            // type parameters mentioned in Xj's constraints, by ensuring Xj is fixed first.
+            if (IsFeatureTypeParameterInferenceFromConstraintsEnabled && DependsDirectlyOnThroughConstraints(iParam, jParam))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private readonly bool DependsDirectlyOnThroughConstraints(int iParam, int jParam)
+        {
+            Debug.Assert(iParam != jParam);
+
+            if (_methodTypeParameters[jParam].ConstraintTypesNoUseSiteDiagnostics is { Length: not 0 } constraintTypes)
+            {
+                TypeParameterSymbol possiblyDependent = _methodTypeParameters[iParam];
+
+                foreach (var constraintType in constraintTypes)
+                {
+                    if (constraintType.Type.ContainsTypeParameter(possiblyDependent))
+                    {
+                        return true;
+                    }
+                }
+            }
+
             return false;
         }
 
@@ -1200,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
                 {
-                    if (DependsDirectlyOn(iParam, jParam))
+                    if (iParam != jParam && DependsDirectlyOn(iParam, jParam))
                     {
                         _dependencies[iParam, jParam] = Dependency.Direct;
                     }
@@ -1213,6 +1298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool DependsOn(int iParam, int jParam)
         {
             Debug.Assert(_dependencies != null);
+            Debug.Assert(iParam != jParam);
 
             // SPEC: Xj depends on Xi if Xj depends directly on Xi, or if Xi depends
             // SPEC: directly on Xk and Xk depends on Xj. Thus "depends on" is the
@@ -1234,6 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_dependencies != null);
             Debug.Assert(ValidIndex(iParam));
             Debug.Assert(ValidIndex(jParam));
+            Debug.Assert(iParam != jParam);
 
             // Can we find Xk such that Xi depends on Xk and Xk depends on Xj?
             // If so, then Xi depends indirectly on Xj.  (Note that there is
@@ -1245,10 +1332,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int kParam = 0; kParam < _methodTypeParameters.Length; ++kParam)
             {
-                if (((_dependencies[iParam, kParam]) & Dependency.DependsMask) != 0 &&
-                    ((_dependencies[kParam, jParam]) & Dependency.DependsMask) != 0)
+                if (((_dependencies[iParam, kParam]) & Dependency.DependsMask) != 0)
                 {
-                    return true;
+                    Debug.Assert(iParam != kParam);
+                    if (((_dependencies[kParam, jParam]) & Dependency.DependsMask) != 0)
+                    {
+                        Debug.Assert(kParam != jParam);
+                        return true;
+                    }
                 }
             }
             return false;
@@ -1273,7 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
                 {
-                    if (_dependencies[iParam, jParam] == Dependency.Unknown)
+                    if (iParam != jParam && _dependencies[iParam, jParam] == Dependency.Unknown)
                     {
                         if (DependsTransitivelyOn(iParam, jParam))
                         {
@@ -1310,6 +1401,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (_dependencies[iParam, jParam] == Dependency.Indirect)
                     {
+                        Debug.Assert(iParam != jParam);
                         _dependencies[iParam, jParam] = Dependency.Unknown;
                     }
                 }
@@ -1339,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ValidIndex(iParam));
             for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
             {
-                if (DependsOn(iParam, jParam))
+                if (iParam != jParam && DependsOn(iParam, jParam))
                 {
                     return true;
                 }
@@ -1352,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ValidIndex(iParam));
             for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
             {
-                if (DependsOn(jParam, iParam))
+                if (iParam != jParam && DependsOn(jParam, iParam))
                 {
                     return true;
                 }
@@ -1733,6 +1825,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Note: when Compilation is null, we assume latest LangVersion.
                 return _compilation?.IsFeatureEnabled(MessageID.IDS_FeatureFirstClassSpan) != false;
+            }
+        }
+
+        private readonly bool IsFeatureTypeParameterInferenceFromConstraintsEnabled
+        {
+            get
+            {
+                // Note: when Compilation is null, we assume latest LangVersion.
+                return _compilation?.IsFeatureEnabled(MessageID.IDS_FeatureTypeParameterInferenceFromConstraints) != false;
             }
         }
 
@@ -2852,6 +2953,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 #endif
 
+            if (_conversions.IncludeNullability && _nullableAnnotationLowerBounds[iParam].IsAnnotated())
+            {
+                best.Type = best.Type.AsAnnotated();
+            }
+
             _fixedResults[iParam] = best;
             UpdateDependenciesAfterFix(iParam);
             return true;
@@ -3310,7 +3416,48 @@ OuterBreak:
             {
                 return false;
             }
+
             LowerBoundInference(_extensions.GetTypeWithAnnotations(argument), dest, ref useSiteInfo);
+
+            _dependencies = new Dependency[_methodTypeParameters.Length, _methodTypeParameters.Length];
+
+            if (IsFeatureTypeParameterInferenceFromConstraintsEnabled)
+            {
+                for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
+                {
+                    for (int jParam = 0; jParam < _methodTypeParameters.Length; ++jParam)
+                    {
+                        if (iParam != jParam && DependsDirectlyOnThroughConstraints(iParam, jParam))
+                        {
+                            _dependencies[iParam, jParam] = Dependency.Direct;
+                        }
+                    }
+                }
+
+                DeduceAllDependencies();
+            }
+            else
+            {
+                // No need to deduce transitive dependencies since none are established.
+                SetUnknownsToNotDependent();
+            }
+
+            while (true)
+            {
+                var res = DoSecondPhaseFixingSteps(ref useSiteInfo);
+                Debug.Assert(res != InferenceResult.NoProgress);
+                Debug.Assert(res != InferenceResult.Success);
+                if (res == InferenceResult.InferenceFailed)
+                {
+                    break;
+                }
+                if (AllFixed())
+                {
+                    break;
+                }
+                // Otherwise, we made some progress last time; do it again.
+            }
+
             // Now check to see that every type parameter used by the first
             // formal parameter type was successfully inferred.
             for (int iParam = 0; iParam < _methodTypeParameters.Length; ++iParam)
@@ -3320,8 +3467,8 @@ OuterBreak:
                 {
                     continue;
                 }
-                Debug.Assert(IsUnfixed(iParam));
-                if (!HasBound(iParam) || !Fix(iParam, ref useSiteInfo))
+
+                if (IsUnfixed(iParam))
                 {
                     return false;
                 }

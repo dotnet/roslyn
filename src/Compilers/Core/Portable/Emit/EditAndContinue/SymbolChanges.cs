@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// A set of symbols (<see cref="IMethodSymbol"/>, <see cref="IPropertySymbol"/>, <see cref="IEventSymbol"/>),
-        /// from the old compilation, that have been deleted from the new compilation
-        /// keyed by the containing type from the new compilation.
+        /// from the baseline compilation, that have been deleted from the current compilation
+        /// keyed by the containing type from the current compilation.
         /// Populated based on semantic edits with <see cref="SemanticEditKind.Delete"/>.
         /// </summary>
         public readonly IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> DeletedMembers;
@@ -391,11 +391,12 @@ namespace Microsoft.CodeAnalysis.Emit
                             lazyDeletedMembersBuilder.Add(newContainingType, deletedMembersPerType);
                         }
 
-                        var oldSymbol = GetRequiredInternalSymbol(edit.OldSymbol);
+                        // Map the symbol to the baseline compilation, so that it can be used to look up handles and definitions in the baseline.
+                        var baselineSymbol = _definitionMap.MapToBaselineSource(GetRequiredInternalSymbol(edit.OldSymbol));
 
                         // edited symbols must be unique:
-                        Debug.Assert(!deletedMembersPerType.Contains(oldSymbol));
-                        deletedMembersPerType.Add(oldSymbol);
+                        Debug.Assert(!deletedMembersPerType.Contains(baselineSymbol));
+                        deletedMembersPerType.Add(baselineSymbol);
 
                         // We need to make sure we track the containing type of the member being
                         // deleted, from the new compilation, in case the deletion is the only change.
@@ -429,13 +430,16 @@ namespace Microsoft.CodeAnalysis.Emit
                     {
                         var oldMethod = (IMethodSymbolInternal)GetRequiredInternalSymbol(edit.OldSymbol);
 
+                        // Map the symbol to the baseline compilation, so that it can be used to look up handles and definitions in the baseline.
+                        var mappedOldMethod = (IMethodSymbolInternal)_definitionMap.MapToBaselineSource(oldMethod.PartialDefinitionPart ?? oldMethod);
+
                         if (!updatedMethodsBuilder.TryGetValue(newMember.ContainingType, out var updatedMethodsPerType))
                         {
                             updatedMethodsPerType = ArrayBuilder<(IMethodSymbolInternal, IMethodSymbolInternal)>.GetInstance();
                             updatedMethodsBuilder.Add(newMember.ContainingType, updatedMethodsPerType);
                         }
 
-                        updatedMethodsPerType.Add((oldMethod.PartialDefinitionPart ?? oldMethod, (IMethodSymbolInternal)newMember));
+                        updatedMethodsPerType.Add((mappedOldMethod, (IMethodSymbolInternal)newMember));
                     }
                 }
                 else if (newMember.Kind == SymbolKind.Property)

@@ -45,6 +45,66 @@ public sealed class UnsupportedProjectDataMarkerTests : IDisposable
 	}
 
 	[Fact]
+	public void Write_UnchangedContent_PreservesTimestamp()
+	{
+		string projectFile = this.WriteProject("App.csproj");
+		string markerPath = UnsupportedProjectDataMarker.Write(projectFile, "CannotWriteProjectData");
+		File.SetLastWriteTimeUtc(markerPath, new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+		DateTime timestamp = File.GetLastWriteTimeUtc(markerPath);
+
+		Assert.Equal(markerPath, UnsupportedProjectDataMarker.Write(projectFile, "CannotWriteProjectData"));
+
+		Assert.Equal(timestamp, File.GetLastWriteTimeUtc(markerPath));
+		Assert.True(UnsupportedProjectDataMarker.TryReadValid(projectFile, TestContext.Current.CancellationToken, out _));
+	}
+
+	[Theory]
+	[InlineData("reason")]
+	[InlineData("project")]
+	[InlineData("ancestor")]
+	public void Write_ChangedContent_ReplacesMarker(string changedInput)
+	{
+		string projectFile = this.WriteProject("App.csproj");
+		string ancestorInput = Path.Combine(this.workDir, "Directory.Build.props");
+		File.WriteAllText(ancestorInput, "<Project />");
+		string markerPath = UnsupportedProjectDataMarker.Write(projectFile, "CannotWriteProjectData");
+		File.SetLastWriteTimeUtc(markerPath, new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc));
+		DateTime timestamp = File.GetLastWriteTimeUtc(markerPath);
+		string reason = "CannotWriteProjectData";
+		if (changedInput == "reason")
+		{
+			reason = "LanguageNotCSharp";
+		}
+		else
+		{
+			string input = changedInput == "project" ? projectFile : ancestorInput;
+			DateTime inputTimestamp = File.GetLastWriteTimeUtc(input);
+			string content = File.ReadAllText(input);
+			File.WriteAllText(input, content.Replace("Project", "project", StringComparison.Ordinal));
+			File.SetLastWriteTimeUtc(input, inputTimestamp);
+		}
+
+		UnsupportedProjectDataMarker.Write(projectFile, reason);
+
+		Assert.NotEqual(timestamp, File.GetLastWriteTimeUtc(markerPath));
+		Assert.True(UnsupportedProjectDataMarker.TryReadValid(projectFile, TestContext.Current.CancellationToken, out UnsupportedProjectDataMarkerData marker));
+		Assert.Equal(reason, marker.Reason);
+	}
+
+	[Fact]
+	public void Write_CorruptMarker_ReplacesMarker()
+	{
+		string projectFile = this.WriteProject("App.csproj");
+		string markerPath = UnsupportedProjectDataMarker.Write(projectFile, "CannotWriteProjectData");
+		File.WriteAllBytes(markerPath, [0xff, 0xfe, 0xff]);
+
+		UnsupportedProjectDataMarker.Write(projectFile, "LanguageNotCSharp");
+
+		Assert.True(UnsupportedProjectDataMarker.TryReadValid(projectFile, TestContext.Current.CancellationToken, out UnsupportedProjectDataMarkerData marker));
+		Assert.Equal("LanguageNotCSharp", marker.Reason);
+	}
+
+	[Fact]
 	public void TryReadValid_ReturnsFalseWhenProjectChanges()
 	{
 		string projectFile = this.WriteProject("App.csproj");
