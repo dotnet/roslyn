@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -128,30 +129,30 @@ internal static class ExtractTypeHelpers
     private static string GetUniqueFileName(Solution solution, ProjectId projectId, string hintFilePath, string fileName)
     {
         var directoryName = PathUtilities.GetDirectoryName(hintFilePath);
-        var candidateFileName = fileName;
 
-        if (!IsFilePathInUse(solution, projectId, PathUtilities.CombinePaths(directoryName, candidateFileName)))
+        // Collect the file names already used in this folder once. The new name
+        // just has to avoid being one of those names.
+        var fileNamesInFolder = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var project = solution.GetProject(projectId);
+        if (project is not null)
         {
-            return candidateFileName;
+            foreach (var document in project.Documents)
+            {
+                var filePath = document.FilePath;
+                if (filePath is not null &&
+                    string.Equals(PathUtilities.GetDirectoryName(filePath), directoryName, StringComparison.OrdinalIgnoreCase))
+                {
+                    fileNamesInFolder.Add(PathUtilities.GetFileName(filePath));
+                }
+            }
         }
 
         var extensionIndex = fileName.LastIndexOf('.');
         var nameWithoutExtension = extensionIndex >= 0 ? fileName[..extensionIndex] : fileName;
         var extension = extensionIndex >= 0 ? fileName[extensionIndex..] : string.Empty;
 
-        var suffix = 1;
-        do
-        {
-            candidateFileName = $"{nameWithoutExtension}{suffix}{extension}";
-            suffix++;
-        }
-        while (IsFilePathInUse(solution, projectId, PathUtilities.CombinePaths(directoryName, candidateFileName)));
-
-        return candidateFileName;
+        return NameGenerator.GenerateUniqueName(nameWithoutExtension, extension, candidate => !fileNamesInFolder.Contains(candidate));
     }
-
-    private static bool IsFilePathInUse(Solution solution, ProjectId projectId, string filePath)
-        => solution.GetDocumentIdsWithFilePath(filePath).Any(id => id.ProjectId == projectId);
 
     public static string GetTypeParameterSuffix(
         Document document, SyntaxFormattingOptions formattingOptions, INamedTypeSymbol type, ImmutableArray<ISymbol> extractableMembers, CancellationToken cancellationToken)
