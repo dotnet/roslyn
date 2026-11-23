@@ -305,6 +305,36 @@ public sealed class RemoveUnnecessaryNullableWarningSuppressionsTests
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
+    public Task KeepWhenNeeded_FieldKeywordInGetter_OneOfSeveralConstructorsInOtherPartialDeclarationDoesNotInitialize()
+        => new VerifyCS.Test
+        {
+            TestState =
+            {
+                Sources =
+                {
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public string Name { get => field!; set => field = value; }
+                    }
+                    """,
+                    """
+                    #nullable enable
+
+                    partial class C
+                    {
+                        public C() { Name = ""; }
+                        public C(int i) { }
+                    }
+                    """,
+                },
+            },
+            LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86573")]
     public Task RemoveWhenNotNeeded_FieldKeywordInGetter_ConstructorInOtherPartialDeclarationInitializes()
         => new VerifyCS.Test
         {

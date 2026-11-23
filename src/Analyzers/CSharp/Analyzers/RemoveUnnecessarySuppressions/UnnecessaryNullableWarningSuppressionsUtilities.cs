@@ -96,6 +96,7 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
         using var _2 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var inFieldsOrProperties);
         using var _3 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var remainder);
         using var _4 = ArrayBuilder<(PostfixUnaryExpressionSyntax suppression, SyntaxNode rewrittenAncestor)>.GetInstance(out var inFieldBackedGetters);
+        using var _5 = PooledDictionary<SyntaxTree, SemanticModel>.GetInstance(out var semanticModels);
 
         foreach (var (suppression, annotation) in nodeToAnnotation)
         {
@@ -187,22 +188,33 @@ internal static class UnnecessaryNullableWarningSuppressionsUtilities
                     d.Location.SourceSpan.IntersectsWith(getter.Span) || IsAboutProperty(d)));
 
                 // Constructors in other declarations of a partial type report their warnings there, so check those too.
-                foreach (var constructor in type.Constructors)
+                // Constructors in this declaration were already checked by the call above.
+                var otherConstructorReferences = type.Constructors
+                    .SelectMany(c => c.DeclaringSyntaxReferences)
+                    .Where(r => r.SyntaxTree != updatedTree || !typeDeclaration.Span.Contains(r.Span));
+                foreach (var referencesInTree in otherConstructorReferences.GroupBy(r => r.SyntaxTree))
                 {
-                    foreach (var reference in constructor.DeclaringSyntaxReferences)
-                    {
-                        if (reference.SyntaxTree == updatedTree && typeDeclaration.Span.Contains(reference.Span))
-                            continue;
-
-                        var constructorSemanticModel = reference.SyntaxTree == updatedTree
-                            ? updatedSemanticModel
-                            : updatedCompilation.GetSemanticModel(reference.SyntaxTree);
-                        diagnostics.AddRange(constructorSemanticModel.GetDiagnostics(reference.Span, cancellationToken).Where(IsAboutProperty));
-                    }
+                    var treeSemanticModel = GetSemanticModel(referencesInTree.Key);
+                    foreach (var reference in referencesInTree)
+                        diagnostics.AddRange(treeSemanticModel.GetDiagnostics(reference.Span, cancellationToken).Where(IsAboutProperty));
                 }
 
                 AddNodesIfNoErrorsOrWarnings(getterGroup, diagnostics);
             }
+        }
+
+        SemanticModel GetSemanticModel(SyntaxTree tree)
+        {
+            if (tree == updatedTree)
+                return updatedSemanticModel;
+
+            if (!semanticModels.TryGetValue(tree, out var treeSemanticModel))
+            {
+                treeSemanticModel = updatedCompilation.GetSemanticModel(tree);
+                semanticModels.Add(tree, treeSemanticModel);
+            }
+
+            return treeSemanticModel;
         }
 
         void CheckRemainder()
