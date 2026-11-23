@@ -1708,8 +1708,7 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
-            bool appendDefaultHeader = true,
-            bool tolerateErrors = false) => CreateCompilationWithILAndMscorlib40(source, ilSource, targetFramework, references, options, parseOptions, appendDefaultHeader, tolerateErrors);
+            bool appendDefaultHeader = true) => CreateCompilationWithILAndMscorlib40(source, ilSource, targetFramework, references, options, parseOptions, appendDefaultHeader);
 
         public static CSharpCompilation CreateCompilationWithILAndMscorlib40(
             CSharpTestSource source,
@@ -1718,10 +1717,9 @@ class ExpressionPrinter : System.Linq.Expressions.ExpressionVisitor
             IEnumerable<MetadataReference>? references = null,
             CSharpCompilationOptions? options = null,
             CSharpParseOptions? parseOptions = null,
-            bool appendDefaultHeader = true,
-            bool tolerateErrors = false)
+            bool appendDefaultHeader = true)
         {
-            MetadataReference ilReference = CompileIL(ilSource, appendDefaultHeader, tolerateErrors: tolerateErrors);
+            MetadataReference ilReference = CompileIL(ilSource, appendDefaultHeader);
             var allReferences = TargetFrameworkUtil.GetReferences(targetFramework, references).Add(ilReference);
             return CreateEmptyCompilation(source, allReferences, options, parseOptions);
         }

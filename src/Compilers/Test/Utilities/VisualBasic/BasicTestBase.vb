@@ -378,8 +378,7 @@ End Namespace
     Friend Function CompileWithCustomILSource(source As XElement, ilSource As String,
                                               Optional options As VisualBasicCompilationOptions = Nothing,
                                               Optional compilationVerifier As Action(Of VisualBasicCompilation) = Nothing,
-                                              Optional expectedOutput As String = Nothing,
-                                              Optional tolerateErrors As Boolean = False) As CompilationVerifier
+                                              Optional expectedOutput As String = Nothing) As CompilationVerifier
         If expectedOutput IsNot Nothing Then
             options = options.WithOutputKind(OutputKind.ConsoleApplication)
         End If
@@ -388,7 +387,7 @@ End Namespace
             Return CompileAndVerify(source)
         End If
 
-        Dim reference = CompilationUtils.CreateReferenceFromIlCode(ilSource, tolerateErrors:=tolerateErrors)
+        Dim reference = CompilationUtils.CreateReferenceFromIlCode(ilSource)
 
         Dim compilation = CreateEmptyCompilationWithReferences(source, {MscorlibRef, MsvbRef, reference}, options)
 

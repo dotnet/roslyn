@@ -215,22 +215,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool includePdb,
             out ImmutableArray<byte> assemblyBytes,
             out ImmutableArray<byte> pdbBytes,
-            bool autoInherit = true,
-            bool tolerateErrors = false)
+            bool autoInherit = true)
         {
-            (assemblyBytes, pdbBytes) = IlasmUtilities.Assemble(ilSource, appendDefaultHeader, includePdb, autoInherit, tolerateErrors);
+            (assemblyBytes, pdbBytes) = IlasmUtilities.Assemble(ilSource, appendDefaultHeader, includePdb, autoInherit);
             Assert.Equal(includePdb, !pdbBytes.IsDefault);
         }
 
-        internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false, bool autoInherit = true, bool tolerateErrors = false)
+        internal static MetadataReference CompileIL(string ilSource, bool prependDefaultHeader = true, bool embedInteropTypes = false, bool autoInherit = true)
         {
-            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes, autoInherit: autoInherit, tolerateErrors: tolerateErrors);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes, autoInherit: autoInherit);
             return AssemblyMetadata.CreateFromImage(assemblyBytes).GetReference(embedInteropTypes: embedInteropTypes);
         }
 
-        internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true, bool tolerateErrors = false)
+        internal static MetadataReference GetILModuleReference(string ilSource, bool prependDefaultHeader = true)
         {
-            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes, tolerateErrors: tolerateErrors);
+            EmitILToArray(ilSource, prependDefaultHeader, includePdb: false, assemblyBytes: out var assemblyBytes, pdbBytes: out var pdbBytes);
             return ModuleMetadata.CreateFromImage(assemblyBytes).GetReference();
         }
 

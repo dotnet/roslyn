@@ -20610,7 +20610,7 @@ internal abstract event System.EventHandler E;";
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }
@@ -20630,7 +20630,7 @@ internal abstract event System.EventHandler E;";
             IL_0007:  ret
         }
 }";
-            var ilReference = CompileIL(forwardingIL, prependDefaultHeader: false, tolerateErrors: true);
+            var ilReference = CompileIL(forwardingIL, prependDefaultHeader: false);
 
             var code = @"
 using TestSpace;
@@ -20683,11 +20683,11 @@ namespace ForwardingNamespace
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false, tolerateErrors: true);
+            var compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
                 // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -20725,32 +20725,32 @@ namespace ForwardingNamespace
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination3
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination4
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination5
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination1
 }
-.class extern forwarder Destination.TestClass
+{|ILA0065:.class|} extern forwarder Destination.TestClass
 {
 	.assembly extern Destination2
 }";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false, tolerateErrors: true);
+            var compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
                 // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -20815,12 +20815,12 @@ namespace A
 {
 	.assembly extern D1
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern D2
 }";
 
-            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false, tolerateErrors: true);
+            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
                 // (10,13): error CS8329: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -20883,12 +20883,12 @@ namespace A
 {
 	.assembly extern D
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern D
 }";
 
-            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false, tolerateErrors: true);
+            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2 }).VerifyDiagnostics(
                 // (10,38): error CS0012: The type 'ClassC' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -20932,12 +20932,12 @@ namespace C
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }";
 
-            var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false, tolerateErrors: true);
+            var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateCompilation(string.Empty, references: new MetadataReference[] { ilModule }, assemblyName: "Forwarder").VerifyDiagnostics(
                 // error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
@@ -20952,12 +20952,12 @@ namespace C
 {
 	.assembly extern D
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D
 }";
 
-            var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false, tolerateErrors: true);
+            var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateCompilation(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
                 // error CS0012: The type 'TestType' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("Testspace.TestType", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
@@ -20986,12 +20986,12 @@ namespace Testspace
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }";
 
-            var ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader: false, tolerateErrors: true);
+            var ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader: false);
             var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { ilModuleReference },
@@ -21035,12 +21035,12 @@ namespace UserSpace
 {
 	.assembly extern D1
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D2
 }";
 
-            var module1Reference = GetILModuleReference(module1IL, prependDefaultHeader: false, tolerateErrors: true);
+            var module1Reference = GetILModuleReference(module1IL, prependDefaultHeader: false);
 
             var module2IL = @"
 .module module12L.dll
@@ -21050,12 +21050,12 @@ namespace UserSpace
 {
 	.assembly extern D3
 }
-.class extern forwarder Testspace.TestType
+{|ILA0065:.class|} extern forwarder Testspace.TestType
 {
 	.assembly extern D4
 }";
 
-            var module2Reference = GetILModuleReference(module2IL, prependDefaultHeader: false, tolerateErrors: true);
+            var module2Reference = GetILModuleReference(module2IL, prependDefaultHeader: false);
 
             var forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
@@ -21127,12 +21127,12 @@ namespace B
 {
 	.assembly extern D
 }
-.class extern forwarder C.ClassC
+{|ILA0065:.class|} extern forwarder C.ClassC
 {
 	.assembly extern E
 }";
 
-            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false, tolerateErrors: true);
+            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             var codeD = @"
 .assembly D { }

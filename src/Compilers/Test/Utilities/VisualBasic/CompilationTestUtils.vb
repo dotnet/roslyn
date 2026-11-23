@@ -379,8 +379,7 @@ Friend Module CompilationUtils
                                                         Optional parseOptions As VisualBasicParseOptions = Nothing,
                                                         Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing,
                                                         <Out> Optional ByRef ilReference As MetadataReference = Nothing,
-                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing,
-                                                        Optional tolerateErrors As Boolean = False
+                                                        <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing
     ) As VisualBasicCompilation
         Dim references = If(additionalReferences IsNot Nothing, New List(Of MetadataReference)(additionalReferences), New List(Of MetadataReference))
         If includeVbRuntime Then
@@ -394,15 +393,15 @@ Friend Module CompilationUtils
             Return CreateCompilationWithMscorlib40AndReferences(sources, references, options, parseOptions)
         End If
 
-        ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage, tolerateErrors)
+        ilReference = CreateReferenceFromIlCode(ilSource, appendDefaultHeader, ilImage)
         references.Add(ilReference)
 
         Return CreateCompilationWithMscorlib40AndReferences(sources, references, options, parseOptions)
     End Function
 
-    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing, Optional tolerateErrors As Boolean = False) As MetadataReference
+    Public Function CreateReferenceFromIlCode(ilSource As String, Optional appendDefaultHeader As Boolean = True, <Out> Optional ByRef ilImage As ImmutableArray(Of Byte) = Nothing) As MetadataReference
         Dim pdbImage As ImmutableArray(Of Byte) = Nothing
-        CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader, includePdb:=False, assemblyBytes:=ilImage, pdbBytes:=pdbImage, tolerateErrors:=tolerateErrors)
+        CommonTestBase.EmitILToArray(ilSource, appendDefaultHeader, includePdb:=False, assemblyBytes:=ilImage, pdbBytes:=pdbImage)
         Return MetadataReference.CreateFromImage(ilImage)
     End Function
 
