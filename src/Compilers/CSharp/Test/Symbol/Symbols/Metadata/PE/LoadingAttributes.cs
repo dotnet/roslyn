@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
     public class LoadingAttributes : CSharpTestBase
     {
+        // ILAssembler preserves the order of duplicate custom attributes; Roslyn uses the last match.
+        private const decimal ExpectedDecimal = -8m;
+
         [Fact]
         public void TestAssemblyAttributes()
         {
@@ -1423,9 +1426,6 @@ class Class2 : Class1
 {
 }";
 
-            // ILAssembler preserves the order of duplicate custom attributes; Roslyn uses the last match.
-            const decimal expectedDecimal = -8m;
-
             CompileAndVerify(CreateCompilationWithILAndMscorlib40(csSource, ilSource), symbolValidator: module =>
             {
                 var class1 = module.GlobalNamespace.GetTypeMember("Class2").BaseType();
@@ -1434,7 +1434,7 @@ class Class2 : Class1
                 var field1 = class1.GetField("d1");
 
                 Assert.Empty(field1.GetAttributes());
-                Assert.Equal(expectedDecimal, field1.ConstantValue);
+                Assert.Equal(ExpectedDecimal, field1.ConstantValue);
 
                 var field2 = class1.GetField("d2");
 
@@ -1445,7 +1445,7 @@ class Class2 : Class1
                 Assert.Equal(2, parameters.Count());
 
                 Assert.Empty(parameters.First().GetAttributes());
-                Assert.Equal(expectedDecimal, parameters.First().ExplicitDefaultValue);
+                Assert.Equal(ExpectedDecimal, parameters.First().ExplicitDefaultValue);
 
                 Assert.Empty(parameters.Last().GetAttributes());
                 Assert.Equal(parameters.Last().ExplicitDefaultValue, new DateTime(2013, 1, 1));
@@ -1460,7 +1460,7 @@ class Class2 : Class1
 
                 var field1 = class1.GetField("d1");
 
-                Assert.Equal(expectedDecimal, field1.ConstantValue);
+                Assert.Equal(ExpectedDecimal, field1.ConstantValue);
                 Assert.Empty(field1.GetAttributes());
 
                 var field2 = class1.GetField("d2");
@@ -1471,7 +1471,7 @@ class Class2 : Class1
                 var parameters = class1.GetMethod("M1").GetParameters();
                 Assert.Equal(2, parameters.Count());
 
-                Assert.Equal(expectedDecimal, parameters.First().ExplicitDefaultValue);
+                Assert.Equal(ExpectedDecimal, parameters.First().ExplicitDefaultValue);
                 Assert.Empty(parameters.First().GetAttributes());
 
                 Assert.Equal(parameters.Last().ExplicitDefaultValue, new DateTime(2013, 1, 1));
