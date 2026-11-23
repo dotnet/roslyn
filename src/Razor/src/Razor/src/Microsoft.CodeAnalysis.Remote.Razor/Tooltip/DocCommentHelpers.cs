@@ -3,8 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Xml;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 
@@ -221,5 +226,64 @@ internal static class DocCommentHelpers
         }
 
         return successfulMatches;
+    }
+
+    public static ImmutableArray<TaggedText> FormatSummary(
+        string summary,
+        string typeName,
+        string? propertyName,
+        DocCommentFormattingContext formattingContext,
+        CancellationToken cancellationToken)
+    {
+        // Descriptors can refer to framework types that aren't part of the generated compilation.
+        // Roslyn can still format the XML; ObjectType only means type-parameter references stay unresolved.
+        var symbol = formattingContext.ResolveSymbol(typeName, propertyName) ?? formattingContext.SemanticModel.Compilation.ObjectType;
+
+        try
+        {
+            return formattingContext.FormattingService.Format(
+                summary,
+                symbol,
+                formattingContext.SemanticModel,
+                formattingContext.Position,
+                ISymbolExtensions2.CrefFormat,
+                typeDisplayInfo: default,
+                cancellationToken);
+        }
+        catch (XmlException)
+        {
+            // TryExtractSummary passes through documentation that doesn't look like XML, and that text could still
+            // contain things like a stray '<' or '&'. Better to show it as-is than fail the whole tooltip.
+            return [new TaggedText(TextTags.Text, summary.Trim())];
+        }
+    }
+
+    public static void AddClassifiedSummary(List<ClassifiedTextRun> runs, ImmutableArray<TaggedText> parts)
+    {
+        foreach (var part in parts)
+        {
+            var style = ClassifiedTextRunStyle.Plain;
+            if (part.Style.HasFlag(TaggedTextStyle.Code))
+            {
+                style |= ClassifiedTextRunStyle.UseClassificationFont;
+            }
+
+            if (part.Style.HasFlag(TaggedTextStyle.Strong))
+            {
+                style |= ClassifiedTextRunStyle.Bold;
+            }
+
+            if (part.Style.HasFlag(TaggedTextStyle.Emphasis))
+            {
+                style |= ClassifiedTextRunStyle.Italic;
+            }
+
+            if (part.Style.HasFlag(TaggedTextStyle.Underline))
+            {
+                style |= ClassifiedTextRunStyle.Underline;
+            }
+
+            runs.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, style));
+        }
     }
 }
