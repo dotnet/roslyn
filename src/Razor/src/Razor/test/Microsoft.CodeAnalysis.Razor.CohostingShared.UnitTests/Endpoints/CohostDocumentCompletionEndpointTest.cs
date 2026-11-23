@@ -1673,6 +1673,58 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 #endif
     }
 
+    // The @bind docs have <code> blocks in their summary, so this checks they're formatted rather than shown as raw XML
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85487")]
+    public async Task DirectiveAttributeCompletion_FormatsDocumentation()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                This is a Razor document.
+
+                <div @$$></div>
+
+                The end.
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["@bind-..."],
+            itemToResolve: "@bind-...",
+#if VSCODE
+            htmlItemLabels: ["style", "dir"],
+            expectedResolvedItemDescription: """
+                Dictionary<string, object> Bind.Bind
+
+                Binds the provided expression to an attribute and a change event, based on the naming of the bind attribute. For example:
+
+                @bind-value="..."
+
+                and
+
+                @bind-value:event="onchange"
+
+                will assign the current value of the expression to the 'value' attribute, and assign a delegate that attempts to set the value to the 'onchange' attribute.
+                """);
+#else
+            expectedResolvedItemDescription: """
+                Dictionary<string, object> Microsoft.AspNetCore.Components.Bind.Bind
+                Binds the provided expression to an attribute and a change event, based on the naming of the bind attribute. For example:
+
+                @bind-value="..."
+
+                and
+
+                @bind-value:event="onchange"
+
+                will assign the current value of the expression to the 'value' attribute, and assign a delegate that attempts to set the value to the 'onchange' attribute.
+                """);
+#endif
+    }
+
     // Tests that directive attribute parameter positions only show bind modifiers, not HTML attributes
     [Fact]
     public async Task HtmlAndDirectiveAttributeParameterNamesCompletion()
@@ -1877,6 +1929,113 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
 #else
             expectedResolvedItemDescription: "string Microsoft.AspNetCore.Components.Forms.EditForm.FormName");
 #endif
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85487")]
+    public async Task ComponentAttributeCompletion_FormatsDocumentation()
+    {
+        // Request standard LSP documentation in both hosts so this checks the formatter, not VS's classified signature.
+        UpdateClientLSPInitializationOptions(options =>
+        {
+            options.ClientCapabilities.SupportsVisualStudioExtensions = false;
+            options.ClientCapabilities.TextDocument!.Completion!.CompletionItem!.DocumentationFormat = [MarkupKind.PlainText];
+            return options;
+        });
+
+        await VerifyCompletionListAsync(
+            input: """
+                @using Test
+
+                <DocComponent $$ />
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["Value"],
+            htmlItemLabels: [],
+            itemToResolve: "Value",
+            expectedResolvedItemDescription: """
+                int DocComponent.Value
+
+                Use int for whole numbers.
+
+                Values must be positive.
+                """,
+            expectedResolvedItemDocumentationKind: MarkupKind.PlainText,
+            additionalFiles:
+            [
+                ("DocComponent.cs", """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace Test;
+
+                    public class DocComponent : ComponentBase
+                    {
+                        /// <summary>
+                        /// Use <see cref="System.Int32"/> for <c>whole numbers</c>.
+                        /// <para>Values must be positive.</para>
+                        /// </summary>
+                        [Parameter]
+                        public int Value { get; set; }
+                    }
+                    """)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85487")]
+    public async Task ComponentAttributeCompletion_FormatsDocumentation_Markdown()
+    {
+        UpdateClientLSPInitializationOptions(options =>
+        {
+            options.ClientCapabilities.SupportsVisualStudioExtensions = false;
+            options.ClientCapabilities.TextDocument!.Completion!.CompletionItem!.DocumentationFormat = [MarkupKind.Markdown];
+            return options;
+        });
+
+        await VerifyCompletionListAsync(
+            input: """
+                @using Test
+
+                <DocComponent $$ />
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["Value"],
+            htmlItemLabels: [],
+            itemToResolve: "Value",
+            expectedResolvedItemDescription: """
+                **int** DocComponent.**Value**
+
+                Use&nbsp;int&nbsp;for&nbsp;`whole numbers`\.  
+                  
+                Values must be positive\.
+                """,
+            expectedResolvedItemDocumentationKind: MarkupKind.Markdown,
+            additionalFiles:
+            [
+                ("DocComponent.cs", """
+                    using Microsoft.AspNetCore.Components;
+
+                    namespace Test;
+
+                    public class DocComponent : ComponentBase
+                    {
+                        /// <summary>
+                        /// Use <see cref="System.Int32"/> for <c>whole numbers</c>.
+                        /// <para>Values must be positive.</para>
+                        /// </summary>
+                        [Parameter]
+                        public int Value { get; set; }
+                    }
+                    """)
+            ]);
     }
 
     [Fact]
@@ -2463,7 +2622,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         RazorFileKind? fileKind = null,
         TimeSpan? retryTimeout = null,
         (string fileName, string contents)[]? additionalFiles = null,
-        Action<RazorProjectBuilder>? projectConfigure = null)
+        Action<RazorProjectBuilder>? projectConfigure = null,
+        MarkupKind? expectedResolvedItemDocumentationKind = null)
     {
         var document = CreateProjectAndRazorDocument(
             input.Text,
@@ -2599,7 +2759,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             Assert.NotNull(item);
             Assert.NotNull(expectedResolvedItemDescription);
 
-            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position);
+            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position, expectedResolvedItemDocumentationKind);
         }
 
         return result;
@@ -2653,7 +2813,8 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         VSInternalCompletionItem item,
         string? expected,
         string expectedResolvedItemDescription,
-        Position position)
+        Position position,
+        MarkupKind? expectedResolvedItemDocumentationKind = null)
     {
         // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
         item.Data = JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions);
@@ -2675,6 +2836,13 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 
         Assert.NotNull(result);
+
+        if (expectedResolvedItemDocumentationKind is not null)
+        {
+            Assert.Null(result.Description);
+            var documentation = Assert.IsType<MarkupContent>(result.Documentation?.Value);
+            Assert.Equal(expectedResolvedItemDocumentationKind, documentation.Kind);
+        }
 
         SourceText? changedText = null;
         if (result.TextEdit is { Value: TextEdit edit })
@@ -2746,8 +2914,9 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         {
             AssertEx.EqualOrDiff(expectedResolvedItemDescription, description);
         }
-        else if (result.Documentation is { Value: MarkupContent { Kind.Value: "plaintext" } content })
+        else if (result.Documentation is { Value: MarkupContent content })
         {
+            Assert.Equal(expectedResolvedItemDocumentationKind ?? MarkupKind.PlainText, content.Kind);
             AssertEx.EqualOrDiff(expectedResolvedItemDescription, content.Value);
         }
         else

@@ -15,7 +15,7 @@ internal static class HoverAssertions
         AssertEx.EqualOrDiff(expected.ToString(), markup.Value.TrimEnd('\r', '\n'));
     }
 
-    // Our VS Code test only produce plain text hover content, so these methods are complete overkill,
+    // Our VS Code tests normally produce plain text hover content, so these methods are complete overkill,
     // but they match the HoverAssertions in the Microsoft.VisualStudio.LanguageServices.Razor.Test project
     // for consistency.
 
