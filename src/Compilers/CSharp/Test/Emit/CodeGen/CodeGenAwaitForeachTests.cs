@@ -2317,6 +2317,60 @@ class C
         }
 
         [Fact]
+        public void TestWithArray()
+        {
+            string source = @"
+class C
+{
+    async System.Threading.Tasks.Task M(int[] collection)
+    {
+        await foreach (var i in collection)
+        {
+        }
+    }
+}";
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'int[]' because 'int[]' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach (var i in collection)
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "collection").WithArguments("int[]", "GetAsyncEnumerator").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
+        public void TestWithArrayAndExtensionGetAsyncEnumerator_NotUsed()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+public class C
+{
+    public static async Task Main()
+    {
+        await foreach (var i in new int[] { 7, 8, 9 })
+        {
+            Console.Write(i);
+        }
+    }
+    public sealed class Enumerator
+    {
+        public int Current { get; private set; }
+        public Task<bool> MoveNextAsync() => Task.FromResult(Current++ != 3);
+    }
+}
+public static class Extensions
+{
+    public static C.Enumerator GetAsyncEnumerator(this int[] self) => new C.Enumerator();
+}";
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (8,33): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'int[]' because 'int[]' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                //         await foreach (var i in new int[] { 7, 8, 9 })
+                Diagnostic(ErrorCode.ERR_AwaitForEachMissingMemberWrongAsync, "new int[] { 7, 8, 9 }").WithArguments("int[]", "GetAsyncEnumerator").WithLocation(8, 33)
+                );
+        }
+
+        [Fact]
         public void TestPatternBasedAsyncEnumerableWithRegularForeach()
         {
             string source = @"
