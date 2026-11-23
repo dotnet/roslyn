@@ -505,6 +505,7 @@ internal sealed class RemoteCompletionService(in ServiceArgs args) : RazorDocume
         var componentAvailabilityService = new ComponentAvailabilityService(snapshot.ProjectSnapshot.SolutionSnapshot);
 
         var result = await RazorCompletionItemResolver.ResolveAsync(
+            snapshot,
             request,
             _clientCapabilitiesService.ClientCapabilities,
             componentAvailabilityService,

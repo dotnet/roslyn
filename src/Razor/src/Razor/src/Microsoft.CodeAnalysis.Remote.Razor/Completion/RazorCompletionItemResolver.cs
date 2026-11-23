@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 using Roslyn.Text.Adornments;
 
@@ -14,7 +15,13 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 internal static class RazorCompletionItemResolver
 {
-    public static async Task<VSInternalCompletionItem?> ResolveAsync(VSInternalCompletionItem completionItem, VSInternalClientCapabilities? clientCapabilities, IComponentAvailabilityService componentAvailabilityService, RazorCompletionResolveContext razorCompletionResolveContext, CancellationToken cancellationToken)
+    public static async Task<VSInternalCompletionItem?> ResolveAsync(
+        RemoteDocumentSnapshot documentSnapshot,
+        VSInternalCompletionItem completionItem,
+        VSInternalClientCapabilities? clientCapabilities,
+        IComponentAvailabilityService componentAvailabilityService,
+        RazorCompletionResolveContext razorCompletionResolveContext,
+        CancellationToken cancellationToken)
     {
         var associatedRazorCompletion = razorCompletionResolveContext.CompletionItems.FirstOrDefault(completion =>
         {
@@ -95,13 +102,16 @@ internal static class RazorCompletionItemResolver
                         break;
                     }
 
+                    var formattingContext = descriptionInfo.DescriptionInfos.Any(static info => DocCommentHelpers.TryExtractSummary(info.Documentation, out _))
+                        ? await DocCommentFormattingContext.CreateAsync(documentSnapshot, cancellationToken).ConfigureAwait(false)
+                        : null;
                     if (useDescriptionProperty)
                     {
-                        ClassifiedTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, out tagHelperClassifiedTextTooltip);
+                        ClassifiedTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, formattingContext, cancellationToken, out tagHelperClassifiedTextTooltip);
                     }
                     else
                     {
-                        MarkupTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, documentationKind, out tagHelperMarkupTooltip);
+                        MarkupTagHelperTooltipFactory.TryCreateTooltip(descriptionInfo, documentationKind, formattingContext, cancellationToken, out tagHelperMarkupTooltip);
                     }
 
                     break;
@@ -113,16 +123,19 @@ internal static class RazorCompletionItemResolver
                         break;
                     }
 
+                    var formattingContext = descriptionInfo.DescriptionInfos.Any(static info => DocCommentHelpers.TryExtractSummary(info.Documentation, out _))
+                        ? await DocCommentFormattingContext.CreateAsync(documentSnapshot, cancellationToken).ConfigureAwait(false)
+                        : null;
                     if (useDescriptionProperty)
                     {
                         tagHelperClassifiedTextTooltip = await ClassifiedTagHelperTooltipFactory
-                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, componentAvailabilityService, cancellationToken)
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, componentAvailabilityService, formattingContext, cancellationToken)
                             .ConfigureAwait(false);
                     }
                     else
                     {
                         tagHelperMarkupTooltip = await MarkupTagHelperTooltipFactory
-                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, componentAvailabilityService, documentationKind, cancellationToken)
+                            .TryCreateTooltipAsync(razorCompletionResolveContext.FilePath, descriptionInfo, componentAvailabilityService, documentationKind, formattingContext, cancellationToken)
                             .ConfigureAwait(false);
                     }
 
