@@ -49,7 +49,7 @@ extends:
             azureSubscription: 'Roslyn PRTagger: DevDiv'
             keyVaultName: 'EngKeyVault'
             appIdSecretName: 'dotnet-roslyn-issue-tagger-app-id'
-            appPrivateKeySecretName: 'dotnet-roslyn-issue-tagger-app-private-key'
+            keyName: 'dotnet-roslyn-issue-tagger-app-key'
             installationOwner: 'dotnet'
             outputVariableName: 'GitHubAppInstallationToken'
         - task: AzureCLI@2
