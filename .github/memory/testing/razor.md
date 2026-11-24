@@ -60,7 +60,7 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
   `src/Razor/src/Compiler/Microsoft.AspNetCore.Razor.Language/test/TestFiles/IntegrationTests/ComponentCodeGenerationTest/<TestName>/`.
 - Regenerate baselines by building/running the test project with
   `/p:GenerateBaselines=true` on one CoreCLR target framework, e.g.
-  `dotnet test src\Razor\src\Compiler\Microsoft.AspNetCore.Razor.Language\test\Microsoft.AspNetCore.Razor.Language.UnitTests.csproj --filter FullyQualifiedName~<Name> /p:GenerateBaselines=true`.
+  `dotnet test src\Razor\src\Compiler\Microsoft.AspNetCore.Razor.Language\test\Microsoft.AspNetCore.Razor.Language.UnitTests.csproj --framework <framework> --filter FullyQualifiedName~<Name> /p:GenerateBaselines=true`.
   Tests always "pass" while generating (they overwrite baselines); re-run without
   the flag to actually validate, and `git diff` the `TestFiles` to review changes.
   Two-phase tests can also produce `.decl.codegen.cs` / `.decl.mappings.txt`

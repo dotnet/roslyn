@@ -168,19 +168,64 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            var typeParams = method.TypeParameters;
+            var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+            var typeArgsForConstraintsCheck = AdjustPartiallyInferredTypeArgumentsForConstraintsCheck(typeParams, typeArgs, notInferredTypeParameters);
+
+            // Check constraints.
+            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
+            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+            var checkConstraintsArgs = new ConstraintsHelper.CheckConstraintsArgs(
+                compilation,
+                conversions,
+                includeNullability: false,
+                NoLocation.Singleton,
+                diagnostics: null,
+                template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo));
+
+            var success = method.CheckConstraints(checkConstraintsArgs,
+                                                  substitution,
+                                                  typeParams,
+                                                  typeArgsForConstraintsCheck,
+                                                  diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+                                                  ref useSiteDiagnosticsBuilder,
+                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
+            diagnosticsBuilder.Free();
+            notInferredTypeParameters.Free();
+
+            if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
+            {
+                foreach (var diag in useSiteDiagnosticsBuilder)
+                {
+                    useSiteInfo.Add(diag.UseSiteInfo);
+                }
+            }
+
+            if (!success)
+            {
+                wasFullyInferred = false;
+                return null;
+            }
+
+            ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = AdjustPartiallyInferredTypeArgumentsForConstruction(typeParams, typeArgs, out wasFullyInferred);
+            return method.Construct(typeArgsForConstruct);
+        }
+
+        internal static ImmutableArray<TypeWithAnnotations> AdjustPartiallyInferredTypeArgumentsForConstraintsCheck(
+            ImmutableArray<TypeParameterSymbol> typeParams,
+            ImmutableArray<TypeWithAnnotations> typeArgs,
+            HashSet<TypeParameterSymbol> notInferredTypeParameters)
+        {
             // For the purpose of constraint checks we use error type symbol in place of type arguments that we couldn't infer from the first argument.
             // This prevents constraint checking from failing for corresponding type parameters.
-            int firstNullInTypeArgs = -1;
-            var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
-            var typeParams = method.TypeParameters;
             var typeArgsForConstraintsCheck = typeArgs;
             for (int i = 0; i < typeArgsForConstraintsCheck.Length; i++)
             {
                 if (!typeArgsForConstraintsCheck[i].HasType)
                 {
-                    firstNullInTypeArgs = i;
                     var builder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
-                    builder.AddRange(typeArgsForConstraintsCheck, firstNullInTypeArgs);
+                    builder.AddRange(typeArgsForConstraintsCheck, i);
 
                     for (; i < typeArgsForConstraintsCheck.Length; i++)
                     {
@@ -201,42 +246,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            // Check constraints.
-            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
-            var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
-            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var success = method.CheckConstraints(new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false, NoLocation.Singleton, diagnostics: null, template: new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo)),
-                                                  substitution, typeParams, typeArgsForConstraintsCheck, diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
-                                                  ref useSiteDiagnosticsBuilder,
-                                                  ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
-            diagnosticsBuilder.Free();
-            notInferredTypeParameters.Free();
+            return typeArgsForConstraintsCheck;
+        }
 
-            if (useSiteDiagnosticsBuilder != null && useSiteDiagnosticsBuilder.Count > 0)
-            {
-                foreach (var diag in useSiteDiagnosticsBuilder)
-                {
-                    useSiteInfo.Add(diag.UseSiteInfo);
-                }
-            }
-
-            if (!success)
-            {
-                wasFullyInferred = false;
-                return null;
-            }
-
+        internal static ImmutableArray<TypeWithAnnotations> AdjustPartiallyInferredTypeArgumentsForConstruction(
+            ImmutableArray<TypeParameterSymbol> typeParams,
+            ImmutableArray<TypeWithAnnotations> typeArgs,
+            out bool wasFullyInferred)
+        {
             // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
             ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = typeArgs;
             wasFullyInferred = typeArgs.All(static t => t.HasType);
             if (!wasFullyInferred)
             {
                 typeArgsForConstruct = typeArgs.ZipAsArray(
-                    method.TypeParameters,
+                    typeParams,
                     (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp));
             }
 
-            return method.Construct(typeArgsForConstruct);
+            return typeArgsForConstruct;
         }
 
         internal override MethodSymbol CallsiteReducedFromMethod

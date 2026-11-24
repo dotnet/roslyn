@@ -20,7 +20,7 @@
     The Helix work item name to query (requires -HelixJob).
 
 .PARAMETER Repository
-    The GitHub repository (owner/repo format). Default: dotnet/runtime
+    The GitHub repository (owner/repo format). Default: dotnet/roslyn
 
 .PARAMETER Organization
     The Azure DevOps organization. Default: dnceng-public

@@ -561,12 +561,12 @@ class C
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
-                // (19,29): error CS1061: 'List<int>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'List<int>' could be found (are you missing a using directive or an assembly reference?)
+                // (19,27): error CS0411: The type arguments for method 'Extensions.extension<TElement, TEnumerable>(TEnumerable).M()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         System.Action a = l.M;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("System.Collections.Generic.List<int>", "M").WithLocation(19, 29),
-                // (21,19): error CS1061: 'List<int>' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'List<int>' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "l.M").WithArguments("Extensions.extension<TElement, TEnumerable>(TEnumerable).M()").WithLocation(19, 27),
+                // (21,17): error CS8917: The delegate type could not be inferred.
                 //         var b = l.M;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("System.Collections.Generic.List<int>", "M").WithLocation(21, 19)
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "l.M").WithLocation(21, 17)
                 );
 
             comp = CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
@@ -608,28 +608,20 @@ class C
 }
 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15);
-            comp.VerifyDiagnostics(
-                // (22,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
-                //         _ = nameof(l.M1);
-                Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "l.M1").WithLocation(22, 20),
-
-                // The following error is unexpected, likely caused by https://github.com/dotnet/roslyn/issues/86458
-
-                // (23,22): error CS1061: 'List<int>' does not contain a definition for 'M2' and no accessible extension method 'M2' accepting a first argument of type 'List<int>' could be found (are you missing a using directive or an assembly reference?)
-                //         _ = nameof(l.M2);
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M2").WithArguments("System.Collections.Generic.List<int>", "M2").WithLocation(23, 22)
-                );
-
-            comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
+            var expected = new[] {
                 // (22,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //         _ = nameof(l.M1);
                 Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "l.M1").WithLocation(22, 20),
                 // (23,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
                 //         _ = nameof(l.M2);
                 Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "l.M2").WithLocation(23, 20)
-                );
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15);
+            comp.VerifyDiagnostics(expected);
+
+            comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -1918,14 +1910,14 @@ static void M<T, U>(T t, (int, Func<T, U>) fs, U y)
 }
 """;
 
-            var expected =
-                // (3,6): error CS1503: Argument 2: cannot convert from '(int, lambda expression)' to '(int, System.Func<int, string>)'
-                // M(1, (0, x => new object()), "");
-                Diagnostic(ErrorCode.ERR_BadArgType, "(0, x => new object())").WithArguments("2", "(int, lambda expression)", "(int, System.Func<int, string>)").WithLocation(3, 6);
+            string expected = """
+System.Int32
+System.Object
+""";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
-            CreateCompilation(source).VerifyDiagnostics(expected);
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1944,19 +1936,14 @@ static void M<T, U>(T t, Func<T, U>[] fs, U y)
 }
 """;
 
-            var expected = new[]
-            {
-                // (3,12): error CS0266: Cannot implicitly convert type 'object' to 'string'. An explicit conversion exists (are you missing a cast?)
-                // M(1, [x => new object()], "");
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new object()").WithArguments("object", "string").WithLocation(3, 12),
-                // (3,12): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
-                // M(1, [x => new object()], "");
-                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "new object()").WithArguments("lambda expression").WithLocation(3, 12)
-            };
+            string expected = """
+System.Int32
+System.Object
+""";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
-            CreateCompilation(source).VerifyDiagnostics(expected);
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1975,19 +1962,14 @@ static void M<T, U>(T t, (int, Func<T, U>) fs)
 }
 """;
 
-            var expected = new[]
-            {
-                // (3,1): error CS0411: The type arguments for method 'M<T, U>(T, (int, Func<T, U>))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                // M(1, (1, x => x.ToString()));
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("M<T, U>(T, (int, System.Func<T, U>))").WithLocation(3, 1),
-                // (5,13): warning CS8321: The local function 'M' is declared but never used
-                // static void M<T, U>(T t, (int, Func<T, U>) fs)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(5, 13)
-            };
+            string expected = """
+System.Int32
+System.String
+""";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
-            CreateCompilation(source).VerifyDiagnostics(expected);
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2006,19 +1988,14 @@ static void M<T, U>(T t, Func<T, U>[] fs)
 }
 """;
 
-            var expected = new[]
-            {
-                // (3,1): error CS0411: The type arguments for method 'M<T, U>(T, Func<T, U>[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
-                // M(1, [x => x.ToString()]);
-                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("M<T, U>(T, System.Func<T, U>[])").WithLocation(3, 1),
-                // (5,13): warning CS8321: The local function 'M' is declared but never used
-                // static void M<T, U>(T t, Func<T, U>[] fs)
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(5, 13)
-            };
+            string expected = """
+System.Int32
+System.String
+""";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expected);
-            CreateCompilation(source).VerifyDiagnostics(expected);
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
         }
 
         [Fact]

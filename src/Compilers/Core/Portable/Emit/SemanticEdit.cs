@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -13,7 +12,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Emit
 {
     /// <summary>
-    /// Describes a symbol edit between two compilations. 
+    /// Describes a semantic change to a symbol between preceding compilation and the current compilation,
+    /// where the current compilation is obtained from the preceding one by applying a 
+    /// set of edits to the source code of the preceding compilation.
+    /// 
     /// For example, an addition of a method, an update of a method, removal of a type, etc.
     /// </summary>
     public readonly struct SemanticEdit : IEquatable<SemanticEdit>
@@ -24,21 +26,21 @@ namespace Microsoft.CodeAnalysis.Emit
         public SemanticEditKind Kind { get; }
 
         /// <summary>
-        /// The symbol from the earlier compilation,
+        /// The symbol from the preceding compilation,
         /// or null if the edit represents an addition.
         /// </summary>
         public ISymbol? OldSymbol { get; }
 
         /// <summary>
-        /// The symbol from the later compilation, or the symbol of the containing type
-        /// from the later compilation if the edit represents a deletion.
+        /// The symbol from the current compilation, or the symbol of the containing type
+        /// from the current compilation if the edit represents a deletion.
         /// </summary>
-        public ISymbol? NewSymbol { get; }
+        public ISymbol NewSymbol { get; }
 
         /// <summary>
-        /// A map from syntax node in the later compilation to syntax node in the previous compilation, 
+        /// A map from syntax node in the current compilation to syntax node in the preceding compilation, 
         /// or null if <see cref="PreserveLocalVariables"/> is false and the map is not needed or 
-        /// the source of the current method is the same as the source of the previous method.
+        /// the source of the current method is the same as the source of the preceding method.
         /// </summary>
         /// <remarks>
         /// The map does not need to map all syntax nodes in the active method, only those syntax nodes
@@ -47,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Emit
         public Func<SyntaxNode, SyntaxNode?>? SyntaxMap { get; }
 
         /// <summary>
-        /// Associates a syntax node in the later compilation to an error that should be
+        /// Associates a syntax node in the current compilation to an error that should be
         /// reported at runtime by the IL generated for the node, if any.
         /// </summary>
         public Func<SyntaxNode, RuntimeRudeEdit?>? RuntimeRudeEdit { get; }

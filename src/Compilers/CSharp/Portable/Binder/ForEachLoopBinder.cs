@@ -982,6 +982,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return EnumeratorResult.FailedAndReported;
                 }
 
+                // Arrays are an error in 'await foreach', like dynamic: no pattern or extension lookup.
+                if (collectionExprType.Kind == SymbolKind.ArrayType && isAsync)
+                {
+                    return EnumeratorResult.FailedNotReported;
+                }
+
                 // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
                 if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
                 {
