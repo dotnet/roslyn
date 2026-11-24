@@ -65,6 +65,8 @@ namespace CSharpSyntaxGenerator
 
             WriteLine("#region Red Factory and Property Tests");
             WriteFactoryPropertyTests(isGreen: false);
+            WriteLine();
+            WriteTokenPropertyInvariant();
             WriteLine("#endregion Red Factory and Property Tests");
             WriteLine();
 
@@ -306,6 +308,11 @@ namespace CSharpSyntaxGenerator
                     WriteLine($"var newNode = node{withStat};");
                     WriteLine("Assert.Equal(node, newNode);");
                 }
+
+                if (!isGreen)
+                {
+                    WriteLine("AssertTokenPropertiesAreChildren(node);");
+                }
             }
 
             if (isGreen)
@@ -314,6 +321,30 @@ namespace CSharpSyntaxGenerator
                 WriteLine("AttachAndCheckDiagnostics(node);");
             }
 
+            CloseBlock();
+        }
+
+        private void WriteTokenPropertyInvariant()
+        {
+            WriteLine("// Use reflection so token properties added in partial node declarations are checked as well.");
+            WriteLine("private static void AssertTokenPropertiesAreChildren(SyntaxNode node)");
+            OpenBlock();
+            WriteLine("foreach (var property in node.GetType().GetProperties())");
+            OpenBlock();
+            WriteLine("if (property.PropertyType != typeof(SyntaxToken) || property.GetIndexParameters().Length != 0)");
+            OpenBlock();
+            WriteLine("continue;");
+            CloseBlock();
+            WriteLine();
+            WriteLine("var token = (SyntaxToken)property.GetValue(node);");
+            WriteLine("if (token.RawKind == 0)");
+            OpenBlock();
+            WriteLine("continue;");
+            CloseBlock();
+            WriteLine();
+            WriteLine("Assert.Same(node, token.Parent);");
+            WriteLine("Assert.Contains((SyntaxNodeOrToken)token, node.ChildNodesAndTokens());");
+            CloseBlock();
             CloseBlock();
         }
 

@@ -11255,6 +11255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             var newNode = node.WithIdentifier(node.Identifier);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11267,6 +11268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Right);
             var newNode = node.WithLeft(node.Left).WithDotToken(node.DotToken).WithRight(node.Right);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11278,6 +11280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.TypeArgumentList);
             var newNode = node.WithIdentifier(node.Identifier).WithTypeArgumentList(node.TypeArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11290,6 +11293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithArguments(node.Arguments).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11302,6 +11306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Name);
             var newNode = node.WithAlias(node.Alias).WithColonColonToken(node.ColonColonToken).WithName(node.Name);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11312,6 +11317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.BoolKeyword, node.Keyword.Kind());
             var newNode = node.WithKeyword(node.Keyword);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11323,6 +11329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.RankSpecifiers);
             var newNode = node.WithElementType(node.ElementType).WithRankSpecifiers(node.RankSpecifiers);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11335,6 +11342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithSizes(node.Sizes).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11346,6 +11354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.AsteriskToken, node.AsteriskToken.Kind());
             var newNode = node.WithElementType(node.ElementType).WithAsteriskToken(node.AsteriskToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11359,6 +11368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ParameterList);
             var newNode = node.WithDelegateKeyword(node.DelegateKeyword).WithAsteriskToken(node.AsteriskToken).WithCallingConvention(node.CallingConvention).WithParameterList(node.ParameterList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11371,6 +11381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithParameters(node.Parameters).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11382,6 +11393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.UnmanagedCallingConventionList);
             var newNode = node.WithManagedOrUnmanagedKeyword(node.ManagedOrUnmanagedKeyword).WithUnmanagedCallingConventionList(node.UnmanagedCallingConventionList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11394,6 +11406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithCallingConventions(node.CallingConventions).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11404,6 +11417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IdentifierToken, node.Name.Kind());
             var newNode = node.WithName(node.Name);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11415,6 +11429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.QuestionToken, node.QuestionToken.Kind());
             var newNode = node.WithElementType(node.ElementType).WithQuestionToken(node.QuestionToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11427,6 +11442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithElements(node.Elements).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11438,6 +11454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.Identifier.Kind());
             var newNode = node.WithType(node.Type).WithIdentifier(node.Identifier);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11448,6 +11465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.OmittedTypeArgumentToken, node.OmittedTypeArgumentToken.Kind());
             var newNode = node.WithOmittedTypeArgumentToken(node.OmittedTypeArgumentToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11460,6 +11478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             var newNode = node.WithRefKeyword(node.RefKeyword).WithReadOnlyKeyword(node.ReadOnlyKeyword).WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11471,6 +11490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             var newNode = node.WithScopedKeyword(node.ScopedKeyword).WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11483,6 +11503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11495,6 +11516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithArguments(node.Arguments).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11506,6 +11528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Operand);
             var newNode = node.WithOperatorToken(node.OperatorToken).WithOperand(node.Operand);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11517,6 +11540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithAwaitKeyword(node.AwaitKeyword).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11528,6 +11552,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PlusPlusToken, node.OperatorToken.Kind());
             var newNode = node.WithOperand(node.Operand).WithOperatorToken(node.OperatorToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11540,6 +11565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Name);
             var newNode = node.WithExpression(node.Expression).WithOperatorToken(node.OperatorToken).WithName(node.Name);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11552,6 +11578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.WhenNotNull);
             var newNode = node.WithExpression(node.Expression).WithOperatorToken(node.OperatorToken).WithWhenNotNull(node.WhenNotNull);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11563,6 +11590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Name);
             var newNode = node.WithOperatorToken(node.OperatorToken).WithName(node.Name);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11573,6 +11601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11585,6 +11614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.RightOperand);
             var newNode = node.WithLeftOperand(node.LeftOperand).WithOperatorToken(node.OperatorToken).WithRightOperand(node.RightOperand);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11595,6 +11625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11607,6 +11638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Right);
             var newNode = node.WithLeft(node.Left).WithOperatorToken(node.OperatorToken).WithRight(node.Right);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11619,6 +11651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Right);
             var newNode = node.WithLeft(node.Left).WithOperatorToken(node.OperatorToken).WithRight(node.Right);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11633,6 +11666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.WhenFalse);
             var newNode = node.WithCondition(node.Condition).WithQuestionToken(node.QuestionToken).WithWhenTrue(node.WhenTrue).WithColonToken(node.ColonToken).WithWhenFalse(node.WhenFalse);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11643,6 +11677,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ThisKeyword, node.Token.Kind());
             var newNode = node.WithToken(node.Token);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11653,6 +11688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.BaseKeyword, node.Token.Kind());
             var newNode = node.WithToken(node.Token);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11663,6 +11699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ArgListKeyword, node.Token.Kind());
             var newNode = node.WithToken(node.Token);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11673,6 +11710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.FieldKeyword, node.Token.Kind());
             var newNode = node.WithToken(node.Token);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11686,6 +11724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11699,6 +11738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11714,6 +11754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithComma(node.Comma).WithType(node.Type).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11727,6 +11768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11740,6 +11782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11753,6 +11796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithType(node.Type).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11766,6 +11810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithType(node.Type).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11779,6 +11824,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithOpenParenToken(node.OpenParenToken).WithType(node.Type).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11790,6 +11836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithExpression(node.Expression).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11801,6 +11848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithExpression(node.Expression).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11813,6 +11861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithArguments(node.Arguments).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11825,6 +11874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithArguments(node.Arguments).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11837,6 +11887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithNameColon(node.NameColon).WithRefKindKeyword(node.RefKindKeyword).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11848,6 +11899,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithExpression(node.Expression).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11859,6 +11911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithName(node.Name).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11870,6 +11923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Designation);
             var newNode = node.WithType(node.Type).WithDesignation(node.Designation);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11883,6 +11937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithType(node.Type).WithCloseParenToken(node.CloseParenToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11897,6 +11952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.ExpressionBody);
             var newNode = node.WithModifiers(node.Modifiers).WithDelegateKeyword(node.DelegateKeyword).WithParameterList(node.ParameterList).WithBlock(node.Block).WithExpressionBody(node.ExpressionBody);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11912,6 +11968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.ExpressionBody);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithParameter(node.Parameter).WithArrowToken(node.ArrowToken).WithBlock(node.Block).WithExpressionBody(node.ExpressionBody);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11923,6 +11980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithRefKeyword(node.RefKeyword).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11939,6 +11997,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.ExpressionBody);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithReturnType(node.ReturnType).WithParameterList(node.ParameterList).WithArrowToken(node.ArrowToken).WithBlock(node.Block).WithExpressionBody(node.ExpressionBody);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11951,6 +12010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithExpressions(node.Expressions).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11963,6 +12023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Initializer);
             var newNode = node.WithNewKeyword(node.NewKeyword).WithArgumentList(node.ArgumentList).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11976,6 +12037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Initializer);
             var newNode = node.WithNewKeyword(node.NewKeyword).WithType(node.Type).WithArgumentList(node.ArgumentList).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11988,6 +12050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Initializer);
             var newNode = node.WithExpression(node.Expression).WithWithKeyword(node.WithKeyword).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -11999,6 +12062,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithNameEquals(node.NameEquals).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12012,6 +12076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithNewKeyword(node.NewKeyword).WithOpenBraceToken(node.OpenBraceToken).WithInitializers(node.Initializers).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12024,6 +12089,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Initializer);
             var newNode = node.WithNewKeyword(node.NewKeyword).WithType(node.Type).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12038,6 +12104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Initializer);
             var newNode = node.WithNewKeyword(node.NewKeyword).WithOpenBracketToken(node.OpenBracketToken).WithCommas(node.Commas).WithCloseBracketToken(node.CloseBracketToken).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12050,6 +12117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Initializer);
             var newNode = node.WithStackAllocKeyword(node.StackAllocKeyword).WithType(node.Type).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12063,6 +12131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Initializer);
             var newNode = node.WithStackAllocKeyword(node.StackAllocKeyword).WithOpenBracketToken(node.OpenBracketToken).WithCloseBracketToken(node.CloseBracketToken).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12075,6 +12144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithElements(node.Elements).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12085,6 +12155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12096,6 +12167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithOperatorToken(node.OperatorToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12107,6 +12179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithWithKeyword(node.WithKeyword).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12118,6 +12191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Body);
             var newNode = node.WithFromClause(node.FromClause).WithBody(node.Body);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12130,6 +12204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Continuation);
             var newNode = node.WithClauses(node.Clauses).WithSelectOrGroup(node.SelectOrGroup).WithContinuation(node.Continuation);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12144,6 +12219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithFromKeyword(node.FromKeyword).WithType(node.Type).WithIdentifier(node.Identifier).WithInKeyword(node.InKeyword).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12157,6 +12233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithLetKeyword(node.LetKeyword).WithIdentifier(node.Identifier).WithEqualsToken(node.EqualsToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12176,6 +12253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Into);
             var newNode = node.WithJoinKeyword(node.JoinKeyword).WithType(node.Type).WithIdentifier(node.Identifier).WithInKeyword(node.InKeyword).WithInExpression(node.InExpression).WithOnKeyword(node.OnKeyword).WithLeftExpression(node.LeftExpression).WithEqualsKeyword(node.EqualsKeyword).WithRightExpression(node.RightExpression).WithInto(node.Into);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12187,6 +12265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             var newNode = node.WithIntoKeyword(node.IntoKeyword).WithIdentifier(node.Identifier);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12198,6 +12277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Condition);
             var newNode = node.WithWhereKeyword(node.WhereKeyword).WithCondition(node.Condition);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12209,6 +12289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Orderings);
             var newNode = node.WithOrderByKeyword(node.OrderByKeyword).WithOrderings(node.Orderings);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12220,6 +12301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.AscendingOrDescendingKeyword.Kind());
             var newNode = node.WithExpression(node.Expression).WithAscendingOrDescendingKeyword(node.AscendingOrDescendingKeyword);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12231,6 +12313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithSelectKeyword(node.SelectKeyword).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12244,6 +12327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ByExpression);
             var newNode = node.WithGroupKeyword(node.GroupKeyword).WithGroupExpression(node.GroupExpression).WithByKeyword(node.ByKeyword).WithByExpression(node.ByExpression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12256,6 +12340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Body);
             var newNode = node.WithIntoKeyword(node.IntoKeyword).WithIdentifier(node.Identifier).WithBody(node.Body);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12266,6 +12351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.OmittedArraySizeExpressionToken, node.OmittedArraySizeExpressionToken.Kind());
             var newNode = node.WithOmittedArraySizeExpressionToken(node.OmittedArraySizeExpressionToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12278,6 +12364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.InterpolatedStringEndToken, node.StringEndToken.Kind());
             var newNode = node.WithStringStartToken(node.StringStartToken).WithContents(node.Contents).WithStringEndToken(node.StringEndToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12290,6 +12377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Pattern);
             var newNode = node.WithExpression(node.Expression).WithIsKeyword(node.IsKeyword).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12301,6 +12389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithThrowKeyword(node.ThrowKeyword).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12312,6 +12401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Condition);
             var newNode = node.WithWhenKeyword(node.WhenKeyword).WithCondition(node.Condition);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12322,6 +12412,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.UnderscoreToken, node.UnderscoreToken.Kind());
             var newNode = node.WithUnderscoreToken(node.UnderscoreToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12333,6 +12424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Designation);
             var newNode = node.WithType(node.Type).WithDesignation(node.Designation);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12344,6 +12436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Designation);
             var newNode = node.WithVarKeyword(node.VarKeyword).WithDesignation(node.Designation);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12357,6 +12450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Designation);
             var newNode = node.WithType(node.Type).WithPositionalPatternClause(node.PositionalPatternClause).WithPropertyPatternClause(node.PropertyPatternClause).WithDesignation(node.Designation);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12369,6 +12463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithSubpatterns(node.Subpatterns).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12381,6 +12476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithSubpatterns(node.Subpatterns).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12392,6 +12488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Pattern);
             var newNode = node.WithExpressionColon(node.ExpressionColon).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12402,6 +12499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12414,6 +12512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithPattern(node.Pattern).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12425,6 +12524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithOperatorToken(node.OperatorToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12435,6 +12535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             var newNode = node.WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12447,6 +12548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Right);
             var newNode = node.WithLeft(node.Left).WithOperatorToken(node.OperatorToken).WithRight(node.Right);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12458,6 +12560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Pattern);
             var newNode = node.WithOperatorToken(node.OperatorToken).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12471,6 +12574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Designation);
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithPatterns(node.Patterns).WithCloseBracketToken(node.CloseBracketToken).WithDesignation(node.Designation);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12482,6 +12586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Pattern);
             var newNode = node.WithDotDotToken(node.DotDotToken).WithPattern(node.Pattern);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12492,6 +12597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.InterpolatedStringTextToken, node.TextToken.Kind());
             var newNode = node.WithTextToken(node.TextToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12506,6 +12612,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithExpression(node.Expression).WithAlignmentClause(node.AlignmentClause).WithFormatClause(node.FormatClause).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12517,6 +12624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Value);
             var newNode = node.WithCommaToken(node.CommaToken).WithValue(node.Value);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12528,6 +12636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.InterpolatedStringTextToken, node.FormatStringToken.Kind());
             var newNode = node.WithColonToken(node.ColonToken).WithFormatStringToken(node.FormatStringToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12540,6 +12649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12553,6 +12663,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithOpenBraceToken(node.OpenBraceToken).WithStatements(node.Statements).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12572,6 +12683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithReturnType(node.ReturnType).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithConstraintClauses(node.ConstraintClauses).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12587,6 +12699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithAwaitKeyword(node.AwaitKeyword).WithUsingKeyword(node.UsingKeyword).WithModifiers(node.Modifiers).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12598,6 +12711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Variables);
             var newNode = node.WithType(node.Type).WithVariables(node.Variables);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12610,6 +12724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Initializer);
             var newNode = node.WithIdentifier(node.Identifier).WithArgumentList(node.ArgumentList).WithInitializer(node.Initializer);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12621,6 +12736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Value);
             var newNode = node.WithEqualsToken(node.EqualsToken).WithValue(node.Value);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12631,6 +12747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             var newNode = node.WithIdentifier(node.Identifier);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12641,6 +12758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.UnderscoreToken, node.UnderscoreToken.Kind());
             var newNode = node.WithUnderscoreToken(node.UnderscoreToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12653,6 +12771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithVariables(node.Variables).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12665,6 +12784,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithExpression(node.Expression).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12676,6 +12796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12689,6 +12810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithIdentifier(node.Identifier).WithColonToken(node.ColonToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12703,6 +12825,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithGotoKeyword(node.GotoKeyword).WithCaseOrDefaultKeyword(node.CaseOrDefaultKeyword).WithExpression(node.Expression).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12716,6 +12839,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithBreakKeyword(node.BreakKeyword).WithName(node.Name).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12729,6 +12853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithContinueKeyword(node.ContinueKeyword).WithName(node.Name).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12742,6 +12867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithReturnKeyword(node.ReturnKeyword).WithExpression(node.Expression).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12755,6 +12881,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithThrowKeyword(node.ThrowKeyword).WithExpression(node.Expression).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12769,6 +12896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithYieldKeyword(node.YieldKeyword).WithReturnOrBreakKeyword(node.ReturnOrBreakKeyword).WithExpression(node.Expression).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12784,6 +12912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithWhileKeyword(node.WhileKeyword).WithOpenParenToken(node.OpenParenToken).WithCondition(node.Condition).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12801,6 +12930,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithDoKeyword(node.DoKeyword).WithStatement(node.Statement).WithWhileKeyword(node.WhileKeyword).WithOpenParenToken(node.OpenParenToken).WithCondition(node.Condition).WithCloseParenToken(node.CloseParenToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12821,6 +12951,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithForKeyword(node.ForKeyword).WithOpenParenToken(node.OpenParenToken).WithDeclaration(node.Declaration).WithInitializers(node.Initializers).WithFirstSemicolonToken(node.FirstSemicolonToken).WithCondition(node.Condition).WithSecondSemicolonToken(node.SecondSemicolonToken).WithIncrementors(node.Incrementors).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12840,6 +12971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithAwaitKeyword(node.AwaitKeyword).WithForEachKeyword(node.ForEachKeyword).WithOpenParenToken(node.OpenParenToken).WithType(node.Type).WithIdentifier(node.Identifier).WithInKeyword(node.InKeyword).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12858,6 +12990,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithAwaitKeyword(node.AwaitKeyword).WithForEachKeyword(node.ForEachKeyword).WithOpenParenToken(node.OpenParenToken).WithVariable(node.Variable).WithInKeyword(node.InKeyword).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12875,6 +13008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithAwaitKeyword(node.AwaitKeyword).WithUsingKeyword(node.UsingKeyword).WithOpenParenToken(node.OpenParenToken).WithDeclaration(node.Declaration).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12890,6 +13024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithFixedKeyword(node.FixedKeyword).WithOpenParenToken(node.OpenParenToken).WithDeclaration(node.Declaration).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12902,6 +13037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Block);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithKeyword(node.Keyword).WithBlock(node.Block);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12914,6 +13050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Block);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithUnsafeKeyword(node.UnsafeKeyword).WithBlock(node.Block);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12929,6 +13066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithLockKeyword(node.LockKeyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12945,6 +13083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Else);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithIfKeyword(node.IfKeyword).WithOpenParenToken(node.OpenParenToken).WithCondition(node.Condition).WithCloseParenToken(node.CloseParenToken).WithStatement(node.Statement).WithElse(node.Else);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12956,6 +13095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Statement);
             var newNode = node.WithElseKeyword(node.ElseKeyword).WithStatement(node.Statement);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12973,6 +13113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithSwitchKeyword(node.SwitchKeyword).WithOpenParenToken(node.OpenParenToken).WithExpression(node.Expression).WithCloseParenToken(node.CloseParenToken).WithOpenBraceToken(node.OpenBraceToken).WithSections(node.Sections).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12984,6 +13125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Statements);
             var newNode = node.WithLabels(node.Labels).WithStatements(node.Statements);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -12997,6 +13139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithPattern(node.Pattern).WithWhenClause(node.WhenClause).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13009,6 +13152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithValue(node.Value).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13020,6 +13164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithKeyword(node.Keyword).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13034,6 +13179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithGoverningExpression(node.GoverningExpression).WithSwitchKeyword(node.SwitchKeyword).WithOpenBraceToken(node.OpenBraceToken).WithArms(node.Arms).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13047,6 +13193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithPattern(node.Pattern).WithWhenClause(node.WhenClause).WithEqualsGreaterThanToken(node.EqualsGreaterThanToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13061,6 +13208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Finally);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithTryKeyword(node.TryKeyword).WithBlock(node.Block).WithCatches(node.Catches).WithFinally(node.Finally);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13074,6 +13222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Block);
             var newNode = node.WithCatchKeyword(node.CatchKeyword).WithDeclaration(node.Declaration).WithFilter(node.Filter).WithBlock(node.Block);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13087,6 +13236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithType(node.Type).WithIdentifier(node.Identifier).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13100,6 +13250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithWhenKeyword(node.WhenKeyword).WithOpenParenToken(node.OpenParenToken).WithFilterExpression(node.FilterExpression).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13111,6 +13262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Block);
             var newNode = node.WithFinallyKeyword(node.FinallyKeyword).WithBlock(node.Block);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13125,6 +13277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.EndOfFileToken, node.EndOfFileToken.Kind());
             var newNode = node.WithExterns(node.Externs).WithUsings(node.Usings).WithAttributeLists(node.AttributeLists).WithMembers(node.Members).WithEndOfFileToken(node.EndOfFileToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13138,6 +13291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithExternKeyword(node.ExternKeyword).WithAliasKeyword(node.AliasKeyword).WithIdentifier(node.Identifier).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13154,6 +13308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithGlobalKeyword(node.GlobalKeyword).WithUsingKeyword(node.UsingKeyword).WithStaticKeyword(node.StaticKeyword).WithUnsafeKeyword(node.UnsafeKeyword).WithAlias(node.Alias).WithNamespaceOrType(node.NamespaceOrType).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13173,6 +13328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithOpenBraceToken(node.OpenBraceToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13190,6 +13346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Members);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithNamespaceKeyword(node.NamespaceKeyword).WithName(node.Name).WithSemicolonToken(node.SemicolonToken).WithExterns(node.Externs).WithUsings(node.Usings).WithMembers(node.Members);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13203,6 +13360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithTarget(node.Target).WithAttributes(node.Attributes).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13214,6 +13372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithIdentifier(node.Identifier).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13225,6 +13384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.ArgumentList);
             var newNode = node.WithName(node.Name).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13237,6 +13397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithArguments(node.Arguments).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13249,6 +13410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithNameEquals(node.NameEquals).WithNameColon(node.NameColon).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13260,6 +13422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.EqualsToken, node.EqualsToken.Kind());
             var newNode = node.WithName(node.Name).WithEqualsToken(node.EqualsToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13272,6 +13435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithParameters(node.Parameters).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13284,6 +13448,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IdentifierToken, node.Identifier.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithVarianceKeyword(node.VarianceKeyword).WithIdentifier(node.Identifier);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13305,6 +13470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithBaseList(node.BaseList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13326,6 +13492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithBaseList(node.BaseList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13347,6 +13514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithBaseList(node.BaseList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13368,6 +13536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithBaseList(node.BaseList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13390,6 +13559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithClassOrStructKeyword(node.ClassOrStructKeyword).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithBaseList(node.BaseList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13408,6 +13578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithEnumKeyword(node.EnumKeyword).WithIdentifier(node.Identifier).WithBaseList(node.BaseList).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13426,6 +13597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithDelegateKeyword(node.DelegateKeyword).WithReturnType(node.ReturnType).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithConstraintClauses(node.ConstraintClauses).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13439,6 +13611,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.EqualsValue);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithIdentifier(node.Identifier).WithEqualsValue(node.EqualsValue);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13458,6 +13631,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithConstraintClauses(node.ConstraintClauses).WithOpenBraceToken(node.OpenBraceToken).WithMembers(node.Members).WithCloseBraceToken(node.CloseBraceToken).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13469,6 +13643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Types);
             var newNode = node.WithColonToken(node.ColonToken).WithTypes(node.Types);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13479,6 +13654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             var newNode = node.WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13490,6 +13666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithType(node.Type).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13503,6 +13680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Constraints);
             var newNode = node.WithWhereKeyword(node.WhereKeyword).WithName(node.Name).WithColonToken(node.ColonToken).WithConstraints(node.Constraints);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13515,6 +13693,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithNewKeyword(node.NewKeyword).WithOpenParenToken(node.OpenParenToken).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13526,6 +13705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.QuestionToken.Kind());
             var newNode = node.WithClassOrStructKeyword(node.ClassOrStructKeyword).WithQuestionToken(node.QuestionToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13536,6 +13716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             var newNode = node.WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13546,6 +13727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DefaultKeyword, node.DefaultKeyword.Kind());
             var newNode = node.WithDefaultKeyword(node.DefaultKeyword);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13557,6 +13739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Constraints);
             var newNode = node.WithAllowsKeyword(node.AllowsKeyword).WithConstraints(node.Constraints);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13568,6 +13751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.StructKeyword, node.StructKeyword.Kind());
             var newNode = node.WithRefKeyword(node.RefKeyword).WithStructKeyword(node.StructKeyword);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13581,6 +13765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13595,6 +13780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SemicolonToken, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithEventKeyword(node.EventKeyword).WithDeclaration(node.Declaration).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13606,6 +13792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.DotToken, node.DotToken.Kind());
             var newNode = node.WithName(node.Name).WithDotToken(node.DotToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13626,6 +13813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithReturnType(node.ReturnType).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithIdentifier(node.Identifier).WithTypeParameterList(node.TypeParameterList).WithParameterList(node.ParameterList).WithConstraintClauses(node.ConstraintClauses).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13646,6 +13834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithReturnType(node.ReturnType).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithOperatorKeyword(node.OperatorKeyword).WithCheckedKeyword(node.CheckedKeyword).WithOperatorToken(node.OperatorToken).WithParameterList(node.ParameterList).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13666,6 +13855,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithImplicitOrExplicitKeyword(node.ImplicitOrExplicitKeyword).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithOperatorKeyword(node.OperatorKeyword).WithCheckedKeyword(node.CheckedKeyword).WithType(node.Type).WithParameterList(node.ParameterList).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13683,6 +13873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithIdentifier(node.Identifier).WithParameterList(node.ParameterList).WithInitializer(node.Initializer).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13695,6 +13886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.ArgumentList);
             var newNode = node.WithColonToken(node.ColonToken).WithThisOrBaseKeyword(node.ThisOrBaseKeyword).WithArgumentList(node.ArgumentList);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13712,6 +13904,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithTildeToken(node.TildeToken).WithIdentifier(node.Identifier).WithParameterList(node.ParameterList).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13730,6 +13923,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithIdentifier(node.Identifier).WithAccessorList(node.AccessorList).WithExpressionBody(node.ExpressionBody).WithInitializer(node.Initializer).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13741,6 +13935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Expression);
             var newNode = node.WithArrowToken(node.ArrowToken).WithExpression(node.Expression);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13758,6 +13953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithEventKeyword(node.EventKeyword).WithType(node.Type).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithIdentifier(node.Identifier).WithAccessorList(node.AccessorList).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13776,6 +13972,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type).WithExplicitInterfaceSpecifier(node.ExplicitInterfaceSpecifier).WithThisKeyword(node.ThisKeyword).WithParameterList(node.ParameterList).WithAccessorList(node.AccessorList).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13788,6 +13985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBraceToken, node.CloseBraceToken.Kind());
             var newNode = node.WithOpenBraceToken(node.OpenBraceToken).WithAccessors(node.Accessors).WithCloseBraceToken(node.CloseBraceToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13803,6 +14001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, node.SemicolonToken.Kind());
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithKeyword(node.Keyword).WithBody(node.Body).WithExpressionBody(node.ExpressionBody).WithSemicolonToken(node.SemicolonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13815,6 +14014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithParameters(node.Parameters).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13827,6 +14027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithParameters(node.Parameters).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13841,6 +14042,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Default);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type).WithIdentifier(node.Identifier).WithDefault(node.Default);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13853,6 +14055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13865,6 +14068,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Type);
             var newNode = node.WithAttributeLists(node.AttributeLists).WithModifiers(node.Modifiers).WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13875,6 +14079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.Tokens);
             var newNode = node.WithTokens(node.Tokens);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13886,6 +14091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.EndOfDocumentationCommentToken, node.EndOfComment.Kind());
             var newNode = node.WithContent(node.Content).WithEndOfComment(node.EndOfComment);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13896,6 +14102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             var newNode = node.WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13908,6 +14115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Member);
             var newNode = node.WithContainer(node.Container).WithDotToken(node.DotToken).WithMember(node.Member);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13919,6 +14127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Parameters);
             var newNode = node.WithName(node.Name).WithParameters(node.Parameters);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13933,6 +14142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Member);
             var newNode = node.WithExtensionKeyword(node.ExtensionKeyword).WithTypeArgumentList(node.TypeArgumentList).WithParameters(node.Parameters).WithDotToken(node.DotToken).WithMember(node.Member);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13944,6 +14154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Parameters);
             var newNode = node.WithThisKeyword(node.ThisKeyword).WithParameters(node.Parameters);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13957,6 +14168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Parameters);
             var newNode = node.WithOperatorKeyword(node.OperatorKeyword).WithCheckedKeyword(node.CheckedKeyword).WithOperatorToken(node.OperatorToken).WithParameters(node.Parameters);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13971,6 +14183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Null(node.Parameters);
             var newNode = node.WithImplicitOrExplicitKeyword(node.ImplicitOrExplicitKeyword).WithOperatorKeyword(node.OperatorKeyword).WithCheckedKeyword(node.CheckedKeyword).WithType(node.Type).WithParameters(node.Parameters);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13983,6 +14196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithParameters(node.Parameters).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -13995,6 +14209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseBracketToken, node.CloseBracketToken.Kind());
             var newNode = node.WithOpenBracketToken(node.OpenBracketToken).WithParameters(node.Parameters).WithCloseBracketToken(node.CloseBracketToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14007,6 +14222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.Type);
             var newNode = node.WithRefKindKeyword(node.RefKindKeyword).WithReadOnlyKeyword(node.ReadOnlyKeyword).WithType(node.Type);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14019,6 +14235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(node.EndTag);
             var newNode = node.WithStartTag(node.StartTag).WithContent(node.Content).WithEndTag(node.EndTag);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14032,6 +14249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithName(node.Name).WithAttributes(node.Attributes).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14044,6 +14262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.GreaterThanToken, node.GreaterThanToken.Kind());
             var newNode = node.WithLessThanSlashToken(node.LessThanSlashToken).WithName(node.Name).WithGreaterThanToken(node.GreaterThanToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14057,6 +14276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SlashGreaterThanToken, node.SlashGreaterThanToken.Kind());
             var newNode = node.WithLessThanToken(node.LessThanToken).WithName(node.Name).WithAttributes(node.Attributes).WithSlashGreaterThanToken(node.SlashGreaterThanToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14068,6 +14288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IdentifierToken, node.LocalName.Kind());
             var newNode = node.WithPrefix(node.Prefix).WithLocalName(node.LocalName);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14079,6 +14300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.ColonToken, node.ColonToken.Kind());
             var newNode = node.WithPrefix(node.Prefix).WithColonToken(node.ColonToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14093,6 +14315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleQuoteToken, node.EndQuoteToken.Kind());
             var newNode = node.WithName(node.Name).WithEqualsToken(node.EqualsToken).WithStartQuoteToken(node.StartQuoteToken).WithTextTokens(node.TextTokens).WithEndQuoteToken(node.EndQuoteToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14107,6 +14330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleQuoteToken, node.EndQuoteToken.Kind());
             var newNode = node.WithName(node.Name).WithEqualsToken(node.EqualsToken).WithStartQuoteToken(node.StartQuoteToken).WithCref(node.Cref).WithEndQuoteToken(node.EndQuoteToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14121,6 +14345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.SingleQuoteToken, node.EndQuoteToken.Kind());
             var newNode = node.WithName(node.Name).WithEqualsToken(node.EqualsToken).WithStartQuoteToken(node.StartQuoteToken).WithIdentifier(node.Identifier).WithEndQuoteToken(node.EndQuoteToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14131,6 +14356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(default, node.TextTokens);
             var newNode = node.WithTextTokens(node.TextTokens);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14143,6 +14369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.XmlCDataEndToken, node.EndCDataToken.Kind());
             var newNode = node.WithStartCDataToken(node.StartCDataToken).WithTextTokens(node.TextTokens).WithEndCDataToken(node.EndCDataToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14156,6 +14383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.XmlProcessingInstructionEndToken, node.EndProcessingInstructionToken.Kind());
             var newNode = node.WithStartProcessingInstructionToken(node.StartProcessingInstructionToken).WithName(node.Name).WithTextTokens(node.TextTokens).WithEndProcessingInstructionToken(node.EndProcessingInstructionToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14168,6 +14396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.XmlCommentEndToken, node.MinusMinusGreaterThanToken.Kind());
             var newNode = node.WithLessThanExclamationMinusMinusToken(node.LessThanExclamationMinusMinusToken).WithTextTokens(node.TextTokens).WithMinusMinusGreaterThanToken(node.MinusMinusGreaterThanToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14184,6 +14413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.ConditionValue);
             var newNode = node.WithHashToken(node.HashToken).WithIfKeyword(node.IfKeyword).WithCondition(node.Condition).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive).WithBranchTaken(node.BranchTaken).WithConditionValue(node.ConditionValue);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14200,6 +14430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.ConditionValue);
             var newNode = node.WithHashToken(node.HashToken).WithElifKeyword(node.ElifKeyword).WithCondition(node.Condition).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive).WithBranchTaken(node.BranchTaken).WithConditionValue(node.ConditionValue);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14214,6 +14445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.BranchTaken);
             var newNode = node.WithHashToken(node.HashToken).WithElseKeyword(node.ElseKeyword).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive).WithBranchTaken(node.BranchTaken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14227,6 +14459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithEndIfKeyword(node.EndIfKeyword).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14240,6 +14473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithRegionKeyword(node.RegionKeyword).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14253,6 +14487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithEndRegionKeyword(node.EndRegionKeyword).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14266,6 +14501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithErrorKeyword(node.ErrorKeyword).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14279,6 +14515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithWarningKeyword(node.WarningKeyword).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14292,6 +14529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithIdentifier(node.Identifier).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14306,6 +14544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithDefineKeyword(node.DefineKeyword).WithName(node.Name).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14320,6 +14559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithUndefKeyword(node.UndefKeyword).WithName(node.Name).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14335,6 +14575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithLineKeyword(node.LineKeyword).WithLine(node.Line).WithFile(node.File).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14349,6 +14590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.CloseParenToken, node.CloseParenToken.Kind());
             var newNode = node.WithOpenParenToken(node.OpenParenToken).WithLine(node.Line).WithCommaToken(node.CommaToken).WithCharacter(node.Character).WithCloseParenToken(node.CloseParenToken);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14367,6 +14609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithLineKeyword(node.LineKeyword).WithStart(node.Start).WithMinusToken(node.MinusToken).WithEnd(node.End).WithCharacterOffset(node.CharacterOffset).WithFile(node.File).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14383,6 +14626,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithWarningKeyword(node.WarningKeyword).WithDisableOrRestoreKeyword(node.DisableOrRestoreKeyword).WithErrorCodes(node.ErrorCodes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14400,6 +14644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithPragmaKeyword(node.PragmaKeyword).WithChecksumKeyword(node.ChecksumKeyword).WithFile(node.File).WithGuid(node.Guid).WithBytes(node.Bytes).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14414,6 +14659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithReferenceKeyword(node.ReferenceKeyword).WithFile(node.File).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14428,6 +14674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithLoadKeyword(node.LoadKeyword).WithFile(node.File).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14442,6 +14689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithExclamationToken(node.ExclamationToken).WithContent(node.Content).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14456,6 +14704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithColonToken(node.ColonToken).WithContent(node.Content).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
         }
 
         [Fact]
@@ -14471,6 +14720,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(new bool(), node.IsActive);
             var newNode = node.WithHashToken(node.HashToken).WithNullableKeyword(node.NullableKeyword).WithSettingToken(node.SettingToken).WithTargetToken(node.TargetToken).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
+            AssertTokenPropertiesAreChildren(node);
+        }
+
+        // Use reflection so token properties added in partial node declarations are checked as well.
+        private static void AssertTokenPropertiesAreChildren(SyntaxNode node)
+        {
+            foreach (var property in node.GetType().GetProperties())
+            {
+                if (property.PropertyType != typeof(SyntaxToken) || property.GetIndexParameters().Length != 0)
+                {
+                    continue;
+                }
+
+                var token = (SyntaxToken)property.GetValue(node);
+                if (token.RawKind == 0)
+                {
+                    continue;
+                }
+
+                Assert.Same(node, token.Parent);
+                Assert.Contains((SyntaxNodeOrToken)token, node.ChildNodesAndTokens());
+            }
         }
         #endregion Red Factory and Property Tests
 
