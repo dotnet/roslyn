@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                     }
 
-                    placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, isInUnsafeRegion: InUnsafeRegion, expression.Type);
+                    placeholder = new BoundAwaitableValuePlaceholder(expression.Syntax, isInUnsafeRegion: expression.IsInUnsafeRegion, expression.Type);
 
                     BoundExpression argument = CreateConversion(placeholder, argumentConversion, destination: method.Parameters[0].Type, diagnostics);
 
