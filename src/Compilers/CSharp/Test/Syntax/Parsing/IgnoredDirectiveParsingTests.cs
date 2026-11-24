@@ -54,9 +54,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.StringLiteralToken, "xyz");
                     N(SyntaxKind.EndOfDirectiveToken);
                     {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
                         T(SyntaxKind.EndOfLineTrivia, "\n");
                     }
                 }
@@ -81,9 +81,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.StringLiteralToken, "xyz");
                     N(SyntaxKind.EndOfDirectiveToken);
                     {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
                         T(SyntaxKind.EndOfLineTrivia, "\n");
                     }
                 }
@@ -168,6 +168,24 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         var ijk = SyntaxFactory.Token(default, SyntaxKind.StringLiteralToken, "ijk", "ijk", default);
         AssertEx.Equal("#!xyz", structure.WithContent(xyz).ToFullString());
         AssertEx.Equal("#!ijk", structure.WithContent(xyz).WithContent(ijk).ToFullString());
+
+        var legacy = SyntaxFactory.ShebangDirectiveTrivia(
+            SyntaxFactory.Token(SyntaxKind.HashToken),
+            SyntaxFactory.Token(SyntaxKind.ExclamationToken),
+            SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken).WithLeadingTrivia(SyntaxFactory.PreprocessingMessage("legacy")),
+            isActive: true);
+        AssertEx.Equal("#!legacy", legacy.ToFullString());
+        AssertEx.Equal("legacy", legacy.Content.ToString());
+        Assert.Empty(legacy.EndOfDirectiveToken.LeadingTrivia);
+        Assert.Same(legacy, legacy.Update(legacy.HashToken, legacy.ExclamationToken, legacy.EndOfDirectiveToken, legacy.IsActive));
+
+        var updatedLegacy = legacy.Update(
+            legacy.HashToken,
+            legacy.ExclamationToken,
+            SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken).WithLeadingTrivia(SyntaxFactory.PreprocessingMessage("updated")),
+            legacy.IsActive);
+        AssertEx.Equal("#!updated", updatedLegacy.ToFullString());
+        AssertEx.Equal("updated", updatedLegacy.Content.ToString());
     }
 
     [Theory, CombinatorialData]
@@ -213,10 +231,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.StringLiteralToken, "xyz");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
-                    }
                 }
             }
         }
@@ -753,9 +769,9 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                                     {
                                         N(SyntaxKind.HashToken);
                                         N(SyntaxKind.ExclamationToken);
+                                        N(SyntaxKind.StringLiteralToken, "/usr/bin/env dotnet");
                                         N(SyntaxKind.EndOfDirectiveToken);
                                         {
-                                            L(SyntaxKind.PreprocessingMessageTrivia, "/usr/bin/env dotnet");
                                             T(SyntaxKind.EndOfLineTrivia, "\n");
                                         }
                                     }
@@ -812,10 +828,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                         T(SyntaxKind.WhitespaceTrivia, " ");
                     }
                     N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.StringLiteralToken, "xyz");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
-                    }
                 }
             }
         }
@@ -846,10 +860,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.StringLiteralToken, "xyz");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "xyz");
-                    }
                 }
             }
         }
@@ -882,10 +894,8 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
                 {
                     N(SyntaxKind.HashToken);
                     N(SyntaxKind.ExclamationToken);
+                    N(SyntaxKind.StringLiteralToken, "/usr/bin/env dotnet");
                     N(SyntaxKind.EndOfDirectiveToken);
-                    {
-                        L(SyntaxKind.PreprocessingMessageTrivia, "/usr/bin/env dotnet");
-                    }
                 }
             }
         }

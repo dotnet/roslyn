@@ -1402,7 +1402,7 @@ region_directive_trivia
   ;
 
 shebang_directive_trivia
-  : '#' '!'
+  : '#' '!' string_literal_token
   ;
 
 undef_directive_trivia

@@ -10209,6 +10209,19 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
             TestShebang(root.GetDirectives().Single(), command);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86561")]
+        public void ShebangContentIsStructural()
+        {
+            var tree = ParseAndValidate("#!/usr/bin/env dotnet", TestOptions.Script);
+            var shebang = Assert.IsType<ShebangDirectiveTriviaSyntax>(tree.GetCompilationUnitRoot().GetDirectives().Single());
+            var content = shebang.Content;
+
+            Assert.Same(shebang, content.Parent);
+            Assert.Equal(content, shebang.ChildNodesAndTokens()[2].AsToken());
+            Assert.Equal(shebang.ExclamationToken, content.GetPreviousToken(includeZeroWidth: true));
+            Assert.Equal(shebang.EndOfDirectiveToken, content.GetNextToken(includeZeroWidth: true));
+        }
+
         [Fact]
         public void ShebangNotFirstCharacter()
         {
@@ -10262,15 +10275,15 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PPShebangInProjectBasedProgram, Line = 1, Column = 2 });
         }
 
-        private void TestShebang(SyntaxTrivia trivia, string expectedSkippedText)
+        private void TestShebang(SyntaxTrivia trivia, string expectedContent)
         {
             Assert.True(trivia.IsDirective);
             Assert.Equal(SyntaxKind.ShebangDirectiveTrivia, trivia.Kind());
             Assert.True(trivia.HasStructure);
-            TestShebang((ShebangDirectiveTriviaSyntax)trivia.GetStructure(), expectedSkippedText);
+            TestShebang((ShebangDirectiveTriviaSyntax)trivia.GetStructure(), expectedContent);
         }
 
-        private void TestShebang(DirectiveTriviaSyntax directive, string expectedSkippedText)
+        private void TestShebang(DirectiveTriviaSyntax directive, string expectedContent)
         {
             var shebang = (ShebangDirectiveTriviaSyntax)directive;
             Assert.False(shebang.HasStructuredTrivia);
@@ -10279,13 +10292,11 @@ Console.WriteLine(""Hi!"");", TestOptions.Script);
             var endOfDirective = shebang.EndOfDirectiveToken;
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, endOfDirective.Kind());
             Assert.Equal(0, endOfDirective.Span.Length);
-            var skippedText = endOfDirective.LeadingTrivia.Single();
-            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, skippedText.Kind());
-            Assert.Equal(expectedSkippedText, skippedText.ToString());
+            Assert.Empty(endOfDirective.LeadingTrivia);
             var content = shebang.Content;
             Assert.False(content.HasLeadingTrivia || content.HasTrailingTrivia);
             Assert.Equal(SyntaxKind.StringLiteralToken, content.Kind());
-            Assert.Equal(expectedSkippedText, content.ToString());
+            Assert.Equal(expectedContent, content.ToString());
         }
 
         #endregion

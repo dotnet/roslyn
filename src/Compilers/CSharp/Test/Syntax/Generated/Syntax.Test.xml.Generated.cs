@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => InternalSyntaxFactory.LoadDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.LoadKeyword), InternalSyntaxFactory.Literal(null, "string", "string", null), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
 
         private static Syntax.InternalSyntax.ShebangDirectiveTriviaSyntax GenerateShebangDirectiveTrivia()
-            => InternalSyntaxFactory.ShebangDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.ExclamationToken), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            => InternalSyntaxFactory.ShebangDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.ExclamationToken), InternalSyntaxFactory.Literal(null, "string", "string", null), InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
 
         private static Syntax.InternalSyntax.IgnoredDirectiveTriviaSyntax GenerateIgnoredDirectiveTrivia()
             => InternalSyntaxFactory.IgnoredDirectiveTrivia(InternalSyntaxFactory.Token(SyntaxKind.HashToken), InternalSyntaxFactory.Token(SyntaxKind.ColonToken), null, InternalSyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
@@ -3952,6 +3952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind);
             Assert.Equal(SyntaxKind.ExclamationToken, node.ExclamationToken.Kind);
+            Assert.Equal(SyntaxKind.StringLiteralToken, node.Content.Kind);
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind);
             Assert.Equal(new bool(), node.IsActive);
 
@@ -11236,7 +11237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             => SyntaxFactory.LoadDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.LoadKeyword), SyntaxFactory.Literal("string", "string"), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
 
         private static ShebangDirectiveTriviaSyntax GenerateShebangDirectiveTrivia()
-            => SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
+            => SyntaxFactory.ShebangDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ExclamationToken), SyntaxFactory.Literal("string", "string"), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
 
         private static IgnoredDirectiveTriviaSyntax GenerateIgnoredDirectiveTrivia()
             => SyntaxFactory.IgnoredDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.HashToken), SyntaxFactory.Token(SyntaxKind.ColonToken), default(SyntaxToken), SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken), new bool());
@@ -14436,9 +14437,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(SyntaxKind.HashToken, node.HashToken.Kind());
             Assert.Equal(SyntaxKind.ExclamationToken, node.ExclamationToken.Kind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, node.Content.Kind());
             Assert.Equal(SyntaxKind.EndOfDirectiveToken, node.EndOfDirectiveToken.Kind());
             Assert.Equal(new bool(), node.IsActive);
-            var newNode = node.WithHashToken(node.HashToken).WithExclamationToken(node.ExclamationToken).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
+            var newNode = node.WithHashToken(node.HashToken).WithExclamationToken(node.ExclamationToken).WithContent(node.Content).WithEndOfDirectiveToken(node.EndOfDirectiveToken).WithIsActive(node.IsActive);
             Assert.Equal(node, newNode);
         }
 

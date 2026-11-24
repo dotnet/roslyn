@@ -1,5 +1,8 @@
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp15 = 1500 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.WithElement = 9081 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken exclamationToken, Microsoft.CodeAnalysis.SyntaxToken content, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken hashToken, Microsoft.CodeAnalysis.SyntaxToken exclamationToken, Microsoft.CodeAnalysis.SyntaxToken content, Microsoft.CodeAnalysis.SyntaxToken endOfDirectiveToken, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ShebangDirectiveTrivia(Microsoft.CodeAnalysis.SyntaxToken content, bool isActive) -> Microsoft.CodeAnalysis.CSharp.Syntax.ShebangDirectiveTriviaSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.AddArgumentListArguments(params Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax!
 Microsoft.CodeAnalysis.CSharp.Syntax.WithElementSyntax.ArgumentList.get -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax!

@@ -27100,44 +27100,51 @@ internal sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSynt
 {
     internal readonly SyntaxToken hashToken;
     internal readonly SyntaxToken exclamationToken;
+    internal readonly SyntaxToken content;
     internal readonly SyntaxToken endOfDirectiveToken;
     internal readonly bool isActive;
 
-    internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
+    internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive, DiagnosticInfo[]? diagnostics, SyntaxAnnotation[]? annotations)
       : base(kind, diagnostics, annotations)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
         this.AdjustFlagsAndWidth(exclamationToken);
         this.exclamationToken = exclamationToken;
+        this.AdjustFlagsAndWidth(content);
+        this.content = content;
         this.AdjustFlagsAndWidth(endOfDirectiveToken);
         this.endOfDirectiveToken = endOfDirectiveToken;
         this.isActive = isActive;
     }
 
-    internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
+    internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive, SyntaxFactoryContext context)
       : base(kind)
     {
         this.SetFactoryContext(context);
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
         this.AdjustFlagsAndWidth(exclamationToken);
         this.exclamationToken = exclamationToken;
+        this.AdjustFlagsAndWidth(content);
+        this.content = content;
         this.AdjustFlagsAndWidth(endOfDirectiveToken);
         this.endOfDirectiveToken = endOfDirectiveToken;
         this.isActive = isActive;
     }
 
-    internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    internal ShebangDirectiveTriviaSyntax(SyntaxKind kind, SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
       : base(kind)
     {
-        this.SlotCount = 3;
+        this.SlotCount = 4;
         this.AdjustFlagsAndWidth(hashToken);
         this.hashToken = hashToken;
         this.AdjustFlagsAndWidth(exclamationToken);
         this.exclamationToken = exclamationToken;
+        this.AdjustFlagsAndWidth(content);
+        this.content = content;
         this.AdjustFlagsAndWidth(endOfDirectiveToken);
         this.endOfDirectiveToken = endOfDirectiveToken;
         this.isActive = isActive;
@@ -27145,6 +27152,7 @@ internal sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSynt
 
     public override SyntaxToken HashToken => this.hashToken;
     public SyntaxToken ExclamationToken => this.exclamationToken;
+    public SyntaxToken Content => this.content;
     public override SyntaxToken EndOfDirectiveToken => this.endOfDirectiveToken;
     public override bool IsActive => this.isActive;
 
@@ -27153,7 +27161,8 @@ internal sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSynt
         {
             0 => this.hashToken,
             1 => this.exclamationToken,
-            2 => this.endOfDirectiveToken,
+            2 => this.content,
+            3 => this.endOfDirectiveToken,
             _ => null,
         };
 
@@ -27162,11 +27171,11 @@ internal sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSynt
     public override void Accept(CSharpSyntaxVisitor visitor) => visitor.VisitShebangDirectiveTrivia(this);
     public override TResult Accept<TResult>(CSharpSyntaxVisitor<TResult> visitor) => visitor.VisitShebangDirectiveTrivia(this);
 
-    public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    public ShebangDirectiveTriviaSyntax Update(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
     {
-        if (hashToken != this.HashToken || exclamationToken != this.ExclamationToken || endOfDirectiveToken != this.EndOfDirectiveToken)
+        if (hashToken != this.HashToken || exclamationToken != this.ExclamationToken || content != this.Content || endOfDirectiveToken != this.EndOfDirectiveToken)
         {
-            var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
+            var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, content, endOfDirectiveToken, isActive);
             var diags = GetDiagnostics();
             if (diags?.Length > 0)
                 newNode = newNode.WithDiagnosticsGreen(diags);
@@ -27180,10 +27189,10 @@ internal sealed partial class ShebangDirectiveTriviaSyntax : DirectiveTriviaSynt
     }
 
     internal override GreenNode SetDiagnostics(DiagnosticInfo[]? diagnostics)
-        => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
+        => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.content, this.endOfDirectiveToken, this.isActive, diagnostics, GetAnnotations());
 
     internal override GreenNode SetAnnotations(SyntaxAnnotation[]? annotations)
-        => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
+        => new ShebangDirectiveTriviaSyntax(this.Kind, this.hashToken, this.exclamationToken, this.content, this.endOfDirectiveToken, this.isActive, GetDiagnostics(), annotations);
 }
 
 internal sealed partial class IgnoredDirectiveTriviaSyntax : DirectiveTriviaSyntax
@@ -28663,7 +28672,7 @@ internal partial class CSharpSyntaxRewriter : CSharpSyntaxVisitor<CSharpSyntaxNo
         => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.LoadKeyword), (SyntaxToken)Visit(node.File), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
 
     public override CSharpSyntaxNode VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
-        => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.ExclamationToken), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
+        => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.ExclamationToken), (SyntaxToken)Visit(node.Content), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
 
     public override CSharpSyntaxNode VisitIgnoredDirectiveTrivia(IgnoredDirectiveTriviaSyntax node)
         => node.Update((SyntaxToken)Visit(node.HashToken), (SyntaxToken)Visit(node.ColonToken), (SyntaxToken)Visit(node.Content), (SyntaxToken)Visit(node.EndOfDirectiveToken), node.IsActive);
@@ -34029,18 +34038,20 @@ internal partial class ContextAwareSyntax
         return new LoadDirectiveTriviaSyntax(SyntaxKind.LoadDirectiveTrivia, hashToken, loadKeyword, file, endOfDirectiveToken, isActive, this.context);
     }
 
-    public ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    public ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
     {
 #if DEBUG
         if (hashToken == null) throw new ArgumentNullException(nameof(hashToken));
         if (hashToken.Kind != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
         if (exclamationToken == null) throw new ArgumentNullException(nameof(exclamationToken));
         if (exclamationToken.Kind != SyntaxKind.ExclamationToken) throw new ArgumentException(nameof(exclamationToken));
+        if (content == null) throw new ArgumentNullException(nameof(content));
+        if (content.Kind != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(content));
         if (endOfDirectiveToken == null) throw new ArgumentNullException(nameof(endOfDirectiveToken));
         if (endOfDirectiveToken.Kind != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
 #endif
 
-        return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive, this.context);
+        return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, content, endOfDirectiveToken, isActive, this.context);
     }
 
     public IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive)
@@ -39451,18 +39462,20 @@ internal static partial class SyntaxFactory
         return new LoadDirectiveTriviaSyntax(SyntaxKind.LoadDirectiveTrivia, hashToken, loadKeyword, file, endOfDirectiveToken, isActive);
     }
 
-    public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken endOfDirectiveToken, bool isActive)
+    public static ShebangDirectiveTriviaSyntax ShebangDirectiveTrivia(SyntaxToken hashToken, SyntaxToken exclamationToken, SyntaxToken content, SyntaxToken endOfDirectiveToken, bool isActive)
     {
 #if DEBUG
         if (hashToken == null) throw new ArgumentNullException(nameof(hashToken));
         if (hashToken.Kind != SyntaxKind.HashToken) throw new ArgumentException(nameof(hashToken));
         if (exclamationToken == null) throw new ArgumentNullException(nameof(exclamationToken));
         if (exclamationToken.Kind != SyntaxKind.ExclamationToken) throw new ArgumentException(nameof(exclamationToken));
+        if (content == null) throw new ArgumentNullException(nameof(content));
+        if (content.Kind != SyntaxKind.StringLiteralToken) throw new ArgumentException(nameof(content));
         if (endOfDirectiveToken == null) throw new ArgumentNullException(nameof(endOfDirectiveToken));
         if (endOfDirectiveToken.Kind != SyntaxKind.EndOfDirectiveToken) throw new ArgumentException(nameof(endOfDirectiveToken));
 #endif
 
-        return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, endOfDirectiveToken, isActive);
+        return new ShebangDirectiveTriviaSyntax(SyntaxKind.ShebangDirectiveTrivia, hashToken, exclamationToken, content, endOfDirectiveToken, isActive);
     }
 
     public static IgnoredDirectiveTriviaSyntax IgnoredDirectiveTrivia(SyntaxToken hashToken, SyntaxToken colonToken, SyntaxToken? content, SyntaxToken endOfDirectiveToken, bool isActive)
