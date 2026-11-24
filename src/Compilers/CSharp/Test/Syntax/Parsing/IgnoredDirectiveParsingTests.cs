@@ -189,6 +189,30 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         AssertEx.Equal("#!updated", updatedLegacy.ToFullString());
         AssertEx.Equal("updated", updatedLegacy.Content.ToString());
         Assert.True(updatedLegacy.HasAnnotation(annotation));
+
+        var withRealLeadingTrivia = SyntaxFactory.ShebangDirectiveTrivia(
+            SyntaxFactory.Token(SyntaxKind.HashToken),
+            SyntaxFactory.Token(SyntaxKind.ExclamationToken),
+            SyntaxFactory.Token(default, SyntaxKind.StringLiteralToken, "content", "content", default),
+            SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken).WithLeadingTrivia(SyntaxFactory.Whitespace(" ")),
+            isActive: true);
+        Assert.Same(
+            withRealLeadingTrivia,
+            withRealLeadingTrivia.Update(
+                withRealLeadingTrivia.HashToken,
+                withRealLeadingTrivia.ExclamationToken,
+                withRealLeadingTrivia.EndOfDirectiveToken,
+                withRealLeadingTrivia.IsActive));
+
+        var exclamationAnnotation = new SyntaxAnnotation();
+        var updatedExclamation = withRealLeadingTrivia.ExclamationToken.WithAdditionalAnnotations(exclamationAnnotation);
+        var updatedWithRealLeadingTrivia = withRealLeadingTrivia.Update(
+            withRealLeadingTrivia.HashToken,
+            updatedExclamation,
+            withRealLeadingTrivia.EndOfDirectiveToken,
+            withRealLeadingTrivia.IsActive);
+        AssertEx.Equal("content", updatedWithRealLeadingTrivia.Content.ToString());
+        Assert.True(updatedWithRealLeadingTrivia.ExclamationToken.HasAnnotation(exclamationAnnotation));
     }
 
     [Theory, CombinatorialData]
