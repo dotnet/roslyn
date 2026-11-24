@@ -28,6 +28,8 @@ internal class FSharpSourceReferenceItem
     /// <summary>
     /// A reference whose line is already classified, so the window that lists it need not classify it.
     /// </summary>
+    /// <param name="definition">The definition that the reference refers to.</param>
+    /// <param name="sourceSpan">The document and the span of the reference.</param>
     /// <param name="classifiedSpans">The classified text of the line that holds <paramref name="sourceSpan"/>, from its
     /// first non-whitespace character to its end, with every character covered.</param>
     /// <param name="highlightSpan">The reference within that line, relative to the start of the first classified
