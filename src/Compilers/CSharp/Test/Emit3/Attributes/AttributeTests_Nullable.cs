@@ -1991,13 +1991,19 @@ union U(string?[], string?);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor);
 
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 // union U(string?[], string?);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "U").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 7),
                 // (4,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
                 // union U(string?[], string?);
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "U").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(4, 7),
+                // (4,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // union U(string?[], string?);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string?[]").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 9),
+                // (4,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // union U(string?[], string?);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 20),
                 // (99900,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
                 //     public interface IUnion
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "IUnion").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(99900, 22),
@@ -2040,8 +2046,8 @@ class C3;
         C1! value
     U(C2! value)
         C2! value
-    U(C3? value)
-        [Nullable(2)] C3? value
+    [NullableContext(2)] U(C3? value)
+        C3? value
     [Nullable(2)] readonly System.Object? Value { get; }
         [NullableContext(2)] readonly System.Object? Value.get
 [NullableContext(2)] System.Runtime.CompilerServices.IUnion
@@ -2074,7 +2080,7 @@ class C3;
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_NullableContextAttribute__ctor);
 
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
                 // union U(string[], string, C1, C2, C3?)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "U").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(4, 7),
@@ -2084,6 +2090,24 @@ class C3;
                 // (4,7): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
                 // union U(string[], string, C1, C2, C3?)
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "U").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(4, 7),
+                // (4,9): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // union U(string[], string, C1, C2, C3?)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string[]").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 9),
+                // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // union U(string[], string, C1, C2, C3?)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 19),
+                // (4,27): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // union U(string[], string, C1, C2, C3?)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C1").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 27),
+                // (4,31): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // union U(string[], string, C1, C2, C3?)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C2").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 31),
+                // (4,35): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableContextAttribute' is not defined or imported
+                // union U(string[], string, C1, C2, C3?)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C3?").WithArguments("System.Runtime.CompilerServices.NullableContextAttribute").WithLocation(4, 35),
+                // (4,35): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
+                // union U(string[], string, C1, C2, C3?)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C3?").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(4, 35),
                 // (6,23): error CS0518: Predefined type 'System.Runtime.CompilerServices.NullableAttribute' is not defined or imported
                 //     static void Test1(string str){}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "string str").WithArguments("System.Runtime.CompilerServices.NullableAttribute").WithLocation(6, 23),

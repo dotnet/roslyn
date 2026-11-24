@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 or SynthesizedRecordCopyCtor
                 or SynthesizedInteractiveInitializerMethod
                 or SynthesizedSubmissionConstructor);
+            Debug.Assert(this is not SynthesizedMethodBaseSymbol);
 
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
@@ -33,7 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SynthesizedUnionCtor:
                     checkParameterConstraints = true;
+                    checkParameterAttributes = true;
                     checkCheckEffectiveAccessibilityAndFileTypes = true;
+                    checkNullableContextAttribute = true;
                     break;
 
                 case SynthesizedInstanceConstructor:
@@ -65,6 +68,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 checkReturnConstraints = true;
                                 checkParameterConstraints = true;
                                 checkCheckEffectiveAccessibilityAndFileTypes = true;
+                                break;
+
+                            case SourcePropertyAccessorSymbol:
+                            case SourceEventAccessorSymbol:
+                            case SourceDelegateMethodSymbol:
+                            case SourceDestructorSymbol:
+                            case SynthesizedSimpleProgramEntryPointSymbol:
+                                break;
+
+                            default:
+                                ExceptionUtilities.UnexpectedValue(this);
                                 break;
                         }
                     }

@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -15,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         private readonly int _memberOffset;
         private readonly SyntaxReference _typeSyntax;
+        private StrongBox<byte?>? _lazyNullableContext;
 
         public SynthesizedUnionCtor(
             SourceMemberContainerTypeSymbol containingType,
@@ -76,6 +79,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = this.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+        }
+
+        internal override byte? GetLocalNullableContextValue()
+        {
+            if (_lazyNullableContext is null)
+            {
+                byte? nullableContext = SourceMemberMethodSymbol.ComputeNullableContextValue(this);
+                Interlocked.CompareExchange(ref _lazyNullableContext, new StrongBox<byte?>(nullableContext), comparand: null);
+            }
+
+            return _lazyNullableContext.Value;
         }
 
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
