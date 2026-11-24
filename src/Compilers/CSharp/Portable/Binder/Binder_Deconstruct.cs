@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? mergedTupleType = MakeMergedTupleType(checkedVariables, (BoundTupleLiteral)boundRHS, syntax, hadErrors ? null : diagnostics);
                 if ((object?)mergedTupleType != null)
                 {
-                    boundRHS = GenerateConversionForAssignment(isInUnsafeRegion: InUnsafeRegion, mergedTupleType, boundRHS, diagnostics);
+                    boundRHS = GenerateConversionForAssignment(mergedTupleType, boundRHS, diagnostics);
                 }
             }
             else if ((object?)boundRHS.Type == null)
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         var operandPlaceholder = new BoundValuePlaceholder(syntax, isInUnsafeRegion: InUnsafeRegion, tupleOrDeconstructedTypes[i]).MakeCompilerGenerated();
-                        nestedConversions.Add((operandPlaceholder, CreateConversion(isInUnsafeRegion: InUnsafeRegion, syntax, operandPlaceholder,
+                        nestedConversions.Add((operandPlaceholder, CreateConversion(syntax, operandPlaceholder,
                                                                                     nestedConversion, isCast: false, conversionGroupOpt: null, InConversionGroupFlags.Unspecified, single.Type, diagnostics)));
                     }
                 }

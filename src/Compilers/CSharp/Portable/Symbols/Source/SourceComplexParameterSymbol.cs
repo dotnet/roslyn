@@ -410,8 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (Type.IsNullableType())
                 {
-                    convertedExpression = binder.GenerateConversionForAssignment(isInUnsafeRegion: binder.InUnsafeRegion,
-                        Type.GetNullableUnderlyingType(),
+                    convertedExpression = binder.GenerateConversionForAssignment(Type.GetNullableUnderlyingType(),
                         valueBeforeConversion, diagnostics, Binder.ConversionForAssignmentFlags.DefaultParameter);
                 }
             }
@@ -1637,7 +1636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
 
                             if (!binder.HasCollectionExpressionApplicableConstructor(
-                                    binder.InUnsafeRegion, withElement: null, syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
+                                    withElement: null, syntax, Type, out MethodSymbol? constructor, isExpanded: out _, diagnostics, isParamsModifierValidation: true))
                             {
                                 return;
                             }
@@ -1707,7 +1706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 return;
                             }
 
-                            binder.CheckCollectionBuilderMethod(binder.InUnsafeRegion, syntax, collectionBuilderMethod, diagnostics);
+                            binder.CheckCollectionBuilderMethod(syntax, collectionBuilderMethod, diagnostics);
 
                             if (ContainingSymbol.ContainingSymbol is NamedTypeSymbol) // No need to check for lambdas or local function
                             {
