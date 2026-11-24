@@ -895,6 +895,21 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Gerar é Igual a(...)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_PrintMembers">
+        <source>Generate PrintMembers(...)</source>
+        <target state="new">Generate PrintMembers(...)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_ToString">
+        <source>Generate ToString()</source>
+        <target state="new">Generate ToString()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_ToString_and_PrintMembers">
+        <source>Generate ToString() and PrintMembers(...)</source>
+        <target state="new">Generate ToString() and PrintMembers(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Gerar operadores de comparação</target>

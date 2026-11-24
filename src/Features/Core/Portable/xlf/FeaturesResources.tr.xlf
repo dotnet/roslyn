@@ -895,6 +895,21 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Equals(...) oluştur</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_PrintMembers">
+        <source>Generate PrintMembers(...)</source>
+        <target state="new">Generate PrintMembers(...)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_ToString">
+        <source>Generate ToString()</source>
+        <target state="new">Generate ToString()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_ToString_and_PrintMembers">
+        <source>Generate ToString() and PrintMembers(...)</source>
+        <target state="new">Generate ToString() and PrintMembers(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Karşılaştırma işleçlerini oluştur</target>
