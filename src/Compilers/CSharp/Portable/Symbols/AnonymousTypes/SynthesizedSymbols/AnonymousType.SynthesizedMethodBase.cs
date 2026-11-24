@@ -233,6 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
+
+            protected sealed override Location ReturnTypeLocation => Location.None;
         }
     }
 }

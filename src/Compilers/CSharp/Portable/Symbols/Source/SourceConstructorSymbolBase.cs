@@ -68,9 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
             }
 
-            this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
-            this.CheckFileTypeUsage(_lazyReturnType, _lazyParameters, diagnostics);
-
             if (this.IsVararg && (IsGenericMethod || ContainingType.IsGenericType || _lazyParameters.Length > 0 && _lazyParameters[_lazyParameters.Length - 1].IsParams))
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
@@ -86,21 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
-            var compilation = DeclaringCompilation;
-            ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureParamCollectionAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, diagnostics, modifyCompilation: true);
-            ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, diagnostics, modifyCompilation: true);
-
-            foreach (var parameter in this.Parameters)
-            {
-                parameter.Type.CheckAllConstraints(compilation, conversions, parameter.GetFirstLocation(), diagnostics);
-            }
-
             PartialConstructorChecks(diagnostics);
         }
+
+        protected sealed override Location ReturnTypeLocation => GetFirstLocation();
 
         protected virtual void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
         {

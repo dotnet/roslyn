@@ -116,5 +116,7 @@ internal sealed class SynthesizedEmbeddedAttributePropertySymbol : PropertySymbo
         internal override IEnumerable<SecurityAttribute>? GetSecurityInformation() => null;
         internal override bool IsMetadataNewSlot(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
         internal override bool IsMetadataVirtual(ModuleSymbol? context, bool ignoreInterfaceImplementationChanges = false) => false;
+
+        protected sealed override Location ReturnTypeLocation => Location.None;
     }
 }

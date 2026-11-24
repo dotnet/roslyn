@@ -83,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
             TypeSymbol parameterType = this.Parameters[0].Type;
-            parameterType.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
 
             if (!parameterType.IsErrorType())
             {

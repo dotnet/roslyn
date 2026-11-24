@@ -348,77 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             flags = modifiersAndFlags.flags;
         }
 
-        protected void CheckEffectiveAccessibility(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
-        {
-            if (this.DeclaredAccessibility <= Accessibility.Private || MethodKind == MethodKind.ExplicitInterfaceImplementation)
-            {
-                return;
-            }
-
-            ErrorCode code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
-                ErrorCode.ERR_BadVisOpReturn :
-                ErrorCode.ERR_BadVisReturnType;
-
-            var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
-            if (!this.IsNoMoreVisibleThan(returnType, ref useSiteInfo))
-            {
-                // Inconsistent accessibility: return type '{1}' is less accessible than method '{0}'
-                diagnostics.Add(code, GetFirstLocation(), this, returnType.Type);
-            }
-
-            code = (this.MethodKind == MethodKind.Conversion || this.MethodKind == MethodKind.UserDefinedOperator) ?
-                ErrorCode.ERR_BadVisOpParam :
-                ErrorCode.ERR_BadVisParamType;
-
-            foreach (var parameter in parameters)
-            {
-                if (!parameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
-                {
-                    // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, GetFirstLocation(), this, parameter.Type);
-                }
-            }
-
-            if (this.IsExtensionBlockMember() && ContainingType.ExtensionParameter is { } extensionParameter)
-            {
-                if (!extensionParameter.TypeWithAnnotations.IsAtLeastAsVisibleAs(this, ref useSiteInfo))
-                {
-                    // Inconsistent accessibility: parameter type '{1}' is less accessible than method '{0}'
-                    diagnostics.Add(code, GetFirstLocation(), this, extensionParameter.Type);
-                }
-            }
-
-            diagnostics.Add(GetFirstLocation(), useSiteInfo);
-        }
-
-        protected void CheckFileTypeUsage(TypeWithAnnotations returnType, ImmutableArray<ParameterSymbol> parameters, BindingDiagnosticBag diagnostics)
-        {
-            NamedTypeSymbol containingType = ContainingType;
-
-            if (containingType is { IsExtension: true, ContainingType: { } enclosing })
-            {
-                containingType = enclosing;
-            }
-
-            if (containingType.HasFileLocalTypes())
-            {
-                return;
-            }
-
-            if (returnType.Type.HasFileLocalTypes())
-            {
-                diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), returnType.Type, containingType);
-            }
-
-            foreach (var param in parameters)
-            {
-                if (param.Type.HasFileLocalTypes())
-                {
-                    diagnostics.Add(ErrorCode.ERR_FileTypeDisallowedInSignature, GetFirstLocation(), param.Type, containingType);
-                }
-            }
-        }
-
         protected static Flags MakeFlags(
             MethodKind methodKind,
             RefKind refKind,
@@ -1005,13 +934,6 @@ done:
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            var compilation = this.DeclaringCompilation;
-
-            if (IsDeclaredReadOnly && !ContainingType.IsReadOnly)
-            {
-                compilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilation: true);
-            }
-
             if (ContainingModule.UseUpdatedMemorySafetyRules && AssociatedSymbol is null && IsExtern && !HasUnsafeModifier && !HasSafeModifier)
             {
                 diagnostics.Add(ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe,
@@ -1020,15 +942,9 @@ done:
 
             if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
-                compilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
+                DeclaringCompilation.EnsureRequiresUnsafeAttributeExists(diagnostics,
                     Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, _location),
                     modifyCompilation: true);
-            }
-
-            if (compilation.ShouldEmitNullableAttributes(this) &&
-                ShouldEmitNullableContextValue(out _))
-            {
-                compilation.EnsureNullableContextAttributeExists(diagnostics, _location, modifyCompilation: true);
             }
         }
 

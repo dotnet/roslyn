@@ -582,5 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var localFunction = symbol as LocalFunctionSymbol;
             return localFunction?.Syntax == Syntax;
         }
+
+        protected sealed override Location ReturnTypeLocation => Syntax.ReturnType.Location;
     }
 }

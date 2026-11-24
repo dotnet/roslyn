@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A base class for synthesized methods that might want a this parameter.
     /// </summary>
-    internal abstract class SynthesizedMethodSymbol : MethodSymbol
+    internal abstract class SynthesizedMethodSymbol : SourceOrSynthesizedMethodSymbol
     {
         private ParameterSymbol _lazyThisParameter;
 

@@ -50864,6 +50864,70 @@ union U2(U1, U2);
             VerifyCaseTypes(comp, "U2", ["U1", "U2"]);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86583")]
+        public void UnionDeclaration_45_InconsistentAccessibility()
+        {
+            var source = """
+public union Outer1(Outer1.Inner)
+{
+    private class Inner;
+}
+
+public union U2(Internal);
+
+class Internal;
+
+union U3(Internal);
+
+union Outer4(Outer4.Inner)
+{
+    private class Inner;
+}
+
+union Outer5(Outer5.Inner)
+{
+    internal class Inner;
+}
+
+public union Outer6(Outer6.Inner)
+{
+    public class Inner;
+}
+""";
+
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (1,21): error CS0051: Inconsistent accessibility: parameter type 'Outer1.Inner' is less accessible than method 'Outer1.Outer1(Outer1.Inner)'
+                // public union Outer1(Outer1.Inner)
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Outer1.Inner").WithArguments("Outer1.Outer1(Outer1.Inner)", "Outer1.Inner").WithLocation(1, 21),
+                // (6,17): error CS0051: Inconsistent accessibility: parameter type 'Internal' is less accessible than method 'U2.U2(Internal)'
+                // public union U2(Internal);
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Internal").WithArguments("U2.U2(Internal)", "Internal").WithLocation(6, 17),
+                // (12,14): error CS0051: Inconsistent accessibility: parameter type 'Outer4.Inner' is less accessible than method 'Outer4.Outer4(Outer4.Inner)'
+                // union Outer4(Outer4.Inner)
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Outer4.Inner").WithArguments("Outer4.Outer4(Outer4.Inner)", "Outer4.Inner").WithLocation(12, 14)
+                );
+        }
+
+        [Fact]
+        public void UnionDeclaration_46_FileTypes()
+        {
+            var source = """
+union U1(FileType);
+
+file class FileType;
+
+file union U2(FileType);
+""";
+
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource]);
+            comp.VerifyDiagnostics(
+                // (1,10): error CS9051: File-local type 'FileType' cannot be used in a member signature in non-file-local type 'U1'.
+                // union U1(FileType);
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "FileType").WithArguments("FileType", "U1").WithLocation(1, 10)
+                );
+        }
+
         [Fact]
         public void ValueProperty_01()
         {

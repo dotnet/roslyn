@@ -325,5 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AddRequiredMembersMarkerAttributes(ref attributes, this);
             AddClosedClassesFeatureRequiredAttribute(ref attributes, this);
         }
+
+        protected sealed override Location ReturnTypeLocation => GetFirstLocationOrNone();
     }
 }
