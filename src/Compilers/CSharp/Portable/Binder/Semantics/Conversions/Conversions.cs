@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
             return ClassifyImplicitConversionFromExpression(
-                new BoundValuePlaceholder(element.Syntax, isInUnsafeRegion: element.Expression.IsInUnsafeRegion, enumeratorInfo.ElementType),
+                new BoundValuePlaceholder(element.Syntax, isInUnsafeRegion: false, enumeratorInfo.ElementType),
                 targetType,
                 ref useSiteInfo);
         }

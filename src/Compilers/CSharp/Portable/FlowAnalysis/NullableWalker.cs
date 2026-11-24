@@ -8465,7 +8465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             parameterWithState = TypeWithState.Create(parameterType.Type, adjustedState);
                         }
 
-                        var parameterValue = new BoundParameter(argument.Syntax, isInUnsafeRegion: argument.IsInUnsafeRegion, parameter);
+                        var parameterValue = new BoundParameter(argument.Syntax, isInUnsafeRegion: false, parameter);
                         var lValueType = result.LValueType;
                         trackNullableStateForAssignment(receiverType, parameterValue, lValueType, MakeSlot(argument), parameterWithState, argument.IsSuppressed, parameterAnnotations, refKind, parameter);
 
@@ -8505,7 +8505,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // track state by assigning from a fictional value from the parameter to the argument.
-                        var parameterValue = new BoundParameter(argument.Syntax, isInUnsafeRegion: argument.IsInUnsafeRegion, parameter);
+                        var parameterValue = new BoundParameter(argument.Syntax, isInUnsafeRegion: false, parameter);
 
                         // If the argument type has annotations, we perform an additional check for nullable value types
                         CheckDisallowedNullAssignment(parameterWithState, leftAnnotations, argument.Syntax);
@@ -9767,7 +9767,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundValueForNullableAnalysis allocateNewBoundValueForNullableAnalysis(BoundExpression convertedNode, TypeWithState valueFieldType)
             {
-                return new BoundValueForNullableAnalysis(convertedNode.Syntax, isInUnsafeRegion: convertedNode.IsInUnsafeRegion, originalExpression: null, valueFieldType.Type);
+                return new BoundValueForNullableAnalysis(convertedNode.Syntax, isInUnsafeRegion: false, originalExpression: null, valueFieldType.Type);
             }
         }
 

@@ -2152,7 +2152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     member.ContainingType,
                                     parameterTypes,
                                     parameterRefKinds,
-                                    ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, isInUnsafeRegion: addMethodBinder.InUnsafeRegion, secondArgumentType) { WasCompilerGenerated = true }),
+                                    ImmutableArray.Create<BoundExpression>(methodGroup.ReceiverOpt, new BoundValuePlaceholder(syntax, isInUnsafeRegion: false, secondArgumentType) { WasCompilerGenerated = true }),
                                     ref useSiteInfo);
 
                                 if (!inferenceResult.Success)
@@ -2200,7 +2200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 member.ContainingType,
                                 parameterTypes,
                                 parameterRefKinds,
-                                ImmutableArray.Create<BoundExpression>(new BoundValuePlaceholder(syntax, member.Parameters[0].Type) { WasCompilerGenerated = true }),
+                                ImmutableArray.Create<BoundExpression>(new BoundValuePlaceholder(syntax, isInUnsafeRegion: false, member.Parameters[0].Type) { WasCompilerGenerated = true }),
                                 ref useSiteInfo);
 
                             if (!inferenceResult.Success)

@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var reinferrenceResult = ReInferAndVisitExtensionPropertyAccess(
                                 e,
-                                receiver: new BoundExpressionWithNullability(e.Syntax, isInUnsafeRegion: e.IsInUnsafeRegion, expression, NullableAnnotation.NotAnnotated, inputType),
+                                receiver: new BoundExpressionWithNullability(e.Syntax, isInUnsafeRegion: false, expression, NullableAnnotation.NotAnnotated, inputType),
                                 indexer,
                                 indexer.Parameters,
                                 indexerAccess.Arguments,
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var reinferenceResult = ReInferMethodAndVisitArguments(
                                 e,
-                                receiverOpt: new BoundExpressionWithNullability(e.Syntax, isInUnsafeRegion: e.IsInUnsafeRegion, expression, NullableAnnotation.NotAnnotated, inputType),
+                                receiverOpt: new BoundExpressionWithNullability(e.Syntax, isInUnsafeRegion: false, expression, NullableAnnotation.NotAnnotated, inputType),
                                 receiverType: TypeWithState.Create(inputType, NullableFlowState.NotNull),
                                 call.Method,
                                 call.Arguments,
