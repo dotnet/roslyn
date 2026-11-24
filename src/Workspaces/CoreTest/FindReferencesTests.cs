@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -112,6 +113,31 @@ public sealed class FindReferencesTests : TestBase
         var result = (await SymbolFinder.FindReferencesAsync(symbol, solution)).ToList();
         Assert.Equal(1, result.Count); // 1 symbol found
         Assert.Equal(3, result[0].Locations.Count()); // 3 locations found
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86613")]
+    public async Task FindOverrideReferences_ProjectWithUnresolvedAnalyzerReference()
+    {
+        var text = """
+            public class C
+            {
+                public override string ToString() => "C";
+                public string M() => ToString();
+            }
+            """;
+        using var workspace = CreateWorkspace();
+        var solution = GetSingleDocumentSolution(workspace, text);
+        var projectId = solution.ProjectIds.Single();
+
+        // What MSBuildWorkspace produces for an analyzer path that does not exist on disk.
+        solution = solution.AddAnalyzerReference(projectId, new UnresolvedAnalyzerReference("DoesNotExist.dll"));
+
+        var compilation = await solution.GetProject(projectId).GetCompilationAsync();
+        var symbol = compilation.GetTypeByMetadataName("C").GetMembers("ToString").Single();
+
+        var result = await SymbolFinder.FindReferencesAsync(symbol, solution);
+        var references = result.Single(r => r.Definition.Equals(symbol));
+        Assert.Single(references.Locations);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82471")]

@@ -88,6 +88,15 @@ internal partial class SerializerService
                     writer.WriteGuid(analyzerReferenceWithGuid.Guid);
                     break;
 
+                case UnresolvedAnalyzerReference unresolvedReference:
+                    // Produced for an analyzer path that does not exist on disk (e.g. by MSBuildWorkspace before a
+                    // generator project has been built).  It contributes no analyzers, but it is still part of the
+                    // project, so mix in its path.  The type name keeps its checksum distinct from an
+                    // AnalyzerFileReference to the same path, so replacing one with the other changes the checksum.
+                    writer.WriteString(nameof(UnresolvedAnalyzerReference));
+                    writer.WriteString(unresolvedReference.FullPath);
+                    break;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(reference);
             }
