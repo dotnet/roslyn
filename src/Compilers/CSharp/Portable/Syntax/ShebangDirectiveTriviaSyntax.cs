@@ -16,7 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             if (endOfDirectiveToken.HasLeadingTrivia)
             {
-                return SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
+                var newNode = SyntaxFactory.ShebangDirectiveTrivia(hashToken, exclamationToken, endOfDirectiveToken, isActive);
+                var annotations = GetAnnotations();
+                return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
             }
 
             return Update(hashToken, exclamationToken, this.Content, endOfDirectiveToken, isActive);

@@ -179,13 +179,16 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
         Assert.Empty(legacy.EndOfDirectiveToken.LeadingTrivia);
         Assert.Same(legacy, legacy.Update(legacy.HashToken, legacy.ExclamationToken, legacy.EndOfDirectiveToken, legacy.IsActive));
 
-        var updatedLegacy = legacy.Update(
-            legacy.HashToken,
-            legacy.ExclamationToken,
+        var annotation = new SyntaxAnnotation();
+        var annotatedLegacy = legacy.WithAdditionalAnnotations(annotation);
+        var updatedLegacy = annotatedLegacy.Update(
+            annotatedLegacy.HashToken,
+            annotatedLegacy.ExclamationToken,
             SyntaxFactory.Token(SyntaxKind.EndOfDirectiveToken).WithLeadingTrivia(SyntaxFactory.PreprocessingMessage("updated")),
-            legacy.IsActive);
+            annotatedLegacy.IsActive);
         AssertEx.Equal("#!updated", updatedLegacy.ToFullString());
         AssertEx.Equal("updated", updatedLegacy.Content.ToString());
+        Assert.True(updatedLegacy.HasAnnotation(annotation));
     }
 
     [Theory, CombinatorialData]
