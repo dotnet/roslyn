@@ -167,6 +167,11 @@ internal partial class SerializerService
                 writer.WriteGuid(guid);
                 break;
 
+            case UnresolvedAnalyzerReference unresolvedReference:
+                writer.WriteString(nameof(UnresolvedAnalyzerReference));
+                writer.WriteString(unresolvedReference.FullPath);
+                break;
+
             default:
                 throw ExceptionUtilities.UnexpectedValue(reference);
         }
@@ -183,6 +188,9 @@ internal partial class SerializerService
                 var guid = reader.ReadGuid();
                 Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceFromGuid(guid, out var analyzerImageReference));
                 return analyzerImageReference;
+
+            case nameof(UnresolvedAnalyzerReference):
+                return new UnresolvedAnalyzerReference(reader.ReadRequiredString());
 
             case var type:
                 throw ExceptionUtilities.UnexpectedValue(type);

@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -115,8 +116,8 @@ public sealed class FindReferencesTests : TestBase
         Assert.Equal(3, result[0].Locations.Count()); // 3 locations found
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86613")]
-    public async Task FindOverrideReferences_ProjectWithUnresolvedAnalyzerReference()
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86613")]
+    public async Task FindOverrideReferences_ProjectWithUnresolvedAnalyzerReference(TestHost testHost)
     {
         var text = """
             public class C
@@ -125,7 +126,9 @@ public sealed class FindReferencesTests : TestBase
                 public string M() => ToString();
             }
             """;
-        using var workspace = CreateWorkspace();
+
+        // Out of process, the solution (and so the unresolved reference) is serialized to the remote host.
+        using var workspace = new AdhocWorkspace(FeaturesTestCompositions.Features.WithTestHostParts(testHost).GetHostServices());
         var solution = GetSingleDocumentSolution(workspace, text);
         var projectId = solution.ProjectIds.Single();
 
