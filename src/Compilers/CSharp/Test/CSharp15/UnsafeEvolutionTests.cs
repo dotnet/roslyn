@@ -6815,6 +6815,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     var concatenated = unsafe($"{1}" + $"{2}");
                     _ = single;
                     _ = concatenated;
+                    _ = unsafe($"{1}") + unsafe($"{2}");
+                    _ = unsafe($"{1}" + $"{2}") + unsafe($"{3}");
                 }
             }
 
@@ -6833,6 +6835,39 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation([source, InterpolatedStringHandlerAttribute], options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_Context_NaturalInterpolatedString_MixedConcatenation()
+    {
+        var source = """
+            class C
+            {
+                static string M(string text) => unsafe($"{1}") + $"{text}";
+                static string N(string text) => $"{text}" + unsafe($"{1}");
+                static string O(string text) => $"{1}" + unsafe($"{text}");
+                static string P(string text) => $"{text}" + unsafe($"{1}") + $"{text}";
+            }
+
+            namespace System.Runtime.CompilerServices
+            {
+                [InterpolatedStringHandler]
+                public struct DefaultInterpolatedStringHandler
+                {
+                    public DefaultInterpolatedStringHandler(int literalLength, int formattedCount) { }
+                    public unsafe void AppendFormatted(int value) { }
+                    public void AppendFormatted(string value) { }
+                    public void AppendLiteral(string value) { }
+                    public string ToStringAndClear() => "";
+                }
+            }
+            """;
+
+        CreateCompilation([source, InterpolatedStringHandlerAttribute], options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (5,39): error CS9362: 'DefaultInterpolatedStringHandler.AppendFormatted(int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static string O(string text) => $"{1}" + unsafe($"{text}");
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "{1}").WithArguments("System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(int)").WithLocation(5, 39));
     }
 
     [Fact]

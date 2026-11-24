@@ -472,15 +472,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             var partsArrayBuilder = ArrayBuilder<ImmutableArray<BoundExpression>>.GetInstance();
 
             if (!binaryOperator.VisitBinaryOperatorInterpolatedString(
-                    partsArrayBuilder,
-                    static (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, ArrayBuilder<ImmutableArray<BoundExpression>> partsArrayBuilder) =>
+                    (Builder: partsArrayBuilder, IsInUnsafeRegion: InUnsafeRegion),
+                    static (BoundUnconvertedInterpolatedString unconvertedInterpolatedString, (ArrayBuilder<ImmutableArray<BoundExpression>> Builder, bool IsInUnsafeRegion) arg) =>
                     {
-                        if (!InterpolatedStringPartsAreValidInDefaultHandler(unconvertedInterpolatedString))
+                        if (unconvertedInterpolatedString.IsInUnsafeRegion != arg.IsInUnsafeRegion ||
+                            !InterpolatedStringPartsAreValidInDefaultHandler(unconvertedInterpolatedString))
                         {
                             return false;
                         }
 
-                        partsArrayBuilder.Add(unconvertedInterpolatedString.Parts);
+                        arg.Builder.Add(unconvertedInterpolatedString.Parts);
                         return true;
                     }))
             {
