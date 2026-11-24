@@ -50,12 +50,12 @@ internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
 
     // The key RoslynNavigateToItem builds for C# and VB results, so that equal F# results sort the same way.
     private static string ComputeSecondarySort(FSharpNavigateToSearchResult result, INavigableItem.NavigableDocument itemDocument, Document activeDocument)
-        => string.Join(" ", [
+        => string.Join(" ",
             ComputeFolderDistance(itemDocument, activeDocument).ToString("X4"),
             result.ParameterCount.ToString("X4"),
             result.TypeParameterCount.ToString("X4"),
             result.Name,
-            .. Path.GetFileNameWithoutExtension(itemDocument.FilePath ?? "").Split('.')]);
+            Path.GetFileNameWithoutExtension(itemDocument.FilePath ?? "").Replace('.', ' '));
 
     private static int ComputeFolderDistance(INavigableItem.NavigableDocument itemDocument, Document activeDocument)
     {
