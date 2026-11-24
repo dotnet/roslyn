@@ -213,6 +213,25 @@ public sealed class IgnoredDirectiveParsingTests(ITestOutputHelper output) : Par
             withRealLeadingTrivia.IsActive);
         AssertEx.Equal("content", updatedWithRealLeadingTrivia.Content.ToString());
         Assert.True(updatedWithRealLeadingTrivia.ExclamationToken.HasAnnotation(exclamationAnnotation));
+
+        var endOfDirectiveAnnotation = new SyntaxAnnotation();
+        var annotatedEndOfDirective = withRealLeadingTrivia.EndOfDirectiveToken.WithAdditionalAnnotations(endOfDirectiveAnnotation);
+        var updatedEndOfDirective = withRealLeadingTrivia.Update(
+            withRealLeadingTrivia.HashToken,
+            withRealLeadingTrivia.ExclamationToken,
+            annotatedEndOfDirective,
+            withRealLeadingTrivia.IsActive);
+        AssertEx.Equal("content", updatedEndOfDirective.Content.ToString());
+        Assert.True(updatedEndOfDirective.EndOfDirectiveToken.HasAnnotation(endOfDirectiveAnnotation));
+
+        var endOfDirectiveWithNewLine = withRealLeadingTrivia.EndOfDirectiveToken.WithTrailingTrivia(SyntaxFactory.EndOfLine("\r\n"));
+        var updatedEndOfDirectiveTrivia = withRealLeadingTrivia.Update(
+            withRealLeadingTrivia.HashToken,
+            withRealLeadingTrivia.ExclamationToken,
+            endOfDirectiveWithNewLine,
+            withRealLeadingTrivia.IsActive);
+        AssertEx.Equal("content", updatedEndOfDirectiveTrivia.Content.ToString());
+        AssertEx.Equal("\r\n", updatedEndOfDirectiveTrivia.EndOfDirectiveToken.TrailingTrivia.ToString());
     }
 
     [Theory, CombinatorialData]
