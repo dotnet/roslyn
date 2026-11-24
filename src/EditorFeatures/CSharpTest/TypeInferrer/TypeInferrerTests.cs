@@ -2871,10 +2871,30 @@ class C
             }
             """, "global::Color", TestMode.Position);
 
-    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/70803")]
-    public Task TestArgumentToBaseRecordPrimaryConstructor()
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70803")]
+    public Task TestArgumentToBasePrimaryConstructor1()
         => TestAsync("""
             class Base(int Alice, int Bob);
             class Derived(int Other) : Base([||]
             """, "global::System.Int32", TestMode.Position);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70803")]
+    public Task TestArgumentToBasePrimaryConstructor2()
+        => TestAsync("""
+            class Base
+            {
+                public Base(int Alice) { }
+                public Base(int Alice, string Bob) { }
+            }
+
+            class Derived(int Other) : Base(1, [||]
+            """, "global::System.String", TestMode.Position);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70803")]
+    public Task TestArgumentToBasePrimaryConstructorNullableParameter()
+        => TestAsync("""
+            #nullable enable
+            class Base(string? Alice);
+            class Derived(int Other) : Base([||]
+            """, "global::System.String?", TestMode.Position);
 }
