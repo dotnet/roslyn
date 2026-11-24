@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool checkReturnConstraints = true;
             bool checkParameterAttributes = true;
             bool checkParameterConstraints = true;
-            bool checkNullableContextAttribute = true;
             bool checkCheckEffectiveAccessibilityAndFileTypes = true;
 
             if (this is SourceDelegateMethodSymbol.InvokeMethod) // Suppress redundant checks already performed for an associated delegate.
@@ -128,14 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ParameterHelpers.EnsureScopedRefAttributeExists(compilation, parameters, diagnostics, modifyCompilation: true);
             }
 
-            if ((checkNullableContextAttribute | checkReturnAttributes | checkParameterAttributes) && compilation.ShouldEmitNullableAttributes(this))
+            if (compilation.ShouldEmitNullableAttributes(this))
             {
-                if (checkNullableContextAttribute)
+                if (ShouldEmitNullableContextValue(out _))
                 {
-                    if (ShouldEmitNullableContextValue(out _))
-                    {
-                        compilation.EnsureNullableContextAttributeExists(diagnostics, GetFirstLocationOrNone(), modifyCompilation: true);
-                    }
+                    compilation.EnsureNullableContextAttributeExists(diagnostics, GetFirstLocationOrNone(), modifyCompilation: true);
                 }
 
                 if (checkReturnAttributes)
