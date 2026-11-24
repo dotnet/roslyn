@@ -234,12 +234,17 @@ public sealed class RemoveRedundantEqualityTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86479")]
     public async Task TestUserDefinedImplicitConversionToBool_NoDiagnostics()
     {
-        // 'record' needs C# 9; the test harness defaults to C# 8.
+        // Target-typed 'new' needs C# 9; the test harness defaults to C# 8.
         var test = new VerifyCS.Test
         {
             TestCode = """
-            public record Flag(bool IsSet)
+            public class Flag
             {
+                public bool IsSet { get; }
+
+                public Flag(bool isSet)
+                    => IsSet = isSet;
+
                 public static Flag Off => new(false);
 
                 public static implicit operator bool(Flag flag)
@@ -248,7 +253,7 @@ public sealed class RemoveRedundantEqualityTests
 
             public static class FlagUse
             {
-                // "== true" converts the record to bool: the comparison is what
+                // "== true" converts Flag to bool: the comparison is what
                 // performs the conversion, so it is not redundant.
                 public static int CompareSet(Flag flag)
                     => (flag == true).CompareTo(false);
@@ -269,12 +274,17 @@ public sealed class RemoveRedundantEqualityTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86479")]
     public async Task TestExplicitCastToBool()
     {
-        // 'record' needs C# 9; the test harness defaults to C# 8.
+        // Target-typed 'new' needs C# 9; the test harness defaults to C# 8.
         var test = new VerifyCS.Test
         {
             TestCode = """
-            public record Flag(bool IsSet)
+            public class Flag
             {
+                public bool IsSet { get; }
+
+                public Flag(bool isSet)
+                    => IsSet = isSet;
+
                 public static implicit operator bool(Flag flag)
                     => flag.IsSet;
             }
@@ -288,8 +298,13 @@ public sealed class RemoveRedundantEqualityTests
             }
             """,
             FixedCode = """
-            public record Flag(bool IsSet)
+            public class Flag
             {
+                public bool IsSet { get; }
+
+                public Flag(bool isSet)
+                    => IsSet = isSet;
+
                 public static implicit operator bool(Flag flag)
                     => flag.IsSet;
             }
