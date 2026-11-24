@@ -55,13 +55,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(isInUnsafeRegion, syntax, source, conversion, isCast: isCast, conversionGroupOpt, inConversionGroupFlags, source.WasCompilerGenerated, destination, diagnostics);
         }
 
-        /// <param name="isInUnsafeRegion">The context of new conversion operations, not of the existing operand.</param>
+        /// <param name="isInUnsafeRegion">
+        /// The context of the conversion and operations introduced to implement it, not of its existing operand.
+        /// </param>
         /// <remarks>
         /// See <see cref="BoundExpression.IsInUnsafeRegion"/> for the general unsafe-context rules.
         /// <para>
-        /// A new conversion has its own context, whether implicit or explicit.
-        /// The conversions in <c>int x = unsafe(value);</c> and <c>(int)unsafe(value)</c> are outside the unsafe expression,
-        /// while the conversion in <c>unsafe((int)value)</c> is inside it.
+        /// The context of a conversion and its constituent operations follows the
+        /// <see href="https://github.com/dotnet/csharplang/blob/5f34b502b421cc5e1a5a95af01024f5aa45362e2/proposals/unsafe-evolution.md#conversions">unsafe-expression conversion rules</see>.
+        /// </para>
+        /// <para>
         /// An elided identity conversion returns the operand without changing its context.
         /// </para>
         /// </remarks>
@@ -283,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hasErrors = true;
                     }
 
-                    source = ConvertSwitchExpression(isInUnsafeRegion, (BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
+                    source = ConvertSwitchExpression(source.IsInUnsafeRegion, (BoundUnconvertedSwitchExpression)source, type, conversionIfTargetTyped: null, diagnostics, hasErrors);
                     if (destination.Equals(type, TypeCompareKind.ConsiderEverything) && wasCompilerGenerated)
                     {
                         return source;
@@ -926,8 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = GetSpecialTypeMember(SpecialMember.System_Nullable_T__ctor, diagnostics, syntax: node.Syntax);
             }
 
-            var binder = WithUnsafeRegion(node.IsInUnsafeRegion);
-            var converter = new CollectionExpressionConverter(binder, node, targetType, conversion, diagnostics);
+            var converter = new CollectionExpressionConverter(this, node, targetType, conversion, diagnostics);
             return converter.Convert();
         }
 
@@ -949,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return new BoundCollectionExpression(
                     _node.Syntax,
-                    isInUnsafeRegion: _node.IsInUnsafeRegion,
+                    isInUnsafeRegion: _binder.InUnsafeRegion,
                     collectionTypeKind,
                     placeholder,
                     collectionCreation,
@@ -1074,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isInUnsafeRegion: _node.IsInUnsafeRegion, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
+                var implicitReceiver = new BoundObjectOrCollectionValuePlaceholder(syntax, isInUnsafeRegion: _binder.InUnsafeRegion, isNewInstance: true, _targetType) { WasCompilerGenerated = true };
 
                 var collectionCreation = bindCollectionConstructorConstruction(in this, _node.WithElement?.Syntax ?? _node.Syntax, constructor);
                 Debug.Assert(collectionCreation is BoundObjectCreationExpressionBase or BoundBadExpression);
@@ -1203,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             elementType,
                             elementConversion) :
                         _binder.CreateConversion(
-                            isInUnsafeRegion: _node.IsInUnsafeRegion,
+                            isInUnsafeRegion: _binder.InUnsafeRegion,
                             element.Syntax,
                             (BoundExpression)element,
                             elementConversion,
@@ -1226,10 +1228,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(enumeratorInfo.ElementType is { }); // ElementType is set always, even for IEnumerable.
 
                     var expressionSyntax = element.Expression.Syntax;
-                    var elementPlaceholder = new BoundValuePlaceholder(expressionSyntax, isInUnsafeRegion: element.Expression.IsInUnsafeRegion, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
+                    var elementPlaceholder = new BoundValuePlaceholder(expressionSyntax, isInUnsafeRegion: @this._binder.InUnsafeRegion, enumeratorInfo.ElementType) { WasCompilerGenerated = true };
                     elementPlaceholder = (BoundValuePlaceholder)elementPlaceholder.WithSuppression(element.Expression.IsSuppressed);
                     var convertElement = @this._binder.CreateConversion(
-                        isInUnsafeRegion: @this._node.IsInUnsafeRegion,
+                        isInUnsafeRegion: @this._binder.InUnsafeRegion,
                         expressionSyntax,
                         elementPlaceholder,
                         elementConversion,
@@ -1423,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     var methodGroup = new BoundMethodGroup(
                         syntax,
-                        isInUnsafeRegion: @this._node.IsInUnsafeRegion,
+                        isInUnsafeRegion: @this._binder.InUnsafeRegion,
                         // Intentionally no type arguments here.  Projection methods are guaranteed to not be generic so we
                         // do not want any sort of generic shenanigans to occur here.
                         typeArgumentsOpt: default,
@@ -1458,7 +1460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Now that we've settled on the actual collection builder method to call, do a final round of
                     // checks on it in case there are reasons it will have a problem.
                     var collectionBuilderMethod = underlyingMethod;
-                    @this._binder.CheckCollectionBuilderMethod(@this._node.IsInUnsafeRegion, syntax, collectionBuilderMethod, @this._diagnostics);
+                    @this._binder.CheckCollectionBuilderMethod(@this._binder.InUnsafeRegion, syntax, collectionBuilderMethod, @this._diagnostics);
 
                     // Take our successful call to the projection method and rewrite it to call the original collection
                     // builder method it was projected from. Because we don't know how the actual elements will be
@@ -1469,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // CollectionBuilder.Create<T1, T2, ..>(a, b, c, <placeholder for [x, y, z]>).
 
                     var readonlySpanParameter = collectionBuilderMethod.Parameters.Last();
-                    var collectionBuilderElementsPlaceholder = new BoundCollectionBuilderElementsPlaceholder(syntax, isInUnsafeRegion: @this._node.IsInUnsafeRegion, readonlySpanParameter.Type) { WasCompilerGenerated = true };
+                    var collectionBuilderElementsPlaceholder = new BoundCollectionBuilderElementsPlaceholder(syntax, isInUnsafeRegion: @this._binder.InUnsafeRegion, readonlySpanParameter.Type) { WasCompilerGenerated = true };
 
                     var arguments = projectionCall.Arguments;
                     var argumentNames = projectionCall.ArgumentNamesOpt;
@@ -1510,7 +1512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Wrap in a conversion if necessary.  Note that GetCollectionBuilderMethods guarantees that either
                     // return and target type are identical, or that a valid implicit conversion exists between them.
-                    var collectionCreation = @this._binder.CreateConversion(isInUnsafeRegion: @this._node.IsInUnsafeRegion, builderCall, @this._targetType, @this._diagnostics);
+                    var collectionCreation = @this._binder.CreateConversion(isInUnsafeRegion: @this._binder.InUnsafeRegion, builderCall, @this._targetType, @this._diagnostics);
 
                     overloadResolutionResult.Free();
                     analyzedArguments.Free();
@@ -2429,7 +2431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (collectionTypeKind == CollectionExpressionTypeKind.ImplementsIEnumerable)
                 {
                     if (!HasCollectionExpressionApplicableConstructor(
-                            node.IsInUnsafeRegion, node.WithElement, node.WithElement?.Syntax ?? node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
+                            InUnsafeRegion, node.WithElement, node.WithElement?.Syntax ?? node.Syntax, targetType, constructor: out _, isExpanded: out _, diagnostics))
                     {
                         reportedErrors = true;
                     }

@@ -6648,11 +6648,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public IEnumerator GetEnumerator() => null;
                 static C M() => unsafe([1]);
                 static C N() => unsafe(new());
+                static C O() => (C)unsafe([1]);
+                static C P() => unsafe((C)([1]));
             }
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
-            .VerifyEmitDiagnostics();
+            .VerifyDiagnostics(
+            // (7,28): error CS9362: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static C M() => unsafe([1]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1]").WithArguments("C.C()").WithLocation(7, 28),
+            // (7,29): error CS9362: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static C M() => unsafe([1]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(7, 29),
+            // (9,31): error CS9362: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static C O() => (C)unsafe([1]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1]").WithArguments("C.C()").WithLocation(9, 31),
+            // (9,32): error CS9362: 'C.Add(int)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static C O() => (C)unsafe([1]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "1").WithArguments("C.Add(int)").WithLocation(9, 32));
     }
 
     [Fact]
@@ -6695,8 +6709,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 {
                     var natural = unsafe(condition switch { true => a, false => 0 });
                     int targetTyped = unsafe(condition switch { true => a, false => b });
+                    long convertedNatural = unsafe(condition switch { true => a, false => 0 });
+                    long castNatural = (long)unsafe(condition switch { true => a, false => 0 });
                     _ = natural;
                     _ = targetTyped;
+                    _ = convertedNatural;
+                    _ = castNatural;
                 }
             }
             """;
@@ -6725,6 +6743,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public IEnumerator<int> GetEnumerator() => null;
                 static C M() => unsafe([1]);
                 static C N() => [unsafe(1)];
+                static C O() => (C)unsafe([1]);
+                static C P() => unsafe((C)([1]));
             }
 
             static class Builder
@@ -6735,9 +6755,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
+            // (9,28): error CS9362: 'Builder.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static C M() => unsafe([1]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1]").WithArguments("Builder.Create(System.ReadOnlySpan<int>)").WithLocation(9, 28),
             // (10,21): error CS9362: 'Builder.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe'
             //     static C N() => [unsafe(1)];
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[unsafe(1)]").WithArguments("Builder.Create(System.ReadOnlySpan<int>)").WithLocation(10, 21));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[unsafe(1)]").WithArguments("Builder.Create(System.ReadOnlySpan<int>)").WithLocation(10, 21),
+            // (11,31): error CS9362: 'Builder.Create(ReadOnlySpan<int>)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static C O() => (C)unsafe([1]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "[1]").WithArguments("Builder.Create(System.ReadOnlySpan<int>)").WithLocation(11, 31));
     }
 
     [Fact]
@@ -6749,14 +6775,32 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 public static unsafe implicit operator int(C value) => 0;
                 static int[] M(C value) => unsafe([value]);
                 static int[] N(C value) => [unsafe(value)];
+                static int[] O(C value) => (int[])unsafe([value]);
+                static int[] P(C value) => unsafe((int[])([value]));
+                static int[] Spread(C[] values) => unsafe([..values]);
+                static int[] CastSpread(C[] values) => unsafe((int[])([..values]));
+                static int[] FromCall() => unsafe([GetValue()]);
+                static unsafe C GetValue() => null;
             }
             """;
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
+            // (4,40): error CS9362: 'C.implicit operator int(C)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int[] M(C value) => unsafe([value]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "value").WithArguments("C.implicit operator int(C)").WithLocation(4, 40),
             // (5,40): error CS9362: 'C.implicit operator int(C)' must be used in an unsafe context because it is marked as 'unsafe'
             //     static int[] N(C value) => [unsafe(value)];
-            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "value").WithArguments("C.implicit operator int(C)").WithLocation(5, 40));
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "value").WithArguments("C.implicit operator int(C)").WithLocation(5, 40),
+            // (6,47): error CS9362: 'C.implicit operator int(C)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int[] O(C value) => (int[])unsafe([value]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "value").WithArguments("C.implicit operator int(C)").WithLocation(6, 47),
+            // (8,50): error CS9362: 'C.implicit operator int(C)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int[] Spread(C[] values) => unsafe([..values]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "values").WithArguments("C.implicit operator int(C)").WithLocation(8, 50),
+            // (10,40): error CS9362: 'C.implicit operator int(C)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int[] FromCall() => unsafe([GetValue()]);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "GetValue()").WithArguments("C.implicit operator int(C)").WithLocation(10, 40));
     }
 
     [Fact]
