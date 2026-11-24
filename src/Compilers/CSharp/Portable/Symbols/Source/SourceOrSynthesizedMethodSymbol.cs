@@ -11,32 +11,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(this is
-                SourceMemberMethodSymbol
-                or SynthesizedUnionCtor
-                or SynthesizedInstanceConstructor { ParameterCount: 0 }
-                or SynthesizedRecordCopyCtor
-                or SynthesizedInteractiveInitializerMethod
-                or SynthesizedSubmissionConstructor);
-            Debug.Assert(this is not SynthesizedMethodBaseSymbol);
-
-            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
-
-            bool checkReadonly = false;
-            bool checkReturnAttributes = false;
-            bool checkReturnConstraints = false;
-            bool checkParameterAttributes = false;
-            bool checkParameterConstraints = false;
-            bool checkNullableContextAttribute = false;
-            bool checkCheckEffectiveAccessibilityAndFileTypes = false;
-
             switch (this)
             {
                 case SynthesizedUnionCtor:
-                    checkParameterConstraints = true;
-                    checkParameterAttributes = true;
-                    checkCheckEffectiveAccessibilityAndFileTypes = true;
-                    checkNullableContextAttribute = true;
+                case SourceConstructorSymbolBase:
+                case SourceOrdinaryMethodOrUserDefinedOperatorSymbol:
+                case SourcePropertyAccessorSymbol:
+                case SourceEventAccessorSymbol:
+                case SourceDelegateMethodSymbol:
+                case SourceDestructorSymbol:
+                case SynthesizedSimpleProgramEntryPointSymbol:
                     break;
 
                 case SynthesizedInstanceConstructor:
@@ -46,47 +30,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SynthesizedInteractiveInitializerMethod:
                     return;
 
-                case SourceMemberMethodSymbol:
-                    {
-                        checkReadonly = true;
-                        checkNullableContextAttribute = true;
-
-                        switch (this)
-                        {
-                            case SourceDelegateMethodSymbol.InvokeMethod:
-                                checkParameterAttributes = true;
-                                checkReturnAttributes = true;
-                                break;
-                            case SourceConstructorSymbolBase:
-                                checkParameterAttributes = true;
-                                checkParameterConstraints = true;
-                                checkCheckEffectiveAccessibilityAndFileTypes = true;
-                                break;
-                            case SourceOrdinaryMethodOrUserDefinedOperatorSymbol:
-                                checkParameterAttributes = true;
-                                checkReturnAttributes = true;
-                                checkReturnConstraints = true;
-                                checkParameterConstraints = true;
-                                checkCheckEffectiveAccessibilityAndFileTypes = true;
-                                break;
-
-                            case SourcePropertyAccessorSymbol:
-                            case SourceEventAccessorSymbol:
-                            case SourceDelegateMethodSymbol:
-                            case SourceDestructorSymbol:
-                            case SynthesizedSimpleProgramEntryPointSymbol:
-                                break;
-
-                            default:
-                                ExceptionUtilities.UnexpectedValue(this);
-                                break;
-                        }
-                    }
-                    break;
-
                 default:
+                    // If this code path is taken, confirm it is appropriate and add necessary tests.
                     ExceptionUtilities.UnexpectedValue(this);
                     break;
+            }
+
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            bool checkReadonly = true;
+            bool checkReturnAttributes = true;
+            bool checkReturnConstraints = true;
+            bool checkParameterAttributes = true;
+            bool checkParameterConstraints = true;
+            bool checkNullableContextAttribute = true;
+            bool checkCheckEffectiveAccessibilityAndFileTypes = true;
+
+            if (this is SourceDelegateMethodSymbol.InvokeMethod) // Suppress redundant checks already performed for an associated delegate.
+            {
+                checkReturnConstraints = false;
+                checkParameterConstraints = false;
+                checkCheckEffectiveAccessibilityAndFileTypes = false;
+            }
+            else if (this.MethodKind == MethodKind.Destructor ||
+                this is SourcePropertyAccessorSymbol or SourceEventAccessorSymbol or // Suppress redundant checks already performed for an associated property or event.
+                        SourceDelegateMethodSymbol or // Suppress redundant checks already performed for an associated delegate or its invoke method.
+                        SynthesizedSimpleProgramEntryPointSymbol)
+            {
+                Debug.Assert(this is not SourceDelegateMethodSymbol.InvokeMethod);
+                checkReturnAttributes = false;
+                checkReturnConstraints = false;
+                checkParameterAttributes = false;
+                checkParameterConstraints = false;
+                checkCheckEffectiveAccessibilityAndFileTypes = false;
+            }
+            else if (this.IsConstructor())
+            {
+                Debug.Assert(this is not SourceDelegateMethodSymbol);
+                Debug.Assert(!IsDeclaredReadOnly);
+                checkReadonly = false;
+                checkReturnAttributes = false;
+                checkReturnConstraints = false;
             }
 
             var compilation = this.DeclaringCompilation;
