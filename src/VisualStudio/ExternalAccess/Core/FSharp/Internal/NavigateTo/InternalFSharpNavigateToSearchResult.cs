@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#nullable disable
+
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.Navigation;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
 using Microsoft.CodeAnalysis.NavigateTo;
@@ -24,7 +26,7 @@ internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
     public string Name { get; }
     public INavigableItem NavigableItem { get; }
 
-    public InternalFSharpNavigateToSearchResult(FSharpNavigateToSearchResult result, Document? activeDocument)
+    public InternalFSharpNavigateToSearchResult(FSharpNavigateToSearchResult result, Document activeDocument)
     {
         AdditionalInformation = result.AdditionalInformation;
         Kind = result.Kind;
@@ -33,10 +35,7 @@ internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
         Name = result.Name;
         NameMatchSpans = result.NameMatchSpans;
         NavigableItem = new InternalFSharpNavigableItem(result.NavigableItem);
-
-        (DocumentId id, IReadOnlyList<string> folders)? active = activeDocument is null ? null : (activeDocument.Id, activeDocument.Folders);
-        _secondarySort = new Lazy<string>(() => NavigateToSearchResultHelpers.ComputeSecondarySort(
-            active, NavigableItem.Document, result.ParameterCount, result.TypeParameterCount, result.Name));
+        _secondarySort = new Lazy<string>(() => ComputeSecondarySort(result, NavigableItem.Document, activeDocument));
     }
 
     public bool IsCaseSensitive { get; }
@@ -45,7 +44,31 @@ internal class InternalFSharpNavigateToSearchResult : INavigateToSearchResult
 
     public string SecondarySort => _secondarySort.Value;
 
-    public string? Summary => null;
+    public string Summary => null;
 
     public ImmutableArray<PatternMatch> Matches => NavigateToSearchResultHelpers.GetMatches(this);
+
+    // The key RoslynNavigateToItem builds for C# and VB results, so that equal F# results sort the same way.
+    private static string ComputeSecondarySort(FSharpNavigateToSearchResult result, INavigableItem.NavigableDocument itemDocument, Document activeDocument)
+        => string.Join(" ", [
+            ComputeFolderDistance(itemDocument, activeDocument).ToString("X4"),
+            result.ParameterCount.ToString("X4"),
+            result.TypeParameterCount.ToString("X4"),
+            result.Name,
+            .. Path.GetFileNameWithoutExtension(itemDocument.FilePath ?? "").Split('.')]);
+
+    private static int ComputeFolderDistance(INavigableItem.NavigableDocument itemDocument, Document activeDocument)
+    {
+        if (activeDocument is null || activeDocument.Id == itemDocument.Id)
+            return 0;
+
+        var commonCount = 0;
+        while (commonCount < activeDocument.Folders.Count && commonCount < itemDocument.Folders.Count
+            && activeDocument.Folders[commonCount] == itemDocument.Folders[commonCount])
+        {
+            commonCount++;
+        }
+
+        return activeDocument.Folders.Count + itemDocument.Folders.Count - 2 * commonCount + 1;
+    }
 }
