@@ -898,8 +898,8 @@ public sealed class MakeMethodSynchronousTests
 
         await VerifyCS.VerifyCodeFixAsync(
             source,
-            // /0/Test0.cs(5,33): error CS1061: 'bool' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'bool' could be found (are you missing a using directive or an assembly reference?)
-            DiagnosticResult.CompilerError("CS1061").WithLocation(0).WithArguments("bool", "GetAwaiter"),
+            // /0/Test0.cs(5,33): error CS8415: Asynchronous foreach statement cannot operate on variables of type 'int[]' because 'int[]' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+            DiagnosticResult.CompilerError("CS8415").WithLocation(0).WithArguments("int[]", "GetAsyncEnumerator"),
             source);
     }
 
@@ -938,7 +938,7 @@ public sealed class MakeMethodSynchronousTests
             {
                 async System.Threading.Tasks.Task MAsync()
                 {
-                    await foreach (var (a, b) in {|#0:new(int, int)[] { }|})
+                    await foreach (var ({|#1:a|}, {|#2:b|}) in {|#0:new(int, int)[] { }|})
                     {
                     }
                 }
@@ -947,8 +947,14 @@ public sealed class MakeMethodSynchronousTests
 
         await VerifyCS.VerifyCodeFixAsync(
             source,
-            // /0/Test0.cs(5,38): error CS1061: 'bool' does not contain a definition for 'GetAwaiter' and no accessible extension method 'GetAwaiter' accepting a first argument of type 'bool' could be found (are you missing a using directive or an assembly reference?)
-            DiagnosticResult.CompilerError("CS1061").WithLocation(0).WithArguments("bool", "GetAwaiter"),
+            [
+                // /0/Test0.cs(5,38): error CS8415: Asynchronous foreach statement cannot operate on variables of type '(int, int)[]' because '(int, int)[]' does not contain a public instance or extension definition for 'GetAsyncEnumerator'. Did you mean 'foreach' rather than 'await foreach'?
+                DiagnosticResult.CompilerError("CS8415").WithLocation(0).WithArguments("(int, int)[]", "GetAsyncEnumerator"),
+                // /0/Test0.cs(5,29): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'a'.
+                DiagnosticResult.CompilerError("CS8130").WithLocation(1).WithArguments("a"),
+                // /0/Test0.cs(5,32): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'b'.
+                DiagnosticResult.CompilerError("CS8130").WithLocation(2).WithArguments("b"),
+            ],
             source);
     }
 

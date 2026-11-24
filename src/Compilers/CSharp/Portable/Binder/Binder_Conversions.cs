@@ -2115,9 +2115,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     argToParamMap: default,
                                     argumentRefKinds: analyzedArguments.RefKinds,
                                     isMethodGroupConversion: false,
-                                    allowRefOmittedArguments: methodGroup.ReceiverOpt.IsExpressionOfComImportType(),
+                                    allowRefOmittedArguments: methodGroup.ReceiverOpt.IsExpressionOfComImportType(), // https://github.com/dotnet/roslyn/issues/86509
                                     binder: addMethodBinder,
-                                    expanded: candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                                    expanded: candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm, // https://github.com/dotnet/roslyn/issues/86509
                                     parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
                                     parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
 
@@ -2158,10 +2158,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                         }
-                        else if (typeParameters.Any((typeParameter, parameter) => !parameter.Type.ContainsTypeParameter(typeParameter), member.Parameters[0]))
+                        else
                         {
-                            // A type parameter does not appear in the parameter type.
-                            continue;
+                            // Let's attempt inference with type for the first parameter
+                            // We are going to use the first parameter's type for that
+                            OverloadResolution.GetEffectiveParameterTypes(
+                                member,
+                                argumentCount: 1,
+                                argToParamMap: default,
+                                argumentRefKinds: analyzedArguments.RefKinds,
+                                isMethodGroupConversion: false,
+                                allowRefOmittedArguments: methodGroup.ReceiverOpt.IsExpressionOfComImportType(), // https://github.com/dotnet/roslyn/issues/86509
+                                binder: addMethodBinder,
+                                expanded: candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm, // https://github.com/dotnet/roslyn/issues/86509
+                                parameterTypes: out ImmutableArray<TypeWithAnnotations> parameterTypes,
+                                parameterRefKinds: out ImmutableArray<RefKind> parameterRefKinds);
+
+                            MethodTypeInferenceResult inferenceResult = MethodTypeInferrer.Infer(
+                                addMethodBinder,
+                                addMethodBinder.Conversions,
+                                member.TypeParameters,
+                                member.ContainingType,
+                                parameterTypes,
+                                parameterRefKinds,
+                                ImmutableArray.Create<BoundExpression>(new BoundValuePlaceholder(syntax, member.Parameters[0].Type) { WasCompilerGenerated = true }),
+                                ref useSiteInfo);
+
+                            if (!inferenceResult.Success)
+                            {
+                                continue;
+                            }
                         }
                     }
 

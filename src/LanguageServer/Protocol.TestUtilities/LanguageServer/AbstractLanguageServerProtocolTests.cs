@@ -962,6 +962,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedDocuments().Values.Select(v => v.SourceText)];
 
+        internal Task GetClientRpcCompletionTask() => _clientRpc.Completion;
+
         internal async ValueTask RunCodeAnalysisAsync(ProjectId? projectId)
         {
             var solution = GetCurrentSolution();
@@ -978,19 +980,25 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         public async ValueTask DisposeAsync()
         {
+            var languageServer = _languageServer.Value;
+            var serverRpc = languageServer.GetTestAccessor().GetServerRpc();
+
             // Some tests will manually call shutdown and exit, so attempting to call this during dispose
             // will fail as the server's jsonrpc instance will be disposed of.
-            if (!_languageServer.Value.GetTestAccessor().HasShutdownStarted())
+            if (!languageServer.GetTestAccessor().HasShutdownStarted())
             {
                 await ShutdownTestServerAsync();
                 await ExitTestServerAsync();
             }
 
             // Wait for all the exit notifications to run to completion.
-            await _languageServer.Value.WaitForExitAsync();
+            await languageServer.WaitForExitAsync();
+            await AssertServerShuttingDownAsync().ConfigureAwait(false);
+
+            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(serverRpc).ConfigureAwait(false);
+            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
 
             TestWorkspace.Dispose();
-            _clientRpc.Dispose();
         }
     }
 }

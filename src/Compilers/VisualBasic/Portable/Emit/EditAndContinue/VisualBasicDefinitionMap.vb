@@ -61,6 +61,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
+        Protected Overrides ReadOnly Property BaselineSourceAssembly As IAssemblySymbolInternal
+            Get
+                Return DirectCast(Baseline.Compilation, VisualBasicCompilation).SourceAssembly
+            End Get
+        End Property
+
+        Protected Overrides Function CreateSymbolMatcherToBaselineSource(sourceAssembly As IAssemblySymbolInternal) As SymbolMatcher
+            Dim source = TryCast(sourceAssembly, SourceAssemblySymbol)
+            If source Is Nothing Then
+                Return Nothing
+            End If
+
+            Return New VisualBasicSymbolMatcher(
+                sourceAssembly:=source,
+                otherAssembly:=DirectCast(Baseline.Compilation, VisualBasicCompilation).SourceAssembly,
+                otherSynthesizedTypes:=Baseline.SynthesizedTypes,
+                otherSynthesizedMembers:=Baseline.SynthesizedMembers,
+                otherDeletedMembers:=Baseline.DeletedMembers)
+        End Function
+
         Protected Overrides Function GetISymbolInternalOrNull(symbol As ISymbol) As ISymbolInternal
             Return TryCast(symbol, Symbol)
         End Function

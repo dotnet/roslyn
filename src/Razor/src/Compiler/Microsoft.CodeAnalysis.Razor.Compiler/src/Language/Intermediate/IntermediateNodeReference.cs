@@ -56,6 +56,7 @@ public readonly struct IntermediateNodeReference
         var index = GetNodeIndexForMutation();
 
         Parent.Children.Insert(index + 1, node);
+        UpdateElementBoundaries(index, delta: 1);
         return new IntermediateNodeReference(node, Parent);
     }
 
@@ -67,7 +68,9 @@ public readonly struct IntermediateNodeReference
 
         foreach (var node in nodes)
         {
-            Parent.Children.Insert(++index, node);
+            Parent.Children.Insert(index + 1, node);
+            UpdateElementBoundaries(index, delta: 1);
+            index++;
         }
     }
 
@@ -78,6 +81,7 @@ public readonly struct IntermediateNodeReference
         var index = GetNodeIndexForMutation();
 
         Parent.Children.Insert(index, node);
+        UpdateElementBoundaries(index, delta: 1);
         return new IntermediateNodeReference(node, Parent);
     }
 
@@ -89,7 +93,9 @@ public readonly struct IntermediateNodeReference
 
         foreach (var node in nodes)
         {
-            Parent.Children.Insert(index++, node);
+            Parent.Children.Insert(index, node);
+            UpdateElementBoundaries(index, delta: 1);
+            index++;
         }
     }
 
@@ -98,6 +104,24 @@ public readonly struct IntermediateNodeReference
         var index = GetNodeIndexForMutation();
 
         Parent.Children.RemoveAt(index);
+        UpdateElementBoundaries(index, delta: -1);
+    }
+
+    private void UpdateElementBoundaries(int index, int delta)
+    {
+        if (Parent is UnresolvedElementIntermediateNode element)
+        {
+            // Directive passes can change children before tag helper resolution uses these boundaries.
+            if (index < element.StartTagEndIndex)
+            {
+                element.StartTagEndIndex += delta;
+            }
+
+            if (index < element.BodyEndIndex)
+            {
+                element.BodyEndIndex += delta;
+            }
+        }
     }
 
     public IntermediateNodeReference Replace(IntermediateNode node)

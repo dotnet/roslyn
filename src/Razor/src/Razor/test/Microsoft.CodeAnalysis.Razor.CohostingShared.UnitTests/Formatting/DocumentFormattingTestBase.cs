@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -29,6 +30,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
 public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "The shared tests also pass the CLI-only expected output.")]
     private protected async Task RunFormattingTestAsync(
         TestCode input,
         string htmlFormatted,
@@ -44,7 +46,8 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         bool debugAssertsEnabled = true,
         bool validateHtmlFormattedMatchesWebTools = true,
         (string fileName, string contents)[]? additionalFiles = null,
-        string? documentFilePath = null)
+        string? documentFilePath = null,
+        string? dotNetFormatExpected = null)
     {
         var document = CreateProjectAndRazorDocument(
             input.Text,
@@ -86,8 +89,13 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         {
 #if NETFRAMEWORK
             using var htmlFormattingService = new HtmlFormattingService();
+            // The endpoint gives the Html formatter Razor's indent size, which can come from .editorconfig, as its tab size
+            var htmlTabSize = document.GetRazorFormattingOptions(
+                ClientSettingsManager.GetClientSettings(),
+                new FormattingOptions() { TabSize = tabSize, InsertSpaces = insertSpaces },
+                DisposalToken).IndentSize;
             // Lets make sure everything is working as we expect in our tests
-            var htmlEditsResult = await htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, tabSize);
+            var htmlEditsResult = await htmlFormattingService.GetDocumentFormattingEditsAsync(LoggerFactory, uri, generatedHtml, insertSpaces, htmlTabSize);
             var htmlChangesResult = htmlEditsResult.Select(source.GetTextChange);
 
             var htmlEdited = source.WithChanges(htmlChanges);

@@ -718,6 +718,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return gotInfo;
         }
 
+        internal bool TryGetForEachIterationType(SyntaxNode syntax, TypeSymbol collectionType, bool isAsync, out TypeWithAnnotations iterationType)
+        {
+            BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
+            return GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax, ref collectionExpr, isAsync, isSpread: false, BindingDiagnosticBag.Discarded, out iterationType, out _);
+        }
+
         private BoundExpression UnwrapCollectionExpressionIfNullable(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)
         {
             TypeSymbol collectionExprType = collectionExpr.Type;
@@ -974,6 +980,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(ErrorCode.ERR_BadDynamicAwaitForEach, collectionSyntax.Location);
                     return EnumeratorResult.FailedAndReported;
+                }
+
+                // Arrays are an error in 'await foreach', like dynamic: no pattern or extension lookup.
+                if (collectionExprType.Kind == SymbolKind.ArrayType && isAsync)
+                {
+                    return EnumeratorResult.FailedNotReported;
                 }
 
                 // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.

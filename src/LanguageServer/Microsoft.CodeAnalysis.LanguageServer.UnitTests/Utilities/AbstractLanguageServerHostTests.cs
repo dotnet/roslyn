@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Roslyn.Test.Utilities;
 using RoslynTelemetry = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -291,7 +292,7 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 await WaitForServerShutdownAsync();
             }
 
-            _clientRpc.Dispose();
+            await JsonRpcTestDisposalHelper.DisposeAndWaitForCompletionAsync(_clientRpc).ConfigureAwait(false);
             await DisposeTransportAsync();
         }
     }
@@ -390,12 +391,14 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
             string pipeName,
             ExportProvider exportProvider,
             InitializeParams initializeParams,
-            ITestOutputHelper testOutputHelper)
+            ITestOutputHelper testOutputHelper,
+            string? copilotSessionId)
         {
             var clientStream = NamedPipeUtil.CreateClient(serverName: ".", pipeName, PipeDirection.InOut, System.IO.Pipes.PipeOptions.Asynchronous);
             try
             {
                 await clientStream.ConnectAsync();
+                DaemonHandshake.Write(clientStream, copilotSessionId);
             }
             catch
             {
@@ -480,7 +483,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
                 loggerFactory,
                 daemonTelemetry,
                 serverConfiguration.SessionId,
-                isDefaultSession: false);
+                isDefaultSession: false,
+                copilotSessionId: null);
 
             var connectionManager = new LanguageServerConnectionManager();
             var cts = new CancellationTokenSource();
@@ -577,11 +581,12 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         /// </summary>
         internal async Task<DaemonClientTestLspServer> CreateClientAsync(
             ClientCapabilities? clientCapabilities = null,
-            ClientInfo? clientInfo = null)
+            ClientInfo? clientInfo = null,
+            string? copilotSessionId = null)
         {
             var serversBefore = _connectionManager.GetStartedServers();
             var initializeParams = new InitializeParams { Capabilities = clientCapabilities ?? new ClientCapabilities(), ClientInfo = clientInfo };
-            var client = await DaemonClientTestLspServer.CreateAsync(_pipeName, _exportProvider, initializeParams, _testOutputHelper);
+            var client = await DaemonClientTestLspServer.CreateAsync(_pipeName, _exportProvider, initializeParams, _testOutputHelper, copilotSessionId);
 
             LanguageServerHost? newServer = null;
             await WaitForConditionAsync(() =>

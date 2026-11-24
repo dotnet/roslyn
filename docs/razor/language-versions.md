@@ -17,4 +17,4 @@ Later versions include the features from earlier versions.
 | **9.0** | None |
 | **10.0** | None |
 | **11.0** | [Tilde path expansion](tilde-path-expansion.md) for `~/`-prefixed string literal values in HTML attributes and component parameters that accept asset paths. |
-| **12.0** | [`@documentation { ... }`](documentation-directive.md) for XML documentation on components and views. |
+| **12.0** | [`@documentation { ... }`](documentation-directive.md) for XML documentation on components and views. `@layout null` for rendering components without a layout, overriding imported layouts, inherited layout attributes and the router's default layout (requires C# 11 or later). |

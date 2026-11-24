@@ -41,6 +41,10 @@ configuration:
           bodyContains:
             pattern: Updates sdk.version
             isRegex: False
+      - not:
+          bodyContains:
+            pattern: unsafe codeflow update
+            isRegex: False
       then:
       - approvePullRequest:
           comment: Auto-approve

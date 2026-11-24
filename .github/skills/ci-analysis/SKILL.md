@@ -39,7 +39,7 @@ dotnet tool restore
 ```
 
 ```powershell
-# Analyze PR failures (most common) - defaults to dotnet/runtime
+# Analyze PR failures (most common) - defaults to dotnet/roslyn
 # NOTE: file paths are relative to the containing folder of the SKILL.md file
 dotnet pwsh ./scripts/Get-CIStatus.ps1 -PRNumber 123445 -ShowLogs
 
@@ -62,7 +62,7 @@ dotnet pwsh ./scripts/Get-CIStatus.ps1 -PRNumber 11111 -Repository "dotnet/rosly
 | `-PRNumber` | GitHub PR number to analyze |
 | `-BuildId` | Azure DevOps build ID |
 | `-ShowLogs` | Fetch and display Helix console logs |
-| `-Repository` | Target repo (default: dotnet/runtime) |
+| `-Repository` | Target repo (default: dotnet/roslyn) |
 | `-MaxJobs` | Max failed jobs to show (default: 5) |
 | `-SearchMihuBot` | Search MihuBot for related issues |
 

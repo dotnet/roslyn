@@ -7,5 +7,5 @@ TParam
 #line hidden
 #nullable disable
             >>()
-[0001] AddComponentParameter(nameof(global::Test.MyComponent<TParam>. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<TParam>( ParentValue ))
-[0002] AddComponentParameter(nameof(global::Test.MyComponent<TParam>.ValueChanged), (global::System.Action<TParam>)( __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate( Update ); }))
+[0001] AddComponentParameter(nameof(global::Test.MyComponent< TParam >. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<TParam>( ParentValue ))
+[0002] AddComponentParameter(nameof(global::Test.MyComponent< TParam >.ValueChanged), (global::System.Action<TParam>)( __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate( Update ); }))

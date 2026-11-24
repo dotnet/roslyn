@@ -49,9 +49,13 @@ internal sealed class MakeAnonymousFunctionStaticDiagnosticAnalyzer : AbstractBu
         if (context.SemanticModel.AnalyzeDataFlow(anonymousFunction) is { Succeeded: true, Captured.IsEmpty: true })
         {
             context.ReportDiagnostic(
-                Diagnostic.Create(
+                DiagnosticHelper.Create(
                     Descriptor,
-                    anonymousFunction.GetLocation()));
+                    anonymousFunction.GetLocation(),
+                    option.Notification,
+                    context.Options,
+                    additionalLocations: null,
+                    properties: null));
         }
     }
 }

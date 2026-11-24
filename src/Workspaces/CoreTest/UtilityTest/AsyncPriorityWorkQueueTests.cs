@@ -233,6 +233,51 @@ public sealed class AsyncPriorityWorkQueueTests
     }
 
     [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task LowerPriorityMovesScheduledItemBehindHigherPriorityItems(int newPriority)
+    {
+        var processed = new List<string>();
+        var listener = new AsynchronousOperationListener();
+        using var queue = new AsyncPriorityWorkQueue<string>(
+            maximumPriority: 3,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
+            equalityComparer: EqualityComparer<string>.Default,
+            asyncListener: listener);
+
+        queue.AddWork("item", priority: 3);
+        queue.AddWork("other", priority: 2);
+        queue.LowerWorkPriorityIfScheduled("item", newPriority);
+
+        await listener.ExpeditedWaitAsync();
+
+        Assert.Equal(new[] { "other", "item" }, processed);
+    }
+
+    [Fact]
+    public async Task LowerPriorityDoesNotRaiseOrScheduleItems()
+    {
+        var processed = new List<string>();
+        var listener = new AsynchronousOperationListener();
+        using var queue = new AsyncPriorityWorkQueue<string>(
+            maximumPriority: 3,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
+            equalityComparer: EqualityComparer<string>.Default,
+            asyncListener: listener);
+
+        queue.AddWork("low", priority: 0);
+        queue.AddWork("middle", priority: 1);
+        queue.LowerWorkPriorityIfScheduled("low", newPriority: 3);
+        queue.LowerWorkPriorityIfScheduled("absent", newPriority: 0);
+
+        await listener.ExpeditedWaitAsync();
+
+        Assert.Equal(new[] { "middle", "low" }, processed);
+    }
+
+    [Theory]
     [InlineData(-1)]
     [InlineData(4)]
     public void RaisePriorityRejectsOutOfRangePriority(int newPriority)

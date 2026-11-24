@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -71,7 +72,18 @@ internal readonly partial record struct Checksum
     public static Checksum Create(Stream stream)
     {
         using var pooledHash = s_incrementalHashPool.GetPooledObject();
-        pooledHash.Object.Append(stream);
+
+        var buffer = ArrayPool<byte>.Shared.Rent(4096);
+        try
+        {
+            int bytesRead;
+            while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) > 0)
+                pooledHash.Object.Append(buffer.AsSpan(0, bytesRead));
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+        }
 
         Span<byte> hash = stackalloc byte[XXHash128SizeBytes];
         pooledHash.Object.GetHashAndReset(hash);
