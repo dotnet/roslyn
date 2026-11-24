@@ -4,12 +4,15 @@
 
 extern alias MSBuildWorkspacesContracts;
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 using DocumentFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo;
+using FileGlobs = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.FileGlobs;
 using MetadataReferenceItem = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.MetadataReferenceItem;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 
@@ -123,6 +126,51 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
         Assert.Equal(analyzerPath, Assert.Single(project.AnalyzerReferences).FullPath);
     }
 
+    [ConditionalFact(typeof(WindowsOnly)), WorkItem("https://github.com/dotnet/vscode-csharp/issues/9990")]
+    public async Task SourceFileChangeMatchesGlobsIgnoringDriveLetterCase()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var directory = TempRoot.CreateDirectory();
+        var projectPath = directory.CreateFile("Project.csproj").Path;
+        var fileChangeWatcher = new TestFileChangeWatcher();
+        await using var loadedProject = new LoadedProject(projectPath, fileChangeWatcher);
+        var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+        {
+            CommandLineArgs = ["/target:library"],
+            FileGlobs =
+            [
+                new FileGlobs(
+                    Includes: ["**/*.cs"],
+                    Excludes: ["Excluded/**/*.cs"],
+                    Removes: ["Removed/**/*.cs"])
+            ],
+        };
+
+        await ApplyProjectInfoAsync(server, loadedProject, projectInfo);
+
+        var reloadPaths = new List<string>();
+        loadedProject.NeedsReload += (_, path) => reloadPaths.Add(path);
+        var sourceFileChangeContext = Assert.Single(fileChangeWatcher.Contexts, static context => !context.WatchedDirectories.IsEmpty);
+
+        var includedFilePath = LowercaseDriveLetter(Path.Combine(directory.Path, "Included.cs"));
+        sourceFileChangeContext.RaiseFileChanged(includedFilePath, FileChangeKind.Created);
+        await loadedProject.GetExistingProjectsAsync();
+        Assert.Equal(includedFilePath, Assert.Single(reloadPaths));
+
+        sourceFileChangeContext.RaiseFileChanged(
+            LowercaseDriveLetter(Path.Combine(directory.Path, "Excluded", "Excluded.cs")),
+            FileChangeKind.Created);
+        sourceFileChangeContext.RaiseFileChanged(
+            LowercaseDriveLetter(Path.Combine(directory.Path, "Removed", "Removed.cs")),
+            FileChangeKind.Created);
+        await loadedProject.GetExistingProjectsAsync();
+        Assert.Single(reloadPaths);
+
+        static string LowercaseDriveLetter(string filePath)
+            => char.ToLowerInvariant(filePath[0]) + filePath[1..];
+    }
+
     private async Task ApplyProjectInfoAsync(TestLspServer server, LoadedProject loadedProject, ProjectFileInfo projectInfo)
     {
         var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
@@ -136,5 +184,34 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
             workspaceFactory,
             LoggerFactory.CreateLogger<LoadedProjectTests>(),
             CancellationToken.None));
+    }
+
+    private sealed class TestFileChangeWatcher : IFileChangeWatcher
+    {
+        public List<TestFileChangeContext> Contexts { get; } = [];
+
+        public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
+        {
+            var context = new TestFileChangeContext(watchedDirectories);
+            Contexts.Add(context);
+            return context;
+        }
+    }
+
+    private sealed class TestFileChangeContext(ImmutableArray<WatchedDirectory> watchedDirectories) : IFileChangeContext
+    {
+        public ImmutableArray<WatchedDirectory> WatchedDirectories { get; } = watchedDirectories;
+
+        public event EventHandler<FileChangedEventArgs>? FileChanged;
+
+        public IWatchedFile EnqueueWatchingFile(string filePath)
+            => NoOpWatchedFile.Instance;
+
+        public void RaiseFileChanged(string filePath, FileChangeKind changeKind)
+            => FileChanged?.Invoke(this, new FileChangedEventArgs(filePath, changeKind));
+
+        public void Dispose()
+        {
+        }
     }
 }

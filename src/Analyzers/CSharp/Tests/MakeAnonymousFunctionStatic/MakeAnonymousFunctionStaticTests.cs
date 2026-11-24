@@ -3,11 +3,13 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.MakeAnonymousFunctionStatic;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.MakeAnonymousFunctionStatic;
@@ -403,4 +405,52 @@ public sealed class MakeAnonymousFunctionStaticTests
                 }
             }
             """);
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/76222")]
+    [InlineData("i => { }")]
+    [InlineData("(i) => { }")]
+    [InlineData("delegate (int i) { }")]
+    public Task TestSeverityFromOption(string anonymousFunctionSyntax)
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        N({|#0:{{anonymousFunctionSyntax}}|});
+                    }
+                
+                    void N(Action<int> a)
+                    {
+                    }
+                }
+                """,
+            FixedCode = $$"""
+                using System;
+                
+                class C
+                {
+                    void M()
+                    {
+                        N(static {{anonymousFunctionSyntax}});
+                    }
+                
+                    void N(Action<int> a)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+            ExpectedDiagnostics =
+            {
+                VerifyCS.Diagnostic().WithLocation(0).WithSeverity(DiagnosticSeverity.Warning),
+            },
+            Options =
+            {
+                { CSharpCodeStyleOptions.PreferStaticAnonymousFunction, true, NotificationOption2.Warning },
+            },
+        }.RunAsync();
 }

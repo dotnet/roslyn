@@ -1234,33 +1234,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = fillNotInferredTypeArguments(extension, typeArguments, out wasExtensionFullyInferred);
-                var result = extension.Construct(typeArgsForConstruct);
+                var typeParams = extension.TypeParameters;
+                var notInferredTypeParameters = PooledHashSet<TypeParameterSymbol>.GetInstance();
+                var typeArgsForConstraintsCheck = ReducedExtensionMethodSymbol.AdjustPartiallyInferredTypeArgumentsForConstraintsCheck(typeParams, typeArguments, notInferredTypeParameters);
 
-                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(compilation, conversions, includeNullability: false,
-                    NoLocation.Singleton, diagnostics: BindingDiagnosticBag.Discarded, template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
+                var constraintArgs = new ConstraintsHelper.CheckConstraintsArgs(
+                    compilation,
+                    conversions,
+                    includeNullability: false,
+                    NoLocation.Singleton,
+                    diagnostics: BindingDiagnosticBag.Discarded,
+                    template: CompoundUseSiteInfo<AssemblySymbol>.Discarded);
 
-                bool success = result.CheckConstraints(constraintArgs);
+                var substitution = new TypeMap(typeParams, typeArgsForConstraintsCheck);
+                var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+                ArrayBuilder<TypeParameterDiagnosticInfo>? useSiteDiagnosticsBuilder = null;
+
+                var success = extension.CheckConstraints(constraintArgs,
+                                                         substitution,
+                                                         typeParams,
+                                                         typeArgsForConstraintsCheck,
+                                                         diagnosticsBuilder, nullabilityDiagnosticsBuilderOpt: null,
+                                                         ref useSiteDiagnosticsBuilder,
+                                                         ignoreTypeConstraintsDependentOnTypeParametersOpt: notInferredTypeParameters.Count > 0 ? notInferredTypeParameters : null);
+
+                diagnosticsBuilder.Free();
+                notInferredTypeParameters.Free();
+
                 if (!success)
                 {
+                    wasExtensionFullyInferred = false;
                     return null;
                 }
 
+                ImmutableArray<TypeWithAnnotations> typeArgsForConstruct = ReducedExtensionMethodSymbol.AdjustPartiallyInferredTypeArgumentsForConstruction(typeParams, typeArguments, out wasExtensionFullyInferred);
+                var result = extension.Construct(typeArgsForConstruct);
+
                 return result;
-            }
-
-            static ImmutableArray<TypeWithAnnotations> fillNotInferredTypeArguments(NamedTypeSymbol extension, ImmutableArray<TypeWithAnnotations> typeArgs, out bool wasFullyInferred)
-            {
-                // For the purpose of construction we use original type parameters in place of type arguments that we couldn't infer from the first argument.
-                wasFullyInferred = typeArgs.All(static t => t.HasType);
-                if (!wasFullyInferred)
-                {
-                    return typeArgs.ZipAsArray(
-                        extension.TypeParameters,
-                        (t, tp) => t.HasType ? t : TypeWithAnnotations.Create(tp));
-                }
-
-                return typeArgs;
             }
         }
     }

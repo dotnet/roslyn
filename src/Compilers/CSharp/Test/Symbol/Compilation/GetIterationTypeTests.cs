@@ -128,7 +128,7 @@ public class GetIterationTypeTests : CSharpTestBase
     [InlineData("AsyncTaskPattern", "System.Int16")]
     [InlineData("AsyncBadMoveNext", "System.Int64")]
     [InlineData("AsyncBadDispose", "System.Int64")]
-    [InlineData("Array", "System.Int32")]
+    [InlineData("Array", null)]
     [InlineData("String", null)]
     [InlineData("Span", null)]
     [InlineData("Dynamic", null)]

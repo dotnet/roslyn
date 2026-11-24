@@ -124,3 +124,4 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Workspace changes must use immutable updates** — `Workspace.SetCurrentSolution()`
 - **MSBuild project extensions are stored with a leading `.`.** `ProjectFileExtensionRegistry` accepts registration and lookup values with or without the dot, but its enumeration API returns the canonical dot-prefixed form.
 - **VS MEF-owned parts with asynchronous teardown can implement `IAsyncDisposable`.**
+- **Tests that construct `AdhocWorkspace` or other MEF host services must use `[UseExportProvider]`.** Without it, a later test throws `Cannot create host services after test tear down`. See `.github/memory/testing/ide.md`.
