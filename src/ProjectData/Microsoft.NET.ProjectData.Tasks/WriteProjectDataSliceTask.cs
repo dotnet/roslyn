@@ -87,7 +87,6 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task, 
 
 	/// <summary>
 	/// Selected output path, retaining the supplied <see cref="OutputPath"/> spelling.
-	/// File I/O resolves this path against <see cref="TaskEnvironment"/>.
 	/// </summary>
 	[Output]
 	public string ResolvedOutputPath { get; set; } = string.Empty;
@@ -223,8 +222,7 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task, 
 	private string GetFolderPath(Environment.SpecialFolder folder)
 	{
 		if (OperatingSystem.IsWindows() &&
-			folder == Environment.SpecialFolder.LocalApplicationData &&
-			WindowsLocalApplicationData.TryGetPath() is { Length: > 0 } knownFolderPath)
+			WindowsKnownFolders.TryGetPath(folder) is { Length: > 0 } knownFolderPath)
 		{
 			return knownFolderPath;
 		}

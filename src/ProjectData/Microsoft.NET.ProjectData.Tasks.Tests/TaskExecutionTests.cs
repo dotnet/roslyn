@@ -303,6 +303,64 @@ public class TaskExecutionTests
 		}
 	}
 
+	[ConditionalTheory(typeof(WindowsOnly))]
+	[InlineData(false, false)]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	[InlineData(true, true)]
+	public void WriteTask_UsesWindowsKnownProfileForPortableReferences(bool isolatedEnvironment, bool userProfileSet)
+	{
+		using var tempRoot = new TempRoot();
+		string projectDirectory = tempRoot.CreateDirectory().Path;
+		string decoyDirectory = tempRoot.CreateDirectory().Path;
+		string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+		string referencePath = Path.Combine(userProfile, ".nuget", "packages", "example.package", "1.0.0", "lib", "net10.0", "Example.dll");
+		string cacheDirectory = Path.Combine(projectDirectory, "cache");
+		string outputPath = Path.Combine(projectDirectory, "App.lscache");
+		string? originalUserProfile = Environment.GetEnvironmentVariable("USERPROFILE");
+		string? originalNuGetPackages = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+		string? originalCache = Environment.GetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR");
+		try
+		{
+			Environment.SetEnvironmentVariable("USERPROFILE", userProfileSet ? decoyDirectory : null);
+			Environment.SetEnvironmentVariable("NUGET_PACKAGES", null);
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", cacheDirectory);
+			var environmentVariables = new Dictionary<string, string>
+			{
+				["DOTNET_PROJECTDATA_CACHE_DIR"] = cacheDirectory,
+			};
+			if (userProfileSet)
+			{
+				environmentVariables["USERPROFILE"] = decoyDirectory;
+			}
+
+			var engine = new BuildEngineStub();
+			var task = new WriteProjectDataSliceTask
+			{
+				BuildEngine = engine,
+				TaskEnvironment = isolatedEnvironment
+					? TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory, environmentVariables)
+					: TaskEnvironment.Fallback,
+				ProjectFilePath = Path.Combine(projectDirectory, "App.csproj"),
+				OutputPath = outputPath,
+				CommandLineArguments = ["/noconfig"],
+				MetadataReferences = [CreateItem(referencePath)],
+			};
+
+			Assert.True(task.Execute());
+			Assert.True(task.Succeeded, string.Join(Environment.NewLine, engine.Warnings.Select(warning => warning.Message)));
+			Assert.Contains("<NUGET>/example.package/1.0.0/lib/net10.0/Example.dll", File.ReadAllText(outputPath));
+			Assert.Empty(engine.Warnings);
+			Assert.Empty(Directory.EnumerateFileSystemEntries(decoyDirectory));
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("USERPROFILE", originalUserProfile);
+			Environment.SetEnvironmentVariable("NUGET_PACKAGES", originalNuGetPackages);
+			Environment.SetEnvironmentVariable("DOTNET_PROJECTDATA_CACHE_DIR", originalCache);
+		}
+	}
+
 	[ConditionalTheory(typeof(UnixLikeOnly))]
 	[InlineData(false)]
 	[InlineData(true)]
