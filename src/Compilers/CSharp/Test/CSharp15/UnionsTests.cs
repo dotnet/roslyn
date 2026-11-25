@@ -23506,6 +23506,59 @@ public class C
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86608")]
+        public void NullableAnalysis_96_Issue_86608()
+        {
+            var src = """
+#nullable enable
+
+using System.Threading.Tasks;
+
+sealed record A;
+sealed record B;
+union U(A, B);
+
+static class Repro
+{
+    public static async Task<string> Warns(Task<U> task)
+    {
+        var (text, _) = await task switch
+        {
+            A => ("a", 0),
+            B => ("b", 1)
+        };
+        return text;
+    }
+
+    public static async Task<string> AwaitFirst(Task<U> task)
+    {
+        var value = await task;
+        var (text, _) = value switch
+        {
+            A => ("a", 0),
+            B => ("b", 1)
+        };
+        return text;
+    }
+
+    public static async Task<string> DeconstructAfterSwitch(Task<U> task)
+    {
+        var pair = await task switch
+        {
+            A => ("a", 0),
+            B => ("b", 1)
+        };
+        var (text, _) = pair;
+        return text;
+    }
+}
+""";
+            var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
+
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
         public void NullableAnalysis_MemberProvider_01_State_From_Default()
         {
             var src = @"
