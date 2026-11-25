@@ -1284,7 +1284,8 @@ class c
     }
 }";
 
-            var file = ParseFile(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            CSharpParseOptions parseOptions = TestOptions.Regular.WithFeatures(null).WithLanguageVersion(LanguageVersion.CSharp6);
+            var file = ParseFile(text, parseOptions: parseOptions);
             Assert.NotNull(file);
             Assert.True(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
             Assert.False(file.HasErrors);
@@ -1301,7 +1302,7 @@ class c
             s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
             Assert.False(s1.ContainsDiagnostics);
 
-            CreateCompilation(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
+            CreateCompilation(text, parseOptions: parseOptions).VerifyDiagnostics(
                 // (2,7): warning CS8981: The type name 'c' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // class c
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "c").WithArguments("c").WithLocation(2, 7),

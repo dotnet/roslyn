@@ -27,6 +27,7 @@ internal static class Feature
     internal const string NoRefSafetyRulesAttribute = "noRefSafetyRulesAttribute";
     internal const string DisableLengthBasedSwitch = "disable-length-based-switch";
     internal const string ExperimentalDataSectionStringLiterals = "experimental-data-section-string-literals";
+    internal const string TypeParameterInferenceFromConstraints = "type-parameter-inference-from-constraints";
 
     // For testing
     internal const string Experiment = "Experiment";

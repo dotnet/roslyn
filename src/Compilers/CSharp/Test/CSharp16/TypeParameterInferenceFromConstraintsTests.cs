@@ -29,6 +29,75 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void FeatureFlag_01()
+        {
+            var source = """
+using System.Collections.Generic;
+
+class C
+{
+    static void Main()
+    {
+        List<int> l = [1, 2, 3];
+        M(l);
+    }
+
+    static void M<TEnumerable, TElement>(TEnumerable t) where TEnumerable : IEnumerable<TElement>
+    {
+    }
+}
+""";
+            var defaultOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
+            var expected =
+                // (8,9): error CS0411: The type arguments for method 'C.M<TEnumerable, TElement>(TEnumerable)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+                //         M(l);
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M").WithArguments("C.M<TEnumerable, TElement>(TEnumerable)").WithLocation(8, 9);
+
+            CreateCompilation(source, parseOptions: defaultOptions).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithFeature(Feature.TypeParameterInferenceFromConstraints)).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithLanguageVersion(LanguageVersion.CSharp15).WithFeature(Feature.TypeParameterInferenceFromConstraints)).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithLanguageVersion(LanguageVersion.Preview).WithFeature(Feature.TypeParameterInferenceFromConstraints)).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void FeatureFlag_02()
+        {
+            var source = """
+using System.Collections.Generic;
+
+static class Extensions
+{
+    extension<TEnumerable, TElement>(TEnumerable t) where TEnumerable : IEnumerable<TElement>
+    {
+        public int P
+        {
+            get
+            {
+                System.Console.Write(typeof(TElement).Name);
+                return 0;
+            }
+        }
+    }
+}
+""";
+
+            var defaultOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse);
+            var expected =
+                // (7,20): error CS9295: The type parameter `TElement` is not referenced by either the extension parameter or a parameter of this member
+                //         public int P => 0;
+                Diagnostic(ErrorCode.ERR_UnderspecifiedExtension, "P").WithArguments("TElement").WithLocation(7, 20);
+
+            CreateCompilation(source, parseOptions: defaultOptions).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithFeature(Feature.TypeParameterInferenceFromConstraints)).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithLanguageVersion(LanguageVersion.CSharp15)).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithLanguageVersion(LanguageVersion.CSharp15).WithFeature(Feature.TypeParameterInferenceFromConstraints)).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithLanguageVersion(LanguageVersion.Preview)).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: defaultOptions.WithLanguageVersion(LanguageVersion.Preview).WithFeature(Feature.TypeParameterInferenceFromConstraints)).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void Basic_IEnumerable_LanguageVersions()
         {
             var source = """
@@ -2114,6 +2183,47 @@ class Program
             string expected = "System.Int32";
             CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expected).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86599")]
+        public void Ambiguity_01()
+        {
+            string source = """
+interface IServiceProvider { }
+interface IServiceCollection { }
+static class Ext
+{
+    public static void AddSingleton<TService>(this IServiceCollection s, System.Func<IServiceProvider, TService> f) where TService : class
+    {
+        System.Console.WriteLine(typeof(TService));
+    }
+
+    public static void AddSingleton<TService, TImplementation>(this IServiceCollection s, System.Func<IServiceProvider, TImplementation> f) where TService : class where TImplementation : class, TService
+    {
+        throw null;
+    }
+}
+class C { }
+class P
+{
+    static void Main()
+    {
+        IServiceCollection services = null;
+        services.AddSingleton(sp => new C());
+    }
+}
+""";
+            CompileAndVerify(source, expectedOutput: "C", parseOptions: TestOptions.Regular15).VerifyDiagnostics();
+
+            var parseOptions = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Parse).WithLanguageVersion(LanguageVersion.Preview);
+            CompileAndVerify(source, expectedOutput: "C", parseOptions: parseOptions).VerifyDiagnostics();
+
+            CreateCompilation(source, parseOptions: parseOptions.WithFeature(Feature.TypeParameterInferenceFromConstraints)).VerifyDiagnostics(
+                // (21,18): error CS0121: The call is ambiguous between the following methods or properties: 'Ext.AddSingleton<TService>(IServiceCollection, System.Func<IServiceProvider, TService>)' and 'Ext.AddSingleton<TService, TImplementation>(IServiceCollection, System.Func<IServiceProvider, TImplementation>)'
+                //         services.AddSingleton(sp => new C());
+                Diagnostic(ErrorCode.ERR_AmbigCall, "AddSingleton").WithArguments("Ext.AddSingleton<TService>(IServiceCollection, System.Func<IServiceProvider, TService>)", "Ext.AddSingleton<TService, TImplementation>(IServiceCollection, System.Func<IServiceProvider, TImplementation>)").WithLocation(21, 18)
+                );
         }
     }
 }

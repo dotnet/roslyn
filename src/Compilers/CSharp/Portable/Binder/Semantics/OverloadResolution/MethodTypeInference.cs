@@ -1919,7 +1919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 // Note: when Compilation is null, we assume latest LangVersion.
-                return _compilation?.IsFeatureEnabled(MessageID.IDS_FeatureTypeParameterInferenceFromConstraints) != false;
+                return _compilation?.IsFeatureTypeParameterInferenceFromConstraintsEnabled != false;
             }
         }
 

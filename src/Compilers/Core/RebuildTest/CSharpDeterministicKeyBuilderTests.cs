@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void Simple()
         {
             var compilation = CSharpTestBase.CreateCompilation(
-                CSharpTestSource.Parse(@"System.Console.WriteLine(""Hello World"");", checksumAlgorithm: SourceHashAlgorithm.Sha1),
+                CSharpTestSource.Parse(@"System.Console.WriteLine(""Hello World"");", checksumAlgorithm: SourceHashAlgorithm.Sha1, options: TestOptions.RegularPreview.WithFeatures(null)),
                 targetFramework: TargetFramework.NetCoreApp,
                 options: Options);
 
