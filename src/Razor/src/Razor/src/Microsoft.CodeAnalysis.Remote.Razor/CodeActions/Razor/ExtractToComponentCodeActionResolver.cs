@@ -68,16 +68,26 @@ internal sealed class ExtractToComponentCodeActionResolver(RazorTranslateDiagnos
 
         var syntaxTree = componentDocument.GetRequiredTagHelperRewrittenSyntaxTree();
 
+        // Linked files can have a different logical path. We don't know which imports the new
+        // file will inherit in that case, so leave all of the copied usings alone.
+        var relativePath = componentDocument.Source.RelativePath;
+        var projectDirectory = Path.GetDirectoryName(documentSnapshot.ProjectSnapshot.FilePath) ?? string.Empty;
+        var canRemoveUsings = relativePath is not null &&
+            FilePathNormalizer.AreFilePathsEquivalent(Path.Combine(projectDirectory, relativePath), documentSnapshot.FilePath);
+
         // Razor prefers local usings over identical imports, so diagnostics can't identify those
         // copies as redundant. The new component will inherit the same imports as the original.
         using var _1 = HashSetPool<string>.GetPooledObject(out var availableUsings);
-        foreach (var import in componentDocument.GetImportSyntaxTrees())
+        if (canRemoveUsings)
         {
-            foreach (var directive in import.GetUsingDirectives())
+            foreach (var import in componentDocument.GetImportSyntaxTrees())
             {
-                if (RazorSyntaxFacts.TryGetNamespaceFromDirective(directive, out var content))
+                foreach (var directive in import.GetUsingDirectives())
                 {
-                    availableUsings.Add(content);
+                    if (RazorSyntaxFacts.TryGetNamespaceFromDirective(directive, out var content))
+                    {
+                        availableUsings.Add(content);
+                    }
                 }
             }
         }
@@ -86,7 +96,7 @@ internal sealed class ExtractToComponentCodeActionResolver(RazorTranslateDiagnos
         var usingCount = 0;
         foreach (var usingDirective in usingDirectives)
         {
-            if (RazorSyntaxFacts.TryGetNamespaceFromDirective(usingDirective, out var content) && !availableUsings.Add(content))
+            if (canRemoveUsings && RazorSyntaxFacts.TryGetNamespaceFromDirective(usingDirective, out var content) && !availableUsings.Add(content))
             {
                 continue;
             }
@@ -106,7 +116,7 @@ internal sealed class ExtractToComponentCodeActionResolver(RazorTranslateDiagnos
         FormattingUtilities.NaivelyUnindentSubstring(text, span, builder);
 
         var componentContent = builder.ToString();
-        if (usingCount > 0)
+        if (canRemoveUsings && usingCount > 0)
         {
             componentContent = await RemoveUnusedUsingsAsync(documentSnapshot, componentDocument, componentPath, componentContent, contentStart, usingCount, cancellationToken).ConfigureAwait(false);
         }

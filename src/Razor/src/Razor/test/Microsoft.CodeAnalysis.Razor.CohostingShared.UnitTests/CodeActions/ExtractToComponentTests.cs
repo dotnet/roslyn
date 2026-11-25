@@ -1,7 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
@@ -1142,6 +1144,45 @@ public class ExtractToComponentTests(ITestOutputHelper testOutputHelper) : Cohos
 
                     <p>@(new Alias())</p>
                     """)]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
+    public async Task ExtractToComponent_KeepsAllUsingsForLinkedFile()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using System.Text
+                @using System.Text
+                @using System.Diagnostics
+
+                [|<p>Hello</p>|]
+                """,
+            expected: """
+                @using System.Text
+                @using System.Text
+                @using System.Diagnostics
+
+                <Component />
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.ExtractToNewComponent,
+            additionalExpectedFiles: [
+                (FileUri("Component.razor"), """
+                    @using System.Text
+                    @using System.Text
+                    @using System.Diagnostics
+
+                    <p>Hello</p>
+                    """)],
+            additionalFiles: [
+                (FilePath(".editorconfig"), $"""
+                    root = true
+
+                    [File1.razor]
+                    build_metadata.AdditionalFiles.TargetPath = {Convert.ToBase64String(Encoding.UTF8.GetBytes(Path.Combine("Linked", "File1.razor")))}
+                    """),
+                (FilePath(Path.Combine("Linked", "_Imports.razor")), "@using System.Diagnostics")],
+            addDefaultImports: false,
+            projectConfigure: builder => builder.GenerateAdditionalDocumentMetadata = false);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85565")]
