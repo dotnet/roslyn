@@ -3290,6 +3290,21 @@ System.Console.WriteLine(true)
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
+        [WorkItem(86581, "https://github.com/dotnet/roslyn/issues/86581")]
+        [Fact]
+        public void MissingCloseBraceDiagnosticAfterReusingIdentifier()
+        {
+            SourceText oldText = SourceText.From("class C{/ // note\nFieldType");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText);
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(8, 0), "\n"));
+            var reparsedTree = startTree.WithChangedText(newText);
+
+            reparsedTree.GetDiagnostics()
+                .Where(d => d.Code == (int)ErrorCode.ERR_RbraceExpected)
+                .Verify(Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 10));
+        }
+
         [WorkItem(531404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531404")]
         [Fact]
         public void AppendDisabledText()
