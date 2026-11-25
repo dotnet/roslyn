@@ -52,7 +52,7 @@ if (condition)
 
 ## Type parameter inference uses generic constraints
 
-***Introduced in Visual Studio 2026 version 18.14***
+***Introduced in Visual Studio 2026 version 18.15***
 
 In C# 16, method type inference can infer type parameters that occur only in the constraints of other inferred type parameters.
 As a result, a generic method that was previously excluded from overload resolution may become applicable.
@@ -134,3 +134,35 @@ Console.WriteLine(M<Holder, B, int>(new Holder(), 0, x => new B()).Name); // "B"
 ```
 
 See [the type parameter inference from constraints proposal](https://github.com/dotnet/csharplang/issues/9453).
+
+## Method type inference follows specification dependency rules
+
+***Introduced in Visual Studio 2026 version 18.15***
+
+This change aligns method type inference with the dependency and output-type inference rules in the C# language specification.
+This can change inferred type arguments even when compiling with an earlier language version.
+For example:
+
+```cs
+using System;
+
+M(t: 0, u: new B(), f: x => x, g: x => (I<A>)null, h: y => y);
+
+static void M<T, U>(T t, U u, Func<T, T> f, Func<T, I<U>> g, Func<U, U> h)
+{
+    Console.WriteLine(typeof(U)); // Previously: B; now: A
+}
+
+interface I<in T> { }
+class A { }
+class B : A { }
+```
+
+Previously, `U` was inferred as `B` from the `u` argument.
+The dependency of `U` on `T` through `g` requires `T` to be fixed before output-type inference is performed for that lambda.
+Its return type then contributes an upper bound of `A` for `U` through the contravariant `I<T>` interface, so `U` is inferred as `A`.
+To preserve the previous behavior, specify the type arguments explicitly:
+
+```cs
+M<int, B>(t: 0, u: new B(), f: x => x, g: x => (I<A>)null, h: y => y);
+```
