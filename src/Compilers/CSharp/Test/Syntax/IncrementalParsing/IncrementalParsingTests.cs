@@ -3290,8 +3290,7 @@ System.Console.WriteLine(true)
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
-        [WorkItem(86581, "https://github.com/dotnet/roslyn/issues/86581")]
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86581")]
         public void MissingCloseBraceDiagnosticAfterReusingIdentifier()
         {
             SourceText oldText = SourceText.From("class C{/ // note\nFieldType");
