@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Pretend address-of is a pure read (i.e. no write) - would we see an 
             // unassigned diagnostic?
             VisitLvalue(node.Operand);
-            CheckAssigned(node.Operand, node.Operand.Syntax);
+            CheckAssigned(node.Operand, node.Operand.Syntax, useSyntaxForRead: false);
             return null;
         }
     }
