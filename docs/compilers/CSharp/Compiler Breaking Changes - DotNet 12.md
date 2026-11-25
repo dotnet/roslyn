@@ -52,7 +52,7 @@ if (condition)
 
 ## Type parameter inference uses generic constraints
 
-***Introduced in Visual Studio 2026 version 18.14***
+***Introduced in Visual Studio 2026 version 18.15***
 
 In C# 16, method type inference can infer type parameters that occur only in the constraints of other inferred type parameters.
 As a result, a generic method that was previously excluded from overload resolution may become applicable.
@@ -137,7 +137,7 @@ See [the type parameter inference from constraints proposal](https://github.com/
 
 ## Method type inference follows specification dependency rules
 
-***Introduced in Visual Studio 2026 version 18.14***
+***Introduced in Visual Studio 2026 version 18.15***
 
 This change aligns method type inference with the dependency and output-type inference rules in the C# language specification.
 This can change inferred type arguments even when compiling with an earlier language version.
