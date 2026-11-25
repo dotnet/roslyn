@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace Microsoft.NET.ProjectData;
@@ -15,15 +14,15 @@ public static partial class ProjectDataDonorIndex
 	private static ProjectDataDonorIndexFile ReadIndex(string indexPath)
 		=> ReadIndex(indexPath, ProjectDataEnvironment.Default);
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "TryResolveIndexContext resolves indexPath through the supplied ProjectDataEnvironment.")]
 	private static ProjectDataDonorIndexFile ReadIndex(string indexPath, ProjectDataEnvironment environment)
 	{
-		if (!File.Exists(indexPath))
+		FileInfo indexFile = environment.GetFileInfo(indexPath);
+		if (!File.Exists(indexFile.FullName))
 		{
 			return new ProjectDataDonorIndexFile { Version = CurrentVersion };
 		}
 
-		using FileStream stream = new(indexPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+		using FileStream stream = new(indexFile.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 		using JsonDocument document = JsonDocument.Parse(stream);
 		JsonElement root = document.RootElement;
 		if (root.ValueKind != JsonValueKind.Object)
@@ -50,7 +49,6 @@ public static partial class ProjectDataDonorIndex
 		return index;
 	}
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "TryResolveIndexContext resolves indexPath; the quarantine path is derived from that absolute path.")]
 	private static ProjectDataDonorIndexFile ReadIndexForWrite(string indexPath, out string? recoveryMessage, ProjectDataEnvironment environment)
 	{
 		recoveryMessage = null;
@@ -73,7 +71,7 @@ public static partial class ProjectDataDonorIndex
 		}
 
 		string quarantinePath = indexPath + ".corrupt-" + DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff") + "-" + Guid.NewGuid().ToString("N");
-		File.Move(indexPath, quarantinePath);
+		File.Move(environment.GetFileInfo(indexPath).FullName, environment.GetFileInfo(quarantinePath).FullName);
 		recoveryMessage = $"Recovered corrupt donor index '{indexPath}'; the original was preserved at '{quarantinePath}'.";
 		return new ProjectDataDonorIndexFile { Version = CurrentVersion };
 	}
@@ -106,14 +104,15 @@ public static partial class ProjectDataDonorIndex
 		};
 	}
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "TryResolveIndexContext resolves indexPath; temporary paths are derived from that absolute path.")]
-	private static void WriteIndex(string indexPath, ProjectDataDonorIndexFile index)
+	private static void WriteIndex(string indexPath, ProjectDataDonorIndexFile index, ProjectDataEnvironment environment)
 	{
-		Directory.CreateDirectory(Path.GetDirectoryName(indexPath)!);
+		FileInfo indexFile = environment.GetFileInfo(indexPath);
+		indexFile.Directory!.Create();
 		string tempPath = indexPath + "." + ProcessId + "." + Guid.NewGuid().ToString("N") + ".tmp";
+		FileInfo tempFile = environment.GetFileInfo(tempPath);
 		try
 		{
-			using (FileStream stream = File.Create(tempPath))
+			using (FileStream stream = File.Create(tempFile.FullName))
 			using (Utf8JsonWriter writer = new(stream, new JsonWriterOptions { Indented = true }))
 			{
 				writer.WriteStartObject();
@@ -128,13 +127,13 @@ public static partial class ProjectDataDonorIndex
 				writer.WriteEndObject();
 			}
 
-			ReplaceOrMove(tempPath, indexPath);
+			ReplaceOrMove(tempFile, indexFile);
 		}
 		finally
 		{
 			try
 			{
-				File.Delete(tempPath);
+				File.Delete(tempFile.FullName);
 			}
 			catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 			{
@@ -166,16 +165,15 @@ public static partial class ProjectDataDonorIndex
 		}
 	}
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Both paths derive from the absolute index path resolved by TryResolveIndexContext.")]
-	private static void ReplaceOrMove(string tempPath, string indexPath)
+	private static void ReplaceOrMove(FileInfo tempFile, FileInfo indexFile)
 	{
-		if (File.Exists(indexPath))
+		if (File.Exists(indexFile.FullName))
 		{
-			File.Replace(tempPath, indexPath, destinationBackupFileName: null);
+			File.Replace(tempFile.FullName, indexFile.FullName, destinationBackupFileName: null);
 			return;
 		}
 
-		File.Move(tempPath, indexPath);
+		File.Move(tempFile.FullName, indexFile.FullName);
 	}
 
 	private static string? GetString(JsonElement element, string name)

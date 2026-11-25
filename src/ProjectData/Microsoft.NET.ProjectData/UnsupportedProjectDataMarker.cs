@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -103,7 +102,6 @@ public static class UnsupportedProjectDataMarker
 	public static string Write(string projectFilePath, string reason)
 		=> Write(projectFilePath, reason, ProjectDataEnvironment.Default);
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The marker path is resolved through the supplied ProjectDataEnvironment before file I/O.")]
 	internal static string Write(string projectFilePath, string reason, ProjectDataEnvironment environment)
 	{
 		if (string.IsNullOrWhiteSpace(reason))
@@ -112,25 +110,21 @@ public static class UnsupportedProjectDataMarker
 		}
 
 		string markerPath = GetMarkerFilePath(projectFilePath, environment);
-		string absoluteMarkerPath = environment.GetFullPath(markerPath);
-		string? directory = Path.GetDirectoryName(absoluteMarkerPath);
-		if (!string.IsNullOrEmpty(directory))
-		{
-			Directory.CreateDirectory(directory);
-		}
+		FileInfo markerFile = environment.GetFileInfo(markerPath);
+		markerFile.Directory?.Create();
 
 		string content =
 			$"version={SchemaVersion}\n" +
 			$"rulesVersion={RulesVersion}\n" +
 			$"project={environment.GetFullPath(projectFilePath)}\n" +
-			$"projectFingerprint={ComputeFileFingerprint(environment.GetFullPath(projectFilePath), CancellationToken.None)}\n" +
+			$"projectFingerprint={ComputeFileFingerprint(environment.GetFileInfo(projectFilePath), CancellationToken.None)}\n" +
 			$"inputsFingerprint={ComputeAncestorInputsFingerprintCore(projectFilePath, environment, CancellationToken.None)}\n" +
 			$"reason={reason}\n";
 
 		try
 		{
-			if (File.Exists(absoluteMarkerPath) &&
-				string.Equals(File.ReadAllText(absoluteMarkerPath), content, StringComparison.Ordinal))
+			if (File.Exists(markerFile.FullName) &&
+				string.Equals(File.ReadAllText(markerFile.FullName), content, StringComparison.Ordinal))
 			{
 				return markerPath;
 			}
@@ -143,20 +137,19 @@ public static class UnsupportedProjectDataMarker
 				ex.Message);
 		}
 
-		WriteAllTextAtomically(absoluteMarkerPath, content);
+		WriteAllTextAtomically(markerFile, content, environment);
 		return markerPath;
 	}
 
 	public static void Delete(string projectFilePath)
 		=> Delete(projectFilePath, ProjectDataEnvironment.Default);
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The marker path is resolved through the supplied ProjectDataEnvironment before file I/O.")]
 	internal static void Delete(string projectFilePath, ProjectDataEnvironment environment)
 	{
 		try
 		{
-			string markerPath = environment.GetFullPath(GetMarkerFilePath(projectFilePath, environment));
-			File.Delete(markerPath);
+			FileInfo markerFile = environment.GetFileInfo(GetMarkerFilePath(projectFilePath, environment));
+			File.Delete(markerFile.FullName);
 		}
 		catch (Exception ex) when (IsRecoverableMarkerException(ex))
 		{
@@ -168,7 +161,7 @@ public static class UnsupportedProjectDataMarker
 	}
 
 	public static string ComputeProjectFingerprint(string projectFilePath, CancellationToken cancellationToken)
-		=> ComputeFileFingerprint(Path.GetFullPath(projectFilePath), cancellationToken);
+		=> ComputeFileFingerprint(ProjectDataEnvironment.Default.GetFileInfo(projectFilePath), cancellationToken);
 
 	public static string ComputeAncestorInputsFingerprint(string projectFilePath, CancellationToken cancellationToken)
 		=> ComputeAncestorInputsFingerprintCore(projectFilePath, cancellationToken);
@@ -176,7 +169,6 @@ public static class UnsupportedProjectDataMarker
 	private static string ComputeAncestorInputsFingerprintCore(string projectFilePath, CancellationToken cancellationToken)
 		=> ComputeAncestorInputsFingerprintCore(projectFilePath, ProjectDataEnvironment.Default, cancellationToken);
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Input paths derive from absolute ancestors of the project path resolved through the supplied environment.")]
 	private static string ComputeAncestorInputsFingerprintCore(string projectFilePath, ProjectDataEnvironment environment, CancellationToken cancellationToken)
 	{
 		string? directory = Path.GetDirectoryName(environment.GetFullPath(projectFilePath));
@@ -186,14 +178,14 @@ public static class UnsupportedProjectDataMarker
 			cancellationToken.ThrowIfCancellationRequested();
 			foreach (string fileName in AncestorInputFileNames)
 			{
-				string candidate = Path.Combine(directory, fileName);
-				if (File.Exists(candidate))
+				FileInfo candidate = environment.GetFileInfo(Path.Combine(directory, fileName));
+				if (File.Exists(candidate.FullName))
 				{
-					inputs.Add(environment.GetFullPath(candidate));
+					inputs.Add(candidate.FullName);
 				}
 			}
 
-			DirectoryInfo? parent = Directory.GetParent(directory);
+			DirectoryInfo? parent = environment.GetDirectoryInfo(directory).Parent;
 			if (parent is null || string.Equals(parent.FullName, directory, StringComparison.Ordinal))
 			{
 				break;
@@ -207,8 +199,9 @@ public static class UnsupportedProjectDataMarker
 		foreach (string input in inputs)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
-			builder.AppendLine(NormalizePathForFingerprint(input));
-			builder.AppendLine(ComputeFileFingerprint(input, cancellationToken));
+			FileInfo inputFile = environment.GetFileInfo(input);
+			builder.AppendLine(NormalizePathForFingerprint(inputFile));
+			builder.AppendLine(ComputeFileFingerprint(inputFile, cancellationToken));
 		}
 
 		cancellationToken.ThrowIfCancellationRequested();
@@ -239,11 +232,10 @@ public static class UnsupportedProjectDataMarker
 		return values.TryGetValue(key, out string? text) && int.TryParse(text, out value);
 	}
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Callers resolve project and ancestor input paths through the supplied ProjectDataEnvironment.")]
-	private static string ComputeFileFingerprint(string path, CancellationToken cancellationToken)
+	private static string ComputeFileFingerprint(FileInfo file, CancellationToken cancellationToken)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
-		using FileStream stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+		using FileStream stream = File.Open(file.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 		using SHA256 sha256 = SHA256.Create();
 		byte[] hash = sha256.ComputeHash(stream);
 		cancellationToken.ThrowIfCancellationRequested();
@@ -257,27 +249,26 @@ public static class UnsupportedProjectDataMarker
 		return HexEncoder.ToLowerHex(hash);
 	}
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Write resolves the marker path; temporary paths derive from that absolute path.")]
-	private static void WriteAllTextAtomically(string path, string content)
+	private static void WriteAllTextAtomically(FileInfo file, string content, ProjectDataEnvironment environment)
 	{
-		string tempPath = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+		FileInfo tempFile = environment.GetFileInfo(file.FullName + "." + Guid.NewGuid().ToString("N") + ".tmp");
 		try
 		{
-			File.WriteAllText(tempPath, content, Utf8NoBom);
-			if (File.Exists(path))
+			File.WriteAllText(tempFile.FullName, content, Utf8NoBom);
+			if (File.Exists(file.FullName))
 			{
-				File.Replace(tempPath, path, destinationBackupFileName: null);
+				File.Replace(tempFile.FullName, file.FullName, destinationBackupFileName: null);
 			}
 			else
 			{
-				File.Move(tempPath, path);
+				File.Move(tempFile.FullName, file.FullName);
 			}
 		}
 		finally
 		{
 			try
 			{
-				File.Delete(tempPath);
+				File.Delete(tempFile.FullName);
 			}
 			catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 			{
@@ -291,10 +282,9 @@ public static class UnsupportedProjectDataMarker
 	private static bool IsRecoverableMarkerException(Exception ex)
 		=> ex is IOException or UnauthorizedAccessException or FormatException or ArgumentException or NotSupportedException or InvalidOperationException or CryptographicException;
 
-	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "Ancestor input paths have already been resolved; GetFullPath only canonicalizes them.")]
-	private static string NormalizePathForFingerprint(string path)
+	private static string NormalizePathForFingerprint(FileInfo file)
 	{
-		string normalized = Path.GetFullPath(path);
+		string normalized = file.FullName;
 		return IsCaseSensitiveFileSystem()
 			? normalized
 			: normalized.ToLowerInvariant();

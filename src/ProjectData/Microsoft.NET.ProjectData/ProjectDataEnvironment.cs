@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.NET.ProjectData;
 
 /// <summary>
@@ -28,4 +30,12 @@ internal sealed class ProjectDataEnvironment
 	internal Func<string, string?> GetEnvironmentVariable { get; }
 	internal Func<Environment.SpecialFolder, string> GetFolderPath { get; }
 	internal Func<string, string> GetFullPath { get; }
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The supplied environment resolves the path before constructing the file-system object.")]
+	internal FileInfo GetFileInfo(string path)
+		=> new(this.GetFullPath(path));
+
+	[SuppressMessage("MSBuild.TaskAuthoring", "MSBuildTask0005", Justification = "The supplied environment resolves the path before constructing the file-system object.")]
+	internal DirectoryInfo GetDirectoryInfo(string path)
+		=> new(this.GetFullPath(path));
 }
