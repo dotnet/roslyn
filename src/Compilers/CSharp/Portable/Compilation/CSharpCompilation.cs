@@ -399,6 +399,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 InternalSpecialType.System_Threading_Tasks_ValueTask_T);
         }
 
+        internal bool IsFeatureTypeParameterInferenceFromConstraintsEnabled
+        {
+            get
+            {
+                return this.IsFeatureEnabled(MessageID.IDS_FeatureTypeParameterInferenceFromConstraints) &&
+                       Feature(CodeAnalysis.Feature.TypeParameterInferenceFromConstraints) is not null;
+            }
+        }
+
         /// <summary>
         /// The language version that was used to parse the syntax trees of this compilation.
         /// </summary>

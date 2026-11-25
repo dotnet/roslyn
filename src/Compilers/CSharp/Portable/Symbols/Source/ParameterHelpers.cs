@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (usedTypeParameters.Count != 0 && extension.DeclaringCompilation.IsFeatureEnabled(MessageID.IDS_FeatureTypeParameterInferenceFromConstraints))
+                if (usedTypeParameters.Count != 0 && extension.DeclaringCompilation.IsFeatureTypeParameterInferenceFromConstraintsEnabled)
                 {
                     var seen = ArrayBuilder<TypeParameterSymbol>.GetInstance(extensionArity + extensionMemberArity);
                     PooledHashSet<TypeParameterSymbol>? usedInConstraintsTypeParameters = null;
