@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveRedundantEquality;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.RemoveRedundantEquality;
@@ -229,6 +230,98 @@ public sealed class RemoveRedundantEqualityTests
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86479")]
+    public async Task TestUserDefinedImplicitConversionToBool_NoDiagnostics()
+    {
+        // Target-typed 'new' needs C# 9; the test harness defaults to C# 8.
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
+            public class Flag
+            {
+                public bool IsSet { get; }
+
+                public Flag(bool isSet)
+                    => IsSet = isSet;
+
+                public static Flag Off => new(false);
+
+                public static implicit operator bool(Flag flag)
+                    => flag.IsSet;
+            }
+
+            public static class FlagUse
+            {
+                // "== true" converts Flag to bool: the comparison is what
+                // performs the conversion, so it is not redundant.
+                public static int CompareSet(Flag flag)
+                    => (flag == true).CompareTo(false);
+
+                public static int CompareOff()
+                    => (Flag.Off == false).CompareTo(false);
+
+                public static int CompareSetReversed(Flag flag)
+                    => (true == flag).CompareTo(false);
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        };
+
+        await test.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86479")]
+    public async Task TestExplicitCastToBool()
+    {
+        // Target-typed 'new' needs C# 9; the test harness defaults to C# 8.
+        var test = new VerifyCS.Test
+        {
+            TestCode = """
+            public class Flag
+            {
+                public bool IsSet { get; }
+
+                public Flag(bool isSet)
+                    => IsSet = isSet;
+
+                public static implicit operator bool(Flag flag)
+                    => flag.IsSet;
+            }
+
+            public static class FlagUse
+            {
+                public static bool CompareSet(Flag flag)
+                {
+                    return (bool)flag [|==|] true;
+                }
+            }
+            """,
+            FixedCode = """
+            public class Flag
+            {
+                public bool IsSet { get; }
+
+                public Flag(bool isSet)
+                    => IsSet = isSet;
+
+                public static implicit operator bool(Flag flag)
+                    => flag.IsSet;
+            }
+
+            public static class FlagUse
+            {
+                public static bool CompareSet(Flag flag)
+                {
+                    return (bool)flag;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        };
+
+        await test.RunAsync();
+    }
 
     [Fact]
     public Task TestSimpleCaseForIsFalse()

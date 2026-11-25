@@ -164,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
+        private Dictionary<TypeSymbol, TypeWithAnnotations> _formalCollectionElementTypeMap;
 
         /// <summary>
         /// For error recovery, we allow a mismatch between the number of arguments and parameters
@@ -904,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool TryGetFormalCollectionElementType(Binder binder, BoundUnconvertedCollectionExpression argument, TypeSymbol formalType, out TypeWithAnnotations targetElementType)
+        private bool TryGetFormalCollectionElementType(Binder binder, BoundUnconvertedCollectionExpression argument, TypeSymbol formalType, out TypeWithAnnotations targetElementType)
         {
             if (argument.Elements.Length == 0)
             {
@@ -912,7 +913,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType, out targetElementType);
+            if (_formalCollectionElementTypeMap is null)
+            {
+                _formalCollectionElementTypeMap = new Dictionary<TypeSymbol, TypeWithAnnotations>(Symbols.SymbolEqualityComparer.ConsiderEverything);
+            }
+            else if (_formalCollectionElementTypeMap.TryGetValue(formalType, out targetElementType))
+            {
+                Debug.Assert(binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType, out var fromBinder) ?
+                                 fromBinder.Equals(targetElementType, TypeCompareKind.ConsiderEverything) :
+                                 !targetElementType.HasType);
+
+                return targetElementType.HasType;
+            }
+
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType, out targetElementType))
+            {
+                targetElementType = default;
+            }
+
+            _formalCollectionElementTypeMap.Add(formalType, targetElementType);
+            return targetElementType.HasType;
         }
 
         private void MakeOutputTypeInferences(Binder binder, BoundUnconvertedCollectionExpression argument, TypeWithAnnotations formalType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -1243,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private readonly bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundExpression argument, TypeSymbol formalType)
+        private bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundExpression argument, TypeSymbol formalType)
         {
             if (argument.Kind == BoundKind.TupleLiteral)
             {
@@ -1260,7 +1280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private readonly bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundTupleLiteral argument, TypeSymbol formalType)
+        private bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundTupleLiteral argument, TypeSymbol formalType)
         {
             ImmutableArray<TypeWithAnnotations> destTypes = TryGetFormalTupleElementTypes(argument, formalType);
             if (destTypes.IsDefault)
@@ -1284,7 +1304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private readonly bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundUnconvertedCollectionExpression argument, TypeSymbol formalType)
+        private bool DependsDirectlyOn(Binder binder, int iParam, int jParam, BoundUnconvertedCollectionExpression argument, TypeSymbol formalType)
         {
             if (!TryGetFormalCollectionElementType(binder, argument, formalType, out TypeWithAnnotations targetElementType))
             {
