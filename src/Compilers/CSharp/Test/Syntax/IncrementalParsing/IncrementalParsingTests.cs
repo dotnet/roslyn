@@ -3299,9 +3299,36 @@ System.Console.WriteLine(true)
             var newText = oldText.WithChanges(new TextChange(new TextSpan(8, 0), "\n"));
             var reparsedTree = startTree.WithChangedText(newText);
 
-            reparsedTree.GetDiagnostics()
-                .Where(d => d.Code == (int)ErrorCode.ERR_RbraceExpected)
-                .Verify(Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 10));
+            UsingTree(reparsedTree,
+                // (2,1): error CS1519: Invalid token '/' in a member declaration
+                // / // note
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "/").WithArguments("/").WithLocation(2, 1),
+                // (3,10): error CS1519: Invalid token '' in a member declaration
+                // FieldType
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(3, 10),
+                // (3,10): error CS1513: } expected
+                // FieldType
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(3, 10));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.IncompleteMember);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "FieldType");
+                        }
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
         }
 
         [WorkItem(531404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531404")]
