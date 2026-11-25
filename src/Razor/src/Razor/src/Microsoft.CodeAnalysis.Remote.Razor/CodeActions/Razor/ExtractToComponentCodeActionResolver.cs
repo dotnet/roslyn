@@ -68,12 +68,14 @@ internal sealed class ExtractToComponentCodeActionResolver(RazorTranslateDiagnos
 
         var syntaxTree = componentDocument.GetRequiredTagHelperRewrittenSyntaxTree();
 
-        // Linked files can have a different logical path. We don't know which imports the new
-        // file will inherit in that case, so leave all of the copied usings alone.
+        // Linked files can have a different logical path, so we don't know which imports the
+        // new file will inherit. Other project contexts can also need different usings, so
+        // leave all of the copied usings alone in either case.
         var relativePath = componentDocument.Source.RelativePath;
         var projectDirectory = Path.GetDirectoryName(documentSnapshot.ProjectSnapshot.FilePath) ?? string.Empty;
         var canRemoveUsings = relativePath is not null &&
-            FilePathNormalizer.AreFilePathsEquivalent(Path.Combine(projectDirectory, relativePath), documentSnapshot.FilePath);
+            FilePathNormalizer.AreFilePathsEquivalent(Path.Combine(projectDirectory, relativePath), documentSnapshot.FilePath) &&
+            documentSnapshot.ProjectSnapshot.SolutionSnapshot.GetProjectsContainingDocument(documentSnapshot.FilePath).Length == 1;
 
         // Razor prefers local usings over identical imports, so diagnostics can't identify those
         // copies as redundant. The new component will inherit the same imports as the original.
