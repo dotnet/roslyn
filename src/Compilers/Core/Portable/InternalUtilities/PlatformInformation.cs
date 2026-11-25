@@ -7,6 +7,7 @@
 using System;
 using System.IO;
 using System.Runtime.Versioning;
+using System.Runtime.InteropServices;
 
 namespace Roslyn.Utilities
 {
@@ -26,9 +27,9 @@ namespace Roslyn.Utilities
 #if NET5_0_OR_GREATER
         [SupportedOSPlatformGuard("windows")]
 #endif
-        public static bool IsWindows => Path.DirectorySeparatorChar == '\\';
+        public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
-        public static bool IsUnix => Path.DirectorySeparatorChar == '/';
+        public static bool IsUnix => !IsWindows;
         public static bool IsRunningOnMono
         {
             get
