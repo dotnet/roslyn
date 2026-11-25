@@ -472,6 +472,18 @@ class C { void c() { } }
                             SyntaxKind.SemicolonToken);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86575")]
+        public void ScriptInvocationAfterClosingClassIsGlobalStatement()
+        {
+            SourceText oldText = SourceText.From("void w() {} class C{w();");
+            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+
+            var newText = oldText.WithChanges(new TextChange(new TextSpan(20, 0), "}"));
+            var reparsedTree = startTree.WithChangedText(newText);
+
+            Assert.Equal(SyntaxKind.GlobalStatement, reparsedTree.GetCompilationUnitRoot().Members.Last().Kind());
+        }
+
         [Fact]
         public void TestAttributeToCollectionExpression1()
         {
