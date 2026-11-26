@@ -384,7 +384,9 @@ internal abstract class AbstractRefactoringHelpers<TExpressionSyntax, TArgumentS
             //
             // GetSpanWithoutAttributes starts at the first declaration token after any attribute lists,
             // matching the start of the header used by IsOnTypeHeader. For example:
+            //
             //   [A] [|[B] class C|] { int i; string s; }
+            //
             // This selection starts before the header but includes it, so it must bypass the header-position
             // check. Comparing against selectionNode.SpanStart instead would enter that check and reject it
             // because the selection starts inside the attributes, which IsOnTypeHeader excludes.
