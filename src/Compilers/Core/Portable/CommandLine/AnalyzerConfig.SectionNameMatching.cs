@@ -143,8 +143,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    // We only call this on strings that were already passed through IsAbsoluteEditorConfigPath, so
-                    // we shouldn't have any other token kinds here.
+                    // Callers have already checked that the section name contains only literal characters.
                     throw ExceptionUtilities.UnexpectedValue(tokenKind);
                 }
             }
@@ -224,6 +223,30 @@ namespace Microsoft.CodeAnalysis
                 logicalIndex++;
             }
             return sawStartChar;
+        }
+
+        internal static string? TryResolveRelativeEditorConfigPath(string sectionName, string baseDirectory)
+        {
+            var lexer = new SectionNameLexer(sectionName);
+            while (!lexer.IsDone)
+            {
+                if (lexer.Lex() != TokenKind.SimpleCharacter)
+                {
+                    return null;
+                }
+
+                lexer.EatCurrentCharacter();
+            }
+
+            var path = PathUtilities.CombinePossiblyRelativeAndRelativePaths(baseDirectory, UnescapeSectionName(sectionName));
+            if (path is null)
+            {
+                return null;
+            }
+
+            path = PathUtilities.CollapseWithForwardSlash(path.AsSpan());
+            path = PathUtilities.ExpandAbsolutePathWithRelativeParts(path);
+            return PathUtilities.NormalizeDriveLetter(path);
         }
 
         /// <summary>

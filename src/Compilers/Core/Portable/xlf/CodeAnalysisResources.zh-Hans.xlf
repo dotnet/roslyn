@@ -664,13 +664,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName">
-        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
-        <target state="translated">全局分析器配置部分名称“{0}”无效，因为它不是绝对路径。部分将被忽略。部分已在以下文件中声明:“{1}”。</target>
+        <source>Global analyzer config section name '{0}' is invalid as it is not a literal file path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="needs-review-translation">全局分析器配置部分名称“{0}”无效，因为它不是绝对路径。部分将被忽略。部分已在以下文件中声明:“{1}”。</target>
         <note>{0}: invalid section name, {1} path to global config</note>
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
-        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="translated">全局分析器配置部分名称无效，因为它不是绝对路径。部分将被忽略。</target>
+        <source>Global analyzer config section name is invalid as it is not a literal file path. Section will be ignored.</source>
+        <target state="needs-review-translation">全局分析器配置部分名称无效，因为它不是绝对路径。部分将被忽略。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">

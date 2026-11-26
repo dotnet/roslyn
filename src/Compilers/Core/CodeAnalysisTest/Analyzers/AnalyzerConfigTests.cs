@@ -1843,7 +1843,7 @@ option1 = value1
         }
 
         [Fact]
-        public void GlobalConfigsSectionsMustBeFullPath()
+        public void GlobalConfigsSectionsDoNotSupportGlobs()
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
             configs.Add(Parse(@"is_global = true
@@ -1877,6 +1877,95 @@ option4 = value4
                     new (string, string)[] { }
               },
               options);
+        }
+
+        [Theory]
+        [InlineData("/project/obj/config.globalconfig", "file.cs", "/project/obj/file.cs")]
+        [InlineData("/project/obj/config.globalconfig", "./file.cs", "/project/obj/file.cs")]
+        [InlineData("/project/obj/config.globalconfig", "sub/file.cs", "/project/obj/sub/file.cs")]
+        [InlineData("/project/obj/config.globalconfig", "sub/../file.cs", "/project/obj/file.cs")]
+        [InlineData("/project/obj/config.globalconfig", "../file.cs", "/project/file.cs")]
+        [InlineData("/project/obj/config.globalconfig", "../../../file.cs", "/file.cs")]
+        [InlineData("/project/obj/config.globalconfig", @"../\{file\}\#1.cs", "/project/{file}#1.cs")]
+        [InlineData("/project/{directory}/config.globalconfig", "file.cs", "/project/{directory}/file.cs")]
+        public void RelativeGlobalConfigSectionsMatchExactPaths(string configPath, string sectionName, string sourcePath)
+        {
+            var config = Parse($$"""
+                is_global = true
+                [{{sectionName}}]
+                option1 = value1
+                """, configPath);
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config), out var diagnostics);
+
+            diagnostics.Verify();
+            Assert.Equal("value1", set.GetOptionsForSourcePath(sourcePath).AnalyzerOptions["option1"]);
+            Assert.Empty(set.GetOptionsForSourcePath(sourcePath + ".other").AnalyzerOptions);
+            Assert.Empty(set.GetOptionsForSourcePath("/unrelated/file.cs").AnalyzerOptions);
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"q:\project\obj\config.globalconfig", "../file.cs", @"Q:\project\file.cs")]
+        [InlineData(@"q:\project\obj\config.globalconfig", "./sub/../file.cs", @"Q:\project\obj\file.cs")]
+        [InlineData(@"\\server\share\project\obj\config.globalconfig", "../file.cs", @"\\server\share\project\file.cs")]
+        public void RelativeGlobalConfigSectionsMatchWindowsPaths(string configPath, string sectionName, string sourcePath)
+            => RelativeGlobalConfigSectionsMatchExactPaths(configPath, sectionName, sourcePath);
+
+        [Fact]
+        public void RelativeGlobalConfigSectionsUseEachConfigDirectory()
+        {
+            var config1 = Parse("""
+                is_global = true
+                [file.cs]
+                option1 = value1
+                """, "/one/config.globalconfig");
+            var config2 = Parse("""
+                is_global = true
+                [file.cs]
+                option1 = value2
+                """, "/two/config.globalconfig");
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config1, config2), out var diagnostics);
+
+            diagnostics.Verify();
+            Assert.Equal("value1", set.GetOptionsForSourcePath("/one/file.cs").AnalyzerOptions["option1"]);
+            Assert.Equal("value2", set.GetOptionsForSourcePath("/two/file.cs").AnalyzerOptions["option1"]);
+        }
+
+        [Theory]
+        [InlineData(-1, "value1")]
+        [InlineData(0, null)]
+        [InlineData(1, "value2")]
+        public void RelativeGlobalConfigSectionsMergeWithAbsoluteSections(int relativeLevel, string expectedValue)
+        {
+            var absoluteConfig = Parse("""
+                is_global = true
+                [/project/file.cs]
+                option1 = value1
+                """, "/config.globalconfig");
+            var relativeConfig = Parse($$"""
+                is_global = true
+                global_level = {{relativeLevel}}
+                [.././file.cs]
+                option1 = value2
+                """, "/project/obj/config.globalconfig");
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(absoluteConfig, relativeConfig), out var diagnostics);
+            var options = set.GetOptionsForSourcePath("/project/file.cs").AnalyzerOptions;
+
+            if (expectedValue is null)
+            {
+                diagnostics.Verify(
+                    Diagnostic("MultipleGlobalAnalyzerKeys")
+                        .WithArguments("option1", "/project/file.cs", "/config.globalconfig, /project/obj/config.globalconfig")
+                        .WithLocation(1, 1));
+                Assert.Empty(options);
+            }
+            else
+            {
+                diagnostics.Verify();
+                Assert.Equal(expectedValue, options["option1"]);
+            }
         }
 
         [Fact]
@@ -2251,10 +2340,12 @@ option2 = config3
 
         [Theory]
         [InlineData("/path/to/file.cs", true)]
-        [InlineData("file.cs", false)]
-        [InlineData("../file.cs", false)]
+        [InlineData("file.cs", true)]
+        [InlineData("../file.cs", true)]
         [InlineData("**", false)]
         [InlineData("*.cs", false)]
+        [InlineData("dir/*.cs", false)]
+        [InlineData("./file?.cs", false)]
         [InlineData("?abc.cs", false)]
         [InlineData("/path/to/**", false)]
         [InlineData("/path/[a]/to/*.cs", false)]
@@ -2268,17 +2359,13 @@ option2 = config3
         [InlineData("//path", true)]
         [InlineData("//", true)]
         [InlineData(@"\", false)] //invalid: editorconfig sees a single escape character
-        [InlineData(@"\\", false)] //invalid: editorconfig sees an escaped, literal backslash
         [InlineData(@"/\{\}\,\[\]\*", true)]
-        [InlineData(@"C:\my\file.cs", false)] // invalid: editorconfig sees a single file called 'c:(\m)y(\f)ile.cs' (i.e. \m and \f are escape chars)
-        [InlineData(@"\my\file.cs", false)] // invalid: editorconfig sees a single file called '(\m)y(\f)ile.cs' 
-        [InlineData(@"\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '\my\file.cs' with literal backslashes
-        [InlineData(@"\\\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '\\my\file.cs' not a UNC path
+        [InlineData(@"\my\file.cs", true)] // Escapes name a relative file called 'myfile.cs'.
         [InlineData("//server/file.cs", true)]
         [InlineData(@"//server\file.cs", true)]
         [InlineData(@"\/file.cs", true)] // allow escaped chars
         [InlineData("<>a??/b.cs", false)]
-        [InlineData(".", false)]
+        [InlineData(".", true)]
         [InlineData("/", true)]
         [InlineData("", true)] // only true because [] isn't a valid editorconfig section name either and thus never gets parsed
         public void GlobalConfigIssuesWarningWithInvalidSectionNames(string sectionName, bool isValid)
@@ -2305,19 +2392,23 @@ is_global = true
         }
 
         [Theory]
-        [InlineData("C:/myfile.cs", true, false)]
-        [InlineData("cd:/myfile.cs", false, false)] // windows only allows a single character as a drive specifier
-        [InlineData(@"\c\:\/myfile.cs", true, false)] // allow escaped characters
+        [InlineData("C:/myfile.cs", true, true)]
+        [InlineData("cd:/myfile.cs", true, true)]
+        [InlineData(@"\c\:\/myfile.cs", true, true)] // allow escaped characters
         [InlineData("/myfile.cs", true, true)] //absolute, with a relative drive root
-        [InlineData("c:myfile.cs", false, false)] //relative, wit2h an absolute drive root
-        [InlineData(@"C:\myfile.cs", false, false)] //not a valid editorconfig path
+        [InlineData("c:myfile.cs", false, true)] // Drive-relative paths cannot be resolved because that would depend on current working directory.
+        [InlineData(@"C:\myfile.cs", false, true)]
+        [InlineData(@"C:\my\file.cs", false, true)]
+        [InlineData(@"\\", false, true)]
+        [InlineData(@"\\my\\file.cs", false, true)]
+        [InlineData(@"\\\\my\\file.cs", false, true)]
         [InlineData("//?/C:/Test/Foo.txt", false, false)] // ? is a special char in editorconfig
         [InlineData(@"//\?/C:/Test/Foo.txt", true, true)]
         [InlineData(@"\\?\C:\Test\Foo.txt", false, false)]
-        [InlineData(@"C:", false, false)]
+        [InlineData(@"C:", false, true)]
         [InlineData(@"C\", false, false)]
-        [InlineData(@"\c\:", false, false)]
-        [InlineData("C:/", true, false)]
+        [InlineData(@"\c\:", false, true)]
+        [InlineData("C:/", true, true)]
         [InlineData("C:/*.cs", false, false)]
         public void GlobalConfigIssuesWarningWithInvalidSectionNames_PlatformSpecific(string sectionName, bool isValidWindows, bool isValidOther)
             => GlobalConfigIssuesWarningWithInvalidSectionNames(sectionName, ExecutionConditionUtil.IsWindows ? isValidWindows : isValidOther);

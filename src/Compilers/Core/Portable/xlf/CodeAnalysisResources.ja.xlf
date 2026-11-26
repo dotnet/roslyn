@@ -664,13 +664,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName">
-        <source>Global analyzer config section name '{0}' is invalid as it is not an absolute path. Section will be ignored. Section was declared in file: '{1}'</source>
-        <target state="translated">グローバル アナライザー構成セクション名 '{0}' は、絶対パスではないため無効です。セクションは無視されます。セクションはファイル '{1}' で宣言されました。</target>
+        <source>Global analyzer config section name '{0}' is invalid as it is not a literal file path. Section will be ignored. Section was declared in file: '{1}'</source>
+        <target state="needs-review-translation">グローバル アナライザー構成セクション名 '{0}' は、絶対パスではないため無効です。セクションは無視されます。セクションはファイル '{1}' で宣言されました。</target>
         <note>{0}: invalid section name, {1} path to global config</note>
       </trans-unit>
       <trans-unit id="WRN_InvalidGlobalSectionName_Title">
-        <source>Global analyzer config section name is invalid as it is not an absolute path. Section will be ignored.</source>
-        <target state="translated">グローバル アナライザー構成セクション名は、絶対パスではないため無効です。セクションは無視されます。</target>
+        <source>Global analyzer config section name is invalid as it is not a literal file path. Section will be ignored.</source>
+        <target state="needs-review-translation">グローバル アナライザー構成セクション名は、絶対パスではないため無効です。セクションは無視されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InvalidSeverityInAnalyzerConfig">
