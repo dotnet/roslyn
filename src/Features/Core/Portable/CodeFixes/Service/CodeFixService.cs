@@ -285,10 +285,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         if (service is null)
             return false;
 
-        var tree = await sourceDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        if (tree is null)
-            return false;
-
+        var tree = await sourceDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var members = await service.GetSelectedMembersAsync(
             tree, selection.Value, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
         return !members.IsDefaultOrEmpty && members.Length > 1;
