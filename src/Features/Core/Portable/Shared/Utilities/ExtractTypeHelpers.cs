@@ -65,7 +65,7 @@ internal static class ExtractTypeHelpers
         // second document with the same path would silently overwrite the existing
         // file's contents when the refactoring is applied, so pick a file name that
         // isn't in use instead. See https://github.com/dotnet/roslyn/issues/61471.
-        fileName = GetUniqueFileName(solution, projectId, hintDocument.FilePath, fileName);
+        fileName = GetUniqueFileName(solution, projectId, fileName);
         var newDocumentPath = PathUtilities.CombinePaths(PathUtilities.GetDirectoryName(hintDocument.FilePath), fileName);
 
         var solutionWithNewDocument = solution.AddDocument(newDocumentId, fileName, text: "", folders: folders, filePath: newDocumentPath);
@@ -123,26 +123,27 @@ internal static class ExtractTypeHelpers
 
     /// <summary>
     /// Returns <paramref name="fileName"/> when no document in the project already uses
-    /// that file name in the directory of <paramref name="hintFilePath"/>; otherwise
-    /// returns the first unused name of the form <c>Name1.cs</c>, <c>Name2.cs</c>, ...
+    /// that file name; otherwise returns the first unused name of the form
+    /// <c>Name1.cs</c>, <c>Name2.cs</c>, ...
     /// </summary>
-    private static string GetUniqueFileName(Solution solution, ProjectId projectId, string hintFilePath, string fileName)
+    private static string GetUniqueFileName(Solution solution, ProjectId projectId, string fileName)
     {
-        var directoryName = PathUtilities.GetDirectoryName(hintFilePath);
-
-        // Collect the file names already used in this folder once. The new name
-        // just has to avoid being one of those names.
-        var fileNamesInFolder = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // Collect the file names already used in the project once. The new name just
+        // has to avoid being one of those names. This intentionally ignores folders:
+        // document paths in a project need not share a common directory string (for
+        // example, test workspaces give the hint document a "/0/..." path while an
+        // existing file keeps its bare name), so comparing directories can miss a
+        // file that the new document would overwrite.
+        var fileNamesInProject = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var project = solution.GetProject(projectId);
         if (project is not null)
         {
             foreach (var document in project.Documents)
             {
                 var filePath = document.FilePath;
-                if (filePath is not null &&
-                    string.Equals(PathUtilities.GetDirectoryName(filePath), directoryName, StringComparison.OrdinalIgnoreCase))
+                if (filePath is not null)
                 {
-                    fileNamesInFolder.Add(PathUtilities.GetFileName(filePath));
+                    fileNamesInProject.Add(PathUtilities.GetFileName(filePath));
                 }
             }
         }
@@ -151,7 +152,7 @@ internal static class ExtractTypeHelpers
         var nameWithoutExtension = extensionIndex >= 0 ? fileName[..extensionIndex] : fileName;
         var extension = extensionIndex >= 0 ? fileName[extensionIndex..] : string.Empty;
 
-        return NameGenerator.GenerateUniqueName(nameWithoutExtension, extension, candidate => !fileNamesInFolder.Contains(candidate));
+        return NameGenerator.GenerateUniqueName(nameWithoutExtension, extension, candidate => !fileNamesInProject.Contains(candidate));
     }
 
     public static string GetTypeParameterSuffix(
