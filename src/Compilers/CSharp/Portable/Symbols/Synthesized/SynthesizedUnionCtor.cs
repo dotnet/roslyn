@@ -117,9 +117,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ExecutableCodeBinder? TryGetBodyBinder(BinderFactory? binderFactoryOpt = null, bool ignoreAccessibility = false) => throw ExceptionUtilities.Unreachable();
 
-        internal override bool HasSafeModifier => false; // Like SourceConstructorSymbol
-        internal override bool HasUnsafeModifier => false; // Like SourceConstructorSymbol
-        internal override bool CanRequireUnsafe => true; // Like SourceConstructorSymbol
+        internal override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0; // Like SynthesizedPrimaryConstructor
+        internal override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0; // Like SynthesizedPrimaryConstructor
+        internal override bool CanRequireUnsafe
+        {
+            get
+            {
+                Debug.Assert(!HasUnsafeModifier, $"Revisit {nameof(CanRequireUnsafe)} implementation if {nameof(SynthesizedUnionCtor)} can be marked 'unsafe'.");
+                return false; // Like SynthesizedPrimaryConstructor
+            }
+        }
 
         protected override bool IsWithinExpressionOrBlockBody(int position, out int offset)
         {
