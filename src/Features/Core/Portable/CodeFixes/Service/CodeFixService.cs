@@ -101,13 +101,17 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
-        // Selecting several members tells us the user wants an operation on those members together:
-        // a refactoring. Code fixes still target individual issues; the selection does not make a fix
-        // apply to every selected member. Hide fixes here so they do not crowd out refactorings that
-        // actually use the selection.
+        // Selecting several members tells us the user wants to do something with all of them.
+        // For example, selecting two fields to generate a constructor should produce parameters for both.
+        // Keep the list focused on refactorings that use those selected members.
         //
-        // A single selected member still allows fixes: selecting it is a reasonable way to ask us to
-        // fix an issue specific to that member.
+        // Selecting several fields to make them all readonly could also be useful. Code fixes do
+        // not support that today. They still offer to fix a diagnostic on one field and ignore the
+        // rest of the selection. Hiding those entries removes clutter without losing an existing
+        // way to fix all the selected fields.
+        //
+        // A single selected member is different. Selecting one field is a reasonable way to ask
+        // for fixes to issues on that field, so keep offering fixes in that case.
         if (await IsMultipleMemberSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
             return null;
 
@@ -194,13 +198,17 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}");
 
-        // Selecting several members tells us the user wants an operation on those members together:
-        // a refactoring. Code fixes still target individual issues; the selection does not make a fix
-        // apply to every selected member. Hide fixes here so they do not crowd out refactorings that
-        // actually use the selection.
+        // Selecting several members tells us the user wants to do something with all of them.
+        // For example, selecting two fields to generate a constructor should produce parameters for both.
+        // Keep the list focused on refactorings that use those selected members.
         //
-        // A single selected member still allows fixes: selecting it is a reasonable way to ask us to
-        // fix an issue specific to that member.
+        // Selecting several fields to make them all readonly could also be useful. Code fixes do
+        // not support that today. They still offer to fix a diagnostic on one field and ignore the
+        // rest of the selection. Hiding those entries removes clutter without losing an existing
+        // way to fix all the selected fields.
+        //
+        // A single selected member is different. Selecting one field is a reasonable way to ask
+        // for fixes to issues on that field, so keep offering fixes in that case.
         if (await IsMultipleMemberSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
             yield break;
 
