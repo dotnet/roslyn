@@ -32,12 +32,21 @@ public sealed class MemberSelectionCodeFixTests
     {
         { LanguageNames.CSharp, "class C { [|int bad;|] string good; }", true },
         { LanguageNames.CSharp, "class C { int [|bad|]; string good; }", true },
+
+        // Multiple fields in one declaration: selecting either name alone still allows fixes.
         { LanguageNames.CSharp, "class C { int [||]bad, good; }", true },
+        { LanguageNames.CSharp, "class C { int bad, [||]good; }", true },
+        { LanguageNames.CSharp, "class C { int bad, go[||]od; }", true },
         { LanguageNames.CSharp, "class C { [||]int bad, good; }", true },
+        { LanguageNames.CSharp, "class C { int [|bad|], good; }", true },
+        { LanguageNames.CSharp, "class C { int bad, [|good|]; }", true },
+        { LanguageNames.CSharp, "class C { int [|bad, good|]; }", false },
+        { LanguageNames.CSharp, "class C { [|int bad, good|]; }", false },
+        { LanguageNames.CSharp, "class C { [|int bad, good;|] }", false },
+
         { LanguageNames.CSharp, "class C { [|int bad; string good;|] }", false },
         { LanguageNames.CSharp, "class C { int [|bad; string good|]; }", false },
         { LanguageNames.CSharp, "class C { [|int bad1; int bad2;|] }", false },
-        { LanguageNames.CSharp, "class C { [|int bad, good;|] }", false },
         { LanguageNames.CSharp, "class C { [|int bad { get; set; }|] string good { get; set; } }", true },
         { LanguageNames.CSharp, "class C { [|int bad { get; set; } string good { get; set; }|] }", false },
         { LanguageNames.CSharp, "class C { [|void bad() { }|] void good() { } }", true },
@@ -49,12 +58,22 @@ public sealed class MemberSelectionCodeFixTests
         { LanguageNames.CSharp, "class C { int bad;[|\nstring good;|] }", true },
         { LanguageNames.VisualBasic, "Class C\n[|Dim bad As Integer|]\nDim good As String\nEnd Class", true },
         { LanguageNames.VisualBasic, "Class C\nDim [|bad|] As Integer\nDim good As String\nEnd Class", true },
+
+        // VB puts the type after the names and terminates the declaration with a newline.
         { LanguageNames.VisualBasic, "Class C\nDim [||]bad, good As Integer\nEnd Class", true },
+        { LanguageNames.VisualBasic, "Class C\nDim bad, [||]good As Integer\nEnd Class", true },
+        { LanguageNames.VisualBasic, "Class C\nDim bad, go[||]od As Integer\nEnd Class", true },
         { LanguageNames.VisualBasic, "Class C\n[||]Dim bad, good As Integer\nEnd Class", true },
+        { LanguageNames.VisualBasic, "Class C\nDim [|bad|], good As Integer\nEnd Class", true },
+        { LanguageNames.VisualBasic, "Class C\nDim bad, [|good|] As Integer\nEnd Class", true },
+        { LanguageNames.VisualBasic, "Class C\nDim [|bad, good|] As Integer\nEnd Class", false },
+        { LanguageNames.VisualBasic, "Class C\nDim [|bad, good As Integer|]\nEnd Class", false },
+        { LanguageNames.VisualBasic, "Class C\n[|Dim bad, good As Integer|]\nEnd Class", false },
+        { LanguageNames.VisualBasic, "Class C\n[|Dim bad, good As Integer\n|]End Class", false },
+
         { LanguageNames.VisualBasic, "Class C\n[|Dim bad As Integer\nDim good As String|]\nEnd Class", false },
         { LanguageNames.VisualBasic, "Class C\nDim [|bad As Integer\nDim good|] As String\nEnd Class", false },
         { LanguageNames.VisualBasic, "Class C\n[|Dim bad1 As Integer\nDim bad2 As Integer|]\nEnd Class", false },
-        { LanguageNames.VisualBasic, "Class C\n[|Dim bad, good As Integer|]\nEnd Class", false },
         { LanguageNames.VisualBasic, "Class C\n[|Property bad As Integer|]\nProperty good As String\nEnd Class", true },
         { LanguageNames.VisualBasic, "Class C\n[|Property bad As Integer\nProperty good As String|]\nEnd Class", false },
         { LanguageNames.VisualBasic, "Class C\n[|Sub bad()\nEnd Sub|]\nSub good()\nEnd Sub\nEnd Class", true },
