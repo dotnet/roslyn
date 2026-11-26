@@ -179,9 +179,6 @@ internal static partial class ITypeSymbolExtensions
             type.AllInterfaces.Any(s => s.SpecialType is SpecialType.System_Collections_Generic_IEnumerable_T or SpecialType.System_Collections_IEnumerable);
     }
 
-    public static bool CanBeAsynchronouslyEnumerated(this ITypeSymbol type, Compilation compilation)
-        => type.CanBeAsynchronouslyEnumerated(compilation.IAsyncEnumerableOfTType());
-
     public static bool CanBeAsynchronouslyEnumerated(this ITypeSymbol type, INamedTypeSymbol? asyncEnumerableType)
     {
         asyncEnumerableType = asyncEnumerableType?.OriginalDefinition;

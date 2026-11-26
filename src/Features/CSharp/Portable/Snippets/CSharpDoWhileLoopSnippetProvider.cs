@@ -32,7 +32,11 @@ internal sealed class CSharpDoWhileLoopSnippetProvider()
         => token.IsBeginningOfStatementContext() || token.IsBeginningOfGlobalStatementContext();
 
     protected override DoStatementSyntax GenerateStatement(
-        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
+        SyntaxGenerator generator,
+        SyntaxContext syntaxContext,
+        SimplifierOptions simplifierOptions,
+        InlineExpressionInfo? inlineExpressionInfo,
+        CancellationToken cancellationToken)
     {
         return SyntaxFactory.DoStatement(
             SyntaxFactory.Block(),

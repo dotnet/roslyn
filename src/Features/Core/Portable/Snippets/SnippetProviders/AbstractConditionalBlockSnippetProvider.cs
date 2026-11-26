@@ -18,7 +18,7 @@ internal abstract class AbstractConditionalBlockSnippetProvider<TStatementSyntax
 {
     protected abstract TExpressionSyntax GetCondition(TStatementSyntax node);
 
-    protected sealed override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+    protected sealed override bool IsValidAccessingType(ITypeSymbol type, SnippetContext context, CancellationToken cancellationToken)
         => type.SpecialType == SpecialType.System_Boolean;
 
     protected sealed override ValueTask<ImmutableArray<SnippetPlaceholder>> GetPlaceHolderLocationsListAsync(

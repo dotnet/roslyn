@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
@@ -17,6 +18,12 @@ internal abstract class AbstractIfSnippetProvider<TIfStatementSyntax, TExpressio
     public sealed override ImmutableArray<string> AdditionalFilterTexts { get; } = ["statement"];
 
     protected sealed override TIfStatementSyntax GenerateStatement(
-        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
-        => (TIfStatementSyntax)generator.IfStatement(inlineExpressionInfo?.Node.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), []);
+        SyntaxGenerator generator,
+        SyntaxContext syntaxContext,
+        SimplifierOptions simplifierOptions,
+        InlineExpressionInfo? inlineExpressionInfo,
+        CancellationToken cancellationToken)
+    {
+        return (TIfStatementSyntax)generator.IfStatement(inlineExpressionInfo?.Node.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), []);
+    }
 }

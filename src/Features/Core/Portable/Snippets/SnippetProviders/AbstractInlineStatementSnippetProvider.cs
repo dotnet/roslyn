@@ -25,8 +25,9 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     /// Tells if accessing type of a member access expression is valid for that snippet
     /// </summary>
     /// <param name="type">Type of right-hand side of an accessing expression</param>
-    /// <param name="compilation">Current compilation instance</param>
-    protected abstract bool IsValidAccessingType(ITypeSymbol type, Compilation compilation);
+    /// <param name="context">Context of the check</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    protected abstract bool IsValidAccessingType(ITypeSymbol type, SnippetContext context, CancellationToken cancellationToken);
 
     protected abstract bool CanInsertStatementAfterToken(SyntaxToken token);
 
@@ -35,7 +36,11 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     /// </summary>
     /// <param name="inlineExpressionInfo">Information about inline expression or <see langword="null"/> if snippet is executed in normal statement context</param>
     protected abstract TStatementSyntax GenerateStatement(
-        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo);
+        SyntaxGenerator generator,
+        SyntaxContext syntaxContext,
+        SimplifierOptions simplifierOptions,
+        InlineExpressionInfo? inlineExpressionInfo,
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Tells whether the original snippet was constructed from member access expression.
@@ -50,7 +55,7 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
 
         var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
         return TryGetInlineExpressionInfo(syntaxContext, syntaxFacts, semanticModel, out var expressionInfo, cancellationToken) && expressionInfo.TypeInfo.Type is { } type
-            ? IsValidAccessingType(type, semanticModel.Compilation)
+            ? IsValidAccessingType(type, context, cancellationToken)
             : base.IsValidSnippetLocationCore(context, cancellationToken);
     }
 
@@ -63,7 +68,7 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         _ = TryGetInlineExpressionInfo(syntaxContext, syntaxFacts, semanticModel, out var inlineExpressionInfo, cancellationToken);
 
-        var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, simplifierOptions, inlineExpressionInfo);
+        var statement = GenerateStatement(SyntaxGenerator.GetGenerator(document), syntaxContext, simplifierOptions, inlineExpressionInfo, cancellationToken);
         ConstructedFromInlineExpression = inlineExpressionInfo is not null;
 
         return new TextChange(TextSpan.FromBounds(inlineExpressionInfo?.Node.SpanStart ?? position, position), statement.ToFullString());

@@ -43,5 +43,7 @@ public static class CommonSnippetTestData
         "System.Collections.Generic.IEnumerable<int>",
         "System.Collections.ArrayList",
         "System.Collections.IEnumerable",
+        "System.Span<long>",
+        "System.ReadOnlySpan<char>",
     ];
 }

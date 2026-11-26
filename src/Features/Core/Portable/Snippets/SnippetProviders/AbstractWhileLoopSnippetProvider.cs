@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Simplification;
@@ -14,6 +15,12 @@ internal abstract class AbstractWhileLoopSnippetProvider<TWhileStatementSyntax, 
     where TExpressionSyntax : SyntaxNode
 {
     protected sealed override TWhileStatementSyntax GenerateStatement(
-        SyntaxGenerator generator, SyntaxContext syntaxContext, SimplifierOptions simplifierOptions, InlineExpressionInfo? inlineExpressionInfo)
-        => (TWhileStatementSyntax)generator.WhileStatement(inlineExpressionInfo?.Node.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), []);
+        SyntaxGenerator generator,
+        SyntaxContext syntaxContext,
+        SimplifierOptions simplifierOptions,
+        InlineExpressionInfo? inlineExpressionInfo,
+        CancellationToken cancellationToken)
+    {
+        return (TWhileStatementSyntax)generator.WhileStatement(inlineExpressionInfo?.Node.WithoutLeadingTrivia() ?? generator.TrueLiteralExpression(), []);
+    }
 }
