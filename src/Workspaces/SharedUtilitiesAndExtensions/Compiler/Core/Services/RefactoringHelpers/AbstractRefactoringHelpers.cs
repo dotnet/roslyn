@@ -394,7 +394,10 @@ internal abstract class AbstractRefactoringHelpers<TExpressionSyntax, TArgumentS
             if (syntaxFacts.IsTypeDeclaration(selectionNode) &&
                 selectionTrimmed.Start > syntaxFacts.GetSpanWithoutAttributes(root, selectionNode).Start)
             {
-                if (!HeaderFacts.IsOnTypeHeader(root, selectionTrimmed.Start, fullHeader: true, out var typeDeclaration) ||
+                // IsOnTypeHeader includes the header's end boundary for carets. Check the first selected
+                // token's end so a body token starting exactly at that boundary is not treated as header text.
+                var firstSelectedToken = root.FindToken(selectionTrimmed.Start);
+                if (!HeaderFacts.IsOnTypeHeader(root, firstSelectedToken.Span.End, fullHeader: true, out var typeDeclaration) ||
                     typeDeclaration != selectionNode)
                 {
                     return;
@@ -409,8 +412,9 @@ internal abstract class AbstractRefactoringHelpers<TExpressionSyntax, TArgumentS
                 // if user selected only its attributes.
 
                 // Selection contains only AttributeLists -> don't consider current Node
+                // Require actual overlap: an attribute-only selection can end exactly where the header begins.
                 var spanWithoutAttributes = syntaxFacts.GetSpanWithoutAttributes(root, nonHiddenExtractedNode);
-                if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
+                if (!selectionTrimmed.OverlapsWith(spanWithoutAttributes))
                 {
                     break;
                 }
