@@ -298,10 +298,9 @@ public sealed class GenerateToStringFromMembersTests
         => new VerifyCS.Test
         {
             TestCode = """
-            record Program
+            record [||]Program
             {
                 public int a;
-                [||]
             }
             """,
             FixedCode = """
@@ -345,10 +344,9 @@ public sealed class GenerateToStringFromMembersTests
         => new VerifyCS.Test
         {
             TestCode = """
-            record Program
+            record [||]Program
             {
                 private int a;
-                [||]
             }
             """,
             FixedCode = """
@@ -500,7 +498,7 @@ public sealed class GenerateToStringFromMembersTests
         }.RunAsync();
 
     [Fact]
-    public Task TestClass_NoAction()
+    public Task TestClass_ToString()
         => new VerifyCS.Test
         {
             TestCode = """
@@ -509,6 +507,223 @@ public sealed class GenerateToStringFromMembersTests
                 [|int a;|]
             }
             """,
+            FixedCode = """
+            using System.Text;
+
+            class Program
+            {
+                int a;
+
+                public override string ToString()
+                {
+                    StringBuilder builder = new StringBuilder();
+                    builder.Append("Program");
+                    builder.Append(" { ");
+                    builder.Append("a = ");
+                    builder.Append(a.ToString());
+                    builder.Append('}');
+                    return builder.ToString();
+                }
+            }
+            """,
             LanguageVersion = LanguageVersion.Preview,
+            CodeActionEquivalenceKey = FeaturesResources.Generate_ToString,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestClass_ToString_NoSelection()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class [||]Program
+            {
+                public int a;
+            }
+            """,
+            FixedCode = """
+            using System.Text;
+
+            class Program
+            {
+                public int a;
+
+                public override string ToString()
+                {
+                    StringBuilder builder = new StringBuilder();
+                    builder.Append("Program");
+                    builder.Append(" { ");
+                    builder.Append("a = ");
+                    builder.Append(a.ToString());
+                    builder.Append('}');
+                    return builder.ToString();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+            CodeActionEquivalenceKey = FeaturesResources.Generate_ToString,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestClass_ToString_MultipleMembers()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class Program
+            {
+                [|int a;
+                string b;|]
+            }
+            """,
+            FixedCode = """
+            using System.Text;
+
+            class Program
+            {
+                int a;
+                string b;
+
+                public override string ToString()
+                {
+                    StringBuilder builder = new StringBuilder();
+                    builder.Append("Program");
+                    builder.Append(" { ");
+                    builder.Append("a = ");
+                    builder.Append(a.ToString());
+                    builder.Append(", b = ");
+                    builder.Append((object)b);
+                    builder.Append('}');
+                    return builder.ToString();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+            CodeActionEquivalenceKey = FeaturesResources.Generate_ToString,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestStruct_ToString()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            struct Program
+            {
+                [|int a;|]
+            }
+            """,
+            FixedCode = """
+            using System.Text;
+
+            struct Program
+            {
+                int a;
+
+                public override string ToString()
+                {
+                    StringBuilder builder = new StringBuilder();
+                    builder.Append("Program");
+                    builder.Append(" { ");
+                    builder.Append("a = ");
+                    builder.Append(a.ToString());
+                    builder.Append('}');
+                    return builder.ToString();
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+            CodeActionEquivalenceKey = FeaturesResources.Generate_ToString,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestClass_ToString_NoActionWhenToStringExists()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            class Program
+            {
+                [|int a;|]
+
+                public override string ToString()
+                {
+                    return "Program";
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestRecord_NotOfferedBetweenMembers()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            record Program
+            {
+                public int a;
+                [||]
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact]
+    public Task TestDerivedRecord_PrintMembersOverride()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+            using System.Text;
+
+            record Base
+            {
+                protected virtual bool PrintMembers(StringBuilder builder)
+                {
+                    return true;
+                }
+            }
+
+            record Program : Base
+            {
+                [|int a;|]
+
+                public override string ToString()
+                {
+                    return "Program";
+                }
+            }
+            """,
+            FixedCode = """
+            using System.Text;
+
+            record Base
+            {
+                protected virtual bool PrintMembers(StringBuilder builder)
+                {
+                    return true;
+                }
+            }
+
+            record Program : Base
+            {
+                int a;
+
+                public override string ToString()
+                {
+                    return "Program";
+                }
+
+                protected override bool PrintMembers(StringBuilder builder)
+                {
+                    if (base.PrintMembers(builder))
+                    {
+                        builder.Append(", ");
+                    }
+
+                    builder.Append("a = ");
+                    builder.Append(a.ToString());
+                    return true;
+                }
+            }
+            """,
+            LanguageVersion = LanguageVersion.Preview,
+            CodeActionEquivalenceKey = FeaturesResources.Generate_PrintMembers,
         }.RunAsync();
 }

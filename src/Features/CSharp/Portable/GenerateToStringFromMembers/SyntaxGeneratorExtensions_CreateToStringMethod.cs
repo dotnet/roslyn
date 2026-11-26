@@ -103,6 +103,133 @@ internal static class SyntaxGeneratorExtensions
     }
 
     /// <summary>
+    /// Generates a standalone override of <see cref="object.ToString()"/> that prints
+    /// the supplied members directly, for a type that is not a record (and so has no
+    /// synthesized <c>PrintMembers</c> to delegate to). For example, for
+    /// <c>class Program { int a; }</c>:
+    /// <code>
+    /// public override string ToString()
+    /// {
+    ///     StringBuilder builder = new StringBuilder();
+    ///     builder.Append("Program");
+    ///     builder.Append(" { ");
+    ///     builder.Append("a = ");
+    ///     builder.Append(a.ToString());
+    ///     builder.Append('}');
+    ///     return builder.ToString();
+    /// }
+    /// </code>
+    /// </summary>
+    public static IMethodSymbol CreateStandaloneToStringMethod(
+        this SyntaxGenerator factory,
+        SyntaxGeneratorInternal generatorInternal,
+        Compilation compilation,
+        INamedTypeSymbol containingType,
+        ImmutableArray<ISymbol> members)
+    {
+        var statements = CreateStandaloneToStringMethodStatements(
+            factory, generatorInternal, compilation, containingType, members);
+
+        return CodeGenerationSymbolFactory.CreateMethodSymbol(
+            attributes: default,
+            accessibility: Accessibility.Public,
+            modifiers: DeclarationModifiers.Override,
+            returnType: compilation.GetSpecialType(SpecialType.System_String),
+            refKind: RefKind.None,
+            explicitInterfaceImplementations: default,
+            name: ToStringName,
+            typeParameters: default,
+            parameters: default,
+            statements: statements);
+    }
+
+    private static ImmutableArray<SyntaxNode> CreateStandaloneToStringMethodStatements(
+        SyntaxGenerator factory,
+        SyntaxGeneratorInternal generatorInternal,
+        Compilation compilation,
+        INamedTypeSymbol containingType,
+        ImmutableArray<ISymbol> members)
+    {
+        var stringBuilderType = compilation.GetTypeByMetadataName("System.Text.StringBuilder");
+        Contract.ThrowIfNull(stringBuilderType);
+
+        using var statements = TemporaryArray<SyntaxNode>.Empty;
+
+        var builderName = factory.IdentifierName(BuilderName);
+
+        // StringBuilder builder = new StringBuilder();
+        statements.Add(factory.SimpleLocalDeclarationStatement(
+            generatorInternal, stringBuilderType, BuilderName,
+            factory.ObjectCreationExpression(stringBuilderType)));
+
+        // builder.Append("<TypeName>");
+        statements.Add(CreateAppendStringCall(factory, builderName, containingType.Name));
+
+        // builder.Append(" { ");
+        statements.Add(CreateAppendStringCall(factory, builderName, " { "));
+
+        statements.AddRange(CreateAppendMembersStatements(factory, compilation, builderName, members));
+
+        // builder.Append('}');
+        statements.Add(CreateAppendCharCall(factory, builderName, '}'));
+
+        // return builder.ToString();
+        statements.Add(factory.ReturnStatement(
+            factory.InvocationExpression(
+                factory.MemberAccessExpression(builderName, factory.IdentifierName(ToStringName)))));
+
+        return statements.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// The statements that print each member in the form
+    /// <c>"&lt;name&gt; = &lt;value&gt;"</c>, separated by <c>", "</c>.
+    /// </summary>
+    private static ImmutableArray<SyntaxNode> CreateAppendMembersStatements(
+        SyntaxGenerator factory,
+        Compilation compilation,
+        SyntaxNode builderName,
+        ImmutableArray<ISymbol> members)
+    {
+        using var statements = TemporaryArray<SyntaxNode>.Empty;
+
+        for (var i = 0; i < members.Length; i++)
+        {
+            var member = members[i];
+
+            // builder.Append(", <name> = "); // if previous members exist
+            // builder.Append("<name> = "); // if it is the first member
+            var memberHeader = (i > 0 ? ", " : "") + member.Name + " = ";
+            statements.Add(CreateAppendStringCall(factory, builderName, memberHeader));
+
+            var memberAccess = factory.MemberAccessExpression(
+                    factory.ThisExpression(), factory.IdentifierName(member.Name))
+                .WithAdditionalAnnotations(Simplifier.Annotation);
+
+            // builder.Append(<value>.ToString()); // for value types
+            // builder.Append((object)<value>); // otherwise
+            //
+            // This matches the synthesized method: value types are printed via
+            // ToString() as there is no StringBuilder.Append overload for arbitrary
+            // value types, while reference types go through Append(object).
+            var memberType = member.GetSymbolType();
+            if (memberType?.IsValueType == true)
+            {
+                statements.Add(CreateAppendCall(factory, builderName,
+                    factory.InvocationExpression(
+                        factory.MemberAccessExpression(memberAccess, factory.IdentifierName(ToStringName)))));
+            }
+            else
+            {
+                statements.Add(CreateAppendCall(factory, builderName,
+                    factory.CastExpression(compilation.GetSpecialType(SpecialType.System_Object), memberAccess)));
+            }
+        }
+
+        return statements.ToImmutableAndClear();
+    }
+
+    /// <summary>
     /// Generates a <c>bool PrintMembers(StringBuilder builder)</c> method matching the
     /// one the compiler synthesizes for records: it prints the supplied members in the
     /// form <c>"&lt;name&gt; = &lt;value&gt;"</c>, separated by <c>", "</c>, delegating to
@@ -215,38 +342,7 @@ internal static class SyntaxGeneratorExtensions
                 statements.Add(ensureStackCall);
         }
 
-        for (var i = 0; i < members.Length; i++)
-        {
-            var member = members[i];
-
-            // builder.Append(", <name> = "); // if previous members exist
-            // builder.Append("<name> = "); // if it is the first member
-            var memberHeader = (i > 0 ? ", " : "") + member.Name + " = ";
-            statements.Add(CreateAppendStringCall(factory, builderName, memberHeader));
-
-            var memberAccess = factory.MemberAccessExpression(
-                    factory.ThisExpression(), factory.IdentifierName(member.Name))
-                .WithAdditionalAnnotations(Simplifier.Annotation);
-
-            // builder.Append(<value>.ToString()); // for value types
-            // builder.Append((object)<value>); // otherwise
-            //
-            // This matches the synthesized method: value types are printed via
-            // ToString() as there is no StringBuilder.Append overload for arbitrary
-            // value types, while reference types go through Append(object).
-            var memberType = member.GetSymbolType();
-            if (memberType?.IsValueType == true)
-            {
-                statements.Add(CreateAppendCall(factory, builderName,
-                    factory.InvocationExpression(
-                        factory.MemberAccessExpression(memberAccess, factory.IdentifierName(ToStringName)))));
-            }
-            else
-            {
-                statements.Add(CreateAppendCall(factory, builderName,
-                    factory.CastExpression(compilation.GetSpecialType(SpecialType.System_Object), memberAccess)));
-            }
-        }
+        statements.AddRange(CreateAppendMembersStatements(factory, compilation, builderName, members));
 
         statements.Add(factory.ReturnStatement(factory.TrueLiteralExpression()));
 

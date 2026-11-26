@@ -63,32 +63,40 @@ internal sealed partial class GenerateToStringFromMembersCodeRefactoringProvider
         var (document, textSpan, cancellationToken) = context;
 
         var helpers = document.GetRequiredLanguageService<IRefactoringHelpersService>();
-        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        // We offer the refactoring when the user is either on the header of a record,
-        // or if they're between any members of a record and are on a blank line.
-        if (!helpers.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration) &&
-            !helpers.IsBetweenTypeMembers(sourceText, root, textSpan.Start, out typeDeclaration))
+        // We offer the refactoring when the user is on the header of a class,
+        // struct, or record. We deliberately do not offer it between members: the
+        // caret landing there is too weak a signal, and the offering would show up
+        // in every gap between members of every type.
+        if (!helpers.IsOnTypeHeader(root, textSpan.Start, out var typeDeclaration))
         {
             return;
         }
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        // Only supported on records.
         var containingType = semanticModel.GetDeclaredSymbol(typeDeclaration) as INamedTypeSymbol;
-        if (containingType is not { IsRecord: true })
+        if (containingType is not { TypeKind: TypeKind.Class or TypeKind.Struct, IsStatic: false })
             return;
 
         if (!await IsStringBuilderAvailableAsync(document, cancellationToken).ConfigureAwait(false))
             return;
 
-        // The synthesized PrintMembers prints the public instance fields and
-        // properties declared in the record, so generate from exactly those members.
-        var printableMembers = GetPrintableMembers(containingType);
+        // For records, the synthesized PrintMembers prints the public instance fields
+        // and properties declared in the record, so generate from exactly those
+        // members. For other types, generate from all readable instance fields and
+        // properties declared in the type.
+        var members = containingType.IsRecord
+            ? GetPrintableMembers(containingType)
+            : containingType.GetMembers().WhereAsArray(m =>
+                IsReadableInstanceFieldOrProperty(m) &&
+                SymbolEqualityComparer.Default.Equals(m.ContainingType, containingType));
 
-        var actions = CreateActions(document, typeDeclaration, containingType, printableMembers);
+        if (members.IsEmpty)
+            return;
+
+        var actions = CreateActions(document, typeDeclaration, containingType, members);
         context.RegisterRefactorings(actions, textSpan);
     }
 
@@ -128,9 +136,13 @@ internal sealed partial class GenerateToStringFromMembersCodeRefactoringProvider
             .GetMembers(ToStringName)
             .Any(m => m is IMethodSymbol { Parameters.Length: 0, IsStatic: false, IsImplicitlyDeclared: false });
 
+        // Only a PrintMembers declared in this type itself counts. A derived record
+        // inherits PrintMembers from its base record, and we still want to offer to
+        // override it here.
         hasPrintMembers = containingType
             .GetMembers(PrintMembersName)
-            .Any(m => m is IMethodSymbol { Parameters.Length: 1, IsStatic: false, IsImplicitlyDeclared: false });
+            .Any(m => m is IMethodSymbol { Parameters.Length: 1, IsStatic: false, IsImplicitlyDeclared: false } &&
+                SymbolEqualityComparer.Default.Equals(m.ContainingType, containingType));
     }
 
     public static async Task<ImmutableArray<CodeAction>> GenerateToStringFromMembersAsync(
@@ -142,7 +154,9 @@ internal sealed partial class GenerateToStringFromMembersCodeRefactoringProvider
         if (info != null &&
             info.SelectedMembers.All(IsReadableInstanceFieldOrProperty))
         {
-            if (info.ContainingType is { IsRecord: true })
+            // Records get the ToString/PrintMembers options; other classes and structs
+            // get a standalone ToString generated from the selected members.
+            if (info.ContainingType is { TypeKind: TypeKind.Class or TypeKind.Struct, IsStatic: false })
             {
                 if (!await IsStringBuilderAvailableAsync(document, cancellationToken).ConfigureAwait(false))
                     return default;
@@ -165,6 +179,21 @@ internal sealed partial class GenerateToStringFromMembersCodeRefactoringProvider
         GetExistingMemberInfo(containingType, out var hasToString, out var hasPrintMembers);
 
         using var _ = ArrayBuilder<CodeAction>.GetInstance(out var actions);
+
+        if (!containingType.IsRecord)
+        {
+            // A class or struct that isn't a record has no synthesized PrintMembers
+            // to customize, so just offer a standalone ToString generated from the
+            // selected members.
+            if (!hasToString)
+            {
+                actions.Add(new GenerateToStringAction(
+                    document, typeDeclaration, containingType, members,
+                    generateToString: true, generatePrintMembers: false));
+            }
+
+            return actions.ToImmutableAndClear();
+        }
 
         if (!hasToString && !hasPrintMembers)
         {

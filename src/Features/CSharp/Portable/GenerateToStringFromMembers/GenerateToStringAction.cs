@@ -50,8 +50,14 @@ internal sealed partial class GenerateToStringFromMembersCodeRefactoringProvider
 
             if (_generateToString)
             {
-                methods.Add(generator.CreateToStringMethod(
-                    generatorInternal, compilation, _containingType, isReadOnly));
+                // Records get the ToString the compiler synthesizes for them, which
+                // delegates to PrintMembers. Other types get a standalone ToString
+                // that prints the selected members directly.
+                methods.Add(_containingType.IsRecord
+                    ? generator.CreateToStringMethod(
+                        generatorInternal, compilation, _containingType, isReadOnly)
+                    : generator.CreateStandaloneToStringMethod(
+                        generatorInternal, compilation, _containingType, _selectedMembers));
             }
 
             if (_generatePrintMembers)
