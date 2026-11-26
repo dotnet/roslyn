@@ -49278,10 +49278,10 @@ class Program
             Assert.Equal(s1Decl, location.SourceTree.GetRoot().FindNode(location.SourceSpan));
             location = members[^3].Locations.Single();
             Assert.Equal("bool", location.SourceTree.GetRoot().FindNode(location.SourceSpan).ToString());
-            Assert.Empty(((MethodSymbol)members[^3]).Parameters.Single().Locations);
+            Assert.Equal(location, ((MethodSymbol)members[^3]).Parameters.Single().Locations.Single());
             location = members[^2].Locations.Single();
             Assert.Equal("int", location.SourceTree.GetRoot().FindNode(location.SourceSpan).ToString());
-            Assert.Empty(((MethodSymbol)members[^2]).Parameters.Single().Locations);
+            Assert.Equal(location, ((MethodSymbol)members[^2]).Parameters.Single().Locations.Single());
 
             Assert.Same(s1, model.GetDeclaredSymbol(s1Decl).GetSymbol());
             Assert.Null(model.GetDeclaredSymbol(s1Decl.ParameterList));
@@ -50554,8 +50554,9 @@ union U7(
 
             Assert.Equal(RefKind.None, comp.SourceModule.GlobalNamespace.GetTypeMember("U1").InstanceConstructors.Where(c => c.Parameters is [{ Type.SpecialType: SpecialType.System_SByte }]).Single().Parameters[0].RefKind);
 
-            var ushortParameter = (SynthesizedParameterSymbol)comp.SourceModule.GlobalNamespace.GetTypeMember("U1").InstanceConstructors.Where(c => c.Parameters is [{ Type.SpecialType: SpecialType.System_UInt16 }]).Single().Parameters[0];
+            var ushortParameter = (SourceParameterSymbol)comp.SourceModule.GlobalNamespace.GetTypeMember("U1").InstanceConstructors.Where(c => c.Parameters is [{ Type.SpecialType: SpecialType.System_UInt16 }]).Single().Parameters[0];
             Assert.False(ushortParameter.HasExplicitDefaultValue);
+            Assert.False(ushortParameter.HasDefaultArgumentSyntax);
             Assert.False(ushortParameter.IsMetadataOptional);
             Assert.False(ushortParameter.IsOptional);
             Assert.Throws<InvalidOperationException>(() => ushortParameter.ExplicitDefaultValue);
@@ -50563,7 +50564,7 @@ union U7(
 
             Assert.False(comp.SourceModule.GlobalNamespace.GetTypeMember("U5").InstanceConstructors.Where(c => c.ParameterCount == 1).Single().Parameters[0].IsParams);
 
-            Assert.Throws<InvalidOperationException>(() => comp.SourceModule.GlobalNamespace.GetTypeMember("U6").InstanceConstructors.Where(c => c.ParameterCount == 1).Single().Parameters[0].DeclaredScope);
+            Assert.Equal(ScopedKind.None, comp.SourceModule.GlobalNamespace.GetTypeMember("U6").InstanceConstructors.Where(c => c.ParameterCount == 1).Single().Parameters[0].DeclaredScope);
 
             comp.VerifyDiagnostics(
                 // (100,5): error CS1073: Unexpected token '['
@@ -50988,6 +50989,15 @@ public union Outer6(Outer6.Inner)
 
             var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource]);
             comp.VerifyDiagnostics(
+                // (1,21): error CS0051: Inconsistent accessibility: parameter type 'Outer1.Inner' is less accessible than method 'Outer1.Outer1(Outer1.Inner)'
+                // public union Outer1(Outer1.Inner)
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Outer1.Inner").WithArguments("Outer1.Outer1(Outer1.Inner)", "Outer1.Inner").WithLocation(1, 21),
+                // (6,17): error CS0051: Inconsistent accessibility: parameter type 'Internal' is less accessible than method 'U2.U2(Internal)'
+                // public union U2(Internal);
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Internal").WithArguments("U2.U2(Internal)", "Internal").WithLocation(6, 17),
+                // (12,14): error CS0051: Inconsistent accessibility: parameter type 'Outer4.Inner' is less accessible than method 'Outer4.Outer4(Outer4.Inner)'
+                // union Outer4(Outer4.Inner)
+                Diagnostic(ErrorCode.ERR_BadVisParamType, "Outer4.Inner").WithArguments("Outer4.Outer4(Outer4.Inner)", "Outer4.Inner").WithLocation(12, 14)
                 );
         }
 
@@ -51004,6 +51014,9 @@ file union U2(FileType);
 
             var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource]);
             comp.VerifyDiagnostics(
+                // (1,10): error CS9051: File-local type 'FileType' cannot be used in a member signature in non-file-local type 'U1'.
+                // union U1(FileType);
+                Diagnostic(ErrorCode.ERR_FileTypeDisallowedInSignature, "FileType").WithArguments("FileType", "U1").WithLocation(1, 10)
                 );
         }
 

@@ -1533,6 +1533,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void AsyncMethodChecks(bool verifyReturnType, Location errorLocation, BindingDiagnosticBag diagnostics)
         {
+            Debug.Assert(this is SourceOrdinaryMethodSymbolBase or LocalFunctionSymbol or LambdaSymbol);
+
             if (IsAsync)
             {
                 bool hasErrors = false;

@@ -3908,7 +3908,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundExpression? BindImplicitConstructorInitializer(
             MethodSymbol constructor, BindingDiagnosticBag diagnostics, CSharpCompilation compilation)
         {
-            if (constructor.MethodKind != MethodKind.Constructor || constructor.IsExtern)
+            if (constructor.MethodKind != MethodKind.Constructor || constructor.IsExtern || constructor is SynthesizedUnionCtor)
             {
                 return null;
             }

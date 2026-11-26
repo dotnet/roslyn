@@ -60,21 +60,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasParamsModifier)
             {
+                Debug.Assert(owner is not SynthesizedUnionCtor);
                 _parameterSyntaxKind |= ParameterFlags.HasParamsModifier;
             }
 
             if (isParams)
             {
+                Debug.Assert(owner is not SynthesizedUnionCtor);
                 _parameterSyntaxKind |= ParameterFlags.ParamsParameter;
             }
 
             if (isExtensionMethodThis)
             {
+                Debug.Assert(owner is not SynthesizedUnionCtor);
                 _parameterSyntaxKind |= ParameterFlags.ExtensionThisParameter;
             }
 
             var parameterSyntax = this.ParameterSyntax;
-            if (parameterSyntax != null && parameterSyntax.Default != null)
+            if (parameterSyntax != null && parameterSyntax.Default != null && owner is not SynthesizedUnionCtor)
             {
                 _parameterSyntaxKind |= ParameterFlags.DefaultParameter;
             }
@@ -263,6 +266,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (parameterEqualsValue is not null)
                     {
+                        Debug.Assert(ContainingSymbol is not SynthesizedUnionCtor);
+
                         if (binder is not null &&
                             GetDefaultValueSyntaxForIsNullableAnalysisEnabled(ParameterSyntax) is { } valueSyntax)
                         {
@@ -341,6 +346,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            Debug.Assert(ContainingSymbol is not SynthesizedUnionCtor);
+
             var binder = GetDefaultParameterValueBinder(parameterSyntax);
 
             // Nullable warnings *within* the attribute argument (such as a W-warning for `(string)null`)
@@ -375,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            var defaultSyntax = parameterSyntax.Default;
+            var defaultSyntax = ContainingSymbol is SynthesizedUnionCtor ? null : parameterSyntax.Default;
             if (defaultSyntax == null)
             {
                 return null;
@@ -510,6 +517,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (ContainingSymbol is SynthesizedUnionCtor)
+                {
+                    return default;
+                }
+
                 var syntax = this.ParameterSyntax;
                 return (syntax != null) ? syntax.AttributeLists : default(SyntaxList<AttributeListSyntax>);
             }
@@ -1590,6 +1602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (IsParams && ParameterSyntax?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
                 {
+                    Debug.Assert(ContainingSymbol is not SynthesizedUnionCtor);
                     validateParamsType(diagnostics);
                 }
 

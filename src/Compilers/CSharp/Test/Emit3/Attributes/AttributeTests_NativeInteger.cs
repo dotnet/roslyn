@@ -1640,6 +1640,12 @@ namespace System.Runtime.CompilerServices
 }
 ";
             var comp = CreateCompilation(new[] { source, IUnionSource, UnionAttributeSource }, options: TestOptions.DebugModule).VerifyDiagnostics(
+                // (2,16): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                // public union U(nint, nuint[]);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nint").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(2, 16),
+                // (2,22): error CS0518: Predefined type 'System.Runtime.CompilerServices.NativeIntegerAttribute' is not defined or imported
+                // public union U(nint, nuint[]);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "nuint[]").WithArguments("System.Runtime.CompilerServices.NativeIntegerAttribute").WithLocation(2, 22)
                 );
         }
 

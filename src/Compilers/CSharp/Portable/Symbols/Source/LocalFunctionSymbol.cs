@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameters = ParameterHelpers.MakeParameters(
                 WithTypeParametersBinder,
                 this,
-                this.Syntax.ParameterList,
+                this.Syntax.ParameterList.Parameters,
                 arglistToken: out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,

@@ -7459,39 +7459,8 @@ public union TestUnion(string, int);
             var verifier = CompileAndVerify([source, UnionAttributeSource, IUnionSource]);
 
             AssertNotInstrumented(verifier, "TestUnion.Value.get");
-            AssertInstrumented(verifier, "TestUnion..ctor(string)");
-            verifier.VerifyIL("TestUnion..ctor(int)", $$"""
-{
-  // Code size       46 (0x2e)
-  .maxstack  3
-  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0)
-  IL_0000:  ldtoken    "TestUnion..ctor(int)"
-  IL_0005:  call       "Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)"
-  IL_000a:  stloc.0
-  .try
-  {
-    IL_000b:  ldloca.s   V_0
-    IL_000d:  ldarg.1
-    IL_000e:  ldc.i4.0
-    IL_000f:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogParameterStore(uint, int)"
-    IL_0014:  nop
-    IL_0015:  ldarg.0
-    IL_0016:  ldarg.1
-    IL_0017:  box        "int"
-    IL_001c:  stfld      "object TestUnion.<Value>k__BackingField"
-    IL_0021:  nop
-    IL_0022:  leave.s    IL_002d
-  }
-  finally
-  {
-    IL_0024:  ldloca.s   V_0
-    IL_0026:  call       "void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()"
-    IL_002b:  nop
-    IL_002c:  endfinally
-  }
-  IL_002d:  ret
-}
-""");
+            AssertNotInstrumented(verifier, "TestUnion..ctor(string)"); // No user code in union constructor
+            AssertNotInstrumented(verifier, "TestUnion..ctor(int)"); // No user code in union constructor
         }
     }
 }
