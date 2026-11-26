@@ -47,9 +47,10 @@ internal static class CompletionListMerger
         var mergedItemDefaultsData = MergeData(razorCompletionList.ItemDefaults?.Data, delegatedCompletionList.ItemDefaults?.Data);
 
         // After EnsureMergeableEditRange, one of three states holds:
-        // 1. At most one list had an EditRange (no conflict, pick the non-null one).
+        // 1. Neither list had an EditRange.
         // 2. Both share the same range (safe to pick either).
-        // 3. Ranges differed and both were dematerialized to null.
+        // 3. Only one list had a range, or the ranges differed, and both were dematerialized to null.
+        //    (InsertReplaceRange isn't dematerialized, so that could still come through from one list.)
         var mergedEditRange = razorCompletionList.ItemDefaults?.EditRange ?? delegatedCompletionList.ItemDefaults?.EditRange;
 
         var mergedCompletionList = new RazorVSInternalCompletionList()
@@ -181,24 +182,25 @@ internal static class CompletionListMerger
         var editRangeA = completionListA.ItemDefaults?.EditRange?.Value;
         var editRangeB = completionListB.ItemDefaults?.EditRange?.Value;
 
-        if (editRangeA is null || editRangeB is null)
+        if (editRangeA is null && editRangeB is null)
         {
-            // At most one list uses EditRange — no conflict. The merged list can
-            // just take whichever is non-null (handled by the merged ItemDefaults).
+            // Neither list uses EditRange, so there's nothing to reconcile.
             return;
         }
 
-        // If both lists share the same EditRange, no dematerialization is needed.
-        // Merge can preserve that shared range via the merged ItemDefaults.
+        // A shared range is safe only when every item already has its replacement text.
         if (editRangeA is LspRange rangeA &&
             editRangeB is LspRange rangeB &&
-            rangeA.Equals(rangeB))
+            rangeA.Equals(rangeB) &&
+            !HasInsertTextOnlyItems(completionListA) &&
+            !HasInsertTextOnlyItems(completionListB))
         {
             return;
         }
 
-        // Ranges differ — dematerialize both to per-item TextEdits so the post-merge
-        // optimizer can evaluate the full combined list correctly.
+        // Ranges differ, only one list has one, or an item relies on InsertText. We can't carry the range
+        // over to the merged list because items without their own replacement text would inherit it and the
+        // client would ignore their InsertText. Dematerialize ranges so the optimizer can evaluate all items.
         DematerializeEditRange(completionListA);
         DematerializeEditRange(completionListB);
 
@@ -217,7 +219,14 @@ internal static class CompletionListMerger
 
             foreach (var item in completionList.Items)
             {
-                if (item.TextEdit is null)
+                // Some C# items compute their edit on resolve, and Roslyn expects them to arrive without a TextEdit.
+                if (item.VsResolveTextEditOnCommit)
+                {
+                    continue;
+                }
+
+                // InsertText-only items must stay unedited so clients can use their snippets after the list default is cleared.
+                if (item.TextEdit is null && (item.InsertText is null || item.TextEditText is not null))
                 {
                     // Reconstruct TextEdit from EditRange + TextEditText (or Label as fallback).
                     var newText = item.TextEditText ?? item.Label;
@@ -225,6 +234,19 @@ internal static class CompletionListMerger
                     item.TextEdit = new TextEdit { Range = range, NewText = newText };
                 }
             }
+        }
+
+        static bool HasInsertTextOnlyItems(RazorVSInternalCompletionList completionList)
+        {
+            foreach (var item in completionList.Items)
+            {
+                if (item.TextEdit is null && item.InsertText is not null && item.TextEditText is null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 
