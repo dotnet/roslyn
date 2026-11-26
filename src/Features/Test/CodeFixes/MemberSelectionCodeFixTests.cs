@@ -144,10 +144,8 @@ public sealed class MemberSelectionCodeFixTests
         Assert.NotNull(await service.GetMostSevereFixAsync(document, selection, selection, priority: null, CancellationToken.None));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task UnknownMemberSelectionDoesNotFilter(bool returnDefault)
+    [Fact]
+    public async Task UnknownMemberSelectionDoesNotFilter()
     {
         var composition = FeaturesTestCompositions.Features
             .AddExcludedPartTypes(typeof(CSharpSelectedMembersService))
@@ -155,8 +153,6 @@ public sealed class MemberSelectionCodeFixTests
         using var workspace = CreateWorkspace(LanguageNames.CSharp, "class C { [|int bad; int good;|] }", composition);
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
         var selection = workspace.Documents.Single().SelectedSpans.Single();
-        var memberService = (UnknownSelectedMembersService)document.GetRequiredLanguageService<ISelectedMembersService>();
-        memberService.ReturnDefault = returnDefault;
         var service = CreateCodeFixService(workspace, LanguageNames.CSharp);
 
         Assert.NotEmpty(await service.GetFixesAsync(document, selection, selection, priority: null, CancellationToken.None));
@@ -258,9 +254,7 @@ public sealed class MemberSelectionCodeFixTests
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     private sealed class UnknownSelectedMembersService() : ISelectedMembersService
     {
-        public bool ReturnDefault { get; set; }
-
         public Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(SyntaxTree tree, TextSpan span, bool allowPartialSelection, CancellationToken cancellationToken)
-            => Task.FromResult(ReturnDefault ? default : ImmutableArray<SyntaxNode>.Empty);
+            => Task.FromResult(ImmutableArray<SyntaxNode>.Empty);
     }
 }

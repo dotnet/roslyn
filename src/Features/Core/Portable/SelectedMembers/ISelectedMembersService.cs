@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageService;
 internal interface ISelectedMembersService : ILanguageService
 {
     /// <summary>
-    /// Returns the selected members, or a default array if the selection cannot be determined.
+    /// Returns the selected members, or an empty array if the selection cannot be determined.
     /// </summary>
     Task<ImmutableArray<SyntaxNode>> GetSelectedMembersAsync(
         SyntaxTree tree, TextSpan span, bool allowPartialSelection, CancellationToken cancellationToken);

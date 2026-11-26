@@ -296,7 +296,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         var tree = await sourceDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var members = await service.GetSelectedMembersAsync(
             tree, selection.Value, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
-        return !members.IsDefaultOrEmpty && members.Length > 1;
+        return members.Length >= 2;
     }
 
     private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
