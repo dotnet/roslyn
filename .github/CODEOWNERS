@@ -37,6 +37,7 @@ src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
 src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
+src/ProjectData/ @dotnet/roslyn-ide
 src/Razor/ @dotnet/roslyn-ide
 src/Razor/src/Compiler/ @dotnet/roslyn-ide @dotnet/razor-compiler
 src/RoslynAnalyzers/ @dotnet/roslyn-ide
