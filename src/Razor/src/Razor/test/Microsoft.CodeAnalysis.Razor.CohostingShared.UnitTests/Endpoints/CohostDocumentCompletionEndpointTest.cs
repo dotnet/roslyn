@@ -413,7 +413,14 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             },
             expectedItemLabels: ["char", "DateTime", "Exception"],
             itemToResolve: "DateTime",
-            expectedResolvedItemDescription: "readonly struct System.DateTime");
+            expectedResolvedItemDescription: "readonly struct System.DateTime",
+            expected: """
+                This is a Razor document.
+
+                <div>@DateTime</div>
+
+                The end.
+                """);
     }
 
     [Fact]
@@ -492,7 +499,19 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["char", "DateTime", "Exception"],
             itemToResolve: "DateTime",
             expectedResolvedItemDescription: "readonly struct System.DateTime",
-            fileKind: RazorFileKind.Legacy);
+            fileKind: RazorFileKind.Legacy,
+            expected: """
+                @page
+                @model IndexModel
+                @{
+                    ViewData["Title"] = "Home page";
+                }
+                @DateTime
+                <div class="text-center">
+                    <h1 class="display-4">Welcome</h1>
+                    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+                </div>
+                """);
     }
 
     [Fact]
@@ -1664,13 +1683,20 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 IComponentRenderMode RenderMode.RenderMode
 
                 Specifies the render mode for a component.
-                """);
+                """,
 #else
             expectedResolvedItemDescription: """
                 IComponentRenderMode Microsoft.AspNetCore.Components.RenderMode.RenderMode
                 Specifies the render mode for a component.
-                """);
+                """,
 #endif
+            expected: """
+                This is a Razor document.
+
+                <div @rendermode="$0"></div>
+
+                The end.
+                """);
     }
 
     // Tests that directive attribute parameter positions only show bind modifiers, not HTML attributes
@@ -1925,6 +1951,42 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             htmlItemLabels: ["style", "dir"],
 #endif
             expectedItemLabels: ["style", "dir", "FormName", "OnValidSubmit", "@..."]);
+    }
+
+    [Fact]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/3107449")]
+    public async Task LegacyFormTagHelperAttribute_InsertsQuotedValue()
+    {
+        var result = await VerifyCompletionListAsync(
+            input: """
+                <div>
+                    <form $$></form>
+                </div>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = " ",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["asp-action"],
+            itemToResolve: "asp-action",
+            expected: """
+                <div>
+                    <form asp-action="$0"></form>
+                </div>
+                """,
+#if VSCODE
+            htmlItemLabels: ["style"],
+            expectedResolvedItemDescription: "string FormTagHelper.Action",
+#else
+            expectedResolvedItemDescription: "string Microsoft.AspNetCore.Mvc.TagHelpers.FormTagHelper.Action",
+#endif
+            fileKind: RazorFileKind.Legacy);
+
+        Assert.NotNull(result);
+        var item = Assert.Single(result.Items, item => item.Label == "asp-action");
+        Assert.Equal(InsertTextFormat.Snippet, item.InsertTextFormat);
     }
 
     [Fact]
@@ -2219,6 +2281,28 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 @if (await)
                 {
                 }
+                """);
+    }
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    public async Task CSharp_AwaitKeyword_AtTransition()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @awai$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["char", "DateTime", "await"],
+            itemToResolve: "await",
+            expectedResolvedItemDescription: "await Keyword\r\nAsynchronously waits for the task to finish.",
+            expected: """
+                @using System.Threading.Tasks
+                @await
                 """);
     }
 
