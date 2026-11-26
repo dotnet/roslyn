@@ -295,7 +295,7 @@ internal sealed class ProjectBuildManager : IDisposable
         // In this case, we need to iterate through the <TargetFrameworks>, set <TargetFramework> with
         // each value, and build the project.
 
-        var targetFrameworks = targetFrameworksValue.Split(';');
+        var targetFrameworks = SplitTargetFrameworks(targetFrameworksValue);
 
         if (!project.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
             initialGlobalTargetFrameworkValue = null;
@@ -322,6 +322,31 @@ internal sealed class ProjectBuildManager : IDisposable
         project.ReevaluateIfNecessary();
 
         return results.ToArray();
+    }
+
+    internal static string[] SplitTargetFrameworks(string targetFrameworksValue)
+    {
+        var parts = targetFrameworksValue.Split(';');
+        var result = new string[parts.Length];
+        var count = 0;
+        
+        foreach (var part in parts)
+        {
+            var trimmed = part.Trim();
+            if (trimmed.Length > 0)
+            {
+                result[count++] = trimmed;
+            }
+        }
+
+        if (count == result.Length)
+        {
+            return result;
+        }
+
+        var trimmedResult = new string[count];
+        Array.Copy(result, trimmedResult, count);   
+        return trimmedResult;
     }
 
     private Task<MSB.Execution.ProjectInstance> BuildProjectInstanceAsync(
