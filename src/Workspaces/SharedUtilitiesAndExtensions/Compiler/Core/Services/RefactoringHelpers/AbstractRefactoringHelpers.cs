@@ -374,11 +374,21 @@ internal abstract class AbstractRefactoringHelpers<TExpressionSyntax, TArgumentS
         do
         {
             // A selection spanning members can have the containing type as its smallest enclosing node.
-            // Only consider that type if the selection also includes its header.
+            // Only consider that type if the selection also includes part of its header.
             //
-            // For '[|class C|] { int i; string s; }', C is relevant because its header is selected.
-            // For 'class C { [|int i; string s;|] }', FindNode also returns C, but only its members
-            // are selected, so C should not be offered as the target of a type refactoring.
+            // FindNode returns C for each of these selections:
+            //   [|class C|] { int i; string s; }         -> Accept C: its header is selected.
+            //   class [|C { int i;|] string s; }         -> Accept C: starts in the header and extends into the body.
+            //   class C { [|int i; string s;|] }         -> Reject C: only members are selected.
+            //   class C { [|class A { } class B { }|] }  -> Reject C: starts on A's header, not C's.
+            //
+            // GetSpanWithoutAttributes starts at the first declaration token after any attribute lists,
+            // matching the start of the header used by IsOnTypeHeader. For example:
+            //   [A] [|[B] class C|] { int i; string s; }
+            // This selection starts before the header but includes it, so it must bypass the header-position
+            // check. Comparing against selectionNode.SpanStart instead would enter that check and reject it
+            // because the selection starts inside the attributes, which IsOnTypeHeader excludes.
+            // Selections containing only attributes are still rejected by the intersection check below.
             if (syntaxFacts.IsTypeDeclaration(selectionNode) &&
                 selectionTrimmed.Start > syntaxFacts.GetSpanWithoutAttributes(root, selectionNode).Start)
             {
