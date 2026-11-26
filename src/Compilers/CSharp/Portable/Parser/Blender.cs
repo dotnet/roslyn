@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 _changes = _changes.Push(affectedRange);
             }
 
-            if (oldTree == null)
+            if (oldTree == null || oldTree.Kind() == SyntaxKind.InterpolatedStringExpression)
             {
                 // start at lexer current position if no nodes specified
                 _oldTreeCursor = new Cursor();
