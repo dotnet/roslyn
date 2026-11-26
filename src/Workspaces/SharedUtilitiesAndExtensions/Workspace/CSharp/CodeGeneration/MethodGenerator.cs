@@ -360,13 +360,16 @@ internal static class MethodGenerator
                 if (method.IsSealed)
                     tokens.Add(SealedKeyword);
 
+                // Emit 'override' before 'readonly', matching the order the compiler uses for
+                // synthesized record members (e.g. 'public override readonly string ToString()')
+                // and the order in CSharpSyntaxGenerator.AsModifierList.
+                if (method.IsOverride)
+                    tokens.Add(OverrideKeyword);
+
                 // Don't show the readonly modifier if the containing type is already readonly
                 // ContainingSymbol is used to guard against methods which are not members of their ContainingType (e.g. lambdas and local functions)
                 if (method.IsReadOnly && (method.ContainingSymbol as INamedTypeSymbol)?.IsReadOnly != true)
                     tokens.Add(ReadOnlyKeyword);
-
-                if (method.IsOverride)
-                    tokens.Add(OverrideKeyword);
 
                 if (method.IsVirtual)
                     tokens.Add(VirtualKeyword);

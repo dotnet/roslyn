@@ -44,6 +44,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
                 }
@@ -80,6 +81,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
                 }
@@ -127,6 +129,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
                 }
@@ -174,6 +177,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
                 }
@@ -218,6 +222,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
                 }
@@ -265,6 +270,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
                 }
@@ -275,6 +281,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(", ");
                     }
+
                     builder.Append("a = ");
                     builder.Append(a.ToString());
                     return true;
@@ -293,7 +300,7 @@ public sealed class GenerateToStringFromMembersTests
             TestCode = """
             record Program
             {
-                int a;
+                public int a;
                 [||]
             }
             """,
@@ -303,7 +310,7 @@ public sealed class GenerateToStringFromMembersTests
 
             record Program
             {
-                int a;
+                public int a;
 
                 public override string ToString()
                 {
@@ -314,6 +321,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
                 }
@@ -359,6 +367,7 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
                 }
@@ -441,11 +450,6 @@ public sealed class GenerateToStringFromMembersTests
             {
                 int a;
 
-                protected virtual bool PrintMembers(StringBuilder builder)
-                {
-                    return true;
-                }
-
                 public override string ToString()
                 {
                     StringBuilder builder = new StringBuilder();
@@ -455,8 +459,14 @@ public sealed class GenerateToStringFromMembersTests
                     {
                         builder.Append(' ');
                     }
+
                     builder.Append('}');
                     return builder.ToString();
+                }
+
+                protected virtual bool PrintMembers(StringBuilder builder)
+                {
+                    return true;
                 }
             }
             """,

@@ -8,12 +8,13 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions;
+namespace Microsoft.CodeAnalysis.GenerateToStringFromMembers;
 
-internal static partial class SyntaxGeneratorExtensions
+internal static class SyntaxGeneratorExtensions
 {
     private const string ToStringName = nameof(object.ToString);
     private const string PrintMembersName = WellKnownMemberNames.PrintMembersMethodName;
@@ -263,6 +264,21 @@ internal static partial class SyntaxGeneratorExtensions
                 factory.BaseExpression(),
                 factory.IdentifierName(PrintMembersName)),
             builderName);
+
+    /// <summary>
+    /// In VB it's more idiomatic to write things like <c>Dim t = TryCast(obj, SomeType)</c>
+    /// instead of <c>Dim t As SomeType = TryCast(obj, SomeType)</c>, so we just elide the type
+    /// from the decl.  For C# we don't want to do this though.  We want to always include the
+    /// type and let the simplifier decide if it should be <c>var</c> or not.
+    /// </summary>
+    private static SyntaxNode SimpleLocalDeclarationStatement(
+        this SyntaxGenerator generator, SyntaxGeneratorInternal generatorInternal, INamedTypeSymbol namedTypeSymbol,
+        string name, SyntaxNode initializer)
+    {
+        return generatorInternal.RequiresLocalDeclarationType()
+            ? generator.LocalDeclarationStatement(namedTypeSymbol, name, initializer)
+            : generator.LocalDeclarationStatement(name, initializer);
+    }
 
     private static SyntaxNode? CreateEnsureSufficientExecutionStackCall(SyntaxGenerator factory, Compilation compilation)
     {
