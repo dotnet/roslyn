@@ -376,11 +376,13 @@ internal abstract class AbstractRefactoringHelpers<TExpressionSyntax, TArgumentS
             // A selection spanning members can have the containing type as its smallest enclosing node.
             // Only consider that type if the selection also includes its header.
             if (syntaxFacts.IsTypeDeclaration(selectionNode) &&
-                selectionTrimmed.Start > syntaxFacts.GetSpanWithoutAttributes(root, selectionNode).Start &&
-                (!HeaderFacts.IsOnTypeHeader(root, selectionTrimmed.Start, fullHeader: true, out var typeDeclaration) ||
-                 typeDeclaration != selectionNode))
+                selectionTrimmed.Start > syntaxFacts.GetSpanWithoutAttributes(root, selectionNode).Start)
             {
-                return;
+                if (!HeaderFacts.IsOnTypeHeader(root, selectionTrimmed.Start, fullHeader: true, out var typeDeclaration) ||
+                    typeDeclaration != selectionNode)
+                {
+                    return;
+                }
             }
 
             var nonHiddenExtractedSelectedNodes = ExtractNodesSimple(selectionNode, syntaxFacts).OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));
