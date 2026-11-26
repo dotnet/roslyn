@@ -2599,7 +2599,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             Assert.NotNull(item);
             Assert.NotNull(expectedResolvedItemDescription);
 
-            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position);
+            await VerifyCompletionResolveAsync(document, completionListCache, item, result.ItemDefaults, expected, expectedResolvedItemDescription, request.Position);
         }
 
         return result;
@@ -2651,6 +2651,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         CodeAnalysis.TextDocument document,
         CompletionListCache completionListCache,
         VSInternalCompletionItem item,
+        CompletionListItemDefaults? itemDefaults,
         string? expected,
         string expectedResolvedItemDescription,
         Position position)
@@ -2677,19 +2678,29 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         Assert.NotNull(result);
 
         SourceText? changedText = null;
-        if (result.TextEdit is { Value: TextEdit edit })
+        if (result.Command is { Arguments: [_, TextEdit textEdit, ..] })
+        {
+            Assert.NotNull(expected);
+
+            var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
+            // Complex C# completions use a no-op TextEdit and apply the actual edit through the command.
+            changedText = text.WithChanges(text.GetTextChange(textEdit));
+        }
+        else if (result.TextEdit is { Value: TextEdit edit })
         {
             Assert.NotNull(expected);
 
             var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
             changedText = text.WithChanges(text.GetTextChange(edit));
         }
-        else if (result.Command is { Arguments: [_, TextEdit textEdit, ..] })
+        else if (itemDefaults?.EditRange?.Value is LspRange editRange)
         {
             Assert.NotNull(expected);
 
             var text = await document.GetTextAsync(DisposalToken).ConfigureAwait(false);
-            changedText = text.WithChanges(text.GetTextChange(textEdit));
+            // Clients apply list-level ranges with TextEditText (or Label as a fallback), not InsertText.
+            var defaultTextEdit = new TextEdit { Range = editRange, NewText = result.TextEditText ?? result.Label };
+            changedText = text.WithChanges(text.GetTextChange(defaultTextEdit));
         }
         else if (result.InsertText is { } insertText)
         {
