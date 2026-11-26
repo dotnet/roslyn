@@ -375,6 +375,10 @@ internal abstract class AbstractRefactoringHelpers<TExpressionSyntax, TArgumentS
         {
             // A selection spanning members can have the containing type as its smallest enclosing node.
             // Only consider that type if the selection also includes its header.
+            //
+            // For '[|class C|] { int i; string s; }', C is relevant because its header is selected.
+            // For 'class C { [|int i; string s;|] }', FindNode also returns C, but only its members
+            // are selected, so C should not be offered as the target of a type refactoring.
             if (syntaxFacts.IsTypeDeclaration(selectionNode) &&
                 selectionTrimmed.Start > syntaxFacts.GetSpanWithoutAttributes(root, selectionNode).Start)
             {
