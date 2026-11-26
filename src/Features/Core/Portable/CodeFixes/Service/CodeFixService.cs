@@ -260,28 +260,23 @@ internal sealed partial class CodeFixService : ICodeFixService
     /// <summary>
     /// Determines whether to hide code fixes because the selection indicates the user wants a refactoring.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Selecting several members tells us the user wants to work with those members together.
-    /// For example, selecting two fields to generate a constructor should produce parameters for both fields.
-    /// </para>
-    /// <para>
-    /// In the future, code fixes could use member selections too. For example, selecting several fields
-    /// with "Make field readonly" suggestions could offer to fix all of them. The code fix system does
-    /// not support that today. It still offers fixes for individual fields and ignores which members
-    /// were selected. Hiding those entries removes clutter without taking away an existing way to fix
-    /// the selected members together.
-    /// </para>
-    /// <para>
-    /// Keep fixes available for a single selected member. Selecting one field is a reasonable way to
-    /// ask for fixes to issues on that field.
-    /// </para>
-    /// </remarks>
     private static Task<bool> ShouldSuppressCodeFixesForRefactoringSelectionAsync(
         TextDocument document, TextSpan? selection, CancellationToken cancellationToken)
     {
+        // We can add more heuristics here to recognize when the user wants refactorings.
         return IsMultipleMemberSelectionAsync(document, selection, cancellationToken);
 
+        // Selecting several members tells us the user wants to work with those members together.
+        // For example, selecting two fields to generate a constructor should produce parameters for both fields.
+        //
+        // In the future, code fixes could use member selections too. For example, selecting several fields
+        // with "Make field readonly" suggestions could offer to fix all of them. The code fix system does
+        // not support that today. It still offers fixes for individual fields and ignores which members
+        // were selected. Hiding those entries removes clutter without taking away an existing way to fix
+        // the selected members together.
+        //
+        // Keep fixes available for a single selected member. Selecting one field is a reasonable way to
+        // ask for fixes to issues on that field.
         static async Task<bool> IsMultipleMemberSelectionAsync(
             TextDocument document, TextSpan? selection, CancellationToken cancellationToken)
         {
