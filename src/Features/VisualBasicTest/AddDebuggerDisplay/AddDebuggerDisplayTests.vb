@@ -9,6 +9,20 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddDebuggerDisplay
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddDebuggerDisplay)>
     Public NotInheritable Class AddDebuggerDisplayTests
+        <Theory>
+        <InlineData("[|Dim i As Integer" & vbLf & "    Dim s As String|]")>
+        <InlineData("Dim [|i As Integer" & vbLf & "    Dim s|] As String")>
+        <InlineData("[|Property P As Integer" & vbLf & "    Property Q As String|]")>
+        <InlineData("[|Sub M()" & vbLf & "    End Sub" & vbLf & "    Sub N()" & vbLf & "    End Sub|]")>
+        Public Async Function NotOfferedOnSelectedMembers(members As String) As Task
+            Dim code = "
+Class C
+    " & members & "
+End Class"
+
+            Await VerifyVB.VerifyRefactoringAsync(code, code)
+        End Function
+
         <Fact>
         Public Async Function OfferedOnEmptyClass() As Task
             Await VerifyVB.VerifyRefactoringAsync("

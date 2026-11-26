@@ -18,6 +18,23 @@ using VerifyCS = CSharpCodeRefactoringVerifier<CSharpAddDebuggerDisplayCodeRefac
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddDebuggerDisplay)]
 public sealed class AddDebuggerDisplayTests
 {
+    [Theory]
+    [InlineData("[|int i;\n    string s;|]")]
+    [InlineData("int [|i;\n    string s|];")]
+    [InlineData("[|int P { get; set; }\n    string Q { get; set; }|]")]
+    [InlineData("[|void M() { }\n    void N() { }|]")]
+    public Task NotOfferedOnSelectedMembers(string members)
+    {
+        var code = $$"""
+            class C
+            {
+                {{members}}
+            }
+            """;
+
+        return VerifyCS.VerifyRefactoringAsync(code, code);
+    }
+
     [Fact]
     public Task OfferedOnEmptyClass()
         => VerifyCS.VerifyRefactoringAsync("""
