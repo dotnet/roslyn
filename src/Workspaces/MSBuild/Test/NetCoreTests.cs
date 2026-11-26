@@ -567,15 +567,15 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
             ("Program.cs", """
                            System.Console.WriteLine("ok");
                            """));
-        
+
         CreateFiles(files);
 
         var projectFilePath = GetSolutionFileName("Project.csproj");
         DotNetRestore("Project.csproj");
-        
+
         using var workspace = CreateMSBuildWorkspace();
         await workspace.OpenProjectAsync(projectFilePath);
-        
+
         Assert.Empty(workspace.Diagnostics);
         Assert.Equal(expectedTfms.Length, workspace.CurrentSolution.ProjectIds.Count);
 
