@@ -101,18 +101,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
-        // Selecting several members tells us the user wants to do something with all of them.
-        // For example, selecting two fields to generate a constructor should produce parameters for both.
-        // Keep the list focused on refactorings that use those selected members.
-        //
-        // Selecting several fields to make them all readonly could also be useful. Code fixes do
-        // not support that today. They still offer to fix a diagnostic on one field and ignore the
-        // rest of the selection. Hiding those entries removes clutter without losing an existing
-        // way to fix all the selected fields.
-        //
-        // A single selected member is different. Selecting one field is a reasonable way to ask
-        // for fixes to issues on that field, so keep offering fixes in that case.
-        if (await IsMultipleMemberSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
+        if (await ShouldSuppressCodeFixesForRefactoringSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
             return null;
 
         ImmutableArray<DiagnosticData> allDiagnostics;
@@ -198,18 +187,7 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}");
 
-        // Selecting several members tells us the user wants to do something with all of them.
-        // For example, selecting two fields to generate a constructor should produce parameters for both.
-        // Keep the list focused on refactorings that use those selected members.
-        //
-        // Selecting several fields to make them all readonly could also be useful. Code fixes do
-        // not support that today. They still offer to fix a diagnostic on one field and ignore the
-        // rest of the selection. Hiding those entries removes clutter without losing an existing
-        // way to fix all the selected fields.
-        //
-        // A single selected member is different. Selecting one field is a reasonable way to ask
-        // for fixes to issues on that field, so keep offering fixes in that case.
-        if (await IsMultipleMemberSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
+        if (await ShouldSuppressCodeFixesForRefactoringSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
             yield break;
 
         // We only need to compute suppression/configuration fixes when request priority is
@@ -279,24 +257,49 @@ internal sealed partial class CodeFixService : ICodeFixService
         }
     }
 
-    private static async Task<bool> IsMultipleMemberSelectionAsync(
+    /// <summary>
+    /// Determines whether to hide code fixes because the selection indicates the user wants a refactoring.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Selecting several members tells us the user wants to work with those members together.
+    /// For example, selecting two fields to generate a constructor should produce parameters for both fields.
+    /// </para>
+    /// <para>
+    /// In the future, code fixes could use member selections too. For example, selecting several fields
+    /// with "Make field readonly" suggestions could offer to fix all of them. The code fix system does
+    /// not support that today. It still offers fixes for individual fields and ignores which members
+    /// were selected. Hiding those entries removes clutter without taking away an existing way to fix
+    /// the selected members together.
+    /// </para>
+    /// <para>
+    /// Keep fixes available for a single selected member. Selecting one field is a reasonable way to
+    /// ask for fixes to issues on that field.
+    /// </para>
+    /// </remarks>
+    private static Task<bool> ShouldSuppressCodeFixesForRefactoringSelectionAsync(
         TextDocument document, TextSpan? selection, CancellationToken cancellationToken)
     {
-        // The diagnostic query range can differ from the user's selection. Only interpret an explicit
-        // selection as member selection; callers such as code cleanup can query arbitrary ranges.
-        // A caret on 'int i, j;' can identify two members, but does not select both of them.
-        if (selection is null or { IsEmpty: true } || document is not Document sourceDocument)
-            return false;
+        return IsMultipleMemberSelectionAsync(document, selection, cancellationToken);
 
-        // Languages that cannot identify selected members continue to offer their diagnostic fixes.
-        var service = sourceDocument.GetLanguageService<ISelectedMembersService>();
-        if (service is null)
-            return false;
+        static async Task<bool> IsMultipleMemberSelectionAsync(
+            TextDocument document, TextSpan? selection, CancellationToken cancellationToken)
+        {
+            // Only count a nonempty user selection. Diagnostic queries can cover arbitrary ranges.
+            // A caret on 'int i, j;' can identify two fields without selecting both.
+            if (selection is null or { IsEmpty: true } || document is not Document sourceDocument)
+                return false;
 
-        var tree = await sourceDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var members = await service.GetSelectedMembersAsync(
-            tree, selection.Value, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
-        return members.Length >= 2;
+            // Leave fixes available for languages that cannot identify selected members.
+            var service = sourceDocument.GetLanguageService<ISelectedMembersService>();
+            if (service is null)
+                return false;
+
+            var tree = await sourceDocument.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            var members = await service.GetSelectedMembersAsync(
+                tree, selection.Value, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+            return members.Length >= 2;
+        }
     }
 
     private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
