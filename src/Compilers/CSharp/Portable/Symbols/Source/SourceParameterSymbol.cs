@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     scope);
             }
 
-            Debug.Assert(owner is not SynthesizedUnionCtor ||
+            Debug.Assert(!isUnionCaseParameter ||
                 (!hasParamsModifier &&
                 !isExtensionMethodThis &&
                 !owner.IsPartialMember() &&
                 scope == ScopedKind.None));
 
-            if (owner is SynthesizedUnionCtor ||
+            if (isUnionCaseParameter ||
                 (!hasParamsModifier &&
                 !isExtensionMethodThis &&
                 (syntax.Default == null) &&
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new SourceSimpleParameterSymbol(owner, parameterType, ordinal, refKind, name, location);
             }
 
-            Debug.Assert(owner is not SynthesizedUnionCtor);
+            Debug.Assert(!isUnionCaseParameter);
             return new SourceComplexParameterSymbol(
                 owner,
                 ordinal,
