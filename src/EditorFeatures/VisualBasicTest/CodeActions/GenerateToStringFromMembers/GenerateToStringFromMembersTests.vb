@@ -126,6 +126,13 @@ End Class",
     Public Overrides Function ToString() As String
         Return ""Program""
     End Function
+End Class",
+                .FixedCode = "Class Program
+    [|Dim a As Integer|]
+
+    Public Overrides Function ToString() As String
+        Return ""Program""
+    End Function
 End Class"
             }.RunAsync()
         End Function
@@ -134,6 +141,10 @@ End Class"
         Public Function TestClass_NotOfferedBetweenMembers() As Task
             Return New VerifyVB.Test With {
                 .TestCode = "Class Program
+    Public a As Integer
+    [||]
+End Class",
+                .FixedCode = "Class Program
     Public a As Integer
     [||]
 End Class"
