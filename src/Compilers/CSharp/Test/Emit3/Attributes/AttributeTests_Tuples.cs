@@ -1049,5 +1049,43 @@ public interface I3 : I1<(int c, int d)> {}";
                 assemblyValidator: validator,
                 symbolValidator: symbolValidator);
         }
+
+        [Fact]
+        public void EmitAttribute_Union_ConstructorParameters_01()
+        {
+            var source =
+@"
+public union U((int a, string b));
+";
+            var comp = CreateCompilation(new[] { source, IUnionSource, UnionAttributeSource });
+            CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+            void validate(ModuleSymbol module)
+            {
+                var ctor = module.GlobalNamespace.GetTypeMember("U").InstanceConstructors.Where(ctor => !ctor.IsDefaultValueTypeConstructor()).Single();
+                AssertEx.Equal("U..ctor((System.Int32 a, System.String b) value)", ctor.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void EmitAttribute_Union_ConstructorParameters_02()
+        {
+            var source =
+@"
+public union U((int a, string b), C<(int c, string d)>);
+
+public class C<T>;
+";
+            var comp = CreateCompilation(new[] { source, IUnionSource, UnionAttributeSource });
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames);
+            comp.VerifyDiagnostics(
+                // 0.cs(2,16): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public union U((int a, string b), C<(int c, string d)>);
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int a, string b)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(2, 16),
+                // 0.cs(2,37): error CS8137: Cannot define a class or member that utilizes tuples because the compiler required type 'System.Runtime.CompilerServices.TupleElementNamesAttribute' cannot be found. Are you missing a reference?
+                // public union U((int a, string b), C<(int c, string d)>);
+                Diagnostic(ErrorCode.ERR_TupleElementNamesAttributeMissing, "(int c, string d)").WithArguments("System.Runtime.CompilerServices.TupleElementNamesAttribute").WithLocation(2, 37)
+                );
+        }
     }
 }
