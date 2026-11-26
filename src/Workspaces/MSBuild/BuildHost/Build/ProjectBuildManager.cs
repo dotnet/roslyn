@@ -329,7 +329,7 @@ internal sealed class ProjectBuildManager : IDisposable
         var parts = targetFrameworksValue.Split(';');
         var result = new string[parts.Length];
         var count = 0;
-        
+
         foreach (var part in parts)
         {
             var trimmed = part.Trim();
@@ -345,7 +345,7 @@ internal sealed class ProjectBuildManager : IDisposable
         }
 
         var trimmedResult = new string[count];
-        Array.Copy(result, trimmedResult, count);   
+        Array.Copy(result, trimmedResult, count);
         return trimmedResult;
     }
 
