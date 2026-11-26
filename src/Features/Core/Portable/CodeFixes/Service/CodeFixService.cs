@@ -101,6 +101,13 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
+        // Selecting several members tells us the user wants an operation on those members together:
+        // a refactoring. Code fixes still target individual issues; the selection does not make a fix
+        // apply to every selected member. Hide fixes here so they do not crowd out refactorings that
+        // actually use the selection.
+        //
+        // A single selected member still allows fixes: selecting it is a reasonable way to ask us to
+        // fix an issue specific to that member.
         if (await IsMultipleMemberSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
             return null;
 
@@ -187,6 +194,13 @@ internal sealed partial class CodeFixService : ICodeFixService
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}");
 
+        // Selecting several members tells us the user wants an operation on those members together:
+        // a refactoring. Code fixes still target individual issues; the selection does not make a fix
+        // apply to every selected member. Hide fixes here so they do not crowd out refactorings that
+        // actually use the selection.
+        //
+        // A single selected member still allows fixes: selecting it is a reasonable way to ask us to
+        // fix an issue specific to that member.
         if (await IsMultipleMemberSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
             yield break;
 
