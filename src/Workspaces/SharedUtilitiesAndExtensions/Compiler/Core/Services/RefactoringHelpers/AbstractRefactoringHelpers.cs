@@ -390,7 +390,7 @@ internal abstract class AbstractRefactoringHelpers<TExpressionSyntax, TArgumentS
             // This selection starts before the header but includes it, so it must bypass the header-position
             // check. Comparing against selectionNode.SpanStart instead would enter that check and reject it
             // because the selection starts inside the attributes, which IsOnTypeHeader excludes.
-            // Selections containing only attributes are still rejected by the intersection check below.
+            // Selections containing only attributes are still rejected by the attribute check below.
             if (syntaxFacts.IsTypeDeclaration(selectionNode) &&
                 selectionTrimmed.Start > syntaxFacts.GetSpanWithoutAttributes(root, selectionNode).Start)
             {
@@ -407,14 +407,18 @@ internal abstract class AbstractRefactoringHelpers<TExpressionSyntax, TArgumentS
             var nonHiddenExtractedSelectedNodes = ExtractNodesSimple(selectionNode, syntaxFacts).OfType<TSyntaxNode>().Where(n => !n.OverlapsHiddenPosition(cancellationToken));
             foreach (var nonHiddenExtractedNode in nonHiddenExtractedSelectedNodes)
             {
-                // For selections we need to handle an edge case where only AttributeLists are within selection (e.g. `Func([|[in][out]|] arg1);`).
-                // In that case the smallest encompassing node is still the whole argument node but it's hard to justify showing refactorings for it
-                // if user selected only its attributes.
-
-                // Selection contains only AttributeLists -> don't consider current Node
-                // Require actual overlap: an attribute-only selection can end exactly where the header begins.
                 var spanWithoutAttributes = syntaxFacts.GetSpanWithoutAttributes(root, nonHiddenExtractedNode);
-                if (!selectionTrimmed.OverlapsWith(spanWithoutAttributes))
+
+                // Allow touching spans so selecting only the semicolon in 'M()[|;|]' still finds 'M()'.
+                if (!selectionTrimmed.IntersectsWith(spanWithoutAttributes))
+                {
+                    break;
+                }
+
+                // When attributes were excluded, require actual overlap. A selection such as
+                // '[|[A][B]|]class C {}' touches the header but selects only attributes.
+                if (spanWithoutAttributes.Start > nonHiddenExtractedNode.SpanStart &&
+                    !selectionTrimmed.OverlapsWith(spanWithoutAttributes))
                 {
                     break;
                 }
