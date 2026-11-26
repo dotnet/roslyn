@@ -277,7 +277,7 @@ internal sealed partial class CodeFixService : ICodeFixService
         // The diagnostic query range can differ from the user's selection. Only interpret an explicit
         // selection as member selection; callers such as code cleanup can query arbitrary ranges.
         // A caret on 'int i, j;' can identify two members, but does not select both of them.
-        if (selection is null or { IsEmpty: true } || document is not Document { SupportsSyntaxTree: true } sourceDocument)
+        if (selection is null or { IsEmpty: true } || document is not Document sourceDocument)
             return false;
 
         // Languages that cannot identify selected members continue to offer their diagnostic fixes.
