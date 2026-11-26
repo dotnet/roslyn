@@ -37,7 +37,8 @@ internal sealed class UnifiedSuggestedActionsSource
     public static async ValueTask<ImmutableArray<SuggestedActionSet>> GetFilterAndOrderCodeFixesAsync(
         ICodeFixService codeFixService,
         TextDocument document,
-        TextSpan selection,
+        TextSpan range,
+        TextSpan? selection,
         CodeActionRequestPriority? priority,
         CancellationToken cancellationToken)
     {
@@ -46,6 +47,7 @@ internal sealed class UnifiedSuggestedActionsSource
         await TaskScheduler.Default;
         var fixes = await codeFixService.GetFixesAsync(
             document,
+            range,
             selection,
             priority,
             cancellationToken).ConfigureAwait(false);

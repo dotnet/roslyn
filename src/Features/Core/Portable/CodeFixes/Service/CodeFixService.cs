@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -91,10 +92,17 @@ internal sealed partial class CodeFixService : ICodeFixService
         return DiagnosticIdFilter.Include(set);
     }
 
-    public async Task<CodeFixCollection?> GetMostSevereFixAsync(
+    public Task<CodeFixCollection?> GetMostSevereFixAsync(
         TextDocument document, TextSpan range, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
+        => GetMostSevereFixAsync(document, range, selection: null, priority, cancellationToken);
+
+    public async Task<CodeFixCollection?> GetMostSevereFixAsync(
+        TextDocument document, TextSpan range, TextSpan? selection, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
+
+        if (await IsMultipleMemberSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
+            return null;
 
         ImmutableArray<DiagnosticData> allDiagnostics;
 
@@ -163,13 +171,24 @@ internal sealed partial class CodeFixService : ICodeFixService
         }
     }
 
+    public IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
+        TextDocument document,
+        TextSpan range,
+        CodeActionRequestPriority? priority,
+        CancellationToken cancellationToken)
+        => StreamFixesAsync(document, range, selection: null, priority, cancellationToken);
+
     public async IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
         TextDocument document,
         TextSpan range,
+        TextSpan? selection,
         CodeActionRequestPriority? priority,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using var _ = RoslynTelemetry.Current.RecordBlockTime(FunctionId.CodeFix_Summary, $"Pri{priority.GetPriorityInt()}");
+
+        if (await IsMultipleMemberSelectionAsync(document, selection, cancellationToken).ConfigureAwait(false))
+            yield break;
 
         // We only need to compute suppression/configuration fixes when request priority is
         // 'CodeActionPriorityRequest.Lowest' or no priority was provided at all (so all providers should run).
@@ -236,6 +255,29 @@ internal sealed partial class CodeFixService : ICodeFixService
                 }
             }
         }
+    }
+
+    private static async Task<bool> IsMultipleMemberSelectionAsync(
+        TextDocument document, TextSpan? selection, CancellationToken cancellationToken)
+    {
+        // The diagnostic query range can differ from the user's selection. Only interpret an explicit
+        // selection as member selection; callers such as code cleanup can query arbitrary ranges.
+        // A caret on 'int i, j;' can identify two members, but does not select both of them.
+        if (selection is null or { IsEmpty: true } || document is not Document { SupportsSyntaxTree: true } sourceDocument)
+            return false;
+
+        // Languages that cannot identify selected members continue to offer their diagnostic fixes.
+        var service = sourceDocument.GetLanguageService<ISelectedMembersService>();
+        if (service is null)
+            return false;
+
+        var tree = await sourceDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        if (tree is null)
+            return false;
+
+        var members = await service.GetSelectedMembersAsync(
+            tree, selection.Value, allowPartialSelection: true, cancellationToken).ConfigureAwait(false);
+        return !members.IsDefaultOrEmpty && members.Length > 1;
     }
 
     private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(

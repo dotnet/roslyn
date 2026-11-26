@@ -161,14 +161,14 @@ internal sealed partial class SuggestedActionsSourceProvider
             // Assign over cancellation token so no one accidentally uses the wrong token.
             cancellationToken = linkedTokenSource.Token;
 
-            // Kick off the work to get errors.
-            var errorTask = GetFixLevelAsync(document, range, cancellationToken);
-
             // Make a quick jump back to the UI thread to get the user's selection, then go back to the thread pool..
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
             var selection = TryGetCodeRefactoringSelection(state, range);
             await TaskScheduler.Default;
+
+            // Kick off the work to get errors using the same selection as the full action list.
+            var errorTask = GetFixLevelAsync(document, range, selection, cancellationToken);
 
             // If we have a selection, kick off the work to get refactorings concurrently with the above work to get errors.
             var refactoringTask = selection != null
@@ -188,6 +188,7 @@ internal sealed partial class SuggestedActionsSourceProvider
         private async Task<string?> GetFixLevelAsync(
             TextDocument document,
             SnapshotSpan range,
+            TextSpan? selection,
             CancellationToken cancellationToken)
         {
             // Ensure we yield the thread that called into us, allowing it to continue onwards.
@@ -217,7 +218,7 @@ internal sealed partial class SuggestedActionsSourceProvider
                     state.Target.SubjectBuffer.SupportsCodeFixes())
                 {
                     var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                        document, range.Span.ToTextSpan(), priority, cancellationToken).ConfigureAwait(false);
+                        document, range.Span.ToTextSpan(), selection, priority, cancellationToken).ConfigureAwait(false);
 
                     if (result != null)
                     {

@@ -21,6 +21,33 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
 public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     [Theory, CombinatorialData]
+    public async Task TestCodeFixesRespectMemberSelection(bool mutatingLspWorkspace, bool multipleMembers)
+    {
+        var markup = multipleMembers
+            ? """
+                class C
+                {
+                    {|selection:Task task;
+                    CancellationToken token;|}
+                }
+                """
+            : """
+                class C
+                {
+                    {|selection:Task task;|}
+                    CancellationToken token;
+                }
+                """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
+        var selection = testLspServer.GetLocations("selection").Single();
+
+        var results = await RunGetCodeActionsAsync(testLspServer, CreateCodeActionParams(selection));
+
+        Assert.Equal(!multipleMembers, results.Any(action => action.Kind == CodeActionKind.QuickFix));
+        Assert.Contains(results, action => action.Kind != CodeActionKind.QuickFix);
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestCodeActionHandlerAsync(bool mutatingLspWorkspace)
     {
         var markup =
