@@ -13,7 +13,40 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
 public class DirectiveAttributeTransitionCompletionItemProviderTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    private readonly TagHelperDocumentContext _tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate(tagHelpers: []);
+    private readonly TagHelperDocumentContext _tagHelperDocumentContext = TagHelperDocumentContext.GetOrCreate(
+        [
+            TagHelperDescriptorBuilder.CreateTagHelper("DirectiveAttribute", "TestAssembly")
+                .TypeName("DirectiveAttribute")
+                .TagMatchingRule(tagName: "*")
+                .BoundAttributeDescriptor(builder =>
+                {
+                    builder.Name = "@test";
+                    builder.TypeName = typeof(string).FullName;
+                    builder.PropertyName = "Test";
+                    builder.IsDirectiveAttribute = true;
+                })
+                .Build(),
+        ]);
+    private readonly TagHelperDocumentContext _tagHelperWithParameterContext = TagHelperDocumentContext.GetOrCreate(
+        [
+            TagHelperDescriptorBuilder.CreateTagHelper("DirectiveAttributeWithParameter", "TestAssembly")
+                .TypeName("DirectiveAttributeWithParameter")
+                .TagMatchingRule(tagName: "*")
+                .BoundAttributeDescriptor(builder =>
+                {
+                    builder.Name = "@test";
+                    builder.TypeName = typeof(string).FullName;
+                    builder.PropertyName = "Test";
+                    builder.IsDirectiveAttribute = true;
+                    builder.BindAttributeParameter(parameter =>
+                    {
+                        parameter.Name = "something";
+                        parameter.TypeName = typeof(string).FullName;
+                        parameter.PropertyName = "Something";
+                    });
+                })
+                .Build(),
+        ]);
     private readonly DirectiveAttributeTransitionCompletionItemProvider _provider = new(new TestClientCapabilitiesService(new VSInternalClientCapabilities()));
 
     [Fact]
@@ -325,6 +358,143 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest(ITestOutputH
         }
     }
 
+    [Fact]
+    public void GetCompletionItems_NoTagHelpers_ReturnsEmptyList()
+    {
+        var context = CreateContext("<input $$ />", documentContext: TagHelperDocumentContext.GetOrCreate(tagHelpers: []));
+
+        var result = _provider.GetCompletionItems(context);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetCompletionItems_NoDirectiveAttributesForTag_ReturnsEmptyList()
+    {
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("Input", "TestAssembly")
+            .TagMatchingRule(tagName: "input")
+            .BoundAttributeDescriptor(builder => builder.Name = "value")
+            .Build();
+        var context = CreateContext("<input $$ />", documentContext: TagHelperDocumentContext.GetOrCreate([descriptor]));
+
+        var result = _provider.GetCompletionItems(context);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetCompletionItems_DirectiveAttributesForDifferentTag_ReturnsEmptyList()
+    {
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("DirectiveAttribute", "TestAssembly")
+            .TagMatchingRule(tagName: "button")
+            .BoundAttributeDescriptor(builder =>
+            {
+                builder.Name = "@test";
+                builder.IsDirectiveAttribute = true;
+            })
+            .Build();
+        var context = CreateContext("<input $$ />", documentContext: TagHelperDocumentContext.GetOrCreate([descriptor]));
+
+        var result = _provider.GetCompletionItems(context);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetCompletionItems_AllDirectiveAttributesAlreadyPresent_ReturnsEmptyList()
+    {
+        var context = CreateContext("""<input @test="value" $$ />""");
+
+        var result = _provider.GetCompletionItems(context);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetCompletionItems_ExistingDirectiveAttributeWithAnotherAvailable_ReturnsTransitionCompletionItem()
+    {
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("DirectiveAttributes", "TestAssembly")
+            .TypeName("DirectiveAttributes")
+            .TagMatchingRule(tagName: "*")
+            .BoundAttributeDescriptor(builder =>
+            {
+                builder.Name = "@already";
+                builder.TypeName = typeof(string).FullName;
+                builder.PropertyName = "Already";
+                builder.IsDirectiveAttribute = true;
+            })
+            .BoundAttributeDescriptor(builder =>
+            {
+                builder.Name = "@remaining";
+                builder.TypeName = typeof(string).FullName;
+                builder.PropertyName = "Remaining";
+                builder.IsDirectiveAttribute = true;
+            })
+            .Build();
+        var context = CreateContext("""<input @already="value" $$ />""", documentContext: TagHelperDocumentContext.GetOrCreate([descriptor]));
+
+        var result = _provider.GetCompletionItems(context);
+
+        var item = Assert.Single(result);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
+    }
+
+    [Fact]
+    public void GetCompletionItems_ExistingDirectiveAttributeWithAvailableParameter_ReturnsTransitionCompletionItem()
+    {
+        var context = CreateContext("""<input @test="value" $$ />""", documentContext: _tagHelperWithParameterContext);
+
+        var result = _provider.GetCompletionItems(context);
+
+        var item = Assert.Single(result);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
+    }
+
+    [Fact]
+    public void GetCompletionItems_ExistingDirectiveAttributeWithAllParametersPresent_ReturnsEmptyList()
+    {
+        var context = CreateContext("""<input @test="value" @test:something="value" $$ />""", documentContext: _tagHelperWithParameterContext);
+
+        var result = _provider.GetCompletionItems(context);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void GetCompletionItems_ExistingDirectiveAttributeWithAvailableIndexer_ReturnsTransitionCompletionItem()
+    {
+        var descriptor = TagHelperDescriptorBuilder.CreateTagHelper("DirectiveAttributeWithIndexer", "TestAssembly")
+            .TypeName("DirectiveAttributeWithIndexer")
+            .TagMatchingRule(tagName: "*")
+            .BoundAttributeDescriptor(builder =>
+            {
+                builder.Name = "@test";
+                builder.TypeName = typeof(string).FullName;
+                builder.PropertyName = "Test";
+                builder.IsDirectiveAttribute = true;
+                builder.IsDictionary = true;
+                builder.IndexerAttributeNamePrefix = "@test-";
+                builder.IndexerValueTypeName = typeof(string).FullName;
+            })
+            .Build();
+        var context = CreateContext("""<input @test="value" $$ />""", documentContext: TagHelperDocumentContext.GetOrCreate([descriptor]));
+
+        var result = _provider.GetCompletionItems(context);
+
+        var item = Assert.Single(result);
+        Assert.True(DirectiveAttributeTransitionCompletionItemProvider.IsTransitionCompletionItem(item));
+    }
+
+    [Fact]
+    public void GetCompletionItems_NoTagHelpersBeforeExistingAttribute_ReturnsEmptyList()
+    {
+        var context = CreateContext("""<input $$ value="test" />""", documentContext: TagHelperDocumentContext.GetOrCreate(tagHelpers: []));
+
+        var result = _provider.GetCompletionItems(context);
+
+        Assert.Empty(result);
+    }
+
     private static RazorCodeDocument GetCodeDocument(TestCode text, RazorFileKind? fileKind = null)
     {
         var fileKindValue = fileKind ?? RazorFileKind.Component;
@@ -341,7 +511,7 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest(ITestOutputH
         return projectEngine.Process(sourceDocument, fileKindValue, importSources: default, tagHelpers: []);
     }
 
-    private RazorCompletionContext CreateContext(TestCode text, RazorFileKind? fileKind = null)
+    private RazorCompletionContext CreateContext(TestCode text, RazorFileKind? fileKind = null, TagHelperDocumentContext? documentContext = null)
     {
         var absoluteIndex = text.Position;
         var codeDocument = GetCodeDocument(text.Text, fileKind);
@@ -349,6 +519,6 @@ public class DirectiveAttributeTransitionCompletionItemProviderTest(ITestOutputH
         var owner = syntaxTree.Root.FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
         owner = RazorCompletionFactsService.AdjustSyntaxNodeForWordBoundary(owner, absoluteIndex);
 
-        return new RazorCompletionContext(codeDocument, absoluteIndex, owner, syntaxTree, _tagHelperDocumentContext);
+        return new RazorCompletionContext(codeDocument, absoluteIndex, owner, syntaxTree, documentContext ?? _tagHelperDocumentContext);
     }
 }

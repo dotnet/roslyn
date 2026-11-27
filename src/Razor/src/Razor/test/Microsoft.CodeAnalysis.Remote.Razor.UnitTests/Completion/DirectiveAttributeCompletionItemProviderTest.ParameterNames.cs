@@ -132,6 +132,29 @@ public partial class DirectiveAttributeCompletionItemProviderTest
     }
 
     [Fact]
+    public void HasAttributeCompletions_WithAvailableParameter_ReturnsTrue()
+    {
+        var context = GetDefaultDirectiveAttributeCompletionContext("@bind");
+
+        var result = DirectiveAttributeCompletionItemProvider.HasAttributeCompletions("input", context, _defaultTagHelperContext);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void HasAttributeCompletions_WithAllParametersPresent_ReturnsFalse()
+    {
+        var context = GetDefaultDirectiveAttributeCompletionContext("@bind") with
+        {
+            ExistingAttributes = ["@bind:format", "@bind:event", "@bind:culture", "@bind:get", "@bind:set", "@bind:after"],
+        };
+
+        var result = DirectiveAttributeCompletionItemProvider.HasAttributeCompletions("input", context, _defaultTagHelperContext);
+
+        Assert.False(result);
+    }
+
+    [Fact]
     public void GetAttributeParameterCompletions_ReturnsSnippetCompletion()
     {
         // Arrange

@@ -1638,6 +1638,26 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["style", "dir", "@..."]);
     }
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85320")]
+    public async Task HtmlAttributeNamesCompletion_WithoutDirectiveAttributes()
+    {
+        // A miscellaneous file has no Blazor references to provide directive attributes.
+        await VerifyCompletionListAsync(
+            input: "<div $$></div>",
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+#if VSCODE
+            htmlItemLabels: ["style", "dir"],
+#endif
+            expectedItemLabels: ["style", "dir"],
+            unexpectedItemLabels: ["@..."],
+            miscellaneousFile: true);
+    }
+
     // Tests HTML attributes and DirectiveAttributeCompletionItemProvider
     [Fact]
     public async Task HtmlAndDirectiveAttributeNamesCompletion()
@@ -2463,12 +2483,14 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         RazorFileKind? fileKind = null,
         TimeSpan? retryTimeout = null,
         (string fileName, string contents)[]? additionalFiles = null,
-        Action<RazorProjectBuilder>? projectConfigure = null)
+        Action<RazorProjectBuilder>? projectConfigure = null,
+        bool miscellaneousFile = false)
     {
         var document = CreateProjectAndRazorDocument(
             input.Text,
             fileKind,
             additionalFiles: additionalFiles,
+            miscellaneousFile: miscellaneousFile,
             projectConfigure: projectConfigure);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
