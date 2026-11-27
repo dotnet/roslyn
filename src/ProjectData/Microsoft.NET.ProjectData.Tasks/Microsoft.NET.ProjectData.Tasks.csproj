@@ -58,6 +58,7 @@
     <Compile Include="..\Microsoft.NET.ProjectData\ProjectDataBuildAttemptManifest.cs" Link="Shared\ProjectDataBuildAttemptManifest.cs" />
     <Compile Include="..\Microsoft.NET.ProjectData\ProjectDataBuildDiagnosticProtocol.cs" Link="Shared\ProjectDataBuildDiagnosticProtocol.cs" />
     <Compile Include="..\Microsoft.NET.ProjectData\HexEncoder.cs" Link="Shared\HexEncoder.cs" />
+    <Compile Include="..\Microsoft.NET.ProjectData\FrameworkAnalyzerSelection.cs" Link="Shared\FrameworkAnalyzerSelection.cs" />
   </ItemGroup>
 
   <UsingTask TaskName="GenerateProjectDataProps"

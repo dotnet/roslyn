@@ -716,7 +716,7 @@ public class ForwardCompatTests
 	[Fact]
 	public void Preserves_All_Levels_Together_Deterministically()
 	{
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=2.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=2.5", unknownSection: true, unknownProperty: true, unknownMetadata: true);
 		string candidate = FutureCacheBuilder.SingleTarget();
 
 		string first = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
@@ -727,7 +727,7 @@ public class ForwardCompatTests
 		Assert.Contains("[futureSection]", first);
 		Assert.Contains("FutureProp=onward", first);
 		Assert.Contains("Program.cs\n @futureMeta=42", first);
-		Assert.StartsWith("version=2.4\n", first);
+		Assert.StartsWith("version=2.5\n", first);
 	}
 
 	[Fact]
@@ -797,7 +797,7 @@ public class ForwardCompatTests
 			Directory.CreateDirectory(dir);
 
 			// On disk: a file a NEWER minor authored, still carrying a legacy hash header.
-			string newer = FutureCacheBuilder.SingleTarget(version: "version=2.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
+			string newer = FutureCacheBuilder.SingleTarget(version: "version=2.5", unknownSection: true, unknownProperty: true, unknownMetadata: true);
 			File.WriteAllText(outputPath, $"hash={new string('0', 64)}\n{newer}", new UTF8Encoding(false));
 
 			// The current (older) writer regenerates the candidate it knows about.
@@ -807,7 +807,7 @@ public class ForwardCompatTests
 			string result = File.ReadAllText(outputPath);
 
 			Assert.DoesNotContain("hash=", result);
-			Assert.StartsWith("version=2.4\n", result);   // newer minor stamp carried forward
+			Assert.StartsWith("version=2.5\n", result);   // newer minor stamp carried forward
 			Assert.Contains("[futureSection]", result);
 			Assert.Contains("FutureProp=onward", result);
 			Assert.Contains("Program.cs\n @futureMeta=42", result);
@@ -827,7 +827,7 @@ public class ForwardCompatTests
 		try
 		{
 			Directory.CreateDirectory(dir);
-			string newer = FutureCacheBuilder.SingleTarget(version: "version=2.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
+			string newer = FutureCacheBuilder.SingleTarget(version: "version=2.5", unknownSection: true, unknownProperty: true, unknownMetadata: true);
 			File.WriteAllText(outputPath, $"hash={new string('0', 64)}\n{newer}", new UTF8Encoding(false));
 
 			string candidate = FutureCacheBuilder.SingleTarget();
@@ -907,7 +907,7 @@ public class ForwardCompatTests
 			ProjectDataMerger.Merge(outPath, Path.Combine(dir, "obj", "**", "Sample.csproj.slice"), "net8.0;net9.0");
 			string merged = File.ReadAllText(outPath).Replace("\r\n", "\n");
 
-			string newer = BumpPrimaryVersion(merged, "version=2.4")
+			string newer = BumpPrimaryVersion(merged, "version=2.5")
 				.Replace("AssemblyName=Sample", "AssemblyName=Sample\nFutureProp=onward")
 				.Replace("Program.cs\n", "Program.cs\n @futureMeta=42\n");
 			File.WriteAllText(outPath, newer, new UTF8Encoding(false));
@@ -960,7 +960,7 @@ public class ForwardCompatTests
 			// is only ever authored by a newer-minor writer, which stamps the file accordingly.
 			int net9Index = merged.IndexOf("TargetFramework=net9.0", StringComparison.Ordinal);
 			Assert.True(net9Index >= 0);
-			string newer = BumpPrimaryVersion(merged, "version=2.4") + "\n[futureSection]\nfuture-section-payload\n";
+			string newer = BumpPrimaryVersion(merged, "version=2.5") + "\n[futureSection]\nfuture-section-payload\n";
 			File.WriteAllText(outPath, newer, new UTF8Encoding(false));
 
 			ProjectDataMerger.Merge(outPath, Path.Combine(dir, "obj", "**", "Sample.csproj.slice"), "net8.0;net9.0");
@@ -1022,8 +1022,8 @@ public class ForwardCompatTests
 		// If this fails because you intentionally changed the emittable set: bump the minor in the
 		// cache schema (which flows to CacheFormat.VersionHeader) and update ExpectedMinor +
 		// ExpectedEmittableHash below to the values printed in the failure message.
-		const int ExpectedMinor = 3;
-		const string ExpectedEmittableHash = "58B058828D4928C6CB34D50BC52234B08DD1F132F15E9F283DAF5BDB1D20DA0B";
+		const int ExpectedMinor = 4;
+		const string ExpectedEmittableHash = "A71C4946BB1F563A622EFDD4FEB13D2300629A2A515942819E3F4E637928EA78";
 
 		// Metadata is hashed AS item-type:key pairs (not a flattened union) so that reusing an
 		// existing metadata NAME on a different item type — which leaves ProjectItems.AllMetadata

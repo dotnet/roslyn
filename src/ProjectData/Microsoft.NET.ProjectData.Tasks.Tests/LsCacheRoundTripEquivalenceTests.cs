@@ -28,6 +28,164 @@ public sealed class DotnetRootEnvCollection
 [Collection(DotnetRootEnvCollection.Name)]
 public class LsCacheRoundTripEquivalenceTests
 {
+	private const string RequestDelegateGenerator = "Microsoft.AspNetCore.Http.RequestDelegateGenerator.dll";
+
+	[Theory]
+	[InlineData("", false)]
+	[InlineData("/features:\"InterceptorsNamespaces=;Microsoft.Extensions.Validation.Generated\"", false)]
+	[InlineData("/features:\"InterceptorsNamespaces=;Microsoft.AspNetCore.Http.Generated\"", true)]
+	[InlineData("/features:InterceptorsNamespaces=Microsoft.AspNetCore", true)]
+	[InlineData("/features:InterceptorsNamespaces=global", true)]
+	[InlineData("/features:InterceptorsNamespaces=Microsoft.AspNetCore.Http.GeneratedCode", false)]
+	[InlineData("/features:InterceptorsNamespaces=Microsoft.AspNetCore.Http.Generated\n/features:InterceptorsNamespaces=Other", false)]
+	[InlineData("/features:InterceptorsNamespaces=Microsoft.AspNetCore.Http.Generated\n/features", false)]
+	public async Task Read_LegacyFrameworkPack_EnablesInterceptorGeneratorsOnlyForPermittedNamespaces(string commandLine, bool expectGenerator)
+	{
+		using TempPack pack = TempPack.Create("Test.Filtered.App.Ref", "10.0.7", ["System.Sample.dll"], ["Sample.Analyzer.dll", RequestDelegateGenerator]);
+
+		var slice = Assert.Single(await ReadAsync(pack, SingleSliceCache("version=2.3", commandLine, frameworkAnalyzerReferences: null)));
+
+		Assert.Equal(
+			expectGenerator ? [RequestDelegateGenerator, "Sample.Analyzer.dll"] : ["Sample.Analyzer.dll"],
+			slice.AnalyzerReferences.Select(Path.GetFileName).Order(StringComparer.OrdinalIgnoreCase));
+	}
+
+	[Theory]
+	// Current fingerprint: the exact allow-list wins, even where the namespace would permit the generator.
+	[InlineData("interceptorsNamespaces=Microsoft.AspNetCore.Http.Generated", false)]
+	// Stale fingerprint, as when an older writer regenerated the command line but carried the
+	// section forward: the namespace heuristic replaces the allow-list.
+	[InlineData("interceptorsNamespaces=", true)]
+	// No fingerprint: never trusted.
+	[InlineData(null, true)]
+	public async Task Read_FrameworkAnalyzerAllowList_IsTrustedOnlyWhenFingerprintMatches(string? fingerprint, bool expectGenerator)
+	{
+		using TempPack pack = TempPack.Create("Test.Filtered.App.Ref", "10.0.7", ["System.Sample.dll"], ["Sample.Analyzer.dll", RequestDelegateGenerator]);
+		string allowList = (fingerprint is null ? "" : fingerprint + "\n") + "Test.Filtered.App.Ref/Sample.Analyzer.dll";
+
+		var slice = Assert.Single(await ReadAsync(pack, SingleSliceCache(
+			"version=2.4",
+			"/features:\"InterceptorsNamespaces=;Microsoft.AspNetCore.Http.Generated\"",
+			allowList)));
+
+		Assert.Equal(expectGenerator, slice.AnalyzerReferences.Any(path => Path.GetFileName(path) == RequestDelegateGenerator));
+	}
+
+	[Fact]
+	public async Task Read_LegacyMultiTarget_ExpandsSharedFrameworkPacksPerTargetFramework()
+	{
+		using TempPack pack = TempPack.Create("Test.Filtered.App.Ref", "10.0.7", ["System.Sample.dll"], ["Sample.Analyzer.dll", RequestDelegateGenerator]);
+		CopyDirectory(
+			Path.Combine(pack.DotNetRoot, "packs", "Test.Filtered.App.Ref", "10.0.7"),
+			Path.Combine(pack.DotNetRoot, "packs", "Test.Filtered.App.Ref", "11.0.1"));
+
+		// Released writers hoist identical [frameworkPacks] into the shared slice, while the
+		// command line differs per target framework.
+		string content = string.Join("\n",
+			"version=2.3",
+			"[project]", "project=App.csproj", "language=C#",
+			"[commandLineArguments]", "/nullable:enable",
+			"[frameworkPacks]", "Test.Filtered.App.Ref",
+			"---",
+			"[project]", "language=C#", "primary",
+			"[sliceDimensions]", "TargetFramework=net10.0",
+			"[properties]", "TargetFramework=net10.0",
+			"[commandLineArguments]", "/features:\"InterceptorsNamespaces=;Microsoft.Extensions.Validation.Generated\"",
+			"---",
+			"[project]", "language=C#",
+			"[sliceDimensions]", "TargetFramework=net11.0",
+			"[properties]", "TargetFramework=net11.0",
+			"[commandLineArguments]", "/features:\"InterceptorsNamespaces=;Microsoft.AspNetCore.Http.Generated\"",
+			"");
+
+		var slices = await ReadAsync(pack, content);
+
+		var shared = Assert.Single(slices, s => s.SliceDimensions.IsEmpty);
+		Assert.Empty(shared.AnalyzerReferences);
+		Assert.Empty(shared.MetadataReferences);
+
+		var net10 = Assert.Single(slices, s => s.SliceDimensions.GetValueOrDefault("TargetFramework") == "net10.0");
+		Assert.Equal(["Sample.Analyzer.dll"], net10.AnalyzerReferences.Select(Path.GetFileName));
+		Assert.All(net10.AnalyzerReferences.Concat(net10.MetadataReferences.Select(r => r.FilePath)), path => Assert.Contains("10.0.7", path));
+
+		var net11 = Assert.Single(slices, s => s.SliceDimensions.GetValueOrDefault("TargetFramework") == "net11.0");
+		Assert.Equal([RequestDelegateGenerator, "Sample.Analyzer.dll"], net11.AnalyzerReferences.Select(Path.GetFileName).Order(StringComparer.OrdinalIgnoreCase));
+		Assert.All(net11.AnalyzerReferences.Concat(net11.MetadataReferences.Select(r => r.FilePath)), path => Assert.Contains("11.0.1", path));
+	}
+
+	private static string SingleSliceCache(string version, string commandLine, string? frameworkAnalyzerReferences)
+		=> string.Join("\n",
+			version,
+			"[project]", "project=App.csproj", "language=C#", "primary",
+			"[properties]", "TargetFramework=net10.0",
+			"[commandLineArguments]", commandLine,
+			"[frameworkPacks]", "Test.Filtered.App.Ref",
+			frameworkAnalyzerReferences is null ? "" : "[frameworkAnalyzerReferences]\n" + frameworkAnalyzerReferences,
+			"");
+
+	private static async Task<ImmutableArray<ProductDataFromProjectDataAssembly.CachedSliceData>> ReadAsync(TempPack pack, string content)
+	{
+		ProductDataFromProjectDataAssembly.CachePathResolver resolver = new(
+			sdkVersion: null, sdkPath: null, dotnetRoots: [pack.DotNetRoot], nugetFolders: [], netFxRefRoot: null);
+		using StringReader reader = new(content);
+		return await ProductDataFromProjectDataAssembly.CacheFileReader.ReadFromAsync(
+			reader, resolver, pack.Root, Path.Combine(pack.Root, "App.csproj"), expectedProjectFilePath: null,
+			stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
+	}
+
+	private static void CopyDirectory(string source, string destination)
+	{
+		foreach (string file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+		{
+			string target = Path.Combine(destination, Path.GetRelativePath(source, file));
+			Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+			File.Copy(file, target);
+		}
+	}
+	[Theory]
+	[InlineData(0)]
+	[InlineData(1)]
+	[InlineData(2)]
+	public async Task FullRoundTrip_FrameworkPack_DoesNotEnableExcludedGenerators(int analyzerCount)
+	{
+		using TempPack pack = TempPack.Create(
+			packName: "Test.Filtered.App.Ref",
+			packVersion: "10.0.7",
+			managed: ["System.Sample.dll"],
+			analyzers: ["Sample.Analyzer.dll", "Microsoft.AspNetCore.Http.RequestDelegateGenerator.dll"]);
+		string projectFile = Path.Combine(pack.Root, "App.csproj");
+		string packRoot = Path.Combine(pack.DotNetRoot, "packs", "Test.Filtered.App.Ref", "10.0.7");
+		ITaskItem[] availableAnalyzers =
+			[MakeItem(Path.Combine(packRoot, "analyzers", "dotnet", "cs", "Sample.Analyzer.dll")),
+				MakeItem(Path.Combine(packRoot, "analyzers", "dotnet", "cs", "Microsoft.AspNetCore.Http.RequestDelegateGenerator.dll"))];
+		ITaskItem[] analyzerRefs = [.. availableAnalyzers.Take(analyzerCount)];
+		string? previous = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+		try
+		{
+			Environment.SetEnvironmentVariable("DOTNET_ROOT", pack.DotNetRoot);
+			string content = ProjectDataWriter.BuildContent(
+				projectFile, writeHeader: true, isPrimary: true, lastDtbSucceeded: true,
+				sliceDimensions: [MakeKvp("TargetFramework", "net10.0")],
+				properties: null, commandLineArguments: null, sourceFiles: null,
+				metadataReferences: [MakeItem(Path.Combine(packRoot, "ref", "net10.0", "System.Sample.dll"))],
+				analyzerReferences: analyzerRefs, analyzerConfigFiles: null, additionalFiles: null);
+			ProductDataFromProjectDataAssembly.CachePathResolver resolver = new(
+				sdkVersion: null, sdkPath: null, dotnetRoots: [pack.DotNetRoot], nugetFolders: [], netFxRefRoot: null);
+			using StringReader reader = new(content);
+			var slices = await ProductDataFromProjectDataAssembly.CacheFileReader.ReadFromAsync(
+				reader, resolver, pack.Root, projectFile, expectedProjectFilePath: null,
+				stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
+
+			Assert.Equal(
+				analyzerRefs.Select(item => item.ItemSpec).Order(StringComparer.OrdinalIgnoreCase),
+				Assert.Single(slices).AnalyzerReferences.Order(StringComparer.OrdinalIgnoreCase));
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_ROOT", previous);
+		}
+	}
+
 	[Theory]
 	[InlineData("EnableHotReloadInRuntimeConfigDevFile", "false")]
 	[InlineData("HotReloadAutoRestart", "true")]
@@ -108,7 +266,7 @@ public class LsCacheRoundTripEquivalenceTests
 			Assert.Contains("Test.Equivalence.App.Ref", content);
 			Assert.DoesNotContain("System.Sample.dll", content);
 			Assert.DoesNotContain("Other.dll", content);
-			Assert.DoesNotContain("Sample.Analyzer.dll", content);
+			Assert.Contains("Test.Equivalence.App.Ref/Sample.Analyzer.dll", content);
 
 			// Round-trip read against an isolated resolver that only sees the synthetic
 			// dotnet root — never the host install. This is critical on dev / CI machines

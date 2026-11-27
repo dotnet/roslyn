@@ -424,7 +424,7 @@ public static class CacheFileReader
 		}
 
 		bool hasAuthoritativeProjectReferenceDefaults = HasAuthoritativeProjectReferenceDefaults(firstLine);
-		ImmutableArray<CachedSliceData>.Builder slices = ImmutableArray.CreateBuilder<CachedSliceData>();
+		List<SliceBuilder> sliceBuilders = [];
 		SliceBuilder? currentSlice = null;
 		string? currentSection = null;
 		string? declaredProjectFilePath = null;
@@ -443,7 +443,7 @@ public static class CacheFileReader
 			{
 				if (currentSlice is not null)
 				{
-					slices.Add(currentSlice.Build(declaredProjectFilePath ?? projectFilePath));
+					sliceBuilders.Add(currentSlice);
 				}
 				currentSlice = null;
 				currentSection = null;
@@ -463,6 +463,10 @@ public static class CacheFileReader
 				if (currentSection == CacheFormat.Sections.Project)
 				{
 					currentSlice ??= new SliceBuilder(resolver, projectDirectory, stringPool, hasAuthoritativeProjectReferenceDefaults, cancellationToken);
+				}
+				else if (currentSection == CacheFormat.Sections.FrameworkAnalyzerReferences && currentSlice is not null)
+				{
+					currentSlice.FrameworkAnalyzerReferences ??= new(StringComparer.OrdinalIgnoreCase);
 				}
 
 				continue;
@@ -496,6 +500,12 @@ public static class CacheFileReader
 				case CacheFormat.Sections.FrameworkPacks:
 					currentSlice.FrameworkPacks.Add(line);
 					break;
+				case CacheFormat.Sections.FrameworkAnalyzerReferences:
+					if (line.StartsWith(FrameworkAnalyzerSelection.InterceptorsNamespacesKey, StringComparison.Ordinal))
+						currentSlice.FrameworkAnalyzerFingerprints.Add(line[FrameworkAnalyzerSelection.InterceptorsNamespacesKey.Length..]);
+					else
+						currentSlice.FrameworkAnalyzerReferences!.Add(line);
+					break;
 				case CacheFormat.Sections.SdkAnalyzerPacks:
 					currentSlice.SdkAnalyzerPacks.Add(line);
 					break;
@@ -524,7 +534,14 @@ public static class CacheFileReader
 
 		if (currentSlice is not null)
 		{
-			slices.Add(currentSlice.Build(declaredProjectFilePath ?? projectFilePath));
+			sliceBuilders.Add(currentSlice);
+		}
+
+		PushSharedFrameworkPacksIntoSlices(sliceBuilders);
+		ImmutableArray<CachedSliceData>.Builder slices = ImmutableArray.CreateBuilder<CachedSliceData>(sliceBuilders.Count);
+		foreach (SliceBuilder sliceBuilder in sliceBuilders)
+		{
+			slices.Add(sliceBuilder.Build(declaredProjectFilePath ?? projectFilePath));
 		}
 
 		cancellationToken.ThrowIfCancellationRequested();
@@ -622,6 +639,59 @@ public static class CacheFileReader
 				: resolver.ToAbsolute(value, projectDirectory);
 		}
 
+	}
+
+	/// <summary>
+	/// Moves the framework-pack sections of a multi-target file's shared slice into each
+	/// target-framework slice before expansion. Pack directories resolve by target framework, and
+	/// framework analyzer selection depends on each slice's effective command line; the shared
+	/// slice has neither. Older writers hoist identical <c>[frameworkPacks]</c> lists into the shared
+	/// slice, which previously expanded every target framework against the highest installed pack.
+	/// </summary>
+	private static void PushSharedFrameworkPacksIntoSlices(List<SliceBuilder> builders)
+	{
+		SliceBuilder? shared = null;
+		bool hasTargetFrameworkSlice = false;
+		foreach (SliceBuilder builder in builders)
+		{
+			if (builder.SliceDimensions.Count == 0)
+				shared ??= builder;
+			else
+				hasTargetFrameworkSlice = true;
+		}
+
+		if (shared is null || !hasTargetFrameworkSlice)
+			return;
+
+		foreach (SliceBuilder builder in builders)
+		{
+			if (builder.SliceDimensions.Count == 0)
+				continue;
+
+			builder.InheritedCommandLineArguments = shared.CommandLineArguments;
+			if (shared.FrameworkPacks.Count > 0)
+			{
+				var packs = new List<string>(shared.FrameworkPacks);
+				foreach (string pack in builder.FrameworkPacks)
+				{
+					if (!packs.Contains(pack, StringComparer.OrdinalIgnoreCase))
+						packs.Add(pack);
+				}
+
+				builder.FrameworkPacks = packs;
+			}
+
+			if (shared.FrameworkAnalyzerReferences is not null)
+			{
+				builder.FrameworkAnalyzerReferences ??= new(StringComparer.OrdinalIgnoreCase);
+				builder.FrameworkAnalyzerReferences.UnionWith(shared.FrameworkAnalyzerReferences);
+				builder.FrameworkAnalyzerFingerprints.AddRange(shared.FrameworkAnalyzerFingerprints);
+			}
+		}
+
+		shared.FrameworkPacks = [];
+		shared.FrameworkAnalyzerReferences = null;
+		shared.FrameworkAnalyzerFingerprints = [];
 	}
 
 	/// <summary>
@@ -747,6 +817,9 @@ public static class CacheFileReader
 		public List<string> EmbeddedResourceLines = [];
 		public List<string> ProjectReferenceLines = [];
 		public List<string> FrameworkPacks = [];
+		public HashSet<string>? FrameworkAnalyzerReferences;
+		public List<string> FrameworkAnalyzerFingerprints = [];
+		public List<string>? InheritedCommandLineArguments;
 		public List<string> SdkAnalyzerPacks = [];
 		public List<string> SdkAnalyzerConfigPolicy = [];
 		public List<string> Capabilities = [];
@@ -775,7 +848,7 @@ public static class CacheFileReader
 
 		public CachedSliceData Build(string projectFilePath)
 		{
-			(ImmutableArray<string> packManagedRefs, ImmutableArray<string> packAnalyzerRefs) = this.ExpandFrameworkPacks();
+			(ImmutableArray<string> packManagedRefs, ImmutableArray<string> packAnalyzerRefs) = this.ExpandFrameworkPacks(projectFilePath);
 			ImmutableArray<string> sdkPackAnalyzerRefs = this.ExpandSdkAnalyzerPacks();
 			ImmutableArray<string> analyzerRefs = packAnalyzerRefs.AddRange(sdkPackAnalyzerRefs);
 
@@ -828,7 +901,7 @@ public static class CacheFileReader
 			return builder.ToImmutable();
 		}
 
-		private (ImmutableArray<string> Managed, ImmutableArray<string> Analyzers) ExpandFrameworkPacks()
+		private (ImmutableArray<string> Managed, ImmutableArray<string> Analyzers) ExpandFrameworkPacks(string projectFilePath)
 		{
 			if (this.FrameworkPacks.Count == 0)
 			{
@@ -836,6 +909,11 @@ public static class CacheFileReader
 			}
 
 			string? targetFramework = this.GetTargetFramework();
+			string? interceptorsNamespaces = FrameworkAnalyzerSelection.GetInterceptorsNamespaces(
+				this.InheritedCommandLineArguments is null
+					? this.CommandLineArguments
+					: this.InheritedCommandLineArguments.Concat(this.CommandLineArguments));
+			HashSet<string>? allowList = this.GetCurrentFrameworkAnalyzerAllowList(interceptorsNamespaces, projectFilePath, targetFramework);
 
 			ImmutableArray<string>.Builder managed = ImmutableArray.CreateBuilder<string>();
 			ImmutableArray<string>.Builder analyzers = ImmutableArray.CreateBuilder<string>();
@@ -849,9 +927,39 @@ public static class CacheFileReader
 					?? this.resolver.FindNuGetFrameworkPackDirectory(packName, targetFramework),
 				managed,
 				analyzers,
+				allowList,
+				interceptorsNamespaces,
 				this.cancellationToken);
 
 			return (managed.ToImmutable(), analyzers.ToImmutable());
+		}
+
+		/// <summary>
+		/// Returns the exact framework analyzer allow-list when its fingerprint matches the slice's
+		/// effective <c>InterceptorsNamespaces</c>; otherwise <see langword="null"/>, which selects
+		/// the namespace heuristic. Older writers omit the section, and they carry a newer writer's
+		/// section forward unchanged while regenerating the command line.
+		/// </summary>
+		private HashSet<string>? GetCurrentFrameworkAnalyzerAllowList(string? interceptorsNamespaces, string projectFilePath, string? targetFramework)
+		{
+			if (this.FrameworkAnalyzerReferences is null)
+				return null;
+
+			string expected = FrameworkAnalyzerSelection.NormalizeInterceptorsNamespaces(interceptorsNamespaces);
+			if (this.FrameworkAnalyzerFingerprints.Count > 0
+				&& this.FrameworkAnalyzerFingerprints.TrueForAll(fingerprint => string.Equals(fingerprint, expected, StringComparison.Ordinal)))
+			{
+				return this.FrameworkAnalyzerReferences;
+			}
+
+			System.Diagnostics.Trace.TraceInformation(
+				"[lscache] Ignoring stale [{0}] for {1} ({2}): recorded interceptorsNamespaces='{3}' current='{4}'. Filtering framework analyzers by InterceptorsNamespaces instead.",
+				CacheFormat.Sections.FrameworkAnalyzerReferences,
+				projectFilePath,
+				targetFramework ?? "<none>",
+				string.Join("|", this.FrameworkAnalyzerFingerprints),
+				expected);
+			return null;
 		}
 
 		private ImmutableArray<string> ExpandSdkAnalyzerPacks()
@@ -895,6 +1003,8 @@ public static class CacheFileReader
 			Func<string, string?> resolvePackDirectory,
 			ImmutableArray<string>.Builder managed,
 			ImmutableArray<string>.Builder analyzers,
+			HashSet<string>? frameworkAnalyzerReferences,
+			string? interceptorsNamespaces,
 			CancellationToken cancellationToken)
 		{
 			foreach (string packName in packNames)
@@ -906,7 +1016,16 @@ public static class CacheFileReader
 
 				FrameworkListExpander.ExpansionResult result = FrameworkListExpander.Expand(packDir, cancellationToken);
 				managed.AddRange(result.ManagedAssemblyPaths);
-				analyzers.AddRange(result.AnalyzerCsPaths);
+				foreach (string analyzerPath in result.AnalyzerCsPaths)
+				{
+					string fileName = Path.GetFileName(analyzerPath);
+					if (frameworkAnalyzerReferences is not null
+						? frameworkAnalyzerReferences.Contains(packName + "/" + fileName)
+						: FrameworkAnalyzerSelection.IsPermittedByInterceptorsNamespaces(fileName, interceptorsNamespaces))
+					{
+						analyzers.Add(analyzerPath);
+					}
+				}
 			}
 		}
 

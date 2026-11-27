@@ -66,7 +66,7 @@ public class ProjectDataMergerTests
 			Assert.True(File.Exists(outPath));
 			string content = File.ReadAllText(outPath).Replace("\r\n", "\n");
 			string[] lines = content.Split('\n');
-			Assert.Equal("version=2.3", lines[0]);
+			Assert.Equal("version=2.4", lines[0]);
 			Assert.DoesNotContain("hash=", content);
 			Assert.Contains("# This file caches", content);
 			Assert.DoesNotContain("TargetFramework=net8.0", content);
@@ -720,6 +720,63 @@ public class ProjectDataMergerTests
 			Assert.Contains("[frameworkPacks]\nMicrosoft.NETCore.App.Ref\n", sharedPart);
 			Assert.DoesNotContain("Microsoft.AspNetCore.App.Ref", sharedPart);
 			Assert.Contains("Microsoft.AspNetCore.App.Ref", perTfmPart);
+		}
+		finally { Directory.Delete(dir, recursive: true); }
+	}
+
+	[Fact]
+	public void Merge_FrameworkAnalyzerReferences_StayWithTheirFrameworkPacks()
+	{
+		string dir = MakeTempDir();
+		try
+		{
+			string sliceA = "[project]\nlanguage=C#\n[sliceDimensions]\nTargetFramework=net10.0\n" +
+				"[frameworkPacks]\nMicrosoft.NETCore.App.Ref\n[frameworkAnalyzerReferences]\ninterceptorsNamespaces=\nMicrosoft.NETCore.App.Ref/A.dll\n";
+			string sliceB = "[project]\nlanguage=C#\n[sliceDimensions]\nTargetFramework=net11.0\n" +
+				"[frameworkPacks]\nMicrosoft.NETCore.App.Ref\n[frameworkAnalyzerReferences]\ninterceptorsNamespaces=NS\n";
+
+			File.WriteAllText(Path.Combine(CreateSliceDir(dir, "net10.0"), "Sample.csproj.slice"), sliceA);
+			File.WriteAllText(Path.Combine(CreateSliceDir(dir, "net11.0"), "Sample.csproj.slice"), sliceB);
+			string outPath = Path.Combine(dir, "out.lscache");
+
+			ProjectDataMerger.Merge(outPath, Path.Combine(dir, "obj", "**", "Sample.csproj.slice"));
+
+			string content = File.ReadAllText(outPath).Replace("\r\n", "\n");
+			int firstSep = content.IndexOf("\n---\n", StringComparison.Ordinal);
+			string sharedPart = content.Substring(0, firstSep);
+			string[] perTfmParts = content.Substring(firstSep).Split(["\n---\n"], StringSplitOptions.RemoveEmptyEntries);
+
+			// The allow-lists differ, so neither section may be hoisted away from the other, and
+			// each slice keeps the fingerprint its allow-list was derived from.
+			Assert.DoesNotContain("[frameworkPacks]", sharedPart);
+			Assert.DoesNotContain("[frameworkAnalyzerReferences]", sharedPart);
+			Assert.Equal(2, perTfmParts.Length);
+			Assert.Contains("[frameworkPacks]\nMicrosoft.NETCore.App.Ref\n\n[frameworkAnalyzerReferences]\ninterceptorsNamespaces=\nMicrosoft.NETCore.App.Ref/A.dll\n", perTfmParts[0]);
+			Assert.Contains("[frameworkPacks]\nMicrosoft.NETCore.App.Ref\n\n[frameworkAnalyzerReferences]\ninterceptorsNamespaces=NS\n", perTfmParts[1]);
+			Assert.DoesNotContain("A.dll", perTfmParts[1]);
+		}
+		finally { Directory.Delete(dir, recursive: true); }
+	}
+
+	[Fact]
+	public void Merge_IdenticalFrameworkAnalyzerReferences_AreHoistedWithFrameworkPacks()
+	{
+		string dir = MakeTempDir();
+		try
+		{
+			string slice = "[project]\nlanguage=C#\n[sliceDimensions]\nTargetFramework={0}\n" +
+				"[frameworkPacks]\nMicrosoft.NETCore.App.Ref\n[frameworkAnalyzerReferences]\ninterceptorsNamespaces=\n";
+
+			File.WriteAllText(Path.Combine(CreateSliceDir(dir, "net10.0"), "Sample.csproj.slice"), string.Format(slice, "net10.0"));
+			File.WriteAllText(Path.Combine(CreateSliceDir(dir, "net11.0"), "Sample.csproj.slice"), string.Format(slice, "net11.0"));
+			string outPath = Path.Combine(dir, "out.lscache");
+
+			ProjectDataMerger.Merge(outPath, Path.Combine(dir, "obj", "**", "Sample.csproj.slice"));
+
+			string content = File.ReadAllText(outPath).Replace("\r\n", "\n");
+			int firstSep = content.IndexOf("\n---\n", StringComparison.Ordinal);
+			Assert.Contains("[frameworkPacks]\nMicrosoft.NETCore.App.Ref\n\n[frameworkAnalyzerReferences]\ninterceptorsNamespaces=\n", content.Substring(0, firstSep));
+			Assert.DoesNotContain("[framework", content.Substring(firstSep));
 		}
 		finally { Directory.Delete(dir, recursive: true); }
 	}

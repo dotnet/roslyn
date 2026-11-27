@@ -232,8 +232,8 @@ internal static class ProjectDataWriter
 
 		// [commandLineArguments] — order preserved; file-based args filtered out
 		// Required item type — always write header even if empty.
+		var filtered = new List<string>();
 		{
-			var filtered = new List<string>();
 			if (commandLineArguments != null)
 			{
 				foreach (var arg in commandLineArguments)
@@ -263,6 +263,7 @@ internal static class ProjectDataWriter
 		// FrameworkList.xml. Workload-pack entries remain explicit because their
 		// versions do not follow the target framework's version scheme.
 		SortedSet<string> frameworkPacks = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		SortedSet<string> frameworkAnalyzerReferences = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		SortedSet<string> sdkAnalyzerPacks = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		SortedSet<string> sdkAnalyzerConfigPolicyLines = BuildSdkAnalyzerConfigPolicy(sdkAnalyzerConfigPolicy, targetFramework);
 		List<KeyValuePair<string, ITaskItem>> preparedMetadataRefs = PrepareMetadataRefs(
@@ -278,7 +279,8 @@ internal static class ProjectDataWriter
 			sdkKnownAnalyzerPacks,
 			targetFramework,
 			projectFilePath,
-			duplicateItemReporter);
+			duplicateItemReporter,
+			frameworkAnalyzerReferences);
 		List<string> preparedAnalyzerConfigFiles = AnalyzerConfigFileFilter.Prepare(
 			analyzerConfigFiles,
 			resolver,
@@ -292,6 +294,19 @@ internal static class ProjectDataWriter
 
 		EmitSourceFileSection(writer, sourceFiles, resolver, projectFilePath, duplicateItemReporter);
 		WriteFrameworkPacksSection(writer, frameworkPacks);
+		if (frameworkPacks.Count > 0)
+		{
+			// Pack manifests also contain off-by-default generators and analyzers removed by
+			// project targets. Preserve the evaluated subset rather than enabling them on read,
+			// fingerprinted so the reader can detect an allow-list an older writer carried forward.
+			writer.WriteLine();
+			writer.WriteLine(CacheFormat.SectionHeader(CacheFormat.Sections.FrameworkAnalyzerReferences));
+			writer.Write(FrameworkAnalyzerSelection.InterceptorsNamespacesKey);
+			writer.WriteLine(FrameworkAnalyzerSelection.NormalizeInterceptorsNamespaces(
+				FrameworkAnalyzerSelection.GetInterceptorsNamespaces(filtered)));
+			foreach (string analyzer in frameworkAnalyzerReferences)
+				writer.WriteLine(analyzer);
+		}
 		EmitMetadataRefSection(writer, preparedMetadataRefs);
 		WriteSdkAnalyzerPacksSection(writer, sdkAnalyzerPacks);
 		EmitSimplePathSectionRequired(writer, CacheFormat.SectionHeader(CacheFormat.Sections.AnalyzerReferences), preparedAnalyzerRefs);
@@ -992,7 +1007,8 @@ internal static class ProjectDataWriter
 		ITaskItem[]? sdkKnownAnalyzerPacks,
 		TargetFramework targetFramework,
 		string projectFilePath = "",
-		Action<ProjectDataDuplicateItemDiagnostic>? duplicateItemReporter = null)
+		Action<ProjectDataDuplicateItemDiagnostic>? duplicateItemReporter = null,
+		SortedSet<string>? frameworkAnalyzerReferences = null)
 	{
 		if (items == null || items.Length == 0) return [];
 
@@ -1008,6 +1024,7 @@ internal static class ProjectDataWriter
 			if (packName != null)
 			{
 				frameworkPacks.Add(packName);
+				frameworkAnalyzerReferences?.Add(packName + "/" + portable[(portable.LastIndexOf('/') + 1)..]);
 				continue;
 			}
 			packName = TryExtractNuGetRefPackName(item, portable, targetFramework);
@@ -1016,6 +1033,7 @@ internal static class ProjectDataWriter
 				// See PrepareMetadataRefs for rationale: classify by canonical pack name,
 				// not resolution location.
 				frameworkPacks.Add(packName);
+				frameworkAnalyzerReferences?.Add(packName + "/" + portable[(portable.LastIndexOf('/') + 1)..]);
 				continue;
 			}
 			string? sdkAnalyzerPackName = TryExtractSdkAnalyzerPackName(item, portable, sdkKnownAnalyzerPacks, targetFramework);

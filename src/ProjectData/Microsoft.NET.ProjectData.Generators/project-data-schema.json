@@ -85,7 +85,7 @@
 
   "cacheFormat": {
     "$comment": "Wire-format tokens for the on-disk .lscache file. Shared by the writer (Microsoft.NET.ProjectData.Tasks) and the reader (Microsoft.NET.ProjectData) so renames cannot silently drop a section. VERSIONING: 'versionHeader' is 'version=<major>[.<minor>]' (an absent minor means '.0'). The reader accepts any file whose MAJOR matches and ignores the minor, so a newer minor's additive data (new sections / [properties] keys / @metadata) is silently ignored; a different major is a clean cache miss. The minor is a compatibility marker for the file's payload, not a mandatory stamp of the writer binary: when a newer writer produces otherwise identical content, the existing older stamp remains valid and the file is left untouched. The writer preserves any unknown data and newer stamp when it rewrites a file authored by a newer minor (see ForwardCompat) so mixed-version teams don't churn the file. Bump the MINOR for purely additive data an old reader can ignore AND an old writer can round-trip losslessly; bump the MAJOR for anything else (grammar/encoding changes, repurposing or removing meaning, optional->required, or data the old writer cannot carry forward losslessly). It is about the KIND of change, never the amount. 'hashHeaderPrefix' is LEGACY: the writer no longer emits a 'hash=' header (no-op writes are detected by a direct byte compare), but the reader still skips a leading 'hash=' line so pre-migration files keep reading. Do not reintroduce a persisted hash.",
-    "versionHeader": "version=2.3",
+    "versionHeader": "version=2.4",
     "hashHeaderPrefix": "hash=",
     "sliceSeparator": "---",
     "sectionOpen": "[",
@@ -103,6 +103,7 @@
       { "name": "sourceFiles", "description": "Source files in the @(Compile) item set.", "itemType": "Compile" },
       { "name": "metadataReferences", "description": "Assembly references (@(MetadataReference)) with optional aliases/embedInteropTypes.", "itemType": "MetadataReference" },
       { "name": "analyzerReferences", "description": "Roslyn analyzer assemblies (@(AnalyzerReference))." },
+      { "name": "frameworkAnalyzerReferences", "description": "Evaluated framework-pack analyzers as PackName/FileName, preceded by an 'interceptorsNamespaces=' fingerprint of the slice's normalized InterceptorsNamespaces. The reader trusts the list only while the fingerprint matches the command line, because older writers carry this section forward unchanged; otherwise, or when absent, it expands every pack analyzer except interceptor generators whose namespace is not permitted." },
       { "name": "analyzerConfigFiles", "description": "EditorConfig / global analyzer config files." },
       { "name": "additionalFiles", "description": "Files passed to analyzers via @(AdditionalFile)." },
       { "name": "projectReferences", "description": "Resolved project-to-project references.", "itemType": "ProjectReference" },
