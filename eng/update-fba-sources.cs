@@ -25,6 +25,9 @@ using System.Xml.Linq;
 const string syncedRoot = "src/Workspaces/CSharp/Portable/SyncedSource";
 const string sourceRoot = syncedRoot + "/FileBasedPrograms";
 
+// How many days a Roslyn branch may wait for a new Roslyn version to flow to dotnet/sdk before its update job fails.
+const int versionFlowGraceDays = 14;
+
 if (args is not ["discover"] and not ["sync", _])
     throw new ArgumentException("Expected 'discover' or 'sync <target-checkout>'.");
 
@@ -62,6 +65,7 @@ static async Task DiscoverAsync(HttpClient client, string repository)
     }
 
     var targets = new List<TargetBranch>();
+    var eligibleCount = 0;
     foreach (var branch in branches)
     {
         if (branch.Name != "main" && !branch.Name.StartsWith("release/", StringComparison.Ordinal))
@@ -73,13 +77,23 @@ static async Task DiscoverAsync(HttpClient client, string repository)
             continue;
         }
 
+        eligibleCount++;
         var xml = await ReadFileAsync(client, repository, "eng/Versions.props", branch.Commit.Sha).ConfigureAwait(false)
             ?? throw new InvalidOperationException($"Missing Roslyn version metadata for {branch.Name}.");
         var version = GetRoslynVersion(xml);
         var sdk = SelectSdk(branch.Name, version, sdks);
         if (sdk is null)
         {
-            Console.WriteLine($"::warning::No SDK branch references Roslyn {version} for {branch.Name}. Its update job will fail rather than use another version.");
+            // A version bump normally takes days to flow through dotnet/dotnet into dotnet/sdk.
+            var versionSetAt = await GetVersionSetDateAsync(client, repository, branch.Commit.Sha, version).ConfigureAwait(false);
+            var age = DateTimeOffset.UtcNow - versionSetAt;
+            if (age < TimeSpan.FromDays(versionFlowGraceDays))
+            {
+                Console.WriteLine($"::notice::Skipping {branch.Name}: no SDK branch references Roslyn {version} yet (set {age.TotalDays:0.#} days ago, grace period {versionFlowGraceDays} days).");
+                continue;
+            }
+
+            Console.WriteLine($"::warning::No SDK branch references Roslyn {version} for {branch.Name} (set {age.TotalDays:0.#} days ago, grace period {versionFlowGraceDays} days). Its update job will fail rather than use another version.");
         }
 
         targets.Add(new TargetBranch(branch.Name, version, sdk?.Name ?? "", sdk?.Commit ?? ""));
@@ -87,10 +101,40 @@ static async Task DiscoverAsync(HttpClient client, string repository)
 
     // Something is wrong if there isn't at least one eligible branch (normally main), even if no sources need updating.
     // The upper bound is GitHub Actions' limit of 256 jobs per matrix.
-    if (targets.Count is < 1 or > 256)
-        throw new InvalidOperationException($"Expected between 1 and 256 FBA target branches, found {targets.Count}.");
+    if (eligibleCount is < 1 or > 256)
+        throw new InvalidOperationException($"Expected between 1 and 256 FBA target branches, found {eligibleCount}.");
 
-    WriteOutput("matrix", JsonSerializer.Serialize(new BranchMatrix(targets), GitHubJsonContext.Default.BranchMatrix));
+    // GitHub Actions rejects an empty matrix, so leave the output unset when every branch is waiting for a version flow.
+    if (targets.Count > 0)
+        WriteOutput("matrix", JsonSerializer.Serialize(new BranchMatrix(targets), GitHubJsonContext.Default.BranchMatrix));
+}
+
+// Returns when the branch's current Roslyn version was set: the committer date of the oldest commit in the unbroken run of
+// newest eng/Versions.props commits that have this version. History simplification can attribute a version that arrived
+// through a merge to its original commit, which only makes the date older (and the grace period stricter).
+static async Task<DateTimeOffset> GetVersionSetDateAsync(HttpClient client, string repository, string commit, string version)
+{
+    DateTimeOffset? versionSetAt = null;
+    for (var page = 1; ; page++)
+    {
+        var payload = await GetGitHubStringAsync(client,
+            $"repos/{repository}/commits?sha={Uri.EscapeDataString(commit)}&path=eng/Versions.props&per_page=100&page={page}").ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Missing eng/Versions.props history for {commit}.");
+        var commits = JsonSerializer.Deserialize(payload, GitHubJsonContext.Default.GitHubCommitInfoArray)
+            ?? throw new InvalidOperationException($"Expected a GitHub array response for eng/Versions.props history at {commit}.");
+        foreach (var entry in commits)
+        {
+            var xml = await ReadFileAsync(client, repository, "eng/Versions.props", entry.Sha).ConfigureAwait(false)
+                ?? throw new InvalidOperationException($"Missing Roslyn version metadata at {entry.Sha}.");
+            if (GetRoslynVersion(xml) != version)
+                return versionSetAt ?? throw new InvalidOperationException($"Could not find when Roslyn {version} was set at {commit}.");
+
+            versionSetAt = entry.Commit.Committer.Date;
+        }
+
+        if (commits.Length < 100)
+            return versionSetAt ?? throw new InvalidOperationException($"Could not find when Roslyn {version} was set at {commit}.");
+    }
 }
 
 static SdkBranch? SelectSdk(string branch, string version, List<SdkBranch> sdks)
@@ -294,6 +338,9 @@ static void WriteOutput(string name, string value)
 
 sealed record GitHubBranch(string Name, GitHubCommit Commit);
 sealed record GitHubCommit(string Sha);
+sealed record GitHubCommitInfo(string Sha, GitHubCommitDetails Commit);
+sealed record GitHubCommitDetails(GitHubSignature Committer);
+sealed record GitHubSignature(DateTimeOffset Date);
 sealed record GitHubFile(string Type, string Encoding, string Content);
 sealed record GitHubPullRequest(int Number, string? Body, [property: JsonPropertyName("merged_at")] string? MergedAt);
 sealed record SdkBranch(string Name, string Commit, string Version);
@@ -302,6 +349,7 @@ sealed record BranchMatrix(List<TargetBranch> Include);
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(GitHubBranch[]))]
+[JsonSerializable(typeof(GitHubCommitInfo[]))]
 [JsonSerializable(typeof(GitHubFile))]
 [JsonSerializable(typeof(GitHubPullRequest[]))]
 [JsonSerializable(typeof(BranchMatrix))]

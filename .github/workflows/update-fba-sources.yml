@@ -30,6 +30,8 @@ jobs:
 
   update:
     needs: discover
+    # Discovery leaves the matrix unset when every branch is waiting for its Roslyn version to flow to dotnet/sdk.
+    if: needs.discover.outputs.matrix != ''
     runs-on: ubuntu-latest
     permissions:
       contents: write
