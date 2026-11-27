@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Intermediate;
@@ -90,6 +91,7 @@ public class IntermediateNodeCloneTest
     }
 
     [Fact]
+    [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/3000157")]
     public void Clone_ResolvedComponentTagHelper_ProducesFaithfulDeepCopy()
     {
         var component = TagHelperDescriptorBuilder.CreateComponent("SomeProject.Counter", "TestAssembly")
@@ -132,6 +134,7 @@ public class IntermediateNodeCloneTest
     }
 
     [Fact]
+    [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/3000157")]
     public void Clone_TagHelperHtmlAttributeWithDirectiveCandidate_PreservesFlag()
     {
         var original = new TagHelperHtmlAttributeIntermediateNode
@@ -148,6 +151,7 @@ public class IntermediateNodeCloneTest
     }
 
     [Fact]
+    [WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/3000157")]
     public void Clone_ResolvedLegacyTagHelper_ProducesFaithfulDeepCopy()
     {
         var tagHelper = TagHelperDescriptorBuilder.CreateTagHelper("TestTagHelper", "TestAssembly")

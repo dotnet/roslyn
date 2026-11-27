@@ -1967,7 +1967,7 @@ public class SurveyPrompt : ComponentBase
             Assert.Contains("<h1>Hello world</h1>", result.ImplGeneratedSources().Single().SourceText.ToString());
         }
 
-        [Fact]
+        [Fact, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/3000157")]
         public async Task IncrementalCompilation_RazorFiles_CssScope_TagHelpersAddedThenRemoved()
         {
             // The element has a dynamic attribute so it stays as a markup element in the IR, rather than
