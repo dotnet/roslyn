@@ -15,6 +15,16 @@ public sealed class TagHelperHtmlAttributeIntermediateNode : IntermediateNode
     public override void Accept(IntermediateNodeVisitor visitor)
         => visitor.VisitTagHelperHtmlAttribute(this);
 
+    protected override IntermediateNode CloneNode()
+        => new TagHelperHtmlAttributeIntermediateNode
+        {
+            AttributeName = AttributeName,
+            AttributeStructure = AttributeStructure,
+            AttributeNameSpan = AttributeNameSpan,
+            IsDirectiveAttributeCandidate = IsDirectiveAttributeCandidate,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(AttributeName);

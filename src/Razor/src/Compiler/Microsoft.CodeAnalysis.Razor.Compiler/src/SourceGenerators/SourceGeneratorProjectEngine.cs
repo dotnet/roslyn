@@ -200,6 +200,8 @@ internal sealed class SourceGeneratorProjectEngine
         var codeDocument = sgDocument.CodeDocument;
         Debug.Assert(codeDocument.GetReferencedTagHelpers() is not null);
 
+        // Optimization mutates the IR, so keep the cached input untouched in case it is reused.
+        codeDocument = codeDocument.WithDocumentNode((DocumentIntermediateNode)codeDocument.GetRequiredDocumentNode().Clone());
         codeDocument = ExecutePhases(Phases[(_rewritePhaseIndex + 1).._utf8PhaseIndex], codeDocument, cancellationToken);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);

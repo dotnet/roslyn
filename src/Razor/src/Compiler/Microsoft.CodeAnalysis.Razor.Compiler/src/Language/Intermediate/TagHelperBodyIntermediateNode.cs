@@ -20,4 +20,10 @@ public sealed class TagHelperBodyIntermediateNode : IntermediateNode
 
         visitor.VisitTagHelperBody(this);
     }
+
+    protected override IntermediateNode CloneNode()
+        => new TagHelperBodyIntermediateNode
+        {
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
 }

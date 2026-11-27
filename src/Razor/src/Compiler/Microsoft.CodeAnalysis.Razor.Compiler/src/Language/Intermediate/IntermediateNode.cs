@@ -108,7 +108,7 @@ public abstract class IntermediateNode
     ///  Creates a copy of this node carrying only its own state -- the node-specific fields (including the
     ///  init-only <see cref="IsSynthesizedHelper"/>) and any child nodes held outside <see cref="Children"/>
     ///  (deep-cloned). The common state and the <see cref="Children"/> are copied by <see cref="Clone"/>.
-    ///  Overridden by every node kind that can appear in an unresolved tree; the base throws so an
+    ///  Overridden by every node kind that can appear before optimization; the base throws so an
     ///  unexpected kind fails loudly rather than silently producing an incomplete copy.
     /// </summary>
     protected virtual IntermediateNode CloneNode()
