@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis
         internal const string GlobalLevelKey = "global_level";
 
         /// <summary>
+        /// Key prefix that provides build properties relative to the analyzer config file.
+        /// </summary>
+        internal const string ConfigRelativeBuildPropertyKeyPrefix = "config_relative_build_property.";
+
+        /// <summary>
         /// Filename that indicates this file is a user provided global config
         /// </summary>
         internal const string UserGlobalConfigName = ".globalconfig";

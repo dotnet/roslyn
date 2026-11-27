@@ -15533,6 +15533,55 @@ key3 = value3");
         }
 
         [Fact]
+        public void GlobalAnalyzerConfigConfigRelativeBuildPropertiesAreExposedToGenerator()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("test.cs").WriteAllText("class C { }");
+            var configDirectory = dir.CreateDirectory("config");
+            var globalConfig = configDirectory.CreateFile(".globalconfig").WriteAllText("""
+                is_global = true
+                config_relative_build_property.ProjectDir = ./
+                config_relative_build_property.MSBuildProjectDirectory = .
+                config_relative_build_property.IntermediateOutputPath = obj/Debug/
+                config_relative_build_property.OutDir = bin/Debug/
+                config_relative_build_property.ApplicationManifest = obj/app.manifest
+                """);
+            var generatorExecuted = false;
+            var generator = new CallbackGenerator((_) => { }, context =>
+            {
+                generatorExecuted = true;
+                var options = context.AnalyzerConfigOptions.GlobalOptions;
+                Assert.Empty(options.Keys.Where(key => key.StartsWith("config_relative_build_property", StringComparison.Ordinal)));
+                Assert.True(options.TryGetValue("build_property.ProjectDir", out var projectDir));
+                Assert.Equal(PathUtilities.EnsureTrailingSeparator(configDirectory.Path), projectDir);
+                Assert.True(options.TryGetValue("build_property.MSBuildProjectDirectory", out var msbuildProjectDirectory));
+                Assert.Equal(PathUtilities.TrimTrailingSeparators(configDirectory.Path), msbuildProjectDirectory);
+                Assert.True(options.TryGetValue("build_property.IntermediateOutputPath", out var intermediateOutputPath));
+                Assert.Equal(PathUtilities.EnsureTrailingSeparator(Path.Combine(configDirectory.Path, "obj", "Debug")), intermediateOutputPath);
+                Assert.True(options.TryGetValue("build_property.OutDir", out var outDir));
+                Assert.Equal(PathUtilities.EnsureTrailingSeparator(Path.Combine(configDirectory.Path, "bin", "Debug")), outDir);
+                Assert.True(options.TryGetValue("build_property.ApplicationManifest", out var applicationManifest));
+                Assert.Equal(Path.Combine(configDirectory.Path, "obj", "app.manifest"), applicationManifest);
+            });
+
+            var cmd = CreateCSharpCompiler(
+                responseFile: null,
+                dir.Path,
+                [
+                    "/nologo",
+                    "/t:library",
+                    "/analyzerconfig:" + globalConfig.Path,
+                    src.Path,
+                ],
+                generators: [generator]);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+            Assert.Equal(0, cmd.Run(outWriter));
+            Assert.Equal("", outWriter.ToString());
+            Assert.True(generatorExecuted);
+        }
+
+        [Fact]
         [WorkItem(44087, "https://github.com/dotnet/roslyn/issues/44804")]
         public void GlobalAnalyzerConfigDiagnosticOptionsCanBeOverridenByCommandLine()
         {

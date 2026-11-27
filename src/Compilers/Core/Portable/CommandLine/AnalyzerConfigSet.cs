@@ -488,7 +488,10 @@ namespace Microsoft.CodeAnalysis
                     _duplicates = ImmutableDictionary.CreateBuilder<string, ImmutableDictionary<string, (int, ArrayBuilder<string>)>.Builder>(Section.NameEqualityComparer);
                 }
 
-                MergeSection(config.PathToFile, config.GlobalSection, config.GlobalLevel, isGlobalSection: true);
+                // Resolve relative properties before merging, while the original config directory is available.
+                var globalSection = ResolveConfigRelativeBuildProperties(config);
+
+                MergeSection(config.PathToFile, globalSection, config.GlobalLevel, isGlobalSection: true);
                 foreach (var section in config.NamedSections)
                 {
                     if (IsAbsoluteEditorConfigPath(section.Name))
@@ -549,6 +552,72 @@ namespace Microsoft.CodeAnalysis
                 GlobalAnalyzerConfig globalConfig = new GlobalAnalyzerConfig(globalSection, namedSectionBuilder.ToImmutableAndFree());
                 _values = null;
                 return globalConfig;
+            }
+
+            private static Section ResolveConfigRelativeBuildProperties(AnalyzerConfig config)
+            {
+                var properties = config.GlobalSection.Properties;
+                ImmutableDictionary<string, string>.Builder? resolvedProperties = null;
+
+                foreach (var (key, relativePath) in properties)
+                {
+                    if (!key.StartsWith(ConfigRelativeBuildPropertyKeyPrefix, StringComparison.Ordinal))
+                    {
+                        continue;
+                    }
+
+                    resolvedProperties ??= properties.ToBuilder();
+                    resolvedProperties.Remove(key);
+
+                    var propertyName = key.AsSpan(ConfigRelativeBuildPropertyKeyPrefix.Length).Trim();
+                    if (propertyName.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var buildPropertyKey = "build_property." + propertyName.ToString();
+                    if (resolvedProperties.ContainsKey(buildPropertyKey))
+                    {
+                        continue;
+                    }
+
+                    var resolvedPath = ResolveRelativePath(relativePath, config.NormalizedDirectory);
+                    if (resolvedPath is not null)
+                    {
+                        resolvedProperties.Add(buildPropertyKey, resolvedPath);
+                    }
+                }
+
+                return resolvedProperties is null
+                    ? config.GlobalSection
+                    : new Section(config.GlobalSection.Name, resolvedProperties.ToImmutable());
+            }
+
+            private static string? ResolveRelativePath(string relativePath, string configDirectory)
+            {
+                if (relativePath.Length == 0)
+                {
+                    return string.Empty;
+                }
+
+                var hasTrailingSeparator = PathUtilities.IsAnyDirectorySeparator(relativePath[^1]);
+                var resolvedPath = FileUtilities.ResolveRelativePath(relativePath, baseDirectory: configDirectory);
+                var normalizedPath = resolvedPath is not null ? FileUtilities.TryNormalizeAbsolutePath(resolvedPath) : null;
+                if (normalizedPath is null)
+                {
+                    return null;
+                }
+
+                if (hasTrailingSeparator)
+                {
+                    return PathUtilities.EnsureTrailingSeparator(normalizedPath);
+                }
+
+                // Preserve the separator on a filesystem root so "C:\" does not become the drive-relative "C:".
+                var pathRoot = PathUtilities.GetPathRoot(normalizedPath);
+                return normalizedPath.Length > pathRoot.Length
+                    ? PathUtilities.TrimTrailingSeparators(normalizedPath)
+                    : normalizedPath;
             }
 
             private Section GetSection(string sectionName)
