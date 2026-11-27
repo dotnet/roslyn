@@ -72,10 +72,15 @@ internal static class FrameworkAnalyzerSelection
 			string features = Unquote(option.Substring(FeaturesPrefix.Length));
 			foreach (string feature in features.Split([','], StringSplitOptions.RemoveEmptyEntries))
 			{
+				// Like the compiler, a bare feature name assigns "true".
 				int equals = feature.IndexOf('=');
 				if (equals > 0 && string.Equals(feature.Substring(0, equals), InterceptorsNamespacesFeature, StringComparison.Ordinal))
 				{
 					value = feature.Substring(equals + 1).Trim('"');
+				}
+				else if (equals < 0 && string.Equals(feature, InterceptorsNamespacesFeature, StringComparison.Ordinal))
+				{
+					value = "true";
 				}
 			}
 		}
@@ -85,21 +90,15 @@ internal static class FrameworkAnalyzerSelection
 
 	/// <summary>
 	/// Returns the canonical fingerprint value for an <c>InterceptorsNamespaces</c> feature value:
-	/// distinct non-empty namespaces, sorted ordinally and joined with semicolons.
+	/// distinct non-empty namespaces, sorted ordinally and joined with semicolons. Whitespace is
+	/// significant to the compiler, so entries are not trimmed.
 	/// </summary>
 	public static string NormalizeInterceptorsNamespaces(string? value)
 	{
 		if (string.IsNullOrEmpty(value))
 			return "";
 
-		var namespaces = new SortedSet<string>(StringComparer.Ordinal);
-		foreach (string ns in value!.Split([';'], StringSplitOptions.RemoveEmptyEntries))
-		{
-			string trimmed = ns.Trim();
-			if (trimmed.Length > 0)
-				namespaces.Add(trimmed);
-		}
-
+		var namespaces = new SortedSet<string>(value!.Split([';'], StringSplitOptions.RemoveEmptyEntries), StringComparer.Ordinal);
 		return string.Join(";", namespaces);
 	}
 
@@ -107,7 +106,7 @@ internal static class FrameworkAnalyzerSelection
 	/// Returns <see langword="false"/> only for a known framework interceptor generator whose
 	/// namespace is not permitted by <paramref name="interceptorsNamespaces"/>, using the
 	/// compiler's rule: a listed namespace permits itself and every nested namespace, and
-	/// <c>global</c> permits all namespaces.
+	/// <c>global</c> permits all namespaces. Like the compiler, entries are not trimmed.
 	/// </summary>
 	public static bool IsPermittedByInterceptorsNamespaces(string analyzerFileName, string? interceptorsNamespaces)
 	{
@@ -119,12 +118,11 @@ internal static class FrameworkAnalyzerSelection
 
 		foreach (string ns in interceptorsNamespaces!.Split([';'], StringSplitOptions.RemoveEmptyEntries))
 		{
-			string trimmed = ns.Trim();
-			if (trimmed == "global"
-				|| string.Equals(trimmed, generatorNamespace, StringComparison.Ordinal)
-				|| (generatorNamespace.Length > trimmed.Length
-					&& generatorNamespace[trimmed.Length] == '.'
-					&& generatorNamespace.StartsWith(trimmed, StringComparison.Ordinal)))
+			if (ns == "global"
+				|| string.Equals(ns, generatorNamespace, StringComparison.Ordinal)
+				|| (generatorNamespace.Length > ns.Length
+					&& generatorNamespace[ns.Length] == '.'
+					&& generatorNamespace.StartsWith(ns, StringComparison.Ordinal)))
 			{
 				return true;
 			}

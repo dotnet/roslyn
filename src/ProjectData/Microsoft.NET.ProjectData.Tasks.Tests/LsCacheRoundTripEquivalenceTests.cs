@@ -39,6 +39,8 @@ public class LsCacheRoundTripEquivalenceTests
 	[InlineData("/features:InterceptorsNamespaces=Microsoft.AspNetCore.Http.GeneratedCode", false)]
 	[InlineData("/features:InterceptorsNamespaces=Microsoft.AspNetCore.Http.Generated\n/features:InterceptorsNamespaces=Other", false)]
 	[InlineData("/features:InterceptorsNamespaces=Microsoft.AspNetCore.Http.Generated\n/features", false)]
+	[InlineData("/features:InterceptorsNamespaces=Microsoft.AspNetCore.Http.Generated\n/features:InterceptorsNamespaces", false)]
+	[InlineData("/features:\"InterceptorsNamespaces=; Microsoft.AspNetCore.Http.Generated\"", false)]
 	public async Task Read_LegacyFrameworkPack_EnablesInterceptorGeneratorsOnlyForPermittedNamespaces(string commandLine, bool expectGenerator)
 	{
 		using TempPack pack = TempPack.Create("Test.Filtered.App.Ref", "10.0.7", ["System.Sample.dll"], ["Sample.Analyzer.dll", RequestDelegateGenerator]);
@@ -111,6 +113,31 @@ public class LsCacheRoundTripEquivalenceTests
 		var net11 = Assert.Single(slices, s => s.SliceDimensions.GetValueOrDefault("TargetFramework") == "net11.0");
 		Assert.Equal([RequestDelegateGenerator, "Sample.Analyzer.dll"], net11.AnalyzerReferences.Select(Path.GetFileName).Order(StringComparer.OrdinalIgnoreCase));
 		Assert.All(net11.AnalyzerReferences.Concat(net11.MetadataReferences.Select(r => r.FilePath)), path => Assert.Contains("11.0.1", path));
+	}
+
+	[Fact]
+	public async Task Read_LegacyMultiTarget_SharedExplicitReferencesStillOverrideFrameworkPackFiles()
+	{
+		using TempPack pack = TempPack.Create("Test.Filtered.App.Ref", "10.0.7", ["System.Sample.dll", "System.Other.dll"], ["Sample.Analyzer.dll", "Other.Analyzer.dll"]);
+
+		// NuGet packages that replace pack files are explicit shared references, while the packs
+		// themselves are now expanded per target framework.
+		string content = string.Join("\n",
+			"version=2.3",
+			"[project]", "project=App.csproj", "language=C#",
+			"[metadataReferences]", "nuget/", " System.Sample.dll",
+			"[analyzerReferences]", "nuget/", " Sample.Analyzer.dll",
+			"[frameworkPacks]", "Test.Filtered.App.Ref",
+			"---",
+			"[project]", "language=C#", "primary",
+			"[sliceDimensions]", "TargetFramework=net10.0",
+			"[properties]", "TargetFramework=net10.0",
+			"");
+
+		var net10 = Assert.Single(await ReadAsync(pack, content), s => !s.SliceDimensions.IsEmpty);
+
+		Assert.Equal(["System.Other.dll"], net10.MetadataReferences.Select(r => Path.GetFileName(r.FilePath)));
+		Assert.Equal(["Other.Analyzer.dll"], net10.AnalyzerReferences.Select(Path.GetFileName));
 	}
 
 	private static string SingleSliceCache(string version, string commandLine, string? frameworkAnalyzerReferences)

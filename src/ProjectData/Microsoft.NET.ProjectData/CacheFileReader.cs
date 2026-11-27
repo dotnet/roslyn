@@ -537,11 +537,28 @@ public static class CacheFileReader
 			sliceBuilders.Add(currentSlice);
 		}
 
-		PushSharedFrameworkPacksIntoSlices(sliceBuilders);
+		SliceBuilder? sharedBuilder = PushSharedFrameworkPacksIntoSlices(sliceBuilders);
+		string sliceProjectFilePath = declaredProjectFilePath ?? projectFilePath;
+
+		// Build the shared slice first: its explicit references must still win NuGet conflicts
+		// against framework-pack assemblies that are now expanded in each target-framework slice.
+		CachedSliceData? sharedSlice = sharedBuilder?.Build(sliceProjectFilePath);
 		ImmutableArray<CachedSliceData>.Builder slices = ImmutableArray.CreateBuilder<CachedSliceData>(sliceBuilders.Count);
 		foreach (SliceBuilder sliceBuilder in sliceBuilders)
 		{
-			slices.Add(sliceBuilder.Build(declaredProjectFilePath ?? projectFilePath));
+			if (ReferenceEquals(sliceBuilder, sharedBuilder))
+			{
+				slices.Add(sharedSlice!);
+				continue;
+			}
+
+			if (sharedBuilder is not null && sliceBuilder.SliceDimensions.Count > 0)
+			{
+				sliceBuilder.InheritedExplicitMetadataReferenceNames = sharedBuilder.ExplicitMetadataReferenceNames;
+				sliceBuilder.InheritedExplicitAnalyzerReferenceNames = sharedBuilder.ExplicitAnalyzerReferenceNames;
+			}
+
+			slices.Add(sliceBuilder.Build(sliceProjectFilePath));
 		}
 
 		cancellationToken.ThrowIfCancellationRequested();
@@ -648,7 +665,8 @@ public static class CacheFileReader
 	/// slice has neither. Older writers hoist identical <c>[frameworkPacks]</c> lists into the shared
 	/// slice, which previously expanded every target framework against the highest installed pack.
 	/// </summary>
-	private static void PushSharedFrameworkPacksIntoSlices(List<SliceBuilder> builders)
+	/// <returns>The shared slice whose packs were moved, or <see langword="null"/> when nothing moved.</returns>
+	private static SliceBuilder? PushSharedFrameworkPacksIntoSlices(List<SliceBuilder> builders)
 	{
 		SliceBuilder? shared = null;
 		bool hasTargetFrameworkSlice = false;
@@ -661,7 +679,7 @@ public static class CacheFileReader
 		}
 
 		if (shared is null || !hasTargetFrameworkSlice)
-			return;
+			return null;
 
 		foreach (SliceBuilder builder in builders)
 		{
@@ -692,6 +710,7 @@ public static class CacheFileReader
 		shared.FrameworkPacks = [];
 		shared.FrameworkAnalyzerReferences = null;
 		shared.FrameworkAnalyzerFingerprints = [];
+		return shared;
 	}
 
 	/// <summary>
@@ -820,6 +839,14 @@ public static class CacheFileReader
 		public HashSet<string>? FrameworkAnalyzerReferences;
 		public List<string> FrameworkAnalyzerFingerprints = [];
 		public List<string>? InheritedCommandLineArguments;
+
+		/// <summary>File names of this slice's explicit references, recorded when it is built.</summary>
+		public HashSet<string> ExplicitMetadataReferenceNames = new(StringComparer.OrdinalIgnoreCase);
+		public HashSet<string> ExplicitAnalyzerReferenceNames = new(StringComparer.OrdinalIgnoreCase);
+
+		/// <summary>The shared slice's explicit reference file names, which also win over this slice's framework packs.</summary>
+		public HashSet<string>? InheritedExplicitMetadataReferenceNames;
+		public HashSet<string>? InheritedExplicitAnalyzerReferenceNames;
 		public List<string> SdkAnalyzerPacks = [];
 		public List<string> SdkAnalyzerConfigPolicy = [];
 		public List<string> Capabilities = [];
@@ -1109,6 +1136,9 @@ public static class CacheFileReader
 				explicitRefs = explicitBuilder.ToImmutable();
 			}
 
+			HashSet<string> explicitBasenames = BuildBasenameSet(explicitRefs);
+			this.ExplicitAnalyzerReferenceNames = explicitBasenames;
+
 			if (packAnalyzerRefs.IsDefaultOrEmpty)
 			{
 				return explicitRefs;
@@ -1116,14 +1146,19 @@ public static class CacheFileReader
 
 			// NuGet-wins conflict resolution: skip any framework analyzer whose filename
 			// collides with an explicit entry. The cache file holds no exclusion list.
-			HashSet<string> explicitBasenames = BuildBasenameSet(explicitRefs);
+			HashSet<string> conflictingNames = explicitBasenames;
+			if (this.InheritedExplicitAnalyzerReferenceNames is { Count: > 0 } inherited)
+			{
+				conflictingNames = new(explicitBasenames, StringComparer.OrdinalIgnoreCase);
+				conflictingNames.UnionWith(inherited);
+			}
 
 			ImmutableArray<string>.Builder result = ImmutableArray.CreateBuilder<string>(explicitRefs.Length + packAnalyzerRefs.Length);
 			result.AddRange(explicitRefs);
 			foreach (string packRef in packAnalyzerRefs)
 			{
 				string filename = Path.GetFileName(packRef);
-				if (explicitBasenames.Contains(filename)) continue;
+				if (conflictingNames.Contains(filename)) continue;
 				result.Add(this.Pool(packRef));
 			}
 			return result.ToImmutable();
@@ -1284,11 +1319,6 @@ public static class CacheFileReader
 				explicitRefs = explicitBuilder.ToImmutable();
 			}
 
-			if (packManagedRefs.IsDefaultOrEmpty)
-			{
-				return explicitRefs;
-			}
-
 			// NuGet-wins conflict resolution: skip any framework managed assembly whose
 			// filename collides with an explicit entry. Explicit NuGet/project refs win.
 			HashSet<string> explicitBasenames = new(StringComparer.OrdinalIgnoreCase);
@@ -1297,12 +1327,25 @@ public static class CacheFileReader
 				explicitBasenames.Add(Path.GetFileName(r.FilePath));
 			}
 
+			this.ExplicitMetadataReferenceNames = explicitBasenames;
+			if (packManagedRefs.IsDefaultOrEmpty)
+			{
+				return explicitRefs;
+			}
+
+			HashSet<string> conflictingNames = explicitBasenames;
+			if (this.InheritedExplicitMetadataReferenceNames is { Count: > 0 } inherited)
+			{
+				conflictingNames = new(explicitBasenames, StringComparer.OrdinalIgnoreCase);
+				conflictingNames.UnionWith(inherited);
+			}
+
 			ImmutableArray<CachedMetadataReference>.Builder result = ImmutableArray.CreateBuilder<CachedMetadataReference>(explicitRefs.Length + packManagedRefs.Length);
 			result.AddRange(explicitRefs);
 			foreach (string packRef in packManagedRefs)
 			{
 				string filename = Path.GetFileName(packRef);
-				if (explicitBasenames.Contains(filename)) continue;
+				if (conflictingNames.Contains(filename)) continue;
 				result.Add(new CachedMetadataReference
 				{
 					FilePath = this.Pool(packRef),
