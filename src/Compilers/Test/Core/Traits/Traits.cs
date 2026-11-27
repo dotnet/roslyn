@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsGenerateLocal = "CodeActions.GenerateLocal";
             public const string CodeActionsGenerateMethod = "CodeActions.GenerateMethod";
             public const string CodeActionsGenerateOverrides = "CodeActions.GenerateOverrides";
+            public const string CodeActionsGenerateToString = "CodeActions.GenerateToStringFromMembers";
             public const string CodeActionsGenerateType = "CodeActions.GenerateType";
             public const string CodeActionsGenerateVariable = "CodeActions.GenerateVariable";
             public const string CodeActionsImplementAbstractClass = "CodeActions.ImplementAbstractClass";

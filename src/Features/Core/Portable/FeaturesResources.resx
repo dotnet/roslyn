@@ -210,6 +210,15 @@
   <data name="Generate_GetHashCode" xml:space="preserve">
     <value>Generate GetHashCode()</value>
   </data>
+  <data name="Generate_PrintMembers" xml:space="preserve">
+    <value>Generate PrintMembers(...)</value>
+  </data>
+  <data name="Generate_ToString" xml:space="preserve">
+    <value>Generate ToString()</value>
+  </data>
+  <data name="Generate_ToString_and_PrintMembers" xml:space="preserve">
+    <value>Generate ToString() and PrintMembers(...)</value>
+  </data>
   <data name="Generate_0_1_in_new_file" xml:space="preserve">
     <value>Generate {0} '{1}' in new file</value>
   </data>

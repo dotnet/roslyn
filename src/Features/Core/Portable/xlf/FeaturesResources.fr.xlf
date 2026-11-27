@@ -895,6 +895,21 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Générer Est égal à(...)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_PrintMembers">
+        <source>Generate PrintMembers(...)</source>
+        <target state="new">Generate PrintMembers(...)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_ToString">
+        <source>Generate ToString()</source>
+        <target state="new">Generate ToString()</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_ToString_and_PrintMembers">
+        <source>Generate ToString() and PrintMembers(...)</source>
+        <target state="new">Generate ToString() and PrintMembers(...)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Générer des opérateurs de comparaison</target>
