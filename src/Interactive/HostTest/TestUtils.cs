@@ -8,6 +8,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     internal static class TestUtils
     {
-        public static readonly string HostRootPath = Path.Combine(Path.GetDirectoryName(typeof(TestUtils).Assembly.Location)!, "Host");
+        public static readonly string HostRootPath = Path.Combine(Path.GetDirectoryName(typeof(TestUtils).Assembly.Location), "Host");
     }
 }

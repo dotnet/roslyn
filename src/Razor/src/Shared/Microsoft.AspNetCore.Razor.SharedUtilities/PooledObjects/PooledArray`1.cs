@@ -28,7 +28,7 @@ internal struct PooledArray<T> : IDisposable
     /// <exception cref="ArgumentOutOfRangeException">
     ///  The array has been returned to the pool.
     /// </exception>
-    public readonly Span<T> Span => _array!.AsSpan(0, _minimumLength);
+    public readonly Span<T> Span => _array.AsSpan(0, _minimumLength);
 
     public PooledArray(ArrayPool<T> pool, int minimumLength, bool clearOnReturn)
         : this()

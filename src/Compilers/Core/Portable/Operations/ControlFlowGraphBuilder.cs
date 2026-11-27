@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 if (operation.WhenTrue is IConversionOperation whenTrueConversion && whenTrueConversion.Operand.Kind == OperationKind.Throw)
                 {
                     IOperation? rewrittenThrow = BaseVisitRequired(whenTrueConversion.Operand, null);
-                    Debug.Assert(rewrittenThrow!.Kind == OperationKind.None);
+                    Debug.Assert(rewrittenThrow.Kind == OperationKind.None);
                     Debug.Assert(rewrittenThrow.ChildOperations.IsEmpty());
 
                     UnconditionalBranch(afterIf);
@@ -3137,7 +3137,7 @@ oneMoreTime:
             int resultCaptureId = isStatement ? -1 : captureIdForResult ?? GetNextCaptureId(resultCaptureRegion);
 
             if (operation.Target?.Type?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T &&
-                ((INamedTypeSymbol)operation.Target.Type!).TypeArguments[0].Equals(operation.Type))
+                ((INamedTypeSymbol)operation.Target.Type).TypeArguments[0].Equals(operation.Type))
             {
                 nullableValueTypeReturn();
             }

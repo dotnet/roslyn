@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (arguments.Attribute.IsTargetAttribute(AttributeDescription.MetadataUpdateDeletedAttribute))
             {
-                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_AttributeCannotBeAppliedManually, arguments.AttributeSyntaxOpt!.Location, args: [AttributeDescription.MetadataUpdateDeletedAttribute.FullName]);
+                arguments.Diagnostics.DiagnosticBag.Add(ErrorCode.ERR_AttributeCannotBeAppliedManually, arguments.AttributeSyntaxOpt.Location, args: [AttributeDescription.MetadataUpdateDeletedAttribute.FullName]);
             }
 
             DecodeWellKnownAttributeImpl(ref arguments);

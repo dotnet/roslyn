@@ -77,7 +77,7 @@ internal sealed class SpanEditHandlerBuilder
                 else if (Tokenizer == _defaultLanguageTokenizer)
                 {
                     Debug.Assert(_defaultLanguageEditHandler is not null);
-                    return _defaultLanguageEditHandler!;
+                    return _defaultLanguageEditHandler;
                 }
             }
 

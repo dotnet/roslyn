@@ -57,7 +57,7 @@ internal abstract class AbstractAddObsoleteAttributeCodeFixProvider
     private static async Task<INamedTypeSymbol?> GetObsoleteAttributeAsync(Document document, CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        var attribute = compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName!);
+        var attribute = compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
         return attribute;
     }
 

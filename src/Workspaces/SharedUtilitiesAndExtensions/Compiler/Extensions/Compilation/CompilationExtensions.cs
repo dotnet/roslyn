@@ -76,34 +76,34 @@ internal static class CompilationExtensions
     }
 
     public static INamedTypeSymbol? ArgumentExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ArgumentException).FullName);
 
     public static INamedTypeSymbol? ArgumentNullExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ArgumentNullException).FullName);
 
     public static INamedTypeSymbol? ArgumentOutOfRangeExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ArgumentOutOfRangeException).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ArgumentOutOfRangeException).FullName);
 
     public static INamedTypeSymbol? ArrayType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Array).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Array).FullName);
 
     public static INamedTypeSymbol? AttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Attribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Attribute).FullName);
 
     public static INamedTypeSymbol? BlockingCollectionOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(BlockingCollection<>).FullName);
 
     public static INamedTypeSymbol? CollectionOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Collection<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Collection<>).FullName);
 
     public static INamedTypeSymbol? ExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Exception).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Exception).FullName);
 
     public static INamedTypeSymbol? DebuggerDisplayAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(System.Diagnostics.DebuggerDisplayAttribute).FullName);
 
     public static INamedTypeSymbol? StructLayoutAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(StructLayoutAttribute).FullName);
 
     public static INamedTypeSymbol? InlineArrayAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.InlineArrayAttribute");
@@ -118,40 +118,40 @@ internal static class CompilationExtensions
         => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
 
     public static INamedTypeSymbol? ThreadStaticAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ThreadStaticAttribute).FullName);
 
     public static INamedTypeSymbol? FormattableStringType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(FormattableString).FullName);
 
     public static INamedTypeSymbol? IFormattableType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IFormattable).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(IFormattable).FullName);
 
     public static INamedTypeSymbol? EventArgsType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName);
 
     public static INamedTypeSymbol? NotImplementedExceptionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName);
 
     public static INamedTypeSymbol? EqualityComparerOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
 
     public static INamedTypeSymbol? ActionType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Action).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Action).FullName);
 
     public static INamedTypeSymbol? ExpressionOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
 
     public static INamedTypeSymbol? EditorBrowsableAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(EditorBrowsableAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(EditorBrowsableAttribute).FullName);
 
     public static INamedTypeSymbol? EditorBrowsableStateType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(EditorBrowsableState).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(EditorBrowsableState).FullName);
 
     public static INamedTypeSymbol? TaskType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Task).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Task).FullName);
 
     public static INamedTypeSymbol? TaskOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Task<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Task<>).FullName);
 
     public static INamedTypeSymbol? ValueTaskType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask");
@@ -160,28 +160,28 @@ internal static class CompilationExtensions
         => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
 
     public static INamedTypeSymbol? ICollectionOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ICollection<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ICollection<>).FullName);
 
     public static INamedTypeSymbol? IEnumerableType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(System.Collections.IEnumerable).FullName);
 
     public static INamedTypeSymbol? IEnumerableOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
 
     public static INamedTypeSymbol? IEnumeratorOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(IEnumerator<>).FullName);
 
     public static INamedTypeSymbol? IListOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IList<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(IList<>).FullName);
 
     public static INamedTypeSymbol? IReadOnlyListOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IReadOnlyList<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlyList<>).FullName);
 
     public static INamedTypeSymbol? ISetOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ISet<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ISet<>).FullName);
 
     public static INamedTypeSymbol? IReadOnlySetOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IReadOnlySet<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(IReadOnlySet<>).FullName);
 
     public static INamedTypeSymbol? IAsyncEnumerableOfTType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1");
@@ -190,64 +190,64 @@ internal static class CompilationExtensions
         => compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerator`1");
 
     public static INamedTypeSymbol? ImmutableArrayOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ImmutableArray<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ImmutableArray<>).FullName);
 
     public static INamedTypeSymbol? SerializableAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(SerializableAttribute).FullName);
 
     public static INamedTypeSymbol? CoClassType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(CoClassAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(CoClassAttribute).FullName);
 
     public static INamedTypeSymbol? ComAliasNameAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ComAliasNameAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ComAliasNameAttribute).FullName);
 
     public static INamedTypeSymbol? SuppressMessageAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(SuppressMessageAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(SuppressMessageAttribute).FullName);
 
     public static INamedTypeSymbol? TupleElementNamesAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName);
 
     public static INamedTypeSymbol? NativeIntegerAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.NativeIntegerAttribute");
 
     public static INamedTypeSymbol? DynamicAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(DynamicAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(DynamicAttribute).FullName);
 
     public static INamedTypeSymbol? LazyOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Lazy<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Lazy<>).FullName);
 
     public static INamedTypeSymbol? ISerializableType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ISerializable).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ISerializable).FullName);
 
     public static INamedTypeSymbol? SerializationInfoType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(SerializationInfo).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(SerializationInfo).FullName);
 
     public static INamedTypeSymbol? StreamingContextType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(StreamingContext).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(StreamingContext).FullName);
 
     public static INamedTypeSymbol? OnDeserializingAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(OnDeserializingAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(OnDeserializingAttribute).FullName);
 
     public static INamedTypeSymbol? OnDeserializedAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(OnDeserializedAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(OnDeserializedAttribute).FullName);
 
     public static INamedTypeSymbol? OnSerializingAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(OnSerializingAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(OnSerializingAttribute).FullName);
 
     public static INamedTypeSymbol? OnSerializedAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(OnSerializedAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(OnSerializedAttribute).FullName);
 
     public static INamedTypeSymbol? ComRegisterFunctionAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ComRegisterFunctionAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ComRegisterFunctionAttribute).FullName);
 
     public static INamedTypeSymbol? ComUnregisterFunctionAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ComUnregisterFunctionAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ComUnregisterFunctionAttribute).FullName);
 
     public static INamedTypeSymbol? ConditionalAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ConditionalAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ConditionalAttribute).FullName);
 
     public static INamedTypeSymbol? ObsoleteAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName);
 
     public static INamedTypeSymbol? SystemCompositionImportingConstructorAttribute(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Composition.ImportingConstructorAttribute");
@@ -256,49 +256,49 @@ internal static class CompilationExtensions
         => compilation.GetTypeByMetadataName("System.ComponentModel.Composition.ImportingConstructorAttribute");
 
     public static INamedTypeSymbol? SystemIDisposableType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(IDisposable).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(IDisposable).FullName);
 
     public static INamedTypeSymbol? NotNullAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(NotNullAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(NotNullAttribute).FullName);
 
     public static INamedTypeSymbol? MaybeNullAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(MaybeNullAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(MaybeNullAttribute).FullName);
 
     public static INamedTypeSymbol? MaybeNullWhenAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(MaybeNullWhenAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(MaybeNullWhenAttribute).FullName);
 
     public static INamedTypeSymbol? AllowNullAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(AllowNullAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(AllowNullAttribute).FullName);
 
     public static INamedTypeSymbol? DisallowNullAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(DisallowNullAttribute).FullName);
 
     public static INamedTypeSymbol? DataMemberAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(DataMemberAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(DataMemberAttribute).FullName);
 
     public static INamedTypeSymbol? DataContractAttribute(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(DataContractAttribute).FullName);
 
     public static INamedTypeSymbol? AsyncMethodBuilderAttribute(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AsyncMethodBuilderAttribute");
 
     public static INamedTypeSymbol? CancellationTokenType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName);
 
     public static INamedTypeSymbol? ValueTupleType(this Compilation compilation, int arity)
         => compilation.GetTypeByMetadataName($"System.ValueTuple`{arity}");
 
     public static INamedTypeSymbol? ListOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(List<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(List<>).FullName);
 
     public static INamedTypeSymbol? ReadOnlySpanOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(ReadOnlySpan<>).FullName);
 
     public static INamedTypeSymbol? SpanOfTType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(Span<>).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(Span<>).FullName);
 
     public static INamedTypeSymbol? InterpolatedStringHandlerAttributeType(this Compilation compilation)
-        => compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerAttribute).FullName!);
+        => compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerAttribute).FullName);
 
     public static INamedTypeSymbol? DateOnlyType(this Compilation compilation)
         => compilation.GetTypeByMetadataName("System.DateOnly");

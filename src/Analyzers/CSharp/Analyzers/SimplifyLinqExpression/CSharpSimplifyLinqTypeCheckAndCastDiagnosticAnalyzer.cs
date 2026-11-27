@@ -28,7 +28,7 @@ internal sealed class CSharpSimplifyLinqTypeCheckAndCastDiagnosticAnalyzer()
     {
         context.RegisterCompilationStartAction(context =>
         {
-            var enumerableType = context.Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName!);
+            var enumerableType = context.Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName);
             if (enumerableType is null)
                 return;
 

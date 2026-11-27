@@ -67,7 +67,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver,
+        var result = RunGenerator(compilation, ref driver,
             // Folder2/Component2.razor(1,16): error CS0246: The type or namespace name 'Class1' could not be found (are you missing a using directive or an assembly reference?)
             //  var c = new Class1(); 
             Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Class1").WithArguments("Class1").WithLocation(1, 16));
@@ -94,7 +94,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify(
@@ -118,7 +118,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify();
@@ -165,7 +165,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -213,7 +213,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -236,7 +236,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -273,7 +273,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -318,7 +318,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -351,7 +351,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act.
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert.
         Assert.Empty(result.Diagnostics);
@@ -428,7 +428,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act.
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert. Behaves as if `AddComponentParameter` wasn't available because
         // the source generator only searches for it in references, not the current compilation.
@@ -463,7 +463,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver,
+        var result = RunGenerator(compilation, ref driver,
             // Shared/Component1.razor(9,9): error CS0411: The type arguments for method 'Component1<T>.M1<T1>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             //         M1();
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("MyApp.Shared.Component1<T>.M1<T1>()").WithLocation(9, 9));
@@ -500,7 +500,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -528,7 +528,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -558,7 +558,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -585,7 +585,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -611,7 +611,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -634,7 +634,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -660,7 +660,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -683,7 +683,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -709,7 +709,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -732,7 +732,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -767,7 +767,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -816,7 +816,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -850,7 +850,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify();
@@ -929,7 +929,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify();
@@ -985,7 +985,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -1010,7 +1010,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+        var result = RunGenerator(compilation, ref driver, out var outputCompilation, static _ => { });
 
         if (expectMalformedTagDiagnostics)
         {
@@ -1052,7 +1052,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify(
@@ -1107,7 +1107,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1144,7 +1144,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         });
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         Assert.Empty(result.Diagnostics);
@@ -1168,7 +1168,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver, out compilation);
+        var result = RunGenerator(compilation, ref driver, out compilation);
 
         // Assert
         result.Diagnostics.Verify();
@@ -1211,7 +1211,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert — should compile without CS0103 or RZ10012
         result.Diagnostics.Verify();
@@ -1249,7 +1249,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert — should compile fine (no wrapper component)
         result.Diagnostics.Verify();
@@ -1292,7 +1292,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act - should compile without errors
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify();
@@ -1317,7 +1317,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             options.TestGlobalOptions["build_property.RazorLangVersion"] = "11.0";
         });
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         AssertTildePathExpanded(result);
     }
@@ -1334,7 +1334,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         conventionProject = conventionProject.WithAssemblyName("Microsoft.AspNetCore.Components.Web.Test");
         var conventionCompilation = await conventionProject.GetCompilationAsync();
         using var peStream = new MemoryStream();
-        var emitResult = conventionCompilation!.Emit(peStream);
+        var emitResult = conventionCompilation.Emit(peStream);
         Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
         peStream.Position = 0;
 
@@ -1352,7 +1352,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             options.TestGlobalOptions["build_property.RazorLangVersion"] = "11.0";
         });
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         AssertTildePathExpanded(result);
     }
@@ -1382,7 +1382,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
@@ -1419,7 +1419,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
@@ -1458,7 +1458,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         var indexSource = result.ImplGeneratedSources().Single(source => source.HintName == "Index_razor.g.cs").SourceText.ToString();
@@ -1495,7 +1495,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
@@ -1531,7 +1531,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
@@ -1570,7 +1570,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         var homePageSource = result.ImplGeneratedSources().Single(source => source.HintName == "HomePage_razor.g.cs").SourceText.ToString();
@@ -1615,7 +1615,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        _ = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+        _ = RunGenerator(compilation, ref driver, out var outputCompilation, static _ => { });
 
         // Assert - the consumer should compile once the limitation is fixed.
         Assert.Empty(outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
@@ -1660,7 +1660,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act - should compile without errors
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify();
@@ -1707,7 +1707,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert -- no RZ10012 for the fallback component's child-content parameters
         result.Diagnostics.Verify();
@@ -1764,7 +1764,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert — should compile without CS0103 for 'context'
         result.Diagnostics.Verify();
@@ -1820,7 +1820,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert — should compile without CS7036
         result.Diagnostics.Verify();
@@ -1871,7 +1871,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert — should compile without RZ10012 or CS0103
         result.Diagnostics.Verify();
@@ -1929,7 +1929,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
@@ -1991,7 +1991,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
@@ -2057,7 +2057,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
@@ -2096,7 +2096,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Should compile without RZ1033 errors
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         Assert.Single(result.GeneratedSources);
@@ -2170,7 +2170,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
@@ -2240,7 +2240,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
@@ -2301,7 +2301,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var compilation = await project.GetCompilationAsync();
         var driver = await GetDriverAsync(project);
 
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         result.Diagnostics.Verify();
         Assert.Equal(2, result.GeneratedSources.Length);
@@ -2333,7 +2333,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify();
@@ -2391,7 +2391,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert
         result.Diagnostics.Verify();
@@ -2424,7 +2424,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var driver = await GetDriverAsync(project);
 
         // Act
-        var result = RunGenerator(compilation!, ref driver);
+        var result = RunGenerator(compilation, ref driver);
 
         // Assert -- the diagnostic should appear exactly once even though the document
         // is split into a decl and impl file.

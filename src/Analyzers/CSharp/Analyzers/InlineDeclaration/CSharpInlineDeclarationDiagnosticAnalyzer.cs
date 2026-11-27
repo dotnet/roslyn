@@ -47,7 +47,7 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
         context.RegisterCompilationStartAction(compilationContext =>
         {
             var compilation = compilationContext.Compilation;
-            var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
+            var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
 
             // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
             // get callbacks for Argument nodes, but analyze nodes across the entire code block

@@ -434,7 +434,7 @@ internal static partial class RoslynParallelExtensions
 #if false
                 _registration = cancellationToken.UnsafeRegister(static o => ((ForEachAsyncState<TSource>)o!).Cancellation.Cancel(), this);
 #else
-                _registration = cancellationToken.Register(static o => ((ForEachAsyncState<TSource>)o!).Cancellation.Cancel(), this);
+                _registration = cancellationToken.Register(static o => ((ForEachAsyncState<TSource>)o).Cancellation.Cancel(), this);
 #endif
             }
 
@@ -465,7 +465,7 @@ internal static partial class RoslynParallelExtensions
 #endif
                     {
                         // We're targeting a non-default TaskScheduler, so queue the task body to it.
-                        System.Threading.Tasks.Task.Factory.StartNew(_taskBody!, this, default(CancellationToken), TaskCreationOptions.DenyChildAttach, _scheduler);
+                        System.Threading.Tasks.Task.Factory.StartNew(_taskBody, this, default(CancellationToken), TaskCreationOptions.DenyChildAttach, _scheduler);
                     }
                 }
             }

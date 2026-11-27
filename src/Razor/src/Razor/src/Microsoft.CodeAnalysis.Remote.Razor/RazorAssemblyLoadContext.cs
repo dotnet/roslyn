@@ -24,7 +24,7 @@ internal sealed class RazorAssemblyLoadContext : AssemblyLoadContext
     public RazorAssemblyLoadContext()
         : base(isCollectible: false)
     {
-        var thisAssembly = GetType().Assembly!;
+        var thisAssembly = GetType().Assembly;
         _parent = GetLoadContext(thisAssembly) ?? throw new InvalidOperationException("Unexpected");
         _baseDirectory = Path.GetDirectoryName(thisAssembly.Location) ?? throw new InvalidOperationException("Could not determine base directory");
     }

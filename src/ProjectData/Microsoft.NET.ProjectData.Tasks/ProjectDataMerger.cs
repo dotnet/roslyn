@@ -443,7 +443,7 @@ internal static class ProjectDataMerger
 			return [];
 
 		var result = new List<string>();
-		foreach (string targetFramework in targetFrameworks!.Split(';'))
+		foreach (string targetFramework in targetFrameworks.Split(';'))
 		{
 			string trimmed = targetFramework.Trim();
 			if (trimmed.Length > 0)
@@ -458,7 +458,7 @@ internal static class ProjectDataMerger
 		if (string.IsNullOrWhiteSpace(targetFramework))
 			return false;
 
-		string normalized = targetFramework!.Trim();
+		string normalized = targetFramework.Trim();
 		if (!normalized.StartsWith("net", StringComparison.OrdinalIgnoreCase))
 			return false;
 

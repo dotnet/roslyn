@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         {
             // get our own state table
             Debug.Assert(context.TableBuilder is not null);
-            var table = context.TableBuilder!.GetLatestStateTableForNode(this);
+            var table = context.TableBuilder.GetLatestStateTableForNode(this);
 
             // add each non-removed entry to the context
             foreach (var (list, state, _, _) in table)

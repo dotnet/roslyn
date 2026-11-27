@@ -1221,7 +1221,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
     {
         // Arrange
         var factory = CreateFactory(includeDocumentation: false, excludeHidden: false);
-        var typeSymbol = Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName!);
+        var typeSymbol = Compilation.GetTypeByMetadataName(typeof(Enumerable).FullName);
 
         Assert.NotNull(typeSymbol);
 
@@ -1267,7 +1267,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
                             .AsDictionaryAttribute<object>("valid-prefix4-"))
                         .BoundAttribute(name: "valid-name5", propertyName: "SortedDictionaryProperty", typeName: GetDictionaryTypeName<SortedDictionary<string, int>>(), static b => b
                             .AsDictionaryAttribute<int>("valid-prefix5-"))
-                        .BoundAttribute(name: "valid-name6", propertyName: "StringProperty", typeName: typeof(string).FullName!)
+                        .BoundAttribute(name: "valid-name6", propertyName: "StringProperty", typeName: typeof(string).FullName)
                         .BoundAttribute(name: string.Empty, propertyName: "GetOnlyDictionaryProperty", typeName: GetDictionaryTypeName<IDictionary<string, int>>(), static b => b
                             .AsDictionaryAttribute<int>("get-only-dictionary-property-"))
                         .BoundAttribute(name: string.Empty, propertyName: "GetOnlyDictionaryPropertyWithAttributePrefix", typeName: GetDictionaryTypeName<IDictionary<string, string>>(), static b => b
@@ -1275,7 +1275,7 @@ public class DefaultTagHelperDescriptorFactoryTest : TagHelperDescriptorProvider
                     diagnostics: []),
                 Combine(
                     NameAndBoundAttributes("SingleInvalidHtmlAttributePrefix", static b => b
-                        .BoundAttribute(name: "valid-name", propertyName: "StringProperty", typeName: typeof(string).FullName!, static b => b
+                        .BoundAttribute(name: "valid-name", propertyName: "StringProperty", typeName: typeof(string).FullName, static b => b
                             .AddDiagnostic(RazorDiagnosticFactory.CreateTagHelper_InvalidAttributePrefixNotNull(
                                 "TestNamespace.SingleInvalidHtmlAttributePrefix",
                                 "StringProperty")))),

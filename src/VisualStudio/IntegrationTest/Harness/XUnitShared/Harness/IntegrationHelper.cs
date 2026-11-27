@@ -66,7 +66,7 @@ namespace Xunit.Harness
                     return null;
                 }
 
-                var moniker = monikers[0]!;
+                var moniker = monikers[0];
                 moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
 
                 // FullDisplayName will look something like: <ProgID>:<ProccessId>

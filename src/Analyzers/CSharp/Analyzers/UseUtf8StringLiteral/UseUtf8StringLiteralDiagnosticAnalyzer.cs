@@ -48,10 +48,10 @@ internal sealed class UseUtf8StringLiteralDiagnosticAnalyzer : AbstractBuiltInCo
             if (!context.Compilation.LanguageVersion().IsCSharp11OrAbove())
                 return;
 
-            if (context.Compilation.GetBestTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!) is null)
+            if (context.Compilation.GetBestTypeByMetadataName(typeof(ReadOnlySpan<>).FullName) is null)
                 return;
 
-            var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName!);
+            var expressionType = context.Compilation.GetTypeByMetadataName(typeof(System.Linq.Expressions.Expression<>).FullName);
 
             context.RegisterOperationAction(c => AnalyzeOperation(c, expressionType), OperationKind.ArrayCreation);
         });

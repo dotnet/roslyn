@@ -118,7 +118,9 @@ internal readonly struct EditDistance(string text) : IDisposable
             return InitializeMatrix(new int[width, height]);
         }
 
-        return t_matrixPool.Value!;
+        var matrix = t_matrixPool.Value;
+        RoslynDebug.Assert(matrix is not null);
+        return matrix;
     }
 
     private static int[,] InitializeMatrix(int[,] matrix)
@@ -486,7 +488,8 @@ internal readonly struct EditDistance(string text) : IDisposable
 
         var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
 
-        var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value!;
+        var characterToLastSeenIndex_inSource = t_lastSeenIndexPool.Value;
+        RoslynDebug.Assert(characterToLastSeenIndex_inSource is not null);
         Array.Clear(characterToLastSeenIndex_inSource, 0, LastSeenIndexLength);
 
         for (var i = 1; i <= sourceLength; i++)

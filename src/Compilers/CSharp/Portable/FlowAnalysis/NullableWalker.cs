@@ -2023,7 +2023,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                lambdaIsExactMatch = updatedSymbol.Equals(boundLambda.Type!.GetDelegateType(), TypeCompareKind.ConsiderEverything);
+                lambdaIsExactMatch = updatedSymbol.Equals(boundLambda.Type.GetDelegateType(), TypeCompareKind.ConsiderEverything);
             }
 
 #if DEBUG

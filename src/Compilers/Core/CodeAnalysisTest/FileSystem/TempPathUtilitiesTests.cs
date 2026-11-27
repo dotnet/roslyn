@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
         private ProcessResult GetTempPathSubprocessResult(string xdgCacheHome, string home)
         {
             return ProcessUtilities.Run(
-                DotNetCoreSdk.ExePath!,
+                DotNetCoreSdk.ExePath,
                 $"run --file \"{_fixture.HostPath}\" --verbosity quiet -e \"XDG_CACHE_HOME={xdgCacheHome}\" -e \"HOME={home}\"",
                 workingDirectory: _fixture.HostDirectory);
         }

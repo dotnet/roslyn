@@ -428,7 +428,11 @@ internal abstract class AsyncLazy<T>
                 // Also, use TaskContinuationOptions.ExecuteSynchronously so that we inline 
                 // the continuation if asynchronousComputeFunction completes synchronously
                 task.ContinueWith(
-                    (t, s) => CompleteWithTask(t, ((CancellationTokenSource)s!).Token),
+                    (t, s) =>
+                    {
+                        RoslynDebug.Assert(s is not null);
+                        CompleteWithTask(t, ((CancellationTokenSource)s).Token);
+                    },
                     computationToStart.CancellationTokenSource,
                     cancellationToken,
                     TaskContinuationOptions.ExecuteSynchronously,

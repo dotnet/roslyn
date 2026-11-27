@@ -167,7 +167,7 @@ internal sealed class PooledArrayBufferWriter<T> : IBufferWriter<T>, IDisposable
             sizeHint = MinimumBufferSize;
         }
 
-        var availableSpace = _rentedBuffer!.Length - _index;
+        var availableSpace = _rentedBuffer.Length - _index;
 
         if (sizeHint > availableSpace)
         {

@@ -44,7 +44,7 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider() : SyntaxEditorBasedC
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        var readOnlySpanType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(ReadOnlySpan<>).FullName!);
+        var readOnlySpanType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(ReadOnlySpan<>).FullName);
         // The analyzer wouldn't raise a diagnostic if this were null
         Contract.ThrowIfNull(readOnlySpanType);
 

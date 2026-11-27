@@ -113,7 +113,7 @@ internal readonly struct SyntaxNodeOrToken : IEquatable<SyntaxNodeOrToken>
     {
         if (IsToken)
         {
-            token = AsToken()!;
+            token = AsToken();
             return true;
         }
 

@@ -71,7 +71,8 @@ namespace Microsoft.CodeAnalysis.Collections
                     throw new NotSupportedException();
                 }
 
-                Array.Copy(segment.Array!, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: copied, length: segment.Count);
+                Debug.Assert(segment.Array is not null);
+                Array.Copy(segment.Array, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: copied, length: segment.Count);
                 copied += segment.Count;
             }
         }
@@ -166,7 +167,8 @@ namespace Microsoft.CodeAnalysis.Collections
                     throw new NotSupportedException();
                 }
 
-                Array.Copy(segment.Array!, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: destinationIndex + copied, length: segment.Count);
+                Debug.Assert(segment.Array is not null);
+                Array.Copy(segment.Array, sourceIndex: segment.Offset, destinationArray: destinationArray, destinationIndex: destinationIndex + copied, length: segment.Count);
                 copied += segment.Count;
             }
         }
@@ -236,7 +238,8 @@ namespace Microsoft.CodeAnalysis.Collections
                 int index;
                 if (comparer is null || comparer == EqualityComparer<T>.Default)
                 {
-                    index = Array.IndexOf(segment.Array!, value, segment.Offset, segment.Count);
+                    Debug.Assert(segment.Array is not null);
+                    index = Array.IndexOf(segment.Array, value, segment.Offset, segment.Count);
                 }
                 else
                 {

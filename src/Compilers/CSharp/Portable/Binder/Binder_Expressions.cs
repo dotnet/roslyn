@@ -11555,7 +11555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (lookupResult.IsSingleViable &&
                     lookupResult.Symbols[0] is PropertySymbol property &&
                     HasValidLengthOrCountGetter(property) &&
-                    binder.IsAccessible(property.GetOwnOrInheritedGetMethod()!, syntax, diagnostics))
+                    binder.IsAccessible(property.GetOwnOrInheritedGetMethod(), syntax, diagnostics))
                 {
                     lookupResult.Clear();
                     valid = property;

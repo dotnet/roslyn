@@ -254,7 +254,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
         {
             // Note: Circular reference with CSharpCodeParser means we can't set this in the constructor
             Debug.Assert(_htmlParser != null, "HtmlParser should have been set during initialization");
-            return _htmlParser!;
+            return _htmlParser;
         }
         set => _htmlParser = value;
     }
@@ -2248,7 +2248,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         var result = _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken);
         Debug.Assert(CurrentToken.Kind == SyntaxKind.Keyword && result.HasValue);
-        if (_keywordParserMap.TryGetValue(result!.Value, out var handler))
+        if (_keywordParserMap.TryGetValue(result.Value, out var handler))
         {
             // This is a keyword. We want to preserve preceding whitespace in the output.
             Accept(in whitespace);
@@ -2265,7 +2265,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         var result = _tokenizer.Tokenizer.GetTokenKeyword(CurrentToken);
         Debug.Assert(CurrentToken.Kind == SyntaxKind.Keyword && result.HasValue);
-        if (_keywordParserMap.TryGetValue(result!.Value, out var handler))
+        if (_keywordParserMap.TryGetValue(result.Value, out var handler))
         {
             handler(builder, null);
             return true;

@@ -634,7 +634,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 guidString = String.Empty;
             }
 
-            return guidString!;
+            return guidString;
         }
 
         internal CollectionBuilderAttributeData DecodeCollectionBuilderAttribute()

@@ -29,7 +29,7 @@ internal sealed class Utf8WriteLiteralPhase : RazorEnginePhaseBase
         {
             var baseTypeName = documentNode.FindPrimaryClass()?.BaseType?.BaseType.Content;
             var supported = !string.IsNullOrWhiteSpace(baseTypeName) &&
-                supportMap.IsSupported(codeDocument.Source.FilePath, baseTypeName!);
+                supportMap.IsSupported(codeDocument.Source.FilePath, baseTypeName);
 
             documentNode.Options = options.WithFlags(writeHtmlUtf8StringLiterals: supported);
         }

@@ -304,7 +304,7 @@ internal sealed class SumConverter<T> : JsonConverter<T>
         catch
         {
             reader = backupReader;
-            result = default!;
+            result = default;
             return false;
         }
     }

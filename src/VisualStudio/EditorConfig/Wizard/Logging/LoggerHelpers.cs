@@ -39,13 +39,13 @@ namespace Microsoft.VisualStudio.Templates.Editorconfig.Wizard.Logging
             => s_propertyMap.GetOrAdd((id.AsInt(), name), key => PropertyPrefix + GetTelemetryName(id, separator: '.') + "." + name.ToLowerInvariant());
 
         public static string GetTelemetryName(EventId id, char separator)
-            => Enum.GetName(typeof(EventId), id)!.Replace('_', separator).ToLowerInvariant();
+            => Enum.GetName(typeof(EventId), id).Replace('_', separator).ToLowerInvariant();
 
         public static string GetTelemetryName(OperationId id, char separator)
-            => Enum.GetName(typeof(OperationId), id)!.Replace('_', separator).ToLowerInvariant();
+            => Enum.GetName(typeof(OperationId), id).Replace('_', separator).ToLowerInvariant();
 
         public static string GetTelemetryName(UserTask id, char separator)
-            => Enum.GetName(typeof(UserTask), id)!.Replace('_', separator).ToLowerInvariant();
+            => Enum.GetName(typeof(UserTask), id).Replace('_', separator).ToLowerInvariant();
 
         public static void SetProperties<T>(TelemetryEvent telemetryEvent, EventId eventId, ILogMessage<T> messages) where T : ILogMessageData
         {

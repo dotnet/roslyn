@@ -755,7 +755,7 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 
 		PackageAssetFlags result = PackageAssetFlags.None;
 		bool hasToken = false;
-		foreach (string part in value!.Split([separator], StringSplitOptions.RemoveEmptyEntries))
+		foreach (string part in value.Split([separator], StringSplitOptions.RemoveEmptyEntries))
 		{
 			string token = part.Trim();
 			if (token.Length == 0)

@@ -29,7 +29,7 @@ internal sealed partial class TraceSourceLoggerFactory
                     break;
                 case LogLevel.Error:
                 case LogLevel.Critical:
-                    traceSource.TraceEvent(TraceEventType.Error, id: 0, "[{0}] {1} {2}", categoryName, message, exception!);
+                    traceSource.TraceEvent(TraceEventType.Error, id: 0, "[{0}] {1} {2}", categoryName, message, exception);
                     break;
             }
         }

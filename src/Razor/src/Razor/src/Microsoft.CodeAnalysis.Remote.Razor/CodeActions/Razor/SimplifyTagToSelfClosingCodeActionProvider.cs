@@ -129,7 +129,7 @@ internal sealed class SimplifyTagToSelfClosingCodeActionProvider : IRazorCodeAct
             }
 
             // Parameter is not set or bound as an attribute
-            if (!markupElementSyntax.TagHelperInfo!.BindingResult.Attributes.Any(a =>
+            if (!markupElementSyntax.TagHelperInfo.BindingResult.Attributes.Any(a =>
                 RazorSyntaxFacts.TryGetComponentParameterNameFromFullAttributeName(a.Key, out var componentParameterName, out var directiveAttributeParameter) &&
                 componentParameterName.SequenceEqual(attribute.Name) &&
                 directiveAttributeParameter is { IsEmpty: true } or "get"

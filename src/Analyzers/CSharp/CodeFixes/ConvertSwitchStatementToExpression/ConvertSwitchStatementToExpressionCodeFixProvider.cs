@@ -56,8 +56,12 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider(
             spans.Add(switchLocation.SourceSpan);
 
             var properties = diagnostic.Properties;
-            var nodeToGenerate = (SyntaxKind)int.Parse(properties[Constants.NodeToGenerateKey]!);
-            var shouldRemoveNextStatement = bool.Parse(properties[Constants.ShouldRemoveNextStatementKey]!);
+            var nodeToGenerateString = properties[Constants.NodeToGenerateKey];
+            var shouldRemoveNextStatementString = properties[Constants.ShouldRemoveNextStatementKey];
+            Debug.Assert(nodeToGenerateString is not null);
+            Debug.Assert(shouldRemoveNextStatementString is not null);
+            var nodeToGenerate = (SyntaxKind)int.Parse(nodeToGenerateString);
+            var shouldRemoveNextStatement = bool.Parse(shouldRemoveNextStatementString);
 
             var declaratorToRemoveLocation = diagnostic.AdditionalLocations.ElementAtOrDefault(1);
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

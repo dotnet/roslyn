@@ -207,7 +207,8 @@ internal ref struct PooledHashSet<T>
         _set ??= AcquireHashSet();
 
         // Avoid boxing the ImmutableArray<T>
-        var array = ImmutableCollectionsMarshal.AsArray(other)!;
+        var array = ImmutableCollectionsMarshal.AsArray(other);
+        Debug.Assert(array is not null);
 
         _set.UnionWith(array);
     }

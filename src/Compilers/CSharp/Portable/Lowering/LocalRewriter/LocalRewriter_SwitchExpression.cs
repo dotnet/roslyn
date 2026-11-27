@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static BoundStatement ConstructThrowSwitchExpressionExceptionParameterlessHelperCall(SyntheticBoundNodeFactory factory)
             {
                 Debug.Assert(factory.ModuleBuilderOpt is not null);
-                var module = factory.ModuleBuilderOpt!;
+                var module = factory.ModuleBuilderOpt;
                 var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
                 var diagnostics = factory.Diagnostics.DiagnosticBag;
                 Debug.Assert(diagnostics is not null);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static BoundStatement ConstructThrowInvalidOperationExceptionHelperCall(SyntheticBoundNodeFactory factory)
             {
                 Debug.Assert(factory.ModuleBuilderOpt is not null);
-                var module = factory.ModuleBuilderOpt!;
+                var module = factory.ModuleBuilderOpt;
                 var diagnosticSyntax = factory.CurrentFunction.GetNonNullSyntaxNode();
                 var diagnostics = factory.Diagnostics.DiagnosticBag;
                 Debug.Assert(diagnostics is not null);

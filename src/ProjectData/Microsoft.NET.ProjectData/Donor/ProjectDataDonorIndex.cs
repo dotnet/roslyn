@@ -194,7 +194,7 @@ public static partial class ProjectDataDonorIndex
 		string? current = Path.GetDirectoryName(Path.GetFullPath(projectFilePath));
 		while (!string.IsNullOrEmpty(current))
 		{
-			string currentDirectory = current!;
+			string currentDirectory = current;
 			string gitPath = Path.Combine(currentDirectory, ".git");
 			if (Directory.Exists(gitPath))
 			{

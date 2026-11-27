@@ -59,7 +59,7 @@ internal abstract class AbstractForEachCastCodeFixProvider<TForEachStatementSynt
         var expression = syntaxFacts.GetExpressionOfForeachStatement(forEachStatement);
         var loopOperation = (IForEachLoopOperation)semanticModel.GetRequiredOperation(forEachStatement, cancellationToken);
         var variableDeclarator = (IVariableDeclaratorOperation)loopOperation.LoopControlVariable;
-        var enumerableType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!);
+        var enumerableType = semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName);
 
         // These were already verified to be non-null in the analyzer.
         Contract.ThrowIfNull(variableDeclarator.Symbol.Type);

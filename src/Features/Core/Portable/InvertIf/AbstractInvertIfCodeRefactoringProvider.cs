@@ -547,7 +547,7 @@ internal abstract partial class AbstractInvertIfCodeRefactoringProvider<
                         text,
                         ifNode: ifNode,
                         condition: negatedExpression,
-                        trueStatement: GetElseBody(ifNode)!,
+                        trueStatement: GetElseBody(ifNode),
                         falseStatement: GetIfBody(ifNode));
 
                     return root.ReplaceNode(ifNode, updatedIf);

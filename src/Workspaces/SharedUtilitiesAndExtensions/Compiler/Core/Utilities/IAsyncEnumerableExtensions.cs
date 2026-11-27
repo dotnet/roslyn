@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -72,7 +73,11 @@ internal static class AsyncEnumerableFactory
         // Note: using `Complete(task.Exception)` is always fine.  Exception is only produced in the case of
         // faulting. it is null otherwise.
         task.ContinueWith(
-            static (task, channel) => ((Channel<T>)channel!).Writer.Complete(task.Exception),
+            static (task, channel) =>
+            {
+                RoslynDebug.Assert(channel is not null);
+                ((Channel<T>)channel).Writer.Complete(task.Exception);
+            },
             channel, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
     }
 }

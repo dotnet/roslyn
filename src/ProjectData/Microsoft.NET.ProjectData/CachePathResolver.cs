@@ -885,9 +885,9 @@ public sealed class CachePathResolver
 			string? none = TryReadSimpleElementValue(content, "_NoneAnalysisLevel");
 			SdkAnalysisLevelDefaults fallback = SdkAnalysisLevelDefaults.CreateFallback(ParseSdkMajor(sdkPath));
 			return new SdkAnalysisLevelDefaults(
-				string.IsNullOrWhiteSpace(none) ? fallback.None : none!,
-				string.IsNullOrWhiteSpace(latest) ? fallback.Latest : latest!,
-				string.IsNullOrWhiteSpace(preview) ? fallback.Preview : preview!);
+				string.IsNullOrWhiteSpace(none) ? fallback.None : none,
+				string.IsNullOrWhiteSpace(latest) ? fallback.Latest : latest,
+				string.IsNullOrWhiteSpace(preview) ? fallback.Preview : preview);
 		}
 		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
 		{

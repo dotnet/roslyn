@@ -459,7 +459,7 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 			return false;
 		}
 
-		string[] parts = parameters!.Split(';');
+		string[] parts = parameters.Split(';');
 		if (parts.Length is < 2 or > 3 ||
 			(parts.Length == 3 && !bool.TryParse(parts[2], out emitWarningFrames)))
 		{

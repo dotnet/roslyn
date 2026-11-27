@@ -61,7 +61,7 @@ internal sealed class CSharpUseLocalFunctionDiagnosticAnalyzer : AbstractBuiltIn
             if (compilation.LanguageVersion() < LanguageVersion.CSharp7)
                 return;
 
-            var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName!);
+            var expressionType = compilation.GetTypeByMetadataName(typeof(Expression<>).FullName);
 
             // We wrap the SyntaxNodeAction within a CodeBlockStartAction, which allows us to
             // get callbacks for lambda expression nodes, but analyze nodes across the entire code block

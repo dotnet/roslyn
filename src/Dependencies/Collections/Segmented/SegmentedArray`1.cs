@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Collections
 #if NET
                 ret = HashCode.Combine(comparer.GetHashCode(this[i]!), ret);
 #else
-                ret = unchecked((ret * (int)0xA5555529) + comparer.GetHashCode(this[i]!));
+                ret = unchecked((ret * (int)0xA5555529) + comparer.GetHashCode(this[i]));
 #endif
             }
 

@@ -139,7 +139,7 @@ internal abstract class AbstractForEachCastDiagnosticAnalyzer<TSyntaxKind, TForE
         // We can only fix this issue if the collection type implemented ienumerable and we have
         // System.Linq.Enumerable available.  Then we can add a .Cast call to their collection explicitly.
         var isFixable = collectionType.SpecialType == SpecialType.System_Collections_IEnumerable || collectionType.AllInterfaces.Any(static i => i.SpecialType == SpecialType.System_Collections_IEnumerable) &&
-            semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName!) != null;
+            semanticModel.Compilation.GetBestTypeByMetadataName(typeof(Enumerable).FullName) != null;
 
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,

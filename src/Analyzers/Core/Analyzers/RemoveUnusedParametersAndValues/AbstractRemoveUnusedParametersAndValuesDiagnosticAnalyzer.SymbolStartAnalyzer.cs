@@ -51,7 +51,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             var attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(context.Compilation).WhereNotNull());
             var eventsArgType = context.Compilation.EventArgsType();
             var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
-            var iCustomMarshaler = context.Compilation.GetTypeByMetadataName(typeof(ICustomMarshaler).FullName!);
+            var iCustomMarshaler = context.Compilation.GetTypeByMetadataName(typeof(ICustomMarshaler).FullName);
 
             context.RegisterSymbolStartAction(symbolStartContext =>
             {

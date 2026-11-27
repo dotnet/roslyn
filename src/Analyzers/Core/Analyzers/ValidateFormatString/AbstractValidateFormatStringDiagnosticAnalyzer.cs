@@ -70,7 +70,7 @@ internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKi
 
         context.RegisterCompilationStartAction(startContext =>
         {
-            var formatProviderType = startContext.Compilation.GetTypeByMetadataName(typeof(System.IFormatProvider).FullName!);
+            var formatProviderType = startContext.Compilation.GetTypeByMetadataName(typeof(System.IFormatProvider).FullName);
             if (formatProviderType == null)
             {
                 return;

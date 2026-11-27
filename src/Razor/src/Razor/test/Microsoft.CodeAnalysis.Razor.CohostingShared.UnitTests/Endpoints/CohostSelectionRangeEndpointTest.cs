@@ -101,7 +101,7 @@ public sealed class CohostSelectionRangeEndpointTest(ITestOutputHelper testOutpu
     {
         var results = await GetSelectionRangesAsync(input, fileKind);
         Assert.NotNull(results);
-        var result = Assert.Single(results!);
+        var result = Assert.Single(results);
 
         var chain = new List<LspRange>();
         for (var current = result; current is not null; current = current.Parent)

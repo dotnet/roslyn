@@ -51,8 +51,12 @@ internal abstract class AbstractPopulateSwitchCodeFixProvider<
     {
         var diagnostic = context.Diagnostics.First();
         var properties = diagnostic.Properties;
-        var missingCases = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingCases]!);
-        var missingDefaultCase = bool.Parse(properties[PopulateSwitchStatementHelpers.MissingDefaultCase]!);
+        var missingCasesString = properties[PopulateSwitchStatementHelpers.MissingCases];
+        var missingDefaultCaseString = properties[PopulateSwitchStatementHelpers.MissingDefaultCase];
+        Debug.Assert(missingCasesString is not null);
+        Debug.Assert(missingDefaultCaseString is not null);
+        var missingCases = bool.Parse(missingCasesString);
+        var missingDefaultCase = bool.Parse(missingDefaultCaseString);
 
         Debug.Assert(missingCases || missingDefaultCase);
 

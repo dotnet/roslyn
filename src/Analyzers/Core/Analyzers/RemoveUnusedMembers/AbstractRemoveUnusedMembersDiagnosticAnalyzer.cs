@@ -158,7 +158,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             _structLayoutAttributeType = compilation.StructLayoutAttributeType();
             _inlineArrayAttributeType = compilation.InlineArrayAttributeType();
             _eventArgsType = compilation.EventArgsType();
-            _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName!);
+            _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName);
             _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
             _attributeSetForMethodsToIgnore = [.. GetAttributesForMethodsToIgnore(compilation)];
         }

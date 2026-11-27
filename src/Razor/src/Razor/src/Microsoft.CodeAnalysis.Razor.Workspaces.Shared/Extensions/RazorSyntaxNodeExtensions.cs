@@ -240,7 +240,7 @@ internal static class RazorSyntaxNodeExtensions
             token = token.GetPreviousToken(includeWhitespace);
         }
 
-        var foundPosition = token!.Position;
+        var foundPosition = token.Position;
 
         if (walkMarkersBack && token.Kind == SyntaxKind.Marker)
         {

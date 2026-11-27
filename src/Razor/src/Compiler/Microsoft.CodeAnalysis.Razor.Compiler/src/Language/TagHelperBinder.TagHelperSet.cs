@@ -15,7 +15,7 @@ internal sealed partial class TagHelperBinder
     [DebuggerTypeProxy(typeof(DebuggerProxy))]
     private readonly struct TagHelperSet
     {
-        public static readonly TagHelperSet Empty = default!;
+        public static readonly TagHelperSet Empty = default;
 
         private readonly object _valueOrArray;
 

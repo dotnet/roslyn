@@ -91,8 +91,9 @@ internal abstract class AbstractAddDocCommentNodesCodeFixProvider
 
                 // This will be hit in the index is `0`, in which case the previous node is the summary node
                 nodeBeforeNewParamNode ??= summaryNode;
+                RoslynDebug.Assert(nodeBeforeNewParamNode is not null);
 
-                newDocComment = newDocComment.InsertNodesAfter(nodeBeforeNewParamNode!,
+                newDocComment = newDocComment.InsertNodesAfter(nodeBeforeNewParamNode,
                     [GetNewNode(parameterName, isFirstNodeInComment: false)]);
 
                 continue;

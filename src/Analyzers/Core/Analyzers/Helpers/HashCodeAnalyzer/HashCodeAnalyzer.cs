@@ -30,7 +30,7 @@ internal readonly partial struct HashCodeAnalyzer(
         var objectType = compilation.GetSpecialType(SpecialType.System_Object);
         // This may not find anything.  However, CanAnalyze checks for this. So
         // we represent the value as non-nullable for all future code.
-        var equalityComparerType = compilation.GetBestTypeByMetadataName(typeof(EqualityComparer<>).FullName!);
+        var equalityComparerType = compilation.GetBestTypeByMetadataName(typeof(EqualityComparer<>).FullName);
 
         if (objectType?.GetMembers(nameof(GetHashCode)).FirstOrDefault() is not IMethodSymbol objectGetHashCodeMethod)
             return false;

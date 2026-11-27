@@ -245,7 +245,7 @@ internal abstract class AbstractSimplifyInterpolationHelpers<
         => SymbolEqualityComparer.Default.Equals(type, FindType<T>(semanticModel));
 
     private static INamedTypeSymbol? FindType<T>(SemanticModel semanticModel)
-        => semanticModel.Compilation.GetTypeByMetadataName(typeof(T).FullName!);
+        => semanticModel.Compilation.GetTypeByMetadataName(typeof(T).FullName);
 
     private static IEnumerable<IOperation> AncestorsAndSelf(IOperation operation)
     {
